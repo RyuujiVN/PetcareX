@@ -13,7 +13,10 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
 
-    const passwordChecked = bcrypt.compare(loginDTO.password, user.password);
+    const passwordChecked = await bcrypt.compare(
+      loginDTO.password,
+      user.password,
+    );
 
     if (!passwordChecked)
       throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
