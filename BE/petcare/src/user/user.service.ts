@@ -4,17 +4,25 @@ import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import bcrypt from 'bcryptjs';
+import { AdminClinic } from './entities/admin-clinic.entity';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(AdminClinic)
+    private readonly adminClinicRepository: Repository<AdminClinic>,
     private readonly dataSource: DataSource,
   ) {}
 
   async findOneByEmail(email: string) {
     return await this.userRepository.findOne({ where: { email: email } });
+  }
+
+  // Lấy admin clinic
+  async findOneAdminClinicById(id: string) {
+    return await this.adminClinicRepository.findOne({ where: { userId: id } });
   }
 
   // Tạo user

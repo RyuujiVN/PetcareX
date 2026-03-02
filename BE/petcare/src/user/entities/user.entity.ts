@@ -4,9 +4,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { AdminClinic } from './admin-clinic.entity';
 
 @Entity('user')
 export class User {
@@ -46,4 +48,7 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @OneToOne(() => AdminClinic, (adminClinic) => adminClinic.user)
+  adminClinic: AdminClinic;
 }

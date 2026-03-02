@@ -7,6 +7,8 @@ import { CreateUserDTO } from 'src/user/dtos/create-user.dto';
 import { UserService } from 'src/user/user.service';
 import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { UpdateClinicDTO } from './dtos/update-clinic.dto';
+import { filterPagintion } from 'src/common/types/pagination.type';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ClinicService {
@@ -16,6 +18,23 @@ export class ClinicService {
     private readonly dataSource: DataSource,
     private readonly userService: UserService,
   ) {}
+
+  async findAllPagination(
+    options: filterPagintion,
+  ): Promise<Pagination<Clinic>> {
+    const queryBuilder = this.clinicRepository
+      .createQueryBuilder('clinic')
+      .where('clinic.deleted = :deleted', {
+        deleted: false,
+      });
+
+    if (options?.search)
+      queryBuilder.andWhere('clinic.name ILIKE :name', {
+        name: options?.search,
+      });
+
+    return paginate<Clinic>(queryBuilder, options);
+  }
 
   async findOneById(id: string): Promise<Clinic> {
     const clinic = await this.clinicRepository.findOne({ where: { id: id } });

@@ -6,6 +6,7 @@ import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { userInfo } from 'os';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -36,6 +37,13 @@ export class AuthService {
       role: user.role,
       avatar_url: user.avatarUrl,
     };
+
+    if (user.role === RoleEnum.ADMIN_CLINIC) {
+      const adminClinic = await this.userService.findOneAdminClinicById(
+        user.id,
+      );
+      payload.clinicId = adminClinic?.clinicId;
+    }
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('ACCESS_TOKEN'),
