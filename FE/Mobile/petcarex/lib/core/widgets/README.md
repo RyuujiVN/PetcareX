@@ -1,0 +1,1 @@
+Thư mục chứa các widget dùng chung cho toàn app.
