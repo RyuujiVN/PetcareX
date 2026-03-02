@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import 'booking.dart';
+import 'booking_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

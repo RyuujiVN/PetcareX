@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'add_pet_page.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -235,7 +236,10 @@ class _BookingPageState extends State<BookingPage> {
   Widget _buildAddNewCard() {
     return GestureDetector(
       onTap: () {
-        // Logic thêm mới thú cưng
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddPetPage()),
+        );
       },
       child: Container(
         decoration: BoxDecoration(
