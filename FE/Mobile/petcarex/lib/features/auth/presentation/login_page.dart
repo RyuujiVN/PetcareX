@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'register_page.dart';
@@ -16,12 +17,20 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
+  final _storage = const FlutterSecureStorage();
 
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
   bool _rememberMe = false;
   bool _obscurePassword = true;
+  bool _isAutoFilled = false; // Biến kiểm tra xem có phải tự động điền không
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
@@ -30,15 +39,50 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _login() {
+  // Load tài khoản đã lưu bảo mật
+  Future<void> _loadSavedCredentials() async {
+    String? rememberMeStr = await _storage.read(key: 'remember_me');
+    bool rememberMe = rememberMeStr == 'true';
+
+    if (rememberMe) {
+      String? savedEmail = await _storage.read(key: 'saved_email');
+      String? savedPassword = await _storage.read(key: 'saved_password');
+
+      setState(() {
+        _rememberMe = true;
+        _isAutoFilled = true; // Đánh dấu là đã tự động điền
+        emailController.text = savedEmail ?? '';
+        passwordController.text = savedPassword ?? '';
+      });
+    }
+  }
+
+  // Lưu hoặc xóa tài khoản bảo mật
+  Future<void> _handleRememberMe() async {
+    if (_rememberMe) {
+      await _storage.write(key: 'remember_me', value: 'true');
+      await _storage.write(key: 'saved_email', value: emailController.text);
+      await _storage.write(key: 'saved_password', value: passwordController.text);
+    } else {
+      await _storage.delete(key: 'remember_me');
+      await _storage.delete(key: 'saved_email');
+      await _storage.delete(key: 'saved_password');
+    }
+  }
+
+  void _login() async {
     if (_formKey.currentState!.validate()) {
+      await _handleRememberMe();
+
       // Tài khoản test Admin
       if (emailController.text == "admin" && passwordController.text == "12345") {
+        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Sai tài khoản hoặc mật khẩu!')),
         );
@@ -60,7 +104,6 @@ class _LoginPageState extends State<LoginPage> {
       await FirebaseAuth.instance.signInWithCredential(credential);
       debugPrint("Đăng nhập Google thành công");
       
-      // Sau khi đăng nhập Google thành công cũng chuyển sang HomePage
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -162,7 +205,7 @@ class _LoginPageState extends State<LoginPage> {
             const Center(
               child: Icon(
                 Icons.account_circle_outlined,
-                size: 60, // Giảm kích thước icon
+                size: 60,
                 color: AppColors.textDark,
               ),
             ),
@@ -181,9 +224,9 @@ class _LoginPageState extends State<LoginPage> {
                 style: AppTextStyles.body,
               ),
             ),
-            const SizedBox(height: 20), // Giảm khoảng cách
+            const SizedBox(height: 20),
             _buildEmailField(),
-            const SizedBox(height: 12), // Giảm khoảng cách
+            const SizedBox(height: 12),
             _buildPasswordField(),
             const SizedBox(height: 8),
             _buildRememberMe(),
@@ -217,7 +260,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ================= EMAIL =================
   Widget _buildEmailField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,6 +271,9 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(height: 6),
         TextFormField(
           controller: emailController,
+          onChanged: (value) {
+            if (_isAutoFilled) setState(() => _isAutoFilled = false);
+          },
           decoration: InputDecoration(
             hintText: 'example@petcare.vn',
             hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5)),
@@ -252,7 +297,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ================= PASSWORD =================
   Widget _buildPasswordField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,16 +330,22 @@ class _LoginPageState extends State<LoginPage> {
         TextFormField(
           controller: passwordController,
           obscureText: _obscurePassword,
+          onChanged: (value) {
+             if (_isAutoFilled) setState(() => _isAutoFilled = false);
+          },
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.grey),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                size: 20,
-                color: AppColors.grey,
+            // Ẩn nút con mắt nếu là tự động điền (tăng bảo mật)
+            suffixIcon: _isAutoFilled 
+              ? null 
+              : IconButton(
+                icon: Icon(
+                  _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  size: 20,
+                  color: AppColors.grey,
+                ),
+                onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
               ),
-              onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-            ),
             contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -315,7 +365,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ================= REMEMBER =================
   Widget _buildRememberMe() {
     return Row(
       children: [
@@ -326,7 +375,13 @@ class _LoginPageState extends State<LoginPage> {
             value: _rememberMe,
             activeColor: AppColors.primary,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-            onChanged: (val) => setState(() => _rememberMe = val ?? false),
+            onChanged: (val) {
+              setState(() {
+                _rememberMe = val ?? false;
+                // Nếu người dùng tắt Remember Me, hiện lại con mắt
+                if (!_rememberMe) _isAutoFilled = false;
+              });
+            },
           ),
         ),
         const SizedBox(width: 8),
@@ -335,10 +390,9 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ================= BUTTONS =================
   Widget _buildLoginButton() {
     return SizedBox(
-      height: 48, // Giảm chiều cao nút
+      height: 48,
       child: ElevatedButton(
         onPressed: _login,
         style: ElevatedButton.styleFrom(
@@ -357,7 +411,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildGoogleButton() {
     return SizedBox(
-      height: 48, // Giảm chiều cao nút
+      height: 48,
       child: OutlinedButton(
         onPressed: _loginWithGoogle,
         style: OutlinedButton.styleFrom(
@@ -420,7 +474,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  // ================= FOOTER =================
   Widget _buildFooter() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 12),
