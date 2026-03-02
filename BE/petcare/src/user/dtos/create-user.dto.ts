@@ -33,6 +33,7 @@ export class CreateUserDTO {
   })
   password: string;
 
+  @ApiProperty()
   @IsEnum(RoleEnum)
   role: RoleEnum;
 }
