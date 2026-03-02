@@ -1,27 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'core/theme/app_theme.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'features/auth/presentation/login_page.dart';
 
-void main() async {
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Thiết lập thanh trạng thái trong suốt để đồng bộ với màu app
+  // Thiết lập thanh trạng thái trong suốt
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-
-  try {
-    // Nếu bạn chưa cấu hình Firebase, dòng này sẽ báo lỗi. 
-    // Tôi dùng try-catch để app vẫn chạy được giao diện.
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint("Firebase chưa được cấu hình: $e");
-  }
 
   runApp(const MyApp());
 }

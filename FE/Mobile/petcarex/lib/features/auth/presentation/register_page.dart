@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:io';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
@@ -22,6 +25,10 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _agreeToTerms = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _isLoading = false;
+
+  // Cập nhật IP chính xác của bạn tại đây
+  final String baseUrl = 'http://localhost:3000';
 
   @override
   void dispose() {
@@ -32,7 +39,7 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void _register() {
+  Future<void> _register() async {
     if (_formKey.currentState!.validate()) {
       if (!_agreeToTerms) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -40,11 +47,52 @@ class _RegisterPageState extends State<RegisterPage> {
         );
         return;
       }
-      debugPrint("Name: ${nameController.text}");
-      debugPrint("Email: ${emailController.text}");
+
+      setState(() => _isLoading = true);
+
+      try {
+        final url = Uri.parse('$baseUrl/auth/register');
+
+        final response = await http.post(
+          url,
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'fullName': nameController.text,
+            'email': emailController.text,
+            'password': passwordController.text,
+            'role': 'CUSTOMER',
+          }),
+        ).timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đăng ký tài khoản thành công!')),
+          );
+          Navigator.pop(context);
+        } else {
+          final errorData = jsonDecode(response.body);
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorData['message'] ?? 'Đăng ký thất bại')),
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        String errorMsg = 'Lỗi kết nối';
+        if (e is SocketException) {
+          errorMsg = 'Không thể kết nối tới Server. Kiểm tra IP (192.168.30.79) và Wi-Fi!';
+        }
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('$errorMsg: $e')),
+        );
+      } finally {
+        if (mounted) setState(() => _isLoading = false);
+      }
     }
   }
 
+  // ... (giữ nguyên phần UI bên dưới)
   Future<void> _registerWithGoogle() async {
     try {
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
@@ -74,7 +122,7 @@ class _RegisterPageState extends State<RegisterPage> {
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5), // Giảm vertical padding
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
                   child: _buildRegisterCard(),
                 ),
               ),
@@ -86,10 +134,9 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // ================= HEADER =================
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8), // Giảm vertical padding
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: const BoxDecoration(
         color: AppColors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEF2F3))),
@@ -102,7 +149,7 @@ class _RegisterPageState extends State<RegisterPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(4), // Giảm padding
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Colors.black,
@@ -112,7 +159,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 child: Image.asset(
                   'assets/images/icon.png',
-                  width: 24, // Giảm kích thước icon
+                  width: 24,
                   height: 24,
                   fit: BoxFit.contain,
                 ),
@@ -121,7 +168,7 @@ class _RegisterPageState extends State<RegisterPage> {
               const Text(
                 'PetCareX',
                 style: TextStyle(
-                  fontSize: 20, // Giảm cỡ chữ
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
                 ),
@@ -130,7 +177,7 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           IconButton(
             onPressed: () {},
-            padding: EdgeInsets.zero, // Loại bỏ padding của icon button
+            padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
             icon: const Icon(Icons.help_outline, color: AppColors.grey, size: 20),
           ),
@@ -139,10 +186,9 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  // ================= CARD =================
   Widget _buildRegisterCard() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Giảm vertical padding
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
@@ -159,35 +205,35 @@ class _RegisterPageState extends State<RegisterPage> {
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min, // Để card ôm sát nội dung
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
               'Đăng ký tài khoản',
               style: TextStyle(
-                fontSize: 22, // Giảm nhẹ cỡ chữ tiêu đề
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: AppColors.textDark,
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 4), // Giảm khoảng cách
+            const SizedBox(height: 4),
             const Text(
               'Tham gia cộng đồng chăm sóc thú cưng ngay hôm nay',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 12, // Giảm cỡ chữ
+                fontSize: 12,
                 color: AppColors.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 16), // Giảm khoảng cách
+            const SizedBox(height: 16),
             _buildTextField(
               label: 'Họ và tên',
               hint: 'Nhập họ và tên của bạn',
               controller: nameController,
               icon: Icons.person_outline,
             ),
-            const SizedBox(height: 10), // Giảm khoảng cách giữa các field
+            const SizedBox(height: 10),
             _buildTextField(
               label: 'Email',
               hint: 'example@email.com',
@@ -212,11 +258,11 @@ class _RegisterPageState extends State<RegisterPage> {
               onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
               icon: Icons.refresh,
             ),
-            const SizedBox(height: 12), // Giảm khoảng cách
+            const SizedBox(height: 12),
             _buildTermsCheckbox(),
-            const SizedBox(height: 16), // Giảm khoảng cách
+            const SizedBox(height: 16),
             _buildRegisterButton(),
-            const SizedBox(height: 12), // Giảm khoảng cách
+            const SizedBox(height: 12),
             _buildDivider(),
             const SizedBox(height: 12),
             _buildGoogleButton(),
@@ -240,11 +286,11 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), // Giảm nhẹ cỡ chữ label
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
-        const SizedBox(height: 4), // Giảm khoảng cách label và field
+        const SizedBox(height: 4),
         SizedBox(
-          height: 44, // Cố định chiều cao field để thu gọn
+          height: 44,
           child: TextFormField(
             controller: controller,
             keyboardType: keyboardType,
@@ -253,7 +299,7 @@ class _RegisterPageState extends State<RegisterPage> {
               hintText: hint,
               hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5), fontSize: 13),
               prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16), // Giảm padding nội bộ
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
               filled: true,
               fillColor: const Color(0xFFF8F9FA),
               border: OutlineInputBorder(
@@ -336,10 +382,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildTermsCheckbox() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.center, // Chỉnh giữa theo chiều dọc
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         SizedBox(
-          width: 20, // Thu nhỏ checkbox
+          width: 20,
           height: 20,
           child: Checkbox(
             value: _agreeToTerms,
@@ -353,7 +399,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: RichText(
             text: TextSpan(
               text: 'Tôi đồng ý với các ',
-              style: const TextStyle(color: AppColors.textDark, fontSize: 11), // Thu nhỏ cỡ chữ
+              style: const TextStyle(color: AppColors.textDark, fontSize: 11),
               children: [
                 TextSpan(
                   text: 'Điều khoản',
@@ -375,20 +421,26 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildRegisterButton() {
     return SizedBox(
-      height: 48, // Giảm chiều cao nút
+      height: 48,
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: _register,
+        onPressed: _isLoading ? null : _register,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
-        child: const Text(
-          'Tạo tài khoản',
-          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : const Text(
+                'Tạo tài khoản',
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+              ),
       ),
     );
   }
@@ -415,10 +467,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildGoogleButton() {
     return SizedBox(
-      height: 44, // Giảm chiều cao nút
+      height: 44,
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: _registerWithGoogle,
+        onPressed: () {},
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFE0E0E0)),
           shape: RoundedRectangleBorder(
@@ -476,7 +528,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildFooter() {
     return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 8), // Giảm padding
+      padding: EdgeInsets.symmetric(vertical: 8),
       child: Text(
         '© 2026 PetCareX Vietnam. Bảo lưu mọi quyền.',
         style: TextStyle(color: AppColors.grey, fontSize: 9),
