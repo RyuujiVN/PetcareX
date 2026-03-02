@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Clinic } from './entities/clinic.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { CreateClinicDTO } from './dtos/create-clinic.dto';
 import { CreateUserDTO } from 'src/user/dtos/create-user.dto';
 import { UserService } from 'src/user/user.service';
 import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
+import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 
 @Injectable()
 export class ClinicService {
@@ -15,6 +16,14 @@ export class ClinicService {
     private readonly dataSource: DataSource,
     private readonly userService: UserService,
   ) {}
+
+  async findOneById(id: string): Promise<Clinic> {
+    const clinic = await this.clinicRepository.findOne({ where: { id: id } });
+
+    if (!clinic) throw new NotFoundException();
+
+    return clinic;
+  }
 
   async createClinic(
     clinicDTO: CreateClinicDTO,
@@ -39,5 +48,12 @@ export class ClinicService {
 
       return savedClinic;
     });
+  }
+
+  async updateClinic(id: string, clinicDTO: UpdateClinicDTO) {
+    const clinic = await this.findOneById(id);
+
+    Object.assign(clinic, clinicDTO);
+    await this.clinicRepository.save(clinic);
   }
 }

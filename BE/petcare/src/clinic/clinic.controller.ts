@@ -1,9 +1,10 @@
 import { Clinic } from 'src/clinic/entities/clinic.entity';
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CreateClinicWithAdminDTO } from './dtos/create-clinic-with-admin.dto';
 import { ClinicService } from './clinic.service';
+import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 
 @Controller('clinic')
 // @ApiBearerAuth()
@@ -16,9 +17,23 @@ export class ClinicController {
   @ApiBody({
     type: CreateClinicWithAdminDTO,
   })
-  async createClinic(
-    @Body() bodyDTO: CreateClinicWithAdminDTO,
-  ): Promise<Clinic> {
-    return await this.clinicService.createClinic(bodyDTO.clinic, bodyDTO.admin);
+  createClinic(@Body() bodyDTO: CreateClinicWithAdminDTO): Promise<Clinic> {
+    return this.clinicService.createClinic(bodyDTO.clinic, bodyDTO.admin);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Chỉnh sửa thông tin phòng khám' })
+  @ApiBody({
+    type: UpdateClinicDTO,
+  })
+  async updateClinic(
+    @Param('id') id: string,
+    @Body() bodyDTO: UpdateClinicDTO,
+  ) {
+    await this.clinicService.updateClinic(id, bodyDTO);
+
+    return {
+      message: 'Cập nhật thành công',
+    };
   }
 }

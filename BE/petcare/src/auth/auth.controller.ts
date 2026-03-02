@@ -14,10 +14,6 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Đăng nhập' })
-  @ApiResponse({
-    status: 201,
-    description: 'Đăng nhập thành công',
-  })
   @ApiBody({
     type: LoginDTO,
   })
@@ -26,6 +22,10 @@ export class AuthController {
   }
 
   @Post('register')
+  @ApiOperation({ summary: 'Đăng ký' })
+  @ApiBody({
+    type: LoginDTO,
+  })
   @ApiBody({
     type: CreateUserDTO,
   })
