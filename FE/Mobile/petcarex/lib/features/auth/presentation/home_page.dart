@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
+import 'booking.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -146,9 +148,9 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPetList() {
     return Row(
       children: [
-        _buildPetItem('Mimi', 'https://i.pravatar.cc/150?u=cat1', true),
+        _buildPetItem('Mimi', 'assets/images/meo_anh_long_ngan.png', true),
         const SizedBox(width: 16),
-        _buildPetItem('LuLu', 'https://i.pravatar.cc/150?u=dog1', false),
+        _buildPetItem('LuLu', 'assets/images/cho_phoc_soc.png', false),
         const SizedBox(width: 16),
         Column(
           children: [
@@ -172,6 +174,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPetItem(String name, String url, bool isActive) {
+    final ImageProvider imageProvider =
+        url.startsWith('http') ? NetworkImage(url) : AssetImage(url);
     return Column(
       children: [
         Container(
@@ -180,7 +184,7 @@ class _HomePageState extends State<HomePage> {
             shape: BoxShape.circle,
             border: Border.all(color: isActive ? AppColors.primary : Colors.transparent, width: 2),
           ),
-          child: CircleAvatar(radius: 28, backgroundImage: NetworkImage(url)),
+          child: CircleAvatar(radius: 28, backgroundImage: imageProvider),
         ),
         const SizedBox(height: 8),
         Text(name, style: TextStyle(fontSize: 12, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
@@ -191,7 +195,14 @@ class _HomePageState extends State<HomePage> {
   Widget _buildQuickActions() {
     return Column(
       children: [
-        _buildActionTile(Icons.calendar_month, "Đặt lịch khám nhanh", "Chọn bác sĩ nhanh nhất ngay", const Color(0xFFE8F9F7), AppColors.primary),
+        _buildActionTile(
+          Icons.calendar_month,
+          "Đặt lịch khám nhanh",
+          "Chọn bác sĩ nhanh nhất ngay",
+          const Color(0xFFE8F9F7),
+          AppColors.primary,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const BookingPage())),
+        ),
         const SizedBox(height: 12),
         _buildActionTile(Icons.smart_toy_outlined, "Tư vấn AI Chatbot", "Hỗ trợ sức khỏe 24/7", const Color(0xFFEEF3FF), const Color(0xFF4285F4)),
         const SizedBox(height: 12),
@@ -200,33 +211,43 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildActionTile(IconData icon, String title, String sub, Color bg, Color iconColor) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
-            child: Icon(icon, color: iconColor),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const SizedBox(height: 2),
-                Text(sub, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-              ],
+  Widget _buildActionTile(
+    IconData icon,
+    String title,
+    String sub,
+    Color bg,
+    Color iconColor, {
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+              child: Icon(icon, color: iconColor),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: Colors.grey),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  const SizedBox(height: 2),
+                  Text(sub, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }
