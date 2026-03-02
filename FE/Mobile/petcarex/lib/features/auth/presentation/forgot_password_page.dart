@@ -91,13 +91,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               ),
             ],
           ),
-          Positioned(
-            right: 0,
-            child: IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
-            ),
-          ),
         ],
       ),
     );
@@ -109,10 +102,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.grey.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -127,8 +120,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  shape: BoxCircle(),
+                  color: AppColors.primary.withOpacity(0.1),
+                  shape: BoxShape.circle,
                 ),
                 child: const Icon(
                   Icons.restart_alt,
@@ -175,7 +168,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             hintText: 'example@email.com',
-            hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5)),
             prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.grey),
             contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             filled: true,
