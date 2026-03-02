@@ -1,5 +1,13 @@
 import { Clinic } from 'src/clinic/entities/clinic.entity';
-import { Body, Controller, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CreateClinicWithAdminDTO } from './dtos/create-clinic-with-admin.dto';
@@ -34,6 +42,19 @@ export class ClinicController {
 
     return {
       message: 'Cập nhật thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Xoá phòng khám' })
+  @ApiBody({
+    type: UpdateClinicDTO,
+  })
+  async deleteClinic(@Param('id') id: string) {
+    await this.clinicService.deleteClinic(id);
+
+    return {
+      message: 'Xoá thành công',
     };
   }
 }

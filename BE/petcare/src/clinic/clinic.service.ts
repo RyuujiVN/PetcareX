@@ -56,4 +56,12 @@ export class ClinicService {
     Object.assign(clinic, clinicDTO);
     await this.clinicRepository.save(clinic);
   }
+
+  async deleteClinic(id: string) {
+    const result = await this.clinicRepository.delete({
+      id: id,
+    });
+
+    if (result.affected === 0) throw new NotFoundException();
+  }
 }
