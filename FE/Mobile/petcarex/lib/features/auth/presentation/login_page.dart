@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'register_page.dart';
 import 'forgot_password_page.dart';
+import '../presentation/home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,8 +32,17 @@ class _LoginPageState extends State<LoginPage> {
 
   void _login() {
     if (_formKey.currentState!.validate()) {
-      debugPrint("Email: ${emailController.text}");
-      debugPrint("Password: ${passwordController.text}");
+      // Tài khoản test Admin
+      if (emailController.text == "admin" && passwordController.text == "12345") {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Sai tài khoản hoặc mật khẩu!')),
+        );
+      }
     }
   }
 
@@ -49,6 +59,14 @@ class _LoginPageState extends State<LoginPage> {
 
       await FirebaseAuth.instance.signInWithCredential(credential);
       debugPrint("Đăng nhập Google thành công");
+      
+      // Sau khi đăng nhập Google thành công cũng chuyển sang HomePage
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
     } catch (e) {
       debugPrint("Google sign in error: $e");
     }
@@ -127,10 +145,10 @@ class _LoginPageState extends State<LoginPage> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.grey.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -191,7 +209,7 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
             "Hoặc tiếp đăng nhập với",
-            style: TextStyle(color: AppColors.grey.withValues(alpha: 0.8), fontSize: 13),
+            style: TextStyle(color: AppColors.grey.withOpacity(0.8), fontSize: 13),
           ),
         ),
         const Expanded(child: Divider(color: Color(0xFFEEEEEE))),
@@ -211,10 +229,9 @@ class _LoginPageState extends State<LoginPage> {
         const SizedBox(height: 6),
         TextFormField(
           controller: emailController,
-          keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             hintText: 'example@petcare.vn',
-            hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5)),
             prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.grey),
             contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             border: OutlineInputBorder(
@@ -228,7 +245,6 @@ class _LoginPageState extends State<LoginPage> {
           ),
           validator: (value) {
             if (value == null || value.isEmpty) return 'Vui lòng nhập email';
-            if (!value.contains('@')) return 'Email không hợp lệ';
             return null;
           },
         ),

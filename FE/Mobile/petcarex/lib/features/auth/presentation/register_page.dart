@@ -74,7 +74,7 @@ class _RegisterPageState extends State<RegisterPage> {
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5), // Giảm vertical padding
                   child: _buildRegisterCard(),
                 ),
               ),
@@ -89,7 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
   // ================= HEADER =================
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8), // Giảm vertical padding
       decoration: const BoxDecoration(
         color: AppColors.white,
         border: Border(bottom: BorderSide(color: Color(0xFFEEF2F3))),
@@ -97,12 +97,12 @@ class _RegisterPageState extends State<RegisterPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const SizedBox(width: 30), // Để cân bằng với icon help
+          const SizedBox(width: 30),
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(4), // Giảm padding
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: Colors.black,
@@ -112,16 +112,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
                 child: Image.asset(
                   'assets/images/icon.png',
-                  width: 30,
-                  height: 30,
+                  width: 24, // Giảm kích thước icon
+                  height: 24,
                   fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               const Text(
                 'PetCareX',
                 style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 20, // Giảm cỡ chữ
                   fontWeight: FontWeight.bold,
                   color: AppColors.textDark,
                 ),
@@ -130,7 +130,9 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.help_outline, color: AppColors.grey),
+            padding: EdgeInsets.zero, // Loại bỏ padding của icon button
+            constraints: const BoxConstraints(),
+            icon: const Icon(Icons.help_outline, color: AppColors.grey, size: 20),
           ),
         ],
       ),
@@ -140,14 +142,14 @@ class _RegisterPageState extends State<RegisterPage> {
   // ================= CARD =================
   Widget _buildRegisterCard() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16), // Giảm vertical padding
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.grey.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -157,30 +159,35 @@ class _RegisterPageState extends State<RegisterPage> {
         key: _formKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min, // Để card ôm sát nội dung
           children: [
             const Text(
               'Đăng ký tài khoản',
-              style: AppTextStyles.title,
+              style: TextStyle(
+                fontSize: 22, // Giảm nhẹ cỡ chữ tiêu đề
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4), // Giảm khoảng cách
             const Text(
               'Tham gia cộng đồng chăm sóc thú cưng ngay hôm nay',
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 13.5,
+                fontSize: 12, // Giảm cỡ chữ
                 color: AppColors.primary,
                 fontWeight: FontWeight.w500,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16), // Giảm khoảng cách
             _buildTextField(
               label: 'Họ và tên',
               hint: 'Nhập họ và tên của bạn',
               controller: nameController,
               icon: Icons.person_outline,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10), // Giảm khoảng cách giữa các field
             _buildTextField(
               label: 'Email',
               hint: 'example@email.com',
@@ -188,7 +195,7 @@ class _RegisterPageState extends State<RegisterPage> {
               icon: Icons.email_outlined,
               keyboardType: TextInputType.emailAddress,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _buildPasswordField(
               label: 'Mật khẩu',
               hint: 'Nhập mật khẩu',
@@ -196,7 +203,7 @@ class _RegisterPageState extends State<RegisterPage> {
               obscureText: _obscurePassword,
               onToggle: () => setState(() => _obscurePassword = !_obscurePassword),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
             _buildPasswordField(
               label: 'Xác nhận mật khẩu',
               hint: 'Nhập lại mật khẩu',
@@ -205,15 +212,15 @@ class _RegisterPageState extends State<RegisterPage> {
               onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
               icon: Icons.refresh,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12), // Giảm khoảng cách
             _buildTermsCheckbox(),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16), // Giảm khoảng cách
             _buildRegisterButton(),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12), // Giảm khoảng cách
             _buildDivider(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildGoogleButton(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildLoginText(),
           ],
         ),
@@ -233,32 +240,36 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13), // Giảm nhẹ cỡ chữ label
         ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
-            prefixIcon: Icon(icon, size: 20, color: AppColors.grey),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        const SizedBox(height: 4), // Giảm khoảng cách label và field
+        SizedBox(
+          height: 44, // Cố định chiều cao field để thu gọn
+          child: TextFormField(
+            controller: controller,
+            keyboardType: keyboardType,
+            style: const TextStyle(fontSize: 14),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5), fontSize: 13),
+              prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16), // Giảm padding nội bộ
+              filled: true,
+              fillColor: const Color(0xFFF8F9FA),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Vui lòng nhập $label';
+              return null;
+            },
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) return 'Vui lòng nhập $label';
-            return null;
-          },
         ),
       ],
     );
@@ -277,43 +288,47 @@ class _RegisterPageState extends State<RegisterPage> {
       children: [
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
-            prefixIcon: Icon(icon, size: 20, color: AppColors.grey),
-            suffixIcon: IconButton(
-              icon: Icon(
-                obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                size: 20,
-                color: AppColors.grey,
+        const SizedBox(height: 4),
+        SizedBox(
+          height: 44,
+          child: TextFormField(
+            controller: controller,
+            obscureText: obscureText,
+            style: const TextStyle(fontSize: 14),
+            decoration: InputDecoration(
+              hintText: hint,
+              hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5), fontSize: 13),
+              prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                  size: 18,
+                  color: AppColors.grey,
+                ),
+                onPressed: onToggle,
               ),
-              onPressed: onToggle,
+              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+              filled: true,
+              fillColor: const Color(0xFFF8F9FA),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-            filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
+            validator: (value) {
+              if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
+              if (label == 'Xác nhận mật khẩu' && value != passwordController.text) {
+                return 'Mật khẩu không khớp';
+              }
+              return null;
+            },
           ),
-          validator: (value) {
-            if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
-            if (label == 'Xác nhận mật khẩu' && value != passwordController.text) {
-              return 'Mật khẩu không khớp';
-            }
-            return null;
-          },
         ),
       ],
     );
@@ -321,11 +336,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildTermsCheckbox() {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center, // Chỉnh giữa theo chiều dọc
       children: [
         SizedBox(
-          width: 24,
-          height: 24,
+          width: 20, // Thu nhỏ checkbox
+          height: 20,
           child: Checkbox(
             value: _agreeToTerms,
             activeColor: AppColors.primary,
@@ -333,20 +348,20 @@ class _RegisterPageState extends State<RegisterPage> {
             onChanged: (val) => setState(() => _agreeToTerms = val ?? false),
           ),
         ),
-        const SizedBox(width: 12),
+        const SizedBox(width: 8),
         Expanded(
           child: RichText(
             text: TextSpan(
               text: 'Tôi đồng ý với các ',
-              style: const TextStyle(color: AppColors.textDark, fontSize: 13),
+              style: const TextStyle(color: AppColors.textDark, fontSize: 11), // Thu nhỏ cỡ chữ
               children: [
                 TextSpan(
-                  text: 'Điều khoản dịch vụ',
+                  text: 'Điều khoản',
                   style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                 ),
-                const TextSpan(text: ' và '),
+                const TextSpan(text: ' & '),
                 TextSpan(
-                  text: 'Chính sách bảo mật',
+                  text: 'Bảo mật',
                   style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
                 ),
                 const TextSpan(text: ' của PetCareX'),
@@ -360,18 +375,19 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildRegisterButton() {
     return SizedBox(
-      height: 54,
+      height: 48, // Giảm chiều cao nút
+      width: double.infinity,
       child: ElevatedButton(
         onPressed: _register,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         ),
         child: const Text(
           'Tạo tài khoản',
-          style: AppTextStyles.button,
+          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
         ),
       ),
     );
@@ -384,11 +400,11 @@ class _RegisterPageState extends State<RegisterPage> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Text(
-            "HOẶC ĐĂNG KÝ BẰNG",
+            "HOẶC",
             style: TextStyle(
-              color: AppColors.grey.withValues(alpha: 0.8),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+              color: AppColors.grey.withOpacity(0.6),
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
@@ -399,13 +415,14 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildGoogleButton() {
     return SizedBox(
-      height: 50,
+      height: 44, // Giảm chiều cao nút
+      width: double.infinity,
       child: OutlinedButton(
         onPressed: _registerWithGoogle,
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFE0E0E0)),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
         child: Row(
@@ -413,15 +430,15 @@ class _RegisterPageState extends State<RegisterPage> {
           children: [
             Image.asset(
               'assets/images/google.png',
-              height: 20,
+              height: 16,
               fit: BoxFit.contain,
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             const Text(
               'Google',
               style: TextStyle(
                 color: AppColors.textDark,
-                fontSize: 15,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -436,7 +453,7 @@ class _RegisterPageState extends State<RegisterPage> {
       child: RichText(
         text: TextSpan(
           text: 'Đã có tài khoản? ',
-          style: const TextStyle(color: AppColors.textDark, fontSize: 14),
+          style: const TextStyle(color: AppColors.textDark, fontSize: 13),
           children: [
             WidgetSpan(
               child: GestureDetector(
@@ -446,7 +463,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   style: TextStyle(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
                 ),
               ),
@@ -459,10 +476,10 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildFooter() {
     return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 16),
+      padding: EdgeInsets.symmetric(vertical: 8), // Giảm padding
       child: Text(
-        '© 2026 PetCareX Vietnam. Tất cả quyền được bảo lưu.',
-        style: TextStyle(color: AppColors.grey, fontSize: 11),
+        '© 2026 PetCareX Vietnam. Bảo lưu mọi quyền.',
+        style: TextStyle(color: AppColors.grey, fontSize: 9),
       ),
     );
   }
