@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import 'appointment_notification.dart';
 import 'booking_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -404,8 +405,13 @@ class _HomePageState extends State<HomePage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavItem(Icons.home_filled, "TRANG CHỦ", 0),
-            _buildNavItem(Icons.calendar_today_outlined, "LỊCH HẸN", 1),
+            _buildNavItem(Icons.home_filled, "Trang chủ", 0),
+            _buildNavItem(Icons.calendar_today_outlined, "Lịch hẹn", 1, onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AppointmentNotificationPage()),
+              );
+            }),
             const SizedBox(width: 40), // Space for FAB
             _buildNavItem(Icons.forum_outlined, "CỘNG ĐỒNG", 2),
             _buildNavItem(Icons.person_outline, "CÁ NHÂN", 3),
@@ -415,10 +421,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index) {
+  Widget _buildNavItem(IconData icon, String label, int index, {VoidCallback? onTap}) {
     bool isSelected = _selectedIndex == index;
     return GestureDetector(
-      onTap: () => setState(() => _selectedIndex = index),
+      onTap: onTap ?? () => setState(() => _selectedIndex = index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -432,16 +432,9 @@ class _AddPetPageState extends State<AddPetPage> {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
         ),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.save, size: 20),
-            SizedBox(width: 8),
-            Text(
-              'Lưu thông tin',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
+        child: const Text(
+          'Lưu thông tin',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
     );
