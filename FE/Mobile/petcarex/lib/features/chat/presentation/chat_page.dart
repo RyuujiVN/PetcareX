@@ -13,18 +13,13 @@ class _ChatPageState extends State<ChatPage> {
   final List<Map<String, dynamic>> _messages = [
     {
       'isMe': false,
-      'text': 'Chào Thành! Tôi là PetCar AI. Hôm nay tôi có thể giúp gì cho sức khỏe của các bạn nhỏ nhà mình không?',
+      'text': 'Chào bạn! Tôi là PetCar AI. Hôm nay tôi có thể giúp gì cho sức khỏe của các bạn nhỏ nhà mình không?',
       'time': '09:41 AM'
     },
     {
       'isMe': true,
       'text': 'Chào AI, chú chó LuLu nhà tôi dạo này bị biếng ăn, chỉ nằm một chỗ. Tôi nên làm gì?',
       'time': '09:42 AM'
-    },
-    {
-      'isMe': false,
-      'text': 'Tình trạng biếng ăn kèm theo lờ đờ ở chó có thể do nhiều nguyên nhân. Bạn hãy kiểm tra giúp tôi các dấu hiệu sau nhé:\n\n✅ Kiểm tra nhiệt độ: Mũi LuLu có bị khô hay nóng không?\n✅ Kiểm tra nướu: Nướu có màu hồng nhạt hay bị tái/đỏ rực?\n✅ Thay đổi môi trường: Gần đây có sự thay đổi nào về thức ăn hay chỗ ở không?\n\nLưu ý: Nếu LuLu bỏ bữa quá 24h kèm nôn mửa, hãy đưa bé đến thú y ngay lập tức.',
-      'time': '09:43 AM'
     },
   ];
 
