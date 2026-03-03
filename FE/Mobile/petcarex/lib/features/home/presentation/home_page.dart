@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/services/camera_service.dart';
-import '../../../../core/theme/app_colors.dart';
-import 'appointment_notification.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../booking/presentation/booking_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -15,6 +14,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   final CameraService _cameraService = CameraService();
+  
+  final double verticalOffset = -60;
 
   Future<void> _openQRScanner() async {
     bool hasPermission = await _cameraService.requestCameraPermission();
@@ -449,7 +450,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             _buildNavItem(Icons.home_filled, "TRANG CHỦ", 0),
             _buildNavItem(Icons.calendar_today_outlined, "LỊCH HẸN", 1),
-            const SizedBox(width: 40), // Space for FAB
+            const SizedBox(width: 40),
             _buildNavItem(Icons.forum_outlined, "CỘNG ĐỒNG", 2),
             _buildNavItem(Icons.person_outline, "CÁ NHÂN", 3),
           ],
@@ -458,10 +459,10 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildNavItem(IconData icon, String label, int index, {VoidCallback? onTap}) {
+  Widget _buildNavItem(IconData icon, String label, int index) {
     bool isSelected = _selectedIndex == index;
     return GestureDetector(
-      onTap: onTap ?? () => setState(() => _selectedIndex = index),
+      onTap: () => setState(() => _selectedIndex = index),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -491,7 +492,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
 
   late AnimationController _animationController;
   
-  // TỌA ĐỘ DỊCH CHUYỂN KHUNG
   final double verticalOffset = -60;
 
   @override
@@ -529,7 +529,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
               }
             },
           ),
-          // Vẽ tất cả (nền mờ, lỗ thủng, góc trắng, thanh quét) trong một CustomPaint duy nhất
           Positioned.fill(
             child: AnimatedBuilder(
               animation: _animationController,
@@ -544,8 +543,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
               },
             ),
           ),
-          
-          // Giao diện điều khiển phía trên
           Positioned(
             top: 40,
             left: 10,
@@ -557,21 +554,11 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
           Positioned(
             top: 40,
             right: 10,
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.flash_on, color: Colors.white),
-                  onPressed: () => controller.toggleTorch(),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.more_horiz, color: Colors.white),
-                  onPressed: () {},
-                ),
-              ],
+            child: IconButton(
+              icon: const Icon(Icons.flash_on, color: Colors.white),
+              onPressed: () => controller.toggleTorch(),
             ),
           ),
-
-          // Dòng chữ hướng dẫn (phải căn theo offset của khung)
           Center(
             child: Transform.translate(
               offset: Offset(0, verticalOffset + (size / 2) + 40),
@@ -585,8 +572,6 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
               ),
             ),
           ),
-
-          // Bottom Actions
           Positioned(
             bottom: 60,
             left: 0,
@@ -651,7 +636,6 @@ class ScannerOverlayPainter extends CustomPainter {
       height: scanBoxSize,
     );
 
-    // 1. Vẽ nền mờ xung quanh và đục lỗ trong suốt ở giữa
     canvas.drawPath(
       Path.combine(
         PathOperation.difference,
@@ -661,7 +645,6 @@ class ScannerOverlayPainter extends CustomPainter {
       backgroundPaint,
     );
 
-    // 2. Vẽ 4 góc khung trắng
     final borderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
@@ -670,29 +653,24 @@ class ScannerOverlayPainter extends CustomPainter {
     final path = Path();
     const cornerLen = 25.0;
 
-    // Top Left
     path.moveTo(scanRect.left, scanRect.top + cornerLen);
     path.lineTo(scanRect.left, scanRect.top);
     path.lineTo(scanRect.left + cornerLen, scanRect.top);
 
-    // Top Right
     path.moveTo(scanRect.right - cornerLen, scanRect.top);
     path.lineTo(scanRect.right, scanRect.top);
     path.lineTo(scanRect.right, scanRect.top + cornerLen);
 
-    // Bottom Left
     path.moveTo(scanRect.left, scanRect.bottom - cornerLen);
     path.lineTo(scanRect.left, scanRect.bottom);
     path.lineTo(scanRect.left + cornerLen, scanRect.bottom);
 
-    // Bottom Right
     path.moveTo(scanRect.right - cornerLen, scanRect.bottom);
     path.lineTo(scanRect.right, scanRect.bottom);
     path.lineTo(scanRect.right, scanRect.bottom - cornerLen);
 
     canvas.drawPath(path, borderPaint);
 
-    // 3. Vẽ thanh quét tia sáng
     final linePaint = Paint()
       ..shader = LinearGradient(
         colors: [Colors.white.withOpacity(0), Colors.white, Colors.white.withOpacity(0)],
