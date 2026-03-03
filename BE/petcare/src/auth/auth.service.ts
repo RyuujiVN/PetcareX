@@ -73,9 +73,10 @@ export class AuthService {
 
   async forgotPassword(forgot: ForgotPasswordDTO) {
     // Kiểm tra email có tồn tại hay không
-    const user = this.userService.findOneByEmail(forgot.email);
+    const user = await this.userService.findOneByEmail(forgot.email);
     if (!user) throw new NotFoundException('Không tồn tại tài khoản');
 
+    // Gửi mail
     const code = await this.otpService.createOtp(forgot.email);
     const subject = 'Mã OTP xác thực đăng nhập';
     const html = `

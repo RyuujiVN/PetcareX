@@ -28,7 +28,7 @@ export class OtpService {
       },
     });
 
-    if (!otpRecord) throw new NotFoundException();
+    if (!otpRecord) throw new NotFoundException('Mã OTP không đúng');
 
     return otpRecord;
   }

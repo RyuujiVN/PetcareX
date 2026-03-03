@@ -1,7 +1,9 @@
+import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -30,4 +32,7 @@ export class Clinic {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @OneToMany(() => Veterinarian, (veterinarian) => veterinarian.clinic)
+  veterinarians: Veterinarian[];
 }

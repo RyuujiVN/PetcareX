@@ -1,4 +1,5 @@
 import { Clinic } from 'src/clinic/entities/clinic.entity';
+import { VeterinarySpecialtyEnum } from 'src/common/enums/veterinary-specialty.enum';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -17,12 +18,21 @@ export class Veterinarian {
   @Column({ name: 'clinic_id' })
   clinicId: string;
 
-  @OneToOne(() => User)
-  user: User;
-
-  @ManyToOne(() => Clinic, (clinic) => clinic.veterinarian, {
+  @OneToOne(() => User, {
     onDelete: 'CASCADE',
   })
-  @JoinColumn()
+  @JoinColumn({ name: 'user_id' })
+  user: User;
+
+  @ManyToOne(() => Clinic, (clinic) => clinic.veterinarians, {
+    onDelete: 'CASCADE',
+  })
+  @JoinColumn({ name: 'clinic_id' })
   clinic: Clinic;
+
+  @Column({
+    type: 'enum',
+    enum: VeterinarySpecialtyEnum,
+  })
+  specialty: VeterinarySpecialtyEnum;
 }
