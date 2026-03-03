@@ -272,7 +272,7 @@ class _BookingPageState extends State<BookingPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFF7F9FA),
+        color: const Color(0xFFEEF3F0).withOpacity(0.3),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.grey.shade200),
       ),
@@ -290,7 +290,7 @@ class _BookingPageState extends State<BookingPage> {
           ),
           const SizedBox(height: 20),
           _detailRow(
-            Icons.pets,
+            Icons.pets_outlined,
             'Thú cưng',
             _selectedPetIndex == 0 ? 'Lu Lu' : 'Mimi',
             true,
