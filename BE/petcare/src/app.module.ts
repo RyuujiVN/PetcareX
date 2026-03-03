@@ -9,6 +9,10 @@ import { ConfigModule } from '@nestjs/config';
 import { CatchEverythingFilter } from './common/filters/global-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
 import { ClinicModule } from './clinic/clinic.module';
+import { DoctorModule } from './doctor/doctor.module';
+import { MailModule } from './mail/mail.module';
+import { OtpModule } from './otp/otp.module';
+import { VeterinarianModule } from './veterinarian/veterinarian.module';
 
 @Module({
   imports: [
@@ -19,6 +23,10 @@ import { ClinicModule } from './clinic/clinic.module';
       isGlobal: true,
     }),
     ClinicModule,
+    DoctorModule,
+    MailModule,
+    OtpModule,
+    VeterinarianModule,
   ],
   controllers: [AppController],
   providers: [

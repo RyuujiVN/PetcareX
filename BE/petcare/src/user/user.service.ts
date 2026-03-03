@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DataSource, EntityManager, Repository } from 'typeorm';
 import bcrypt from 'bcryptjs';
 import { AdminClinic } from './entities/admin-clinic.entity';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class UserService {
@@ -28,6 +29,7 @@ export class UserService {
   // Tạo user
   async createUser(
     userDTO: CreateUserDTO,
+    role: RoleEnum,
     manager?: EntityManager,
   ): Promise<User> {
     // Kiểm tra xem thử có cần chạy transaction hay không
@@ -44,6 +46,7 @@ export class UserService {
     userDTO.password = await bcrypt.hash(userDTO.password, 10);
 
     const newUser = new User();
+    newUser.role = role;
     Object.assign(newUser, userDTO);
 
     return await repo.save(newUser);
