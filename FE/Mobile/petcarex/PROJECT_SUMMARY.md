@@ -1,44 +1,52 @@
-# Project Summary: PetCareX Mobile
+# PetCareX Mobile Project Summary
 
-## 1. Project Overview
-PetCareX is a mobile application designed for pet care management, connecting pet owners with veterinary services and a supportive community.
+## 📌 Project Overview
+PetCareX is a Flutter-based mobile application for pet care management, integrated with a NestJS backend.
 
-## 2. Technical Stack
-- **Framework:** Flutter (Dart)
-- **Backend:** NestJS (Node.js) - connected via REST API
-- **Local Storage:** `flutter_secure_storage` (for sensitive data like tokens), `shared_preferences` (for general settings)
-- **Networking:** `http` package
-- **Hardware Integration:** `image_picker` and `permission_handler` for camera/gallery access.
+## 🛠 Tech Stack
+- **Frontend:** Flutter (Dart)
+- **Backend:** NestJS (Node.js)
+- **Authentication:** Custom JWT-based Auth (via `/auth/login` and `/auth/register`)
+- **Security:** `flutter_secure_storage` (Keystore/Keychain)
+- **Hardware:** `image_picker` + `permission_handler` (Camera & Gallery)
+- **Local Settings:** `shared_preferences`
 
-## 3. Core Features (Implemented)
-### Authentication
-- **Login:** 
-  - Integrated with Backend API (`/auth/login`).
-  - Secure credential storage using `flutter_secure_storage`.
-  - "Remember Me" functionality with automatic credential filling and security-enhanced UI (hiding password toggle on auto-fill).
-- **Registration:** 
-  - Integrated with Backend API (`/auth/register`).
-  - Role-based account creation (default: `CUSTOMER`).
-  - Terms & Privacy Policy agreement.
-- **Password Recovery:** 
-  - UI for "Forgot Password" and "Reset Password" screens.
+## 📡 Networking & Connection (Crucial)
+- **Base URL:** `http://192.168.30.79:3000` (Manual IP for Physical Device testing)
+- **Local Testing:** `http://10.0.2.2:3000` (For Android Emulator)
+- **Corporate Network Solution:** Use `adb reverse tcp:3000 tcp:3000` and set URL to `http://localhost:3000` if IP connection is blocked.
+- **Android Config:** `android:usesCleartextTraffic="true"` enabled in `AndroidManifest.xml`.
 
-### Home Dashboard
-- Personalized greeting and user profile.
-- Pet management list (Mimi, LuLu).
-- Quick Actions: Booking appointments, AI Chatbot consultation, Clinic locator.
-- Appointment Management: Upcoming appointment cards with confirm/cancel actions.
-- Community Forum: Latest posts preview with engagement metrics.
+## ✅ Implemented Features
 
-### Hardware Services
-- **Camera Service:** Centralized service for capturing photos and picking images from the gallery, including automated permission handling.
+### 1. Authentication (Auth Feature)
+- **Login (`login_page.dart`):**
+  - Integrated with `/auth/login`.
+  - Secure "Remember Me": Stores credentials in Secure Storage.
+  - UI Security: Auto-hides password eye icon during auto-fill.
+  - Validation: Email/Password presence check.
+- **Register (`register_page.dart`):**
+  - Integrated with `/auth/register`.
+  - Payload: `{ fullName, email, password, role: "CUSTOMER" }`.
+  - Compact UI: Optimized spacing to avoid scrolling on small screens.
+- **Forgot Password:** UI placeholder screens completed.
 
-## 4. Current Configuration
-- **API Base URL:** `http://192.168.30.79:3000` (Optimized for physical device testing on local network).
-- **Android Configuration:** `usesCleartextTraffic` enabled for HTTP communication; necessary permissions (Camera, Internet, Storage) declared.
+### 2. Dashboard (`home_page.dart`)
+- **Header:** Brand logo, search, and notification badge.
+- **User Section:** Circular avatar with edit button, personalized greeting.
+- **Pet Management:** Horizontal list of pets with selection states.
+- **Quick Actions:** Tiles for Appointment Booking, AI Chatbot, and Clinic Locator.
+- **Appointments:** Detailed card for upcoming medical tasks (Confirm/Cancel).
+- **Forum:** Community post preview with engagement stats.
 
-## 5. File Structure (Key Directories)
-- `lib/core/`: Common themes, constants, networking, and shared services (e.g., `CameraService`).
-- `lib/features/auth/`: Authentication logic and presentation (Login, Register, Home within auth context).
-- `lib/features/home/`: Home dashboard implementation.
-- `lib/main.dart`: Application entry point.
+### 3. Core Services
+- **CameraService (`camera_service.dart`):** Unified handler for picking images from camera/gallery with runtime permission requests.
+
+## 📁 Project Structure
+- `lib/core/`: Common themes (`app_colors.dart`, `app_text_styles.dart`), widgets, and services.
+- `lib/features/auth/presentation/`: All auth-related screens + `home_page.dart` (current navigation).
+- `lib/features/home/presentation/`: Main dashboard components.
+
+## 📝 API Reference (Backend)
+- **Login Response:** Returns `accessToken` and `userInfo` object.
+- **Registration Request:** Requires `fullName`, `email`, `password`, and `role`.
