@@ -1,9 +1,60 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../core/services/camera_service.dart';
+import '../../home/presentation/home_page.dart';
 
-class AppointmentNotificationPage extends StatelessWidget {
+class AppointmentNotificationPage extends StatefulWidget {
   const AppointmentNotificationPage({super.key});
+
+  @override
+  State<AppointmentNotificationPage> createState() => _AppointmentNotificationPageState();
+}
+
+class _AppointmentNotificationPageState extends State<AppointmentNotificationPage> {
+  final CameraService _cameraService = CameraService();
+
+  Future<void> _openQRScanner() async {
+    bool hasPermission = await _cameraService.requestCameraPermission();
+
+    if (hasPermission) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QRScannerScreen(
+            onScan: (code) {
+              Navigator.pop(context);
+              _showQRResult(code);
+            },
+          ),
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bạn cần cấp quyền Camera để quét mã QR')),
+      );
+    }
+  }
+
+  void _showQRResult(String code) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kết quả quét'),
+        content: Text('Nội dung mã QR: $code'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,10 +80,10 @@ class AppointmentNotificationPage extends StatelessWidget {
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: _openQRScanner,
         backgroundColor: AppColors.primary,
         shape: const CircleBorder(),
-        child: const Icon(Icons.add, color: Colors.white, size: 32),
+        child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: _buildBottomNav(context),
@@ -83,7 +134,7 @@ class AppointmentNotificationPage extends StatelessWidget {
               image: 'assets/images/meo_anh_long_ngan.png',
             ),
             const SizedBox(height: 32),
-            _buildSectionHeader('Thông báo cũ hkn'),
+            _buildSectionHeader('Thông báo cũ hơn'),
             const SizedBox(height: 16),
             _buildOldNotification(
               icon: Icons.shopping_bag_outlined,
@@ -155,7 +206,7 @@ class AppointmentNotificationPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))
         ],
       ),
       child: Row(
@@ -203,7 +254,7 @@ class AppointmentNotificationPage extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: Image.network(
-              'https://i.pravatar.cc/150?u=lulu', // Placeholder for the pet image in the screenshot
+              'https://i.pravatar.cc/150?u=lulu',
               width: 80,
               height: 80,
               fit: BoxFit.cover,
@@ -229,7 +280,7 @@ class AppointmentNotificationPage extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4))
+          BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))
         ],
       ),
       child: Row(
@@ -348,10 +399,10 @@ class AppointmentNotificationPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFF1FDFB),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.05),
+            color: AppColors.primary.withValues(alpha: 0.05),
             blurRadius: 10,
             spreadRadius: 2,
           )

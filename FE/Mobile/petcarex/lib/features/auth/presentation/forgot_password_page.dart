@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import 'reset_password_page.dart';
@@ -13,6 +17,8 @@ class ForgotPasswordPage extends StatefulWidget {
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
+  final ApiClient _apiClient = ApiClient();
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -20,15 +26,69 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     super.dispose();
   }
 
-  void _sendResetLink() {
-    if (_formKey.currentState!.validate()) {
-      debugPrint("Gửi link đặt lại mật khẩu đến: ${emailController.text}");
-      // Điều hướng sang trang Reset Password để demo giao diện
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const ResetPasswordPage()),
-      );
+  Future<void> _sendResetLink() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await _apiClient.post('/auth/forgot-password', {
+        'email': emailController.text.trim(),
+      });
+
+      if (!mounted) return;
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        _showQuickSnackBar(data['message'] ?? 'Gửi mã OTP thành công', isError: false);
+        
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ResetPasswordPage(email: emailController.text.trim()),
+          ),
+        );
+      } else {
+        String errorMessage = 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+        
+        if (data['error'] != null && data['error']['message'] != null) {
+          var msg = data['error']['message'];
+          if (msg is List) {
+            errorMessage = msg.join(', ');
+          } else {
+            errorMessage = msg.toString();
+          }
+        } else if (data['message'] != null) {
+          errorMessage = data['message'];
+        }
+        
+        _showQuickSnackBar(errorMessage, isError: true);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showQuickSnackBar('Không thể kết nối đến máy chủ: $e', isError: true);
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  void _showQuickSnackBar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).clearSnackBars(); // Xóa các snackbar cũ ngay lập tức
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: const Duration(milliseconds: 1500),
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -102,10 +162,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey.withOpacity(0.2)),
+        border: Border.all(color: AppColors.grey.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -120,7 +180,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -166,9 +226,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         TextFormField(
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
+          enabled: !_isLoading,
           decoration: InputDecoration(
             hintText: 'example@email.com',
-            hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5)),
+            hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
             prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.grey),
             contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             filled: true,
@@ -196,24 +257,30 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return SizedBox(
       height: 54,
       child: ElevatedButton(
-        onPressed: _sendResetLink,
+        onPressed: _isLoading ? null : _sendResetLink,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: const Text(
-          'Gửi liên kết đặt lại',
-          style: AppTextStyles.button,
-        ),
+        child: _isLoading
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+              )
+            : const Text(
+                'Gửi liên kết đặt lại',
+                style: AppTextStyles.button,
+              ),
       ),
     );
   }
 
   Widget _buildBackToLogin() {
     return GestureDetector(
-      onTap: () => Navigator.pop(context),
+      onTap: _isLoading ? null : () => Navigator.pop(context),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

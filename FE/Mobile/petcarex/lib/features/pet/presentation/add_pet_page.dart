@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class AddPetPage extends StatefulWidget {
@@ -290,7 +291,7 @@ class _AddPetPageState extends State<AddPetPage> {
             width: 1.5,
           ),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.white,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

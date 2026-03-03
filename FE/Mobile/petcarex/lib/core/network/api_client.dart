@@ -1,7 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart'; // Để dùng kDebugMode
-import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 class ApiClient {
   // Base URL trỏ đến server của bạn
@@ -48,6 +49,16 @@ class ApiClient {
     _logRequest('GET', url.toString(), headers);
 
     final response = await http.get(url, headers: headers);
+    _logResponse(response);
+    return response;
+  }
+
+  Future<http.Response> patch(String endpoint, Map<String, dynamic> body) async {
+    final url = Uri.parse('$baseUrl$endpoint');
+    final headers = await _getHeaders();
+    _logRequest('PATCH', url.toString(), headers, body);
+
+    final response = await http.patch(url, headers: headers, body: jsonEncode(body));
     _logResponse(response);
     return response;
   }

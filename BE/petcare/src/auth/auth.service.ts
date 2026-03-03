@@ -5,19 +5,19 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
-import { LoginDTO } from './dtos/login.dto';
-import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import bcrypt from 'bcryptjs';
 import { RoleEnum } from 'src/common/enums/role.enum';
-import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from 'src/otp/otp.service';
-import { ResetPasswordDTO } from './dtos/reset-password.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
+import { LoginDTO } from './dtos/login.dto';
+import { ResetPasswordDTO } from './dtos/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -73,7 +73,7 @@ export class AuthService {
 
   async forgotPassword(forgot: ForgotPasswordDTO) {
     // Kiểm tra email có tồn tại hay không
-    const user = this.userService.findOneByEmail(forgot.email);
+    const user = await this.userService.findOneByEmail(forgot.email);
     if (!user) throw new NotFoundException('Không tồn tại tài khoản');
 
     const code = await this.otpService.createOtp(forgot.email);

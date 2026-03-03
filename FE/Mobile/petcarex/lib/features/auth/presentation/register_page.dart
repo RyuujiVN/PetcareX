@@ -1,11 +1,12 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:http/http.dart' as http;
+
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -192,10 +193,10 @@ class _RegisterPageState extends State<RegisterPage> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey.withOpacity(0.2)),
+        border: Border.all(color: AppColors.grey.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -297,7 +298,7 @@ class _RegisterPageState extends State<RegisterPage> {
             style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5), fontSize: 13),
+              hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5), fontSize: 13),
               prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
               contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
               filled: true,
@@ -454,7 +455,7 @@ class _RegisterPageState extends State<RegisterPage> {
           child: Text(
             "HOẶC",
             style: TextStyle(
-              color: AppColors.grey.withOpacity(0.6),
+              color: AppColors.grey.withValues(alpha: 0.6),
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),

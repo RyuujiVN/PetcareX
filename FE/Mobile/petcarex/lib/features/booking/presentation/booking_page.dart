@@ -161,7 +161,7 @@ class _BookingPageState extends State<BookingPage> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withOpacity(0.08) : Colors.white,
+          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.grey.shade200,
@@ -272,7 +272,7 @@ class _BookingPageState extends State<BookingPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF3F0).withOpacity(0.3),
+        color: const Color(0xFFEEF3F0).withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.grey.shade200),
       ),
