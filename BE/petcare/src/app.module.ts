@@ -12,6 +12,7 @@ import { ClinicModule } from './clinic/clinic.module';
 import { DoctorModule } from './doctor/doctor.module';
 import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
+import { VeterinarianModule } from './veterinarian/veterinarian.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { OtpModule } from './otp/otp.module';
     DoctorModule,
     MailModule,
     OtpModule,
+    VeterinarianModule,
   ],
   controllers: [AppController],
   providers: [
