@@ -1,15 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsString,
+  IsUUID,
   Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
 import { regex } from 'src/common/constants/rexgex.constant';
+import { VeterinarySpecialtyEnum } from 'src/common/enums/veterinary-specialty.enum';
 
-export class CreateUserDTO {
+export class CreateVeterinarianDTO {
   @ApiProperty()
   @IsString()
   @MaxLength(50)
@@ -30,4 +33,13 @@ export class CreateUserDTO {
     message: 'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số',
   })
   password: string;
+
+  @ApiProperty()
+  @IsNotEmpty({ message: 'Id phòng khám không được đeer trống' })
+  @IsUUID('4')
+  clinicId: string;
+
+  @ApiProperty()
+  @IsEnum(VeterinarySpecialtyEnum)
+  specialty: VeterinarySpecialtyEnum;
 }
