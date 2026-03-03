@@ -5,19 +5,19 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
+import { UserService } from 'src/user/user.service';
+import { LoginDTO } from './dtos/login.dto';
+import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
-import bcrypt from 'bcryptjs';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from 'src/otp/otp.service';
-import { User } from 'src/user/entities/user.entity';
-import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
-import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
-import { LoginDTO } from './dtos/login.dto';
 import { ResetPasswordDTO } from './dtos/reset-password.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {

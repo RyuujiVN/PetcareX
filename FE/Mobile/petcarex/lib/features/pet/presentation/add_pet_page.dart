@@ -73,7 +73,15 @@ class _AddPetPageState extends State<AddPetPage> {
   void _savePetInfo() {
     if (_formKey.currentState!.validate()) {
       debugPrint("Pet Name: ${petNameController.text}");
+      debugPrint("Type: $_selectedPetType");
+      debugPrint("Breed: ${breedController.text}");
+      debugPrint("Gender: $_selectedGender");
       debugPrint("Birthdate: ${birthdateController.text}");
+      debugPrint("Weight: ${weightController.text}");
+      debugPrint("Fur Color: $_selectedFurColor");
+      if (_selectedImage != null) {
+        debugPrint("Image Path: ${_selectedImage!.path}");
+      }
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Thêm thú cưng thành công!')),
@@ -271,26 +279,14 @@ class _AddPetPageState extends State<AddPetPage> {
       children: [
         const Text('Ngày sinh', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: birthdateController,
-                decoration: _inputDecoration('mm/dd/yyyy'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Container(
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.calendar_today, color: Colors.white),
-                onPressed: _selectDate,
-              ),
-            ),
-          ],
+        TextFormField(
+          controller: birthdateController,
+          readOnly: true,
+          onTap: _selectDate,
+          decoration: _inputDecoration('mm/dd/yyyy').copyWith(
+            suffixIcon: const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+          ),
+          validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng chọn ngày sinh' : null,
         ),
       ],
     );
