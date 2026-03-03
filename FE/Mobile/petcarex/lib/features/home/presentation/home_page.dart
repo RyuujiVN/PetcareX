@@ -5,7 +5,8 @@ import '../../../core/services/camera_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../appointment/presentation/appointment_notification.dart';
 import '../../booking/presentation/booking_page.dart';
-import '../../pet/presentation/add_pet_page.dart';
+import '../../chat/presentation/chat_page.dart';
+import '../../pet/presentation/add_pet_page.dart'; 
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -226,6 +227,27 @@ class _HomePageState extends State<HomePage> {
               const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
             ],
           ),
+        GestureDetector(
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const AddPetPage()));
+          },
+          child: Column(
+            children: [
+              Container(
+                width: 60,
+                height: 60,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.withOpacity(0.3), style: BorderStyle.none),
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                ),
+                child: const Icon(Icons.add, color: Colors.grey),
+              ),
+              const SizedBox(height: 8),
+              const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            ],
+          ),
         )
       ],
     );
@@ -266,7 +288,16 @@ class _HomePageState extends State<HomePage> {
           },
         ),
         const SizedBox(height: 12),
-        _buildActionTile(Icons.smart_toy_outlined, "Tư vấn AI Chatbot", "Hỗ trợ sức khỏe 24/7", const Color(0xFFEEF3FF), const Color(0xFF4285F4)),
+        _buildActionTile(
+          Icons.smart_toy_outlined, 
+          "Tư vấn AI Chatbot", 
+          "Hỗ trợ sức khỏe 24/7", 
+          const Color(0xFFEEF3FF), 
+          const Color(0xFF4285F4),
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const ChatPage()));
+          },
+        ),
         const SizedBox(height: 12),
         _buildActionTile(Icons.location_on_outlined, "Tìm phòng khám gần nhất", "Tìm kiếm trên bản đồ", const Color(0xFFFFF4E8), const Color(0xFFFF9800)),
       ],

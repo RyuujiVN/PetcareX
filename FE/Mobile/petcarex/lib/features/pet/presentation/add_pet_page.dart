@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../core/services/camera_service.dart';
 
 class AddPetPage extends StatefulWidget {
   const AddPetPage({super.key});
@@ -16,6 +19,9 @@ class _AddPetPageState extends State<AddPetPage> {
   final TextEditingController weightController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
 
+  final CameraService _cameraService = CameraService();
+  File? _selectedImage;
+
   String? _selectedPetType;
   String? _selectedGender;
   String? _selectedFurColor;
@@ -29,15 +35,45 @@ class _AddPetPageState extends State<AddPetPage> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final File? image = await _cameraService.pickImageFromGallery();
+    if (image != null) {
+      setState(() {
+        _selectedImage = image;
+      });
+    }
+  }
+
+  Future<void> _selectDate() async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime.now(),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: AppColors.primary,
+              onPrimary: Colors.white,
+              onSurface: AppColors.textDark,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null) {
+      setState(() {
+        birthdateController.text = "${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}";
+      });
+    }
+  }
+
   void _savePetInfo() {
     if (_formKey.currentState!.validate()) {
       debugPrint("Pet Name: ${petNameController.text}");
-      debugPrint("Type: $_selectedPetType");
-      debugPrint("Breed: ${breedController.text}");
-      debugPrint("Gender: $_selectedGender");
       debugPrint("Birthdate: ${birthdateController.text}");
-      debugPrint("Weight: ${weightController.text}");
-      debugPrint("Fur Color: $_selectedFurColor");
       
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Thêm thú cưng thành công!')),
@@ -103,20 +139,17 @@ class _AddPetPageState extends State<AddPetPage> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.grey[200],
+            image: _selectedImage != null 
+              ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
+              : null,
           ),
-          child: Center(
-            child: Icon(
-              Icons.camera_alt,
-              color: Colors.grey[400],
-              size: 40,
-            ),
-          ),
+          child: _selectedImage == null 
+            ? Center(child: Icon(Icons.camera_alt, color: Colors.grey[400], size: 40))
+            : null,
         ),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: () {
-            // TODO: Implement image picker
-          },
+          onPressed: _pickImage,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.white,
             foregroundColor: AppColors.primary,
@@ -141,33 +174,12 @@ class _AddPetPageState extends State<AddPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Tên thú cưng',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
+        const Text('Tên thú cưng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 8),
         TextFormField(
           controller: petNameController,
-          decoration: InputDecoration(
-            hintText: 'Nhập tên thú cưng',
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Vui lòng nhập tên thú cưng';
-            }
-            return null;
-          },
+          decoration: _inputDecoration('Nhập tên thú cưng'),
+          validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng nhập tên thú cưng' : null,
         ),
       ],
     );
@@ -180,37 +192,17 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Loại',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              const Text('Loại', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 value: _selectedPetType,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: const Color(0xFFF8F9FA),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                ),
+                decoration: _inputDecoration(''),
                 hint: const Text('Chọn loại'),
                 items: const [
                   DropdownMenuItem(value: 'dog', child: Text('Chó')),
                   DropdownMenuItem(value: 'cat', child: Text('Mèo')),
-                  DropdownMenuItem(value: 'bird', child: Text('Chim')),
-                  DropdownMenuItem(value: 'rabbit', child: Text('Thỏ')),
                 ],
                 onChanged: (value) => setState(() => _selectedPetType = value),
-                validator: (value) {
-                  if (value == null) return 'Vui lòng chọn loại';
-                  return null;
-                },
               ),
             ],
           ),
@@ -220,33 +212,11 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Giống',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              const Text('Giống', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 8),
               TextFormField(
                 controller: breedController,
-                decoration: InputDecoration(
-                  hintText: 'VD: Poodle',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  filled: true,
-                  fillColor: const Color(0xFFF8F9FA),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập giống';
-                  }
-                  return null;
-                },
+                decoration: _inputDecoration('VD: Poodle'),
               ),
             ],
           ),
@@ -259,20 +229,13 @@ class _AddPetPageState extends State<AddPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Giới tính',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
+        const Text('Giới tính', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(
-              child: _buildGenderOption('Đực', 'male', Icons.male),
-            ),
+            Expanded(child: _buildGenderOption('Đực', 'male', Icons.male)),
             const SizedBox(width: 16),
-            Expanded(
-              child: _buildGenderOption('Cái', 'female', Icons.female),
-            ),
+            Expanded(child: _buildGenderOption('Cái', 'female', Icons.female)),
           ],
         ),
       ],
@@ -286,10 +249,7 @@ class _AddPetPageState extends State<AddPetPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey[300]!,
-            width: 1.5,
-          ),
+          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!, width: 1.5),
           borderRadius: BorderRadius.circular(12),
           color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
         ),
@@ -309,33 +269,28 @@ class _AddPetPageState extends State<AddPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Ngày sinh',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
+        const Text('Ngày sinh', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 8),
-        TextFormField(
-          controller: birthdateController,
-          decoration: InputDecoration(
-            hintText: 'mm/dd/yyyy',
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: birthdateController,
+                decoration: _inputDecoration('mm/dd/yyyy'),
+              ),
             ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+            const SizedBox(width: 12),
+            Container(
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: IconButton(
+                icon: const Icon(Icons.calendar_today, color: Colors.white),
+                onPressed: _selectDate,
+              ),
             ),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Vui lòng nhập ngày sinh';
-            }
-            return null;
-          },
+          ],
         ),
       ],
     );
@@ -348,34 +303,12 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Cân nặng (kg)',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              const Text('Cân nặng (kg)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 8),
               TextFormField(
                 controller: weightController,
                 keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  hintText: '0.0',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  filled: true,
-                  fillColor: const Color(0xFFF8F9FA),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập cân nặng';
-                  }
-                  return null;
-                },
+                decoration: _inputDecoration('0.0'),
               ),
             ],
           ),
@@ -385,33 +318,11 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Màu lông',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-              ),
+              const Text('Màu lông', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 8),
               TextFormField(
                 onChanged: (value) => setState(() => _selectedFurColor = value),
-                decoration: InputDecoration(
-                  hintText: 'VD: Trắng sữa',
-                  hintStyle: TextStyle(color: Colors.grey[400]),
-                  filled: true,
-                  fillColor: const Color(0xFFF8F9FA),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Vui lòng nhập màu lông';
-                  }
-                  return null;
-                },
+                decoration: _inputDecoration('VD: Trắng sữa'),
               ),
             ],
           ),
@@ -432,11 +343,20 @@ class _AddPetPageState extends State<AddPetPage> {
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
         ),
-        child: const Text(
-          'Lưu thông tin',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+        child: const Text('Lưu thông tin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
+    );
+  }
+
+  InputDecoration _inputDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: TextStyle(color: Colors.grey[400]),
+      filled: true,
+      fillColor: const Color(0xFFF8F9FA),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
     );
   }
 }
