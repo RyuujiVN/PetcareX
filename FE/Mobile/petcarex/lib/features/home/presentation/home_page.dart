@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../core/services/camera_service.dart';
 import '../../../../core/theme/app_colors.dart';
-import 'booking_page.dart';
+import '../../booking/presentation/booking_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});

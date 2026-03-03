@@ -3,7 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import 'add_pet_page.dart';
+import '../../pet/presentation/add_pet_page.dart';
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
