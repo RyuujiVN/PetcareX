@@ -18,4 +18,3 @@ samples, guidance on mobile development, and a full API reference.
 
 ## Trước khi chạy phải chạy 
 powershell C:\Users\Dell\AppData\Local\Android\Sdk\platform-tools\adb.exe reverse tcp:3000 tcp:3000
-C:\Users\Acer\AppData\Local\Android\Sdk\platform-tools
