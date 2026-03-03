@@ -1,19 +1,34 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from 'src/user/user.service';
 import { LoginDTO } from './dtos/login.dto';
 import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { userInfo } from 'os';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
+import { MailService } from 'src/mail/mail.service';
+import { OtpService } from 'src/otp/otp.service';
+import { ResetPasswordDTO } from './dtos/reset-password.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
+    private readonly mailService: MailService,
+    private readonly otpService: OtpService,
   ) {}
 
   async login(loginDTO: LoginDTO) {
@@ -54,5 +69,54 @@ export class AuthService {
       userInfo: payload,
       accessToken: accessToken,
     };
+  }
+
+  async forgotPassword(forgot: ForgotPasswordDTO) {
+    const code = await this.otpService.createOtp(forgot.email);
+    const subject = 'Mã OTP xác thực đăng nhập';
+    const html = `
+        <div style="font-family: Arial, sans-serif; line-height: 1.6;">
+          <h2>Mã OTP của bạn</h2>
+          <p>Đây là mã OTP để xác thực tài khoản của bạn:</p>
+
+          <div style="
+            display: inline-block;
+            padding: 12px 20px;
+            font-size: 24px;
+            font-weight: bold;
+            background-color: #4f46e5;
+            color: #fff;
+            border-radius: 8px;
+            margin: 10px 0;
+          ">
+            ${code}
+          </div>
+
+          <p>Mã OTP có hiệu lực trong <b>5 phút</b>. Tuyệt đối không chia sẻ cho người khác.</p>
+          <hr/>
+          <p style="font-size:12px; color:#888;">© 2025 TasteBite. All rights reserved.</p>
+        </div>
+      `;
+
+    await this.mailService.sendMail(forgot.email, subject, html);
+  }
+
+  async resetPassword(resetDTO: ResetPasswordDTO) {
+    if (resetDTO.newPassword !== resetDTO.cofirmPassword)
+      throw new BadRequestException('Xác nhận mật khẩu không chính xác');
+
+    const otp = await this.otpService.findOneByEmailOtp(
+      resetDTO.email,
+      resetDTO.otp,
+    );
+
+    if (otp.expiredAt < new Date())
+      throw new BadRequestException('Otp đã hết hạn');
+
+    const user = await this.userService.findOneByEmail(resetDTO.email);
+    if (!user) throw new NotFoundException('Không tìm thấy người dùng');
+
+    user.password = await bcrypt.hash(resetDTO.newPassword, 10);
+    await this.userRepository.save(user);
   }
 }

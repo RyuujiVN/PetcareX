@@ -9,6 +9,7 @@ import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 import { filterPagintion } from 'src/common/types/pagination.type';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class ClinicService {
@@ -57,7 +58,11 @@ export class ClinicService {
       const savedClinic = await clinicRepo.save(clinic);
 
       // 2. Tạo admin cho clinic
-      const user = await this.userService.createUser(userDTO, manager);
+      const user = await this.userService.createUser(
+        userDTO,
+        RoleEnum.ADMIN_CLINIC,
+        manager,
+      );
       const adminClinic = adminClinicRepo.create({
         userId: user.id,
         clinicId: savedClinic.id,
