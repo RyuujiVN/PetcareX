@@ -516,6 +516,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
   final MobileScannerController controller = MobileScannerController(
     detectionSpeed: DetectionSpeed.noDuplicates,
     facing: CameraFacing.back,
+    torchEnabled: false,
   );
 
   late AnimationController _animationController;
@@ -615,23 +616,13 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
                   ],
                 ),
                 const SizedBox(height: 40),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    const SizedBox(width: 60),
-                    Container(
-                      width: 70,
-                      height: 70,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 4),
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.image_outlined, color: Colors.white, size: 35),
-                      onPressed: () {},
-                    ),
-                  ],
+                Container(
+                  width: 70,
+                  height: 70,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 4),
+                  ),
                 ),
               ],
             ),
