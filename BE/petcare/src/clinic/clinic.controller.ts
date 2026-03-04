@@ -25,7 +25,7 @@ import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller('clinic')
-@ApiBearerAuth()
+@ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 export class ClinicController {
   constructor(private readonly clinicService: ClinicService) {}

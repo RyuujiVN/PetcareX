@@ -13,6 +13,7 @@ import { DoctorModule } from './doctor/doctor.module';
 import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
 import { VeterinarianModule } from './veterinarian/veterinarian.module';
+import { PetModule } from './pet/pet.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { VeterinarianModule } from './veterinarian/veterinarian.module';
     MailModule,
     OtpModule,
     VeterinarianModule,
+    PetModule,
   ],
   controllers: [AppController],
   providers: [
