@@ -26,6 +26,16 @@ class _LoginPageState extends State<LoginPage> {
   String? _emailError;
   String? _passwordError;
 
+  //Tk test admin
+  void _quickAdminLogin() {
+    setState(() {
+      _emailController.text = "admin";
+      _passwordController.text = "12345";
+    });
+    _login();
+  }
+  // ---------------------------------------------------------
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +66,17 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => _passwordError = "Vui lòng nhập mật khẩu");
       return;
     }
+
+    // bypass tk, phải xóa sau khi release-
+    if (email == "admin" && password == "12345") {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+      return;
+    }
+    // --------------------------
 
     // GỌI LOGIC QUA PROVIDER
     final authProvider = context.read<AuthProvider>();
@@ -150,7 +171,10 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Center(child: Icon(Icons.account_circle_outlined, size: 60)),
+          GestureDetector(
+            onLongPress: _quickAdminLogin, // Long press to auto-fill admin & login
+            child: const Center(child: Icon(Icons.account_circle_outlined, size: 60)),
+          ),
           const SizedBox(height: 12),
           const Center(child: Text('Đăng nhập', style: AppTextStyles.title)),
           const SizedBox(height: 24),
