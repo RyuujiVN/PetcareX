@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../home/presentation/home_page.dart';
+import 'providers/auth_provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -95,20 +96,23 @@ class _RegisterPageState extends State<RegisterPage> {
 
   // ... (giữ nguyên phần UI bên dưới)
   Future<void> _registerWithGoogle() async {
-    try {
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return;
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.loginWithGoogle();
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+    if (success) {
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+        (route) => false,
       );
-
-      await FirebaseAuth.instance.signInWithCredential(credential);
-      debugPrint("Đăng ký Google thành công");
-    } catch (e) {
-      debugPrint("Google sign in error: $e");
+    } else {
+      if (!mounted) return;
+      if (authProvider.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authProvider.errorMessage!)),
+        );
+      }
     }
   }
 
@@ -467,11 +471,12 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Widget _buildGoogleButton() {
+    final isLoading = context.watch<AuthProvider>().isLoading;
     return SizedBox(
       height: 44,
       width: double.infinity,
       child: OutlinedButton(
-        onPressed: () {},
+        onPressed: isLoading ? null : _registerWithGoogle,
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFE0E0E0)),
           shape: RoundedRectangleBorder(

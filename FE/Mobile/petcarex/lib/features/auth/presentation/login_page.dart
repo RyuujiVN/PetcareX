@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import 'register_page.dart';
-import 'forgot_password_page.dart';
 import '../../home/presentation/home_page.dart';
+import 'forgot_password_page.dart';
 import 'providers/auth_provider.dart';
+import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -72,6 +73,26 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(authProvider.errorMessage ?? 'Đăng nhập thất bại')),
       );
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.loginWithGoogle();
+
+    if (success) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
+      if (!mounted) return;
+      if (authProvider.errorMessage != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(authProvider.errorMessage!)),
+        );
+      }
     }
   }
 
@@ -170,8 +191,38 @@ class _LoginPageState extends State<LoginPage> {
           
           _buildLoginButton(isLoading),
           const SizedBox(height: 16),
+          _buildGoogleLoginButton(isLoading),
+          const SizedBox(height: 16),
           _buildRegisterText(),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGoogleLoginButton(bool isLoading) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: isLoading ? null : _loginWithGoogle,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Color(0xFFE0E0E0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/google.png', width: 24, height: 24),
+            const SizedBox(width: 12),
+            const Text(
+              'Đăng nhập với Google',
+              style: TextStyle(
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
