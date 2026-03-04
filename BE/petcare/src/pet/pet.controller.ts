@@ -3,6 +3,7 @@ import { PetService } from './pet.service';
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Post,
   Put,
@@ -38,6 +39,16 @@ export class PetController {
 
     return {
       message: 'Cập nhật thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ description: 'Xoá thú cưng' })
+  async deletePet(@Param('id') id: string) {
+    await this.petService.deletePet(id);
+
+    return {
+      message: 'Xoá thành công',
     };
   }
 }

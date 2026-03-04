@@ -50,4 +50,13 @@ export class PetService {
     Object.assign(pet, updateDTO);
     await this.petRepository.save(pet);
   }
+
+  async deletePet(petId: string) {
+    const result = await this.petRepository.delete({ id: petId });
+
+    console.log(petId);
+
+    if (result.affected === 0)
+      throw new NotFoundException('Không tìm thấy thú cưng');
+  }
 }
