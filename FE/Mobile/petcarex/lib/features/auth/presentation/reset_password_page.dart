@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import 'providers/auth_provider.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final String email;
@@ -20,9 +20,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final TextEditingController otpController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
-  final ApiClient _apiClient = ApiClient();
 
-  bool _isLoading = false;
   bool _isResending = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -75,79 +73,46 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       _isResending = true;
     });
 
-    try {
-      final response = await _apiClient.post('/auth/forgot-password', {
-        'email': widget.email,
-      });
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.forgotPassword(widget.email);
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      final data = jsonDecode(response.body);
+    setState(() {
+      _isResending = false;
+    });
 
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        _showQuickSnackBar('Mã OTP đã được gửi lại thành công', isError: false);
-        startTimer();
-      } else {
-        _showQuickSnackBar(data['message'] ?? 'Không thể gửi lại mã OTP', isError: true);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showQuickSnackBar('Lỗi kết nối: $e', isError: true);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isResending = false;
-        });
-      }
+    if (success) {
+      _showQuickSnackBar('Mã OTP đã được gửi lại thành công', isError: false);
+      startTimer();
+    } else {
+      _showQuickSnackBar(authProvider.errorMessage ?? 'Không thể gửi lại mã OTP', isError: true);
     }
   }
 
   Future<void> _resetPassword() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    final authProvider = context.read<AuthProvider>();
+    
+    final success = await authProvider.resetPassword(
+      widget.email,
+      otpController.text.trim(),
+      passwordController.text,
+      confirmPasswordController.text,
+    );
 
-    try {
-      final response = await _apiClient.post('/auth/reset-password', {
-        'email': widget.email,
-        'otp': otpController.text.trim(),
-        'newPassword': passwordController.text,
-        'cofirmPassword': confirmPasswordController.text,
-      });
+    if (!mounted) return;
 
+    if (success) {
+      _showQuickSnackBar('Đổi mật khẩu thành công', isError: false);
+      
+      await Future.delayed(const Duration(milliseconds: 1000));
       if (!mounted) return;
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        _showQuickSnackBar(data['message'] ?? 'Đổi mật khẩu thành công', isError: false);
-        
-        await Future.delayed(const Duration(milliseconds: 1000));
-        if (!mounted) return;
-        
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      } else {
-        String errorMessage = 'Có lỗi xảy ra';
-        
-        if (data['message'] != null) {
-          errorMessage = data['message'];
-        } else if (data['error'] != null && data['error']['message'] != null) {
-          errorMessage = data['error']['message'];
-        }
-        
-        _showQuickSnackBar(errorMessage, isError: true);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showQuickSnackBar('Không thể kết nối đến máy chủ: $e', isError: true);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } else {
+      _showQuickSnackBar(authProvider.errorMessage ?? 'Có lỗi xảy ra', isError: true);
     }
   }
 
@@ -165,6 +130,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -175,7 +142,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               child: Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: _buildResetCard(),
+                  child: _buildResetCard(isLoading),
                 ),
               ),
             ),
@@ -233,7 +200,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     );
   }
 
-  Widget _buildResetCard() {
+  Widget _buildResetCard(bool isLoading) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
@@ -280,11 +247,11 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               style: const TextStyle(color: AppColors.grey, fontSize: 13),
             ),
             const SizedBox(height: 24),
-            _buildOTPField(),
+            _buildOTPField(isLoading),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(
-                onPressed: (_isLoading || _isResending || !_canResend) ? null : _resendOTP,
+                onPressed: (isLoading || _isResending || !_canResend) ? null : _resendOTP,
                 style: TextButton.styleFrom(
                   padding: EdgeInsets.zero,
                   minimumSize: const Size(0, 30),
@@ -321,16 +288,16 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
             ),
             const SizedBox(height: 32),
-            _buildSubmitButton(),
+            _buildSubmitButton(isLoading),
             const SizedBox(height: 24),
-            _buildBackToForgot(),
+            _buildBackToForgot(isLoading),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOTPField() {
+  Widget _buildOTPField(bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -342,7 +309,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
         TextFormField(
           controller: otpController,
           keyboardType: TextInputType.number,
-          enabled: !_isLoading,
+          enabled: !isLoading,
           decoration: InputDecoration(
             hintText: 'Nhập mã OTP',
             hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
@@ -426,18 +393,18 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     );
   }
 
-  Widget _buildSubmitButton() {
+  Widget _buildSubmitButton(bool isLoading) {
     return SizedBox(
       height: 54,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _resetPassword,
+        onPressed: isLoading ? null : _resetPassword,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: _isLoading
+        child: isLoading
             ? const SizedBox(
                 height: 20,
                 width: 20,
@@ -451,10 +418,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     );
   }
 
-  Widget _buildBackToForgot() {
+  Widget _buildBackToForgot(bool isLoading) {
     return Center(
       child: GestureDetector(
-        onTap: (_isLoading || _isResending) ? null : () => Navigator.pop(context),
+        onTap: (isLoading || _isResending) ? null : () => Navigator.pop(context),
         child: const Text(
           'Quay lại quên mật khẩu',
           style: TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w500),

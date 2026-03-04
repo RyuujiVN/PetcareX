@@ -1,10 +1,9 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import 'providers/auth_provider.dart';
 import 'reset_password_page.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
@@ -17,8 +16,6 @@ class ForgotPasswordPage extends StatefulWidget {
 class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController emailController = TextEditingController();
-  final ApiClient _apiClient = ApiClient();
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -29,53 +26,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Future<void> _sendResetLink() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-    });
+    final authProvider = context.read<AuthProvider>();
+    final email = emailController.text.trim();
+    
+    final success = await authProvider.forgotPassword(email);
 
-    try {
-      final response = await _apiClient.post('/auth/forgot-password', {
-        'email': emailController.text.trim(),
-      });
+    if (!mounted) return;
 
-      if (!mounted) return;
-
-      final data = jsonDecode(response.body);
-
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        _showQuickSnackBar(data['message'] ?? 'Gửi mã OTP thành công', isError: false);
-        
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ResetPasswordPage(email: emailController.text.trim()),
-          ),
-        );
-      } else {
-        String errorMessage = 'Đã có lỗi xảy ra. Vui lòng thử lại.';
-        
-        if (data['error'] != null && data['error']['message'] != null) {
-          var msg = data['error']['message'];
-          if (msg is List) {
-            errorMessage = msg.join(', ');
-          } else {
-            errorMessage = msg.toString();
-          }
-        } else if (data['message'] != null) {
-          errorMessage = data['message'];
-        }
-        
-        _showQuickSnackBar(errorMessage, isError: true);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _showQuickSnackBar('Không thể kết nối đến máy chủ: $e', isError: true);
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+    if (success) {
+      _showQuickSnackBar('Gửi mã OTP thành công', isError: false);
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ResetPasswordPage(email: email),
+        ),
+      );
+    } else {
+      _showQuickSnackBar(authProvider.errorMessage ?? 'Đã có lỗi xảy ra. Vui lòng thử lại.', isError: true);
     }
   }
 
@@ -93,6 +61,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -103,7 +73,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               child: Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: _buildForgotCard(),
+                  child: _buildForgotCard(isLoading),
                 ),
               ),
             ),
@@ -156,7 +126,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildForgotCard() {
+  Widget _buildForgotCard(bool isLoading) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
@@ -203,18 +173,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
               style: TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 32),
-            _buildEmailField(),
+            _buildEmailField(isLoading),
             const SizedBox(height: 24),
-            _buildSubmitButton(),
+            _buildSubmitButton(isLoading),
             const SizedBox(height: 24),
-            _buildBackToLogin(),
+            _buildBackToLogin(isLoading),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEmailField() {
+  Widget _buildEmailField(bool isLoading) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -226,7 +196,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         TextFormField(
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
-          enabled: !_isLoading,
+          enabled: !isLoading,
           decoration: InputDecoration(
             hintText: 'example@email.com',
             hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
@@ -253,18 +223,18 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildSubmitButton() {
+  Widget _buildSubmitButton(bool isLoading) {
     return SizedBox(
       height: 54,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _sendResetLink,
+        onPressed: isLoading ? null : _sendResetLink,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: _isLoading
+        child: isLoading
             ? const SizedBox(
                 height: 20,
                 width: 20,
@@ -278,9 +248,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildBackToLogin() {
+  Widget _buildBackToLogin(bool isLoading) {
     return GestureDetector(
-      onTap: _isLoading ? null : () => Navigator.pop(context),
+      onTap: isLoading ? null : () => Navigator.pop(context),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [

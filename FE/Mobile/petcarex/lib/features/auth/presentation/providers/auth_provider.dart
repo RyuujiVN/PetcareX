@@ -154,9 +154,86 @@ class AuthProvider extends ChangeNotifier {
           await logout();
         }
       } catch (e) {
-        // Có thể xử lý lỗi mạng ở đây
+        await logout();
       }
     }
     notifyListeners();
+  }
+
+  // Quên mật khẩu
+  Future<bool> forgotPassword(String email) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiClient.post(AppConstants.forgotPasswordEndpoint, {
+        'email': email,
+      });
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        if (data['error'] != null && data['error']['message'] != null) {
+          var msg = data['error']['message'];
+          _errorMessage = msg is List ? msg.join(', ') : msg.toString();
+        } else {
+          _errorMessage = data['message'] ?? 'Đã có lỗi xảy ra. Vui lòng thử lại.';
+        }
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Không thể kết nối đến máy chủ: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // Đổi mật khẩu
+  Future<bool> resetPassword(String email, String otp, String newPassword, String confirmPassword) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiClient.post(AppConstants.resetPasswordEndpoint, {
+        'email': email,
+        'otp': otp,
+        'newPassword': newPassword,
+        'cofirmPassword': confirmPassword,
+      });
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        if (data['message'] != null) {
+          _errorMessage = data['message'];
+        } else if (data['error'] != null && data['error']['message'] != null) {
+          var msg = data['error']['message'];
+          _errorMessage = msg is List ? msg.join(', ') : msg.toString();
+        } else {
+          _errorMessage = 'Có lỗi xảy ra';
+        }
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Không thể kết nối đến máy chủ: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
   }
 }

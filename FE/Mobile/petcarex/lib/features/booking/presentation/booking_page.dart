@@ -62,13 +62,10 @@ class _BookingPageState extends State<BookingPage> {
                   const SizedBox(height: 8),
                   Text(
                     'Chọn thú cưng cần được thăm khám hôm nay',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
                   ),
                   const SizedBox(height: 24),
-                  
+
                   // Grid of Pets
                   GridView.count(
                     crossAxisCount: 2,
@@ -93,10 +90,12 @@ class _BookingPageState extends State<BookingPage> {
                       _buildAddNewCard(),
                     ],
                   ),
-                  
+
                   const SizedBox(height: 32),
                   _buildBookingDetails(),
-                  const SizedBox(height: 32), // spacer for bottom elements if needed
+                  const SizedBox(
+                    height: 32,
+                  ), // spacer for bottom elements if needed
                 ],
               ),
             ),
@@ -135,7 +134,7 @@ class _BookingPageState extends State<BookingPage> {
                     color: isActive ? AppColors.primary : Colors.grey.shade400,
                     fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   ),
-                )
+                ),
               ],
             ),
           );
@@ -151,8 +150,9 @@ class _BookingPageState extends State<BookingPage> {
     required String imageUrl,
   }) {
     final isSelected = _selectedPetIndex == index;
-    final ImageProvider imageProvider =
-        imageUrl.startsWith('http') ? NetworkImage(imageUrl) : AssetImage(imageUrl);
+    final ImageProvider imageProvider = imageUrl.startsWith('http')
+        ? NetworkImage(imageUrl)
+        : AssetImage(imageUrl);
     return GestureDetector(
       onTap: () {
         setState(() {
@@ -161,7 +161,9 @@ class _BookingPageState extends State<BookingPage> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected ? AppColors.primary : Colors.grey.shade200,
@@ -181,7 +183,9 @@ class _BookingPageState extends State<BookingPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isSelected ? AppColors.primary : Colors.transparent,
+                        color: isSelected
+                            ? AppColors.primary
+                            : Colors.transparent,
                         width: 2,
                       ),
                       image: DecorationImage(
@@ -202,10 +206,7 @@ class _BookingPageState extends State<BookingPage> {
                   const SizedBox(height: 4),
                   Text(
                     breed,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
                   ),
                 ],
               ),
@@ -296,7 +297,12 @@ class _BookingPageState extends State<BookingPage> {
             true,
           ),
           const SizedBox(height: 20),
-          _detailRow(Icons.medical_services_outlined, 'Dịch vụ', 'Chưa chọn', false),
+          _detailRow(
+            Icons.medical_services_outlined,
+            'Dịch vụ',
+            'Chưa chọn',
+            false,
+          ),
           const SizedBox(height: 20),
           _detailRow(Icons.person_outline, 'Bác sĩ', 'Chưa chọn', false),
         ],
@@ -311,10 +317,7 @@ class _BookingPageState extends State<BookingPage> {
         const SizedBox(width: 16),
         Text(
           title,
-          style: TextStyle(
-            color: Colors.grey.shade600,
-            fontSize: 15,
-          ),
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
         ),
         const Spacer(),
         Text(
@@ -331,91 +334,52 @@ class _BookingPageState extends State<BookingPage> {
 
   Widget _buildBottomSection() {
     return Container(
-      color: Colors.white,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
-            child: SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: () {
-                  // Chuyển sang bước tiếp theo
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  elevation: 0,
-                  shadowColor: Colors.transparent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(27),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Tiếp tục',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, color: Colors.white, size: 20),
-                  ],
-                ),
-              ),
+      padding: const EdgeInsets.fromLTRB(
+        20,
+        16,
+        20,
+        32,
+      ), // Tăng padding bottom cho Safe Area
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFF1F1F1))),
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        height: 54,
+        child: ElevatedButton(
+          onPressed: () {
+            // Chuyển sang bước tiếp theo
+          },
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            elevation: 0,
+            shadowColor: Colors.transparent,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(27),
             ),
           ),
-          _buildBottomNavBar(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNavBar() {
-    return Container(
-      padding: const EdgeInsets.only(top: 12, bottom: 24), // padding for bottom safe area
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade100)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _navItem(Icons.home_outlined, 'Trang chủ', true),
-          _navItem(Icons.calendar_today_outlined, 'Lịch hẹn', false),
-          _navItem(Icons.pets, 'Thú cưng', false),
-          _navItem(Icons.person_outline, 'Hồ sơ', false),
-        ],
-      ),
-    );
-  }
-
-  Widget _navItem(IconData icon, String label, bool isSelected) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          icon,
-          color: isSelected ? AppColors.primary : Colors.grey.shade400,
-          size: 26,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isSelected ? AppColors.primary : Colors.grey.shade400,
-            fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'Tiếp tục',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.arrow_forward, color: Colors.white, size: 20),
+            ],
           ),
         ),
-      ],
+      ),
     );
   }
+
+  // Xóa bỏ _buildBottomNavBar và _navItem vì không còn sử dụng trong trang này
 }
 
 class DashedBorderPainter extends CustomPainter {
@@ -427,10 +391,12 @@ class DashedBorderPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final Path path = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width, size.height),
-        const Radius.circular(20),
-      ));
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          const Radius.circular(20),
+        ),
+      );
 
     const double dashWidth = 8;
     const double dashSpace = 6;
