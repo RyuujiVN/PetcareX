@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/login_page.dart';
-
+import 'features/auth/presentation/providers/auth_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,12 +15,15 @@ void main() {
       statusBarIconBrightness: Brightness.dark,
     ),
   );
-  
-  _runApp();
-}
 
-void _runApp() async {
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

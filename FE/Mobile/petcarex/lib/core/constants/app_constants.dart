@@ -1,13 +1,14 @@
-import 'dart:io';
-
 class AppConstants {
   static const String appName = 'PetCareX';
   
-  // Base URL cấu hình tập trung
-  // static const String baseUrl = 'http://192.168.30.79:3000'; // IP Wi-Fi máy thật
-  static const String baseUrl = 'http://localhost:3000'; // Dùng cho adb reverse / Emulator
+  // Base URL cấu hình tập trung sử dụng --dart-define
+  // Cho phép thay đổi URL mà không cần sửa code
+  static const String baseUrl = String.fromEnvironment(
+    'BASE_URL',
+    defaultValue: 'http://localhost:3000',
+  );
   
-  // Các endpoint khác nếu cần
+  // Endpoints
   static const String loginEndpoint = '/auth/login';
   static const String registerEndpoint = '/auth/register';
   static const String userEndpoint = '/user';

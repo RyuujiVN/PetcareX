@@ -1,15 +1,11 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
-
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../home/presentation/home_page.dart';
-import 'forgot_password_page.dart';
 import 'register_page.dart';
+import 'forgot_password_page.dart';
+import '../../home/presentation/home_page.dart';
+import 'providers/auth_provider.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -21,23 +17,18 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final _storage = const FlutterSecureStorage();
 
   bool _isObscure = true;
-  bool _isLoading = false;
   bool _rememberMe = false;
   bool _isAutoFilled = false;
 
   String? _emailError;
   String? _passwordError;
-  String? _loginError;
-
-  final String baseUrl = 'http://localhost:3000';
 
   @override
   void initState() {
     super.initState();
-    _loadSavedCredentials();
+    // Khởi tạo kiểm tra trạng thái login cũ nếu cần (Optional)
   }
 
   @override
@@ -47,32 +38,6 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  Future<void> _loadSavedCredentials() async {
-    String? rememberMeStr = await _storage.read(key: 'remember_me');
-    if (rememberMeStr == 'true') {
-      String? savedEmail = await _storage.read(key: 'saved_email');
-      String? savedPassword = await _storage.read(key: 'saved_password');
-      setState(() {
-        _rememberMe = true;
-        _isAutoFilled = true;
-        _emailController.text = savedEmail ?? '';
-        _passwordController.text = savedPassword ?? '';
-      });
-    }
-  }
-
-  Future<void> _handleRememberMe() async {
-    if (_rememberMe) {
-      await _storage.write(key: 'remember_me', value: 'true');
-      await _storage.write(key: 'saved_email', value: _emailController.text);
-      await _storage.write(key: 'saved_password', value: _passwordController.text);
-    } else {
-      await _storage.delete(key: 'remember_me');
-      await _storage.delete(key: 'saved_email');
-      await _storage.delete(key: 'saved_password');
-    }
-  }
-
   Future<void> _login() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
@@ -80,7 +45,6 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {
       _emailError = null;
       _passwordError = null;
-      _loginError = null;
     });
 
     if (email.isEmpty) {
@@ -92,47 +56,30 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    // GỌI LOGIC QUA PROVIDER
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.login(email, password);
 
-    try {
-      final response = await http.post(
-        Uri.parse("$baseUrl/auth/login"),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({"email": email, "password": password}),
-      ).timeout(const Duration(seconds: 10));
-
-      final body = jsonDecode(response.body);
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (body["accessToken"] != null) {
-          await _storage.write(key: "accessToken", value: body["accessToken"]);
-          await _handleRememberMe();
-          if (!mounted) return;
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
-        } else {
-          setState(() => _loginError = "Không lấy được token từ server");
-        }
-      } else {
-        setState(() => _loginError = body["message"] ?? "Email hoặc mật khẩu không đúng");
-      }
-    } catch (e) {
-      setState(() {
-        if (e is SocketException) {
-          _loginError = "Lỗi kết nối: Kiểm tra Wi-Fi (phải cùng mạng 192.168.30.x)";
-        } else {
-          _loginError = "Lỗi: $e";
-        }
-      });
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+    if (success) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+      );
+    } else {
+      // Thông báo lỗi đã được AuthProvider quản lý, ta chỉ cần hiển thị SnackBar
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(authProvider.errorMessage ?? 'Đăng nhập thất bại')),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    // Quan sát trạng thái Loading từ Provider
+    final isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -142,7 +89,7 @@ class _LoginPageState extends State<LoginPage> {
             children: [
               _buildHeader(),
               const SizedBox(height: 20),
-              _buildLoginCard(),
+              _buildLoginCard(isLoading),
               _buildFooter(),
             ],
           ),
@@ -171,13 +118,13 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildLoginCard() {
+  Widget _buildLoginCard(bool isLoading) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20)],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,7 +138,6 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 8),
           TextField(
             controller: _emailController,
-            onChanged: (_) => setState(() => _isAutoFilled = false),
             decoration: InputDecoration(
               hintText: "example@email.com",
               prefixIcon: const Icon(Icons.email_outlined),
@@ -207,10 +153,9 @@ class _LoginPageState extends State<LoginPage> {
           TextField(
             controller: _passwordController,
             obscureText: _isObscure,
-            onChanged: (_) => setState(() => _isAutoFilled = false),
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: _isAutoFilled ? null : IconButton(
+              suffixIcon: IconButton(
                 icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
                 onPressed: () => setState(() => _isObscure = !_isObscure),
               ),
@@ -219,17 +164,11 @@ class _LoginPageState extends State<LoginPage> {
             ),
           ),
 
-          if (_loginError != null)
-            Padding(
-              padding: const EdgeInsets.only(top: 12),
-              child: Text(_loginError!, style: const TextStyle(color: Colors.red, fontSize: 13)),
-            ),
-
           const SizedBox(height: 8),
           _buildRememberAndForgot(),
           const SizedBox(height: 24),
           
-          _buildLoginButton(),
+          _buildLoginButton(isLoading),
           const SizedBox(height: 16),
           _buildRegisterText(),
         ],
@@ -259,17 +198,17 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildLoginButton() {
+  Widget _buildLoginButton(bool isLoading) {
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _login,
+        onPressed: isLoading ? null : _login,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: _isLoading 
+        child: isLoading
           ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
           : const Text('Đăng nhập', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
