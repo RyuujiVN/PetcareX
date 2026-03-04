@@ -7,9 +7,9 @@ import { CreateUserDTO } from 'src/user/dtos/create-user.dto';
 import { UserService } from 'src/user/user.service';
 import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { UpdateClinicDTO } from './dtos/update-clinic.dto';
-import { filterPagintion } from 'src/common/types/pagination.type';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { FilterPagintion } from 'src/common/types/pagination.type';
 
 @Injectable()
 export class ClinicService {
@@ -21,7 +21,7 @@ export class ClinicService {
   ) {}
 
   async findAllPagination(
-    options: filterPagintion,
+    options: FilterPagintion,
   ): Promise<Pagination<Clinic>> {
     const queryBuilder = this.clinicRepository
       .createQueryBuilder('clinic')

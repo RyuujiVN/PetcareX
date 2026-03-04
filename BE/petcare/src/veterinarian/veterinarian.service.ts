@@ -6,6 +6,8 @@ import { CreateVeterinarianDTO } from './dtos/create-veterinarian.dto';
 import { UserService } from 'src/user/user.service';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { UpdateVeterinarianDTO } from './dtos/update-veterinarian.dto';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { VetFilterPagination } from './types/filter-veterinarian.type';
 
 @Injectable()
 export class VeterinarianService {
@@ -29,6 +31,34 @@ export class VeterinarianService {
     return veterinarian;
   }
 
+  async findAllPagination(
+    options: VetFilterPagination,
+  ): Promise<Pagination<Veterinarian>> {
+    const queryBuilder = this.veterinarianRepository
+      .createQueryBuilder('veterinarian')
+      .leftJoinAndSelect('veterinarian.user', 'user')
+      .where('veterinarian.clinicId = :clinicId', {
+        clinicId: options.clinicId,
+      });
+
+    if (options.search)
+      queryBuilder
+        .andWhere('user.fullName ILIKE :name', {
+          name: `%${options.search}`,
+        })
+        .orWhere('user.email ILIKE :email', {
+          email: `%${options.search}%`,
+        });
+
+    if (options.specialty)
+      queryBuilder.andWhere('veterinarian.specialty = :specialty', {
+        specialty: options.specialty,
+      });
+
+    return paginate<Veterinarian>(queryBuilder, options);
+  }
+
+  // Tạo mới bác sĩ
   async createVeterinarian(createDTO: CreateVeterinarianDTO) {
     const record = await this.dataSource.transaction(async (manager) => {
       // Tạo mới user
@@ -90,6 +120,7 @@ export class VeterinarianService {
   async deleteVeterinarian(vetenarianId: string) {
     // Chạy transaction
     await this.dataSource.transaction(async (manager) => {
+      // Xoá bảng bác sĩ trước
       const vetRepo = manager.getRepository(Veterinarian);
       const result = await vetRepo.delete({
         userId: vetenarianId,
@@ -98,6 +129,7 @@ export class VeterinarianService {
       if (result.affected === 0)
         throw new NotFoundException('Không tìm thấy bác sĩ');
 
+      // Xoá ở bảng user
       await this.userService.deleteUser(vetenarianId, manager);
     });
   }
