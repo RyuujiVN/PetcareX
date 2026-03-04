@@ -10,6 +10,7 @@
         android:label="PetCareX"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
+        android:enableOnBackInvokedCallback="true"
         android:usesCleartextTraffic="true"> <!-- Cho phép gọi API http:// -->
         <activity
             android:name=".MainActivity"

@@ -13,7 +13,9 @@ class AuthProvider extends ChangeNotifier {
   final ApiClient _apiClient = ApiClient();
   final _storage = const FlutterSecureStorage();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
-  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  
+  // Dùng getter để tránh Exception khi Firebase chưa được init
+  firebase_auth.FirebaseAuth get _auth => firebase_auth.FirebaseAuth.instance;
 
   UserModel? _user;
   bool _isLoading = false;
@@ -132,7 +134,11 @@ class AuthProvider extends ChangeNotifier {
     _user = null;
     await _storage.delete(key: 'accessToken');
     await _googleSignIn.signOut();
-    await _auth.signOut();
+    try {
+      await _auth.signOut();
+    } catch (e) {
+      debugPrint("Firebase not initialized, skipping signOut");
+    }
     notifyListeners();
   }
 

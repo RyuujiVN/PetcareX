@@ -163,7 +163,7 @@ class _HomePageState extends State<HomePage> {
               ),
               child: const CircleAvatar(
                 radius: 35,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=man1'),
+                backgroundImage: AssetImage('assets/images/cho_phoc_soc.png'),
               ),
             ),
             Positioned(
@@ -197,39 +197,41 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPetList() {
-    return Row(
-      children: [
-        _buildPetItem('Mimi', 'https://i.pravatar.cc/150?u=cat1', true),
-        const SizedBox(width: 16),
-        _buildPetItem('LuLu', 'https://i.pravatar.cc/150?u=dog1', false),
-        const SizedBox(width: 16),
-        GestureDetector(
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const AddPetPage()));
-          },
-          child: Column(
-            children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.withOpacity(0.3), style: BorderStyle.none),
-                  shape: BoxShape.circle,
-                  color: Colors.white,
-                  boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _buildPetItem('Mimi', 'assets/images/meo_anh_long_ngan.png', true),
+          const SizedBox(width: 16),
+          _buildPetItem('LuLu', 'assets/images/cho_phoc_soc.png', false),
+          const SizedBox(width: 16),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const AddPetPage()));
+            },
+            child: Column(
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                  ),
+                  child: const Icon(Icons.add, color: Colors.grey),
                 ),
-                child: const Icon(Icons.add, color: Colors.grey),
-              ),
-              const SizedBox(height: 8),
-              const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
-            ],
-          ),
-        )
-      ],
+                const SizedBox(height: 8),
+                const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              ],
+            ),
+          )
+        ],
+      ),
     );
   }
 
-  Widget _buildPetItem(String name, String url, bool isActive) {
+  Widget _buildPetItem(String name, String assetPath, bool isActive) {
     return Column(
       children: [
         Container(
@@ -238,7 +240,7 @@ class _HomePageState extends State<HomePage> {
             shape: BoxShape.circle,
             border: Border.all(color: isActive ? AppColors.primary : Colors.transparent, width: 2),
           ),
-          child: CircleAvatar(radius: 28, backgroundImage: NetworkImage(url)),
+          child: CircleAvatar(radius: 28, backgroundImage: AssetImage(assetPath)),
         ),
         const SizedBox(height: 8),
         Text(name, style: TextStyle(fontSize: 12, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),

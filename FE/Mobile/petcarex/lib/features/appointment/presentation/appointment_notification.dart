@@ -253,8 +253,8 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
           const SizedBox(width: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              'https://i.pravatar.cc/150?u=lulu',
+            child: Image.asset(
+              'assets/images/cho_phoc_soc.png',
               width: 80,
               height: 80,
               fit: BoxFit.cover,
