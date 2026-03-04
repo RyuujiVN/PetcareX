@@ -9,6 +9,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { AdminClinic } from './admin-clinic.entity';
+import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 
 @Entity('user')
 export class User {
@@ -51,4 +52,7 @@ export class User {
 
   @OneToOne(() => AdminClinic, (adminClinic) => adminClinic.user)
   adminClinic: AdminClinic;
+
+  @OneToOne(() => Veterinarian, (veterinarian) => veterinarian.user)
+  veterinarian: Veterinarian;
 }

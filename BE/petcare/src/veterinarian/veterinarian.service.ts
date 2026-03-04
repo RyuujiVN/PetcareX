@@ -5,18 +5,19 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateVeterinarianDTO } from './dtos/create-veterinarian.dto';
 import { UserService } from 'src/user/user.service';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { UpdateVeterinarianDTO } from './dtos/update-veterinarian.dto';
 
 @Injectable()
 export class VeterinarianService {
   constructor(
     @InjectRepository(Veterinarian)
-    private readonly veterinarian: Repository<Veterinarian>,
+    private readonly veterinarianRepository: Repository<Veterinarian>,
     private readonly userService: UserService,
     private readonly dataSource: DataSource,
   ) {}
 
   async findOneByid(userId: string) {
-    const veterinarian = await this.veterinarian.findOne({
+    const veterinarian = await this.veterinarianRepository.findOne({
       where: {
         userId: userId,
       },
@@ -56,5 +57,48 @@ export class VeterinarianService {
     });
 
     return await this.findOneByid(record.userId);
+  }
+
+  async updateVeterinarian(
+    veterinarianId: string,
+    updateDTO: UpdateVeterinarianDTO,
+  ) {
+    await this.dataSource.transaction(async (manager) => {
+      // Cập nhật ở bảng user trước
+      await this.userService.updateUser(
+        veterinarianId,
+        updateDTO,
+        RoleEnum.VETERINARIAN,
+        manager,
+      );
+
+      // Cập nhật bên bảng veterinarian
+      const veterinarianRepo = manager.getRepository(Veterinarian);
+
+      const veterinarian = await veterinarianRepo.findOne({
+        where: { userId: veterinarianId },
+      });
+
+      if (!veterinarian)
+        throw new NotFoundException('Không tìm thấy người dùng');
+
+      veterinarian.specialty = updateDTO.specialty ?? veterinarian.specialty;
+      await veterinarianRepo.save(veterinarian);
+    });
+  }
+
+  async deleteVeterinarian(vetenarianId: string) {
+    // Chạy transaction
+    await this.dataSource.transaction(async (manager) => {
+      const vetRepo = manager.getRepository(Veterinarian);
+      const result = await vetRepo.delete({
+        userId: vetenarianId,
+      });
+
+      if (result.affected === 0)
+        throw new NotFoundException('Không tìm thấy bác sĩ');
+
+      await this.userService.deleteUser(vetenarianId, manager);
+    });
   }
 }

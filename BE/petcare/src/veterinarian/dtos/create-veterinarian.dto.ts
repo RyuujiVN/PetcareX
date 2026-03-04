@@ -35,7 +35,7 @@ export class CreateVeterinarianDTO {
   password: string;
 
   @ApiProperty()
-  @IsNotEmpty({ message: 'Id phòng khám không được đeer trống' })
+  @IsNotEmpty({ message: 'Id phòng khám không được để trống' })
   @IsUUID('4')
   clinicId: string;
 
