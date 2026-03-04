@@ -1,12 +1,21 @@
-import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { PetService } from './pet.service';
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
+  Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -19,6 +28,12 @@ import { UpdatePetDTO } from './dtos/update-pet.dto.';
 @UseGuards(JwtAuthGuard)
 export class PetController {
   constructor(private readonly petService: PetService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Lấy danh sách thú cưng riêng của mình' })
+  getMyPets(@Req() req) {
+    return this.petService.findPetsByOwnerId(req?.user?.id);
+  }
 
   @Post()
   @ApiOperation({ description: 'Tạo mới thú cưng' })

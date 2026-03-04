@@ -4,6 +4,8 @@ import { Pet } from './entities/pet.entity';
 import { Repository } from 'typeorm';
 import { CreatePetDTO } from './dtos/create-pet.dto';
 import { UpdatePetDTO } from './dtos/update-pet.dto.';
+import { FilterPagintion } from 'src/common/types/pagination.type';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class PetService {
@@ -33,6 +35,18 @@ export class PetService {
     return petResponse;
   }
 
+  async findPetsByOwnerId(ownerId: string) {
+    const queryBuilder = this.petRepository
+      .createQueryBuilder('pet')
+      .innerJoinAndSelect('pet.breed', 'breed')
+      .where('pet.ownerId = :ownerId', {
+        ownerId: ownerId,
+      })
+      .getMany();
+
+    return queryBuilder;
+  }
+
   async createPet(createDTO: CreatePetDTO, ownerId: string) {
     const pet = this.petRepository.create(createDTO);
     pet.ownerId = ownerId;
@@ -53,8 +67,6 @@ export class PetService {
 
   async deletePet(petId: string) {
     const result = await this.petRepository.delete({ id: petId });
-
-    console.log(petId);
 
     if (result.affected === 0)
       throw new NotFoundException('Không tìm thấy thú cưng');
