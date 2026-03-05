@@ -4,8 +4,7 @@ import { Pet } from './entities/pet.entity';
 import { Repository } from 'typeorm';
 import { CreatePetDTO } from './dtos/create-pet.dto';
 import { UpdatePetDTO } from './dtos/update-pet.dto.';
-import { FilterPagintion } from 'src/common/types/pagination.type';
-import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { Species } from './entities/species.entity';
 
 @Injectable()
 export class PetService {

@@ -1,38 +1,69 @@
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiOperation,
-  ApiQuery,
 } from '@nestjs/swagger';
 import { PetService } from './pet.service';
 import {
   Body,
   Controller,
-  DefaultValuePipe,
   Delete,
   Get,
   Param,
-  ParseIntPipe,
   Post,
   Put,
-  Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { CreatePetDTO } from './dtos/create-pet.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePetDTO } from './dtos/update-pet.dto.';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from 'src/common/pipes/file-validate.pipe';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('pet')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth('JWT-auth')
+// @UseGuards(JwtAuthGuard)
 export class PetController {
-  constructor(private readonly petService: PetService) {}
+  constructor(
+    private readonly petService: PetService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get()
-  @ApiOperation({ summary: 'Lấy danh sách thú cưng riêng của mình' })
+  @ApiOperation({ summary: 'Lấy danh sách thú cưng của riêng mình' })
   getMyPets(@Req() req) {
     return this.petService.findPetsByOwnerId(req?.user?.id);
+  }
+
+  @Post('upload')
+  @ApiOperation({ summary: 'Tải ảnh avatar thú cưng' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+    @UploadedFile(new FileValidationPipe())
+    file: Express.Multer.File,
+  ) {
+    const fileUrl = await this.cloudinaryService.uploadFile(file);
+
+    return {
+      file: fileUrl.secure_url,
+    };
   }
 
   @Post()

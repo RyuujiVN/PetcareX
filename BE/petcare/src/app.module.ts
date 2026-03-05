@@ -13,6 +13,7 @@ import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
 import { VeterinarianModule } from './veterinarian/veterinarian.module';
 import { PetModule } from './pet/pet.module';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { PetModule } from './pet/pet.module';
     OtpModule,
     VeterinarianModule,
     PetModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [
