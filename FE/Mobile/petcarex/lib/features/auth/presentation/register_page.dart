@@ -294,33 +294,34 @@ class _RegisterPageState extends State<RegisterPage> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
         const SizedBox(height: 4),
-        SizedBox(
-          height: 44,
-          child: TextFormField(
-            controller: controller,
-            keyboardType: keyboardType,
-            style: const TextStyle(fontSize: 14),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5), fontSize: 13),
-              prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-              filled: true,
-              fillColor: const Color(0xFFF8F9FA),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          style: const TextStyle(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(
+              color: AppColors.grey.withValues(alpha: 0.5),
+              fontSize: 13,
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Vui lòng nhập $label';
-              return null;
-            },
+            prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            filled: true,
+            fillColor: const Color(0xFFF8F9FA),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+            ),
+            errorStyle: const TextStyle(fontSize: 11, height: 0.8),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Vui lòng nhập $label';
+            return null;
+          },
         ),
       ],
     );
@@ -342,44 +343,42 @@ class _RegisterPageState extends State<RegisterPage> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
         ),
         const SizedBox(height: 4),
-        SizedBox(
-          height: 44,
-          child: TextFormField(
-            controller: controller,
-            obscureText: obscureText,
-            style: const TextStyle(fontSize: 14),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5), fontSize: 13),
-              prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                  size: 18,
-                  color: AppColors.grey,
-                ),
-                onPressed: onToggle,
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          style: const TextStyle(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5), fontSize: 13),
+            prefixIcon: Icon(icon, size: 18, color: AppColors.grey),
+            suffixIcon: IconButton(
+              icon: Icon(
+                obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                size: 18,
+                color: AppColors.grey,
               ),
-              contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-              filled: true,
-              fillColor: const Color(0xFFF8F9FA),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-              ),
+              onPressed: onToggle,
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
-              if (label == 'Xác nhận mật khẩu' && value != passwordController.text) {
-                return 'Mật khẩu không khớp';
-              }
-              return null;
-            },
+            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+            filled: true,
+            fillColor: const Color(0xFFF8F9FA),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+            ),
+            errorStyle: const TextStyle(fontSize: 11, height: 0.8),
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) return 'Vui lòng nhập mật khẩu';
+            if (label == 'Xác nhận mật khẩu' && value != passwordController.text) {
+              return 'Mật khẩu không khớp';
+            }
+            return null;
+          },
         ),
       ],
     );
@@ -508,26 +507,25 @@ class _RegisterPageState extends State<RegisterPage> {
 
   Widget _buildLoginText() {
     return Center(
-      child: RichText(
-        text: TextSpan(
-          text: 'Đã có tài khoản? ',
-          style: const TextStyle(color: AppColors.textDark, fontSize: 13),
-          children: [
-            WidgetSpan(
-              child: GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: const Text(
-                  'Đăng nhập ngay',
-                  style: TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                  ),
-                ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Đã có tài khoản? ',
+            style: TextStyle(color: AppColors.textDark, fontSize: 13),
+          ),
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: const Text(
+              'Đăng nhập ngay',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

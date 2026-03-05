@@ -39,7 +39,31 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    // Khởi tạo kiểm tra trạng thái login cũ nếu cần (Optional)
+    _loadSavedInfo();
+  }
+
+  Future<void> _loadSavedInfo() async {
+    final authProvider = context.read<AuthProvider>();
+    final savedEmail = await authProvider.getSavedEmail();
+    final rememberMe = await authProvider.getRememberMe();
+
+    if (savedEmail != null) {
+      setState(() {
+        _emailController.text = savedEmail;
+        _rememberMe = rememberMe;
+      });
+    }
+
+    if (rememberMe) {
+      await authProvider.checkAuthStatus();
+      if (authProvider.isAuthenticated) {
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
+        );
+      }
+    }
   }
 
   @override
@@ -80,7 +104,7 @@ class _LoginPageState extends State<LoginPage> {
 
     // GỌI LOGIC QUA PROVIDER
     final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.login(email, password);
+    final success = await authProvider.login(email, password, rememberMe: _rememberMe);
 
     if (success) {
       if (!mounted) return;
@@ -92,7 +116,9 @@ class _LoginPageState extends State<LoginPage> {
       // Thông báo lỗi đã được AuthProvider quản lý, ta chỉ cần hiển thị SnackBar
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.errorMessage ?? 'Đăng nhập thất bại')),
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? 'Đăng nhập thất bại'),
+        ),
       );
     }
   }
@@ -110,9 +136,9 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       if (!mounted) return;
       if (authProvider.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.errorMessage!)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(authProvider.errorMessage!)));
       }
     }
   }
@@ -154,7 +180,10 @@ class _LoginPageState extends State<LoginPage> {
             child: Image.asset('assets/images/icon.png', width: 30, height: 30),
           ),
           const SizedBox(width: 12),
-          const Text('PetCareX', style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+          const Text(
+            'PetCareX',
+            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );
@@ -166,19 +195,24 @@ class _LoginPageState extends State<LoginPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)],
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           GestureDetector(
-            onLongPress: _quickAdminLogin, // Long press to auto-fill admin & login
-            child: const Center(child: Icon(Icons.account_circle_outlined, size: 60)),
+            onLongPress:
+                _quickAdminLogin, // Long press to auto-fill admin & login
+            child: const Center(
+              child: Icon(Icons.account_circle_outlined, size: 60),
+            ),
           ),
           const SizedBox(height: 12),
           const Center(child: Text('Đăng nhập', style: AppTextStyles.title)),
           const SizedBox(height: 24),
-          
+
           const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           TextField(
@@ -186,11 +220,13 @@ class _LoginPageState extends State<LoginPage> {
             decoration: InputDecoration(
               hintText: "example@email.com",
               prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               errorText: _emailError,
             ),
           ),
-          
+
           const SizedBox(height: 16),
 
           const Text('Mật khẩu', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -199,12 +235,22 @@ class _LoginPageState extends State<LoginPage> {
             controller: _passwordController,
             obscureText: _isObscure,
             decoration: InputDecoration(
+              hintText: '● ● ● ● ● ● ● ●',
+              hintStyle: TextStyle(
+                color: AppColors.grey.withValues(alpha: 0.3),
+                fontSize: 10,
+                letterSpacing: 2,
+              ),
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
-                icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
+                icon: Icon(
+                  _isObscure ? Icons.visibility_off : Icons.visibility,
+                ),
                 onPressed: () => setState(() => _isObscure = !_isObscure),
               ),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               errorText: _passwordError,
             ),
           ),
@@ -212,7 +258,7 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 8),
           _buildRememberAndForgot(),
           const SizedBox(height: 24),
-          
+
           _buildLoginButton(isLoading),
           const SizedBox(height: 16),
           _buildGoogleLoginButton(isLoading),
@@ -231,7 +277,9 @@ class _LoginPageState extends State<LoginPage> {
         onPressed: isLoading ? null : _loginWithGoogle,
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: Color(0xFFE0E0E0)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -262,12 +310,18 @@ class _LoginPageState extends State<LoginPage> {
               activeColor: AppColors.primary,
               onChanged: (val) => setState(() => _rememberMe = val ?? false),
             ),
-            const Text('Ghi nhớ', style: TextStyle(fontSize: 13)),
+            const Text('Ghi nhớ đăng nhập', style: TextStyle(fontSize: 13)),
           ],
         ),
         TextButton(
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
-          child: const Text('Quên mật khẩu?', style: TextStyle(color: AppColors.primary, fontSize: 13)),
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
+          ),
+          child: const Text(
+            'Quên mật khẩu?',
+            style: TextStyle(color: AppColors.primary, fontSize: 13),
+          ),
         ),
       ],
     );
@@ -281,11 +335,26 @@ class _LoginPageState extends State<LoginPage> {
         onPressed: isLoading ? null : _login,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
         child: isLoading
-          ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-          : const Text('Đăng nhập', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Text(
+                'Đăng nhập',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ),
     );
   }
@@ -293,12 +362,23 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildRegisterText() {
     return Center(
       child: GestureDetector(
-        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const RegisterPage()),
+        ),
         child: RichText(
           text: const TextSpan(
             text: "Chưa có tài khoản? ",
             style: TextStyle(color: Colors.grey),
-            children: [TextSpan(text: "Đăng ký ngay", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))],
+            children: [
+              TextSpan(
+                text: "Đăng ký ngay",
+                style: TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -308,7 +388,10 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildFooter() {
     return const Padding(
       padding: EdgeInsets.symmetric(vertical: 24),
-      child: Text('© 2026 PetCareX Vietnam.', style: TextStyle(color: Colors.grey, fontSize: 10)),
+      child: Text(
+        '© 2026 PetCareX Vietnam.',
+        style: TextStyle(color: Colors.grey, fontSize: 10),
+      ),
     );
   }
 }

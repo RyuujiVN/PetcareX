@@ -27,7 +27,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
 
   // Đăng nhập
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password, {bool rememberMe = false}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -46,6 +46,14 @@ class AuthProvider extends ChangeNotifier {
         
         if (token != null) {
           await _storage.write(key: 'accessToken', value: token);
+        }
+
+        if (rememberMe) {
+          await _storage.write(key: 'rememberMe', value: 'true');
+          await _storage.write(key: 'savedEmail', value: email);
+        } else {
+          await _storage.delete(key: 'rememberMe');
+          // Không xóa savedEmail ở đây để giữ lại cho lần đăng nhập sau nếu yêu cầu
         }
         
         _isLoading = false;
@@ -133,6 +141,8 @@ class AuthProvider extends ChangeNotifier {
   Future<void> logout() async {
     _user = null;
     await _storage.delete(key: 'accessToken');
+    await _storage.delete(key: 'rememberMe');
+    // Không xóa savedEmail để lưu lại ở trang đăng nhập
     await _googleSignIn.signOut();
     try {
       await _auth.signOut();
@@ -142,22 +152,38 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Lấy email đã lưu
+  Future<String?> getSavedEmail() async {
+    return await _storage.read(key: 'savedEmail');
+  }
+
+  // Kiểm tra checkbox ghi nhớ
+  Future<bool> getRememberMe() async {
+    final value = await _storage.read(key: 'rememberMe');
+    return value == 'true';
+  }
+
   // Kiểm tra trạng thái đăng nhập khi mở app
   Future<void> checkAuthStatus() async {
+    final rememberMe = await getRememberMe();
+    if (!rememberMe) return;
+
     final token = await _storage.read(key: 'accessToken');
     if (token != null) {
       try {
         final response = await _apiClient.get(AppConstants.userEndpoint);
         if (response.statusCode == 200) {
-          _user = UserModel.fromJson(jsonDecode(response.body));
+          final body = jsonDecode(response.body);
+          _user = UserModel.fromJson(body);
+          notifyListeners();
         } else {
           await logout();
         }
       } catch (e) {
+        debugPrint("Error checking auth status: $e");
         await logout();
       }
     }
-    notifyListeners();
   }
 
   // Quên mật khẩu

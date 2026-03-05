@@ -254,7 +254,6 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.arrow_right_alt, color: AppColors.grey, size: 20),
           const SizedBox(width: 4),
           const Text(
             'Quay lại Đăng nhập',
