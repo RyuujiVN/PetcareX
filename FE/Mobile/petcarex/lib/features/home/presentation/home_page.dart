@@ -8,6 +8,7 @@ import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
 import '../../pet/data/models/pet_models.dart';
 import '../../pet/presentation/add_pet_page.dart';
+import '../../pet/presentation/edit_pet_page.dart';
 import '../../pet/presentation/provider/pet_provider.dart';
 
 class HomePage extends StatefulWidget {
@@ -165,12 +166,23 @@ class _HomePageState extends State<HomePage> {
               ...pets.asMap().entries.map((entry) {
                 int idx = entry.key;
                 Pet pet = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 16),
-                  child: _buildPetItem(
-                    pet.name, 
-                    pet.avatar, 
-                    idx == 0 // Giả định pet đầu tiên active
+                return GestureDetector(
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => EditPetPage(pet: pet))
+                    );
+                    if (result == true) {
+                      petProvider.fetchMyPets();
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: _buildPetItem(
+                      pet.name, 
+                      pet.avatar, 
+                      idx == 0 // Giả định pet đầu tiên active
+                    ),
                   ),
                 );
               }),

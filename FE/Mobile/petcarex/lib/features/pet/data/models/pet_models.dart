@@ -103,3 +103,35 @@ class CreatePetDto {
     };
   }
 }
+
+class UpdatePetDto {
+  final String name;
+  final bool gender;
+  final String dateOfBirth;
+  final double weight;
+  final String? avatar;
+  final String breedId;
+  final String note;
+
+  UpdatePetDto({
+    required this.name,
+    required this.gender,
+    required this.dateOfBirth,
+    required this.weight,
+    this.avatar,
+    required this.breedId,
+    required this.note,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'gender': gender,
+      'dateOfBirth': dateOfBirth,
+      'weight': weight,
+      if (avatar != null) 'avatar': avatar,
+      'breedId': breedId,
+      'note': note,
+    };
+  }
+}

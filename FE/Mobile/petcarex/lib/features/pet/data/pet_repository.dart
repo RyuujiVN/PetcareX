@@ -72,4 +72,34 @@ class PetRepository {
     
     throw Exception(errorMessage);
   }
+
+  Future<bool> updatePet(String id, UpdatePetDto petDto) async {
+    final response = await _apiClient.put('${AppConstants.petEndpoint}/$id', petDto.toJson());
+    if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+      return true;
+    }
+    
+    final responseBody = jsonDecode(response.body);
+    String errorMessage = 'Lỗi khi cập nhật vật nuôi';
+    
+    if (responseBody is Map) {
+      if (responseBody['error'] is Map && responseBody['error']['message'] != null) {
+        final errorObj = responseBody['error'];
+        if (errorObj['message'] is List) {
+          errorMessage = (errorObj['message'] as List).join(', ');
+        } else if (errorObj['message'] is String) {
+          errorMessage = errorObj['message'];
+        }
+      } 
+      else if (responseBody['message'] != null) {
+        if (responseBody['message'] is List) {
+          errorMessage = (responseBody['message'] as List).join(', ');
+        } else if (responseBody['message'] is String) {
+          errorMessage = responseBody['message'];
+        }
+      }
+    }
+    
+    throw Exception(errorMessage);
+  }
 }

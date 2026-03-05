@@ -111,4 +111,24 @@ class PetProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> updatePet(String id, UpdatePetDto petDto) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _repository.updatePet(id, petDto);
+      if (success) {
+        await fetchMyPets(); // Refresh list after update
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
