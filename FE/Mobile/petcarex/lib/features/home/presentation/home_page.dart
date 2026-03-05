@@ -3,7 +3,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../../core/services/camera_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../appointment/presentation/appointment_notification.dart';
 import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
 import '../../pet/presentation/add_pet_page.dart'; 
@@ -21,88 +20,34 @@ class _HomePageState extends State<HomePage> {
   
   final double verticalOffset = -60;
 
-  Future<void> _openQRScanner() async {
-    bool hasPermission = await _cameraService.requestCameraPermission();
-
-    if (hasPermission) {
-      await Future.delayed(const Duration(milliseconds: 300));
-      
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => QRScannerScreen(
-            onScan: (code) {
-              Navigator.pop(context);
-              _showQRResult(code);
-            },
-          ),
-        ),
-      );
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bạn cần cấp quyền Camera để quét mã QR')),
-      );
-    }
-  }
-
-  void _showQRResult(String code) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Kết quả quét'),
-        content: Text('Nội dung mã QR: $code'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FBFB),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildUserInfo(),
-              const SizedBox(height: 24),
-              _buildPetList(),
-              const SizedBox(height: 24),
-              _buildQuickActions(),
-              const SizedBox(height: 32),
-              _buildSectionHeader("Lịch hẹn của tôi", "Xem tất cả"),
-              const SizedBox(height: 16),
-              _buildAppointmentCard(),
-              const SizedBox(height: 32),
-              _buildSectionHeader("Diễn đàn PetCareX", "Khám phá"),
-              const SizedBox(height: 16),
-              _buildForumPost(),
-              const SizedBox(height: 100),
-            ],
-          ),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            _buildHeader(),
+            const SizedBox(height: 24),
+            _buildUserInfo(),
+            const SizedBox(height: 24),
+            _buildPetList(),
+            const SizedBox(height: 24),
+            _buildQuickActions(),
+            const SizedBox(height: 32),
+            _buildSectionHeader("Lịch hẹn của tôi", "Xem tất cả"),
+            const SizedBox(height: 16),
+            _buildAppointmentCard(),
+            const SizedBox(height: 32),
+            _buildSectionHeader("Diễn đàn PetCareX", "Khám phá"),
+            const SizedBox(height: 16),
+            _buildForumPost(),
+            const SizedBox(height: 100),
+          ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openQRScanner,
-        backgroundColor: AppColors.primary,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNav(),
     );
   }
 
@@ -454,51 +399,6 @@ class _HomePageState extends State<HomePage> {
               Text("12", style: TextStyle(fontSize: 12, color: Colors.grey[400])),
             ],
           )
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home_filled, "TRANG CHỦ", 0),
-            _buildNavItem(
-              Icons.calendar_today_outlined,
-              "LỊCH HẸN",
-              1,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AppointmentNotificationPage()),
-                );
-              },
-            ),
-            const SizedBox(width: 40),
-            _buildNavItem(Icons.forum_outlined, "CỘNG ĐỒNG", 2),
-            _buildNavItem(Icons.person_outline, "CÁ NHÂN", 3),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, int index, {VoidCallback? onTap}) {
-    bool isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: onTap ?? () => setState(() => _selectedIndex = index),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: isSelected ? AppColors.primary : Colors.grey[400], size: 24),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: isSelected ? AppColors.primary : Colors.grey[400])),
         ],
       ),
     );

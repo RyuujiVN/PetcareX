@@ -58,135 +58,71 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FBFB),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Thông báo & Nhắc lịch',
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.black),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _openQRScanner,
-        backgroundColor: AppColors.primary,
-        shape: const CircleBorder(),
-        child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: _buildBottomNav(context),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSectionHeader('Sắp tới'),
-            const SizedBox(height: 16),
-            _buildUpcomingCard(),
-            const SizedBox(height: 32),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _buildSectionHeader('Nhắc nhở tiêm phòng'),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFE0F7F4),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    '2 nhắc nhở mới',
-                    style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildVaccinationReminder(
-              title: 'Nhắc tiêm dại:',
-              petName: 'LuLu',
-              subTitle: 'Đã đến hạn tiêm định kỳ hàng năm',
-              status: 'HẾT HẠN',
-              timeRange: '2 ngày trước',
-              isExpired: true,
-              image: 'assets/images/cho_phoc_soc.png',
-            ),
-            const SizedBox(height: 12),
-            _buildVaccinationReminder(
-              title: 'Tiêm 4 bệnh:',
-              petName: 'MeoMeo',
-              subTitle: 'Còn 5 ngày nữa tới lịch hẹn',
-              status: 'SẮP TỚI',
-              timeRange: '30/10',
-              isExpired: false,
-              image: 'assets/images/meo_anh_long_ngan.png',
-            ),
-            const SizedBox(height: 32),
-            _buildSectionHeader('Thông báo cũ hơn'),
-            const SizedBox(height: 16),
-            _buildOldNotification(
-              icon: Icons.shopping_bag_outlined,
-              title: 'Đơn hàng đã giao thành công',
-              description: 'Đơn hàng #12345 đã được giao bởi Shipper.',
-              time: '15/10/2023',
-            ),
-            const SizedBox(height: 16),
-            _buildOldNotification(
-              icon: Icons.eco_outlined,
-              title: 'Mẹo chăm sóc mèo mùa thu',
-              description: 'Khám phá cách giữ ấm cho boss khi trời trở lạnh.',
-              time: '12/10/2023',
-            ),
-            const SizedBox(height: 32),
-            _buildSettingsTile(),
-            const SizedBox(height: 100), // Space for bottom nav
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNav(BuildContext context) {
-    return BottomAppBar(
-      shape: const CircularNotchedRectangle(),
-      notchMargin: 8,
-      child: SizedBox(
-        height: 60,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(Icons.home_filled, "TRANG CHỦ", false, onTap: () => Navigator.pop(context)),
-            _buildNavItem(Icons.calendar_today, "LỊCH HẸN", true),
-            const SizedBox(width: 40), // Space for FAB
-            _buildNavItem(Icons.forum_outlined, "CỘNG ĐỒNG", false),
-            _buildNavItem(Icons.person_outline, "CÁ NHÂN", false),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(IconData icon, String label, bool isSelected, {VoidCallback? onTap}) {
-    return GestureDetector(
-      onTap: onTap,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: isSelected ? AppColors.primary : Colors.grey[400], size: 24),
-          const SizedBox(height: 4),
-          Text(label, style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: isSelected ? AppColors.primary : Colors.grey[400])),
+          _buildSectionHeader('Sắp tới'),
+          const SizedBox(height: 16),
+          _buildUpcomingCard(),
+          const SizedBox(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildSectionHeader('Nhắc nhở tiêm phòng'),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE0F7F4),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Text(
+                  '2 nhắc nhở mới',
+                  style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _buildVaccinationReminder(
+            title: 'Nhắc tiêm dại:',
+            petName: 'LuLu',
+            subTitle: 'Đã đến hạn tiêm định kỳ hàng năm',
+            status: 'HẾT HẠN',
+            timeRange: '2 ngày trước',
+            isExpired: true,
+            image: 'assets/images/cho_phoc_soc.png',
+          ),
+          const SizedBox(height: 12),
+          _buildVaccinationReminder(
+            title: 'Tiêm 4 bệnh:',
+            petName: 'MeoMeo',
+            subTitle: 'Còn 5 ngày nữa tới lịch hẹn',
+            status: 'SẮP TỚI',
+            timeRange: '30/10',
+            isExpired: false,
+            image: 'assets/images/meo_anh_long_ngan.png',
+          ),
+          const SizedBox(height: 32),
+          _buildSectionHeader('Thông báo cũ hơn'),
+          const SizedBox(height: 16),
+          _buildOldNotification(
+            icon: Icons.shopping_bag_outlined,
+            title: 'Đơn hàng đã giao thành công',
+            description: 'Đơn hàng #12345 đã được giao bởi Shipper.',
+            time: '15/10/2023',
+          ),
+          const SizedBox(height: 16),
+          _buildOldNotification(
+            icon: Icons.eco_outlined,
+            title: 'Mẹo chăm sóc mèo mùa thu',
+            description: 'Khám phá cách giữ ấm cho boss khi trời trở lạnh.',
+            time: '12/10/2023',
+          ),
+          const SizedBox(height: 32),
+          _buildSettingsTile(),
+          const SizedBox(height: 100), // Space for bottom nav
         ],
       ),
     );

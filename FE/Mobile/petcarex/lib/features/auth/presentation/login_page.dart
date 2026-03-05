@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../home/presentation/home_page.dart';
+import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'forgot_password_page.dart';
 import 'providers/auth_provider.dart';
 import 'register_page.dart';
@@ -72,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
       );
       return;
     }
@@ -86,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
       );
     } else {
       // Thông báo lỗi đã được AuthProvider quản lý, ta chỉ cần hiển thị SnackBar
@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
       );
     } else {
       if (!mounted) return;
