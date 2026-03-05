@@ -7,6 +7,15 @@ import '../data/models/pet_models.dart';
 class PetRepository {
   final ApiClient _apiClient = ApiClient();
 
+  Future<List<Pet>> getMyPets() async {
+    final response = await _apiClient.get(AppConstants.petEndpoint);
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => Pet.fromJson(json)).toList();
+    }
+    throw Exception('Lỗi khi tải danh sách vật nuôi của bạn');
+  }
+
   Future<List<PetSpecies>> getSpecies() async {
     final response = await _apiClient.get(AppConstants.petSpeciesEndpoint);
     if (response.statusCode == 200) {

@@ -215,13 +215,25 @@ class _AddPetPageState extends State<AddPetPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.grey[200],
-                image: _selectedImage != null
-                    ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
-                    : null,
               ),
-              child: _selectedImage == null
-                  ? Center(child: Icon(Icons.camera_alt, color: Colors.grey[400], size: 40))
-                  : null,
+              child: ClipOval(
+                child: _selectedImage != null
+                    ? Image.file(_selectedImage!, fit: BoxFit.cover, width: 100, height: 100)
+                    : (provider.petAvatarUrl != null && provider.petAvatarUrl!.startsWith('http'))
+                        ? Image.network(
+                            provider.petAvatarUrl!,
+                            fit: BoxFit.cover,
+                            width: 100,
+                            height: 100,
+                            errorBuilder: (context, error, stackTrace) => 
+                                Icon(Icons.broken_image, color: Colors.grey[400], size: 40),
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(child: CircularProgressIndicator());
+                            },
+                          )
+                        : Icon(Icons.camera_alt, color: Colors.grey[400], size: 40),
+              ),
             ),
             if (_isUploadingAvatar)
               Container(

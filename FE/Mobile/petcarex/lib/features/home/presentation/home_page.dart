@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/services/camera_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
-import '../../pet/presentation/add_pet_page.dart'; 
+import '../../pet/data/models/pet_models.dart';
+import '../../pet/presentation/add_pet_page.dart';
+import '../../pet/presentation/provider/pet_provider.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +22,14 @@ class _HomePageState extends State<HomePage> {
   final CameraService _cameraService = CameraService();
   
   final double verticalOffset = -60;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PetProvider>().fetchMyPets();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,41 +153,64 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPetList() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: [
-          _buildPetItem('Mimi', 'assets/images/meo_anh_long_ngan.png', true),
-          const SizedBox(width: 16),
-          _buildPetItem('LuLu', 'assets/images/cho_phoc_soc.png', false),
-          const SizedBox(width: 16),
-          GestureDetector(
-            onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const AddPetPage()));
-            },
-            child: Column(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+    return Consumer<PetProvider>(
+      builder: (context, petProvider, child) {
+        final pets = petProvider.myPets;
+        
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              // Hiển thị danh sách pet từ API
+              ...pets.asMap().entries.map((entry) {
+                int idx = entry.key;
+                Pet pet = entry.value;
+                return Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: _buildPetItem(
+                    pet.name, 
+                    pet.avatar, 
+                    idx == 0 // Giả định pet đầu tiên active
                   ),
-                  child: const Icon(Icons.add, color: Colors.grey),
+                );
+              }),
+              
+              // Nút thêm mới luôn ở cuối
+              GestureDetector(
+                onTap: () async {
+                  final result = await Navigator.push(
+                    context, 
+                    MaterialPageRoute(builder: (context) => const AddPetPage())
+                  );
+                  if (result == true) {
+                    petProvider.fetchMyPets();
+                  }
+                },
+                child: Column(
+                  children: [
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+                      ),
+                      child: const Icon(Icons.add, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
-              ],
-            ),
-          )
-        ],
-      ),
+              )
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildPetItem(String name, String assetPath, bool isActive) {
+  Widget _buildPetItem(String name, String? imageUrl, bool isActive) {
     return Column(
       children: [
         Container(
@@ -185,7 +219,33 @@ class _HomePageState extends State<HomePage> {
             shape: BoxShape.circle,
             border: Border.all(color: isActive ? AppColors.primary : Colors.transparent, width: 2),
           ),
-          child: CircleAvatar(radius: 28, backgroundImage: AssetImage(assetPath)),
+          child: ClipOval(
+            child: Container(
+              width: 56,
+              height: 56,
+              color: Colors.grey[200], // Nền xám mặc định
+              child: (imageUrl != null && imageUrl.startsWith('http'))
+                  ? Image.network(
+                      imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        // Nếu link URL lỗi (VD: ảnh bị xóa, sai format link) -> Hiển thị icon mặc định
+                        return const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28));
+                      },
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const Center(
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+                      },
+                    )
+                  : const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28)), // Nếu không có ảnh
+            ),
+          ),
         ),
         const SizedBox(height: 8),
         Text(name, style: TextStyle(fontSize: 12, fontWeight: isActive ? FontWeight.bold : FontWeight.normal)),
