@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post, Put } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
+import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 
 @Controller('appointment')
 export class AppointmentController {
@@ -14,5 +15,20 @@ export class AppointmentController {
   })
   createAppointment(@Body() createDTO: CreateAppointmentDTO) {
     return this.appointmentService.createAppointment(createDTO);
+  }
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Chỉnh sửa lịch hẹn' })
+  @ApiBody({
+    type: UpdateAppointmentDTO,
+  })
+  async updateAppointment(
+    @Body() updateDTO: UpdateAppointmentDTO,
+    @Param('id') id: string,
+  ) {
+    await this.appointmentService.updateAppointment(updateDTO, id);
+    return {
+      message: 'Cập nhật lịch hẹn thành công',
+    };
   }
 }

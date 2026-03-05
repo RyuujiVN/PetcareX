@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Repository } from 'typeorm';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
 import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
+import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 
 @Injectable()
 export class AppointmentService {
@@ -48,5 +49,21 @@ export class AppointmentService {
     const savedAppointment = await this.appointmentRepository.save(appointment);
 
     return await this.findOneById(savedAppointment.id);
+  }
+
+  async updateAppointment(
+    updateDTO: UpdateAppointmentDTO,
+    appointmentId: string,
+  ) {
+    const appointment = await this.appointmentRepository.findOne({
+      where: {
+        id: appointmentId,
+      },
+    });
+
+    if (!appointment) throw new NotFoundException('Không tìm thấy lịch hẹn');
+    Object.assign(appointment, updateDTO);
+
+    await this.appointmentRepository.save(appointment);
   }
 }
