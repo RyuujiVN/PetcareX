@@ -7,8 +7,10 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   CreateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Breed } from './breed.entity';
+import { Appointment } from 'src/appointment/entities/appointment.entity';
 
 @Entity('pet')
 export class Pet {
@@ -39,6 +41,9 @@ export class Pet {
   @Column({ type: 'text', nullable: true })
   note?: string;
 
+  @CreateDateColumn()
+  createdAt: Date;
+
   @ManyToOne(() => User, (user) => user.pets, {
     onDelete: 'CASCADE',
   })
@@ -52,6 +57,6 @@ export class Pet {
   @JoinColumn({ name: 'breed_id' })
   breed: Breed;
 
-  @CreateDateColumn()
-  createdAt: Date;
+  @OneToMany(() => Appointment, (appointment) => appointment.pet)
+  appointments: Appointment[];
 }

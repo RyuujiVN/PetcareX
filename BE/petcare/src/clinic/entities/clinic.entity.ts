@@ -1,3 +1,4 @@
+import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import {
   Column,
@@ -35,4 +36,7 @@ export class Clinic {
 
   @OneToMany(() => Veterinarian, (veterinarian) => veterinarian.clinic)
   veterinarians: Veterinarian[];
+
+  @OneToMany(() => Appointment, (appointment) => appointment.clinic)
+  appointments: Appointment[];
 }

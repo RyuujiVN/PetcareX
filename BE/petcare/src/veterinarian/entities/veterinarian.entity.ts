@@ -1,3 +1,4 @@
+import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { VeterinarySpecialtyEnum } from 'src/common/enums/veterinary-specialty.enum';
 import { User } from 'src/user/entities/user.entity';
@@ -6,13 +7,14 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryColumn,
 } from 'typeorm';
 
 @Entity('veterinarian')
 export class Veterinarian {
-  @PrimaryColumn({ name: 'user_id' })
+  @PrimaryColumn('uuid', { name: 'user_id' })
   userId: string;
 
   @Column({ name: 'clinic_id' })
@@ -35,4 +37,7 @@ export class Veterinarian {
     enum: VeterinarySpecialtyEnum,
   })
   specialty: VeterinarySpecialtyEnum;
+
+  @OneToMany(() => Appointment, (appointment) => appointment.veterinarian)
+  appointments: Appointment[];
 }
