@@ -168,12 +168,37 @@ class _HomePageState extends State<HomePage> {
                 Pet pet = entry.value;
                 return GestureDetector(
                   onTap: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => EditPetPage(pet: pet))
+                    // Show loading dialog
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => const Center(
+                        child: CircularProgressIndicator(color: AppColors.primary),
+                      ),
                     );
-                    if (result == true) {
-                      petProvider.fetchMyPets();
+
+                    try {
+                      final provider = context.read<PetProvider>();
+                      // Pre-fetch data before navigating
+                      await provider.fetchSpecies();
+                      if (pet.breed?.speciesId != null) {
+                        await provider.fetchBreeds(pet.breed!.speciesId);
+                      }
+                      
+                      if (!mounted) return;
+                      Navigator.pop(context); // Close loading dialog
+
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => EditPetPage(pet: pet))
+                      );
+                      
+                      if (result == true) {
+                        provider.fetchMyPets();
+                      }
+                    } catch (e) {
+                      if (mounted) Navigator.pop(context);
+                      debugPrint("Error pre-fetching pet data: $e");
                     }
                   },
                   child: Padding(
