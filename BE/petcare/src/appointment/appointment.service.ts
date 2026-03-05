@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
 import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
+import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
 
 @Injectable()
 export class AppointmentService {
@@ -46,6 +47,7 @@ export class AppointmentService {
       .getOne();
   }
 
+  // Tạo mới lịch hẹn
   async createAppointment(createDTO: CreateAppointmentDTO) {
     const appointment = this.appointmentRepository.create(createDTO);
     appointment.status = AppointmentStatusEnum.HEN_THANH_CONG;
@@ -55,6 +57,7 @@ export class AppointmentService {
     return await this.findOneById(savedAppointment.id);
   }
 
+  // Cập nhật lịch hẹn
   async updateAppointment(
     updateDTO: UpdateAppointmentDTO,
     appointmentId: string,
@@ -71,6 +74,24 @@ export class AppointmentService {
     await this.appointmentRepository.save(appointment);
   }
 
+  // Cập nhật trạng thái lịch hẹn
+  async updateAppointmentStatus(
+    updateDTO: UpdateAppointmentStatusDTO,
+    appointmentId: string,
+  ) {
+    const appointment = await this.appointmentRepository.findOne({
+      where: {
+        id: appointmentId,
+      },
+    });
+
+    if (!appointment) throw new NotFoundException('Không tìm thấy lịch hẹn');
+    Object.assign(appointment, updateDTO);
+
+    await this.appointmentRepository.save(appointment);
+  }
+
+  // Xoá lịch hẹn
   async deleteAppointment(appointmentId: string) {
     const result = await this.appointmentRepository.delete(appointmentId);
 

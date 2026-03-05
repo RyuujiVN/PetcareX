@@ -1,4 +1,3 @@
-import { APP_FILTER } from '@nestjs/core';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
