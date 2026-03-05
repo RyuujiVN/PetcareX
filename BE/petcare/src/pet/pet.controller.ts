@@ -26,8 +26,8 @@ import { FileValidationPipe } from 'src/common/pipes/file-validate.pipe';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('pet')
-// @ApiBearerAuth('JWT-auth')
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 export class PetController {
   constructor(
     private readonly petService: PetService,
@@ -38,6 +38,18 @@ export class PetController {
   @ApiOperation({ summary: 'Lấy danh sách thú cưng của riêng mình' })
   getMyPets(@Req() req) {
     return this.petService.findPetsByOwnerId(req?.user?.id);
+  }
+
+  @Get('species')
+  @ApiOperation({ summary: 'Lấy danh sách loài' })
+  getAllSpecies() {
+    return this.petService.findAllSpecies();
+  }
+
+  @Get('species/:speciesId/breed')
+  @ApiOperation({ summary: 'Lấy danh sách giống theo loài' })
+  getAllBreed(@Param('speciesId') speciesId: string) {
+    return this.petService.findAllBreed(speciesId);
   }
 
   @Post('upload')
