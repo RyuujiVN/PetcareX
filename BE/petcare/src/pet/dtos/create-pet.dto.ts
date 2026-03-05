@@ -39,6 +39,10 @@ export class CreatePetDTO {
   weight: number;
 
   @ApiProperty()
+  @IsString()
+  avatar: string;
+
+  @ApiProperty()
   @IsUUID()
   breedId: string;
 

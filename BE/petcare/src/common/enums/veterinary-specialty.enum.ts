@@ -1,7 +1,7 @@
 export enum VeterinarySpecialtyEnum {
-  GENERAL_PRACTICE = 'Khám tổng quát',
-  INTERNAL_MEDICINE = 'Nội khoa',
-  SURGERY = 'Phẫu thuật',
-  DIAGNOSTIC_IMAGING = 'Siêu âm',
-  VACCINATION_PREVENTIVE = 'Tiêm phòng & phòng ngừa',
+  KHAM_TONG_QUAT = 'Khám tổng quát',
+  NOI_KHOA = 'Nội khoa',
+  PHAU_THUAT = 'Phẫu thuật',
+  SIEU_AM = 'Siêu âm',
+  TIEM_PHONG = 'Tiêm phòng & phòng ngừa',
 }

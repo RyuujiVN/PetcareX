@@ -14,6 +14,7 @@ import { OtpModule } from './otp/otp.module';
 import { VeterinarianModule } from './veterinarian/veterinarian.module';
 import { PetModule } from './pet/pet.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { AppointmentModule } from './appointment/appointment.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     VeterinarianModule,
     PetModule,
     CloudinaryModule,
+    AppointmentModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,3 +1,4 @@
+import { APP_FILTER } from '@nestjs/core';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -31,6 +32,9 @@ export class Pet {
 
   @Column({ type: 'decimal', precision: 3, scale: 1 })
   weight: number;
+
+  @Column({ nullable: true })
+  avatar: string;
 
   @Column({ type: 'text', nullable: true })
   note?: string;
