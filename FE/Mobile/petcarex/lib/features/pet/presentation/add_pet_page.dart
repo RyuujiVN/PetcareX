@@ -1,7 +1,9 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/camera_service.dart';
 
@@ -15,24 +17,67 @@ class AddPetPage extends StatefulWidget {
 class _AddPetPageState extends State<AddPetPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController petNameController = TextEditingController();
-  final TextEditingController breedController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
 
   final CameraService _cameraService = CameraService();
-  File? _selectedImage;
+  final ApiClient _apiClient = ApiClient();
 
-  String? _selectedPetType;
-  String? _selectedGender;
+  File? _selectedImage;
+  String? _uploadedAvatarUrl;
+  bool _isUploading = false;
+  bool _isSaving = false;
+
+  List<dynamic> _speciesList = [];
+  List<dynamic> _breedList = [];
+  String? _selectedSpeciesId;
+  String? _selectedBreedId;
+
+  String _selectedGender = 'male'; // Mặc định là đực
   String? _selectedFurColor;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchSpecies();
+  }
 
   @override
   void dispose() {
     petNameController.dispose();
-    breedController.dispose();
     weightController.dispose();
     birthdateController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchSpecies() async {
+    try {
+      final response = await _apiClient.get('/pet/species');
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _speciesList = jsonDecode(response.body);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching species: $e");
+    }
+  }
+
+  Future<void> _fetchBreeds(String speciesId) async {
+    try {
+      final response = await _apiClient.get('/pet/species/$speciesId/breed');
+      if (response.statusCode == 200) {
+        if (mounted) {
+          setState(() {
+            _breedList = jsonDecode(response.body);
+          });
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching breeds: $e");
+    }
   }
 
   Future<void> _pickImage() async {
@@ -40,7 +85,37 @@ class _AddPetPageState extends State<AddPetPage> {
     if (image != null) {
       setState(() {
         _selectedImage = image;
+        _isUploading = true;
       });
+
+      try {
+        final response = await _apiClient.postMultipart('/pet/upload', image.path);
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          setState(() {
+            _uploadedAvatarUrl = data['file'];
+          });
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Tải ảnh thành công!')),
+            );
+          }
+        } else {
+          throw Exception('Failed to upload');
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Lỗi tải ảnh. Vui lòng thử lại!')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isUploading = false;
+          });
+        }
+      }
     }
   }
 
@@ -65,28 +140,74 @@ class _AddPetPageState extends State<AddPetPage> {
     );
     if (picked != null) {
       setState(() {
-        birthdateController.text = "${picked.month.toString().padLeft(2, '0')}/${picked.day.toString().padLeft(2, '0')}/${picked.year}";
+        // Format YYYY-MM-DD
+        birthdateController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
       });
     }
   }
 
-  void _savePetInfo() {
-    if (_formKey.currentState!.validate()) {
-      debugPrint("Pet Name: ${petNameController.text}");
-      debugPrint("Type: $_selectedPetType");
-      debugPrint("Breed: ${breedController.text}");
-      debugPrint("Gender: $_selectedGender");
-      debugPrint("Birthdate: ${birthdateController.text}");
-      debugPrint("Weight: ${weightController.text}");
-      debugPrint("Fur Color: $_selectedFurColor");
-      if (_selectedImage != null) {
-        debugPrint("Image Path: ${_selectedImage!.path}");
-      }
-      
+  Future<void> _savePetInfo() async {
+    if (_isUploading) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Thêm thú cưng thành công!')),
+        const SnackBar(content: Text('Đang tải ảnh lên, vui lòng đợi!')),
       );
-      Navigator.pop(context);
+      return;
+    }
+
+    if (_formKey.currentState!.validate()) {
+      if (_selectedBreedId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Vui lòng chọn thông tin loài và giống!')),
+        );
+        return;
+      }
+
+      setState(() {
+        _isSaving = true;
+      });
+
+      try {
+        final Map<String, dynamic> requestBody = {
+          "name": petNameController.text.trim(),
+          "gender": _selectedGender == 'male',
+          "dateOfBirth": birthdateController.text,
+          "weight": double.tryParse(weightController.text) ?? 0.0,
+          if (_uploadedAvatarUrl != null) "avatar": _uploadedAvatarUrl,
+          "breedId": _selectedBreedId,
+          "note": _selectedFurColor ?? "",
+        };
+
+        final response = await _apiClient.post('/pet', requestBody);
+        
+        if (response.statusCode == 201 || response.statusCode == 200) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Thêm thú cưng thành công!')),
+            );
+            Navigator.pop(context, true); // Trả về true để màn hình trước biết có cập nhật
+          }
+        } else {
+          final errorData = jsonDecode(response.body);
+          final msg = errorData['message'] ?? 'Có lỗi xảy ra';
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Thêm thất bại: $msg')),
+            );
+          }
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Lỗi kết nối mạng!')),
+          );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+        }
+      }
     }
   }
 
@@ -141,36 +262,56 @@ class _AddPetPageState extends State<AddPetPage> {
   Widget _buildAvatarSection() {
     return Column(
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey[200],
-            image: _selectedImage != null 
-              ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
-              : null,
-          ),
-          child: _selectedImage == null 
-            ? Center(child: Icon(Icons.camera_alt, color: Colors.grey[400], size: 40))
-            : null,
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.grey[200],
+                image: _selectedImage != null 
+                  ? DecorationImage(image: FileImage(_selectedImage!), fit: BoxFit.cover)
+                  : null,
+              ),
+              child: _selectedImage == null 
+                ? Center(child: Icon(Icons.camera_alt, color: Colors.grey[400], size: 40))
+                : null,
+            ),
+            if (_isUploading)
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.black.withOpacity(0.4),
+                ),
+                child: const Center(
+                  child: CircularProgressIndicator(color: Colors.white),
+                ),
+              ),
+          ],
         ),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: _pickImage,
+          onPressed: _isUploading ? null : _pickImage,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.white,
+            backgroundColor: const Color(0xFFEAF9F7),
             foregroundColor: AppColors.primary,
             elevation: 0,
-            side: const BorderSide(color: AppColors.primary, width: 1.5),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           ),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.upload, size: 16),
-              SizedBox(width: 6),
-              Text('Tải ảnh lên'),
+              Icon(Icons.camera_alt_outlined, size: 16, color: _isUploading ? Colors.grey : AppColors.primary),
+              const SizedBox(width: 6),
+              Text(
+                _isUploading ? 'Đang tải...' : 'Tải ảnh lên',
+                style: TextStyle(color: _isUploading ? Colors.grey : AppColors.primary),
+              ),
             ],
           ),
         ),
@@ -182,7 +323,7 @@ class _AddPetPageState extends State<AddPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Tên thú cưng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text('Tên thú cưng', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
         const SizedBox(height: 8),
         TextFormField(
           controller: petNameController,
@@ -200,17 +341,30 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Loại', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text('Loài', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedPetType,
-                decoration: _inputDecoration(''),
-                hint: const Text('Chọn loại'),
-                items: const [
-                  DropdownMenuItem(value: 'dog', child: Text('Chó')),
-                  DropdownMenuItem(value: 'cat', child: Text('Mèo')),
-                ],
-                onChanged: (value) => setState(() => _selectedPetType = value),
+                isExpanded: true,
+                value: _selectedSpeciesId,
+                decoration: _inputDecoration('Chọn loài'),
+                hint: const Text('Chọn loài', style: TextStyle(fontSize: 14)),
+                items: _speciesList.map<DropdownMenuItem<String>>((species) {
+                  return DropdownMenuItem<String>(
+                    value: species['id'],
+                    child: Text(species['name'], style: const TextStyle(fontSize: 14)),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSpeciesId = value;
+                    _selectedBreedId = null; // Reset giống khi đổi loài
+                    _breedList = [];
+                  });
+                  if (value != null) {
+                    _fetchBreeds(value);
+                  }
+                },
+                validator: (value) => value == null ? 'Vui lòng chọn loài' : null,
               ),
             ],
           ),
@@ -220,11 +374,21 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Giống', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text('Giống', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
               const SizedBox(height: 8),
-              TextFormField(
-                controller: breedController,
-                decoration: _inputDecoration('VD: Poodle'),
+              DropdownButtonFormField<String>(
+                isExpanded: true,
+                value: _selectedBreedId,
+                decoration: _inputDecoration('Chọn giống'),
+                hint: const Text('Chọn giống', style: TextStyle(fontSize: 14)),
+                items: _breedList.map<DropdownMenuItem<String>>((breed) {
+                  return DropdownMenuItem<String>(
+                    value: breed['id'],
+                    child: Text(breed['name'], style: const TextStyle(fontSize: 14), overflow: TextOverflow.ellipsis),
+                  );
+                }).toList(),
+                onChanged: (value) => setState(() => _selectedBreedId = value),
+                validator: (value) => value == null ? 'Vui lòng chọn giống' : null,
               ),
             ],
           ),
@@ -237,7 +401,7 @@ class _AddPetPageState extends State<AddPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Giới tính', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text('Giới tính', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
         const SizedBox(height: 12),
         Row(
           children: [
@@ -257,16 +421,16 @@ class _AddPetPageState extends State<AddPetPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[300]!, width: 1.5),
+          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[200]!, width: 1.5),
           borderRadius: BorderRadius.circular(12),
-          color: isSelected ? AppColors.primary.withValues(alpha: 0.08) : Colors.white,
+          color: Colors.white,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 18, color: isSelected ? AppColors.primary : Colors.grey[600]),
             const SizedBox(width: 8),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+            Text(label, style: TextStyle(fontWeight: FontWeight.w600, color: isSelected ? AppColors.primary : Colors.black)),
           ],
         ),
       ),
@@ -277,14 +441,14 @@ class _AddPetPageState extends State<AddPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Ngày sinh', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        const Text('Ngày sinh', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
         const SizedBox(height: 8),
         TextFormField(
           controller: birthdateController,
           readOnly: true,
           onTap: _selectDate,
-          decoration: _inputDecoration('mm/dd/yyyy').copyWith(
-            suffixIcon: const Icon(Icons.calendar_today, size: 20, color: AppColors.primary),
+          decoration: _inputDecoration('yyyy-mm-dd').copyWith(
+            suffixIcon: const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
           ),
           validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng chọn ngày sinh' : null,
         ),
@@ -299,11 +463,11 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Cân nặng (kg)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text('Cân nặng (kg)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
               const SizedBox(height: 8),
               TextFormField(
                 controller: weightController,
-                keyboardType: TextInputType.number,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: _inputDecoration('0.0'),
               ),
             ],
@@ -314,7 +478,7 @@ class _AddPetPageState extends State<AddPetPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Màu lông', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              const Text('Màu lông', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
               const SizedBox(height: 8),
               TextFormField(
                 onChanged: (value) => setState(() => _selectedFurColor = value),
@@ -332,14 +496,17 @@ class _AddPetPageState extends State<AddPetPage> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton(
-        onPressed: _savePetInfo,
+        onPressed: (_isUploading || _isSaving) ? null : _savePetInfo,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
+          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
           foregroundColor: Colors.white,
           elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(27)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
-        child: const Text('Lưu thông tin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        child: _isSaving 
+            ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+            : const Text('Lưu thông tin', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -347,12 +514,13 @@ class _AddPetPageState extends State<AddPetPage> {
   InputDecoration _inputDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[400]),
+      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
       filled: true,
-      fillColor: const Color(0xFFF8F9FA),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
-      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFE0E0E0))),
+      fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
     );
   }
 }
