@@ -14,4 +14,11 @@ class AppConstants {
   static const String forgotPasswordEndpoint = '/auth/forgot-password';
   static const String resetPasswordEndpoint = '/auth/reset-password';
   static const String userEndpoint = '/user';
+
+  // Pet Endpoints
+  static const String petEndpoint = '/pet';
+  static const String petSpeciesEndpoint = '/pet/species';
+  static const String petUploadEndpoint = '/pet/upload';
+  
+  static String petBreedsEndpoint(String speciesId) => '/pet/species/$speciesId/breed';
 }
