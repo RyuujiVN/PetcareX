@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common';
 import { AppointmentService } from './appointment.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
@@ -29,6 +29,15 @@ export class AppointmentController {
     await this.appointmentService.updateAppointment(updateDTO, id);
     return {
       message: 'Cập nhật lịch hẹn thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Xoá lịch hẹn' })
+  async deleteAppointment(@Param('id') id: string) {
+    await this.appointmentService.deleteAppointment(id);
+    return {
+      message: 'Xoá lịch hẹn thành công',
     };
   }
 }

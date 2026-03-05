@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Appointment } from './entities/appointment.entity';
 import { Repository } from 'typeorm';
@@ -65,5 +69,12 @@ export class AppointmentService {
     Object.assign(appointment, updateDTO);
 
     await this.appointmentRepository.save(appointment);
+  }
+
+  async deleteAppointment(appointmentId: string) {
+    const result = await this.appointmentRepository.delete(appointmentId);
+
+    if (result.affected === 0)
+      throw new BadRequestException('Không tìm thấy lịch hẹn');
   }
 }
