@@ -48,7 +48,7 @@ export class Appointment {
   status: AppointmentStatusEnum;
 
   @CreateDateColumn({ name: 'created_at' })
-  createAt: Date;
+  createdAt: Date;
 
   @ManyToOne(() => Pet, (pet) => pet.appointments, {
     onDelete: 'SET NULL',

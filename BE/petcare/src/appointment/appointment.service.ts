@@ -10,6 +10,8 @@ import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
 import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
+import { FilterPagintion } from 'src/common/types/pagination.type';
+import { paginate } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class AppointmentService {
@@ -45,6 +47,44 @@ export class AppointmentService {
         'owner.fullName',
       ])
       .getOne();
+  }
+
+  // Danh sách lịch hẹn của người dùng
+  async findAllMyAppointments(options: FilterPagintion, userId: string) {
+    const queryBuilder = this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .innerJoin('appointment.pet', 'pet')
+      .innerJoin('appointment.clinic', 'clinic')
+      .innerJoin('appointment.veterinarian', 'veterinarian')
+      .innerJoin('pet.breed', 'breed')
+      .innerJoin('pet.owner', 'owner')
+      .innerJoin('veterinarian.user', 'user')
+      .where('owner.id = :userId', { userId: userId })
+      .select([
+        'appointment.id',
+        'appointment.appointmentDate',
+        'appointment.appointmentTime',
+        'appointment.service',
+        'appointment.note',
+        'appointment.status',
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+        'clinic.id',
+        'clinic.name',
+        'clinic.address',
+        'breed.id',
+        'breed.name',
+        'owner.id',
+        'owner.fullName',
+        'veterinarian.specialty',
+        'user.id',
+        'user.fullName',
+        'user.avatarUrl',
+      ])
+      .orderBy('appointment.createdAt', 'DESC');
+
+    return paginate<Appointment>(queryBuilder, options);
   }
 
   // Tạo mới lịch hẹn
