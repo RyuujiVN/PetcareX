@@ -109,6 +109,7 @@ class _EditPetPageState extends State<EditPetPage> {
 
       try {
         final avatarUrl = await context.read<PetProvider>().uploadAvatar(image.path);
+        if (!mounted) return;
         setState(() {
           _uploadedAvatarUrl = avatarUrl;
         });
@@ -153,7 +154,7 @@ class _EditPetPageState extends State<EditPetPage> {
         );
       },
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         birthdateController.text =
             "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
@@ -169,7 +170,7 @@ class _EditPetPageState extends State<EditPetPage> {
       return;
     }
 
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState?.validate() ?? false) {
       if (_selectedBreedId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Vui lòng chọn giống thú cưng')),
@@ -476,7 +477,7 @@ class _EditPetPageState extends State<EditPetPage> {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200]!),
+                    border: Border.all(color: Colors.grey[200] ?? Colors.grey),
                   ),
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -504,7 +505,7 @@ class _EditPetPageState extends State<EditPetPage> {
         decoration: BoxDecoration(
           color: isSelected ? const Color(0xFFEAF9F7) : Colors.white,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[200]!),
+          border: Border.all(color: isSelected ? AppColors.primary : (Colors.grey[200] ?? Colors.grey)),
         ),
         alignment: Alignment.center,
         child: Text(
@@ -621,9 +622,9 @@ class _EditPetPageState extends State<EditPetPage> {
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
     );

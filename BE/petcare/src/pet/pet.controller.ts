@@ -79,7 +79,7 @@ export class PetController {
   }
 
   @Post()
-  @ApiOperation({ description: 'Tạo mới thú cưng' })
+  @ApiOperation({ summary: 'Tạo mới thú cưng' })
   @ApiBody({
     type: CreatePetDTO,
   })
@@ -88,7 +88,7 @@ export class PetController {
   }
 
   @Put(':id')
-  @ApiOperation({ description: 'Chỉnh sửa thông tin thú cưng' })
+  @ApiOperation({ summary: 'Chỉnh sửa thông tin thú cưng' })
   @ApiBody({
     type: UpdatePetDTO,
   })
@@ -101,7 +101,7 @@ export class PetController {
   }
 
   @Delete(':id')
-  @ApiOperation({ description: 'Xoá thú cưng' })
+  @ApiOperation({ summary: 'Xoá thú cưng' })
   async deletePet(@Param('id') id: string) {
     await this.petService.deletePet(id);
 

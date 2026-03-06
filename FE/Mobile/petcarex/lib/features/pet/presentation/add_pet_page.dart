@@ -58,6 +58,7 @@ class _AddPetPageState extends State<AddPetPage> {
 
       try {
         final avatarUrl = await context.read<PetProvider>().uploadAvatar(image.path);
+        if (!mounted) return;
         setState(() {
           _uploadedAvatarUrl = avatarUrl;
         });
@@ -101,7 +102,7 @@ class _AddPetPageState extends State<AddPetPage> {
         );
       },
     );
-    if (picked != null) {
+    if (picked != null && mounted) {
       setState(() {
         birthdateController.text =
             "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
@@ -117,7 +118,7 @@ class _AddPetPageState extends State<AddPetPage> {
       return;
     }
 
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState?.validate() ?? false) {
       if (_selectedBreedId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Vui lòng chọn thông tin loài và giống!')),
@@ -382,7 +383,7 @@ class _AddPetPageState extends State<AddPetPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          border: Border.all(color: isSelected ? AppColors.primary : Colors.grey[200]!, width: 1.5),
+          border: Border.all(color: isSelected ? AppColors.primary : (Colors.grey[200] ?? Colors.grey), width: 1.5),
           borderRadius: BorderRadius.circular(12),
           color: Colors.white,
         ),
@@ -490,9 +491,9 @@ class _AddPetPageState extends State<AddPetPage> {
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
       enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200]!)),
+          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),

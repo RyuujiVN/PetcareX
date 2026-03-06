@@ -26,13 +26,13 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { Veterinarian } from './entities/veterinarian.entity';
 
 @Controller('veterinarian')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth('JWT-auth')
+// @UseGuards(JwtAuthGuard)
 export class VeterinarianController {
   constructor(private readonly veterinarianService: VeterinarianService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Phân trang bác sĩ' })
+  @ApiOperation({ summary: 'Phân trang bác sĩ theo phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
   @ApiQuery({

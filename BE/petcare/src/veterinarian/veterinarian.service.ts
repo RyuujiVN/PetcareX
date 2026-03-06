@@ -95,12 +95,7 @@ export class VeterinarianService {
   ) {
     await this.dataSource.transaction(async (manager) => {
       // Cập nhật ở bảng user trước
-      await this.userService.updateUser(
-        veterinarianId,
-        updateDTO,
-        RoleEnum.VETERINARIAN,
-        manager,
-      );
+      await this.userService.updateUser(veterinarianId, updateDTO, manager);
 
       // Cập nhật bên bảng veterinarian
       const veterinarianRepo = manager.getRepository(Veterinarian);

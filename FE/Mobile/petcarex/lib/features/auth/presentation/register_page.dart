@@ -2,11 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
+import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../home/presentation/home_page.dart';
+import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'providers/auth_provider.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -29,8 +30,7 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
-  // Cập nhật IP chính xác của bạn tại đây
-  final String baseUrl = 'http://localhost:3000';
+  final ApiClient _apiClient = ApiClient();
 
   @override
   void dispose() {
@@ -42,55 +42,53 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-    if (_formKey.currentState!.validate()) {
-      if (!_agreeToTerms) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Bạn cần đồng ý với điều khoản dịch vụ')),
-        );
-        return;
-      }
+    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bạn cần đồng ý với điều khoản dịch vụ')),
+      );
+      return;
+    }
 
-      setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-      try {
-        final url = Uri.parse('$baseUrl/auth/register');
+    try {
+      final response = await _apiClient.post(AppConstants.registerEndpoint, {
+        'fullName': nameController.text,
+        'email': emailController.text,
+        'password': passwordController.text,
+        'role': 'CUSTOMER',
+      });
 
-        final response = await http.post(
-          url,
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'fullName': nameController.text,
-            'email': emailController.text,
-            'password': passwordController.text,
-            'role': 'CUSTOMER',
-          }),
-        ).timeout(const Duration(seconds: 10));
-
-        if (response.statusCode == 200 || response.statusCode == 201) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Đăng ký tài khoản thành công!')),
-          );
-          Navigator.pop(context);
-        } else {
-          final errorData = jsonDecode(response.body);
-          if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(errorData['message'] ?? 'Đăng ký thất bại')),
-          );
-        }
-      } catch (e) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
-        String errorMsg = 'Lỗi kết nối';
-        if (e is SocketException) {
-          errorMsg = 'Không thể kết nối tới Server. Kiểm tra IP (192.168.30.79) và Wi-Fi!';
-        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$errorMsg: $e')),
+          const SnackBar(content: Text('Đăng ký tài khoản thành công!')),
         );
-      } finally {
-        if (mounted) setState(() => _isLoading = false);
+        Navigator.pop(context);
+      } else {
+        dynamic errorData;
+        try {
+          errorData = jsonDecode(response.body);
+        } catch (_) {
+          errorData = <String, dynamic>{};
+        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text((errorData is Map ? errorData['message'] : null) ?? 'Đăng ký thất bại')),
+        );
       }
+    } catch (e) {
+      if (!mounted) return;
+      String errorMsg = 'Lỗi kết nối';
+      if (e is SocketException) {
+        errorMsg = 'Không thể kết nối tới Server. Kiểm tra mạng và cấu hình BASE_URL!';
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('$errorMsg: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -103,7 +101,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => const HomePage()),
+        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
         (route) => false,
       );
     } else {
