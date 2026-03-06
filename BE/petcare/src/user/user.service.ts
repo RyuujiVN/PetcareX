@@ -12,6 +12,7 @@ import bcrypt from 'bcryptjs';
 import { AdminClinic } from './entities/admin-clinic.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { UpdateUserDTO } from './dtos/update-user.dto';
+import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 
 @Injectable()
 export class UserService {
@@ -20,19 +21,37 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     @InjectRepository(AdminClinic)
     private readonly adminClinicRepository: Repository<AdminClinic>,
+    @InjectRepository(Veterinarian)
+    private readonly veterinarianRepository: Repository<Veterinarian>,
   ) {}
 
   async findOneByid(userId: string) {
-    return await this.userRepository.findOne({ where: { id: userId } });
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: {
+        veterinarian: true,
+      },
+    });
+
+    if (user && user?.role !== RoleEnum.VETERINARIAN) delete user.veterinarian;
+
+    return user;
   }
 
   async findOneByEmail(email: string) {
-    return await this.userRepository.findOne({ where: { email: email } });
+    return await this.userRepository.findOne({
+      where: { email: email, deleted: false },
+    });
   }
 
   // Lấy admin clinic
   async findOneAdminClinicById(id: string) {
     return await this.adminClinicRepository.findOne({ where: { userId: id } });
+  }
+
+  // Lấy veterinarian
+  async findOneVeterinarianById(id: string) {
+    return await this.veterinarianRepository.findOne({ where: { userId: id } });
   }
 
   // Tạo user
@@ -65,11 +84,11 @@ export class UserService {
   async updateUser(
     userId: string,
     updateDTO: UpdateUserDTO,
-    role: RoleEnum,
     manager?: EntityManager,
   ) {
     const repo = manager ? manager.getRepository(User) : this.userRepository; // Kiểm tra xem thử có cần chạy transaction hay không
 
+    // Kiểm tra email đã được sử dụng bởi người khác hay chưa
     const existedEmail = await repo.findOne({
       where: {
         id: Not(userId),
@@ -80,7 +99,7 @@ export class UserService {
     if (existedEmail) throw new ConflictException('Email đã được sử dụng');
 
     const user = await repo.findOne({
-      where: { id: userId, role: role },
+      where: { id: userId },
     });
 
     if (!user) throw new NotFoundException('Người dùng không tồn tại');
@@ -98,5 +117,12 @@ export class UserService {
 
     if (result.affected === 0)
       throw new NotFoundException('Không tìm thấy người dùng');
+  }
+
+  async softDeleteUser(userId: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Không tìm thấy user');
+
+    await this.userRepository.update({ id: userId }, { deleted: true });
   }
 }

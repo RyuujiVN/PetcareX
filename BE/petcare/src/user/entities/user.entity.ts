@@ -56,7 +56,7 @@ export class User {
   adminClinic: AdminClinic;
 
   @OneToOne(() => Veterinarian, (veterinarian) => veterinarian.user)
-  veterinarian: Veterinarian;
+  veterinarian?: Veterinarian;
 
   @OneToMany(() => Pet, (pet) => pet.owner)
   pets: Pet[];

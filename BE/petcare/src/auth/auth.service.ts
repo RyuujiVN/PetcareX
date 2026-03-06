@@ -60,6 +60,13 @@ export class AuthService {
       payload.clinicId = adminClinic?.clinicId;
     }
 
+    if (user.role === RoleEnum.VETERINARIAN) {
+      const veterinarian = await this.userService.findOneVeterinarianById(
+        user.id,
+      );
+      payload.clinicId = veterinarian?.clinicId;
+    }
+
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('ACCESS_TOKEN'),
       expiresIn: '7d',
