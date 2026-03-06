@@ -121,7 +121,7 @@ class _EditPetPageState extends State<EditPetPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Lỗi khi tải ảnh lên, vui lòng thử lại!')),
+            SnackBar(content: Text('Lỗi khi tải ảnh: ${e.toString()}')),
           );
           setState(() {
             _selectedImage = null; // Revert on fail

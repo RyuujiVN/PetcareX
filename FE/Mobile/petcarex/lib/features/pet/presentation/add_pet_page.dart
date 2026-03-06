@@ -71,7 +71,7 @@ class _AddPetPageState extends State<AddPetPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Lỗi tải ảnh. Vui lòng thử lại!')),
+            SnackBar(content: Text('Lỗi tải ảnh: ${e.toString()}')),
           );
         }
       } finally {

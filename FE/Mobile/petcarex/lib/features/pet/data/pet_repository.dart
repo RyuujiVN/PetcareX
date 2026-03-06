@@ -58,7 +58,17 @@ class PetRepository {
       } catch (_) {}
       throw Exception('Phản hồi từ máy chủ không hợp lệ');
     }
-    throw Exception('Lỗi khi tải lên avatar');
+    
+    // Đọc lỗi từ server nếu có
+    try {
+      final errorData = jsonDecode(response.body);
+      if (errorData is Map && errorData['message'] != null) {
+        final msg = errorData['message'];
+        throw Exception(msg is List ? msg.join(', ') : msg.toString());
+      }
+    } catch (_) {}
+    
+    throw Exception('Lỗi khi tải lên avatar (Status: ${response.statusCode})');
   }
 
   Future<bool> createPet(CreatePetDto petDto) async {
