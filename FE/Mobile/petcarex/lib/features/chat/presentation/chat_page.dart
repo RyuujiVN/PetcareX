@@ -24,6 +24,12 @@ class _ChatPageState extends State<ChatPage> {
   ];
 
   @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
@@ -54,7 +60,11 @@ class _ChatPageState extends State<ChatPage> {
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final msg = _messages[index];
-                return _buildChatBubble(msg['text'], msg['isMe'], msg['time']);
+                return _buildChatBubble(
+                  msg['text'] as String? ?? '',
+                  msg['isMe'] as bool? ?? false,
+                  msg['time'] as String? ?? '',
+                );
               },
             ),
           ),

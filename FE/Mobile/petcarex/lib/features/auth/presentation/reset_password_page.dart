@@ -37,6 +37,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (Timer timer) {
+        if (!mounted) {
+          timer.cancel();
+          return;
+        }
         if (_start == 0) {
           setState(() {
             _canResend = true;
