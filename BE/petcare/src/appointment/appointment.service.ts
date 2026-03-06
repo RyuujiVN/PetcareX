@@ -26,8 +26,10 @@ export class AppointmentService {
       .where('appointment.id = :id', { id: appointmentId })
       .innerJoin('appointment.pet', 'pet')
       .innerJoin('appointment.clinic', 'clinic')
+      .innerJoin('appointment.veterinarian', 'veterinarian')
       .innerJoin('pet.breed', 'breed')
       .innerJoin('pet.owner', 'owner')
+      .innerJoin('veterinarian.user', 'user')
       .select([
         'appointment.id',
         'appointment.appointmentDate',
@@ -45,6 +47,10 @@ export class AppointmentService {
         'breed.name',
         'owner.id',
         'owner.fullName',
+        'veterinarian.specialty',
+        'user.id',
+        'user.fullName',
+        'user.avatarUrl',
       ])
       .getOne();
   }

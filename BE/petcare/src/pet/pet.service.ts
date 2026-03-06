@@ -21,8 +21,10 @@ export class PetService {
   async findOneById(petId: string) {
     const pet = await this.petRepository
       .createQueryBuilder('pet')
-      .leftJoinAndSelect('pet.breed', 'breed')
-      .leftJoinAndSelect('breed.species', 'species')
+      .innerJoinAndSelect('pet.breed', 'breed')
+      .innerJoinAndSelect('breed.species', 'species')
+      .innerJoin('pet.user', 'user')
+      .addSelect(['user.id', 'user.fullName', 'user.phone'])
       .where('pet.id = :id', { id: petId })
       .getOne();
 
