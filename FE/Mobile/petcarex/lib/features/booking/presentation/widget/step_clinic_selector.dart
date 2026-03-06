@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../data/models/booking_models.dart';
 
 class StepClinicSelector extends StatelessWidget {
-  final int? selectedIndex;
-  final Function(int) onSelected;
-  final List<String> clinics;
+  final String? selectedClinicId;
+  final Function(Clinic) onSelected;
+  final List<Clinic> clinics;
 
   const StepClinicSelector({
     super.key,
-    required this.selectedIndex,
+    required this.selectedClinicId,
     required this.onSelected,
     required this.clinics,
   });
@@ -20,10 +21,10 @@ class StepClinicSelector extends StatelessWidget {
       children: List.generate(
         clinics.length,
         (i) => _listTile(
-          i,
           clinics[i],
-          "123 Đường Nguyễn Huệ, Quận 1",
-          selectedIndex,
+          clinics[i].name,
+          clinics[i].address,
+          selectedClinicId,
           onSelected,
           Icons.medical_services_outlined,
         ),
@@ -32,16 +33,16 @@ class StepClinicSelector extends StatelessWidget {
   }
 
   Widget _listTile(
-    int index,
+    Clinic clinic,
     String title,
     String sub,
-    int? selectedVar,
-    Function(int) onSelect,
+    String? selectedVarId,
+    Function(Clinic) onSelect,
     IconData icon,
   ) {
-    bool isSel = selectedVar == index;
+    bool isSel = selectedVarId == clinic.id;
     return GestureDetector(
-      onTap: () => onSelect(index),
+      onTap: () => onSelect(clinic),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),

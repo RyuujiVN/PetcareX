@@ -20,7 +20,6 @@ class StepTimeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Tách các khung giờ
     final morningSlots = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30"];
     final afternoonSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
 
@@ -150,16 +149,30 @@ class StepTimeSelector extends StatelessWidget {
     int hour = int.parse(time.split(':')[0]);
     int min = int.parse(time.split(':')[1]);
 
-    bool isPast = false;
-    if (selectedD.day == now.day && selectedD.month == now.month && selectedD.year == now.year) {
-      if (hour < now.hour || (hour == now.hour && min <= now.minute)) {
-        isPast = true;
-      }
-    }
+    DateTime slotDateTime = DateTime(
+      selectedD.year,
+      selectedD.month,
+      selectedD.day,
+      hour,
+      min,
+    );
+
+    Duration difference = slotDateTime.difference(now);
+
+    bool isPast = difference.inHours < 3;
 
     bool isSel = selectedTime == time;
     return GestureDetector(
-      onTap: isPast ? null : () => onTimeSelected(time),
+      onTap: isPast ? () {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chỉ được đặt lịch cách thời điểm hiện tại ít nhất 3 tiếng'),
+            duration: Duration(milliseconds: 2500), 
+            behavior: SnackBarBehavior.floating, 
+          ),
+        );
+      } : () => onTimeSelected(time),
       child: Container(
         width: (MediaQuery.of(context).size.width - 64) / 3,
         padding: const EdgeInsets.symmetric(vertical: 14),

@@ -5,11 +5,12 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/booking/presentation/provider/booking_provider.dart';
 import 'features/pet/presentation/provider/pet_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Thiết lập thanh trạng thái trong suốt
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -23,6 +24,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PetProvider()),
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
       ],
       child: const MyApp(),
     ),

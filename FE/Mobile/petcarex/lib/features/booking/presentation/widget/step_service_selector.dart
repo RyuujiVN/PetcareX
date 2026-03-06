@@ -1,17 +1,21 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 
 class StepServiceSelector extends StatelessWidget {
-  final int? selectedIndex;
-  final Function(int) onSelected;
+  final String? selectedServiceName;
+  final Function(String) onSelected;
   final List<String> services;
+  final Function(String) onSymptomsChanged;
+  final String? symptoms;
 
   const StepServiceSelector({
     super.key,
-    required this.selectedIndex,
+    required this.selectedServiceName,
     required this.onSelected,
     required this.services,
+    required this.onSymptomsChanged,
+    this.symptoms,
   });
 
   @override
@@ -19,27 +23,40 @@ class StepServiceSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ...List.generate(
-          services.length,
-          (i) => _listTile(
-            i,
-            services[i],
-            "Dịch vụ chăm sóc chất lượng cao",
-            selectedIndex,
-            onSelected,
-            Icons.medical_information_outlined,
+        Expanded(
+          child: SingleChildScrollView(
+            child: Column(
+              children: List.generate(
+                services.length,
+                (i) => _listTile(
+                  services[i],
+                  services[i],
+                  'Dịch vụ chăm sóc chất lượng cao',
+                  selectedServiceName,
+                  onSelected,
+                  Icons.medical_information_outlined,
+                ),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          "Triệu chứng (Tuỳ chọn)",
-          style: TextStyle(fontWeight: FontWeight.bold),
+        RichText(
+          text: const TextSpan(
+            text: 'Triệu chứng của thú cưng ',
+            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+            children: [
+              TextSpan(text: '*', style: TextStyle(color: Colors.red)),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
         TextField(
           maxLines: 4,
+          onChanged: onSymptomsChanged,
+          controller: TextEditingController(text: symptoms)..selection = TextSelection.collapsed(offset: symptoms?.length ?? 0),
           decoration: InputDecoration(
-            hintText: "Ghi triệu chứng của thú cưng",
+            hintText: 'Ghi rõ triệu chứng hoặc tình trạng bệnh...',
             hintStyle: TextStyle(color: Colors.grey.shade400),
             filled: true,
             fillColor: Colors.white,
@@ -62,16 +79,16 @@ class StepServiceSelector extends StatelessWidget {
   }
 
   Widget _listTile(
-    int index,
+    String serviceName,
     String title,
     String sub,
-    int? selectedVar,
-    Function(int) onSelect,
+    String? selectedVarName,
+    Function(String) onSelect,
     IconData icon,
   ) {
-    bool isSel = selectedVar == index;
+    bool isSel = selectedVarName == serviceName;
     return GestureDetector(
-      onTap: () => onSelect(index),
+      onTap: () => onSelect(serviceName),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
