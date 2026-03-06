@@ -52,6 +52,12 @@ export class ClinicController {
     });
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Chi tiết phòng khám' })
+  getDetailClinic(@Param('id') id: string): Promise<Clinic> {
+    return this.clinicService.findOneById(id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Tạo mới phòng khám' })
   @ApiBody({

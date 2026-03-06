@@ -1,12 +1,14 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserService } from 'src/user/user.service';
 import { CreateUserDTO } from 'src/user/dtos/create-user.dto';
 import { LoginDTO } from './dtos/login.dto';
-import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
 import { ResetPasswordDTO } from './dtos/reset-password.dto';
+import { ChangePasswordDTO } from './dtos/change-password.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -57,6 +59,21 @@ export class AuthController {
   })
   async resetPassword(@Body() resetPasswordDTO: ResetPasswordDTO) {
     await this.authService.resetPassword(resetPasswordDTO);
+
+    return {
+      message: 'Đổi mật khẩu thành công',
+    };
+  }
+
+  @Post('change-password')
+  @ApiBearerAuth('JWT-auth')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Thay đổi mật khẩu' })
+  @ApiBody({
+    type: ChangePasswordDTO,
+  })
+  async changePassword(@Req() req, @Body() changePassDTO: ChangePasswordDTO) {
+    await this.authService.changePassword(req?.user?.id, changePassDTO);
 
     return {
       message: 'Đổi mật khẩu thành công',

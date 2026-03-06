@@ -18,6 +18,7 @@ import { ResetPasswordDTO } from './dtos/reset-password.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { ChangePasswordDTO } from './dtos/change-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -129,6 +130,27 @@ export class AuthService {
     if (!user) throw new NotFoundException('Không tìm thấy người dùng');
 
     user.password = await bcrypt.hash(resetDTO.newPassword, 10);
+    await this.userRepository.save(user);
+  }
+
+  async changePassword(id: string, changePassDTO: ChangePasswordDTO) {
+    if (changePassDTO.newPassword !== changePassDTO.cofirmPassword)
+      throw new BadRequestException('Xác nhận mật khẩu không chính xác');
+
+    const user = await this.userRepository.findOne({ where: { id: id } });
+
+    if (!user) throw new BadRequestException('Không tìm thấy user');
+
+    const passwordChecked = await bcrypt.compare(
+      changePassDTO.oldPassword,
+      user?.password,
+    );
+    if (!passwordChecked)
+      throw new BadRequestException('Mật khẩu cũ không chính xác');
+
+    const hashPassword = await bcrypt.hash(changePassDTO.newPassword, 10);
+    user.password = hashPassword;
+
     await this.userRepository.save(user);
   }
 }

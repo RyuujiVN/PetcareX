@@ -20,6 +20,7 @@ export class ClinicService {
     private readonly userService: UserService,
   ) {}
 
+  // Phân trang phòng khám
   async findAllPagination(
     options: FilterPagintion,
   ): Promise<Pagination<Clinic>> {
@@ -37,6 +38,7 @@ export class ClinicService {
     return paginate<Clinic>(queryBuilder, options);
   }
 
+  // Chi tiết phòng khám
   async findOneById(id: string): Promise<Clinic> {
     const clinic = await this.clinicRepository.findOne({ where: { id: id } });
 
@@ -45,10 +47,12 @@ export class ClinicService {
     return clinic;
   }
 
+  // Tạo mới phòng khám
   async createClinic(
     clinicDTO: CreateClinicDTO,
     userDTO: CreateUserDTO,
   ): Promise<Clinic> {
+    // Bắt đầu transaction
     return await this.dataSource.transaction(async (manager) => {
       const clinicRepo = manager.getRepository(Clinic);
       const adminClinicRepo = manager.getRepository(AdminClinic);
@@ -74,6 +78,7 @@ export class ClinicService {
     });
   }
 
+  // Chỉnh sửa thông tin phòng khám
   async updateClinic(id: string, clinicDTO: UpdateClinicDTO) {
     const clinic = await this.findOneById(id);
 
@@ -81,6 +86,7 @@ export class ClinicService {
     await this.clinicRepository.save(clinic);
   }
 
+  // Xoá phòng khám
   async deleteClinic(id: string) {
     const result = await this.clinicRepository.delete({
       id: id,
