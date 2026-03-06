@@ -58,72 +58,90 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildSectionHeader('Sắp tới'),
-          const SizedBox(height: 16),
-          _buildUpcomingCard(),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildSectionHeader('Nhắc nhở tiêm phòng'),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE0F7F4),
-                  borderRadius: BorderRadius.circular(12),
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Thông báo & Nhắc lịch',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildSectionHeader('Sắp tới'),
+            const SizedBox(height: 16),
+            _buildUpcomingCard(),
+            const SizedBox(height: 32),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _buildSectionHeader('Nhắc nhở tiêm phòng'),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF1F1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    '2 nhắc nhở mới',
+                    style: TextStyle(color: Colors.red, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
                 ),
-                child: const Text(
-                  '2 nhắc nhở mới',
-                  style: TextStyle(color: AppColors.primary, fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildVaccinationReminder(
-            title: 'Nhắc tiêm dại:',
-            petName: 'LuLu',
-            subTitle: 'Đã đến hạn tiêm định kỳ hàng năm',
-            status: 'HẾT HẠN',
-            timeRange: '2 ngày trước',
-            isExpired: true,
-            image: 'assets/images/cho_phoc_soc.png',
-          ),
-          const SizedBox(height: 12),
-          _buildVaccinationReminder(
-            title: 'Tiêm 4 bệnh:',
-            petName: 'MeoMeo',
-            subTitle: 'Còn 5 ngày nữa tới lịch hẹn',
-            status: 'SẮP TỚI',
-            timeRange: '30/10',
-            isExpired: false,
-            image: 'assets/images/meo_anh_long_ngan.png',
-          ),
-          const SizedBox(height: 32),
-          _buildSectionHeader('Thông báo cũ hơn'),
-          const SizedBox(height: 16),
-          _buildOldNotification(
-            icon: Icons.shopping_bag_outlined,
-            title: 'Đơn hàng đã giao thành công',
-            description: 'Đơn hàng #12345 đã được giao bởi Shipper.',
-            time: '15/10/2023',
-          ),
-          const SizedBox(height: 16),
-          _buildOldNotification(
-            icon: Icons.eco_outlined,
-            title: 'Mẹo chăm sóc mèo mùa thu',
-            description: 'Khám phá cách giữ ấm cho boss khi trời trở lạnh.',
-            time: '12/10/2023',
-          ),
-          const SizedBox(height: 32),
-          _buildSettingsTile(),
-          const SizedBox(height: 100), // Space for bottom nav
-        ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildVaccinationReminder(
+              title: 'Nhắc tiêm dại:',
+              petName: 'LuLu',
+              subTitle: 'Đã đến hạn tiêm định kỳ hàng năm',
+              status: 'HẾT HẠN',
+              timeRange: '2 ngày trước',
+              isExpired: true,
+              image: 'assets/images/cho_phoc_soc.png',
+            ),
+            const SizedBox(height: 12),
+            _buildVaccinationReminder(
+              title: 'Tiêm 4 bệnh:',
+              petName: 'MeoMeo',
+              subTitle: 'Còn 5 ngày nữa tới lịch hẹn',
+              status: 'SẮP TỚI',
+              timeRange: '30/10',
+              isExpired: false,
+              image: 'assets/images/meo_anh_long_ngan.png',
+            ),
+            const SizedBox(height: 32),
+            _buildSectionHeader('Thông báo cũ hơn'),
+            const SizedBox(height: 16),
+            _buildOldNotification(
+              icon: Icons.shopping_bag_outlined,
+              title: 'Đơn hàng đã giao thành công',
+              description: 'Đơn hàng #12345 đã được giao bởi Shipper.',
+              time: '15/10/2023',
+            ),
+            _buildOldNotification(
+              icon: Icons.eco_outlined,
+              title: 'Mẹo chăm sóc mèo mùa thu',
+              description: 'Khám phá cách giữ ấm cho boss khi trời trở lạnh.',
+              time: '12/10/2023',
+            ),
+            _buildSettingsTile(),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
@@ -131,7 +149,7 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
     );
   }
 
@@ -230,19 +248,25 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                RichText(
-                  text: TextSpan(
-                    style: const TextStyle(color: Colors.black, fontSize: 14),
-                    children: [
-                      TextSpan(text: '$title ', style: const TextStyle(fontWeight: FontWeight.bold)),
-                      TextSpan(text: petName, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
+                Row(
+                  children: [
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(color: Colors.black, fontSize: 14),
+                        children: [
+                          TextSpan(text: '$title ', style: const TextStyle(fontWeight: FontWeight.bold)),
+                          TextSpan(text: petName, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
                   subTitle,
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
@@ -251,22 +275,24 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
                     children: [
                       Text(
                         'Đặt lịch ngay',
-                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14),
+                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13),
                       ),
-                      Icon(Icons.chevron_right, color: AppColors.primary, size: 16),
+                      Icon(Icons.chevron_right, color: AppColors.primary, size: 14),
                     ],
                   ),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 status,
                 style: TextStyle(
-                  color: isExpired ? Colors.red : Colors.grey,
+                  color: isExpired ? Colors.red : Colors.grey[400],
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -292,40 +318,43 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
     required String description,
     required String time,
   }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: const BoxDecoration(
-            color: Color(0xFFF0F4F7),
-            shape: BoxShape.circle,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: const BoxDecoration(
+              color: Color(0xFFF1F4F9),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: Colors.grey[400], size: 24),
           ),
-          child: Icon(icon, color: Colors.grey[600], size: 24),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                time,
-                style: TextStyle(color: Colors.grey[400], fontSize: 11),
-              ),
-            ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E2124)),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: const TextStyle(color: Color(0xFF7D848D), fontSize: 14),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: const TextStyle(color: Color(0xFFADB5BD), fontSize: 12),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -335,35 +364,35 @@ class _AppointmentNotificationPageState extends State<AppointmentNotificationPag
       decoration: BoxDecoration(
         color: const Color(0xFFF1FDFB),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.05),
-            blurRadius: 10,
-            spreadRadius: 2,
-          )
-        ],
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.notifications_active_outlined, color: AppColors.primary),
-          SizedBox(width: 16),
-          Expanded(
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.notifications_active_outlined, color: AppColors.primary),
+          ),
+          const SizedBox(width: 16),
+          const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Cài đặt nhắc nhở',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF1E2124)),
                 ),
                 Text(
                   'Quản lý cách bạn nhận thông báo',
-                  style: TextStyle(color: Colors.grey, fontSize: 12),
+                  style: TextStyle(color: Color(0xFF7D848D), fontSize: 13),
                 ),
               ],
             ),
           ),
-          Icon(Icons.chevron_right, color: Colors.grey),
+          const Icon(Icons.chevron_right, color: Color(0xFFADB5BD)),
         ],
       ),
     );

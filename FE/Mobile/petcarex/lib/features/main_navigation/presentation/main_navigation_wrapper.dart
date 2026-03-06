@@ -4,10 +4,9 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../../core/services/camera_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/account/presentation/account_page.dart';
-import '../../../../features/appointment/presentation/appointment_notification.dart';
-import '../../../../features/chat/presentation/chat_page.dart';
-import '../../../../features/home/presentation/home_page.dart';
+import '../../../../features/booking/presentation/booking_page.dart';
 import '../../../../features/community/presentation/community_page.dart';
+import '../../../../features/home/presentation/home_page.dart';
 
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({super.key});
@@ -22,7 +21,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   final List<Widget> _pages = [
     const HomePage(),
-    const AppointmentNotificationPage(),
+    const BookingPage(),
     const CommunityPage(), // Trang cộng đồng đúng vị trí index 2
     const AccountPage(),
   ];
@@ -99,7 +98,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(Icons.home_outlined, Icons.home, "TRANG CHỦ", 0),
-              _buildNavItem(Icons.calendar_today_outlined, Icons.calendar_today, "LỊCH HẸN", 1),
+              _buildNavItem(Icons.calendar_today_outlined, Icons.calendar_today, "ĐẶT LỊCH", 1),
               const SizedBox(width: 40),
               _buildNavItem(Icons.forum_outlined, Icons.forum, "CỘNG ĐỒNG", 2),
               _buildNavItem(Icons.person_outline, Icons.person, "CÁ NHÂN", 3),

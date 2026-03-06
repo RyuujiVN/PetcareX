@@ -6,6 +6,7 @@ import '../../../core/services/camera_service.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
+import '../../notification/presentation/notification.dart';
 import '../../pet/data/models/pet_models.dart';
 import '../../pet/presentation/add_pet_page.dart';
 import '../../pet/presentation/edit_pet_page.dart';
@@ -89,7 +90,17 @@ class _HomePageState extends State<HomePage> {
             IconButton(onPressed: () {}, icon: const Icon(Icons.search, color: Color(0xFF5F6368))),
             Stack(
               children: [
-                IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF5F6368))),
+                IconButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AppointmentNotificationPage(),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF5F6368)),
+                ),
                 Positioned(
                   right: 12,
                   top: 12,
