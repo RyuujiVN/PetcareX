@@ -38,7 +38,15 @@ class AuthProvider extends ChangeNotifier {
         'password': password,
       });
 
-      final body = jsonDecode(response.body);
+      dynamic body;
+      try {
+        body = jsonDecode(response.body);
+      } catch (_) {
+        _errorMessage = 'Phản hồi từ máy chủ không hợp lệ';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         _user = UserModel.fromJson(body['userInfo']);
@@ -105,7 +113,15 @@ class AuthProvider extends ChangeNotifier {
           'photoUrl': firebaseUser.photoURL,
         });
 
-        final body = jsonDecode(response.body);
+        dynamic body;
+        try {
+          body = jsonDecode(response.body);
+        } catch (_) {
+          _errorMessage = 'Phản hồi từ máy chủ không hợp lệ';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
 
         if (response.statusCode == 200 || response.statusCode == 201) {
           _user = UserModel.fromJson(body['userInfo']);
@@ -173,7 +189,13 @@ class AuthProvider extends ChangeNotifier {
       try {
         final response = await _apiClient.get(AppConstants.userEndpoint);
         if (response.statusCode == 200) {
-          final body = jsonDecode(response.body);
+          dynamic body;
+          try {
+            body = jsonDecode(response.body);
+          } catch (_) {
+            await logout();
+            return;
+          }
           _user = UserModel.fromJson(body);
           notifyListeners();
         } else {
@@ -197,7 +219,15 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
       });
 
-      final data = jsonDecode(response.body);
+      dynamic data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (_) {
+        _errorMessage = 'Phản hồi từ máy chủ không hợp lệ';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         _isLoading = false;
@@ -233,10 +263,18 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
         'otp': otp,
         'newPassword': newPassword,
-        'cofirmPassword': confirmPassword,
+        'confirmPassword': confirmPassword,
       });
 
-      final data = jsonDecode(response.body);
+      dynamic data;
+      try {
+        data = jsonDecode(response.body);
+      } catch (_) {
+        _errorMessage = 'Phản hồi từ máy chủ không hợp lệ';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         _isLoading = false;

@@ -636,7 +636,7 @@ class _BookingPageState extends State<BookingPage> {
           _row(
             Icons.calendar_today,
             "Thời gian",
-            "$_selectedTime - ${d.day}/${d.month}/${d.year}",
+            "${_selectedTime ?? '--'} - ${d.day}/${d.month}/${d.year}",
           ),
         ],
       ),

@@ -27,17 +27,17 @@ class Pet {
 
   factory Pet.fromJson(Map<String, dynamic> json) {
     return Pet(
-      id: json['id'],
-      ownerId: json['ownerId'],
-      name: json['name'],
-      breedId: json['breedId'],
-      gender: json['gender'],
-      dateOfBirth: json['dateOfBirth'],
-      weight: double.tryParse(json['weight'].toString()) ?? 0.0,
-      avatar: json['avatar'],
-      note: json['note'] ?? '',
-      createdAt: DateTime.parse(json['createdAt']),
-      breed: json['breed'] != null ? PetBreed.fromJson(json['breed']) : null,
+      id: json['id']?.toString() ?? '',
+      ownerId: json['ownerId']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      breedId: json['breedId']?.toString() ?? '',
+      gender: json['gender'] == true,
+      dateOfBirth: json['dateOfBirth']?.toString() ?? '',
+      weight: double.tryParse(json['weight']?.toString() ?? '') ?? 0.0,
+      avatar: json['avatar']?.toString(),
+      note: json['note']?.toString() ?? '',
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now() : DateTime.now(),
+      breed: json['breed'] != null && json['breed'] is Map ? PetBreed.fromJson(json['breed'] as Map<String, dynamic>) : null,
     );
   }
 }
@@ -50,8 +50,8 @@ class PetSpecies {
 
   factory PetSpecies.fromJson(Map<String, dynamic> json) {
     return PetSpecies(
-      id: json['id'],
-      name: json['name'],
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
     );
   }
 }
@@ -65,9 +65,9 @@ class PetBreed {
 
   factory PetBreed.fromJson(Map<String, dynamic> json) {
     return PetBreed(
-      id: json['id'],
-      name: json['name'],
-      speciesId: json['speciesId'] ?? '',
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      speciesId: json['speciesId']?.toString() ?? '',
     );
   }
 }

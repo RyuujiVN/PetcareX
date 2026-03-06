@@ -10,8 +10,12 @@ class PetRepository {
   Future<List<Pet>> getMyPets() async {
     final response = await _apiClient.get(AppConstants.petEndpoint);
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Pet.fromJson(json)).toList();
+      try {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => Pet.fromJson(json)).toList();
+      } catch (_) {
+        throw Exception('Phản hồi từ máy chủ không hợp lệ');
+      }
     }
     throw Exception('Lỗi khi tải danh sách vật nuôi của bạn');
   }
@@ -19,8 +23,12 @@ class PetRepository {
   Future<List<PetSpecies>> getSpecies() async {
     final response = await _apiClient.get(AppConstants.petSpeciesEndpoint);
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => PetSpecies.fromJson(json)).toList();
+      try {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => PetSpecies.fromJson(json)).toList();
+      } catch (_) {
+        throw Exception('Phản hồi từ máy chủ không hợp lệ');
+      }
     }
     throw Exception('Lỗi khi tải danh sách loài vật nuôi');
   }
@@ -28,8 +36,12 @@ class PetRepository {
   Future<List<PetBreed>> getBreeds(String speciesId) async {
     final response = await _apiClient.get(AppConstants.petBreedsEndpoint(speciesId));
     if (response.statusCode == 200) {
-      final List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => PetBreed.fromJson(json)).toList();
+      try {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.map((json) => PetBreed.fromJson(json)).toList();
+      } catch (_) {
+        throw Exception('Phản hồi từ máy chủ không hợp lệ');
+      }
     }
     throw Exception('Lỗi khi tải danh sách giống vật nuôi');
   }
@@ -37,8 +49,14 @@ class PetRepository {
   Future<String> uploadAvatar(String filePath) async {
     final response = await _apiClient.postMultipart(AppConstants.petUploadEndpoint, filePath);
     if (response.statusCode == 200 || response.statusCode == 201) {
-      final data = jsonDecode(response.body);
-      return data['file'];
+      try {
+        final data = jsonDecode(response.body);
+        final fileUrl = data is Map ? data['file'] : null;
+        if (fileUrl is String && fileUrl.isNotEmpty) {
+          return fileUrl;
+        }
+      } catch (_) {}
+      throw Exception('Phản hồi từ máy chủ không hợp lệ');
     }
     throw Exception('Lỗi khi tải lên avatar');
   }
@@ -49,7 +67,12 @@ class PetRepository {
       return true;
     }
     
-    final responseBody = jsonDecode(response.body);
+    dynamic responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+    } catch (_) {
+      throw Exception('Phản hồi từ máy chủ không hợp lệ');
+    }
     String errorMessage = 'Lỗi khi tạo vật nuôi';
     
     if (responseBody is Map) {
@@ -79,7 +102,12 @@ class PetRepository {
       return true;
     }
     
-    final responseBody = jsonDecode(response.body);
+    dynamic responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+    } catch (_) {
+      throw Exception('Phản hồi từ máy chủ không hợp lệ');
+    }
     String errorMessage = 'Lỗi khi cập nhật vật nuôi';
     
     if (responseBody is Map) {
