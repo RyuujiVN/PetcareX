@@ -1,7 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsString,
   Matches,
@@ -9,7 +8,6 @@ import {
   MinLength,
 } from 'class-validator';
 import { regex } from 'src/common/constants/rexgex.constant';
-import { RoleEnum } from 'src/common/enums/role.enum';
 
 export class CreateUserDTO {
   @ApiProperty()
@@ -32,8 +30,4 @@ export class CreateUserDTO {
     message: 'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số',
   })
   password: string;
-
-  @ApiProperty()
-  @IsEnum(RoleEnum)
-  role: RoleEnum;
 }

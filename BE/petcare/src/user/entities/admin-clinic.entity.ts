@@ -7,7 +7,7 @@ export class AdminClinic {
   @PrimaryColumn({ name: 'user_id' })
   userId: string;
 
-  @OneToOne(() => User)
+  @OneToOne(() => User, (user) => user.adminClinic)
   @JoinColumn({ name: 'user_id' })
   user: User;
 

@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'core/theme/app_theme.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'features/auth/presentation/login_page.dart';
+import 'package:provider/provider.dart';
 
-void main() async {
+import 'core/theme/app_theme.dart';
+import 'features/auth/presentation/login_page.dart';
+import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/booking/presentation/provider/booking_provider.dart';
+import 'features/pet/presentation/provider/pet_provider.dart';
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // Thiết lập thanh trạng thái trong suốt để đồng bộ với màu app
+
+  // Thiết lập thanh trạng thái trong suốt
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -15,15 +19,16 @@ void main() async {
     ),
   );
 
-  try {
-    // Nếu bạn chưa cấu hình Firebase, dòng này sẽ báo lỗi. 
-    // Tôi dùng try-catch để app vẫn chạy được giao diện.
-    await Firebase.initializeApp();
-  } catch (e) {
-    debugPrint("Firebase chưa được cấu hình: $e");
-  }
-
-  runApp(const MyApp());
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => PetProvider()),
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

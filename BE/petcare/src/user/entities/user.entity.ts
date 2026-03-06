@@ -4,9 +4,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { AdminClinic } from './admin-clinic.entity';
+import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
+import { Pet } from 'src/pet/entities/pet.entity';
 
 @Entity('user')
 export class User {
@@ -46,4 +51,13 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
+
+  @OneToOne(() => AdminClinic, (adminClinic) => adminClinic.user)
+  adminClinic: AdminClinic;
+
+  @OneToOne(() => Veterinarian, (veterinarian) => veterinarian.user)
+  veterinarian?: Veterinarian;
+
+  @OneToMany(() => Pet, (pet) => pet.owner)
+  pets: Pet[];
 }

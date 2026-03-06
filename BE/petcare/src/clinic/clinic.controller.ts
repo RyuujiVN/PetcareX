@@ -2,23 +2,61 @@ import { Clinic } from 'src/clinic/entities/clinic.entity';
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
+  Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CreateClinicWithAdminDTO } from './dtos/create-clinic-with-admin.dto';
 import { ClinicService } from './clinic.service';
 import { UpdateClinicDTO } from './dtos/update-clinic.dto';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Controller('clinic')
-// @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 export class ClinicController {
   constructor(private readonly clinicService: ClinicService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Phân trang phòng khám' })
+  @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Tìm theo tên phòng khám',
+  })
+  findAllPagination(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('search') search?: string,
+  ): Promise<Pagination<Clinic>> {
+    return this.clinicService.findAllPagination({
+      page,
+      limit,
+      search,
+    });
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Chi tiết phòng khám' })
+  getDetailClinic(@Param('id') id: string): Promise<Clinic> {
+    return this.clinicService.findOneById(id);
+  }
 
   @Post()
   @ApiOperation({ summary: 'Tạo mới phòng khám' })
