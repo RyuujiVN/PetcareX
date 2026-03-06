@@ -1,5 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/services/camera_service.dart';
+import '../../auth/presentation/providers/auth_provider.dart';
+import '../../pet/presentation/provider/pet_provider.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -11,6 +16,34 @@ class CommunityPage extends StatefulWidget {
 class _CommunityPageState extends State<CommunityPage> {
   final List<String> _categories = ["Tất cả", "Kinh nghiệm nuôi", "Hỏi đáp bác sĩ"];
   int _selectedCategoryIndex = 0;
+  final CameraService _cameraService = CameraService();
+  bool _isUploading = false;
+
+  Future<void> _handleImageUpload() async {
+    final File? image = await _cameraService.pickImageFromGallery();
+    if (image == null) return;
+
+    if (!mounted) return;
+    setState(() => _isUploading = true);
+
+    try {
+      final petProvider = context.read<PetProvider>();
+      final String uploadedUrl = await petProvider.uploadAvatar(image.path);
+      
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tải ảnh bài viết thành công!')),
+      );
+      debugPrint("Community Uploaded URL: $uploadedUrl");
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Lỗi upload ảnh: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -83,6 +116,7 @@ class _CommunityPageState extends State<CommunityPage> {
   }
 
   Widget _buildPostInput() {
+    final user = context.watch<AuthProvider>().user;
     return Container(
       padding: const EdgeInsets.all(20),
       color: Colors.white,
@@ -91,9 +125,11 @@ class _CommunityPageState extends State<CommunityPage> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=user1'),
+                backgroundImage: user?.avatarUrl != null 
+                  ? NetworkImage(user!.avatarUrl!) 
+                  : const NetworkImage('https://i.pravatar.cc/150?u=man1'),
               ),
               const SizedBox(width: 12),
               const Expanded(
@@ -107,9 +143,12 @@ class _CommunityPageState extends State<CommunityPage> {
           const SizedBox(height: 16),
           Row(
             children: [
-              IconButton(onPressed: () {}, icon: const Icon(Icons.image_outlined, color: Colors.grey)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.videocam_outlined, color: Colors.grey)),
-              IconButton(onPressed: () {}, icon: const Icon(Icons.label_outline, color: Colors.grey)),
+              _isUploading 
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary))
+                : IconButton(
+                    onPressed: _handleImageUpload, 
+                    icon: const Icon(Icons.image_outlined, color: Colors.grey)
+                  ),
               const Spacer(),
               ElevatedButton(
                 onPressed: () {},
@@ -195,14 +234,12 @@ class _CommunityPageState extends State<CommunityPage> {
                 title: "Cách chọn thức ăn hạt giàu dinh dưỡng cho chó con",
                 author: "Dr. Thanh",
                 time: "2 giờ trước",
-                color: const Color(0xFFE8F9F7),
               ),
               _buildFeaturedCard(
                 category: "SỨC KHỎE",
                 title: "Lịch tiêm phòng cần thiết cho thú cưng năm 2024",
                 author: "VetSmart",
                 time: "5 giờ trước",
-                color: const Color(0xFFEEF3FF),
               ),
             ],
           ),
@@ -211,7 +248,7 @@ class _CommunityPageState extends State<CommunityPage> {
     );
   }
 
-  Widget _buildFeaturedCard({required String category, required String title, required String author, required String time, required Color color}) {
+  Widget _buildFeaturedCard({required String category, required String title, required String author, required String time}) {
     return Container(
       width: 220,
       margin: const EdgeInsets.only(right: 12),
@@ -219,7 +256,7 @@ class _CommunityPageState extends State<CommunityPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -235,12 +272,7 @@ class _CommunityPageState extends State<CommunityPage> {
           const Spacer(),
           Row(
             children: [
-              Container(
-                width: 18,
-                height: 18,
-                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                child: const Center(child: Text('DT', style: TextStyle(color: Colors.white, fontSize: 8))),
-              ),
+              const CircleAvatar(radius: 9, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=dr1')),
               const SizedBox(width: 6),
               Text('$author • $time', style: const TextStyle(color: Colors.grey, fontSize: 10)),
             ],
@@ -303,7 +335,7 @@ class _CommunityPageState extends State<CommunityPage> {
                     decoration: BoxDecoration(color: const Color(0xFFE0F7F4), borderRadius: BorderRadius.circular(8)),
                     child: const Icon(Icons.medical_services_outlined, color: AppColors.primary, size: 20),
                   )
-                : const CircleAvatar(radius: 20, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=user2')),
+                : const CircleAvatar(radius: 20, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=man1')),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
