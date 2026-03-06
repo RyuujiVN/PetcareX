@@ -129,45 +129,52 @@ class _BookingPageState extends State<BookingPage> {
     final bookingProvider = context.watch<BookingProvider>();
     final isSuccess = _currentStep == 6;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: isSuccess
-            ? const SizedBox()
-            : IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
-                onPressed: _previousStep,
-              ),
-        title: const Text(
-          'Đặt lịch khám',
-          style: TextStyle(
-            color: AppColors.textDark,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+    return PopScope(
+      canPop: _currentStep == 0 || isSuccess,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        _previousStep();
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          leading: isSuccess
+              ? const SizedBox()
+              : IconButton(
+                  icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+                  onPressed: _previousStep,
+                ),
+          title: const Text(
+            'Đặt lịch khám',
+            style: TextStyle(
+              color: AppColors.textDark,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
         ),
+        body: Column(
+          children: [
+            StepIndicator(
+              currentStep: _currentStep,
+              steps: _steps,
+              isSuccess: isSuccess,
+              onStepTapped: (index) {
+                if (index < _currentStep) {
+                  setState(() => _currentStep = index);
+                }
+              },
+            ),
+            Expanded(
+              child: _buildBodyContent(),
+            ),
+          ],
+        ),
+        bottomNavigationBar: _buildBottomSection(),
       ),
-      body: Column(
-        children: [
-          StepIndicator(
-            currentStep: _currentStep,
-            steps: _steps,
-            isSuccess: isSuccess,
-            onStepTapped: (index) {
-              if (index < _currentStep) {
-                setState(() => _currentStep = index);
-              }
-            },
-          ),
-          Expanded(
-            child: _buildBodyContent(),
-          ),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomSection(),
     );
   }
 
