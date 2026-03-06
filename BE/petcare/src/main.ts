@@ -18,6 +18,9 @@ async function bootstrap() {
   // Cấu hình cors
   app.enableCors(corsOptions);
 
+  // Thêm prefix cho url api
+  app.setGlobalPrefix('api');
+
   // Cấu hình swagger
   const config = new DocumentBuilder()
     .setTitle('Petcare')

@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,12 +6,14 @@ import {
 import { CreateUserDTO } from './dtos/create-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, EntityManager, Not, Repository } from 'typeorm';
+import { EntityManager, Not, Repository } from 'typeorm';
 import bcrypt from 'bcryptjs';
 import { AdminClinic } from './entities/admin-clinic.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { UpdateUserDTO } from './dtos/update-user.dto';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
+import { FilterPagintion } from 'src/common/types/pagination.type';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserService {
@@ -52,6 +53,29 @@ export class UserService {
   // Lấy veterinarian
   async findOneVeterinarianById(id: string) {
     return await this.veterinarianRepository.findOne({ where: { userId: id } });
+  }
+
+  // Phân trang user
+  async findAllUserPagination(
+    options: FilterPagintion,
+  ): Promise<Pagination<User>> {
+    const queryBuilder = this.userRepository
+      .createQueryBuilder('user')
+      .where('user.role != :role', {
+        role: RoleEnum.ADMIN,
+      })
+      .orderBy('user.createdAt', 'DESC');
+
+    if (options.search)
+      queryBuilder
+        .andWhere('user.fullName ILIKE :name', {
+          name: `%${options.search}`,
+        })
+        .orWhere('user.email ILIKE :email', {
+          email: `%${options.search}%`,
+        });
+
+    return paginate<User>(queryBuilder, options);
   }
 
   // Tạo user

@@ -2,11 +2,14 @@ import { UserService } from './user.service';
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -18,11 +21,14 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/pipes/file-validate.pipe';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UpdateUserDTO } from './dtos/update-user.dto';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { User } from './entities/user.entity';
 
 @Controller('user')
 @ApiBearerAuth('JWT-auth')
@@ -32,6 +38,28 @@ export class UserController {
     private readonly userService: UserService,
     private readonly cloudinaryService: CloudinaryService,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Phân trang người dùng' })
+  @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Tìm kiếm theo tên hoặc email',
+  })
+  findAllPagination(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('search') search?: string,
+  ): Promise<Pagination<User>> {
+    return this.userService.findAllUserPagination({
+      page,
+      limit,
+      search,
+    });
+  }
 
   @Get('profile')
   @ApiOperation({ summary: 'Lấy thông tin tài khoản đang đăng nhập' })
