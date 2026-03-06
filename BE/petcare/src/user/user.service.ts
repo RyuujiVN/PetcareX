@@ -2,7 +2,7 @@ import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDTO } from './dtos/create-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -10,6 +10,7 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    private readonly dataSource: DataSource,
   ) {}
 
   async findOneByEmail(email: string) {
@@ -17,9 +18,15 @@ export class UserService {
   }
 
   // Tạo user
-  async createUser(userDTO: CreateUserDTO) {
+  async createUser(
+    userDTO: CreateUserDTO,
+    manager?: EntityManager,
+  ): Promise<User> {
+    // Kiểm tra xem thử có cần chạy transaction hay không
+    const repo = manager ? manager.getRepository(User) : this.userRepository;
+
     // Kiểm tra email đã tồn tại hay chưa
-    const existUser = await this.userRepository.findOne({
+    const existUser = await repo.findOne({
       where: { email: userDTO.email },
     });
 
@@ -31,6 +38,6 @@ export class UserService {
     const newUser = new User();
     Object.assign(newUser, userDTO);
 
-    await this.userRepository.save(newUser);
+    return await repo.save(newUser);
   }
 }

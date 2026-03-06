@@ -6,16 +6,15 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { HttpAdapterHost } from '@nestjs/core';
 import { Request, Response } from 'express';
 
-interface ErrorResponse {
+type ErrorResponse = {
   status: number;
   message: string;
   error?: any;
   stack?: any;
   url?: any;
-}
+};
 
 @Catch()
 export class CatchEverythingFilter implements ExceptionFilter {
@@ -42,6 +41,7 @@ export class CatchEverythingFilter implements ExceptionFilter {
     };
 
     if (this.configService.get('NODE_ENV') !== 'production') {
+      errorResponse.error = exception.response;
       errorResponse.stack = exception.stack;
       errorResponse.url = request.url;
     }

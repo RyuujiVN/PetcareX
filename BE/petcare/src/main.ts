@@ -3,13 +3,23 @@ import { Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ClassSerializerInterceptor, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { corsOptions } from './common/configs/cors.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
+  // Cấu hình cors
+  app.enableCors(corsOptions);
+
+  // Cấu hình swagger
   const config = new DocumentBuilder()
     .setTitle('Petcare')
     .setDescription('Đây là api document cho Petcare')

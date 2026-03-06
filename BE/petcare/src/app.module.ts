@@ -8,6 +8,7 @@ import { dataSourceOptions } from 'db/data-source';
 import { ConfigModule } from '@nestjs/config';
 import { CatchEverythingFilter } from './common/filters/global-exception.filter';
 import { APP_FILTER } from '@nestjs/core';
+import { ClinicModule } from './clinic/clinic.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { APP_FILTER } from '@nestjs/core';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    ClinicModule,
   ],
   controllers: [AppController],
   providers: [
