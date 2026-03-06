@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:petcarex/features/auth/presentation/login_page.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+import '../../auth/presentation/change_password_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -26,10 +27,12 @@ class _AccountPageState extends State<AccountPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.pop(context); // Đóng dialog
+                Navigator.pop(context);
                 final authProvider = context.read<AuthProvider>();
                 await authProvider.logout();
                 if (mounted) {
+                  // Sau khi logout, AuthWrapper trong main.dart sẽ tự chuyển về LoginPage
+                  // Tuy nhiên, nếu bạn muốn cưỡng chế thì dùng Navigator:
                   Navigator.pushAndRemoveUntil(
                     context,
                     MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -94,6 +97,8 @@ class _AccountPageState extends State<AccountPage> {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -108,18 +113,18 @@ class _AccountPageState extends State<AccountPage> {
               shape: BoxShape.circle,
               border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
             ),
-            child: const CircleAvatar(
+            child: CircleAvatar(
               radius: 18,
               backgroundColor: Colors.white,
-              backgroundImage: NetworkImage(
-                'https://images.unsplash.com/photo-1517849845537-4d257902454a?auto=format&fit=crop&q=80&w=100',
-              ),
+              backgroundImage: user?.avatarUrl != null 
+                ? NetworkImage(user!.avatarUrl!)
+                : const NetworkImage('https://i.pravatar.cc/150?u=man1'),
             ),
           ),
         ),
-        title: const Text(
-          'Cá nhân',
-          style: TextStyle(
+        title: Text(
+          user?.fullName ?? 'Cá nhân',
+          style: const TextStyle(
             color: Color(0xFF1E1E1E),
             fontSize: 20,
             fontWeight: FontWeight.bold,
@@ -173,7 +178,10 @@ class _AccountPageState extends State<AccountPage> {
             title: 'Đổi mật khẩu',
             subtitle: 'Cập nhật mật khẩu của bạn',
             onTap: () {
-              // TODO: Navigate to change password
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+              );
             },
           ),
           const SizedBox(height: 32),

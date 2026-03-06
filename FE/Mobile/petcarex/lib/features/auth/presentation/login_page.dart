@@ -198,7 +198,10 @@ class _LoginPageState extends State<LoginPage> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20),
+      BoxShadow(
+      color: Colors.black.withValues(alpha: 0.03),
+      blurRadius: 20,
+    ),
         ],
       ),
       child: Column(

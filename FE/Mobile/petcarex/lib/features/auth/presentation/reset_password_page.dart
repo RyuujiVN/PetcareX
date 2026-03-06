@@ -30,6 +30,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   bool _canResend = true;
 
   void startTimer() {
+    if (!mounted) return;
     setState(() {
       _canResend = false;
       _start = 60;
@@ -99,11 +100,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
 
     final authProvider = context.read<AuthProvider>();
     
+    // SỬA LỖI: Truyền tham số có tên (Named Parameters)
     final success = await authProvider.resetPassword(
-      widget.email,
-      otpController.text.trim(),
-      passwordController.text,
-      confirmPasswordController.text,
+      email: widget.email,
+      otp: otpController.text.trim(),
+      newPassword: passwordController.text,
+      confirmPassword: confirmPasswordController.text,
     );
 
     if (!mounted) return;
@@ -114,6 +116,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       await Future.delayed(const Duration(milliseconds: 1000));
       if (!mounted) return;
       
+      // Quay về màn hình đầu tiên (Login)
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
       _showQuickSnackBar(authProvider.errorMessage ?? 'Có lỗi xảy ra', isError: true);
@@ -210,10 +213,10 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.grey.withOpacity(0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withOpacity(0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -228,7 +231,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -316,7 +319,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           enabled: !isLoading,
           decoration: InputDecoration(
             hintText: 'Nhập mã OTP',
-            hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
+            hintStyle: TextStyle(color: AppColors.grey.withOpacity(0.5)),
             prefixIcon: const Icon(Icons.security, size: 20, color: AppColors.grey),
             contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             filled: true,
@@ -360,7 +363,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           decoration: InputDecoration(
             hintText: '● ● ● ● ● ● ● ●',
             hintStyle: TextStyle(
-              color: AppColors.grey.withValues(alpha: 0.3),
+              color: AppColors.grey.withOpacity(0.3),
               fontSize: 10,
               letterSpacing: 2,
             ),
