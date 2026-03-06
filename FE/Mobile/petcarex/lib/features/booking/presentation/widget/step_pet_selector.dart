@@ -3,41 +3,48 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../pet/data/models/pet_models.dart';
 import '../../../pet/presentation/add_pet_page.dart';
 
 class StepPetSelector extends StatelessWidget {
-  final int? selectedIndex;
-  final Function(int) onSelected;
-  final List<String> petNames;
+  final String? selectedPetId;
+  final Function(Pet) onSelected;
+  final List<Pet> pets;
 
   const StepPetSelector({
     super.key,
-    required this.selectedIndex,
+    required this.selectedPetId,
     required this.onSelected,
-    required this.petNames,
+    required this.pets,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: 0.85,
+      ),
+      itemCount: pets.length + 1,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 16,
-      childAspectRatio: 0.85,
-      children: [
-        _petItem(0, petNames.isNotEmpty ? petNames[0] : 'Lu Lu', 'assets/images/cho_phoc_soc.png', 'Chó Phốc Sóc'),
-        _petItem(1, petNames.length > 1 ? petNames[1] : 'Mimi', 'assets/images/meo_anh_long_ngan.png', 'Mèo Anh lông ngắn'),
-        _addNewItem(context),
-      ],
+      itemBuilder: (context, index) {
+        if (index < pets.length) {
+          final pet = pets[index];
+          return _petItem(pet);
+        } else {
+          return _addNewItem(context);
+        }
+      },
     );
   }
 
-  Widget _petItem(int index, String name, String img, String breed) {
-    final isSel = selectedIndex == index;
+  Widget _petItem(Pet pet) {
+    final isSel = selectedPetId == pet.id;
     return GestureDetector(
-      onTap: () => onSelected(index),
+      onTap: () => onSelected(pet),
       child: Container(
         decoration: BoxDecoration(
           color: isSel ? AppColors.primary.withOpacity(0.08) : Colors.white,
@@ -50,11 +57,16 @@ class StepPetSelector extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircleAvatar(radius: 35, backgroundImage: AssetImage(img)),
+            CircleAvatar(
+              radius: 35,
+              backgroundImage: (pet.avatar != null && pet.avatar!.isNotEmpty)
+                  ? NetworkImage(pet.avatar!) as ImageProvider
+                  : const AssetImage('assets/images/cho_phoc_soc.png'),
+            ),
             const SizedBox(height: 12),
-            Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(pet.name, style: const TextStyle(fontWeight: FontWeight.bold)),
             Text(
-              breed,
+              pet.breed?.name ?? 'Không xác định',
               style: const TextStyle(fontSize: 11, color: Colors.grey),
             ),
           ],
