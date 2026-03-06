@@ -50,6 +50,7 @@ class _AddPetPageState extends State<AddPetPage> {
 
   Future<void> _pickImage() async {
     final File? image = await _cameraService.pickImageFromGallery();
+    if (!mounted) return;
     if (image != null) {
       setState(() {
         _selectedImage = image;

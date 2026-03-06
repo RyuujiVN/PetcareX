@@ -47,6 +47,7 @@ class _LoginPageState extends State<LoginPage> {
     final savedEmail = await authProvider.getSavedEmail();
     final rememberMe = await authProvider.getRememberMe();
 
+    if (!mounted) return;
     if (savedEmail != null) {
       setState(() {
         _emailController.text = savedEmail;
@@ -56,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (rememberMe) {
       await authProvider.checkAuthStatus();
+      if (!mounted) return;
       if (authProvider.isAuthenticated) {
         if (!mounted) return;
         Navigator.pushReplacement(
