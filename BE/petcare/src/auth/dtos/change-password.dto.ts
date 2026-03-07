@@ -19,5 +19,5 @@ export class ChangePasswordDTO {
   @ApiProperty()
   @IsString()
   @IsNotEmpty({ message: 'Xác nhận mật khẩu không được để trống' })
-  cofirmPassword: string;
+  confirmPassword: string;
 }

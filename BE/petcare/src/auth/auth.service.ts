@@ -5,20 +5,20 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UserService } from 'src/user/user.service';
-import { LoginDTO } from './dtos/login.dto';
-import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import bcrypt from 'bcryptjs';
 import { RoleEnum } from 'src/common/enums/role.enum';
-import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from 'src/otp/otp.service';
-import { ResetPasswordDTO } from './dtos/reset-password.dto';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { Repository } from 'typeorm';
 import { ChangePasswordDTO } from './dtos/change-password.dto';
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
+import { LoginDTO } from './dtos/login.dto';
+import { ResetPasswordDTO } from './dtos/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -115,7 +115,7 @@ export class AuthService {
   }
 
   async resetPassword(resetDTO: ResetPasswordDTO) {
-    if (resetDTO.newPassword !== resetDTO.cofirmPassword)
+    if (resetDTO.newPassword !== resetDTO.confirmPassword)
       throw new BadRequestException('Xác nhận mật khẩu không chính xác');
 
     const otp = await this.otpService.findOneByEmailOtp(
@@ -134,7 +134,7 @@ export class AuthService {
   }
 
   async changePassword(id: string, changePassDTO: ChangePasswordDTO) {
-    if (changePassDTO.newPassword !== changePassDTO.cofirmPassword)
+    if (changePassDTO.newPassword !== changePassDTO.confirmPassword)
       throw new BadRequestException('Xác nhận mật khẩu không chính xác');
 
     const user = await this.userRepository.findOne({ where: { id: id } });
@@ -152,5 +152,19 @@ export class AuthService {
     user.password = hashPassword;
 
     await this.userRepository.save(user);
+
+    // Trả về token mới sau khi đổi mật khẩu để update lại session
+    const payload: any = {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      avatar_url: user.avatarUrl,
+    };
+
+    return this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('ACCESS_TOKEN'),
+      expiresIn: '7d',
+    });
   }
 }

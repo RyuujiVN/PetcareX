@@ -1,14 +1,14 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
-import { AuthService } from './auth.service';
-import { UserService } from 'src/user/user.service';
-import { CreateUserDTO } from 'src/user/dtos/create-user.dto';
-import { LoginDTO } from './dtos/login.dto';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { RoleEnum } from 'src/common/enums/role.enum';
-import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
-import { ResetPasswordDTO } from './dtos/reset-password.dto';
-import { ChangePasswordDTO } from './dtos/change-password.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { CreateUserDTO } from 'src/user/dtos/create-user.dto';
+import { UserService } from 'src/user/user.service';
+import { AuthService } from './auth.service';
+import { ChangePasswordDTO } from './dtos/change-password.dto';
+import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
+import { LoginDTO } from './dtos/login.dto';
+import { ResetPasswordDTO } from './dtos/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -73,10 +73,14 @@ export class AuthController {
     type: ChangePasswordDTO,
   })
   async changePassword(@Req() req, @Body() changePassDTO: ChangePasswordDTO) {
-    await this.authService.changePassword(req?.user?.id, changePassDTO);
+    const accessToken = await this.authService.changePassword(
+      req?.user?.id,
+      changePassDTO,
+    );
 
     return {
       message: 'Đổi mật khẩu thành công',
+      accessToken: accessToken,
     };
   }
 }

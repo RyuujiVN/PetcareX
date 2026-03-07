@@ -44,7 +44,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar('Đổi mật khẩu thành công', isError: false);
+      _showQuickSnackBar('Đổi mật khẩu thành công.', isError: false);
+      
+      // Không đăng xuất nữa, chỉ cần pop để quay lại màn hình trước
       Navigator.pop(context);
     } else {
       _showQuickSnackBar(authProvider.errorMessage ?? 'Đã có lỗi xảy ra. Vui lòng thử lại.', isError: true);

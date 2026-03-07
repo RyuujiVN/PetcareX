@@ -1,9 +1,11 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import '../../../../core/network/api_client.dart';
+
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/network/api_client.dart';
 import '../../data/models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -53,7 +55,7 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = body['message'] ?? 'Đăng nhập thất bại';
+        _errorMessage = _parseErrorMessage(body);
         _isLoading = false;
         notifyListeners();
         return false;
@@ -80,17 +82,22 @@ class AuthProvider extends ChangeNotifier {
       final response = await _apiClient.post(AppConstants.changePasswordEndpoint, {
         'oldPassword': oldPassword,
         'newPassword': newPassword,
-        'cofirmPassword': confirmPassword, // Key khớp chính xác với ảnh Swagger
+        'confirmPassword': confirmPassword,
       });
 
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
+        final token = body['accessToken'];
+        if (token != null) {
+          await _storage.write(key: 'accessToken', value: token);
+        }
+
         _isLoading = false;
         notifyListeners();
         return true;
       } else {
-        _errorMessage = body['message'] ?? 'Đổi mật khẩu thất bại';
+        _errorMessage = _parseErrorMessage(body);
         _isLoading = false;
         notifyListeners();
         return false;
@@ -101,6 +108,30 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+  }
+
+  // Helper để parse message lỗi từ NestJS
+  String _parseErrorMessage(dynamic body) {
+    if (body == null) return 'Đã có lỗi xảy ra';
+    
+    // Nếu NestJS trả về cấu trúc throw new BadRequestException({message: [...]})
+    if (body['error'] != null && body['error']['message'] != null) {
+      final message = body['error']['message'];
+      if (message is List) {
+        return message.join(', ');
+      }
+      return message.toString();
+    }
+    
+    if (body['message'] != null) {
+      final message = body['message'];
+      if (message is List) {
+        return message.join(', ');
+      }
+      return message.toString();
+    }
+    
+    return 'Lỗi không xác định';
   }
 
   // 3. Đăng nhập bằng Google
@@ -241,14 +272,15 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
         'otp': otp,
         'newPassword': newPassword,
-        'confirmPassword': confirmPassword,
+        'confirmPassword': confirmPassword, 
       });
       _isLoading = false;
+      final body = jsonDecode(response.body);
       if (response.statusCode == 200 || response.statusCode == 201) {
         notifyListeners();
         return true;
       }
-      _errorMessage = jsonDecode(response.body)['message'] ?? 'Đặt lại mật khẩu thất bại';
+      _errorMessage = _parseErrorMessage(body);
       notifyListeners();
       return false;
     } catch (e) {
