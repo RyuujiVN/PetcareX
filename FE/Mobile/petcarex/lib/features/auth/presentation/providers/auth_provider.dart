@@ -204,7 +204,7 @@ class AuthProvider extends ChangeNotifier {
     return value == 'true';
   }
 
-  // 7. Kiểm tra trạng thái đăng nhập
+  // 7. Kiểm tra trạng thái đăng nhập và Lấy thông tin Profile
   Future<void> checkAuthStatus() async {
     final token = await _storage.read(key: 'accessToken');
     if (token == null) {
@@ -217,7 +217,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.get(AppConstants.userEndpoint);
+      final response = await _apiClient.get(AppConstants.userProfileEndpoint);
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         _user = UserModel.fromJson(body);
@@ -229,6 +229,103 @@ class AuthProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  // 7.1 Lấy thông tin Profile (Refresh)
+  Future<bool> fetchProfile() async {
+    try {
+      final response = await _apiClient.get(AppConstants.userProfileEndpoint);
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        _user = UserModel.fromJson(body);
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      debugPrint("Error fetching profile: $e");
+      return false;
+    }
+  }
+
+  // 7.2 Cập nhật Profile
+  Future<bool> updateProfile({
+    required String fullName,
+    required String email,
+    required String phone,
+    required String address,
+    String? avatarUrl,
+  }) async {
+    if (_user == null) return false;
+    
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final Map<String, dynamic> data = {
+        'fullName': fullName,
+        'email': email,
+        'phone': phone,
+        'address': address,
+        if (avatarUrl != null) 'avatarUrl': avatarUrl,
+      };
+
+      final response = await _apiClient.put('${AppConstants.userEndpoint}/${_user!.id}', data);
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = jsonDecode(response.body);
+        _user = UserModel.fromJson(body);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        final body = jsonDecode(response.body);
+        _errorMessage = _parseErrorMessage(body);
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _errorMessage = 'Lỗi kết nối: $e';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  // 7.3 Tải ảnh Avatar
+  Future<String?> uploadAvatar(String filePath) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiClient.postMultipart(AppConstants.userUploadEndpoint, filePath);
+      
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = jsonDecode(response.body);
+        _isLoading = false;
+        notifyListeners();
+        
+        final fileUrl = body is Map ? body['file'] : null;
+        if (fileUrl is String && fileUrl.isNotEmpty) {
+          return fileUrl;
+        }
+        return null;
+      } else {
+        final body = jsonDecode(response.body);
+        _errorMessage = _parseErrorMessage(body);
+        _isLoading = false;
+        notifyListeners();
+        return null;
+      }
+    } catch (e) {
+      _errorMessage = 'Lỗi upload ảnh: $e';
+      _isLoading = false;
+      notifyListeners();
+      return null;
     }
   }
 

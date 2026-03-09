@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:petcarex/features/auth/presentation/login_page.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
+
 import '../../auth/presentation/change_password_page.dart';
+import 'profile_page.dart';
 
 class AccountPage extends StatefulWidget {
   const AccountPage({super.key});
@@ -158,7 +160,10 @@ class _AccountPageState extends State<AccountPage> {
             title: 'Thông tin cá nhân',
             subtitle: 'Xem và chỉnh sửa thông tin cá nhân',
             onTap: () {
-              // TODO: Navigate to profile
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
             },
           ),
           const SizedBox(height: 16),

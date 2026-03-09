@@ -17,6 +17,8 @@ class AppConstants {
 
   // User Endpoint
   static const String userEndpoint = '$apiPrefix/user';
+  static const String userProfileEndpoint = '$apiPrefix/user/profile';
+  static const String userUploadEndpoint = '$apiPrefix/user/upload';
 
   // Pet Endpoints
   static const String petEndpoint = '$apiPrefix/pet';
