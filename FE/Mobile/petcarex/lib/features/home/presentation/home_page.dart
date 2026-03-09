@@ -33,6 +33,48 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  Future<void> _openQRScanner() async {
+    bool hasPermission = await _cameraService.requestCameraPermission();
+
+    if (hasPermission) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QRScannerScreen(
+            onScan: (code) {
+              Navigator.pop(context);
+              _showQRResult(code);
+            },
+          ),
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bạn cần cấp quyền Camera để quét mã QR')),
+      );
+    }
+  }
+
+  void _showQRResult(String code) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kết quả quét'),
+        content: Text('Nội dung mã QR: $code'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -87,7 +129,10 @@ class _HomePageState extends State<HomePage> {
         ),
         Row(
           children: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.search, color: Color(0xFF5F6368))),
+            IconButton(
+              onPressed: _openQRScanner, 
+              icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF5F6368)),
+            ),
             Stack(
               children: [
                 IconButton(
