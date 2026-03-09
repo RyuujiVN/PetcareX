@@ -16,6 +16,8 @@ import { PetModule } from './pet/pet.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { AppointmentModule } from './appointment/appointment.module';
 import { MedicalModule } from './medical/medical.module';
+import { MedicalOrderModule } from './medical-order/medical-order.module';
+import { MedicineModule } from './medicine/medicine.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { MedicalModule } from './medical/medical.module';
     CloudinaryModule,
     AppointmentModule,
     MedicalModule,
+    MedicalOrderModule,
+    MedicineModule,
   ],
   controllers: [AppController],
   providers: [

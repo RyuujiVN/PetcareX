@@ -22,13 +22,10 @@ export class MedicalService {
   async findOneById(id: string) {
     const record = await this.medicalRecord
       .createQueryBuilder('medical_record')
-
       .leftJoinAndSelect('medical_record.pet', 'pet')
       .leftJoinAndSelect('pet.breed', 'breed')
       .leftJoinAndSelect('pet.owner', 'owner')
-
       .leftJoinAndSelect('medical_record.clinic', 'clinic')
-
       .leftJoinAndSelect('medical_record.veterinarian', 'veterinarian')
       .leftJoinAndSelect('veterinarian.user', 'user')
 
