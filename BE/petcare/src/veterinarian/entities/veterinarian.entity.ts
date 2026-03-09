@@ -1,6 +1,7 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { VeterinarySpecialtyEnum } from 'src/common/enums/veterinary-specialty.enum';
+import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
@@ -40,4 +41,7 @@ export class Veterinarian {
 
   @OneToMany(() => Appointment, (appointment) => appointment.veterinarian)
   appointments: Appointment[];
+
+  @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.veterinarian)
+  medicalRecords: MedicalRecord[];
 }

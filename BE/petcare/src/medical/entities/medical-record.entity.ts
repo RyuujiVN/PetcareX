@@ -1,5 +1,6 @@
 import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { Pet } from 'src/pet/entities/pet.entity';
+import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import {
   Column,
   CreateDateColumn,
@@ -19,6 +20,9 @@ export class MedicalRecord {
 
   @Column({ type: 'uuid', name: 'clinic_id' })
   clinicId: string;
+
+  @Column({ name: 'veterinarian_id' })
+  veterinarianId: string;
 
   @Column({ name: 'pet_name' })
   petName: string;
@@ -71,4 +75,15 @@ export class MedicalRecord {
   })
   @JoinColumn({ name: 'clinic_id' })
   clinic: Clinic;
+
+  @ManyToOne(
+    () => Veterinarian,
+    (veterinarian) => veterinarian.medicalRecords,
+    {
+      onDelete: 'SET NULL',
+      nullable: true,
+    },
+  )
+  @JoinColumn({ name: 'veterinarian_id' })
+  veterinarian: Veterinarian;
 }

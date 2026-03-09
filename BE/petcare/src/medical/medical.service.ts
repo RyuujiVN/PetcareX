@@ -45,18 +45,75 @@ export class MedicalService {
       ])
       .orderBy('medical_record.createdAt', 'DESC');
 
-    if (options.search)
-      queryBuilder.andWhere('medical_record.name ILIKE :name', {
-        name: `%${options.search}%`,
-      });
-
     return paginate<MedicalRecord>(queryBuilder, options);
+  }
+
+  // Danh sách phiếu khám theo pet của user
+  async findAllPaginationByPet(options: MedicalRecordPagination) {
+    const queryBuilder = this.medicalRecord
+      .createQueryBuilder('medical_record')
+      .leftJoinAndSelect('medical_record.pet', 'pet')
+      .leftJoinAndSelect('medical_record.clinic', 'clinic')
+      .leftJoinAndSelect('medical_record.veterinarian', 'veterinarian')
+      .leftJoinAndSelect('veterinarian.user', 'user')
+      .leftJoinAndSelect('pet.breed', 'breed')
+      .where('pet.id = :petId', {
+        petId: options.petId,
+      })
+      .select([
+        'medical_record.id',
+        'medical_record.name',
+        'medical_record.diagnosis',
+        'medical_record.symptoms',
+        'medical_record.conclusion',
+        'medical_record.note',
+        'medical_record.createdAt',
+        'medical_record.followUpDate',
+
+        'clinic.id',
+        'clinic.name',
+
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+
+        'breed.name',
+
+        'veterinarian.specialty',
+
+        'user.id',
+        'user.fullName',
+      ])
+      .orderBy('medical_record.createdAt', 'DESC');
+
+    const pagination = await paginate<MedicalRecord>(queryBuilder, options);
+
+    const items = pagination.items.map((record) => ({
+      ...record,
+      pet: {
+        id: record.pet?.id,
+        name: record.pet?.name,
+        avatar: record.pet?.avatar,
+        breedName: record.pet?.breed?.name,
+      },
+      veterinarian: {
+        id: record.veterinarian?.user?.id,
+        specialty: record.veterinarian?.specialty,
+        fullName: record.veterinarian?.user?.fullName,
+      },
+    }));
+
+    return {
+      items: items,
+      meta: pagination.meta,
+    };
   }
 
   // Tạo phiếu khám
   async createMedicalRecord(
     createDTO: CreateMedicalRecordDTO,
     clinicId: string,
+    veterinarianId: string,
   ) {
     return await this.dataSource.transaction(async (manager) => {
       // 1. Kiểm tra xem user đã tồn tại chưa
@@ -104,6 +161,7 @@ export class MedicalService {
       const medicalRecord = medicalRepo.create(createDTO);
       medicalRecord.clinicId = clinicId;
       medicalRecord.petId = savedPet.id;
+      medicalRecord.veterinarianId = veterinarianId;
 
       return await medicalRepo.save(medicalRecord);
     });

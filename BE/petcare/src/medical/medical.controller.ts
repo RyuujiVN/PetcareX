@@ -43,6 +43,23 @@ export class MedicalController {
       clinicId: req?.user?.clinicId,
     });
   }
+
+  @Get('pet/:id')
+  @ApiOperation({ summary: 'Lấy danh sách phiếu khám của pet' })
+  @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  getAllMedicalRecordPet(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
+    @Param('id') id: string,
+  ) {
+    return this.medicalService.findAllPaginationByPet({
+      page,
+      limit,
+      petId: id,
+    });
+  }
+
   @Post('')
   @ApiOperation({ summary: 'Tạo phiếu khám bệnh cho pet' })
   @ApiBody({
@@ -52,6 +69,7 @@ export class MedicalController {
     return this.medicalService.createMedicalRecord(
       createDTO,
       req?.user?.clinicId,
+      req?.user?.id,
     );
   }
 
