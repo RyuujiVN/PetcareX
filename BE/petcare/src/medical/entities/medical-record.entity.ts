@@ -53,8 +53,8 @@ export class MedicalRecord {
   @Column({ type: 'text', nullable: true })
   note?: string;
 
-  @Column({ type: 'date', nullable: true })
-  follow_up_date?: Date;
+  @Column({ type: 'date', nullable: true, name: 'follow_up_date' })
+  followUpDate?: Date;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

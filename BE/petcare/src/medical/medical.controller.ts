@@ -1,8 +1,17 @@
-import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { MedicalService } from './medical.service';
 import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateMedicalRecordDTO } from './dtos/create-medical-record.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 
 @Controller('medical')
 @ApiBearerAuth('JWT-auth')
@@ -20,5 +29,21 @@ export class MedicalController {
       createDTO,
       req?.user?.clinicId,
     );
+  }
+
+  @Put('')
+  @ApiOperation({ summary: 'Cập nhật phiếu khám bệnh cho pet' })
+  @ApiBody({
+    type: UpdateMedicalRecordDTO,
+  })
+  async updateMedical(
+    @Body() updateDTO: UpdateMedicalRecordDTO,
+    @Param('id') id: string,
+  ) {
+    await this.medicalService.updateMedicalRecord(updateDTO, id);
+
+    return {
+      message: 'Cập nhật thành công',
+    };
   }
 }
