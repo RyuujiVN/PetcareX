@@ -37,13 +37,15 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
 
-    const passwordChecked = await bcrypt.compare(
-      loginDTO.password,
-      user.password,
-    );
+    if (user.password != null) {
+      const passwordChecked = await bcrypt.compare(
+        loginDTO.password,
+        user.password,
+      );
 
-    if (!passwordChecked)
-      throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
+      if (!passwordChecked)
+        throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
+    }
 
     // Tạo accessToken
     const payload: any = {
@@ -141,12 +143,14 @@ export class AuthService {
 
     if (!user) throw new BadRequestException('Không tìm thấy user');
 
-    const passwordChecked = await bcrypt.compare(
-      changePassDTO.oldPassword,
-      user?.password,
-    );
-    if (!passwordChecked)
-      throw new BadRequestException('Mật khẩu cũ không chính xác');
+    if (user.password) {
+      const passwordChecked = await bcrypt.compare(
+        changePassDTO.oldPassword,
+        user?.password,
+      );
+      if (!passwordChecked)
+        throw new BadRequestException('Mật khẩu cũ không chính xác');
+    }
 
     const hashPassword = await bcrypt.hash(changePassDTO.newPassword, 10);
     user.password = hashPassword;

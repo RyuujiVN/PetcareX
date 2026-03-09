@@ -1,11 +1,21 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsUUID, Max } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  Matches,
+  Max,
+} from 'class-validator';
+import { regex } from 'src/common/constants/rexgex.constant';
 
 export class CreateMedicalRecordDTO {
   @ApiProperty()
   @IsUUID()
-  @IsNotEmpty({ message: 'Pet id không được để trống' })
-  petId: string;
+  @IsOptional()
+  petId?: string;
 
   @ApiProperty()
   @IsUUID()
@@ -21,6 +31,23 @@ export class CreateMedicalRecordDTO {
   @IsString()
   @IsNotEmpty({ message: 'Tên phiếu khám không được để trống' })
   name: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty({ message: 'Tên khách hàng không được để trống' })
+  customerName: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty({ message: 'Email không được để trống' })
+  @IsEmail({}, { message: 'Email không đúng định dạng' })
+  email: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsNotEmpty({ message: 'Số điện thoại không được để trống' })
+  @Matches(regex.phoneRegex, { message: 'Số điện thoại không đúng định dạng' })
+  phone: string;
 
   @ApiProperty()
   @IsNumber()

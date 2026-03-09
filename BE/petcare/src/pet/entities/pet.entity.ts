@@ -26,13 +26,13 @@ export class Pet {
   @Column({ name: 'breed_id' })
   breedId: string;
 
-  @Column({ type: 'boolean' })
+  @Column({ type: 'boolean', nullable: true })
   gender: boolean;
 
-  @Column({ type: 'date', name: 'date_of_birth' })
+  @Column({ type: 'date', name: 'date_of_birth', nullable: true })
   dateOfBirth: Date;
 
-  @Column({ type: 'decimal', precision: 3, scale: 1 })
+  @Column({ type: 'decimal', precision: 3, scale: 1, nullable: true })
   weight: number;
 
   @Column({ nullable: true })

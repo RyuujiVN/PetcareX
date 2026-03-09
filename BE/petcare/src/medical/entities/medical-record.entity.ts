@@ -26,9 +26,6 @@ export class MedicalRecord {
   @Column()
   name: string;
 
-  @Column({ type: 'uuid' })
-  breedId: string;
-
   @Column({ type: 'decimal', precision: 3, scale: 1 })
   temperature: number;
 
