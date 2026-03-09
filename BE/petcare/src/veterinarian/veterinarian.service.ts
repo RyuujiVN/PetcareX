@@ -36,7 +36,7 @@ export class VeterinarianService {
   ): Promise<Pagination<Veterinarian>> {
     const queryBuilder = this.veterinarianRepository
       .createQueryBuilder('veterinarian')
-      .leftJoinAndSelect('veterinarian.user', 'user')
+      .innerJoinAndSelect('veterinarian.user', 'user')
       .where('veterinarian.clinicId = :clinicId', {
         clinicId: options.clinicId,
       });

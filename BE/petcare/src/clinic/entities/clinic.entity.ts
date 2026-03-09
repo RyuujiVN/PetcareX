@@ -1,4 +1,5 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import {
   Column,
@@ -39,4 +40,7 @@ export class Clinic {
 
   @OneToMany(() => Appointment, (appointment) => appointment.clinic)
   appointments: Appointment[];
+
+  @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.clinic)
+  medicalRecords: MedicalRecord[];
 }

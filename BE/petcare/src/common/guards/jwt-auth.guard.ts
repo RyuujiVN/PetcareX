@@ -16,6 +16,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     context: ExecutionContext,
     status?: any,
   ): TUser {
+    // console.log(info);
     if (info) throw new UnauthorizedException('Token không hợp lệ');
 
     return user;

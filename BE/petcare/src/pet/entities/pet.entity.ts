@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { Breed } from './breed.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 
 @Entity('pet')
 export class Pet {
@@ -58,4 +59,7 @@ export class Pet {
 
   @OneToMany(() => Appointment, (appointment) => appointment.pet)
   appointments: Appointment[];
+
+  @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.pet)
+  medicalRecords: MedicalRecord[];
 }
