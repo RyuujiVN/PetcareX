@@ -18,6 +18,11 @@ export class CreateMedicalRecordDTO {
   petName: string;
 
   @ApiProperty()
+  @IsString()
+  @IsNotEmpty({ message: 'Tên phiếu khám không được để trống' })
+  name: string;
+
+  @ApiProperty()
   @IsNumber()
   @IsNotEmpty({ message: 'Nhiệt độ thú cưng không được để trống' })
   @Max(50, {

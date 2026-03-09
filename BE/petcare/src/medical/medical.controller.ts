@@ -31,7 +31,7 @@ export class MedicalController {
     );
   }
 
-  @Put('')
+  @Put(':id')
   @ApiOperation({ summary: 'Cập nhật phiếu khám bệnh cho pet' })
   @ApiBody({
     type: UpdateMedicalRecordDTO,

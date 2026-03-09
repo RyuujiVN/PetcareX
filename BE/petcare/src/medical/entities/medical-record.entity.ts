@@ -23,6 +23,9 @@ export class MedicalRecord {
   @Column({ name: 'pet_name' })
   petName: string;
 
+  @Column()
+  name: string;
+
   @Column({ type: 'uuid' })
   breedId: string;
 

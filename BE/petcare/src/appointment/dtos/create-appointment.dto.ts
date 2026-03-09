@@ -34,9 +34,6 @@ export class CreateAppointmentDTO {
   @IsNotEmpty({ message: 'Ngày hẹn không được để trống' })
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày hẹn phải đúng định dạng YYYY-MM-DD' })
-  @MinDate(new Date(), {
-    message: 'Ngày hẹn phải lớn hơn ngày hiện tại',
-  })
   appointmentDate: Date;
 
   @ApiProperty()
