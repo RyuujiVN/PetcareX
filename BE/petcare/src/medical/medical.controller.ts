@@ -28,19 +28,25 @@ import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
-  @Get('clinic/:clinicId')
+  @Get(':id')
+  @ApiOperation({ summary: 'Lấy thông tin phiếu khám chi tiết' })
+  async getDetail(@Param('id') id: string) {
+    return this.medicalService.findOneById(id);
+  }
+
+  @Get('clinic')
   @ApiOperation({ summary: 'Lấy danh sách phiếu khám bên phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
   getAllMedicalRecordClinic(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
-    @Param('clinicId') clinicId: string,
+    @Req() req,
   ) {
     return this.medicalService.findAllPaginationByClinic({
       page,
       limit,
-      clinicId: clinicId,
+      clinicId: req?.user?.clinicId,
     });
   }
 

@@ -2,11 +2,10 @@ import { CreateMedicalRecordDTO } from './dtos/create-medical-record.dto';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MedicalRecord } from './entities/medical-record.entity';
-import { DataSource, ILike, Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 import { MedicalRecordPagination } from './types/medial.type';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
@@ -18,6 +17,84 @@ export class MedicalService {
     private readonly medicalRecord: Repository<MedicalRecord>,
     private readonly dataSource: DataSource,
   ) {}
+
+  // Lấy thông tin chi tiết phiếu khám
+  async findOneById(id: string) {
+    const record = await this.medicalRecord
+      .createQueryBuilder('medical_record')
+
+      .leftJoinAndSelect('medical_record.pet', 'pet')
+      .leftJoinAndSelect('pet.breed', 'breed')
+      .leftJoinAndSelect('pet.owner', 'owner')
+
+      .leftJoinAndSelect('medical_record.clinic', 'clinic')
+
+      .leftJoinAndSelect('medical_record.veterinarian', 'veterinarian')
+      .leftJoinAndSelect('veterinarian.user', 'user')
+
+      .where('medical_record.id = :id', { id })
+
+      .select([
+        'medical_record.id',
+        'medical_record.name',
+        'medical_record.name',
+        'medical_record.temperature',
+        'medical_record.heartRate',
+        'medical_record.systolic',
+        'medical_record.diastolic',
+        'medical_record.weight',
+        'medical_record.diagnosis',
+        'medical_record.symptoms',
+        'medical_record.conclusion',
+        'medical_record.note',
+        'medical_record.createdAt',
+        'medical_record.followUpDate',
+
+        'clinic.id',
+        'clinic.name',
+
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+
+        'breed.name',
+
+        'owner.id',
+        'owner.fullName',
+
+        'veterinarian.specialty',
+
+        'user.id',
+        'user.fullName',
+      ])
+
+      .getOne();
+
+    if (!record) {
+      throw new NotFoundException('Không tìm thấy phiếu khám');
+    }
+
+    return {
+      ...record,
+
+      pet: {
+        id: record.pet?.id,
+        name: record.pet?.name,
+        avatar: record.pet?.avatar,
+        breedName: record.pet?.breed?.name,
+        owner: {
+          id: record.pet?.owner?.id,
+          fullName: record.pet?.owner?.fullName,
+        },
+      },
+
+      veterinarian: {
+        id: record.veterinarian?.user?.id,
+        fullName: record.veterinarian?.user?.fullName,
+        specialty: record.veterinarian?.specialty,
+      },
+    };
+  }
 
   // Danh sách phiếu khám theo bệnh viện
   async findAllPaginationByClinic(
@@ -36,10 +113,13 @@ export class MedicalService {
         'medical_record.name',
         'medical_record.createdAt',
         'medical_record.followUpDate',
+
         'pet.id',
         'pet.name',
         'pet.avatar',
+
         'breed.name',
+
         'owner.id',
         'owner.fullName',
       ])
