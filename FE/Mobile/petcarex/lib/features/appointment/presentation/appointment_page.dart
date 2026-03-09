@@ -96,15 +96,27 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
 
   Widget _buildAppointmentList(List<Appointment> appointments, {required bool isUpcoming}) {
     if (appointments.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              isUpcoming ? 'Bạn không có lịch hẹn sắp tới' : 'Chưa có lịch sử khám bệnh',
-              style: TextStyle(color: Colors.grey[600], fontSize: 16),
+      return RefreshIndicator(
+        onRefresh: () => context.read<AppointmentProvider>().fetchAppointments(),
+        color: AppColors.primary,
+        child: CustomScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey[300]),
+                    const SizedBox(height: 16),
+                    Text(
+                      isUpcoming ? 'Bạn không có lịch hẹn sắp tới' : 'Chưa có lịch sử khám bệnh',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -142,9 +154,12 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           ),
         ],
       ),
-      child: Column(
-        children: [
-          Padding(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => _showAppointmentDetails(context, item),
+        child: Column(
+          children: [
+            Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -240,13 +255,158 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 14),
               child: Text(
-                'Lịch cũ',
-                style: TextStyle(color: Colors.grey, fontSize: 13, fontStyle: FontStyle.italic),
+                'Xem lại',
+                style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
               ),
             )
           ],
         ],
       ),
+    ));
+  }
+
+  void _showAppointmentDetails(BuildContext context, Appointment item) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            top: 16,
+            left: 20,
+            right: 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Chi tiết lịch hẹn',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  _buildStatusBadge(item.status),
+                ],
+              ),
+              const SizedBox(height: 20),
+              
+              // Thông tin thú cưng
+              Text(
+                'Thông tin thú cưng',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 25,
+                    backgroundImage: (item.pet.avatar != null && item.pet.avatar!.isNotEmpty)
+                        ? NetworkImage(item.pet.avatar!)
+                        : null,
+                    backgroundColor: Colors.grey.shade200,
+                    child: (item.pet.avatar == null || item.pet.avatar!.isEmpty)
+                        ? const Icon(Icons.pets, color: Colors.grey)
+                        : null,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(item.pet.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      const SizedBox(height: 2),
+                      Text('Giống loài: ${item.pet.breedName}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                    ],
+                  )
+                ],
+              ),
+              const Divider(height: 30),
+
+              // Dịch vụ và Thời gian
+              Text(
+                'Dịch vụ khám',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _buildDetailRow(Icons.medical_information_outlined, 'Dịch vụ:', item.service),
+              const SizedBox(height: 8),
+              _buildDetailRow(
+                Icons.calendar_month_outlined, 
+                'Thời gian:', 
+                '${item.appointmentTime} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}'
+              ),
+              if (item.note.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                _buildDetailRow(Icons.notes_outlined, 'Ghi chú:', item.note),
+              ],
+              const Divider(height: 30),
+
+              // Bác sĩ và phòng khám
+              Text(
+                'Thông tin bác sĩ & Phòng khám',
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              _buildDetailRow(Icons.person_outline, 'Bác sĩ:', item.veterinarian.fullName),
+              if (item.veterinarian.specialty.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: _buildDetailRow(Icons.star_border_outlined, 'Chuyên môn:', item.veterinarian.specialty),
+                ),
+              const SizedBox(height: 8),
+              _buildDetailRow(Icons.store_outlined, 'Phòng khám:', item.clinic.name),
+              const SizedBox(height: 8),
+              _buildDetailRow(Icons.location_on_outlined, 'Địa chỉ:', item.clinic.address),
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 8),
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+          ),
+        ),
+      ],
     );
   }
 
