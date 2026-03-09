@@ -5,7 +5,7 @@ import { MedicalRecord } from './entities/medical-record.entity';
 import { DataSource, ILike, Repository } from 'typeorm';
 import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 import { MedicalRecordPagination } from './types/medial.type';
-import { Pagination } from 'nestjs-typeorm-paginate';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { UserService } from 'src/user/user.service';
 import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
@@ -16,38 +16,42 @@ export class MedicalService {
   constructor(
     @InjectRepository(MedicalRecord)
     private readonly medicalRecord: Repository<MedicalRecord>,
-    private readonly userService: UserService,
     private readonly dataSource: DataSource,
   ) {}
 
   // Danh sách phiếu khám theo bệnh viện
-  // async findAllPaginationByClinic(
-  //   options: MedicalRecordPagination,
-  // ): Promise<Pagination<MedicalRecord>> {
-  //   const queryBuilder = this.medicalRecord
-  //     .createQueryBuilder('medical_record')
-  //     .leftJoinAndSelect('medical_record.pet', 'pet')
-  //     .leftJoinAndSelect('pet.breed', 'breed')
-  //     .leftJoinAndSelect('pet.owner', 'owner')
-  //     .where('medical_record.clinicId = :clinicId', {
-  //       clinicId: options.clinicId,
-  //     })
-  //     .select([
-  //       'medical_record.id',
-  //       'medical_record.name',
-  //       'medical_record.createdAt',
-  //       'medical_record.followUpDate',
-  //       'pet.id',
-  //       'pet.name',
-  //       'pet.avatar',
-  //       'breed.name '
-  //     ]);
+  async findAllPaginationByClinic(
+    options: MedicalRecordPagination,
+  ): Promise<Pagination<MedicalRecord>> {
+    const queryBuilder = this.medicalRecord
+      .createQueryBuilder('medical_record')
+      .leftJoinAndSelect('medical_record.pet', 'pet')
+      .leftJoinAndSelect('pet.breed', 'breed')
+      .leftJoinAndSelect('pet.owner', 'owner')
+      .where('medical_record.clinicId = :clinicId', {
+        clinicId: options.clinicId,
+      })
+      .select([
+        'medical_record.id',
+        'medical_record.name',
+        'medical_record.createdAt',
+        'medical_record.followUpDate',
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+        'breed.name',
+        'owner.id',
+        'owner.fullName',
+      ])
+      .orderBy('medical_record.createdAt', 'DESC');
 
-  //   if (options.search)
-  //     queryBuilder.andWhere('medical_record.name ILIKE :name', {
-  //       name: `%${options.search}%`,
-  //     });
-  // }
+    if (options.search)
+      queryBuilder.andWhere('medical_record.name ILIKE :name', {
+        name: `%${options.search}%`,
+      });
+
+    return paginate<MedicalRecord>(queryBuilder, options);
+  }
 
   // Tạo phiếu khám
   async createMedicalRecord(
