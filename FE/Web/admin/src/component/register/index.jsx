@@ -1,187 +1,457 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import './styles.css';
+// import React, { useState } from 'react';
+// import { useNavigate } from 'react-router-dom';
+// import './styles.css';
+// import { FaPaw, FaEye, FaEyeSlash } from "react-icons/fa";
+// import { RxAvatar } from "react-icons/rx";
+// import instance from '../../api/instance';
+// export default function Register() {
+//   const [fullName, setFullName] = useState('');
+//   const [email, setEmail] = useState('');
+//   const [password, setPassword] = useState('');
+//   const [confirmPassword, setConfirmPassword] = useState('');
+//   const [showPassword, setShowPassword] = useState(false);
+//   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+//   const [agreeTerms, setAgreeTerms] = useState(false);
+//   const [loading, setLoading] = useState(false);
+//   const [error, setError] = useState('');
+//   const navigate = useNavigate();
+//   const handleTogglePassword = () => {
+//     setShowPassword(!showPassword);
+//   };
+
+//   const handleToggleConfirmPassword = () => {
+//     setShowConfirmPassword(!showConfirmPassword);
+//   };
+
+//   const handleRegister = async (e) => {
+//     e.preventDefault();
+    
+//     if (!agreeTerms) {
+//       setError('Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách bảo mật');
+//       return;
+//     }
+
+//     if (password !== confirmPassword) {
+//       setError('Mật khẩu xác nhận không khớp');
+//       return;
+//     }
+
+//     setLoading(true);
+//     setError('');
+
+//     try {
+//       instance.post('/api/auth/register', {
+//         fullName,
+//         email,
+//         password
+//       });
+
+//       if (!response.ok) {
+//         throw new Error('Đăng ký thất bại');
+//       }
+
+//       const data = await response.json();
+//       localStorage.setItem('token', data.token);
+//       window.location.href = '/dashboard';
+//     } catch (err) {
+//       setError(err.message || 'Có lỗi xảy ra');
+//     } finally {
+//       setLoading(false);
+//     }
+//   };
+
+//   return (
+//     <div className="register-container">
+//       <div className="register-header-bar">
+//         <div className="header-left">
+//            <FaPaw size={28} color="#13ECDA" />
+//           <h2 className="logo-name-small">PetcareX</h2>
+//         </div>
+//       </div>
+
+//       <div className="register-card">
+//         <div className="user-icon-section">
+//           <div className="user-icon">
+//             <RxAvatar size={50}/>
+//           </div>
+//         </div>
+
+//         <div className="register-header">
+//           <h1 className="register-title">Đăng ký tài khoản</h1>
+//         </div>
+
+//         <form className="register-form" onSubmit={handleRegister}>
+//           {error && <div className="error-message">{error}</div>}
+
+//           <div className="form-group">
+//             <label htmlFor="fullName" className="form-label">Họ và tên</label>
+//             <div className="input-wrapper">
+//               <input
+//                 id="fullName"
+//                 type="text"
+//                 className="form-input"
+//                 placeholder="Nhập họ và tên của bạn"
+//                 value={fullName}
+//                 onChange={(e) => setFullName(e.target.value)}
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <div className="form-group">
+//             <label htmlFor="email" className="form-label">Email</label>
+//             <div className="input-wrapper">
+//               <input
+//                 id="email"
+//                 type="email"
+//                 className="form-input"
+//                 placeholder="Nhập email của bạn"
+//                 value={email}
+//                 onChange={(e) => setEmail(e.target.value)}
+//                 required
+//               />
+//             </div>
+//           </div>
+
+//           <div className="form-group">
+//             <label htmlFor="password" className="form-label">Mật khẩu</label>
+//             <div className="input-wrapper password-wrapper">
+//               <input
+//                 id="password"
+//                 type={showPassword ? 'text' : 'password'}
+//                 className="form-input"
+//                 placeholder="••••••••"
+//                 value={password}
+//                 onChange={(e) => setPassword(e.target.value)}
+//                 required
+//               />
+//               <button
+//                 type="button"
+//                 className="toggle-password"
+//                 onClick={handleTogglePassword}
+//               >
+//                {showPassword ? <FaEye /> : <FaEyeSlash />}
+//               </button>
+//             </div>
+//           </div>
+
+//           <div className="form-group">
+//             <label htmlFor="confirmPassword" className="form-label">Xác nhận mật khẩu</label>
+//             <div className="input-wrapper password-wrapper">
+//               <input
+//                 id="confirmPassword"
+//                 type={showConfirmPassword ? 'text' : 'password'}
+//                 className="form-input"
+//                 placeholder="••••••••"
+//                 value={confirmPassword}
+//                 onChange={(e) => setConfirmPassword(e.target.value)}
+//                 required
+//               />
+//               <button
+//                 type="button"
+//                 className="toggle-password"
+//                 onClick={handleToggleConfirmPassword}
+//               >
+//                 {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
+//               </button>
+//             </div>
+//           </div>
+
+//           <div className="form-group checkbox-group">
+//             <label className="checkbox-label">
+//               <input
+//                 type="checkbox"
+//                 className="checkbox-input"
+//                 checked={agreeTerms}
+//                 onChange={(e) => setAgreeTerms(e.target.checked)}
+//               />
+//               <span>Tôi đồng ý với <a href="/terms">Điều khoản dịch vụ</a> và <a href="/privacy">Chính sách bảo mật</a> của PetcareX</span>
+//             </label>
+//           </div>
+//           <button
+//             type="submit"
+//             className="register-button"
+//             disabled={loading}
+//           >
+//             {loading ? 'Đang đăng ký...' : 'Tạo tài khoản'}
+//           </button>
+//         </form>
+
+//         <div className="login-link">
+//           <span>Bạn đã có tài khoản? </span>
+//           <a href="/login">Đăng nhập ngay</a>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
+
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "./styles.css";
 import { FaPaw, FaEye, FaEyeSlash } from "react-icons/fa";
 import { RxAvatar } from "react-icons/rx";
-import instance from '../../api/instance';
+import instance from "../../api/instance";
+
 export default function Register() {
-  const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const navigate = useNavigate();
+
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    confirmPassword: ""
+  });
+
+  const [errors, setErrors] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [agreeTerms, setAgreeTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
-  const handleTogglePassword = () => {
-    setShowPassword(!showPassword);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+
+  const validatePassword = (pass) => {
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return regex.test(pass);
   };
 
-  const handleToggleConfirmPassword = () => {
-    setShowConfirmPassword(!showConfirmPassword);
+  const validateFullName = (name) => {
+    // const regex = /^[A-Za-zÀ-ÖØ-öø-ÿ\s]+$/;
+    const regex = /^[\p{L}\s]+$/u;
+    return regex.test(name);
   };
+
+  const validateEmail = (email) => {
+    const regex = /^\S+@\S+\.\S+$/;
+    return regex.test(email);
+  };
+
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value
+    });
+
+    setErrors({
+      ...errors,
+      [e.target.name]: ""
+    });
+  };
+
 
   const handleRegister = async (e) => {
+
     e.preventDefault();
-    
+
+    let newErrors = {};
+
+    if (!validateFullName(form.fullName)) {
+      newErrors.fullName = "Họ tên không được chứa số hoặc ký tự đặc biệt";
+    }
+
+    if (!validateEmail(form.email)) {
+      newErrors.email = "Email không hợp lệ";
+    }
+
+    if (!validatePassword(form.password)) {
+      newErrors.password =
+        "Mật khẩu phải ≥8 ký tự, gồm chữ hoa, chữ thường và số";
+    }
+
+    if (form.password !== form.confirmPassword) {
+      newErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
+    }
+
     if (!agreeTerms) {
-      setError('Vui lòng đồng ý với Điều khoản dịch vụ và Chính sách bảo mật');
-      return;
+      newErrors.terms = "Bạn phải đồng ý với điều khoản";
     }
 
-    if (password !== confirmPassword) {
-      setError('Mật khẩu xác nhận không khớp');
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
       return;
     }
-
-    setLoading(true);
-    setError('');
 
     try {
-      instance.post('/api/auth/register', {
-        fullName,
-        email,
-        password
+
+      setLoading(true);
+
+      const res = await instance.post('/auth/register', {
+        fullName: form.fullName,
+        email: form.email,
+        password: form.password
       });
 
-      if (!response.ok) {
-        throw new Error('Đăng ký thất bại');
+      if (res.status === 200) {
+        navigate("/login");
       }
 
-      const data = await response.json();
-      localStorage.setItem('token', data.token);
-      window.location.href = '/dashboard';
     } catch (err) {
-      setError(err.message || 'Có lỗi xảy ra');
+
+      setErrors({
+        email: "Email đã tồn tại"
+      });
+
     } finally {
       setLoading(false);
     }
   };
 
   return (
+
     <div className="register-container">
+
       <div className="register-header-bar">
         <div className="header-left">
-           <FaPaw size={28} color="#13ECDA" />
+          <FaPaw size={28} color="#13ECDA" />
           <h2 className="logo-name-small">PetcareX</h2>
         </div>
       </div>
 
       <div className="register-card">
-        <div className="user-icon-section">
-          <div className="user-icon">
-            <RxAvatar size={50}/>
-          </div>
-        </div>
 
-        <div className="register-header">
-          <h1 className="register-title">Đăng ký tài khoản</h1>
-        </div>
+        <RxAvatar size={50} />
 
-        <form className="register-form" onSubmit={handleRegister}>
-          {error && <div className="error-message">{error}</div>}
+        <h1 className="register-title">Đăng ký tài khoản</h1>
+
+        <form onSubmit={handleRegister} className="register-form">
 
           <div className="form-group">
-            <label htmlFor="fullName" className="form-label">Họ và tên</label>
+
+            <label className="form-label">Họ và tên</label>
+
+            <input
+              type="text"
+              name="fullName"
+              className={`form-input ${errors.fullName ? "error" : ""}`}
+              placeholder="Nhập họ và tên"
+              value={form.fullName}
+              onChange={handleChange}
+            />
+
+            {errors.fullName && (
+              <p className="error-text">{errors.fullName}</p>
+            )}
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">Email</label>
+
+            <input
+              type="email"
+              name="email"
+              className={`form-input ${errors.email ? "error" : ""}`}
+              placeholder="Nhập email"
+              value={form.email}
+              onChange={handleChange}
+            />
+
+            {errors.email && (
+              <p className="error-text">{errors.email}</p>
+            )}
+
+          </div>
+
+          <div className="form-group">
+
+            <label className="form-label">Mật khẩu</label>
+
             <div className="input-wrapper">
-              <input
-                id="fullName"
-                type="text"
-                className="form-input"
-                placeholder="Nhập họ và tên của bạn"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-              />
-            </div>
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="email" className="form-label">Email</label>
-            <div className="input-wrapper">
               <input
-                id="email"
-                type="email"
-                className="form-input"
-                placeholder="Nhập email của bạn"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">Mật khẩu</label>
-            <div className="input-wrapper password-wrapper">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                className="form-input"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className={`form-input ${errors.password ? "error" : ""}`}
                 placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
+                value={form.password}
+                onChange={handleChange}
               />
+
               <button
                 type="button"
                 className="toggle-password"
-                onClick={handleTogglePassword}
+                onClick={() => setShowPassword(!showPassword)}
               >
-               {showPassword ? <FaEye /> : <FaEyeSlash />}
+                {showPassword ? <FaEye /> : <FaEyeSlash />}
               </button>
+
             </div>
+
+            {errors.password && (
+              <p className="error-text">{errors.password}</p>
+            )}
+
           </div>
 
           <div className="form-group">
-            <label htmlFor="confirmPassword" className="form-label">Xác nhận mật khẩu</label>
-            <div className="input-wrapper password-wrapper">
+
+            <label className="form-label">Xác nhận mật khẩu</label>
+
+            <div className="input-wrapper">
+
               <input
-                id="confirmPassword"
-                type={showConfirmPassword ? 'text' : 'password'}
-                className="form-input"
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirmPassword"
+                className={`form-input ${errors.confirmPassword ? "error" : ""}`}
                 placeholder="••••••••"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
+                value={form.confirmPassword}
+                onChange={handleChange}
               />
+
               <button
                 type="button"
                 className="toggle-password"
-                onClick={handleToggleConfirmPassword}
+                onClick={() =>
+                  setShowConfirmPassword(!showConfirmPassword)
+                }
               >
                 {showConfirmPassword ? <FaEye /> : <FaEyeSlash />}
               </button>
+
             </div>
+
+            {errors.confirmPassword && (
+              <p className="error-text">{errors.confirmPassword}</p>
+            )}
+
           </div>
 
-          <div className="form-group checkbox-group">
-            <label className="checkbox-label">
+          <div className="checkbox-group">
+
+            <label className={`checkbox-label ${errors.terms ? "error" : ""}`}>
+
               <input
                 type="checkbox"
-                className="checkbox-input"
                 checked={agreeTerms}
                 onChange={(e) => setAgreeTerms(e.target.checked)}
-              />
+              />               
               <span>Tôi đồng ý với <a href="/terms">Điều khoản dịch vụ</a> và <a href="/privacy">Chính sách bảo mật</a> của PetcareX</span>
             </label>
-          </div>
-          <button
-            type="submit"
-            className="register-button"
-            disabled={loading}
-          >
-            {loading ? 'Đang đăng ký...' : 'Tạo tài khoản'}
-          </button>
-        </form>
 
-        <div className="login-link">
-          <span>Bạn đã có tài khoản? </span>
-          <a href="/login">Đăng nhập ngay</a>
-        </div>
+            {errors.terms && (
+              <p className="error-text">{errors.terms}</p>
+            )}
+
+          </div>
+
+          <button
+            className="register-button"
+            type="submit"
+            onClick={handleRegister}
+          >
+            <span>Tạo tài khoản</span>
+          </button>
+
+        </form>
+   <div className="login-link">
+           <span>Bạn đã có tài khoản? </span>
+           <a href="/login">Đăng nhập ngay</a>
+            <p>© 2026 PetCareX Việt Nam</p>
+         </div>
       </div>
+
     </div>
   );
 }

@@ -246,7 +246,10 @@ body::-webkit-scrollbar {
 .register-button:active:not(:disabled) {
   transform: translateY(0);
 }
-
+.register-button:focus{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(19, 236, 218, 0.3);
+}
 .register-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -297,6 +300,10 @@ body::-webkit-scrollbar {
   text-decoration: underline;
 }
 
+.login-link p{
+  margin-top: 8px;
+  font-size: 12px;
+}
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -407,3 +414,4 @@ body::-webkit-scrollbar {
     display: none;
   }
 }
+

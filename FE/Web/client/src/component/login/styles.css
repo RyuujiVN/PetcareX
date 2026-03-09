@@ -51,8 +51,8 @@ body::-webkit-scrollbar {
 .login-card {
   background: white;
   box-shadow: none;
-  padding: 30px 50px; 
-  width: 200%;
+  padding: 30px 30px; 
+  width: 150%;
   max-width: 650px;
   animation: fadeIn 0.5s ease-out;
   display: flex;
@@ -156,7 +156,7 @@ body::-webkit-scrollbar {
   width: 100%;
   max-width: 700px;
   padding: 13px;
-  background: var(--primary);
+  background: #13ECDA;
   color: white;
   border: none;
   border-radius: 6px;
@@ -170,7 +170,10 @@ body::-webkit-scrollbar {
   transform: translateY(-2px);
   box-shadow: 0 5px 15px rgba(105, 223, 199, 0.3);
 }
-
+.login-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(19, 236, 218, 0.3);
+}
 .login-button:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -222,6 +225,10 @@ body::-webkit-scrollbar {
   background: #f0f0f0;
 }
 
+.google-login-button:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+}
 .google-login-button:active {
   transform: scale(0.98);
 }
@@ -240,13 +247,14 @@ body::-webkit-scrollbar {
 }
 
 .register-link a {
-  color: var(--primary);
+  color: #13ECDA;
   font-weight: 600;
   text-decoration: none;
 }
 
 .register-link a:hover {
   text-decoration: underline;
+  color:#13ECDA;
 }
 
 .register-link p {
@@ -298,4 +306,10 @@ body::-webkit-scrollbar {
   .login-container {
     display: none;
   }
+}
+
+.error-text{
+  color: #ff4d4f;
+  font-size: 13px;
+  margin-top: 5px;
 }
