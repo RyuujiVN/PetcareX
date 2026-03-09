@@ -1,6 +1,0 @@
-export enum RoleEnum {
-  ADMIN = 'ADMIN',
-  ADMIN_CLINIC = 'ADMIN_CLINIC',
-  VETERINARIAN = 'VETERINARIAN',
-  CUSTOMER = 'CUSTOMER',
-}

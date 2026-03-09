@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/services/camera_service.dart';
 import '../../../core/theme/app_colors.dart';
-import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
+import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../../notification/presentation/notification.dart';
 import '../../pet/data/models/pet_models.dart';
 import '../../pet/presentation/add_pet_page.dart';
@@ -31,6 +31,48 @@ class _HomePageState extends State<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PetProvider>().fetchMyPets();
     });
+  }
+
+  Future<void> _openQRScanner() async {
+    bool hasPermission = await _cameraService.requestCameraPermission();
+
+    if (hasPermission) {
+      await Future.delayed(const Duration(milliseconds: 300));
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QRScannerScreen(
+            onScan: (code) {
+              Navigator.pop(context);
+              _showQRResult(code);
+            },
+          ),
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bạn cần cấp quyền Camera để quét mã QR')),
+      );
+    }
+  }
+
+  void _showQRResult(String code) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kết quả quét'),
+        content: Text('Nội dung mã QR: $code'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Đóng'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -87,7 +129,10 @@ class _HomePageState extends State<HomePage> {
         ),
         Row(
           children: [
-            IconButton(onPressed: () {}, icon: const Icon(Icons.search, color: Color(0xFF5F6368))),
+            IconButton(
+              onPressed: _openQRScanner, 
+              icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF5F6368)),
+            ),
             Stack(
               children: [
                 IconButton(
@@ -179,7 +224,6 @@ class _HomePageState extends State<HomePage> {
                 Pet pet = entry.value;
                 return GestureDetector(
                   onTap: () async {
-                    // Show loading dialog
                     showDialog(
                       context: context,
                       barrierDismissible: false,
@@ -190,14 +234,13 @@ class _HomePageState extends State<HomePage> {
 
                     try {
                       final provider = context.read<PetProvider>();
-                      // Pre-fetch data before navigating
                       await provider.fetchSpecies();
                       if (pet.breed?.speciesId != null) {
                         await provider.fetchBreeds(pet.breed!.speciesId);
                       }
                       
                       if (!mounted) return;
-                      Navigator.pop(context); // Close loading dialog
+                      Navigator.pop(context); 
 
                       final result = await Navigator.push(
                         context,
@@ -209,7 +252,7 @@ class _HomePageState extends State<HomePage> {
                       }
                     } catch (e) {
                       if (mounted) Navigator.pop(context);
-                      debugPrint("Error pre-fetching pet data: $e");
+                      debugPrint("Lỗi khi đồng bộ dữ liệu: $e");
                     }
                   },
                   child: Padding(
@@ -217,7 +260,7 @@ class _HomePageState extends State<HomePage> {
                     child: _buildPetItem(
                       pet.name, 
                       pet.avatar, 
-                      idx == 0 // Giả định pet đầu tiên active
+                      idx == 0 
                     ),
                   ),
                 );
@@ -277,7 +320,6 @@ class _HomePageState extends State<HomePage> {
                       imageUrl,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
-                        // Nếu link URL lỗi (VD: ảnh bị xóa, sai format link) -> Hiển thị icon mặc định
                         return const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28));
                       },
                       loadingBuilder: (context, child, loadingProgress) {
@@ -311,11 +353,7 @@ class _HomePageState extends State<HomePage> {
           const Color(0xFFE8F9F7),
           AppColors.primary,
           onTap: () {
-            try {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const BookingPage()));
-            } catch (e) {
-              debugPrint("Lỗi chuyển trang Booking: $e");
-            }
+            MainNavigationWrapper.of(context)?.setSelectedIndex(1);
           },
         ),
         const SizedBox(height: 12),

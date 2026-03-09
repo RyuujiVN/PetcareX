@@ -1,8 +1,10 @@
 ﻿import 'package:flutter/material.dart';
+
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../common/veterinary_specialty_enum.dart';
 import '../../data/models/booking_models.dart';
 
-class StepDoctorSelector extends StatelessWidget {
+class StepDoctorSelector extends StatefulWidget {
   final String? selectedDoctorId;
   final Function(Veterinarian) onSelected;
   final List<Veterinarian> doctors;
@@ -15,53 +17,84 @@ class StepDoctorSelector extends StatelessWidget {
   });
 
   @override
+  State<StepDoctorSelector> createState() => _StepDoctorSelectorState();
+}
+
+class _StepDoctorSelectorState extends State<StepDoctorSelector> {
+  String _selectedSpecialty = 'Tất cả';
+
+  @override
   Widget build(BuildContext context) {
+    final filteredDoctors = _selectedSpecialty == 'Tất cả'
+        ? widget.doctors
+        : widget.doctors
+            .where((d) => d.specialty == _selectedSpecialty)
+            .toList();
+
     return Column(
       children: [
-        // Dummy filter chips
+        // Filter chips using Enum
         SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildFilterChip('Tất cả', true),
-              _buildFilterChip('Răng hàm mặt', false),
-              _buildFilterChip('Phẫu thuật', false),
+              _buildFilterChip('Tất cả'),
+              ...VeterinarySpecialtyEnum.values.map(
+                (specialty) => _buildFilterChip(specialty.value),
+              ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        ...List.generate(
-          doctors.length,
-          (i) => _listTile(
-            doctors[i],
-            doctors[i].user.fullName,
-            doctors[i].specialty,
-            selectedDoctorId,
-            onSelected,
-            Icons.person_outline,
-            doctors[i].user.avatarUrl,
+        if (filteredDoctors.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Text(
+              'Không tìm thấy bác sĩ cho chuyên môn này',
+              style: TextStyle(color: Colors.grey),
+            ),
+          )
+        else
+          ...List.generate(
+            filteredDoctors.length,
+            (i) => _listTile(
+              filteredDoctors[i],
+              filteredDoctors[i].user.fullName,
+              filteredDoctors[i].specialty,
+              widget.selectedDoctorId,
+              widget.onSelected,
+              Icons.person_outline,
+              filteredDoctors[i].user.avatarUrl,
+            ),
           ),
-        ),
       ],
     );
   }
 
-  Widget _buildFilterChip(String label, bool isSelected) {
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.primary : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isSelected ? AppColors.primary : Colors.grey.shade200,
+  Widget _buildFilterChip(String label) {
+    bool isSelected = _selectedSpecialty == label;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedSpecialty = label;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.grey.shade200,
+          ),
         ),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.black87,
-          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.black87,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
       ),
     );
