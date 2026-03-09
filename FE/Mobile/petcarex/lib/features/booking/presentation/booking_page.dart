@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
+import '../../../common/service_enum.dart';
+import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
 import 'widget/step_doctor_selector.dart';
@@ -30,7 +32,7 @@ class _BookingPageState extends State<BookingPage> {
     'Thời gian',
   ];
 
-  final List<String> _services = ['Khám tổng quát', 'Tiêm phòng', 'Phẫu thuật', 'Khám sức khoẻ định kỳ'];
+  final List<String> _services = ServiceEnum.values.map((e) => e.value).toList();
   
   late final List<DateTime> _availableDates;
 
@@ -356,7 +358,14 @@ class _BookingPageState extends State<BookingPage> {
         width: double.infinity,
         height: 54,
         child: ElevatedButton(
-          onPressed: bookingProvider.isLoading ? null : (isSuccess ? () => Navigator.pop(context) : _nextStep),
+          onPressed: bookingProvider.isLoading
+              ? null
+              : (isSuccess
+                  ? () {
+                      bookingProvider.reset();
+                      MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+                    }
+                  : _nextStep),
           style: ElevatedButton.styleFrom(
             backgroundColor: isSuccess ? Colors.white : AppColors.primary,
             foregroundColor: isSuccess ? AppColors.primary : Colors.white,
