@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/account/presentation/account_page.dart';
+import '../../../../features/appointment/presentation/appointment_page.dart';
 import '../../../../features/booking/presentation/booking_page.dart';
 import '../../../../features/community/presentation/community_page.dart';
 import '../../../../features/home/presentation/home_page.dart';
@@ -28,7 +29,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   final List<Widget> _pages = [
     const HomePage(),
     const BookingPage(),
-    const Scaffold(body: Center(child: Text("Lịch hẹn"))), // Placeholder
+    const AppointmentPage(),
     const CommunityPage(),
     const AccountPage(),
   ];
