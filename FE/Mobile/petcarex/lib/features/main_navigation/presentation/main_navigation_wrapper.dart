@@ -9,12 +9,21 @@ import '../../../../features/home/presentation/home_page.dart';
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({super.key});
 
+  static _MainNavigationWrapperState? of(BuildContext context) =>
+      context.findAncestorStateOfType<_MainNavigationWrapperState>();
+
   @override
   State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
 }
 
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _selectedIndex = 0;
+
+  void setSelectedIndex(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   final List<Widget> _pages = [
     const HomePage(),

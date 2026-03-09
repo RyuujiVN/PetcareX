@@ -32,7 +32,6 @@ class _BookingPageState extends State<BookingPage> {
 
   final List<String> _services = ['Khám tổng quát', 'Tiêm phòng', 'Phẫu thuật', 'Khám sức khoẻ định kỳ'];
   
-  // Cache available dates to ensure consistency across rebuilds
   late final List<DateTime> _availableDates;
 
   @override
@@ -47,7 +46,6 @@ class _BookingPageState extends State<BookingPage> {
       context.read<PetProvider>().fetchMyPets();
       final bp = context.read<BookingProvider>();
       bp.fetchClinics();
-      // Khởi tạo ngày mặc định là ngày hôm nay nếu chưa chọn
       if (bp.selectedDate == null) {
         bp.selectDate(_availableDates[0]);
       }
@@ -120,7 +118,13 @@ class _BookingPageState extends State<BookingPage> {
     if (_currentStep > 0) {
       setState(() => _currentStep--);
     } else {
-      Navigator.pop(context);
+      if (Navigator.canPop(context)) {
+        Navigator.pop(context);
+      } else {
+        // Nếu không pop được (đang ở tab), có thể không làm gì hoặc thông báo
+        // Hiện tại khi ở Tab thì nút back vẫn hiển thị do leading: isSuccess ? const SizedBox() : ...
+        // Chúng ta nên ẩn nút back nếu không thể pop và đang ở step 0
+      }
     }
   }
 
@@ -130,7 +134,7 @@ class _BookingPageState extends State<BookingPage> {
     final isSuccess = _currentStep == 6;
 
     return PopScope(
-      canPop: _currentStep == 0 || isSuccess,
+      canPop: (_currentStep == 0 && Navigator.canPop(context)) || isSuccess,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         _previousStep();
@@ -141,7 +145,7 @@ class _BookingPageState extends State<BookingPage> {
           backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
-          leading: isSuccess
+          leading: isSuccess || (_currentStep == 0 && !Navigator.canPop(context))
               ? const SizedBox()
               : IconButton(
                   icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
