@@ -28,35 +28,35 @@ import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
-  @Get('')
+  @Get('clinic/:clinicId')
   @ApiOperation({ summary: 'Lấy danh sách phiếu khám bên phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
   getAllMedicalRecordClinic(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
-    @Req() req,
+    @Param('clinicId') clinicId: string,
   ) {
     return this.medicalService.findAllPaginationByClinic({
       page,
       limit,
-      clinicId: req?.user?.clinicId,
+      clinicId: clinicId,
     });
   }
 
-  @Get('pet/:id')
+  @Get('pet/:petId')
   @ApiOperation({ summary: 'Lấy danh sách phiếu khám của pet' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
   getAllMedicalRecordPet(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
-    @Param('id') id: string,
+    @Param('petId') petId: string,
   ) {
     return this.medicalService.findAllPaginationByPet({
       page,
       limit,
-      petId: id,
+      petId: petId,
     });
   }
 
