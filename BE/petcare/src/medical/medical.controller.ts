@@ -170,4 +170,14 @@ export class MedicalController {
       message: 'Cập nhật thuốc thành công',
     };
   }
+
+  @Delete('medicine/:id')
+  @ApiOperation({ summary: 'Xoá thuốc của phiếu khám' })
+  async deleteMedicalRecordMedicine(@Param('id') id: string) {
+    await this.medicalService.deleteMedicalRecordMedicine(id);
+
+    return {
+      message: 'Xoá thuốc thành công',
+    };
+  }
 }

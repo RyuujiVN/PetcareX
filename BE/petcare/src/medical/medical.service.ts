@@ -105,10 +105,19 @@ export class MedicalService {
       },
     });
 
-    if (!record) throw new NotFoundException('Không tìm thấy thuốc');
+    if (!record)
+      throw new NotFoundException('Không tìm thấy thuốc trong phiếu khám này');
 
     Object.assign(record, updateDTO);
     await this.medicalRecordMedicineRepo.save(record);
+  }
+
+  // Xoá thuốc của phiếu khám
+  async deleteMedicalRecordMedicine(id: string) {
+    const result = await this.medicalRecordMedicineRepo.delete({ id: id });
+
+    if (result.affected === 0)
+      throw new NotFoundException('Không tìm thấy thuốc trong phiếu khám này');
   }
 
   // ------------------------ Phiếu khám -----------------------------
