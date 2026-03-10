@@ -1,7 +1,9 @@
+import { MedicalRecordOrder } from 'src/medical/entities/medical-record-order.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -18,4 +20,10 @@ export class MedicalOrder {
 
   @CreateDateColumn({ name: 'created_at' })
   createAt: Date;
+
+  @OneToMany(
+    () => MedicalRecordOrder,
+    (medicalRecordOrder) => medicalRecordOrder.medicalOrder,
+  )
+  medicalRecords: MedicalRecordOrder[];
 }

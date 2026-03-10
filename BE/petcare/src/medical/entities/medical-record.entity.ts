@@ -7,8 +7,11 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { MedicalRecordMedicine } from './medical_record_medicine.entity';
+import { MedicalRecordOrder } from './medical-record-order.entity';
 
 @Entity('medical_record')
 export class MedicalRecord {
@@ -86,4 +89,16 @@ export class MedicalRecord {
   )
   @JoinColumn({ name: 'veterinarian_id' })
   veterinarian: Veterinarian;
+
+  @OneToMany(
+    () => MedicalRecordMedicine,
+    (medicalRecordMedicine) => medicalRecordMedicine.medicalRecord,
+  )
+  medicines: MedicalRecordMedicine[];
+
+  @OneToMany(
+    () => MedicalRecordOrder,
+    (medicalRecordOrder) => medicalRecordOrder.medicalRecord,
+  )
+  medicalOrders: MedicalRecordMedicine[];
 }

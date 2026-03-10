@@ -9,18 +9,38 @@ import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
+import { MedicalRecordOrder } from './entities/medical-record-order.entity';
+import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order';
 
 @Injectable()
 export class MedicalService {
   constructor(
     @InjectRepository(MedicalRecord)
-    private readonly medicalRecord: Repository<MedicalRecord>,
+    private readonly medicalRecordRepository: Repository<MedicalRecord>,
+    @InjectRepository(MedicalRecordOrder)
+    private readonly medicalRecordOrderRepo: Repository<MedicalRecordOrder>,
     private readonly dataSource: DataSource,
   ) {}
 
+  // ------------------------ Phiếu chỉ định ---------------------------
+  // Thêm mới phiếu chỉ định vào phiếu khám
+  async createMedicalRecordOrder(createDTO: CreateMedicalRecordOrderDTO) {
+    const saved = await this.medicalRecordOrderRepo.save(createDTO);
+
+    return this.medicalRecordOrderRepo.findOne({
+      where: {
+        id: saved.id,
+      },
+      relations: {
+        medicalOrder: true,
+      },
+    });
+  }
+
+  // ------------------------ Phiếu khám -----------------------------
   // Lấy thông tin chi tiết phiếu khám
   async findOneById(id: string) {
-    const record = await this.medicalRecord
+    const record = await this.medicalRecordRepository
       .createQueryBuilder('medical_record')
       .leftJoinAndSelect('medical_record.pet', 'pet')
       .leftJoinAndSelect('pet.breed', 'breed')
@@ -97,7 +117,7 @@ export class MedicalService {
   async findAllPaginationByClinic(
     options: MedicalRecordPagination,
   ): Promise<Pagination<MedicalRecord>> {
-    const queryBuilder = this.medicalRecord
+    const queryBuilder = this.medicalRecordRepository
       .createQueryBuilder('medical_record')
       .leftJoinAndSelect('medical_record.pet', 'pet')
       .leftJoinAndSelect('pet.breed', 'breed')
@@ -127,7 +147,7 @@ export class MedicalService {
 
   // Danh sách phiếu khám theo pet của user
   async findAllPaginationByPet(options: MedicalRecordPagination) {
-    const queryBuilder = this.medicalRecord
+    const queryBuilder = this.medicalRecordRepository
       .createQueryBuilder('medical_record')
       .leftJoinAndSelect('medical_record.pet', 'pet')
       .leftJoinAndSelect('medical_record.clinic', 'clinic')
@@ -246,7 +266,7 @@ export class MedicalService {
 
   // Chỉnh sửa phiếu khám
   async updateMedicalRecord(updateDTO: UpdateMedicalRecordDTO, id: string) {
-    const medicalRecord = await this.medicalRecord.findOne({
+    const medicalRecord = await this.medicalRecordRepository.findOne({
       where: { id: id },
     });
 
@@ -255,6 +275,6 @@ export class MedicalService {
 
     Object.assign(medicalRecord, updateDTO);
 
-    await this.medicalRecord.save(medicalRecord);
+    await this.medicalRecordRepository.save(medicalRecord);
   }
 }
