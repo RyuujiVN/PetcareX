@@ -56,6 +56,13 @@ export class MedicalService {
     await this.medicalRecordOrderRepo.save(record);
   }
 
+  // Xoá phiếu chỉ định của phòng khám
+  async deleteMedicalRecordOrder(id: string) {
+    const result = await this.medicalRecordOrderRepo.delete({ id: id });
+
+    if (result.affected === 0)
+      throw new NotFoundException('Không tìm thấy phiếu chỉ định');
+  }
 
   // ------------------------ Phiếu khám -----------------------------
   // Lấy thông tin chi tiết phiếu khám

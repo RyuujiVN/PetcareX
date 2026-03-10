@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   DefaultValuePipe,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -25,8 +26,8 @@ import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order'
 import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
 
 @Controller('medical')
-// @ApiBearerAuth('JWT-auth')
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
@@ -99,7 +100,7 @@ export class MedicalController {
   }
 
   // ------------------------ Phiếu chỉ định ---------------------------
-  @Post('order')
+  @Post('medical-order')
   @ApiOperation({ summary: 'Thêm phiếu chỉ định vào phiếu khám' })
   @ApiBody({
     type: CreateMedicalRecordOrderDTO,
@@ -108,7 +109,7 @@ export class MedicalController {
     return this.medicalService.createMedicalRecordOrder(createDTO);
   }
 
-  @Put('order/:id')
+  @Put('medical-order/:id')
   @ApiOperation({ summary: 'Cập nhật phiếu chỉ định của phiếu khám' })
   @ApiBody({
     type: UpdateMedicalRecordOrderDTO,
@@ -120,7 +121,17 @@ export class MedicalController {
     await this.medicalService.updateMedicalRecordOrder(updateDTO, id);
 
     return {
-      message: 'Cập nhật thành công',
+      message: 'Cập nhật phiếu chỉ định thành công',
+    };
+  }
+
+  @Delete('medical-order/:id')
+  @ApiOperation({ summary: 'Xoá phiếu chỉ định của phiếu khám' })
+  async deleteMedicalRecordOrder(@Param('id') id: string) {
+    await this.medicalService.deleteMedicalRecordOrder(id);
+
+    return {
+      message: 'Xoá phiếu chỉ định thành công',
     };
   }
 }
