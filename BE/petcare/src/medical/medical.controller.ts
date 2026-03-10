@@ -25,6 +25,7 @@ import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order';
 import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
 import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
+import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
 
 @Controller('medical')
 // @ApiBearerAuth('JWT-auth')
@@ -152,5 +153,21 @@ export class MedicalController {
     @Body() createDTO: CreateMedicalRecordMedicineDTO,
   ) {
     return this.medicalService.createMedicalRecordMedicine(createDTO);
+  }
+
+  @Put('medicine/:id')
+  @ApiOperation({ summary: 'Chỉnh sửa thuốc của phiếu khám' })
+  @ApiBody({
+    type: UpdateMedicalRecordMedicineDTO,
+  })
+  async updateMedicalRecordMedicine(
+    @Body() updateDTO: UpdateMedicalRecordMedicineDTO,
+    @Param('id') id: string,
+  ) {
+    await this.medicalService.updateMedicalRecordMedicine(updateDTO, id);
+
+    return {
+      message: 'Cập nhật thuốc thành công',
+    };
   }
 }

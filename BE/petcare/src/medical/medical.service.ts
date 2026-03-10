@@ -14,6 +14,7 @@ import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order'
 import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
 import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
 import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
+import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
 
 @Injectable()
 export class MedicalService {
@@ -81,6 +82,7 @@ export class MedicalService {
   }
 
   // ------------------------ Thuốc ---------------------------
+  // Thêm thuốc vào phiếu khám
   async createMedicalRecordMedicine(createDTO: CreateMedicalRecordMedicineDTO) {
     const saved = await this.medicalRecordMedicineRepo.save(createDTO);
 
@@ -90,6 +92,23 @@ export class MedicalService {
         medicine: true,
       },
     });
+  }
+
+  // Chỉnh sửa thuốc của phiếu khám
+  async updateMedicalRecordMedicine(
+    updateDTO: UpdateMedicalRecordMedicineDTO,
+    id: string,
+  ) {
+    const record = await this.medicalRecordMedicineRepo.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!record) throw new NotFoundException('Không tìm thấy thuốc');
+
+    Object.assign(record, updateDTO);
+    await this.medicalRecordMedicineRepo.save(record);
   }
 
   // ------------------------ Phiếu khám -----------------------------
