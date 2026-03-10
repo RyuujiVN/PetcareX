@@ -11,6 +11,7 @@ import { RoleEnum } from 'src/common/enums/role.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import { MedicalRecordOrder } from './entities/medical-record-order.entity';
 import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order';
+import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
 
 @Injectable()
 export class MedicalService {
@@ -36,6 +37,25 @@ export class MedicalService {
       },
     });
   }
+
+  // Cập nhật phiếu chỉ định của phòng khám
+  async updateMedicalRecordOrder(
+    updateDTO: UpdateMedicalRecordOrderDTO,
+    id: string,
+  ) {
+    const record = await this.medicalRecordOrderRepo.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!record) throw new NotFoundException('Không tìm thấy phiếu chỉ định');
+
+    Object.assign(record, updateDTO);
+
+    await this.medicalRecordOrderRepo.save(record);
+  }
+
 
   // ------------------------ Phiếu khám -----------------------------
   // Lấy thông tin chi tiết phiếu khám
