@@ -275,8 +275,8 @@ class AuthProvider extends ChangeNotifier {
       final response = await _apiClient.put('${AppConstants.userEndpoint}/${_user!.id}', data);
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final body = jsonDecode(response.body);
-        _user = UserModel.fromJson(body);
+        // Cập nhật thành công, gọi lại fetchProfile để lấy dữ liệu mới nhất
+        await fetchProfile();
         _isLoading = false;
         notifyListeners();
         return true;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/services/camera_service.dart';
@@ -30,6 +31,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PetProvider>().fetchMyPets();
+      context.read<AuthProvider>().fetchProfile();
     });
   }
 
@@ -164,9 +166,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildUserInfo() {
-    return Row(
-      children: [
-        Stack(
+    return Consumer<AuthProvider>(
+      builder: (context, authProvider, child) {
+        final user = authProvider.user;
+        final String displayName = (user?.fullName != null && user!.fullName!.trim().isNotEmpty) 
+            ? user.fullName! 
+            : "Người dùng";
+
+        return Row(
           children: [
             Container(
               padding: const EdgeInsets.all(3),
@@ -174,38 +181,34 @@ class _HomePageState extends State<HomePage> {
                 shape: BoxShape.circle,
                 gradient: LinearGradient(colors: [AppColors.primary, Color(0xFF80EEDF)]),
               ),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 35,
-                backgroundImage: AssetImage('assets/images/cho_phoc_soc.png'),
+                backgroundColor: Colors.white,
+                backgroundImage: (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty)
+                    ? NetworkImage(user.avatarUrl!)
+                    : const AssetImage('assets/images/cho_phoc_soc.png') as ImageProvider,
               ),
             ),
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                child: const Icon(Icons.edit, size: 12, color: AppColors.primary),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Chào bạn, $displayName!',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Hôm nay thú cưng của bạn thế nào?',
+                    style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.4),
+                  ),
+                ],
               ),
             )
           ],
-        ),
-        const SizedBox(width: 16),
-        const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Chào bạn, Minh Anh!',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
-            ),
-            SizedBox(height: 4),
-            Text(
-              'Hôm nay thú cưng của bạn thế\nnào?',
-              style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.4),
-            ),
-          ],
-        )
-      ],
+        );
+      },
     );
   }
 

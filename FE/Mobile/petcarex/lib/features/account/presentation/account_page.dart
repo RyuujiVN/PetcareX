@@ -107,31 +107,15 @@ class _AccountPageState extends State<AccountPage> {
         backgroundColor: Colors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        leadingWidth: 70,
-        leading: Padding(
-          padding: const EdgeInsets.only(left: 15),
-          child: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.grey.withOpacity(0.2), width: 1),
-            ),
-            child: CircleAvatar(
-              radius: 18,
-              backgroundColor: Colors.white,
-              backgroundImage: user?.avatarUrl != null 
-                ? NetworkImage(user!.avatarUrl!)
-                : const NetworkImage('https://i.pravatar.cc/150?u=man1'),
-            ),
-          ),
-        ),
-        title: Text(
-          user?.fullName ?? 'Cá nhân',
-          style: const TextStyle(
+        title: const Text(
+          'Tài khoản',
+          style: TextStyle(
             color: Color(0xFF1E1E1E),
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(
