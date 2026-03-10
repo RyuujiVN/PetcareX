@@ -1,4 +1,4 @@
-import { MedicalRecordMedicine } from 'src/medical/entities/medical_record_medicine.entity';
+import { MedicalRecordMedicine } from 'src/medical/entities/medical-record-medicine.entity';
 import {
   Column,
   CreateDateColumn,
@@ -23,6 +23,9 @@ export class Medicine {
 
   @Column({ type: 'text', nullable: true })
   note?: string;
+
+  @Column({ type: 'int', default: 0 })
+  price: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createAt: Date;

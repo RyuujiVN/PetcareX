@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MedicalRecord } from './entities/medical-record.entity';
 import { UserModule } from 'src/user/user.module';
 import { MedicalRecordOrder } from './entities/medical-record-order.entity';
-import { MedicalRecordMedicine } from './entities/medical_record_medicine.entity';
+import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
 
 @Module({
   imports: [

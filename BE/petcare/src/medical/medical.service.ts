@@ -12,6 +12,8 @@ import { Pet } from 'src/pet/entities/pet.entity';
 import { MedicalRecordOrder } from './entities/medical-record-order.entity';
 import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order';
 import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
+import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
+import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
 
 @Injectable()
 export class MedicalService {
@@ -20,10 +22,24 @@ export class MedicalService {
     private readonly medicalRecordRepository: Repository<MedicalRecord>,
     @InjectRepository(MedicalRecordOrder)
     private readonly medicalRecordOrderRepo: Repository<MedicalRecordOrder>,
+    @InjectRepository(MedicalRecordMedicine)
+    private readonly medicalRecordMedicineRepo: Repository<MedicalRecordMedicine>,
     private readonly dataSource: DataSource,
   ) {}
 
   // ------------------------ Phiếu chỉ định ---------------------------
+  // Lấy tất cả phiếu chỉ định của phiếu khám
+  async findAllMedicalOrder(id: string) {
+    return await this.medicalRecordOrderRepo
+      .createQueryBuilder('medical_record_order')
+      .leftJoin('medical_record_order.medicalOrder', 'medical_order')
+      .addSelect(['medical_order.name', 'medical_order.price'])
+      .where('medical_record_order.medicalRecordId = :id', {
+        id: id,
+      })
+      .getMany();
+  }
+
   // Thêm mới phiếu chỉ định vào phiếu khám
   async createMedicalRecordOrder(createDTO: CreateMedicalRecordOrderDTO) {
     const saved = await this.medicalRecordOrderRepo.save(createDTO);
@@ -62,6 +78,18 @@ export class MedicalService {
 
     if (result.affected === 0)
       throw new NotFoundException('Không tìm thấy phiếu chỉ định');
+  }
+
+  // ------------------------ Thuốc ---------------------------
+  async createMedicalRecordMedicine(createDTO: CreateMedicalRecordMedicineDTO) {
+    const saved = await this.medicalRecordMedicineRepo.save(createDTO);
+
+    return await this.medicalRecordMedicineRepo.findOne({
+      where: { id: saved.id },
+      relations: {
+        medicine: true,
+      },
+    });
   }
 
   // ------------------------ Phiếu khám -----------------------------

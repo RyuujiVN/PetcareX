@@ -24,10 +24,11 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order';
 import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
+import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
 
 @Controller('medical')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth('JWT-auth')
+// @UseGuards(JwtAuthGuard)
 export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
@@ -100,6 +101,12 @@ export class MedicalController {
   }
 
   // ------------------------ Phiếu chỉ định ---------------------------
+  @Get(':id/medical-order')
+  @ApiOperation({ summary: 'Lấy danh sách phiếu chỉ định của phiếu khám' })
+  async getAllMedicalRecordOrder(@Param('id') id: string) {
+    return this.medicalService.findAllMedicalOrder(id);
+  }
+
   @Post('medical-order')
   @ApiOperation({ summary: 'Thêm phiếu chỉ định vào phiếu khám' })
   @ApiBody({
@@ -133,5 +140,17 @@ export class MedicalController {
     return {
       message: 'Xoá phiếu chỉ định thành công',
     };
+  }
+
+  // ------------------------ Thuốc ---------------------------
+  @Post('medicine')
+  @ApiOperation({ summary: 'Thêm thuốc vào phiếu khám' })
+  @ApiBody({
+    type: CreateMedicalRecordMedicineDTO,
+  })
+  createMedicalRecordMedicine(
+    @Body() createDTO: CreateMedicalRecordMedicineDTO,
+  ) {
+    return this.medicalService.createMedicalRecordMedicine(createDTO);
   }
 }

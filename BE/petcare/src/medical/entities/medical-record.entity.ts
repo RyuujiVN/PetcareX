@@ -10,7 +10,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { MedicalRecordMedicine } from './medical_record_medicine.entity';
+import { MedicalRecordMedicine } from './medical-record-medicine.entity';
 import { MedicalRecordOrder } from './medical-record-order.entity';
 
 @Entity('medical_record')

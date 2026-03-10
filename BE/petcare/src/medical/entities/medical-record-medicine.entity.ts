@@ -23,6 +23,9 @@ export class MedicalRecordMedicine {
   @Column({ type: 'text', nullable: true })
   note?: string;
 
+  @Column({ type: 'int' })
+  quantity: number;
+
   @Column({ type: 'int', name: 'price_at_time' })
   priceAtTime: number;
 
