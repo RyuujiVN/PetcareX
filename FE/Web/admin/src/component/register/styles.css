@@ -37,7 +37,6 @@ body::-webkit-scrollbar {
   justify-content: flex-start;
   background: white;
   position: relative;
-  padding-top: 50px;
 }
 
 
@@ -73,8 +72,8 @@ body::-webkit-scrollbar {
 .register-card {
   background: white;
   box-shadow: none;
-  padding: 30px 50px; 
-  width: 200%;
+  padding: 30px 30px; 
+  width: 100%;
   max-width: 650px;
   animation: fadeIn 0.5s ease-out;
   display: flex;

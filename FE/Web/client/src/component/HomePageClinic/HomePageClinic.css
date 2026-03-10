@@ -1,0 +1,377 @@
+/* Styles specific to the clinic landing page */
+
+.clinic-hero {
+  position: relative;
+  width: 100%;
+  min-height: 500px;
+  background: linear-gradient(135deg,#00bfa5 0%,#009688 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.clinic-hero .hero-content {
+  max-width: 900px;
+}
+
+.clinic-hero .hero-title {
+  font-size: 42px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 20px;
+}
+
+.clinic-hero .hero-buttons {
+  margin-top: 30px;
+}
+
+.clinic-hero .btn {
+  padding: 14px 28px;
+  font-size: 16px;
+}
+
+.about-section {
+  padding: 80px 20px;
+  background: #f9f9f9;
+}
+
+.about-section .section-title {
+  color: #1a1a1a;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: auto 3fr auto;
+  gap: 20px;
+  align-items: center;
+  position: relative;
+}
+.about-split .about-left {
+  border-right: 1px solid #ccc;
+  padding-right: 20px;
+  min-width: 200px;
+}
+.about-left .about-label {
+  font-size: 14px;
+  color: #333;
+  display: block;
+  margin-bottom: 8px;
+}
+.about-left .about-title {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0;
+}
+.about-right {
+  padding-left: 20px;
+}
+.about-right .about-text {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #444;
+  margin-bottom: 16px;
+}
+.about-right .btn-secondary {
+  padding: 10px 24px;
+  font-size: 14px;
+}
+
+.about-highlight {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-left: 4px solid #00d6c2;
+  padding-left: 16px;
+}
+.about-highlight .highlight-number {
+  font-size: 48px;
+  font-weight: 900;
+  color: #00d6c2;
+  line-height: 1;
+}
+.about-highlight .highlight-label {
+  font-size: 12px;
+  color: #666;
+  margin-top: 4px;
+}
+
+/* compact feature cards */
+.features-grid.compact {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 24px;
+}
+.feature-card.compact {
+  background: #fbfcfe;
+  padding: 24px 20px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: auto;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.feature-card.compact:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+}
+.feature-icon-wrapper {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  margin: 0 auto 12px;
+}
+.feature-icon-wrapper.blue-bg { background: #e0f2ff; }
+.feature-icon-wrapper.purple-bg { background: #f3e8ff; }
+.feature-icon-wrapper.yellow-bg { background: #fff9e6; }
+.feature-icon-wrapper.green-bg { background: #e6ffed; }
+.feature-icon {
+  font-size: 28px;
+  color: #00637d;
+}
+.feature-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: #0d0d0d;
+}
+.feature-content {
+  flex: 1;
+}
+.feature-desc {
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+  line-height: 1.45;
+}
+
+.about-section .section-title {
+  color: #1a1a1a;
+}
+
+.clinic-features {
+  padding: 60px 20px;
+}
+
+.clinic-features .features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 40px;
+}
+.clinic-features .section-subtitle {
+  font-size: 16px;
+  color: #555;
+  max-width: 600px;
+  margin: 8px auto 24px;
+  line-height: 1.5;
+}
+
+.feature-card {
+  background: white;
+  padding: 30px 20px;
+  border-radius: 15px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transition: transform .25s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+}
+
+.feature-icon {
+  font-size: 50px;
+  margin-bottom: 12px;
+  color: #00bfa5;
+}
+
+.team-section {
+  padding: 80px 20px;
+  background: white;
+}
+
+.team-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+  gap: 32px;
+}
+
+.doctor-card {
+  text-align: center;
+}
+
+.doctor-card img {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto 12px;
+}
+.doctor-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+}
+.doctor-card {
+  text-align: center;
+  padding: 10px;
+}
+.doctor-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* services section */
+.services-section {
+  padding: 80px 20px;
+  background: #fafafa;
+}
+.services-layout {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 40px;
+}
+.services-column {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.services-column.left .service-item,
+.services-column.right .service-item {
+  max-width: 320px;
+}
+.service-item .service-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #0a0a0a;
+}
+.service-item .service-desc {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #444;
+}
+.services-center-image img {
+  max-width: 400px;
+  width: 100%;
+  display: block;
+  margin: 0 auto;
+  border-radius: 12px;
+}
+/* legacy grid styles removed */
+.services-grid,
+.service-card,
+.service-icon,
+.service-image {
+  display: none;
+}
+
+/* community section */
+.community-section {
+  padding: 80px 20px;
+  background: white;
+}
+.community-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+.community-subtitle {
+  font-size: 12px;
+  color: #009688;
+  letter-spacing: 1.5px;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 8px;
+}
+.community-hot {
+  display: inline-flex;
+  align-items: center;
+  color: #e65100;
+  font-size: 14px;
+  margin-top: 8px;
+}
+.hot-icon {
+  margin-right: 6px;
+}
+.community-grid {
+  display: flex;
+  gap: 24px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+}
+.community-card {
+  min-width: 220px;
+  background: #fff;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  transition: transform 0.25s ease;
+}
+.community-card:hover {
+  transform: translateY(-4px);
+}
+.community-card img {
+  width: 100%;
+  display: block;
+}
+.community-card p {
+  padding: 12px;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.4;
+}
+
+.community-doctors {
+  background: #e6ffed;
+  padding: 40px 20px;
+  margin-top: 40px;
+  border-radius: 12px;
+}
+.doctors-heading {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+.avatar-row {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+}
+.avatar-item {
+  text-align: center;
+  max-width: 120px;
+}
+.avatar-item img {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  margin: 0 auto 8px;
+  border: 2px solid #00d6c2;
+}
+.avatar-name {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+  color: #0a0a0a;
+}
+.avatar-subtitle {
+  font-size: 12px;
+  color: #666;
+}

@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
-import Header from "../../default/Header";
+import Header from "../../../../admin/src/default/header";
+// import Footer from "../../../../admin/src/default/footer";
+
 import { TbCircleCheck } from "react-icons/tb";
 import { IoCloseCircle } from "react-icons/io5";
 import { MdPets } from "react-icons/md";
@@ -10,6 +12,7 @@ import { TbLockAccess } from "react-icons/tb";
 import { FcStatistics } from "react-icons/fc";
 import { FcLock } from "react-icons/fc";
 import { AiOutlineRise } from "react-icons/ai";
+
 
 
 
@@ -124,7 +127,7 @@ export default function HomePage() {
   ];
 
   const handleLogin = () => navigate("/login");
-  const handleRegister = () => navigate("/register");
+  const handleRegister = () => navigate("/choose-clinic");
 
   return (
     <div className="home-page">
@@ -324,39 +327,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-
-      {/* <footer className="footer">
-        <div className="footer-content">
-
-          <div className="footer-section">
-            <h4>PetcareX</h4>
-            <p>
-            Nền tảng công nghệ toàn diện kết nối hệ sinh thái thú cưng tại Việt Nam. 
-            Vì sức khỏe của những người bạn bốn chân.
-            </p>
-          </div>
-
-          <div className="footer-section">
-            <h4>Về chúng tôi</h4>
-            <ul>
-              <li> Tính năng </li>
-              <li> Giá cả </li>
-              <li> Giới thiệu </li>
-            </ul>
-          </div>
-
-          <div className="footer-section">
-            <h4>Hỗ trợ</h4>
-            <ul>
-              <li> FAQ </li>
-              <li> Liên hệ </li>
-              <li> Chính sách bảo mật </li>
-            </ul>
-          </div>
-
-        </div>
-      </footer> */}
     </div>
   );
 }

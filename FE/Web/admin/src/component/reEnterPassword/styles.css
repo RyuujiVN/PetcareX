@@ -32,14 +32,12 @@ body::-webkit-scrollbar {
 
 .reset-password-container {
   display: flex;
+  min-height: 100vh;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: white;
+  justify-content: flex-start;
+  padding-top: 0px; 
   position: relative;
-  min-height: 100vh;
-  margin-bottom: 0px;
-  padding: 150px;
 }
 
 .reset-password-header-bar {
@@ -105,7 +103,6 @@ body::-webkit-scrollbar {
   flex-direction: column;
   align-items: center;
   border-top: 1px solid var(--border-color);
-  margin-top: 85px;
 }
 
 

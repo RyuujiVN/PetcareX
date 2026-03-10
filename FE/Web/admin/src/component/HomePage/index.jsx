@@ -9,6 +9,8 @@ import { TbLockAccess } from "react-icons/tb";
 import { FcStatistics } from "react-icons/fc";
 import { FcLock } from "react-icons/fc";
 import { AiOutlineRise } from "react-icons/ai";
+import Header from "../../default/header";
+import Footer from "../../default/footer";
 
 
 
@@ -123,11 +125,11 @@ export default function HomePage() {
   ];
 
   const handleLogin = () => navigate("/login");
-  const handleRegister = () => navigate("/register");
+  const handleRegister = () => navigate("/choose-clinic");
 
   return (
     <div className="home-page">
-      
+      <Header />
 
       <section className="hero-section">
         <div className="hero-overlay">
@@ -325,37 +327,8 @@ export default function HomePage() {
       </section>
 
 
-      {/* <footer className="footer">
-        <div className="footer-content">
-
-          <div className="footer-section">
-            <h4>PetcareX</h4>
-            <p>
-            Nền tảng công nghệ toàn diện kết nối hệ sinh thái thú cưng tại Việt Nam. 
-            Vì sức khỏe của những người bạn bốn chân.
-            </p>
-          </div>
-
-          <div className="footer-section">
-            <h4>Về chúng tôi</h4>
-            <ul>
-              <li> Tính năng </li>
-              <li> Giá cả </li>
-              <li> Giới thiệu </li>
-            </ul>
-          </div>
-
-          <div className="footer-section">
-            <h4>Hỗ trợ</h4>
-            <ul>
-              <li> FAQ </li>
-              <li> Liên hệ </li>
-              <li> Chính sách bảo mật </li>
-            </ul>
-          </div>
-
-        </div>
-      </footer> */}
+      {/* old static footer removed; using reusable component instead */}
+      <Footer />
     </div>
   );
 }

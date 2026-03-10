@@ -199,13 +199,6 @@ export default function ReEnterPassword() {
           </button>
         </form>
       </div>
-        <div className="contact-support-link">
-          <span>Bạn gặp khó khăn?</span>
-          <a href="/contact-support">Liên hệ bộ phận hỗ trợ</a>
-        </div>
-      <footer className="reset-password-footer">
-        <p>© 2026 PETCAREХ Vietnam. Tất cả quyền được bảo lưu</p>
-      </footer>
     </div>
   );
 }
