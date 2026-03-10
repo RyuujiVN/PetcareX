@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/camera_service.dart';
+import '../../../core/utils/image_helper.dart';
 import '../data/models/pet_models.dart';
 import 'provider/pet_provider.dart';
 
@@ -222,15 +224,14 @@ class _AddPetPageState extends State<AddPetPage> {
                 child: _selectedImage != null
                     ? Image.file(_selectedImage!, fit: BoxFit.cover, width: 100, height: 100)
                     : (provider.petAvatarUrl != null && provider.petAvatarUrl!.startsWith('http'))
-                        ? Image.network(
-                            provider.petAvatarUrl!,
+                        ? CachedNetworkImage(
+                            imageUrl: ImageHelper.getThumbnailUrl(provider.petAvatarUrl!, width: 300, height: 300),
                             fit: BoxFit.cover,
                             width: 100,
                             height: 100,
-                            errorBuilder: (context, error, stackTrace) => 
+                            errorWidget: (context, url, error) => 
                                 Icon(Icons.broken_image, color: Colors.grey[400], size: 40),
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
+                            placeholder: (context, url) {
                               return const Center(child: CircularProgressIndicator());
                             },
                           )

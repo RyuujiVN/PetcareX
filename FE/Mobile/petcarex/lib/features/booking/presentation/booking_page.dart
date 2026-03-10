@@ -165,7 +165,7 @@ class _BookingPageState extends State<BookingPage> {
         body: Column(
           children: [
             StepIndicator(
-              currentStep: _currentStep,
+              currentStep: _currentStep > 4 ? 4 : _currentStep,
               steps: _steps,
               isSuccess: isSuccess,
               onStepTapped: (index) {
@@ -363,6 +363,7 @@ class _BookingPageState extends State<BookingPage> {
               : (isSuccess
                   ? () {
                       bookingProvider.reset();
+                      setState(() => _currentStep = 0);
                       MainNavigationWrapper.of(context)?.setSelectedIndex(2);
                     }
                   : _nextStep),

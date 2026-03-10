@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
@@ -5,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../core/services/camera_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/image_helper.dart';
 import '../../chat/presentation/chat_page.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../../notification/presentation/notification.dart';
@@ -181,12 +183,20 @@ class _HomePageState extends State<HomePage> {
                 shape: BoxShape.circle,
                 gradient: LinearGradient(colors: [AppColors.primary, Color(0xFF80EEDF)]),
               ),
-              child: CircleAvatar(
-                radius: 35,
-                backgroundColor: Colors.white,
-                backgroundImage: (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty)
-                    ? NetworkImage(user.avatarUrl!)
-                    : const AssetImage('assets/images/cho_phoc_soc.png') as ImageProvider,
+              child: ClipOval(
+                child: (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty)
+                    ? CachedNetworkImage(
+                        imageUrl: ImageHelper.getThumbnailUrl(user.avatarUrl!),
+                        width: 70,
+                        height: 70,
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) => const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        errorWidget: (context, url, error) => Image.asset('assets/images/cho_phoc_soc.png', fit: BoxFit.cover),
+                      )
+                    : Image.asset('assets/images/cho_phoc_soc.png', width: 70, height: 70, fit: BoxFit.cover),
               ),
             ),
             const SizedBox(width: 16),
@@ -319,14 +329,13 @@ class _HomePageState extends State<HomePage> {
               height: 56,
               color: Colors.grey[200], // Nền xám mặc định
               child: (imageUrl != null && imageUrl.startsWith('http'))
-                  ? Image.network(
-                      imageUrl,
+                  ? CachedNetworkImage(
+                      imageUrl: ImageHelper.getThumbnailUrl(imageUrl),
                       fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
+                      errorWidget: (context, url, error) {
                         return const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28));
                       },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
+                      placeholder: (context, url) {
                         return const Center(
                           child: SizedBox(
                             width: 20,

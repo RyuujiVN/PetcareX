@@ -1,10 +1,12 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/services/camera_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/image_helper.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -219,10 +221,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                       backgroundImage: _selectedImage != null
                                           ? FileImage(_selectedImage!) as ImageProvider
                                           : (_uploadedAvatarUrl != null
-                                              ? NetworkImage(_uploadedAvatarUrl!)
+                                              ? CachedNetworkImageProvider(ImageHelper.getThumbnailUrl(_uploadedAvatarUrl!))
                                               : (user.avatarUrl != null
-                                                  ? NetworkImage(user.avatarUrl!)
-                                                  : const NetworkImage('https://i.pravatar.cc/150?u=man1'))),
+                                                  ? CachedNetworkImageProvider(ImageHelper.getThumbnailUrl(user.avatarUrl!))
+                                                  : const CachedNetworkImageProvider('https://i.pravatar.cc/150?u=man1'))),
                                     ),
                                     if (_isUploadingAvatar)
                                       const CircularProgressIndicator(
