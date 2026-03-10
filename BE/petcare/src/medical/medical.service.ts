@@ -82,6 +82,18 @@ export class MedicalService {
   }
 
   // ------------------------ Thuốc ---------------------------
+  // Lấy danh sách thuốc của phiếu khám
+  async findAllMedicine(id: string) {
+    return await this.medicalRecordMedicineRepo
+      .createQueryBuilder('medical_record_medicine')
+      .leftJoin('medical_record_medicine.medicine', 'medicine')
+      .addSelect(['medicine.name', 'medicine.unit', 'medicine.note'])
+      .where('medical_record_medicine.medicalRecordId = :id', {
+        id: id,
+      })
+      .getMany();
+  }
+
   // Thêm thuốc vào phiếu khám
   async createMedicalRecordMedicine(createDTO: CreateMedicalRecordMedicineDTO) {
     const saved = await this.medicalRecordMedicineRepo.save(createDTO);

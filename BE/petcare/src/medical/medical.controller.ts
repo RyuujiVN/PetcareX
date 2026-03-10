@@ -28,8 +28,8 @@ import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-med
 import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
 
 @Controller('medical')
-// @ApiBearerAuth('JWT-auth')
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
@@ -144,6 +144,12 @@ export class MedicalController {
   }
 
   // ------------------------ Thuốc ---------------------------
+  @Get(':id/medicine')
+  @ApiOperation({ summary: 'Lấy danh sách thuốc của phiếu khám' })
+  getAllMedicine(@Param('id') id: string) {
+    return this.medicalService.findAllMedicine(id);
+  }
+
   @Post('medicine')
   @ApiOperation({ summary: 'Thêm thuốc vào phiếu khám' })
   @ApiBody({
