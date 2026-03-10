@@ -140,4 +140,31 @@ class PetRepository {
     
     throw Exception(errorMessage);
   }
+
+  Future<bool> deletePet(String id) async {
+    final response = await _apiClient.delete('${AppConstants.petEndpoint}/$id');
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return true;
+    }
+    
+    dynamic responseBody;
+    try {
+      responseBody = jsonDecode(response.body);
+    } catch (_) {
+      throw Exception('Phản hồi từ máy chủ không hợp lệ');
+    }
+    String errorMessage = 'Lỗi khi xoá vật nuôi';
+    
+    if (responseBody is Map) {
+      if (responseBody['message'] != null) {
+        if (responseBody['message'] is List) {
+          errorMessage = (responseBody['message'] as List).join(', ');
+        } else if (responseBody['message'] is String) {
+          errorMessage = responseBody['message'];
+        }
+      }
+    }
+    
+    throw Exception(errorMessage);
+  }
 }

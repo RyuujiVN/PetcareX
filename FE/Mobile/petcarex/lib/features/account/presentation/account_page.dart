@@ -4,6 +4,7 @@ import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart
 import 'package:provider/provider.dart';
 
 import '../../auth/presentation/change_password_page.dart';
+import 'my_pets_page.dart';
 import 'profile_page.dart';
 
 class AccountPage extends StatefulWidget {
@@ -157,7 +158,10 @@ class _AccountPageState extends State<AccountPage> {
             title: 'Thông tin thú cưng',
             subtitle: 'Xem và chỉnh sửa thông tin thú cưng',
             onTap: () {
-              // TODO: Navigate to pet info
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const MyPetsPage()),
+              );
             },
           ),
           const SizedBox(height: 16),

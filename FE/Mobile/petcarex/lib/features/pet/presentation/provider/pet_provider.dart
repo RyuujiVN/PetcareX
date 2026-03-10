@@ -131,4 +131,24 @@ class PetProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<bool> deletePet(String id) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final success = await _repository.deletePet(id);
+      if (success) {
+        await fetchMyPets();
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
