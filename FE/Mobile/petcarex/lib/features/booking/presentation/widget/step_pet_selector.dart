@@ -20,6 +20,7 @@ class StepPetSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sortedPets = List<Pet>.from(pets)..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -27,12 +28,12 @@ class StepPetSelector extends StatelessWidget {
         crossAxisSpacing: 16,
         childAspectRatio: 0.85,
       ),
-      itemCount: pets.length + 1,
+      itemCount: sortedPets.length + 1,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
-        if (index < pets.length) {
-          final pet = pets[index];
+        if (index < sortedPets.length) {
+          final pet = sortedPets[index];
           return _petItem(pet);
         } else {
           return _addNewItem(context);

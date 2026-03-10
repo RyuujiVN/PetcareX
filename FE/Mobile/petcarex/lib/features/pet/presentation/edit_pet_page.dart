@@ -572,6 +572,7 @@ class _EditPetPageState extends State<EditPetPage> {
   }
 
   Widget _buildActionButtons(PetProvider provider) {
+    final bool isSaveDisabled = provider.isLoading || _isUploadingAvatar;
     return Row(
       children: [
         Expanded(
@@ -595,13 +596,13 @@ class _EditPetPageState extends State<EditPetPage> {
           child: SizedBox(
             height: 54,
             child: ElevatedButton(
-              onPressed: provider.isLoading ? null : _savePetInfo,
+              onPressed: isSaveDisabled ? null : _savePetInfo,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
               ),
-              child: provider.isLoading
+              child: isSaveDisabled
                   ? const SizedBox(
                       width: 24,
                       height: 24,

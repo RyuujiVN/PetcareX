@@ -225,8 +225,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildPetList() {
     return Consumer<PetProvider>(
       builder: (context, petProvider, child) {
-        final pets = petProvider.myPets;
-        
+        final pets = List<Pet>.from(petProvider.myPets)..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(

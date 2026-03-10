@@ -241,10 +241,10 @@ class _MyPetsPageState extends State<MyPetsPage> {
       ),
       body: Consumer<PetProvider>(
         builder: (context, provider, child) {
+          final sortedPets = List<Pet>.from(provider.myPets)..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
           if (provider.isLoading && provider.myPets.isEmpty) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
           }
-          
           if (provider.myPets.isEmpty) {
             return Center(
               child: Column(
@@ -276,15 +276,14 @@ class _MyPetsPageState extends State<MyPetsPage> {
               ),
             );
           }
-
           return RefreshIndicator(
             color: AppColors.primary,
             onRefresh: () => provider.fetchMyPets(),
             child: ListView.builder(
               padding: const EdgeInsets.all(20),
-              itemCount: provider.myPets.length,
+              itemCount: sortedPets.length,
               itemBuilder: (context, index) {
-                return _buildPetCard(provider.myPets[index]);
+                return _buildPetCard(sortedPets[index]);
               },
             ),
           );
