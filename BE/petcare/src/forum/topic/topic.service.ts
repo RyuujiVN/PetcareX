@@ -25,4 +25,11 @@ export class TopicService {
 
     await this.topicRepository.save(topic);
   }
+
+  async deleteTopic(id: string) {
+    const result = await this.topicRepository.delete({ id: id });
+
+    if (result.affected === 0)
+      throw new NotFoundException('Không tìm thấy chủ đề');
+  }
 }

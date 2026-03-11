@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, Put } from '@nestjs/common';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateTopicDTO } from './dtos/create-topic.dto';
 import { ForumTopic } from '../entities/forum_topic.entity';
@@ -31,6 +31,16 @@ export class TopicController {
 
     return {
       message: 'Cập nhật chủ đề thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Xoá chủ đề' })
+  async deleteTopic(@Param('id') id: string) {
+    await this.topicService.deleteTopic(id);
+
+    return {
+      message: 'Xoá chủ đề thành công',
     };
   }
 }
