@@ -25,6 +25,12 @@ export class ForumPost {
   @Column({ type: 'text' })
   content: string;
 
+  @Column({ type: 'int', name: 'comment_count', default: 0 })
+  commentCount: number;
+
+  @Column({ type: 'int', name: 'like_count', default: 0 })
+  likeCount: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

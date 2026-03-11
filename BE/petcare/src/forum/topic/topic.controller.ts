@@ -9,15 +9,24 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { CreateTopicDTO } from './dtos/create-topic.dto';
 import { ForumTopic } from '../entities/forum_topic.entity';
 import { TopicService } from './topic.service';
 import { UpdateTopicDTO } from './dtos/update-topic.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 
 @Controller('topic')
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard)
 export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
