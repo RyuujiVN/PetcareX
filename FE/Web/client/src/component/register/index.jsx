@@ -6,10 +6,14 @@ import {
   Button,
   Checkbox,
   message,
+  Typography,
 } from "antd";
-import { UserOutlined } from "@ant-design/icons";
+import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
 import "./styles.css";
 import { registerApi } from "../../api/auth";
+import { FaPaw } from "react-icons/fa";
+
+const { Title, Text } = Typography;
 
 export default function Register() {
   const navigate = useNavigate();
@@ -78,10 +82,17 @@ export default function Register() {
 
   return (
     <div className="register-container">
-      <div className="register-card">
-        <div className="register-header">
-          <UserOutlined  className="register-icon" />
-          <h1 className="register-title">Đăng ký tài khoản</h1>
+      <div className="login-header-bar">
+        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <FaPaw size={28} color="#13ECDA" />
+          <h2 className="logo-name-small" style={{ margin: 0, color: '#333' }}>PetcareX</h2>
+        </div>
+      </div>
+
+      <div style={{ padding: '40px 25px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <UserOutlined style={{ fontSize: '48px', color: '#13ECDA' }} />
+          <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng ký tài khoản</Title>
         </div>
 
         <Form
@@ -89,19 +100,19 @@ export default function Register() {
           layout="vertical"
           onFinish={handleRegister}
           autoComplete="off"
-          className="register-form"
+          size="large"
         >
           <Form.Item
             name="fullName"
-            label="Họ Và Tên"
+            label="Họ và tên"
             rules={[
               { required: true, message: "Vui lòng nhập họ và tên" },
-             
+              { validator: (_, value) => validateFullName(value) },
             ]}
           >
             <Input
-              placeholder="Nhập họ và tên"
-              size="large"
+              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              placeholder="Nhập họ và tên của bạn"
             />
           </Form.Item>
 
@@ -110,30 +121,33 @@ export default function Register() {
             label="Email"
             rules={[
               { required: true, message: "Vui lòng nhập email" },
-              
+              { validator: (_, value) => validateEmail(value) },
             ]}
           >
             <Input
               type="email"
-              placeholder="Nhập email"
-              size="large"
+              prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              placeholder="example@email.com"
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="Mật Khẩu"
+            label="Mật khẩu"
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu" },
-            
+              { validator: (_, value) => validatePassword(value) },
             ]}
           >
-            <Input.Password placeholder="Nhập mật khẩu" size="large" />
+            <Input.Password
+              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              placeholder="Nhập mật khẩu"
+            />
           </Form.Item>
 
           <Form.Item
             name="confirmPassword"
-            label="Xác Nhận Mật Khẩu"
+            label="Xác nhận mật khẩu"
             dependencies={["password"]}
             rules={[
               { required: true, message: "Vui lòng xác nhận mật khẩu" },
@@ -147,7 +161,10 @@ export default function Register() {
               }),
             ]}
           >
-            <Input.Password placeholder="Xác nhận mật khẩu" size="large" />
+            <Input.Password
+              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              placeholder="Nhập lại mật khẩu"
+            />
           </Form.Item>
 
           <Form.Item
@@ -168,7 +185,7 @@ export default function Register() {
                 Điều khoản dịch vụ
               </a>{" "}
               và{" "}
-              <a href="/privacy" target="_blank"  rel="noopener noreferrer" style={{ color: "#13ECDA" }}>
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#13ECDA" }}>
                 Chính sách bảo mật
               </a>{" "}
               của PetcareX
@@ -179,22 +196,24 @@ export default function Register() {
             <Button
               type="primary"
               htmlType="submit"
-              size="large"
               block
               loading={loading}
-              className="register-button"
+              style={{ backgroundColor: '#13ECDA', color: 'white', fontWeight: 'bold', borderColor: '#13ECDA' }}
             >
-              Tạo Tài Khoản
+              Tạo tài khoản
             </Button>
           </Form.Item>
         </Form>
 
-        <div className="login-link">
-          <span>Bạn đã có tài khoản? </span>
-          <a onClick={() => navigate("/login")}>Đăng nhập ngay</a>
+        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+          <Text type="secondary">
+            Bạn đã có tài khoản? <a style={{ color: '#13ECDA', fontWeight: 'bold' }} onClick={() => navigate("/login")}>Đăng nhập ngay</a>
+          </Text>
         </div>
 
-        <div className="footer-text">© 2026 PetcareX Việt Nam</div>
+        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#666' }}>
+          © 2026 PetcareX Việt Nam
+        </div>
       </div>
     </div>
   );

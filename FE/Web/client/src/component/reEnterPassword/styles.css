@@ -5,25 +5,16 @@
 }
 
 :root {
-  --primary-color: #19E66B;
-  --primary-dark: #19E66B;
-  --bg-color: #f5f5f5;
+  --primary: #13ECDA;
   --text-primary: #333;
   --text-secondary: #666;
-  --border-color: #ddd;
-  --error-color: #e74c3c;
-  --light-gray: #f9f9f9;
 }
 
 body {
   overflow: hidden;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  padding-top: 3px;
 }
 
 body::-webkit-scrollbar {
@@ -36,10 +27,8 @@ body::-webkit-scrollbar {
   align-items: center;
   justify-content: center;
   background: white;
-  position: relative;
   min-height: 100vh;
-  margin-bottom: 0px;
-  padding: 150px;
+  position: relative;
 }
 
 .reset-password-header-bar {
@@ -50,10 +39,8 @@ body::-webkit-scrollbar {
   height: 60px;
   background: white;
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 0 50px;
-  border-bottom: 1px solid var(--border-color);
   z-index: 1000;
 }
 
@@ -64,10 +51,7 @@ body::-webkit-scrollbar {
 }
 
 .logo-name-small {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
+  color: #333 !important;
 }
 
 .header-back-button {
@@ -96,16 +80,15 @@ body::-webkit-scrollbar {
 
 .reset-password-card {
   background: white;
-  box-shadow: none;
-  padding: 30px 50px;
-  width: 200%;
-  max-width: 650px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 50px 40px;
+  width: 100%;
+  max-width: 700px;
   animation: fadeIn 0.5s ease-out;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-top: 1px solid var(--border-color);
-  margin-top: 85px;
+  border-radius: 12px;
 }
 
 
@@ -113,7 +96,7 @@ body::-webkit-scrollbar {
   text-align: center;
   margin-bottom: 30px;
   width: 100%;
-  max-width: 700px;
+  max-width: 100%;
 }
 
 .reset-password-title {
@@ -121,16 +104,17 @@ body::-webkit-scrollbar {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 8px;
+  margin-top: 16px;
 }
 
 .reset-password-form {
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   width: 100%;
-  max-width: 700px;
+  max-width: 100%;
 }
 
 .form-group {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .form-label {
@@ -151,10 +135,9 @@ body::-webkit-scrollbar {
 .form-input {
   width: 100%;
   padding: 12px 14px;
-  padding-left: 20px !important;
-  border: 1px solid var(--border-color);
+  border: 1px solid #d9d9d9;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
   transition: all 0.3s ease;
   font-family: inherit;
@@ -162,12 +145,12 @@ body::-webkit-scrollbar {
 
 .form-input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(26, 188, 156, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(19, 236, 218, 0.2);
 }
 
 .form-input::placeholder {
-  color: #bbb;
+  color: #bfbfbf;
 }
 
 .password-wrapper {
@@ -189,7 +172,7 @@ body::-webkit-scrollbar {
 }
 
 .toggle-password:hover {
-  color: var(--primary-color);
+  color: var(--primary);
 }
 
 .toggle-password svg {
@@ -200,11 +183,11 @@ body::-webkit-scrollbar {
 .resend-otp-link {
   background: none;
   border: none;
-  color: #13ECDA;
+  color: var(--primary);
   font-size: 12px;
   cursor: pointer;
   margin-top: 5px;
-  margin-left: 85%;
+  margin-left: auto;
   text-decoration: none;
   transition: color 0.3s ease;
   padding: 0;
@@ -212,7 +195,7 @@ body::-webkit-scrollbar {
 }
 
 .resend-otp-link:hover:not(:disabled) {
-  color: #13ECDA;
+  color: var(--primary);
   text-decoration: underline;
 }
 
@@ -241,14 +224,14 @@ body::-webkit-scrollbar {
   height: 16px;
   margin-right: 8px;
   cursor: pointer;
-  accent-color: var(--primary-color);
+  accent-color: var(--primary);
 }
 
 .error-message {
-  background-color: #fee;
-  border: 1px solid #fcc;
-  color: var(--error-color);
-  padding: 10px 12px;
+  background-color: #fff2f0;
+  border: 1px solid #ffccc7;
+  color: #ff4d4f;
+  padding: 12px 16px;
   border-radius: 6px;
   font-size: 13px;
   margin-bottom: 15px;
@@ -256,10 +239,10 @@ body::-webkit-scrollbar {
 }
 
 .success-message {
-  background-color: #e8f5e9;
-  border: 1px solid #c8e6c9;
-  color: #13ECDA;
-  padding: 10px 12px;
+  background-color: #f6ffed;
+  border: 1px solid #b7eb8f;
+  color: #52c41a;
+  padding: 12px 16px;
   border-radius: 6px;
   font-size: 13px;
   margin-bottom: 15px;
@@ -268,8 +251,8 @@ body::-webkit-scrollbar {
 
 .reset-password-button {
   width: 100%;
-  padding: 13px;
-  background: #13ECDA;
+  padding: 10px 15px;
+  background: var(--primary);
   color: white;
   border: none;
   border-radius: 6px;
@@ -278,36 +261,65 @@ body::-webkit-scrollbar {
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: capitalize;
-  max-width: 700px;
+  max-width: 100%;
 }
 
 .reset-password-button:hover:not(:disabled) {
-  background: #13ECDA;
-  transform: translateY(-2px);
-  box-shadow: 0 5px 15px rgba(125, 219, 231, 0.3);
+  background: var(--primary);
+  opacity: 0.9;
 }
 
 .reset-password-button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 .reset-password-button:disabled {
-  opacity: 0.7;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .reset-password-footer {
-  margin-top: 40px;
+  margin-top: 24px;
   text-align: center;
   font-size: 12px;
   color: var(--text-secondary);
-  padding: 20px;
+  padding: 0;
   width: 100%;
-  border-top: 1px solid var(--border-color);
 }
 
 .reset-password-footer p {
   margin: 0;
+}
+
+.ant-form {
+  width: 100%;
+}
+
+.ant-form-item {
+  margin-bottom: 20px;
+}
+
+.ant-form-item-label > label {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.ant-input{
+  font-size: 14px;
+  padding: 8px 12px !important;
+}
+.ant-input-password {
+  font-size: 14px;
+  padding: 1px 12px !important;
+}
+
+.ant-input:hover,
+.ant-input-password:hover {
+  border-color: var(--primary);
+}
+
+.ant-card-body {
+  padding: 24px;
 }
 
 @keyframes fadeIn {
@@ -323,7 +335,7 @@ body::-webkit-scrollbar {
 
 @media (max-width: 900px) {
   .reset-password-card {
-    padding: 60px 40px;
+    padding: 40px 30px;
     max-width: 100%;
   }
 
@@ -334,14 +346,9 @@ body::-webkit-scrollbar {
 }
 
 @media (max-width: 600px) {
-  .reset-password-container {
-    padding-top: 60px;
-  }
-
   .reset-password-card {
-    padding: 40px 20px;
+    padding: 35px 20px;
     max-width: 100%;
-    margin-top: 0;
   }
 
   .reset-password-header-bar {
@@ -358,12 +365,12 @@ body::-webkit-scrollbar {
   }
 
   .form-input {
-    padding: 11px 12px;
+    padding: 12px 14px;
     font-size: 16px;
   }
 
   .reset-password-button {
-    padding: 12px;
+    padding: 10px 15px;
     font-size: 14px;
   }
 

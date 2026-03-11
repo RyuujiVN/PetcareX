@@ -4,6 +4,7 @@ import './styles.css';
 import Header from '../../default/header';
 import Footer from '../../default/footer';
 import { FaBolt, FaRobot, FaFileMedical, FaPlus } from 'react-icons/fa';
+import { Navigate } from 'react-router-dom';
 
 const dummyPets = [
   { id: 1, name: 'Mochi', breed: 'Cockapoo', age: '2 tuổi', avatar: '/public/gaugau.png' },
@@ -11,6 +12,13 @@ const dummyPets = [
   { id: 3, name: 'Bông',  breed: 'Mèo Ba Tư', age: '3 tuổi', avatar: '/public/lulu.png' },
 ];
 
+
+const goToChatBot = () =>{
+  Navigate("/chatbot");
+}
+const goToBooking = () =>{
+  Navigate("/booking");
+}
 export default function PageMainUser() {
   return (
     
@@ -19,7 +27,10 @@ export default function PageMainUser() {
       <header className="dashboard-header">
         <h1>Chào mừng trở lại, Công Thành!</h1>
         <p>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
-        <button className="btn-primary">Đặt lịch khám ngay</button>
+        <button className="btn-primary" onClick={goToBooking}>
+          Đặt lịch khám ngay
+        </button>
+        
       </header>
 
       <h2 className="section-title">Thú cưng của bạn</h2>
@@ -60,7 +71,9 @@ export default function PageMainUser() {
             <h3>Tư vấn với AI Chatbot</h3>
             <p>Hỏi đáp các triệu chứng sức khỏe ngay lập tức</p>
           </div>
-          <a href="#" className="quick-link">Trò chuyện →</a>
+          <a href="#" className="quick-link" onClick={goToChatBot}>
+            Trò chuyện →
+          </a>
         </div>
         <div className="quick-card orange">
           <div className="icon-circle">

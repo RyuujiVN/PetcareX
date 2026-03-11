@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, message } from 'antd';
+import { Form, Input, Button, message, Spin } from 'antd';
 import { LockOutlined } from '@ant-design/icons';
 import './styles.css';
+import { FaPaw } from 'react-icons/fa';
 
 export default function ForgotPassword() {
   const [form] = Form.useForm();
@@ -21,20 +22,26 @@ export default function ForgotPassword() {
         body: JSON.stringify({ email: values.email }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        const data = await response.json();
         throw new Error(data.message || 'Không tìm thấy tài khoản với email này');
       }
 
-      const data = await response.json();
-      message.success(data.message || 'Gửi email thành công');
+      message.success({
+        content: 'Mã OTP đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư đến hoặc thư mục spam.',
+        duration: 3,
+      });
       
-      // Navigate to Re-Enter Password page with email
       setTimeout(() => {
         navigate('/reEnterPassword', { state: { email: values.email } });
-      }, 1000);
+      }, 1500);
     } catch (err) {
-      message.error(err.message || 'Có lỗi xảy ra');
+      console.error('Error:', err);
+      message.error({
+        content: err.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
+        duration: 3,
+      });
     } finally {
       setLoading(false);
     }
@@ -46,9 +53,14 @@ export default function ForgotPassword() {
 
   return (
     <div className="forgot-password-container">
+      <div className="login-header-bar">
+              <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <FaPaw size={28} color="#13ECDA" />
+                <h2 className="logo-name-small" style={{ margin: 0, color: 'white' }}>PetcareX</h2>
+              </div>
+            </div>
       <div className="forgot-password-content">
         <div className="forgot-password-card">
-          {/* Icon */}
           <div className="forgot-password-icon">
             <svg viewBox="0 0 80 80" className="lock-icon-svg">
               <defs>
@@ -66,76 +78,71 @@ export default function ForgotPassword() {
             </svg>
           </div>
 
-          {/* Header */}
           <div className="forgot-password-header">
             <h1 className="forgot-password-title">Quên mật khẩu?</h1>
             <p className="forgot-password-subtitle">
-              Đừng lo lắng! Nhập email liên kết với tài khoản của bạn và chúng tôi sẽ gửi hướng dẫn khôi phục mật khẩu
+              Đừng lo lắng! Nhập email liên kết với tài khoản của bạn và chúng tôi sẽ gửi mã OTP để bạn có thể khôi phục mật khẩu
             </p>
           </div>
 
-          {/* Form */}
-          <Form
-            form={form}
-            layout="vertical"
-            onFinish={handleSubmit}
-            autoComplete="off"
-          >
-            <Form.Item
-              name="email"
-              label={<span className="form-label">Địa chỉ Email</span>}
-              rules={[
-                {
-                  required: true,
-                  message: 'Vui lòng nhập email',
-                },
-                {
-                  type: 'email',
-                  message: 'Email không hợp lệ',
-                },
-              ]}
+          <Spin spinning={loading} tip="Đang gửi mã OTP...">
+            <Form
+              form={form}
+              layout="vertical"
+              onFinish={handleSubmit}
+              autoComplete="off"
             >
-              <Input
-                placeholder="Nhập email của bạn"
-                className="form-input"
-              />
-            </Form.Item>
-
-            <Form.Item>
-              <Button
-                type="primary"
-                htmlType="submit"
-                block
-                loading={loading}
-                className="forgot-password-button"
+              <Form.Item
+                name="email"
+                label={<span className="form-label">Địa chỉ Email</span>}
+                rules={[
+                  {
+                    required: true,
+                    message: 'Vui lòng nhập email',
+                  },
+                  {
+                    type: 'email',
+                    message: 'Email không hợp lệ',
+                  },
+                ]}
               >
-                Gửi liên kết đặt lại
-              </Button>
-            </Form.Item>
-          </Form>
+                <Input
+                  placeholder="Nhập email của bạn"
+                  className="form-input"
+                  disabled={loading}
+                />
+              </Form.Item>
 
-          {/* Back to login */}
+              <Form.Item>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  block
+                  loading={loading}
+                  className="forgot-password-button"
+                >
+                  Gửi mã OTP
+                </Button>
+              </Form.Item>
+            </Form>
+          </Spin>
+
           <div className="back-to-login">
             <Button
               type="text"
               onClick={handleGoBack}
               className="back-login-link"
+              disabled={loading}
             >
               ← Quay lại Đăng nhập
             </Button>
           </div>
 
-          {/* Support link */}
           <div className="contact-support-link">
             <span>Bạn gặp khó khăn?</span>
             <a href="/contact-support">Liên hệ bộ phận hỗ trợ</a>
           </div>
         </div>
-
-        {/* Footer */}
-        <footer className="forgot-password-footer">
-          <p>© 2026 PETCAREX INC. BẢO MẬT THÔNG TIN CỦA BẠN LÀ UU TIÊN CỦA CHÚNG TÔI</p>
-        </footer>
       </div>
     </div>
   );

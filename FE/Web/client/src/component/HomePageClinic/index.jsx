@@ -104,8 +104,8 @@ export default function HomePageClinic() {
     navigate("/downloadApp");
   };
 
-  const goToforYou = () => {
-    navigate("/forYou");
+  const goToMainUser = () => {
+    navigate("/main-user");
   };
 
   return (
@@ -126,7 +126,7 @@ export default function HomePageClinic() {
             <button className="btn btn-primary" onClick={goTodownLoadApp}>
               Tải ứng dụng ngay
             </button>
-            <button className="btn btn-secondary-hero" onClick={goToforYou}>
+            <button className="btn btn-secondary-hero" onClick={goToMainUser}>
               Dành cho bạn
             </button>
           </div>

@@ -5,202 +5,103 @@
 }
 
 :root {
-  --primary-color: #13ECDA;
+  --primary: #13ECDA;
   --text-primary: #333;
   --text-secondary: #666;
-  --border-color: #e8e8e8;
-  --error-color: #e74c3c;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #fafafa;
+}
+
+body::-webkit-scrollbar {
+  display: none;
 }
 
 .register-container {
-  min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  background-color: #f5f5f5;
-}
-
-.register-card {
-  width: 100%;
-  max-width: 550px;
   background: white;
-  padding: 60px 50px;
-  border-radius: 8px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+  min-height: 100vh;
+  position: relative;
 }
 
-.register-header {
-  text-align: center;
-  margin-bottom: 40px;
+.login-header-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 60px;
+  background: white;
+  display: flex;
+  align-items: center;
+  padding: 0 50px;
+  z-index: 1000;
 }
 
-.register-icon {
-  font-size: 60px;
-  color: #13ECDA;
-  margin-bottom: 16px;
-  display: block;
+.logo-name-small {
+  color: #333 !important;
 }
 
-.register-title {
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
+@media print {
+  .register-container {
+    display: none;
+  }
 
-.register-form {
-  width: 100%;
-}
 
-.register-form .ant-form-item {
-  margin-bottom: 16px;
-}
-
-.register-form .ant-form-item-label > label {
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.register-form .ant-input,
-.register-form .ant-input-password input {
-  height: 42px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.register-form .ant-input::placeholder,
-.register-form .ant-input-password input::placeholder {
-  color: #bfbfbf;
-}
-
-.register-form .ant-input:hover,
-.register-form .ant-input-password input:hover {
-  border-color: var(--primary-color);
-}
-
-.register-form .ant-input-focused,
-.register-form .ant-input-password-input:focus {
-  border-color: var(--primary-color) !important;
-  box-shadow: 0 0 0 2px rgba(19, 236, 218, 0.1) !important;
-}
-
-.register-form .ant-form-item-explain-error {
-  color: var(--error-color);
-  font-size: 12px;
-}
-
-.register-form .ant-checkbox-wrapper {
-  color: var(--text-secondary);
-  font-size: 13px;
-}
-
-.register-form .ant-checkbox-inner {
-  border-radius: 4px;
-  border-color: var(--border-color);
-}
-
-.register-form .ant-checkbox-checked .ant-checkbox-inner {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.register-form .ant-checkbox-wrapper a {
-  color: var(--primary-color);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.register-form .ant-checkbox-wrapper a:hover {
-  text-decoration: underline;
-}
-
-.register-button {
-  background-color: #13ECDA !important;
-  border-color: #13ECDA !important;
-  height: 44px !important;
-  font-weight: 600;
-  font-size: 15px;
-  margin-top: 8px;
-  border-radius: 6px;
-}
-
-.register-button:hover {
-  background-color: #0dd4c5 !important;
-  border-color: #0dd4c5 !important;
-}
-
-.register-button:active {
-  background-color: #0bc5b8 !important;
-  border-color: #0bc5b8 !important;
-}
-
-.login-link {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 14px;
-  color: var(--text-secondary);
-}
-
-.login-link a {
-  color: #13ECDA;
-  text-decoration: none;
-  font-weight: 600;
-  cursor: pointer;
-  margin-left: 4px;
-  transition: color 0.3s ease;
-}
-
-.login-link a:hover {
-  color: #0dd4c5;
-  text-decoration: underline;
-}
-
-.footer-text {
-  text-align: center;
-  margin-top: 20px;
-  font-size: 13px;
-  color: #999;
-}
-
+/* Media Queries */
 @media (max-width: 768px) {
+  .register-container {
+    padding: 0;
+  }
+
   .register-card {
-    padding: 45px 30px;
+    max-width: 100%;
+    padding: 50px 40px;
   }
 
   .register-icon {
-    font-size: 50px;
+    width: 70px;
+    height: 70px;
+    font-size: 35px;
   }
 
   .register-title {
-    font-size: 24px;
+    font-size: 22px;
   }
+}
 }
 
 @media (max-width: 480px) {
+  .login-header-bar {
+    height: 56px;
+    padding: 0 16px;
+  }
+
+  .logo-name-small {
+    font-size: 14px;
+  }
+
   .register-card {
-    padding: 35px 20px;
-    border-radius: 6px;
+    padding: 40px 24px;
+    border-radius: 0;
+    box-shadow: none;
+    margin: 0;
   }
 
   .register-header {
-    margin-bottom: 30px;
+    margin-bottom: 32px;
   }
 
   .register-icon {
-    font-size: 44px;
+    width: 60px;
+    height: 60px;
+    font-size: 32px;
+    margin-bottom: 16px;
   }
 
   .register-title {
@@ -208,95 +109,58 @@ body {
   }
 
   .register-form .ant-form-item {
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
 
   .register-form .ant-input,
   .register-form .ant-input-password input {
     height: 40px;
+    font-size: 14px;
+    padding: 8px 12px;
+  }
+
+  .register-form .ant-form-item-label > label {
     font-size: 13px;
   }
 
   .register-button {
-    height: 40px !important;
-    font-size: 14px;
-  }
-}
-
-.register-card {
-  width: 100%;
-  max-width: 550px;
-  background: white;
-  padding: 60px 50px;
-  border-radius: 8px;
-  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
-}
-  
-  .register-header-bar {
-    height: 60px;
-    padding: 0 20px;
-  }
-
-  .logo-name-small {
+    height: 42px !important;
     font-size: 14px;
   }
 
-  .register-title {
-    font-size: 24px;
-  }
-
-  .register-subtitle {
-    font-size: 13px;
-  }
-
-  .form-input {
-    padding: 11px 12px;
-    font-size: 16px;
-  }
-
-  .register-button {
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  .user-icon {
-    width: 60px;
-    height: 60px;
-  }
-
-  .user-icon svg {
-    width: 40px;
-    height: 40px;
-  }
-
-
-@media (max-width: 380px) {
-  .register-card {
-    padding: 25px 15px;
-  }
-
-  .register-title {
-    font-size: 20px;
-  }
-
-  .user-icon {
-    width: 50px;
-    height: 50px;
-  }
-
-  .user-icon svg {
-    width: 30px;
-    height: 30px;
-  }
-
-  .logo-name-small {
+  .login-link {
     font-size: 12px;
+    margin-top: 16px;
+  }
+
+  .footer-text {
+    font-size: 11px;
+    margin-top: 12px;
   }
 }
 
-@media print {  
-  .register-container {
-    display: none;
+@media (max-width: 360px) {
+  .register-card {
+    padding: 32px 16px;
+  }
+
+  .register-header {
+    margin-bottom: 28px;
+  }
+
+  .register-icon {
+    width: 55px;
+    height: 55px;
+    font-size: 28px;
+  }
+
+  .register-title {
+    font-size: 18px;
+  }
+
+  .register-form .ant-input,
+  .register-form .ant-input-password input {
+    height: 38px;
+    font-size: 13px;
   }
 }
-
