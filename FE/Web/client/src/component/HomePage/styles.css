@@ -28,8 +28,6 @@ html, body {
   color: #1a1a1a;
 }
 
-
-
 .section-subtitle {
   font-size: 15px;
   text-align: center;
@@ -37,7 +35,6 @@ html, body {
   margin-bottom: 30px;
 }
 
-/* ================= HERO ================= */
 
 .hero-section {
   position: relative;
@@ -64,6 +61,7 @@ html, body {
   max-width: 900px;
   color: white;
 }
+
 
 .hero-badge {
   display: inline-flex;
@@ -111,19 +109,19 @@ html, body {
   display: flex;
   gap: 20px;
   justify-content: center;
+  align-items: center;
   flex-wrap: wrap;
 }
 
 .btn-primary {
   background: #1abc9c;
   color: white;
-  padding: 14px 32px;
+  padding: 0 32px;
+  height: 50px;
   font-size: 15px;
   font-weight: 700;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  min-width: 200px;
+  
 }
 
 .btn-primary:hover {
@@ -135,13 +133,11 @@ html, body {
 .btn-secondary-hero {
   background: white;
   color: #333;
-  padding: 14px 32px;
+  padding: 0 32px;
+  height: 50px;
   font-size: 15px;
   font-weight: 700;
-  border-radius: 10px;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  min-width: 200px;
 }
 
 .btn-secondary-hero:hover {
@@ -153,8 +149,6 @@ html, body {
 /* ================= BUTTON ================= */
 
 .btn {
-   padding: 12px 26px;
-  font-size: 14px;
   font-weight: 600;
   border-radius: 8px;
   cursor: pointer;
@@ -502,6 +496,7 @@ html, body {
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.8);
   margin-bottom: 28px;
+  text-align: left;
 }
 
 .feature-items {

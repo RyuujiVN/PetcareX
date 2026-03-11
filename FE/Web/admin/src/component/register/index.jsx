@@ -107,7 +107,6 @@ export default function Register() {
             label="Họ và tên"
             rules={[
               { required: true, message: "Vui lòng nhập họ và tên" },
-              { validator: (_, value) => validateFullName(value) },
             ]}
           >
             <Input
@@ -121,7 +120,6 @@ export default function Register() {
             label="Email"
             rules={[
               { required: true, message: "Vui lòng nhập email" },
-              { validator: (_, value) => validateEmail(value) },
             ]}
           >
             <Input
@@ -136,7 +134,6 @@ export default function Register() {
             label="Mật khẩu"
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu" },
-              { validator: (_, value) => validatePassword(value) },
             ]}
           >
             <Input.Password

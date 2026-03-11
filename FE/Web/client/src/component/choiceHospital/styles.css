@@ -2,13 +2,14 @@
 
 .clinic-header {
   max-width: 1200px;
-  margin: 40px auto 60px; /* more space below header per design */
+  margin: 40px auto 60px;
   padding: 0 20px;
-  /* stack title above the search form */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 16px;
+  padding-top: 50px;
+
 }
 
 .clinic-header h2 {
@@ -685,7 +686,7 @@ html, body {
   text-align: left;
 }
 
-.feature-description {
+.feature-descriptions {
   font-size: 14px;
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.8);

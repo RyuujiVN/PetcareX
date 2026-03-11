@@ -36,13 +36,13 @@ export default function PageMainUser() {
       <header className="dashboard-header">
         <h1>Chào mừng trở lại, Công Thành!</h1>
         <p>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
-        <button className="btn-primary" onClick={goToBooking}>
+        <button className="btn-primaryy" onClick={goToBooking}>
           Đặt lịch khám ngay
         </button>
         
       </header>
 
-      <h2 className="section-title">Thú cưng của bạn</h2>
+      <h2 className="section-titles">Thú cưng của bạn</h2>
       <section className="pet-list">
         {dummyPets.map(p => (
           <article key={p.id} className="pet-card">

@@ -12,32 +12,67 @@ import { useAuth } from '../../context/AuthContext';
 const { Title, Text, Link } = Typography;
 
 export default function Login() {
+
   const [loading, setLoading] = useState(false);
+  const [form] = Form.useForm();
   const { login } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async (values) => {
+
     try {
+
       setLoading(true);
 
-      const res = await loginApi(values.email, values.password);
+      const email = values.email.trim().toLowerCase();
+      const password = values.password;
 
-      const { accessToken, userInfo } = res.data;
+      const res = await loginApi(email, password);
 
-      if (!accessToken) throw new Error('Không tìm thấy token');
+      const data = res.data;
 
-      localStorage.setItem('userInfo', JSON.stringify(userInfo));
+      if (!data || !data.accessToken) {
+
+        form.setFields([
+          {
+            name: "password",
+            errors: [data?.message || "Email hoặc mật khẩu không đúng!"],
+          },
+        ]);
+
+        return;
+      }
+
+      const { accessToken, userInfo } = data;
+
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("userInfo", JSON.stringify(userInfo));
+
       login(accessToken);
 
-      message.success('Đăng nhập thành công!');
-      navigate('/home');
+      message.success("Đăng nhập thành công!");
+
+      navigate("/home");
 
     } catch (err) {
-      const errorMsg = err.response?.data?.message || 'Thông tin đăng nhập không đúng!';
-      message.error(errorMsg);
+
+      const errorMsg =
+        err.response?.data?.message ||
+        "Email hoặc mật khẩu không đúng!";
+
+      form.setFields([
+        {
+          name: "password",
+          errors: [errorMsg],
+        },
+      ]);
+
     } finally {
+
       setLoading(false);
+
     }
+
   };
 
   const handleGoogleLogin = () => {
@@ -61,12 +96,14 @@ export default function Login() {
         </div>
 
         <Form
+          form={form}
           name="loginForm"
           layout="vertical"
           onFinish={handleLogin}
           autoComplete="off"
           size="large"
         >
+
           <Form.Item
             label="Email"
             name="email"
@@ -75,9 +112,9 @@ export default function Login() {
               { type: 'email', message: 'Email không đúng định dạng!' }
             ]}
           >
-            <Input 
-              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />} 
-              placeholder="Nhập email của bạn" 
+            <Input
+              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              placeholder="Nhập email của bạn"
             />
           </Form.Item>
 
@@ -89,34 +126,38 @@ export default function Login() {
               </div>
             }
             name="password"
-            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu để đăng nhập!' }]}
+            rules={[
+              { required: true, message: 'Vui lòng nhập mật khẩu để đăng nhập!' },
+              { min: 6, message: 'Mật khẩu phải tối thiểu 6 ký tự!' }
+            ]}
           >
-            <Input.Password 
-              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />} 
-              placeholder="Nhập mật khẩu của bạn" 
+            <Input.Password
+              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              placeholder="Nhập mật khẩu của bạn"
             />
           </Form.Item>
 
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              block 
+            <Button
+              type="primary"
+              htmlType="submit"
+              block
               loading={loading}
               style={{ backgroundColor: '#13ECDA', color: 'white', fontWeight: 'bold', borderColor: '#13ECDA' }}
             >
               Đăng nhập
             </Button>
           </Form.Item>
+
         </Form>
 
         <Divider style={{ borderColor: '#d9d9d9' }} plain>
           Hoặc tiếp tục đăng nhập với
         </Divider>
 
-        <Button 
-          block 
-          size="large" 
+        <Button
+          block
+          size="large"
           onClick={handleGoogleLogin}
           icon={<FcGoogle />}
           style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
@@ -128,8 +169,8 @@ export default function Login() {
           <Text type="secondary">
             Chưa có tài khoản? <a style={{ color: '#13ECDA', fontWeight: 'bold' }} href="/register">Đăng ký ngay</a>
           </Text>
-
         </div>
+
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { CameraOutlined, HomeOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Form, Input, InputNumber, Select, message, Card, Avatar, Space, Spin } from 'antd';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './styles.css';
 import Header from '../../default/header';
 
@@ -9,6 +10,7 @@ export default function ProfileUser() {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [profileData, setProfileData] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchProfileData();
@@ -76,6 +78,7 @@ export default function ProfileUser() {
   const handleCancel = () => {
     fetchProfileData();
     message.info('Đã hủy thay đổi');
+    navigate(-1);
   };
 
   if (loading && !profileData) {
