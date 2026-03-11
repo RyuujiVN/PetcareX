@@ -23,7 +23,7 @@ export class MedicalRecordMedicine {
   @Column({ type: 'text', nullable: true })
   note?: string;
 
-  @Column({ type: 'int' })
+  @Column({ type: 'int', default: 0 })
   quantity: number;
 
   @Column({ type: 'int', name: 'price_at_time' })

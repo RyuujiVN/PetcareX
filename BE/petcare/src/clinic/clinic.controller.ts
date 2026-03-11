@@ -10,11 +10,14 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
+  ApiConsumes,
   ApiOperation,
   ApiQuery,
 } from '@nestjs/swagger';
@@ -23,12 +26,18 @@ import { CreateClinicWithAdminDTO } from './dtos/create-clinic-with-admin.dto';
 import { ClinicService } from './clinic.service';
 import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { FileValidationPipe } from 'src/common/pipes/file-validate.pipe';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('clinic')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 export class ClinicController {
-  constructor(private readonly clinicService: ClinicService) {}
+  constructor(
+    private readonly clinicService: ClinicService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Phân trang phòng khám' })
@@ -65,6 +74,32 @@ export class ClinicController {
   })
   createClinic(@Body() bodyDTO: CreateClinicWithAdminDTO): Promise<Clinic> {
     return this.clinicService.createClinic(bodyDTO.clinic, bodyDTO.admin);
+  }
+
+  @Post('upload')
+  @ApiOperation({ summary: 'Tải ảnh avatar thú cưng' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImage(
+    @UploadedFile(new FileValidationPipe())
+    file: Express.Multer.File,
+  ) {
+    const fileUrl = await this.cloudinaryService.uploadFile(file);
+
+    return {
+      file: fileUrl.secure_url,
+    };
   }
 
   @Put(':id')

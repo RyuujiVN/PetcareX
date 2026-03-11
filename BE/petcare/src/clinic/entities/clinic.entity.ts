@@ -26,6 +26,9 @@ export class Clinic {
   @Column()
   address: string;
 
+  @Column({ name: 'avatar_url', nullable: true })
+  avatarUrl: string;
+
   @Column({ type: 'text', nullable: true })
   description?: string;
 

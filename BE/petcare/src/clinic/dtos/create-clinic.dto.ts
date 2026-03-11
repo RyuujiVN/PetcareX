@@ -28,6 +28,11 @@ export class CreateClinicDTO {
   @ApiProperty()
   @IsString()
   @IsOptional()
+  avatarUrl: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
   description?: string;
 
   @ApiProperty()
