@@ -22,10 +22,13 @@ export class ForumComment {
   postId: string;
 
   @Column({ type: 'uuid', name: 'parent_id', nullable: true })
-  parentId?: string;
+  parentId?: string | null;
 
   @Column({ type: 'text' })
   content: string;
+
+  @Column({ type: 'int', default: 0 })
+  replyCount: number;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

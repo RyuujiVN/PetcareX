@@ -53,7 +53,7 @@ export class AuthService {
       fullName: user.fullName,
       email: user.email,
       role: user.role,
-      avatar_url: user.avatarUrl,
+      avatarUrl: user.avatarUrl,
     };
 
     if (user.role === RoleEnum.ADMIN_CLINIC) {

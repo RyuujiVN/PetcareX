@@ -24,8 +24,7 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 
 @Controller('post')
-// @ApiBearerAuth('JWT-auth')
-// @UseGuards(JwtAuthGuard)
+@ApiBearerAuth('JWT-auth')
 export class PostController {
   constructor(private readonly postService: PostService) {}
 
@@ -49,6 +48,7 @@ export class PostController {
   }
 
   @Post('')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Tạo mới bài viết' })
   @ApiBody({
     type: CreatePostDTO,
@@ -58,6 +58,7 @@ export class PostController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Chỉnh sửa bài viết' })
   @ApiBody({
     type: UpdatePostDTO,
@@ -74,6 +75,7 @@ export class PostController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Xoá bài viết' })
   async deletePostDTO(@Param('id') id: string, @Req() req) {
     await this.postService.deletePost(id, req?.user);
