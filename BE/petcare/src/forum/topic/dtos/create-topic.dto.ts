@@ -4,7 +4,7 @@ import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 export class CreateTopicDTO {
   @ApiProperty()
   @IsString()
-  @IsNotEmpty({ message: 'Tên topic không được để trống' })
+  @IsNotEmpty({ message: 'Tên chủ đề không được để trống' })
   name: string;
 
   @ApiProperty()
