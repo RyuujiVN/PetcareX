@@ -4,6 +4,8 @@ import { ForumTopic } from '../entities/forum_topic.entity';
 import { Repository } from 'typeorm';
 import { CreateTopicDTO } from './dtos/create-topic.dto';
 import { UpdateTopicDTO } from './dtos/update-topic.dto';
+import { FilterPagintion } from 'src/common/types/pagination.type';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class TopicService {
@@ -11,6 +13,23 @@ export class TopicService {
     @InjectRepository(ForumTopic)
     private readonly topicRepository: Repository<ForumTopic>,
   ) {}
+
+  findAllPagination(options: FilterPagintion): Promise<Pagination<ForumTopic>> {
+    const queryBuilder = this.topicRepository
+      .createQueryBuilder('topic')
+      .orderBy('topic.createdAt', 'DESC');
+
+    if (options.search)
+      queryBuilder.andWhere('topic.name ILIKE :name', {
+        name: `%${options.search}%`,
+      });
+
+    return paginate<ForumTopic>(queryBuilder, options);
+  }
+
+  async findAll(): Promise<ForumTopic[]> {
+    return await this.topicRepository.find({});
+  }
 
   async createTopic(createDTO: CreateTopicDTO): Promise<ForumTopic> {
     return await this.topicRepository.save(createDTO);
