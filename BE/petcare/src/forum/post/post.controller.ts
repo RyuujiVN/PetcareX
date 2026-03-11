@@ -30,7 +30,7 @@ export class PostController {
 
   @Get('')
   @ApiOperation({ summary: 'Lấy danh sách bài viết' })
-  @ApiQuery({ name: 'limit', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 20 })
   @ApiQuery({
     name: 'lastPostTime',
     required: false,
@@ -38,7 +38,7 @@ export class PostController {
     description: 'Phân trang dựa vào thời gian bài viết cuối',
   })
   getAllPost(
-    @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('lastPostTime') lastPostTime: Date,
   ) {
     return this.postService.findAllPagination({

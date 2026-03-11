@@ -1,10 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ForumComment } from '../entities/forum_comment.entity';
 import { DataSource, Repository } from 'typeorm';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
 import { User } from 'src/user/entities/user.entity';
 import { ForumPost } from '../entities/forum_post.entity';
+import { UpdateCommentDTO } from './dtos/update-comment.dto';
 
 @Injectable()
 export class CommentService {
@@ -48,5 +53,17 @@ export class CommentService {
         },
       };
     });
+  }
+
+  async updateComment(updateDTO: UpdateCommentDTO, id: string, user: User) {
+    const comment = await this.commentRepository.findOne({ where: { id: id } });
+
+    if (!comment) throw new NotFoundException('Không tìm thấy bình luận');
+
+    if (comment.userId !== user.id)
+      throw new ForbiddenException('Không có quyền chỉnh sửa bình luận này');
+
+    Object.assign(comment, updateDTO);
+    await this.commentRepository.save(comment);
   }
 }
