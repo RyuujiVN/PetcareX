@@ -30,4 +30,11 @@ export class PostService {
     Object.assign(post, updateDTO);
     await this.postRepository.save(post);
   }
+
+  async deletePost(id: string) {
+    const result = await this.postRepository.delete({ id: id });
+
+    if (result.affected === 0)
+      throw new NotFoundException('Không tìm thấy bài viết');
+  }
 }

@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Post,
   Put,
@@ -41,6 +42,16 @@ export class PostController {
 
     return {
       message: 'Cập nhật bài viết thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Xoá bài viết' })
+  async deletePostDTO(@Param('id') id: string) {
+    await this.postService.deletePost(id);
+
+    return {
+      message: 'Xoá bài viết thành công',
     };
   }
 }
