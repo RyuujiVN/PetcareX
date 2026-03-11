@@ -19,6 +19,7 @@ class BookingProvider extends ChangeNotifier {
   List<Veterinarian> _doctors = [];
   
   bool _isLoading = false;
+  bool _isDoctorsLoading = false;
   String? _errorMessage;
   bool _isSuccess = false;
   Map<String, dynamic>? _appointmentResult;
@@ -35,6 +36,7 @@ class BookingProvider extends ChangeNotifier {
   List<Clinic> get clinics => _clinics;
   List<Veterinarian> get doctors => _doctors;
   bool get isLoading => _isLoading;
+  bool get isDoctorsLoading => _isDoctorsLoading;
   String? get errorMessage => _errorMessage;
   bool get isSuccess => _isSuccess;
   Map<String, dynamic>? get appointmentResult => _appointmentResult;
@@ -79,6 +81,14 @@ class BookingProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Sets date only if not already selected, without clearing the selected time
+  void setDefaultDate(DateTime date) {
+    if (_selectedDate == null) {
+      _selectedDate = date;
+      notifyListeners();
+    }
+  }
+
   // Fetching data
   Future<void> fetchClinics() async {
     _isLoading = true;
@@ -97,7 +107,7 @@ class BookingProvider extends ChangeNotifier {
   }
 
   Future<void> fetchDoctors(String clinicId) async {
-    _isLoading = true;
+    _isDoctorsLoading = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -106,7 +116,7 @@ class BookingProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      _isLoading = false;
+      _isDoctorsLoading = false;
       notifyListeners();
     }
   }
@@ -156,6 +166,7 @@ class BookingProvider extends ChangeNotifier {
     _selectedTime = null;
     _symptomsNote = null;
     _isSuccess = false;
+    _isDoctorsLoading = false;
     _appointmentResult = null;
     notifyListeners();
   }

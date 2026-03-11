@@ -23,21 +23,17 @@ class StepServiceSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: List.generate(
-                services.length,
-                (i) => _listTile(
-                  services[i],
-                  services[i],
-                  'Dịch vụ chăm sóc chất lượng cao',
-                  selectedServiceName,
-                  onSelected,
-                  Icons.medical_information_outlined,
-                ),
-              ),
-            ),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: services.length,
+          itemBuilder: (context, i) => _listTile(
+            services[i],
+            services[i],
+            'Dịch vụ chăm sóc chất lượng cao',
+            selectedServiceName,
+            onSelected,
+            Icons.medical_information_outlined,
           ),
         ),
         const SizedBox(height: 16),

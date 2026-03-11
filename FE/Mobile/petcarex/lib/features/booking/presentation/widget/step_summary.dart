@@ -67,12 +67,23 @@ class StepSummary extends StatelessWidget {
   Widget _row(IconData i, String t, String v) => Padding(
     padding: const EdgeInsets.only(bottom: 20),
     child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(i, color: AppColors.primary, size: 22),
         const SizedBox(width: 12),
-        Text(t, style: const TextStyle(color: Colors.black54, fontSize: 13)),
-        const Spacer(),
-        Text(v, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Expanded(
+          flex: 4,
+          child: Text(t, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          flex: 6,
+          child: Text(
+            v,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            textAlign: TextAlign.right,
+          ),
+        ),
       ],
     ),
   );

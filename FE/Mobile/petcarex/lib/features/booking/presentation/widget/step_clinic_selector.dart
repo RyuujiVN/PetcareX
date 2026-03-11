@@ -17,17 +17,17 @@ class StepClinicSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: List.generate(
-        clinics.length,
-        (i) => _listTile(
-          clinics[i],
-          clinics[i].name,
-          clinics[i].address,
-          selectedClinicId,
-          onSelected,
-          Icons.medical_services_outlined,
-        ),
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: clinics.length,
+      itemBuilder: (context, i) => _listTile(
+        clinics[i],
+        clinics[i].name,
+        clinics[i].address,
+        selectedClinicId,
+        onSelected,
+        Icons.medical_services_outlined,
       ),
     );
   }
@@ -80,7 +80,12 @@ class StepClinicSelector extends StatelessWidget {
                 ],
               ),
             ),
-            if (isSel) const Icon(Icons.check_circle, color: AppColors.primary),
+            SizedBox(
+              width: 24,
+              child: isSel
+                  ? const Icon(Icons.check_circle, color: AppColors.primary, size: 24)
+                  : null,
+            ),
           ],
         ),
       ),

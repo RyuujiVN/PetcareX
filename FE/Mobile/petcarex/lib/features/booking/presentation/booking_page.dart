@@ -81,9 +81,9 @@ class _BookingPageState extends State<BookingPage> {
       return;
     }
     if (_currentStep == 4) {
+      // Default to today if user never tapped a date (first date is already highlighted)
       if (bookingProvider.selectedDate == null) {
-        _showError('Vui lòng chọn ngày khám');
-        return;
+        bookingProvider.setDefaultDate(_availableDates[0]);
       }
       if (bookingProvider.selectedTime == null) {
         _showError('Vui lòng chọn thời gian khám');
@@ -122,17 +122,12 @@ class _BookingPageState extends State<BookingPage> {
     } else {
       if (Navigator.canPop(context)) {
         Navigator.pop(context);
-      } else {
-        // Nếu không pop được (đang ở tab), có thể không làm gì hoặc thông báo
-        // Hiện tại khi ở Tab thì nút back vẫn hiển thị do leading: isSuccess ? const SizedBox() : ...
-        // Chúng ta nên ẩn nút back nếu không thể pop và đang ở step 0
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bookingProvider = context.watch<BookingProvider>();
     final isSuccess = _currentStep == 6;
 
     return PopScope(
@@ -175,7 +170,7 @@ class _BookingPageState extends State<BookingPage> {
               },
             ),
             Expanded(
-              child: _buildBodyContent(),
+              child: _buildMainContent(),
             ),
           ],
         ),
@@ -184,7 +179,7 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _buildBodyContent() {
+  Widget _buildMainContent() {
     final bookingProvider = context.watch<BookingProvider>();
     final petProvider = context.watch<PetProvider>();
 
@@ -198,7 +193,8 @@ class _BookingPageState extends State<BookingPage> {
           serviceName: res?['service'] ?? '',
           doctorName: res?['veterinarian']?['user']?['fullName'] ?? '',
           time: (res?['appointmentTime'] ?? '').toString().substring(0, 5),
-          date: DateTime.tryParse(res?['appointmentDate'] ?? '') ?? DateTime.now(),
+          date:
+              DateTime.tryParse(res?['appointmentDate'] ?? '') ?? DateTime.now(),
         ),
       );
     }
@@ -207,7 +203,7 @@ class _BookingPageState extends State<BookingPage> {
       final pet = petProvider.myPets.any((p) => p.id == bookingProvider.selectedPetId)
           ? petProvider.myPets.firstWhere((p) => p.id == bookingProvider.selectedPetId)
           : null;
-          
+
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSummary(
@@ -221,45 +217,92 @@ class _BookingPageState extends State<BookingPage> {
       );
     }
 
-    if (_currentStep == 2) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-            child: _buildStepHeader(),
-          ),
-          const SizedBox(height: 10),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _buildStepContent(),
-            ),
-          ),
-        ],
-      );
-    }
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: _buildStepHeader(),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: _buildStepContent(),
-          ),
-          const SizedBox(height: 20),
-        ],
-      ),
+    return CustomScrollView(
+      key: ValueKey(_currentStep),
+      slivers: [
+        _buildStepHeaderSliver(),
+        _buildStepContentSliver(),
+        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+      ],
     );
   }
 
-  Widget _buildStepHeader() {
+  Widget _buildStepContentSliver() {
+    final bookingProvider = context.watch<BookingProvider>();
+    final petProvider = context.watch<PetProvider>();
+
+    Widget content;
+    switch (_currentStep) {
+      case 0:
+        if (petProvider.isLoading) {
+          content = const Center(child: CircularProgressIndicator());
+        } else {
+          content = StepPetSelector(
+            selectedPetId: bookingProvider.selectedPetId,
+            onSelected: (pet) => bookingProvider.selectPet(pet.id),
+            pets: petProvider.myPets,
+          );
+        }
+        break;
+      case 1:
+        if (bookingProvider.isLoading && bookingProvider.clinics.isEmpty) {
+          return const SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        content = StepClinicSelector(
+          selectedClinicId: bookingProvider.selectedClinic?.id,
+          onSelected: (clinic) => bookingProvider.selectClinic(clinic),
+          clinics: bookingProvider.clinics,
+        );
+        break;
+      case 2:
+        content = StepServiceSelector(
+          selectedServiceName: bookingProvider.selectedServiceName,
+          onSelected: (s) => bookingProvider.selectService(s),
+          services: _services,
+          onSymptomsChanged: (v) => bookingProvider.setSymptomsNote(v),
+          symptoms: bookingProvider.symptomsNote,
+        );
+        break;
+      case 3:
+        if (bookingProvider.isDoctorsLoading) {
+          return const SliverFillRemaining(
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        content = StepDoctorSelector(
+          selectedDoctorId: bookingProvider.selectedDoctor?.userId,
+          onSelected: (doc) => bookingProvider.selectDoctor(doc),
+          doctors: bookingProvider.doctors,
+        );
+        break;
+      case 4:
+        int dateIdx = bookingProvider.selectedDate != null
+            ? _availableDates
+                .indexWhere((d) => d.day == bookingProvider.selectedDate!.day)
+            : 0;
+        if (dateIdx == -1) dateIdx = 0;
+
+        content = StepTimeSelector(
+          selectedDateIndex: dateIdx,
+          onDateSelected: (i) => bookingProvider.selectDate(_availableDates[i]),
+          selectedTime: bookingProvider.selectedTime,
+          onTimeSelected: (t) => bookingProvider.selectTime(t),
+          availableDates: _availableDates,
+        );
+        break;
+      default:
+        content = const SizedBox.shrink();
+    }
+
+    return SliverPadding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      sliver: SliverToBoxAdapter(child: content),
+    );
+  }
+
+  Widget _buildStepHeaderSliver() {
     final titles = [
       'Chọn thú cưng của bạn',
       'Chọn phòng khám cho thú cưng',
@@ -274,74 +317,26 @@ class _BookingPageState extends State<BookingPage> {
       'Chọn bác sĩ chuyên khoa phù hợp nhé',
       'Lựa chọn ngày và thời gian khám cho thú cưng của bạn',
     ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          titles[_currentStep],
-          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      sliver: SliverToBoxAdapter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              titles[_currentStep],
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subs[_currentStep],
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+            ),
+          ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          subs[_currentStep],
-          style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
-        ),
-      ],
+      ),
     );
-  }
-
-  Widget _buildStepContent() {
-    final bookingProvider = context.watch<BookingProvider>();
-    final petProvider = context.watch<PetProvider>();
-
-    if (bookingProvider.isLoading && _currentStep != 5 && _currentStep != 6) {
-       return const SizedBox(height: 200, child: Center(child: CircularProgressIndicator()));
-    }
-
-    switch (_currentStep) {
-      case 0:
-        if (petProvider.isLoading) return const Center(child: CircularProgressIndicator());
-        return StepPetSelector(
-          selectedPetId: bookingProvider.selectedPetId,
-          onSelected: (pet) => bookingProvider.selectPet(pet.id),
-          pets: petProvider.myPets,
-        );
-      case 1:
-        return StepClinicSelector(
-          selectedClinicId: bookingProvider.selectedClinic?.id,
-          onSelected: (clinic) => bookingProvider.selectClinic(clinic),
-          clinics: bookingProvider.clinics,
-        );
-      case 2:
-        return StepServiceSelector(
-          selectedServiceName: bookingProvider.selectedServiceName,
-          onSelected: (s) => bookingProvider.selectService(s),
-          services: _services,
-          onSymptomsChanged: (v) => bookingProvider.setSymptomsNote(v),
-          symptoms: bookingProvider.symptomsNote,
-        );
-      case 3:
-        return StepDoctorSelector(
-          selectedDoctorId: bookingProvider.selectedDoctor?.userId,
-          onSelected: (doc) => bookingProvider.selectDoctor(doc),
-          doctors: bookingProvider.doctors,
-        );
-      case 4:
-        int dateIdx = bookingProvider.selectedDate != null
-            ? _availableDates.indexWhere((d) => d.day == bookingProvider.selectedDate!.day)
-            : 0;
-        if (dateIdx == -1) dateIdx = 0;
-        
-        return StepTimeSelector(
-          selectedDateIndex: dateIdx,
-          onDateSelected: (i) => bookingProvider.selectDate(_availableDates[i]),
-          selectedTime: bookingProvider.selectedTime,
-          onTimeSelected: (t) => bookingProvider.selectTime(t),
-          availableDates: _availableDates,
-        );
-      default:
-        return const SizedBox.shrink();
-    }
   }
 
   Widget _buildBottomSection() {
@@ -378,26 +373,32 @@ class _BookingPageState extends State<BookingPage> {
                 : BorderSide.none,
             elevation: 0,
           ),
-          child: bookingProvider.isLoading 
-            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    isSuccess
-                        ? 'Thoát'
-                        : (_currentStep == 5 ? 'Xác nhận đặt lịch' : 'Tiếp tục'),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+          child: bookingProvider.isLoading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                      color: Colors.white, strokeWidth: 2))
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      isSuccess
+                          ? 'Thoát'
+                          : (_currentStep == 5
+                              ? 'Xác nhận đặt lịch'
+                              : 'Tiếp tục'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  if (!isSuccess && _currentStep < 5) ...[
-                    const SizedBox(width: 8),
-                    const Icon(Icons.arrow_forward, size: 20),
-                  ]
-                ],
-              ),
+                    if (!isSuccess && _currentStep < 5) ...[
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward, size: 20),
+                    ]
+                  ],
+                ),
         ),
       ),
     );
