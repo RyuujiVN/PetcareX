@@ -47,8 +47,8 @@ export class PostController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Xoá bài viết' })
-  async deletePostDTO(@Param('id') id: string) {
-    await this.postService.deletePost(id);
+  async deletePostDTO(@Param('id') id: string, @Req() req) {
+    await this.postService.deletePost(id, req?.user);
 
     return {
       message: 'Xoá bài viết thành công',

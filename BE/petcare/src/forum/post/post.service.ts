@@ -1,9 +1,15 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreatePostDTO } from './dtos/create-post.dto';
 import { ForumPost } from '../entities/forum_post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UpdatePostDTO } from './dtos/update-post.dto';
+import { User } from 'src/user/entities/user.entity';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class PostService {
@@ -31,10 +37,13 @@ export class PostService {
     await this.postRepository.save(post);
   }
 
-  async deletePost(id: string) {
-    const result = await this.postRepository.delete({ id: id });
+  async deletePost(id: string, user: User) {
+    const post = await this.postRepository.findOne({ where: { id: id } });
 
-    if (result.affected === 0)
-      throw new NotFoundException('Không tìm thấy bài viết');
+    if (!post) throw new NotFoundException('Không tìm thấy bài viết');
+
+    if (post.authorId === user.id || user.role === RoleEnum.ADMIN)
+      await this.postRepository.delete({ id: id });
+    else throw new ForbiddenException('Bạn không có quyền xoá bài viết này');
   }
 }
