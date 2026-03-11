@@ -1,6 +1,7 @@
-import { FilterPagintion } from 'src/common/types/pagination.type';
+import { FilterPagination } from "src/common/types/pagination.type";
 
-export type MedicalRecordPagination = FilterPagintion & {
+
+export type MedicalRecordPagination = FilterPagination & {
   clinicId?: string;
   petId?: string;
 };

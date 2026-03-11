@@ -10,8 +10,8 @@ import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
 import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
-import { FilterPagintion } from 'src/common/types/pagination.type';
 import { paginate } from 'nestjs-typeorm-paginate';
+import { FilterPagination } from 'src/common/types/pagination.type';
 
 @Injectable()
 export class AppointmentService {
@@ -56,7 +56,7 @@ export class AppointmentService {
   }
 
   // Danh sách lịch hẹn của người dùng
-  async findAllMyAppointments(options: FilterPagintion, userId: string) {
+  async findAllMyAppointments(options: FilterPagination, userId: string) {
     const queryBuilder = this.appointmentRepository
       .createQueryBuilder('appointment')
       .innerJoin('appointment.pet', 'pet')

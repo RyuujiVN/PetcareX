@@ -12,8 +12,8 @@ import { AdminClinic } from './entities/admin-clinic.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { UpdateUserDTO } from './dtos/update-user.dto';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
-import { FilterPagintion } from 'src/common/types/pagination.type';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { FilterPagination } from 'src/common/types/pagination.type';
 
 @Injectable()
 export class UserService {
@@ -57,7 +57,7 @@ export class UserService {
 
   // Phân trang user
   async findAllUserPagination(
-    options: FilterPagintion,
+    options: FilterPagination,
   ): Promise<Pagination<User>> {
     const queryBuilder = this.userRepository
       .createQueryBuilder('user')

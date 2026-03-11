@@ -9,7 +9,7 @@ import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { RoleEnum } from 'src/common/enums/role.enum';
-import { FilterPagintion } from 'src/common/types/pagination.type';
+import { FilterPagination } from 'src/common/types/pagination.type';
 
 @Injectable()
 export class ClinicService {
@@ -22,7 +22,7 @@ export class ClinicService {
 
   // Phân trang phòng khám
   async findAllPagination(
-    options: FilterPagintion,
+    options: FilterPagination,
   ): Promise<Pagination<Clinic>> {
     const queryBuilder = this.clinicRepository
       .createQueryBuilder('clinic')

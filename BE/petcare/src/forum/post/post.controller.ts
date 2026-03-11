@@ -1,24 +1,52 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
+  Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { CreatePostDTO } from './dtos/create-post.dto';
 import { PostService } from './post.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 
 @Controller('post')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth('JWT-auth')
+// @UseGuards(JwtAuthGuard)
 export class PostController {
   constructor(private readonly postService: PostService) {}
+
+  @Get('')
+  @ApiOperation({ summary: 'Lấy danh sách bài viết' })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 1 })
+  @ApiQuery({
+    name: 'lastPostTime',
+    required: false,
+    type: Date,
+    description: 'Phân trang dựa vào thời gian bài viết cuối',
+  })
+  getAllPost(
+    @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
+    @Query('lastPostTime') lastPostTime: Date,
+  ) {
+    return this.postService.findAllPagination({
+      limit,
+      lastPostTime,
+    });
+  }
 
   @Post('')
   @ApiOperation({ summary: 'Tạo mới bài viết' })

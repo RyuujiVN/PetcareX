@@ -10,6 +10,7 @@ import { Repository } from 'typeorm';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { PostPagination } from './types/post-pagination.type';
 
 @Injectable()
 export class PostService {
@@ -17,6 +18,34 @@ export class PostService {
     @InjectRepository(ForumPost)
     private readonly postRepository: Repository<ForumPost>,
   ) {}
+
+  async findAllPagination(options: PostPagination): Promise<ForumPost[]> {
+    const queryBuilder = this.postRepository
+      .createQueryBuilder('post')
+      .leftJoin('post.author', 'author')
+      .leftJoin('post.topic', 'topic')
+      .select([
+        'post.id',
+        'post.content',
+        'post.commentCount',
+        'post.likeCount',
+        'post.createdAt',
+        'author.id',
+        'author.fullName',
+        'author.avatarUrl',
+        'topic.id',
+        'topic.name',
+      ])
+      .limit(options.limit)
+      .orderBy('post.createdAt', 'DESC');
+
+    if (options.lastPostTime)
+      queryBuilder.andWhere('post.createdAt < :time', {
+        time: new Date(options.lastPostTime),
+      });
+
+    return await queryBuilder.getMany();
+  }
 
   async createPost(
     createDTO: CreatePostDTO,

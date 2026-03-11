@@ -1,6 +1,7 @@
-import { FilterPagintion } from 'src/common/types/pagination.type';
+import { FilterPagination } from "src/common/types/pagination.type";
 
-export type VetFilterPagination = FilterPagintion & {
+
+export type VetFilterPagination = FilterPagination & {
   clinicId: string;
   specialty?: string;
 };
