@@ -12,6 +12,8 @@ import {
 import { AdminClinic } from './admin-clinic.entity';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import { Pet } from 'src/pet/entities/pet.entity';
+import { ForumComment } from 'src/forum/entities/forum_comment.entity';
+import { ForumPost } from 'src/forum/entities/forum_post.entity';
 
 @Entity('user')
 export class User {
@@ -60,4 +62,10 @@ export class User {
 
   @OneToMany(() => Pet, (pet) => pet.owner)
   pets: Pet[];
+
+  @OneToMany(() => ForumComment, (comment) => comment.user)
+  comments: ForumComment[];
+
+  @OneToMany(() => ForumPost, (post) => post.author)
+  posts: ForumPost[];
 }

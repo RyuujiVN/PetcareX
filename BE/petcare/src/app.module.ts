@@ -18,6 +18,7 @@ import { AppointmentModule } from './appointment/appointment.module';
 import { MedicalModule } from './medical/medical.module';
 import { MedicalOrderModule } from './medical-order/medical-order.module';
 import { MedicineModule } from './medicine/medicine.module';
+import { ForumModule } from './forum/forum.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { MedicineModule } from './medicine/medicine.module';
     MedicalModule,
     MedicalOrderModule,
     MedicineModule,
+    ForumModule,
   ],
   controllers: [AppController],
   providers: [
