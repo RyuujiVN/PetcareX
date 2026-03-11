@@ -53,9 +53,9 @@ export default function Login() {
         </div>
       </div>
 
-      <div className="login-card" style={{ padding: '40px 25px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
+      <div className="login-card" style={{ padding: '40px 30px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <UserOutlined style={{ fontSize: '48px', color: '#13ECDA' }} />
+          <LockOutlined style={{ fontSize: '48px', color: '#13ECDA' }} />
           <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng nhập</Title>
           <Text type="secondary">Chào mừng bạn đến với cộng đồng PetcareX</Text>
         </div>
@@ -76,7 +76,7 @@ export default function Login() {
             ]}
           >
             <Input 
-              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />} 
+              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />} 
               placeholder="Nhập email của bạn" 
             />
           </Form.Item>
