@@ -1,14 +1,13 @@
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/camera_service.dart';
-import '../../../core/utils/image_helper.dart';
 import '../data/models/pet_models.dart';
 import 'provider/pet_provider.dart';
+import 'widgets/pet_form_fields.dart';
 
 class EditPetPage extends StatefulWidget {
   final Pet pet;
@@ -51,7 +50,7 @@ class _EditPetPageState extends State<EditPetPage> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<PetProvider>();
-      provider.setPetAvatarUrl(widget.pet.avatar); // Set for display
+      provider.setPetAvatarUrl(widget.pet.avatar);
       provider.fetchSpecies();
       
       if (_selectedSpeciesId != null) {
@@ -103,6 +102,7 @@ class _EditPetPageState extends State<EditPetPage> {
 
   Future<void> _pickImage() async {
     final File? image = await _cameraService.pickImageFromGallery();
+    if (!mounted) return; // Bug fix: added mounted check after async gap
     if (image != null) {
       setState(() {
         _selectedImage = image;
@@ -139,31 +139,6 @@ class _EditPetPageState extends State<EditPetPage> {
     }
   }
 
-  Future<void> _selectDate() async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime.tryParse(birthdateController.text) ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && mounted) {
-      setState(() {
-        birthdateController.text =
-            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-      });
-    }
-  }
-
   Future<void> _savePetInfo() async {
     if (_isUploadingAvatar) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -180,7 +155,7 @@ class _EditPetPageState extends State<EditPetPage> {
         return;
       }
 
-      final petDto = UpdatePetDto(
+      final petDto = PetFormDto(
         name: petNameController.text.trim(),
         gender: _selectedGender == 'male',
         dateOfBirth: birthdateController.text,
@@ -206,6 +181,25 @@ class _EditPetPageState extends State<EditPetPage> {
     }
   }
 
+  Future<void> _deletePet() async {
+    final confirmed = await showDeletePetDialog(context, widget.pet.name);
+    if (!confirmed || !mounted) return;
+
+    final success = await context.read<PetProvider>().deletePet(widget.pet.id);
+
+    if (success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã xóa thú cưng thành công!')),
+      );
+      Navigator.pop(context, true);
+    } else if (mounted) {
+      final error = context.read<PetProvider>().errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error ?? 'Xóa thất bại. Vui lòng thử lại!')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,14 +212,19 @@ class _EditPetPageState extends State<EditPetPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
+          onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            tooltip: 'Xóa thú cưng',
+            onPressed: _deletePet,
+          ),
+        ],
       ),
       body: Consumer<PetProvider>(
         builder: (context, petProvider, child) {
-          if (petProvider.isLoading && petProvider.speciesList.isEmpty) {
+          if (petProvider.isLoadingSpecies && petProvider.speciesList.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
 
@@ -236,8 +235,17 @@ class _EditPetPageState extends State<EditPetPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _buildAvatarSection(petProvider),
+                  // Avatar
+                  PetAvatarPicker(
+                    selectedImage: _selectedImage,
+                    avatarUrl: _uploadedAvatarUrl ?? petProvider.petAvatarUrl,
+                    isUploading: _isUploadingAvatar,
+                    onPickImage: _pickImage,
+                    compactStyle: true,
+                  ),
                   const SizedBox(height: 12),
+
+                  // Pet info header
                   Text(
                     widget.pet.name,
                     style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
@@ -276,21 +284,48 @@ class _EditPetPageState extends State<EditPetPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
+                  // Pet Name
                   _buildPetNameField(),
                   const SizedBox(height: 16),
-                  _buildSpeciesField(petProvider),
+
+                  // Species & Breed (vertical layout for edit page)
+                  PetSpeciesBreedFields(
+                    selectedSpeciesId: _selectedSpeciesId,
+                    selectedBreedId: _selectedBreedId,
+                    speciesList: petProvider.speciesList,
+                    breedList: petProvider.breedList,
+                    onSpeciesChanged: (value) {
+                      setState(() {
+                        _selectedSpeciesId = value;
+                        _selectedBreedId = null;
+                      });
+                      if (value != null) {
+                        petProvider.fetchBreeds(value);
+                      }
+                    },
+                    onBreedChanged: (value) => setState(() => _selectedBreedId = value),
+                    vertical: true,
+                  ),
                   const SizedBox(height: 16),
-                  _buildBreedField(petProvider),
-                  const SizedBox(height: 16),
+
+                  // Gender & Birthdate Row
                   _buildGenderAndBirthdateRow(),
                   const SizedBox(height: 16),
+
+                  // Weight
                   _buildWeightField(),
                   const SizedBox(height: 16),
+
+                  // Fur Color / Notes
                   _buildFurColorField(),
                   const SizedBox(height: 16),
+
+                  // Owner
                   _buildOwnerField(),
                   const SizedBox(height: 32),
+
+                  // Action Buttons
                   _buildActionButtons(petProvider),
                 ],
               ),
@@ -298,67 +333,6 @@ class _EditPetPageState extends State<EditPetPage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildAvatarSection(PetProvider provider) {
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.grey[200],
-            border: Border.all(color: AppColors.primary, width: 3),
-          ),
-          child: ClipOval(
-            child: _selectedImage != null
-                ? Image.file(_selectedImage!, fit: BoxFit.cover, width: 100, height: 100)
-                : (provider.petAvatarUrl != null && provider.petAvatarUrl!.startsWith('http'))
-                    ? CachedNetworkImage(
-                        imageUrl: ImageHelper.getThumbnailUrl(provider.petAvatarUrl!, width: 300, height: 300),
-                        fit: BoxFit.cover,
-                        width: 100,
-                        height: 100,
-                        errorWidget: (context, url, error) =>
-                            Icon(Icons.broken_image, color: Colors.grey[400], size: 40),
-                        placeholder: (context, url) {
-                          return const Center(child: CircularProgressIndicator());
-                        },
-                      )
-                    : Icon(Icons.pets, color: Colors.grey[400], size: 40),
-          ),
-        ),
-        if (_isUploadingAvatar)
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.4),
-              ),
-              child: const Center(
-                child: CircularProgressIndicator(color: Colors.white),
-              ),
-            ),
-          ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: _isUploadingAvatar ? null : _pickImage,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -370,72 +344,10 @@ class _EditPetPageState extends State<EditPetPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: petNameController,
-          decoration: _inputDecoration('Tên thú cưng'),
+          decoration: petInputDecoration('Tên thú cưng'),
           validator: (value) {
             if (value == null || value.isEmpty) return 'Vui lòng nhập tên thú cưng';
             return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSpeciesField(PetProvider provider) {
-    // Kiểm tra xem _selectedSpeciesId có tồn tại trong danh sách items không
-    final bool hasSpeciesValue = provider.speciesList.any((s) => s.id == _selectedSpeciesId);
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Loài', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: hasSpeciesValue ? _selectedSpeciesId : null,
-          hint: const Text('Chọn loài', style: TextStyle(fontSize: 14)),
-          decoration: _inputDecoration(''),
-          items: provider.speciesList.map((species) {
-            return DropdownMenuItem(
-              value: species.id,
-              child: Text(species.name),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedSpeciesId = value;
-              _selectedBreedId = null; // Reset breed khi đổi loài
-            });
-            if (value != null) {
-              provider.fetchBreeds(value);
-            }
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBreedField(PetProvider provider) {
-    // Kiểm tra xem _selectedBreedId có tồn tại trong danh sách items không
-    final bool hasBreedValue = provider.breedList.any((b) => b.id == _selectedBreedId);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Giống', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          value: hasBreedValue ? _selectedBreedId : null,
-          hint: const Text('Chọn giống', style: TextStyle(fontSize: 14)),
-          decoration: _inputDecoration(''),
-          items: provider.breedList.map((breed) {
-            return DropdownMenuItem(
-              value: breed.id,
-              child: Text(breed.name),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() {
-              _selectedBreedId = value;
-            });
           },
         ),
       ],
@@ -471,7 +383,14 @@ class _EditPetPageState extends State<EditPetPage> {
               const Text('Ngày sinh / Tuổi', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
               GestureDetector(
-                onTap: _selectDate,
+                onTap: () async {
+                  await pickPetBirthdate(
+                    context,
+                    birthdateController,
+                    initialDate: DateTime.tryParse(birthdateController.text),
+                  );
+                  if (mounted) setState(() {});
+                },
                 child: Container(
                   height: 48,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -530,7 +449,7 @@ class _EditPetPageState extends State<EditPetPage> {
         TextFormField(
           controller: weightController,
           keyboardType: TextInputType.number,
-          decoration: _inputDecoration('Cân nặng (kg)'),
+          decoration: petInputDecoration('Cân nặng (kg)'),
           validator: (value) {
             if (value == null || value.isEmpty) return 'Vui lòng nhập cân nặng';
             return null;
@@ -548,7 +467,7 @@ class _EditPetPageState extends State<EditPetPage> {
         const SizedBox(height: 8),
         TextFormField(
           controller: noteController,
-          decoration: _inputDecoration('Màu lông / Đặc điểm nhận dạng'),
+          decoration: petInputDecoration('Màu lông / Đặc điểm nhận dạng'),
         ),
       ],
     );
@@ -561,9 +480,9 @@ class _EditPetPageState extends State<EditPetPage> {
         const Text('Tên chủ thú cưng', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextFormField(
-          readOnly: true, // Only for display or not updated in put user because backend doesn't take it
-          initialValue: 'Me', // We don't have the owner name in the Pet object, just ownerId. We could get it from profile or leave as "Tôi"
-          decoration: _inputDecoration('Tên chủ thú cưng').copyWith(
+          readOnly: true,
+          initialValue: 'Me',
+          decoration: petInputDecoration('Tên chủ thú cưng').copyWith(
             fillColor: Colors.grey[100],
           ),
         ),
@@ -572,7 +491,7 @@ class _EditPetPageState extends State<EditPetPage> {
   }
 
   Widget _buildActionButtons(PetProvider provider) {
-    final bool isSaveDisabled = provider.isLoading || _isUploadingAvatar;
+    final bool isSaveDisabled = provider.isSubmitting || _isUploadingAvatar;
     return Row(
       children: [
         Expanded(
@@ -613,22 +532,6 @@ class _EditPetPageState extends State<EditPetPage> {
           ),
         ),
       ],
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
-      enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
-      focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
     );
   }
 }

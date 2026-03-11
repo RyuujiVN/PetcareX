@@ -15,8 +15,19 @@ class PetProvider extends ChangeNotifier {
   List<PetBreed> _breedList = [];
   List<PetBreed> get breedList => _breedList;
 
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+  // Separated loading states to avoid race conditions
+  bool _isLoadingPets = false;
+  bool get isLoadingPets => _isLoadingPets;
+
+  bool _isLoadingSpecies = false;
+  bool get isLoadingSpecies => _isLoadingSpecies;
+
+  bool _isSubmitting = false;
+  bool get isSubmitting => _isSubmitting;
+
+  /// Legacy getter: returns true if any mutation is in progress.
+  /// Used by pages that only need to know "is something happening?"
+  bool get isLoading => _isLoadingPets || _isLoadingSpecies || _isSubmitting;
 
   String? _errorMessage;
   String? get errorMessage => _errorMessage;
@@ -25,7 +36,7 @@ class PetProvider extends ChangeNotifier {
   String? get petAvatarUrl => _petAvatarUrl;
 
   Future<void> fetchMyPets() async {
-    _isLoading = true;
+    _isLoadingPets = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -34,13 +45,13 @@ class PetProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      _isLoading = false;
+      _isLoadingPets = false;
       notifyListeners();
     }
   }
 
   Future<void> fetchSpecies() async {
-    _isLoading = true;
+    _isLoadingSpecies = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -49,13 +60,13 @@ class PetProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      _isLoading = false;
+      _isLoadingSpecies = false;
       notifyListeners();
     }
   }
 
   Future<void> fetchBreeds(String speciesId) async {
-    _isLoading = true;
+    _isLoadingSpecies = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -64,7 +75,7 @@ class PetProvider extends ChangeNotifier {
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
-      _isLoading = false;
+      _isLoadingSpecies = false;
       notifyListeners();
     }
   }
@@ -92,8 +103,8 @@ class PetProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> createPet(CreatePetDto petDto) async {
-    _isLoading = true;
+  Future<bool> createPet(PetFormDto petDto) async {
+    _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -107,13 +118,13 @@ class PetProvider extends ChangeNotifier {
       _errorMessage = e.toString();
       return false;
     } finally {
-      _isLoading = false;
+      _isSubmitting = false;
       notifyListeners();
     }
   }
 
-  Future<bool> updatePet(String id, UpdatePetDto petDto) async {
-    _isLoading = true;
+  Future<bool> updatePet(String id, PetFormDto petDto) async {
+    _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();
 
@@ -127,19 +138,20 @@ class PetProvider extends ChangeNotifier {
       _errorMessage = e.toString();
       return false;
     } finally {
-      _isLoading = false;
+      _isSubmitting = false;
       notifyListeners();
     }
   }
 
   Future<bool> deletePet(String id) async {
-    _isLoading = true;
+    _isSubmitting = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
       final success = await _repository.deletePet(id);
       if (success) {
+        _myPets.removeWhere((pet) => pet.id == id); // Optimistic local removal
         await fetchMyPets();
       }
       return success;
@@ -147,7 +159,7 @@ class PetProvider extends ChangeNotifier {
       _errorMessage = e.toString();
       return false;
     } finally {
-      _isLoading = false;
+      _isSubmitting = false;
       notifyListeners();
     }
   }

@@ -7,6 +7,26 @@ import '../data/models/pet_models.dart';
 class PetRepository {
   final ApiClient _apiClient = ApiClient();
 
+  /// Helper: extract error message from server response body
+  String _parseErrorMessage(String responseBody, String fallback) {
+    try {
+      final data = jsonDecode(responseBody);
+      if (data is Map) {
+        // Check nested error.message first
+        if (data['error'] is Map && data['error']['message'] != null) {
+          final msg = data['error']['message'];
+          return msg is List ? msg.join(', ') : msg.toString();
+        }
+        // Check top-level message
+        if (data['message'] != null) {
+          final msg = data['message'];
+          return msg is List ? msg.join(', ') : msg.toString();
+        }
+      }
+    } catch (_) {}
+    return fallback;
+  }
+
   Future<List<Pet>> getMyPets() async {
     final response = await _apiClient.get(AppConstants.petEndpoint);
     if (response.statusCode == 200) {
@@ -58,87 +78,25 @@ class PetRepository {
       } catch (_) {}
       throw Exception('Phản hồi từ máy chủ không hợp lệ');
     }
-    
-    // Đọc lỗi từ server nếu có
-    try {
-      final errorData = jsonDecode(response.body);
-      if (errorData is Map && errorData['message'] != null) {
-        final msg = errorData['message'];
-        throw Exception(msg is List ? msg.join(', ') : msg.toString());
-      }
-    } catch (_) {}
-    
-    throw Exception('Lỗi khi tải lên avatar (Status: ${response.statusCode})');
+    throw Exception(
+      _parseErrorMessage(response.body, 'Lỗi khi tải lên avatar (Status: ${response.statusCode})'),
+    );
   }
 
-  Future<bool> createPet(CreatePetDto petDto) async {
+  Future<bool> createPet(PetFormDto petDto) async {
     final response = await _apiClient.post(AppConstants.petEndpoint, petDto.toJson());
     if (response.statusCode == 200 || response.statusCode == 201) {
       return true;
     }
-    
-    dynamic responseBody;
-    try {
-      responseBody = jsonDecode(response.body);
-    } catch (_) {
-      throw Exception('Phản hồi từ máy chủ không hợp lệ');
-    }
-    String errorMessage = 'Lỗi khi tạo vật nuôi';
-    
-    if (responseBody is Map) {
-      if (responseBody['error'] is Map && responseBody['error']['message'] != null) {
-        final errorObj = responseBody['error'];
-        if (errorObj['message'] is List) {
-          errorMessage = (errorObj['message'] as List).join(', ');
-        } else if (errorObj['message'] is String) {
-          errorMessage = errorObj['message'];
-        }
-      } 
-      else if (responseBody['message'] != null) {
-        if (responseBody['message'] is List) {
-          errorMessage = (responseBody['message'] as List).join(', ');
-        } else if (responseBody['message'] is String) {
-          errorMessage = responseBody['message'];
-        }
-      }
-    }
-    
-    throw Exception(errorMessage);
+    throw Exception(_parseErrorMessage(response.body, 'Lỗi khi tạo vật nuôi'));
   }
 
-  Future<bool> updatePet(String id, UpdatePetDto petDto) async {
+  Future<bool> updatePet(String id, PetFormDto petDto) async {
     final response = await _apiClient.put('${AppConstants.petEndpoint}/$id', petDto.toJson());
     if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
       return true;
     }
-    
-    dynamic responseBody;
-    try {
-      responseBody = jsonDecode(response.body);
-    } catch (_) {
-      throw Exception('Phản hồi từ máy chủ không hợp lệ');
-    }
-    String errorMessage = 'Lỗi khi cập nhật vật nuôi';
-    
-    if (responseBody is Map) {
-      if (responseBody['error'] is Map && responseBody['error']['message'] != null) {
-        final errorObj = responseBody['error'];
-        if (errorObj['message'] is List) {
-          errorMessage = (errorObj['message'] as List).join(', ');
-        } else if (errorObj['message'] is String) {
-          errorMessage = errorObj['message'];
-        }
-      } 
-      else if (responseBody['message'] != null) {
-        if (responseBody['message'] is List) {
-          errorMessage = (responseBody['message'] as List).join(', ');
-        } else if (responseBody['message'] is String) {
-          errorMessage = responseBody['message'];
-        }
-      }
-    }
-    
-    throw Exception(errorMessage);
+    throw Exception(_parseErrorMessage(response.body, 'Lỗi khi cập nhật vật nuôi'));
   }
 
   Future<bool> deletePet(String id) async {
@@ -146,25 +104,6 @@ class PetRepository {
     if (response.statusCode == 200 || response.statusCode == 204) {
       return true;
     }
-    
-    dynamic responseBody;
-    try {
-      responseBody = jsonDecode(response.body);
-    } catch (_) {
-      throw Exception('Phản hồi từ máy chủ không hợp lệ');
-    }
-    String errorMessage = 'Lỗi khi xoá vật nuôi';
-    
-    if (responseBody is Map) {
-      if (responseBody['message'] != null) {
-        if (responseBody['message'] is List) {
-          errorMessage = (responseBody['message'] as List).join(', ');
-        } else if (responseBody['message'] is String) {
-          errorMessage = responseBody['message'];
-        }
-      }
-    }
-    
-    throw Exception(errorMessage);
+    throw Exception(_parseErrorMessage(response.body, 'Lỗi khi xoá vật nuôi'));
   }
 }
