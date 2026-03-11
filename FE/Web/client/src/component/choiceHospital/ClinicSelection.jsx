@@ -3,7 +3,7 @@ import Header from "../../default/header";
 import Footer from "../../default/footer";
 import { FaSearch, FaMapMarkerAlt, FaClipboardList } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import "./styles.css";  // own stylesheet with clinic list & modal rules
+import "./styles.css"; 
 
 const sampleClinics = [
   {

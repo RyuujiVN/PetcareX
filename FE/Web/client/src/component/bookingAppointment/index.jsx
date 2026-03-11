@@ -1,10 +1,13 @@
-// FE/Web/client/src/component/bookingAppointment/index.jsx
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './styles.css';
 import Header from '../../default/header';
 import Footer from '../../default/footer';
 
 export default function BookingAppointment() {
+  const navigate = useNavigate();
+
+
   const [selectedPet, setSelectedPet] = useState(null);
   const [service, setService] = useState('Khám sức khỏe định kỳ');
   const [clinic, setClinic] = useState('PetCar - Lê Duẩn');
@@ -12,9 +15,8 @@ export default function BookingAppointment() {
   const [symptoms, setSymptoms] = useState('');
   const [selectedDate, setSelectedDate] = useState('2024-05-20');
   const [selectedTime, setSelectedTime] = useState('09:00 AM');
-  // calendar month/year state
   const [calendarYear, setCalendarYear] = useState(2024);
-  const [calendarMonth, setCalendarMonth] = useState(4); // 0-indexed (4 = May)
+  const [calendarMonth, setCalendarMonth] = useState(4);
 
   const pets = [
     { id: 1, name: 'LuLu', subtitle: 'Mèo Anh lông ngắn', avatar: './public/lulu.png' },

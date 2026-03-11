@@ -4,7 +4,8 @@ import './styles.css';
 import Header from '../../default/header';
 import Footer from '../../default/footer';
 import { FaBolt, FaRobot, FaFileMedical, FaPlus } from 'react-icons/fa';
-import { Navigate } from 'react-router-dom';
+// import { Navigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const dummyPets = [
   { id: 1, name: 'Mochi', breed: 'Cockapoo', age: '2 tuổi', avatar: '/public/gaugau.png' },
@@ -13,13 +14,21 @@ const dummyPets = [
 ];
 
 
-const goToChatBot = () =>{
-  Navigate("/chatbot");
-}
-const goToBooking = () =>{
-  Navigate("/booking");
-}
+// const goToChatBot = () => Navigate("/chatbot");
+// const goToBooking = () => Navigate("/booking");
+
+
 export default function PageMainUser() {
+  const navigate = useNavigate();
+
+  const goToChatBot = () => {
+    navigate("/chatbot");
+  }
+
+  const goToBooking = () => {
+    navigate("/booking");
+  }
+
   return (
     
     <div className="user-dashboard">
@@ -46,9 +55,9 @@ export default function PageMainUser() {
           </article>
         ))}
 
-        <article className="pet-card add-pet" onClick={() => window.location.href = '/add-pet'} style={{cursor: 'pointer'}}>
+        <article className="pet-card add-pet" onClick={() => navigate('/add-pet')} style={{cursor: 'pointer'}}>
           <div className="plus-circle"><FaPlus className="plus-icon" /></div>
-          <span className="add-text">Thêm mới thú cưng</span>
+          <span className="add-text">Thêm thú cưng mới</span>
         </article>
       </section>
 
@@ -71,7 +80,7 @@ export default function PageMainUser() {
             <h3>Tư vấn với AI Chatbot</h3>
             <p>Hỏi đáp các triệu chứng sức khỏe ngay lập tức</p>
           </div>
-          <a href="#" className="quick-link" onClick={goToChatBot}>
+          <a href="#" className="quick-link" onClick={(e) => { e.preventDefault(); goToChatBot(); }}>
             Trò chuyện →
           </a>
         </div>
