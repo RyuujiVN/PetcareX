@@ -23,10 +23,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int _selectedIndex = 0;
   final CameraService _cameraService = CameraService();
   
   final double verticalOffset = -60;
+
+  final bool _hasUnreadNotifications = true;
 
   @override
   void initState() {
@@ -96,11 +97,15 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 24),
             _buildQuickActions(),
             const SizedBox(height: 32),
-            _buildSectionHeader("Lịch hẹn của tôi", "Xem tất cả"),
+            _buildSectionHeader("Lịch hẹn của tôi", "Xem tất cả", onTap: () {
+              MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+            }),
             const SizedBox(height: 16),
             _buildAppointmentCard(),
             const SizedBox(height: 32),
-            _buildSectionHeader("Diễn đàn PetCareX", "Khám phá"),
+            _buildSectionHeader("Diễn đàn PetCareX", "Khám phá", onTap: () {
+              MainNavigationWrapper.of(context)?.setSelectedIndex(3);
+            }),
             const SizedBox(height: 16),
             _buildForumPost(),
             const SizedBox(height: 100),
@@ -150,15 +155,16 @@ class _HomePageState extends State<HomePage> {
                   },
                   icon: const Icon(Icons.notifications_none_outlined, color: Color(0xFF5F6368)),
                 ),
-                Positioned(
-                  right: 12,
-                  top: 12,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                if (_hasUnreadNotifications)
+                  Positioned(
+                    right: 12,
+                    top: 12,
+                    child: Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                    ),
                   ),
-                )
               ],
             ),
           ],
@@ -223,93 +229,105 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildPetList() {
-    return Consumer<PetProvider>(
-      builder: (context, petProvider, child) {
-        final pets = List<Pet>.from(petProvider.myPets)..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              // Hiển thị danh sách pet từ API
-              ...pets.asMap().entries.map((entry) {
-                int idx = entry.key;
-                Pet pet = entry.value;
-                return GestureDetector(
-                  onTap: () async {
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => const Center(
-                        child: CircularProgressIndicator(color: AppColors.primary),
-                      ),
-                    );
-
-                    try {
-                      final provider = context.read<PetProvider>();
-                      await provider.fetchSpecies();
-                      if (pet.breed?.speciesId != null) {
-                        await provider.fetchBreeds(pet.breed!.speciesId);
-                      }
-                      
-                      if (!mounted) return;
-                      Navigator.pop(context); 
-
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => EditPetPage(pet: pet))
-                      );
-                      
-                      if (result == true) {
-                        provider.fetchMyPets();
-                      }
-                    } catch (e) {
-                      if (mounted) Navigator.pop(context);
-                      debugPrint("Lỗi khi đồng bộ dữ liệu: $e");
-                    }
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: _buildPetItem(
-                      pet.name, 
-                      pet.avatar, 
-                      idx == 0 
-                    ),
-                  ),
-                );
-              }),
+    // Dùng Selector thay Consumer: chỉ rebuild khi myPets thay đổi
+    return Selector<PetProvider, List<Pet>>(
+      selector: (_, provider) => provider.myPets,
+      builder: (context, myPets, child) {
+        // Sort 1 lần khi list thay đổi, không sort lại mỗi lần rebuild
+        final pets = List<Pet>.from(myPets)
+          ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        
+        // Dùng ListView.builder: lazy render, chỉ build items hiển thị
+        return SizedBox(
+          height: 90,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            itemCount: pets.length + 1, // +1 cho nút "Thêm mới"
+            itemBuilder: (context, index) {
+              // Nút thêm mới ở cuối
+              if (index == pets.length) {
+                return _buildAddPetButton();
+              }
               
-              // Nút thêm mới luôn ở cuối
-              GestureDetector(
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context, 
-                    MaterialPageRoute(builder: (context) => const AddPetPage())
-                  );
-                  if (result == true) {
-                    petProvider.fetchMyPets();
-                  }
-                },
-                child: Column(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white,
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
-                      ),
-                      child: const Icon(Icons.add, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
-                  ],
+              final pet = pets[index];
+              return GestureDetector(
+                onTap: () => _onPetTapped(pet),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: _buildPetItem(
+                    pet.name,
+                    pet.avatar,
+                    index == 0,
+                  ),
                 ),
-              )
-            ],
+              );
+            },
           ),
         );
       },
+    );
+  }
+
+  Future<void> _onPetTapped(Pet pet) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: AppColors.primary),
+      ),
+    );
+
+    try {
+      final provider = context.read<PetProvider>();
+      await provider.fetchSpecies();
+      if (pet.breed?.speciesId != null) {
+        await provider.fetchBreeds(pet.breed!.speciesId);
+      }
+
+      if (!mounted) return;
+      Navigator.pop(context);
+
+      final result = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => EditPetPage(pet: pet)),
+      );
+
+      if (result == true) {
+        provider.fetchMyPets();
+      }
+    } catch (e) {
+      if (mounted) Navigator.pop(context);
+      debugPrint("Lỗi khi đồng bộ dữ liệu: $e");
+    }
+  }
+
+  Widget _buildAddPetButton() {
+    return GestureDetector(
+      onTap: () async {
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AddPetPage()),
+        );
+        if (result == true) {
+          context.read<PetProvider>().fetchMyPets();
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+            ),
+            child: const Icon(Icons.add, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
+        ],
+      ),
     );
   }
 
@@ -379,7 +397,21 @@ class _HomePageState extends State<HomePage> {
           },
         ),
         const SizedBox(height: 12),
-        _buildActionTile(Icons.location_on_outlined, "Tìm phòng khám gần nhất", "Tìm kiếm trên bản đồ", const Color(0xFFFFF4E8), const Color(0xFFFF9800)),
+        _buildActionTile(
+          Icons.location_on_outlined,
+          "Tìm phòng khám gần nhất",
+          "Tìm kiếm trên bản đồ",
+          const Color(0xFFFFF4E8),
+          const Color(0xFFFF9800),
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Tính năng đang phát triển'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
+        ),
       ],
     );
   }
@@ -418,12 +450,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSectionHeader(String title, String action) {
+  Widget _buildSectionHeader(String title, String action, {VoidCallback? onTap}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        Text(action, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+        GestureDetector(
+          onTap: onTap,
+          child: Text(action, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 13)),
+        ),
       ],
     );
   }
@@ -526,7 +561,25 @@ class _HomePageState extends State<HomePage> {
         children: [
           Row(
             children: [
-              const CircleAvatar(radius: 18, backgroundImage: NetworkImage('https://i.pravatar.cc/150?u=woman1')),
+              CachedNetworkImage(
+                imageUrl: 'https://i.pravatar.cc/150?u=woman1',
+                imageBuilder: (context, imageProvider) => CircleAvatar(
+                  radius: 18,
+                  backgroundImage: imageProvider,
+                ),
+                placeholder: (context, url) => const CircleAvatar(
+                  radius: 18,
+                  child: SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
+                errorWidget: (context, url, error) => const CircleAvatar(
+                  radius: 18,
+                  child: Icon(Icons.person, size: 18),
+                ),
+              ),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(

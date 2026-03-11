@@ -20,31 +20,48 @@ class MainNavigationWrapper extends StatefulWidget {
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _selectedIndex = 0;
 
+  // Lazy-loading: chỉ build page khi user navigate lần đầu
+  final Set<int> _initializedPages = {0}; // HomePage luôn init sẵn
+  final List<Widget?> _pages = List<Widget?>.filled(5, null);
+
   void setSelectedIndex(int index) {
     setState(() {
       _selectedIndex = index;
+      _initializedPages.add(index);
     });
   }
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const BookingPage(),
-    const AppointmentPage(),
-    const CommunityPage(),
-    const AccountPage(),
-  ];
+  Widget _buildPage(int index) {
+    return switch (index) {
+      0 => const HomePage(),
+      1 => const BookingPage(),
+      2 => const AppointmentPage(),
+      3 => const CommunityPage(),
+      4 => const AccountPage(),
+      _ => const SizedBox(),
+    };
+  }
 
   void _onItemTapped(int index) {
     if (index == _selectedIndex) return;
     setState(() {
       _selectedIndex = index;
+      _initializedPages.add(index);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Lazy init: chỉ tạo page khi cần
+    for (final i in _initializedPages) {
+      _pages[i] ??= _buildPage(i);
+    }
+
     return Scaffold(
-      body: IndexedStack(index: _selectedIndex, children: _pages),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: _pages.map((page) => page ?? const SizedBox()).toList(),
+      ),
       bottomNavigationBar: BottomAppBar(
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
