@@ -10,6 +10,7 @@ import { CreateCommentDTO } from './dtos/create-comment.dto';
 import { User } from 'src/user/entities/user.entity';
 import { ForumPost } from '../entities/forum_post.entity';
 import { UpdateCommentDTO } from './dtos/update-comment.dto';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class CommentService {
@@ -65,5 +66,28 @@ export class CommentService {
 
     Object.assign(comment, updateDTO);
     await this.commentRepository.save(comment);
+  }
+
+  async deleteComment(id: string, user: User) {
+    await this.dataSource.transaction(async (manager) => {
+      // 1. Kiểm tra xem thử có quyền xoá không
+      const commentRepo = manager.getRepository(ForumComment);
+      const comment = await commentRepo.findOne({ where: { id: id } });
+
+      if (!comment) throw new NotFoundException('Không tìm thấy bình luận');
+      if (comment.userId !== user.id || user.role !== RoleEnum.ADMIN)
+        throw new NotFoundException('Không có quyền xoá bình luận này');
+
+      // 2. Xoá bình luận
+      await commentRepo.delete({ id: id });
+
+      // 3. Cập nhật lại lượt bình luận ở post
+      const postRepo = manager.getRepository(ForumPost);
+      await postRepo.decrement(
+        { id: comment.postId },
+        'commentCount',
+        1 + comment.replyCount,
+      );
+    });
   }
 }

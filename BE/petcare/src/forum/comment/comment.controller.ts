@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  DefaultValuePipe,
+  Delete,
   Param,
   Post,
   Put,
@@ -43,6 +43,16 @@ export class CommentController {
 
     return {
       message: 'Cập nhật bình luận thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Xoá bình luận' })
+  async deleteComment(@Param('id') id: string, @Req() req) {
+    await this.commentService.deleteComment(id, req?.user);
+
+    return {
+      message: 'Xoá bình luận thành công',
     };
   }
 }
