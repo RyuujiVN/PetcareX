@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
-import Header from "../../../../admin/src/default/header";
-// import Footer from "../../../../admin/src/default/footer";
+import Header from "../../../../client/src/default/header";
+import Footer from "../../../../client/src/default/footer";
 
 import { TbCircleCheck } from "react-icons/tb";
 import { IoCloseCircle } from "react-icons/io5";
@@ -131,8 +131,7 @@ export default function HomePage() {
 
   return (
     <div className="home-page">
-      
-
+      <Header/>
       <section className="hero-section">
         <div className="hero-overlay">
           <div className="hero-content">
@@ -327,6 +326,7 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <Footer/>
     </div>
   );
 }

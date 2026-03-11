@@ -1,0 +1,419 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --primary-color: #13ECDA;
+  --primary-hover: #0DD9C7;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --border-color: #e5e7eb;
+  --bg-light: #f9fafb;
+  --bg-white: #ffffff;
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.profile-container {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px 20px;
+  padding-top: 80px;
+  background: #F8FAFC;
+}
+
+.profile-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+.profile-wrapper {
+  width: 100%;
+  max-width: 720px;
+  background: var(--bg-white);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Back Button */
+.profile-back-button {
+  padding: 16px 30px;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-white);
+}
+
+.back-btn {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
+  padding: 0 !important;
+  height: auto !important;
+}
+
+.back-btn:hover {
+  color: var(--primary-color) !important;
+  transform: translateX(-4px);
+}
+
+/* Header với Avatar */
+.profile-header {
+  background: linear-gradient( white);
+  padding: 40px 30px;
+  color: white;
+  text-align: center;
+}
+
+.profile-avatar-section {
+  margin-bottom: 24px;
+}
+
+.profile-avatar-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.profile-avatar {
+  width: 120px !important;
+  height: 120px !important;
+  border: 6px solid white;
+  box-shadow: var(--shadow-lg);
+  background: var(--bg-light);
+}
+
+.avatar-upload-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 40px;
+  height: 40px;
+  background: var(--primary-color);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: white;
+  border: 3px solid white;
+  transition: all 0.3s ease;
+}
+
+.avatar-upload-btn:hover {
+  background: var(--primary-hover);
+  transform: scale(1.1);
+}
+
+.avatar-upload-btn input {
+  display: none;
+}
+
+.profile-info-header {
+  margin-bottom: 12px;
+}
+
+.profile-name {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: rgb(8, 8, 8);
+}
+
+.profile-subtitle {
+  font-size: 14px;
+  color: #13ECDA;
+  margin: 0;
+}
+
+.profile-title{
+    font-size: 28px;
+    font-weight: 700;
+    margin-right: 63%;
+    color: rgb(8, 8, 8);
+}
+
+.profile-description {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.9);
+  margin-right: 40%;
+  padding-bottom: 20px;
+  font-weight: 500;
+
+}
+
+/* Form Card */
+.profile-form-card {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding: 40px 30px !important;
+}
+
+.profile-form-card .ant-card-body {
+  padding: 0 !important;
+}
+
+/* Form Layout */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.form-row.single {
+  grid-template-columns: 1fr;
+}
+
+.form-col {
+  margin-bottom: 0 !important;
+}
+
+/* Form Labels */
+.profile-form-card :where(.ant-form-item-label > label) {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  margin-bottom: 8px !important;
+}
+
+/* Form Inputs */
+.form-input {
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color) !important;
+  font-size: 14px !important;
+  transition: all 0.3s ease !important;
+}
+
+.form-input:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.form-input:focus,
+.form-input:focus-visible {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(19, 236, 218, 0.1) !important;
+}
+
+.form-input .ant-input {
+  font-size: 14px !important;
+  color: var(--text-primary) !important;
+}
+
+.form-input .ant-input::placeholder {
+  color: var(--text-secondary) !important;
+}
+
+.form-input .ant-input-prefix {
+  color: var(--text-secondary) !important;
+}
+
+/* Select Dropdown */
+.form-input .ant-select-selector {
+  border-radius: 8px !important;
+  border: 1px solid var(--border-color) !important;
+  background: var(--bg-white) !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 12px !important;
+}
+
+.form-input .ant-select-selector:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.form-input .ant-select-focused .ant-select-selector {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 2px rgba(19, 236, 218, 0.1) !important;
+}
+
+.ant-select-item-option-selected {
+  background: rgba(19, 236, 218, 0.1) !important;
+  color: var(--primary-color) !important;
+}
+
+/* Input Number */
+.form-input .ant-input-number {
+  width: 100% !important;
+}
+
+
+
+.form-buttons {
+  margin-top: 40px !important;
+  margin-bottom: 0 !important;
+}
+
+.form-buttons .ant-space {
+  display: flex !important;
+  gap: 12px !important;
+  margin-left: 73.2%
+}
+
+.btn-cancel,
+.btn-submit {
+  height: 40px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  border-radius: 8px !important;
+  transition: all 0.3s ease !important;
+  flex: 1;
+  border: none !important;
+}
+
+.btn-cancel {
+  background: var(--bg-light) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-cancel:hover {
+  background: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+
+.btn-submit {
+  background: var(--primary-color) !important;
+  color: white !important;
+}
+
+.btn-submit:hover {
+  background: var(--primary-hover) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(19, 236, 218, 0.4) !important;
+}
+
+.btn-submit:active {
+  background: #0BB5A5 !important;
+}
+
+/* Error Message */
+.ant-form-item-explain-error {
+  color: #ef4444 !important;
+  font-size: 13px !important;
+  margin-top: 6px !important;
+}
+
+.ant-form-item-has-error .form-input {
+  border-color: #ef4444 !important;
+}
+
+.ant-form-item-has-error .form-input:focus {
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .profile-container {
+    padding: 20px 15px;
+  }
+
+  .profile-wrapper {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .profile-header {
+    padding: 30px 20px;
+  }
+
+  .profile-form-card {
+    padding: 30px 20px !important;
+  }
+
+  .profile-back-button {
+    padding: 12px 20px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .profile-avatar {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .profile-name {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-header {
+    padding: 24px 16px;
+  }
+
+  .profile-form-card {
+    padding: 20px 16px !important;
+  }
+
+  .profile-back-button {
+    padding: 12px 16px;
+  }
+
+  .form-row {
+    gap: 12px;
+  }
+
+  .form-buttons .ant-space {
+    flex-direction: column;
+  }
+
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+    flex: unset;
+  }
+
+  .profile-avatar {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  .profile-name {
+    font-size: 20px;
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-wrapper {
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Spinner Animation */
+.ant-spin {
+  color: var(--primary-color) !important;
+}

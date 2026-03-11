@@ -11,6 +11,7 @@ import { AuthProvider } from "./context/AuthContext"
 import BookingAppointment from './component/bookingAppointment'
 import AddPet from './component/addPet'
 import ChatBotAI from './component/chatBotAI'
+import ProfileUser from './component/profileUser'
 
 import './App.css'
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/booking" element={<BookingAppointment />} />
         <Route path="/add-pet" element={<AddPet />} />
         <Route path="/chatbot" element={<ChatBotAI />} />
+        <Route path="/profile" element={<ProfileUser />} />
       </Routes>
     </AuthProvider>
   )

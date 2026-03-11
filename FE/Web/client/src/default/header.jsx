@@ -59,7 +59,7 @@ function Header() {
                         <div className="user-section">
                             <div className="user-profile" onClick={handleAccountClick}>
                                 <div className="user-avatar">
-                                    <img src="/user-avatar.png" alt="User Avatar" />
+                                    <img src="/bs1.png" alt="User Avatar" />
                                 </div>
                                 <span className="user-name">Công Thành</span>
                                 <span className={`dropdown-arrow ${isAccountDropdownOpen ? "open" : ""}`}>▼</span>
@@ -67,7 +67,7 @@ function Header() {
 
                             {isAccountDropdownOpen && (
                                 <div className="user-dropdown">
-                                    <Link to="/my-profile" className="dropdown-item">
+                                    <Link to="/profile" className="dropdown-item">
                                         <span className="icon">👤</span>
                                         <span>Trang cá nhân</span>
                                     </Link>
