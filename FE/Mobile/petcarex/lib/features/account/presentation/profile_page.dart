@@ -58,9 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
         _emailController.text = updatedUser.email;
         _phoneController.text = updatedUser.phone ?? '';
         _addressController.text = updatedUser.address ?? '';
-        if (_uploadedAvatarUrl == null) {
-          _uploadedAvatarUrl = updatedUser.avatarUrl;
-        }
+        _uploadedAvatarUrl ??= updatedUser.avatarUrl;
       });
     }
   }

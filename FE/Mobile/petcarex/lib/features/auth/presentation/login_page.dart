@@ -21,7 +21,7 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isObscure = true;
   bool _rememberMe = false;
-  bool _isAutoFilled = false;
+  final bool _isAutoFilled = false;
 
   String? _emailError;
   String? _passwordError;

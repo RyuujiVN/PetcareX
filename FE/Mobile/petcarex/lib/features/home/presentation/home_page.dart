@@ -177,8 +177,8 @@ class _HomePageState extends State<HomePage> {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         final user = authProvider.user;
-        final String displayName = (user?.fullName != null && user!.fullName!.trim().isNotEmpty) 
-            ? user.fullName! 
+        final String displayName = (user?.fullName != null && user!.fullName.trim().isNotEmpty) 
+            ? user.fullName 
             : "Người dùng";
 
         return Row(

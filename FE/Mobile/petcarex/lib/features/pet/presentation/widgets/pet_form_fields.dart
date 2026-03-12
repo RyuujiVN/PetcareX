@@ -7,7 +7,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../data/models/pet_models.dart';
 
-/// ─── Shared InputDecoration ─────────────────────────────────────
 InputDecoration petInputDecoration(String hint) {
   return InputDecoration(
     hintText: hint,
@@ -27,14 +26,12 @@ InputDecoration petInputDecoration(String hint) {
   );
 }
 
-/// ─── Pet Avatar Picker ──────────────────────────────────────────
 class PetAvatarPicker extends StatelessWidget {
   final File? selectedImage;
   final String? avatarUrl;
   final bool isUploading;
   final VoidCallback onPickImage;
-  /// If true, shows a camera icon overlay button (edit mode style).
-  /// If false, shows a text button below the avatar (add mode style).
+
   final bool compactStyle;
 
   const PetAvatarPicker({
@@ -174,11 +171,9 @@ class PetAvatarPicker extends StatelessWidget {
   }
 }
 
-/// ─── Gender Selector ────────────────────────────────────────────
 class PetGenderSelector extends StatelessWidget {
   final String selectedGender;
   final ValueChanged<String> onChanged;
-  /// If true, shows icon-based buttons (add mode style)
   final bool showIcons;
 
   const PetGenderSelector({
@@ -240,7 +235,6 @@ class PetGenderSelector extends StatelessWidget {
   }
 }
 
-/// ─── Species & Breed Dropdowns ──────────────────────────────────
 class PetSpeciesBreedFields extends StatelessWidget {
   final String? selectedSpeciesId;
   final String? selectedBreedId;
@@ -248,7 +242,6 @@ class PetSpeciesBreedFields extends StatelessWidget {
   final List<PetBreed> breedList;
   final ValueChanged<String?> onSpeciesChanged;
   final ValueChanged<String?> onBreedChanged;
-  /// If true, stacks species and breed vertically. If false, side by side.
   final bool vertical;
 
   const PetSpeciesBreedFields({
@@ -296,7 +289,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           isExpanded: true,
-          value: hasValue ? selectedSpeciesId : null,
+          initialValue: hasValue ? selectedSpeciesId : null,
           decoration: petInputDecoration('Chọn loài'),
           hint: const Text('Chọn loài', style: TextStyle(fontSize: 14)),
           items: speciesList.map<DropdownMenuItem<String>>((species) {
@@ -322,7 +315,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           isExpanded: true,
-          value: hasValue ? selectedBreedId : null,
+          initialValue: hasValue ? selectedBreedId : null,
           decoration: petInputDecoration('Chọn giống'),
           hint: const Text('Chọn giống', style: TextStyle(fontSize: 14)),
           items: breedList.map<DropdownMenuItem<String>>((breed) {
@@ -340,7 +333,6 @@ class PetSpeciesBreedFields extends StatelessWidget {
   }
 }
 
-/// ─── Date Picker Helper ─────────────────────────────────────────
 Future<void> pickPetBirthdate(
   BuildContext context,
   TextEditingController controller, {
@@ -370,7 +362,6 @@ Future<void> pickPetBirthdate(
   }
 }
 
-/// ─── Delete Confirmation Dialog ─────────────────────────────────
 Future<bool> showDeletePetDialog(BuildContext context, String petName) async {
   final result = await showDialog<bool>(
     context: context,

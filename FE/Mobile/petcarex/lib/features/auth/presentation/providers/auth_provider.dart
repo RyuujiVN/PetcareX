@@ -269,7 +269,7 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
         'phone': phone,
         'address': address,
-        if (avatarUrl != null) 'avatarUrl': avatarUrl,
+        'avatarUrl': ?avatarUrl,
       };
 
       final response = await _apiClient.put('${AppConstants.userEndpoint}/${_user!.id}', data);
