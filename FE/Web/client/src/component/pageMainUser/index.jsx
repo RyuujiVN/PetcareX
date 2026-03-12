@@ -1,11 +1,11 @@
 // FE/Web/client/src/component/pageMainUser/index.jsx
-import React from 'react';
-import './styles.css';          
-import Header from '../../default/header';
+import { FaBolt, FaFileMedical, FaPlus, FaRobot } from 'react-icons/fa';
 import Footer from '../../default/footer';
-import { FaBolt, FaRobot, FaFileMedical, FaPlus } from 'react-icons/fa';
+import Header from '../../default/header';
+import './styles.css';
 // import { Navigate } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const dummyPets = [
   { id: 1, name: 'Mochi', breed: 'Cockapoo', age: '2 tuổi', avatar: '/public/gaugau.png' },
@@ -20,6 +20,7 @@ const dummyPets = [
 
 export default function PageMainUser() {
   const navigate = useNavigate();
+  const { userProfile } = useAuth();
 
   const goToChatBot = () => {
     navigate("/chatbot");
@@ -34,7 +35,7 @@ export default function PageMainUser() {
     <div className="user-dashboard">
       <Header/>
       <header className="dashboard-header">
-        <h1>Chào mừng trở lại, Công Thành!</h1>
+        <h1>Chào mừng trở lại, {userProfile?.fullName || 'bạn'}!</h1>
         <p>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
         <button className="btn-primaryy" onClick={goToBooking}>
           Đặt lịch khám ngay

@@ -1,14 +1,13 @@
-import React, { useState } from "react";
-import "./header.css";
+import { useState } from "react";
+import { FaPaw } from "react-icons/fa";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaPaw } from "react-icons/fa";
-import ListPet from './../component/listPet/index';
+import "./header.css";
 
 function Header() {
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
     const navigate = useNavigate();
-    const { logout, token } = useAuth();
+    const { logout, token, userProfile } = useAuth();
 
     const handleAccountClick = () => {
         setIsAccountDropdownOpen(!isAccountDropdownOpen);
@@ -60,9 +59,9 @@ function Header() {
                         <div className="user-section">
                             <div className="user-profile" onClick={handleAccountClick}>
                                 <div className="user-avatar">
-                                    <img src="/bs1.png" alt="User Avatar" />
+                                    <img src={userProfile?.avatarUrl || '/bs1.png'} alt="User Avatar" />
                                 </div>
-                                <span className="user-name">Công Thành</span>
+                                <span className="user-name">{userProfile?.fullName || 'Người dùng'}</span>
                                 <span className={`dropdown-arrow ${isAccountDropdownOpen ? "open" : ""}`}>▼</span>
                             </div>
 

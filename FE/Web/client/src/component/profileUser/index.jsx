@@ -1,16 +1,20 @@
 import { CameraOutlined, HomeOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Form, Input, InputNumber, Select, message, Card, Avatar, Space, Spin } from 'antd';
-import { useState, useEffect } from 'react';
+import { Avatar, Button, Card, Form, Input, message, Space, Spin } from 'antd';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './styles.css';
+import { getUserProfileApi, updateUserProfileApi, uploadAvatarApi } from '../../api/user';
+import { useAuth } from '../../context/AuthContext';
 import Header from '../../default/header';
+import './styles.css';
 
 export default function ProfileUser() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [profileData, setProfileData] = useState(null);
   const navigate = useNavigate();
+  const { refreshUserProfile } = useAuth();
 
   useEffect(() => {
     fetchProfileData();
@@ -19,53 +23,61 @@ export default function ProfileUser() {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      if (userInfo) {
-        setProfileData(userInfo);
-        form.setFieldsValue({
-          name: userInfo.fullName || '',
-          email: userInfo.email || '',
-          phone: userInfo.phone || '',
-          age: userInfo.age || '',
-          gender: userInfo.gender || 'Nam',
-          address: userInfo.address || '',
-        });
-        setImagePreview(userInfo.avatar || null);
-      }
+      const res = await getUserProfileApi();
+      const data = res.data;
+      setProfileData(data);
+      setAvatarUrl(data.avatarUrl || null);
+      form.setFieldsValue({
+        name: data.fullName || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        address: data.address || '',
+      });
     } catch (error) {
       console.error('Lỗi tải dữ liệu hồ sơ:', error);
+      message.error('Không thể tải thông tin hồ sơ!');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    setUploadingAvatar(true);
+    const reader = new FileReader();
+    reader.onloadend = () => setAvatarUrl(reader.result);
+    reader.readAsDataURL(file);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const res = await uploadAvatarApi(formData);
+      setAvatarUrl(res.data.file);
+      message.success('Tải ảnh lên thành công!');
+    } catch (error) {
+      message.error('Tải ảnh thất bại!');
+      setAvatarUrl(profileData?.avatarUrl || null);
+    } finally {
+      setUploadingAvatar(false);
     }
   };
 
   const handleSubmit = async (values) => {
+    if (uploadingAvatar) return;
     try {
       setLoading(true);
-      
       const updateData = {
         fullName: values.name,
         email: values.email,
         phone: values.phone,
-        age: values.age,
-        gender: values.gender,
         address: values.address,
-        ...(imagePreview && !imagePreview.startsWith('http') && { avatar: imagePreview }),
+        avatarUrl: avatarUrl,
       };
-      const userInfo = JSON.parse(localStorage.getItem('userInfo'));
-      localStorage.setItem('userInfo', JSON.stringify({ ...userInfo, ...updateData }));
-      
+      await updateUserProfileApi(profileData.id, updateData);
+      setProfileData((prev) => ({ ...prev, ...updateData }));
+      await refreshUserProfile();
       message.success('Cập nhật hồ sơ thành công!');
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Cập nhật hồ sơ thất bại!';
@@ -101,12 +113,14 @@ export default function ProfileUser() {
             Cập nhật thông tin cá nhân của bạn để nhận dịch vụ tốt nhất
           </p>
             <div className="profile-avatar-container">
-              <Avatar
-                size={120}
-                icon={<UserOutlined />}
-                src={imagePreview}
-                className="profile-avatar"
-              />
+              <Spin spinning={uploadingAvatar} style={{ display: 'inline-block' }}>
+                <Avatar
+                  size={120}
+                  icon={<UserOutlined />}
+                  src={avatarUrl}
+                  className="profile-avatar"
+                />
+              </Spin>
               <label htmlFor="avatar-upload" className="avatar-upload-btn">
                 <CameraOutlined />
               </label>
@@ -192,50 +206,6 @@ export default function ProfileUser() {
                   className="form-input"
                 />
               </Form.Item>
-
-              <Form.Item
-                label="Tuổi"
-                name="age"
-                className="form-col"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập tuổi!' },
-                  { 
-                    type: 'number', 
-                    min: 1, 
-                    max: 120, 
-                    message: 'Tuổi phải từ 1 đến 120!' 
-                  }
-                ]}
-              >
-                <InputNumber
-                  placeholder="22"
-                  size="large"
-                  className="form-input"
-                  min={1}
-                  max={120}
-                  style={{ width: '100%' }}
-                />
-              </Form.Item>
-            </div>
-
-            <div className="form-row">
-              <Form.Item
-                label="Giới tính"
-                name="gender"
-                className="form-col"
-                rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
-              >
-                <Select
-                  placeholder="Chọn giới tính"
-                  size="large"
-                  className="form-input"
-                  options={[
-                    { label: 'Nam', value: 'Nam' },
-                    { label: 'Nữ', value: 'Nữ' },
-                    { label: 'Khác', value: 'Khac' }
-                  ]}
-                />
-              </Form.Item>
             </div>
 
             <Form.Item
@@ -269,8 +239,9 @@ export default function ProfileUser() {
                   className="btn-submit"
                   htmlType="submit"
                   loading={loading}
+                  disabled={uploadingAvatar}
                 >
-                  Lưu thay đổi
+                  {uploadingAvatar ? 'Đang tải ảnh...' : 'Lưu thay đổi'}
                 </Button>
               </Space>
             </Form.Item>
