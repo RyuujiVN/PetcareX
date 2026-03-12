@@ -23,7 +23,6 @@ import { PostService } from './post.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 import { OptionJwtAuthGuard } from 'src/common/guards/option-jwt-auth.guard';
-import { CreateLikePostDTO } from './dtos/like-post.dto';
 
 @Controller('post')
 @ApiBearerAuth('JWT-auth')
@@ -63,14 +62,22 @@ export class PostController {
   @Post(':id/like')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Like bài viết' })
-  @ApiBody({
-    type: CreateLikePostDTO,
-  })
-  async createLikePost(@Body() createDTO: CreateLikePostDTO, @Req() req) {
-    await this.postService.likePost(createDTO, req?.user?.id);
+  async createLikePost(@Param('id') id: string, @Req() req) {
+    await this.postService.likePost(id, req?.user?.id);
 
     return {
       message: 'Like thành công',
+    };
+  }
+
+  @Delete(':id/remove-like')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Xoá like bài viết' })
+  async removeLikePost(@Param('id') id: string, @Req() req) {
+    await this.postService.removeLikePost(id, req?.user?.id);
+
+    return {
+      message: 'Xoá like thành công',
     };
   }
 
