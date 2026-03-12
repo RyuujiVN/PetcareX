@@ -24,7 +24,6 @@ const AppointmentDetail = () => {
       date: '28/10/2023',
       time: '09:00',
       veterinarian: 'Bác sĩ Nguyễn Văn A',
-      status: 'Chưa khám',
       notes: 'Vui lòng đưa thú cưng đến 15 phút trước giờ hẹn',
     },
     {
@@ -38,7 +37,6 @@ const AppointmentDetail = () => {
       date: '30/10/2023',
       time: '14:30',
       veterinarian: 'Bác sĩ Trần Thị B',
-      status: 'Chưa khám',
     },
   ];
 
@@ -152,8 +150,9 @@ const AppointmentDetail = () => {
           </div>
         </antd.Col>
         <antd.Col xs={24} sm={6}>
-          <antd.Space direction="vertical" style={{ width: '100%' }}>
+          <antd.Space direction="vertical" style={{ width: '100%'}}>
             <antd.Button
+              style={{backgroundColor: '#13ECDA'}}
               type="primary"
               block
               icon={<icons.EyeOutlined />}
@@ -182,13 +181,13 @@ const AppointmentDetail = () => {
       <Header />
       <div className="appointment-detail-container">
         <div className="appointment-header-section">
-          <h1>Lịch sư khám</h1>
+          <h1>Lịch sử khám</h1>
           <p>Quản lý các cuộc khám sức khỏe cho các bạn cưng của bạn để đảng</p>
           <antd.Button
             type="primary"
             size="large"
             onClick={handleBookingNew}
-            style={{ marginTop: '16px' }}
+            style={{ marginTop: '16px', backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
           >
             + Đặt lịch khám mới
           </antd.Button>
@@ -203,7 +202,7 @@ const AppointmentDetail = () => {
               key: 'upcoming',
               label: (
                 <span>
-                  <icons.CalendarOutlined />
+                  <icons.CalendarOutlined/>
                   Lịch sắp tới ({upcomingAppointments.length})
                 </span>
               ),
@@ -222,7 +221,7 @@ const AppointmentDetail = () => {
                   ) : (
                     <antd.Empty
                       description="Không có lịch khám sắp tới"
-                      style={{ marginTop: '48px' }}
+                      style={{ marginTop: '48px'}}
                     />
                   )}
                 </antd.Spin>
@@ -233,7 +232,7 @@ const AppointmentDetail = () => {
               label: (
                 <span>
                   <icons.MedicineBoxOutlined />
-                  Lịch sú khám ({medicalHistory.length})
+                  Lịch sử khám ({medicalHistory.length})
                 </span>
               ),
               children: (
@@ -257,7 +256,6 @@ const AppointmentDetail = () => {
           ]}
         />
 
-        {/* Modal Xem Chi Tiết */}
         <antd.Modal
           title="Chi tiết lịch khám"
           open={isModalVisible}
@@ -267,6 +265,7 @@ const AppointmentDetail = () => {
               Đóng
             </antd.Button>,
             <antd.Button
+            style = {{ backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
               key="submit"
               type="primary"
               onClick={() => {
@@ -280,7 +279,7 @@ const AppointmentDetail = () => {
           width={700}
         >
           {selectedAppointment && (
-            <div className="modal-content">
+            <div className="modal-contents">
               <antd.Row gutter={[16, 16]}>
                 <antd.Col span={8}>
                   <img

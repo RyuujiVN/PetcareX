@@ -13,7 +13,6 @@ const SuccessBooking = () => {
   const [qrValue, setQrValue] = useState('');
 
   useEffect(() => {
-    // Get appointment data from location state or use mock data
     const state = location.state?.appointmentData || {
       petName: 'LuLu',
       doctorName: 'Dr. Nam',
@@ -24,7 +23,6 @@ const SuccessBooking = () => {
     };
     
     setAppointmentData(state);
-    // Generate QR code value (in real app, this would be unique to appointment)
     setQrValue(`https://petcarex.app/check-in/${state.appointmentId}`);
   }, [location.state]);
 
@@ -33,7 +31,6 @@ const SuccessBooking = () => {
   };
 
   const handleDownloadQR = () => {
-    // This would trigger QR code download in real implementation
     message.success('QR code đã được tải xuống');
   };
 
@@ -46,7 +43,6 @@ const SuccessBooking = () => {
       <Header />
 
       <div className="success-booking-container">
-        {/* Success Icon Section */}
         <div className="success-header">
           <CheckCircleOutlined className="success-icon" />
           <h1 className="success-title">Đặt lịch thành công!</h1>
@@ -55,7 +51,6 @@ const SuccessBooking = () => {
           </p>
         </div>
 
-        {/* Appointment Summary Card */}
         <Card className="appointment-summary-card">
           <div className="summary-header">
             <CalendarOutlined className="summary-icon" />
@@ -65,7 +60,6 @@ const SuccessBooking = () => {
           <Divider style={{ margin: '16px 0' }} />
 
           <div className="summary-content">
-            {/* Pet Name */}
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
                 <span className="label-text">Tên thú cưng</span>
@@ -75,7 +69,6 @@ const SuccessBooking = () => {
               </Col>
             </Row>
 
-            {/* Doctor Name */}
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
                 <span className="label-text">Bác sĩ chuyên khoa</span>
@@ -85,7 +78,6 @@ const SuccessBooking = () => {
               </Col>
             </Row>
 
-            {/* Time */}
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
                 <span className="label-text">Thời gian hẹn</span>
@@ -95,7 +87,6 @@ const SuccessBooking = () => {
               </Col>
             </Row>
 
-            {/* Service */}
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
                 <span className="label-text">Dịch vụ</span>
@@ -108,7 +99,6 @@ const SuccessBooking = () => {
 
           <Divider style={{ margin: '24px 0' }} />
 
-          {/* QR Code Section */}
           <div className="qr-section">
             <h3 className="qr-title">MÃ QR CHECK-IN</h3>
             <p className="qr-instruction">
@@ -134,9 +124,9 @@ const SuccessBooking = () => {
           </div>
         </Card>
 
-        {/* Action Buttons */}
         <div className="action-buttons">
           <Button
+            style={{ backgroundColor: '#13ECDA'}}
             type="primary"
             size="large"
             block
@@ -147,7 +137,7 @@ const SuccessBooking = () => {
             Đến Lịch hẹn của tôi
           </Button>
 
-          <Button
+          {/* <Button
             type="default"
             size="large"
             block
@@ -155,19 +145,8 @@ const SuccessBooking = () => {
             style={{ marginTop: '12px' }}
           >
             Quay về Trang chủ
-          </Button>
+          </Button> */}
         </div>
-
-        {/* Additional Info */}
-        <Card className="info-card">
-          <h3>ℹ️ Thông tin quan trọng</h3>
-          <ul className="info-list">
-            <li>Vui lòng đến 15 phút trước giờ hẹn</li>
-            <li>Mang theo chứng minh thư hoặc ID của chủ pet</li>
-            <li>Chuẩn bị các hồ sơ y tế của thú cưng nếu có</li>
-            <li>Liên hệ phòng khám nếu cần hủy hoặc rescheduler lịch hẹn</li>
-          </ul>
-        </Card>
       </div>
 
       <Footer />
