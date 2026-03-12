@@ -253,6 +253,7 @@ body {
   color: var(--primary-color) !important;
 }
 
+/* Input Number */
 .form-input .ant-input-number {
   width: 100% !important;
 }

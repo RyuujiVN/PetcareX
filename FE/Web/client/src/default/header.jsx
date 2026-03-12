@@ -71,7 +71,7 @@ function Header() {
                                         <span className="icon">👤</span>
                                         <span>Trang cá nhân</span>
                                     </Link>
-                                    <Link to="/my-pets" className="dropdown-item">
+                                    <Link to="/petProfile" className="dropdown-item">
                                         <span className="icon">🐶</span>
                                         <span>Thú cưng của tôi</span>
                                     </Link>

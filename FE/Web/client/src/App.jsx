@@ -14,6 +14,7 @@ import ChatBotAI from './component/chatBotAI'
 import ProfileUser from './component/profileUser'
 import AppointmentDetail from './component/appointmentDetail'
 import SuccessBooking from './component/successBooking'
+import PetProfile from './component/petProfile'
 import './App.css'
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
         <Route path="/profile" element={<ProfileUser />} />
         <Route path="/appointments" element={<AppointmentDetail />} />
         <Route path="/success-booking" element={<SuccessBooking />} />
+        <Route path="/petProfile" element={<PetProfile />} />
       </Routes>
     </AuthProvider>
   )
