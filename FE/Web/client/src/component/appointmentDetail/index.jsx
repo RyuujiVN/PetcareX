@@ -5,7 +5,6 @@ import { useNavigate } from 'react-router-dom';
 import Header from '../../default/header';
 import Footer from '../../default/footer';
 import './styles.css';
-
 const AppointmentDetail = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -96,8 +95,8 @@ const AppointmentDetail = () => {
       cancelText: 'Không, quay lại',
       okButtonProps: { danger: true },
       onOk() {
-        antd.message.success('Hủy lịch khám thành công');
-        setActiveTab('upcoming');
+      antd.message.success('Hủy lịch khám thành công');
+      setActiveTab('upcoming');
       },
     });
   };

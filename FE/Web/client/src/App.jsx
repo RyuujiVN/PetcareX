@@ -15,6 +15,7 @@ import ProfileUser from './component/profileUser'
 import AppointmentDetail from './component/appointmentDetail'
 import SuccessBooking from './component/successBooking'
 import PetProfile from './component/petProfile'
+import ListPet from './component/listPet/index';
 import './App.css'
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         <Route path="/appointments" element={<AppointmentDetail />} />
         <Route path="/success-booking" element={<SuccessBooking />} />
         <Route path="/petProfile" element={<PetProfile />} />
+        <Route path="/listPet" element={<ListPet />} />
       </Routes>
     </AuthProvider>
   )

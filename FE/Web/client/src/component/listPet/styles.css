@@ -1,99 +1,142 @@
-.appointment-detail-wrapper {
+.list-pet-wrapper {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
-  background-color: #f8f9fa;
+  min-height: calc(100vh - 64px);
+  background-color: #ffffff;
+  padding: 32px 0;
 }
 
-.appointment-detail-container {
-  flex: 1;
-  max-width: 1200px;
-  margin: 32px auto;
-  padding: 0 16px;
-  width: 100%;
+.list-pet-container {
+   width: 100%;
+  max-width: 1400px;
+  padding-right: 250px;
+  margin: 30px 150px;
 }
 
-.appointment-header-section {
+.list-pet-header-section {
   background: white;
-  padding: 32px;
+  padding: 40px;
   border-radius: 12px;
   margin-bottom: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding-top: 60px;
 }
 
-.appointment-header-section h1 {
+.list-pet-title {
   font-size: 28px;
   font-weight: 700;
-  margin: 0 0 8px 0;
+  margin: 0 0 12px 0;
   color: #262626;
 }
 
-.appointment-header-section p {
+.list-pet-subtitle {
   font-size: 14px;
   color: #8c8c8c;
-  margin: 0 0 16px 0;
+  margin: 0;
 }
 
-.tabs-wrapper {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  padding: 20px;
-}
-
-.appointment-tabs .ant-tabs-nav {
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 0;
-  margin-bottom: 24px;
-}
-
-.appointment-tabs .ant-tabs-tab {
-  font-size: 15px;
-  font-weight: 500;
-  color: #8c8c8c;
-  padding: 12px 16px;
-}
-
-.appointment-tabs .ant-tabs-tab-active {
-  color: #13ECDA;
-}
-
-.appointment-tabs .ant-tabs-ink-bar {
-  background: #13ECDA;
-  height: 3px;
-}
-
-/* Appointment List */
-.appointment-list {
+.pet-list {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
 }
 
-.appointment-card {
+.pet-item {
   background: white;
-  padding: 20px;
-  border-radius: 8px;
+  padding: 24px 32px;
+  border-radius: 12px;
   border: 1px solid #f0f0f0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   transition: all 0.3s ease;
 }
 
-.appointment-card:hover {
+.pet-item:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: #13ECDA;
 }
 
-.pet-image-col {
-  position: relative;
-}
-
-.appointment-pet-image {
-  position: relative;
+.pet-avatar-col {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.pet-avatar {
   width: 100%;
+  max-width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pet-info-col {
+  display: flex;
+  align-items: center;
+}
+
+.pet-info {
+  width: 100%;
+}
+
+.pet-name {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #262626;
+}
+
+.pet-action-col {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.view-detail-btn {
+  background-color: #13ECDA !important;
+  border-color: #13ECDA !important;
+  color: white !important;
+  font-weight: 500;
+  border-radius: 8px;
+  min-width: 140px;
+  height: 40px;
+}
+
+.view-detail-btn:hover {
+  background-color: #10d0c0 !important;
+  border-color: #10d0c0 !important;
+  box-shadow: 0 2px 8px rgba(19, 236, 218, 0.2);
+}
+
+.view-detail-btn:active {
+  background-color: #0ea89c !important;
+  border-color: #0ea89c !important;
+}
+
+@media (max-width: 768px) {
+  .list-pet-header-section {
+    padding: 24px;
+  }
+
+  .list-pet-title {
+    font-size: 20px;
+  }
+
+  .pet-item {
+    padding: 16px;
+  }
+
+  .pet-avatar {
+    max-width: 100px;
+    height: 100px;
+  }
+
+  .pet-avatar-col {
+    margin-bottom: 12px;
+  }
+
+  .pet-action-col {
+    margin-top: 12px;
+  }
 }
 
 .appointment-pet-image img {

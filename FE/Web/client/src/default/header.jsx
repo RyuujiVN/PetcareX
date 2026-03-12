@@ -3,6 +3,7 @@ import "./header.css";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { FaPaw } from "react-icons/fa";
+import ListPet from './../component/listPet/index';
 
 function Header() {
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
@@ -71,7 +72,7 @@ function Header() {
                                         <span className="icon">👤</span>
                                         <span>Trang cá nhân</span>
                                     </Link>
-                                    <Link to="/petProfile" className="dropdown-item">
+                                    <Link to="/ListPet" className="dropdown-item">
                                         <span className="icon">🐶</span>
                                         <span>Thú cưng của tôi</span>
                                     </Link>
