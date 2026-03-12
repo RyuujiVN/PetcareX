@@ -11,6 +11,7 @@ import { User } from 'src/user/entities/user.entity';
 import { ForumPost } from '../entities/forum_post.entity';
 import { UpdateCommentDTO } from './dtos/update-comment.dto';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { CommentPagination } from './types/comment-pagination.type';
 
 @Injectable()
 export class CommentService {
@@ -19,6 +20,22 @@ export class CommentService {
     private readonly commentRepository: Repository<ForumComment>,
     private readonly dataSource: DataSource,
   ) {}
+
+  async findAllPagination(options: CommentPagination) {
+    const queryBuilder = this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoin('comment.user', 'user')
+      .addSelect(['user.id', 'user.fullName', 'user.avatarUrl', 'user.role'])
+      .where('comment.parentId IS NULL')
+      .orderBy('comment.createdAt', 'DESC');
+
+    if (options.createdAt)
+      queryBuilder.andWhere('comment.createdAt < :time', {
+        time: new Date(options.createdAt),
+      });
+
+    return await queryBuilder.getMany();
+  }
 
   async createComment(createDTO: CreateCommentDTO, user: User) {
     return await this.dataSource.transaction(async (manager) => {
@@ -51,6 +68,7 @@ export class CommentService {
           id: user.id,
           fullName: user.fullName,
           avatarUrl: user.avatarUrl,
+          role: user.role,
         },
       };
     });

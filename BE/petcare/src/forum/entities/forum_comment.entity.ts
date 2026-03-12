@@ -36,11 +36,13 @@ export class ForumComment {
   @ManyToOne(() => User, (user) => user.comments, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'user_id' })
   user: User;
 
   @ManyToOne(() => ForumPost, (post) => post.comments, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'post_id' })
   post: ForumPost;
 
   @ManyToOne(() => ForumComment, (comment) => comment.replies, {

@@ -1,24 +1,47 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
+  Get,
   Param,
+  ParseIntPipe,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
-import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { CreateCommentDTO } from './dtos/create-comment.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdateCommentDTO } from './dtos/update-comment.dto';
 
 @Controller('comment')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth('JWT-auth')
+// @UseGuards(JwtAuthGuard)
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Lấy danh sách bình luận' })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  @ApiQuery({ name: 'createdAt', required: false, type: Date })
+  getAllComment(
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('createdAt') createdAt: Date,
+  ) {
+    return this.commentService.findAllPagination({
+      limit,
+      createdAt,
+    });
+  }
 
   @Post('')
   @ApiOperation({ summary: 'Tạo mới bình luận' })
