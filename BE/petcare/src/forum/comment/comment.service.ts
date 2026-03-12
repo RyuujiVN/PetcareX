@@ -11,7 +11,10 @@ import { User } from 'src/user/entities/user.entity';
 import { ForumPost } from '../entities/forum_post.entity';
 import { UpdateCommentDTO } from './dtos/update-comment.dto';
 import { RoleEnum } from 'src/common/enums/role.enum';
-import { CommentPagination } from './types/comment-pagination.type';
+import {
+  CommentPagination,
+  CommentReplyPagination,
+} from './types/comment-pagination.type';
 
 @Injectable()
 export class CommentService {
@@ -21,16 +24,38 @@ export class CommentService {
     private readonly dataSource: DataSource,
   ) {}
 
+  // Danh sách bình luận
   async findAllPagination(options: CommentPagination) {
     const queryBuilder = this.commentRepository
       .createQueryBuilder('comment')
       .leftJoin('comment.user', 'user')
       .addSelect(['user.id', 'user.fullName', 'user.avatarUrl', 'user.role'])
       .where('comment.parentId IS NULL')
+      .limit(options.limit)
       .orderBy('comment.createdAt', 'DESC');
 
     if (options.createdAt)
       queryBuilder.andWhere('comment.createdAt < :time', {
+        time: new Date(options.createdAt),
+      });
+
+    return await queryBuilder.getMany();
+  }
+
+  // Danh sách bình luận là reply
+  async findAllReplyPagination(options: CommentReplyPagination) {
+    const queryBuilder = this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoin('comment.user', 'user')
+      .addSelect(['user.id', 'user.fullName', 'user.avatarUrl', 'user.role'])
+      .where('comment.parentId = :id', {
+        id: options.parentId,
+      })
+      .limit(options.limit)
+      .orderBy('comment.createdAt', 'ASC');
+
+    if (options.createdAt)
+      queryBuilder.andWhere('comment.createdAt > :time', {
         time: new Date(options.createdAt),
       });
 
