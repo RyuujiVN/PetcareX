@@ -29,13 +29,13 @@ function Header() {
                         Trang chủ
                     </NavLink>
                     <NavLink 
-                        to="/lich-hen" 
+                        to="/appointments" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
                         Lịch hẹn
                     </NavLink>
                     <NavLink 
-                        to="/phong-kham" 
+                        to="/choose-clinic" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
                         Phòng khám

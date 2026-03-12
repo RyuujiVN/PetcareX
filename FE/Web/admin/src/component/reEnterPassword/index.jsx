@@ -6,6 +6,7 @@ import { FaPaw } from "react-icons/fa";
 import { MdLockReset } from "react-icons/md";
 import { Form, Input, Button, Card, Space, message } from 'antd';
 
+
 export default function ReEnterPassword() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);

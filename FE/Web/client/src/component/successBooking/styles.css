@@ -1,0 +1,402 @@
+/* Success Booking Styles */
+.success-booking-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.success-booking-container {
+  flex: 1;
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 0 16px;
+  width: 100%;
+}
+
+/* Success Header Section */
+.success-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 20px;
+}
+
+.success-icon {
+  font-size: 64px;
+  color: #52c41a;
+  display: block;
+  margin-bottom: 16px;
+  animation: scaleIn 0.6s ease-in-out;
+}
+
+.success-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #262626;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.success-subtitle {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* Appointment Summary Card */
+.appointment-summary-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  padding: 32px;
+  margin-bottom: 24px;
+  animation: slideUp 0.6s ease-out;
+}
+
+.summary-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.summary-icon {
+  font-size: 24px;
+  color: #13ECDA;
+}
+
+.summary-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
+}
+
+.summary-content {
+  padding: 8px 0;
+}
+
+.summary-row {
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.summary-row:last-child {
+  border-bottom: none;
+}
+
+.summary-label {
+  display: flex;
+  align-items: center;
+}
+
+.label-text {
+  font-size: 14px;
+  color: #8c8c8c;
+  font-weight: 500;
+}
+
+.summary-value {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.value-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* QR Code Section */
+.qr-section {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.qr-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0 0 8px 0;
+  letter-spacing: 1px;
+}
+
+.qr-instruction {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin: 0 0 24px 0;
+  line-height: 1.6;
+}
+
+.qr-code-container {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0;
+  padding: 20px;
+  background: #fafafa;
+  border-radius: 8px;
+  border: 2px dashed #f0f0f0;
+}
+
+.qr-code-container :global(.ant-qr-code) {
+  padding: 8px;
+  background: white;
+  border-radius: 4px;
+}
+
+.qr-download-btn {
+  background: #13ECDA;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 12px;
+}
+
+.qr-download-btn:hover {
+  background: #0dcfc3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(19, 236, 218, 0.3);
+}
+
+/* Action Buttons */
+.action-buttons {
+  margin-bottom: 24px;
+}
+
+.primary-btn {
+  background: #13ECDA;
+  border-color: #13ECDA;
+  height: 48px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+.primary-btn:hover,
+.primary-btn:focus {
+  background: #0dcfc3;
+  border-color: #0dcfc3;
+}
+
+.action-buttons :global(.ant-btn) {
+  border-radius: 8px;
+}
+
+/* Info Card */
+.info-card {
+  background: white;
+  border-radius: 12px;
+  border-left: 4px solid #13ECDA;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  padding: 20px;
+}
+
+.info-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0 0 12px 0;
+}
+
+.info-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.info-list li {
+  font-size: 14px;
+  color: #666;
+  padding: 8px 0;
+  padding-left: 24px;
+  position: relative;
+  line-height: 1.6;
+}
+
+.info-list li:before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  color: #13ECDA;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* Animations */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .success-booking-container {
+    margin: 24px auto;
+  }
+
+  .success-header {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .success-icon {
+    font-size: 48px;
+  }
+
+  .success-title {
+    font-size: 24px;
+  }
+
+  .success-subtitle {
+    font-size: 13px;
+  }
+
+  .appointment-summary-card {
+    padding: 20px;
+    margin-bottom: 16px;
+  }
+
+  .summary-row {
+    padding: 12px 0;
+  }
+
+  .summary-label,
+  .summary-value {
+    justify-content: flex-start;
+  }
+
+  .summary-value {
+    margin-top: 8px;
+  }
+
+  .qr-code-container {
+    padding: 16px;
+  }
+
+  .info-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .success-booking-container {
+    padding: 0 12px;
+    margin: 16px auto;
+  }
+
+  .success-header {
+    padding: 12px;
+    margin-bottom: 16px;
+  }
+
+  .success-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+  }
+
+  .success-title {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+
+  .success-subtitle {
+    font-size: 12px;
+  }
+
+  .appointment-summary-card {
+    padding: 16px;
+    border-radius: 8px;
+  }
+
+  .summary-content {
+    padding: 0;
+  }
+
+  .summary-row {
+    flex-direction: column;
+    padding: 10px 0;
+  }
+
+  .label-text {
+    font-size: 13px;
+  }
+
+  .value-text {
+    font-size: 15px;
+    margin-top: 4px;
+  }
+
+  .qr-section {
+    padding: 16px 0;
+  }
+
+  .qr-title {
+    font-size: 14px;
+  }
+
+  .qr-instruction {
+    font-size: 12px;
+    margin-bottom: 16px;
+  }
+
+  .qr-code-container {
+    padding: 12px;
+    margin: 16px 0;
+  }
+
+  .primary-btn {
+    height: 44px;
+    font-size: 15px;
+  }
+
+  .info-card {
+    padding: 14px;
+  }
+
+  .info-list li {
+    font-size: 13px;
+    padding: 6px 0 6px 20px;
+  }
+}
+
+/* Ant Design Overrides */
+:global(.ant-card) {
+  border: none;
+}
+
+:global(.ant-divider) {
+  border-color: #f0f0f0;
+}
+
+:global(.ant-btn-default) {
+  border-color: #d9d9d9;
+}
+
+:global(.ant-btn-default:hover) {
+  color: #13ECDA;
+  border-color: #13ECDA;
+}

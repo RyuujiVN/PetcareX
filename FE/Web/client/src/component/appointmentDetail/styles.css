@@ -1,0 +1,338 @@
+/* Appointment Detail Styles */
+.appointment-detail-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+}
+
+.appointment-detail-container {
+  flex: 1;
+  max-width: 1200px;
+  margin: 32px auto;
+  padding: 0 16px;
+  width: 100%;
+}
+
+/* Header Section */
+.appointment-header-section {
+  background: white;
+  padding: 32px;
+  border-radius: 12px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.appointment-header-section h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+  color: #262626;
+}
+
+.appointment-header-section p {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 0 0 16px 0;
+}
+
+/* Tabs Section */
+.tabs-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 20px;
+}
+
+.appointment-tabs .ant-tabs-nav {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 0;
+  margin-bottom: 24px;
+}
+
+.appointment-tabs .ant-tabs-tab {
+  font-size: 15px;
+  font-weight: 500;
+  color: #8c8c8c;
+  padding: 12px 16px;
+}
+
+.appointment-tabs .ant-tabs-tab-active {
+  color: #1890ff;
+}
+
+.appointment-tabs .ant-tabs-ink-bar {
+  background: #13ECDA;
+  height: 3px;
+}
+
+/* Appointment List */
+.appointment-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Appointment Card */
+.appointment-card {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px solid #f0f0f0;
+  transition: all 0.3s ease;
+}
+
+.appointment-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #13ECDA;
+}
+
+.pet-image-col {
+  position: relative;
+}
+
+.appointment-pet-image {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.appointment-pet-image img {
+  width: 100%;
+  max-width: 120px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.status-tag {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.appointment-content-col {
+  padding: 0 16px;
+}
+
+.appointment-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.pet-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+  margin: 0;
+}
+
+.appointment-info-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.info-icon {
+  font-size: 14px;
+  color: #13ECDA;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.appointment-info-item .label {
+  font-size: 14px;
+  color: #262626;
+  font-weight: 500;
+}
+
+.appointment-info-item .address {
+  font-size: 12px;
+  color: #8c8c8c;
+  margin: 4px 0 0 0;
+}
+
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #666;
+}
+
+.info-row .value {
+  color: #262626;
+  font-weight: 500;
+}
+
+.action-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.action-col .ant-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.action-col .ant-btn-primary {
+  background: #13ECDA;
+  border-color: #13ECDA;
+  color: white;
+  font-weight: 500;
+}
+
+.action-col .ant-btn-primary:hover {
+  background: #0dcfc3;
+  border-color: #0dcfc3;
+}
+
+.action-col .ant-btn-text {
+  color: #999 !important;
+}
+
+/* Modal Styles */
+.modal-content {
+  padding: 16px 0;
+}
+
+.modal-content h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  color: #262626;
+}
+
+.modal-content p {
+  margin: 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.modal-content strong {
+  color: #262626;
+}
+
+/* Ant Design Overrides */
+:global(.ant-empty) {
+  padding: 48px 0;
+}
+
+:global(.ant-badge-count) {
+  background-color: #ff4d4f;
+  font-size: 11px;
+  padding: 0 6px;
+  margin-left: 8px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .appointment-card {
+    padding: 16px;
+  }
+
+  .appointment-content-col {
+    padding: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .appointment-detail-container {
+    margin: 16px auto;
+    padding: 0 12px;
+  }
+
+  .appointment-header-section {
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+
+  .appointment-header-section h1 {
+    font-size: 22px;
+  }
+
+  .tabs-wrapper {
+    padding: 16px;
+  }
+
+  .pet-image-col {
+    margin-bottom: 12px;
+  }
+
+  .appointment-pet-image img {
+    max-width: 100px;
+  }
+
+  .action-col {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .action-col .ant-btn {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+}
+
+@media (max-width: 576px) {
+  .appointment-detail-container {
+    padding: 0 8px;
+  }
+
+  .appointment-header-section {
+    padding: 16px;
+  }
+
+  .appointment-header-section h1 {
+    font-size: 18px;
+  }
+
+  .tabs-wrapper {
+    padding: 12px;
+  }
+
+  .appointment-card {
+    padding: 12px;
+  }
+
+  .appointment-tabs .ant-tabs-tab {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .pet-name {
+    font-size: 14px;
+  }
+
+  .action-col {
+    gap: 4px;
+  }
+
+  .action-col .ant-btn {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.appointment-card {
+  animation: slideIn 0.3s ease;
+}
