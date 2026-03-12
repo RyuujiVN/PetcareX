@@ -14,13 +14,13 @@
   width: 100%;
 }
 
-/* Header Section */
 .appointment-header-section {
   background: white;
   padding: 32px;
   border-radius: 12px;
   margin-bottom: 32px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding-top: 60px;
 }
 
 .appointment-header-section h1 {
