@@ -6,19 +6,25 @@ import {
 import { CreatePostDTO } from './dtos/create-post.dto';
 import { ForumPost } from '../entities/forum_post.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { PostPagination } from './types/post-pagination.type';
+import { CreateLikePostDTO } from './dtos/like-post.dto';
+import { Like } from '../entities/like.entity';
 
 @Injectable()
 export class PostService {
   constructor(
     @InjectRepository(ForumPost)
     private readonly postRepository: Repository<ForumPost>,
+    @InjectRepository(Like)
+    private readonly likeRepository: Repository<Like>,
+    private readonly dataSource: DataSource,
   ) {}
 
+  // Lấy danh sách bài đăng
   async findAllPagination(options: PostPagination): Promise<ForumPost[]> {
     const queryBuilder = this.postRepository
       .createQueryBuilder('post')
@@ -47,6 +53,29 @@ export class PostService {
     return await queryBuilder.getMany();
   }
 
+  // Like bài đăng
+  async likePost(createDTO: CreateLikePostDTO, userId: string) {
+    return await this.dataSource.transaction(async (manager) => {
+      // 1. Tạo mới like
+      const likeRepo = manager.getRepository(Like);
+      const like = likeRepo.create(createDTO);
+      like.userId = userId;
+
+      await likeRepo.save(like);
+
+      // 2. Cập nhật lượt like bên post
+      const postRepo = manager.getRepository(ForumPost);
+      const post = await postRepo.findOne({
+        where: { id: like.postId },
+      });
+
+      if (!post) throw new NotFoundException('Không tìm thấy post');
+
+      await postRepo.increment({ id: post.id }, 'likeCount', 1);
+    });
+  }
+
+  // Tạo mới bài đăng
   async createPost(
     createDTO: CreatePostDTO,
     authorId: string,

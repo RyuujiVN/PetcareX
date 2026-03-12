@@ -10,6 +10,7 @@ import {
 import { ForumComment } from './forum_comment.entity';
 import { User } from 'src/user/entities/user.entity';
 import { ForumTopic } from './forum_topic.entity';
+import { Like } from './like.entity';
 
 @Entity('forum_post')
 export class ForumPost {
@@ -49,4 +50,7 @@ export class ForumPost {
   })
   @JoinColumn({ name: 'topic_id' })
   topic: ForumTopic;
+
+  @OneToMany(() => Like, (like) => like.post)
+  likes: Like[];
 }

@@ -14,6 +14,7 @@ import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import { Pet } from 'src/pet/entities/pet.entity';
 import { ForumComment } from 'src/forum/entities/forum_comment.entity';
 import { ForumPost } from 'src/forum/entities/forum_post.entity';
+import { Like } from 'src/forum/entities/like.entity';
 
 @Entity('user')
 export class User {
@@ -68,4 +69,7 @@ export class User {
 
   @OneToMany(() => ForumPost, (post) => post.author)
   posts: ForumPost[];
+
+  @OneToMany(() => Like, (like) => like.user)
+  likes: Like[];
 }

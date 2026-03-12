@@ -22,6 +22,8 @@ import { CreatePostDTO } from './dtos/create-post.dto';
 import { PostService } from './post.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePostDTO } from './dtos/update-post.dto';
+import { OptionJwtAuthGuard } from 'src/common/guards/option-jwt-auth.guard';
+import { CreateLikePostDTO } from './dtos/like-post.dto';
 
 @Controller('post')
 @ApiBearerAuth('JWT-auth')
@@ -29,6 +31,7 @@ export class PostController {
   constructor(private readonly postService: PostService) {}
 
   @Get('')
+  @UseGuards(OptionJwtAuthGuard)
   @ApiOperation({ summary: 'Lấy danh sách bài viết' })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 20 })
   @ApiQuery({
@@ -55,6 +58,20 @@ export class PostController {
   })
   createPost(@Body() createDTO: CreatePostDTO, @Req() req) {
     return this.postService.createPost(createDTO, req?.user?.id);
+  }
+
+  @Post(':id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Like bài viết' })
+  @ApiBody({
+    type: CreateLikePostDTO,
+  })
+  async createLikePost(@Body() createDTO: CreateLikePostDTO, @Req() req) {
+    await this.postService.likePost(createDTO, req?.user?.id);
+
+    return {
+      message: 'Like thành công',
+    };
   }
 
   @Put(':id')
