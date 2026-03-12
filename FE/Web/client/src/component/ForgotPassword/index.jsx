@@ -1,9 +1,9 @@
+import { Button, Form, Input, message, Spin } from 'antd';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, message, Spin } from 'antd';
-import { LockOutlined } from '@ant-design/icons';
-import './styles.css';
 import { FaPaw } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { forgotPasswordApi } from '../../api/auth';
+import './styles.css';
 
 export default function ForgotPassword() {
   const [form] = Form.useForm();
@@ -12,34 +12,18 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (values) => {
     setLoading(true);
-
     try {
-      const response = await fetch('http://localhost:3000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: values.email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Không tìm thấy tài khoản với email này');
-      }
-
+      await forgotPasswordApi(values.email);
       message.success({
         content: 'Mã OTP đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư đến hoặc thư mục spam.',
         duration: 3,
       });
-      
       setTimeout(() => {
         navigate('/reEnterPassword', { state: { email: values.email } });
       }, 1500);
     } catch (err) {
-      console.error('Error:', err);
       message.error({
-        content: err.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
+        content: err.response?.data?.message || err.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
         duration: 3,
       });
     } finally {

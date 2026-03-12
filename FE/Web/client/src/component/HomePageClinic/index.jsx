@@ -1,10 +1,9 @@
-import React from "react";
+import { FaFire, FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import Header from "../../default/header";
 import Footer from "../../default/footer";
+import Header from "../../default/header";
 import "../HomePage/styles.css"; // reuse existing base styles
 import "./HomePageClinic.css";
-import { FaMobileAlt, FaRobot, FaStethoscope, FaHeartbeat, FaFire } from "react-icons/fa";
 
 export default function HomePageClinic() {
   const navigate = useNavigate();
@@ -115,7 +114,7 @@ export default function HomePageClinic() {
       <section className="hero-section clinic-hero">
         <div className="hero-content">
           <h1 className="hero-title">
-            PetCar - Khởi đầu cuộc sống tốt đẹp nhất cho thú cưng của bạn tại đây
+            PetCareX - Khởi đầu cuộc sống tốt đẹp nhất cho thú cưng của bạn tại đây
           </h1>
           <p className="hero-description">
             Vươn thương hiệu chăm sóc thú cưng số 1 Việt Nam, luôn đặt lợi ích của 
