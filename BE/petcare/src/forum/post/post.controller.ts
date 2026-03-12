@@ -42,11 +42,15 @@ export class PostController {
   getAllPost(
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('lastPostTime') lastPostTime: Date,
+    @Req() req,
   ) {
-    return this.postService.findAllPagination({
-      limit,
-      lastPostTime,
-    });
+    return this.postService.findAllPagination(
+      {
+        limit,
+        lastPostTime,
+      },
+      req?.user?.id,
+    );
   }
 
   @Post('')
@@ -62,23 +66,15 @@ export class PostController {
   @Post(':id/like')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Like bài viết' })
-  async createLikePost(@Param('id') id: string, @Req() req) {
-    await this.postService.likePost(id, req?.user?.id);
-
-    return {
-      message: 'Like thành công',
-    };
+  createLikePost(@Param('id') id: string, @Req() req) {
+    return this.postService.likePost(id, req?.user?.id);
   }
 
   @Delete(':id/remove-like')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Xoá like bài viết' })
-  async removeLikePost(@Param('id') id: string, @Req() req) {
-    await this.postService.removeLikePost(id, req?.user?.id);
-
-    return {
-      message: 'Xoá like thành công',
-    };
+  removeLikePost(@Param('id') id: string, @Req() req) {
+    return this.postService.removeLikePost(id, req?.user?.id);
   }
 
   @Put(':id')

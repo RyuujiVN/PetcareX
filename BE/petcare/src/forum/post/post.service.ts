@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   ForbiddenException,
   Injectable,
@@ -18,29 +19,37 @@ export class PostService {
   constructor(
     @InjectRepository(ForumPost)
     private readonly postRepository: Repository<ForumPost>,
-    @InjectRepository(Like)
-    private readonly likeRepository: Repository<Like>,
     private readonly dataSource: DataSource,
   ) {}
 
   // Lấy danh sách bài đăng
-  async findAllPagination(options: PostPagination): Promise<ForumPost[]> {
+  async findAllPagination(options: PostPagination, userId: string) {
     const queryBuilder = this.postRepository
       .createQueryBuilder('post')
       .leftJoin('post.author', 'author')
       .leftJoin('post.topic', 'topic')
+      .leftJoin(
+        'post.likes',
+        'like',
+        'like.postId = post.id AND like.userId = :id',
+        { id: userId },
+      )
       .select([
         'post.id',
         'post.content',
         'post.commentCount',
         'post.likeCount',
         'post.createdAt',
+
         'author.id',
         'author.fullName',
         'author.avatarUrl',
+        'author.role',
+
         'topic.id',
         'topic.name',
       ])
+      .addSelect('like.postId IS NOT NULL', 'liked')
       .limit(options.limit)
       .orderBy('post.createdAt', 'DESC');
 
@@ -49,7 +58,26 @@ export class PostService {
         time: new Date(options.lastPostTime),
       });
 
-    return await queryBuilder.getMany();
+    const posts = await queryBuilder.getRawMany();
+
+    return posts.map((post) => ({
+      id: post.post_id,
+      content: post.post_content,
+      commentCount: post.post_comment_count,
+      likeCount: post.post_like_count,
+      createdAt: post.post_created_at,
+      author: {
+        id: post.author_id,
+        fullName: post.author_full_name,
+        avatarUrl: post.author_avatar_url,
+        role: post.author_role,
+      },
+      topic: {
+        id: post.topic_id,
+        name: post.topic_name,
+      },
+      liked: post.liked,
+    }));
   }
 
   // Like bài đăng
@@ -72,6 +100,12 @@ export class PostService {
       if (!post) throw new NotFoundException('Không tìm thấy post');
 
       await postRepo.increment({ id: post.id }, 'likeCount', 1);
+
+      return {
+        postId: post.id,
+        likeCount: post.likeCount + 1,
+        liked: true,
+      };
     });
   }
 
@@ -87,8 +121,17 @@ export class PostService {
 
       // 2. Cập nhật lượt like bên post
       const postRepo = manager.getRepository(ForumPost);
+      const post = await postRepo.findOne({ where: { id: postId } });
 
-      await postRepo.decrement({ id: postId }, 'likeCount', 1);
+      if (post) {
+        await postRepo.decrement({ id: postId }, 'likeCount', 1);
+
+        return {
+          postId: post.id,
+          likeCount: post.likeCount - 1,
+          liked: false,
+        };
+      }
     });
   }
 
