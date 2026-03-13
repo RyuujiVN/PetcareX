@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "482330049700",
+    "project_id": "petcarex-490104",
+    "storage_bucket": "petcarex-490104.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:482330049700:android:25c0efa2d291181ae37a31",
+        "android_client_info": {
+          "package_name": "com.example.petcarex"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "482330049700-o5q2mrlj33gikaa827kskceuvk36aj3p.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCn2oMSKVxJua4kgf0FgMS8nQQ9JAEtV7k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "482330049700-o5q2mrlj33gikaa827kskceuvk36aj3p.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "482330049700-lv4dv3t6u1hnlmcbkiteqv9nfo7k3th2.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.petcarex"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

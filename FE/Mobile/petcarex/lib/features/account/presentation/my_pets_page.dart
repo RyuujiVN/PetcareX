@@ -25,6 +25,38 @@ class _MyPetsPageState extends State<MyPetsPage> {
     });
   }
 
+  String _calculateAge(String dateOfBirthStr) {
+    try {
+      final dob = DateTime.parse(dateOfBirthStr);
+      final now = DateTime.now();
+
+      int years = now.year - dob.year;
+      int months = now.month - dob.month;
+      int days = now.day - dob.day;
+
+      if (months < 0 || (months == 0 && days < 0)) {
+        years--;
+        months += 12;
+      }
+
+      if (days < 0) {
+        final previousMonth = DateTime(now.year, now.month, 0);
+        days += previousMonth.day;
+        months--;
+      }
+
+      if (years > 0) {
+        return '$years tuổi';
+      } else if (months > 0) {
+        return '$months tháng';
+      } else {
+        return '${days == 0 ? 1 : days} ngày';
+      }
+    } catch (e) {
+      return 'Chưa rõ';
+    }
+  }
+
   void _showDeleteConfirmDialog(BuildContext context, Pet pet) {
     showDialog(
       context: context,
@@ -166,29 +198,39 @@ class _MyPetsPageState extends State<MyPetsPage> {
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark),
                       ),
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(Icons.category_outlined, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(pet.breed?.name ?? 'Chưa cập nhật', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-                        ],
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            Icon(Icons.category_outlined, size: 14, color: Colors.grey[600]),
+                            const SizedBox(width: 4),
+                            Text(pet.breed?.name ?? 'Chưa cập nhật', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                            const SizedBox(width: 12),
+                            Icon(pet.gender ? Icons.male : Icons.female, 
+                                 size: 14, 
+                                 color: pet.gender ? Colors.blue : Colors.pink),
+                            const SizedBox(width: 4),
+                            Text(
+                              pet.gender ? 'Đực' : 'Cái',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 13)
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(pet.gender == 'MALE' ? Icons.male : Icons.female, 
-                               size: 14, 
-                               color: pet.gender == 'MALE' ? Colors.blue : Colors.pink),
-                          const SizedBox(width: 4),
-                          Text(
-                            pet.gender == 'MALE' ? 'Đực' : (pet.gender == 'FEMALE' ? 'Cái' : 'Chưa rõ'),
-                            style: TextStyle(color: Colors.grey[600], fontSize: 13)
-                          ),
-                          const SizedBox(width: 16),
-                          Icon(Icons.scale_outlined, size: 14, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text('${pet.weight} kg', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
-                        ],
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            Icon(Icons.cake_outlined, size: 14, color: Colors.grey[600]),
+                            const SizedBox(width: 4),
+                            Text(_calculateAge(pet.dateOfBirth), style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                            const SizedBox(width: 12),
+                            Icon(Icons.monitor_weight_outlined, size: 14, color: Colors.grey[600]),
+                            const SizedBox(width: 4),
+                            Text('${pet.weight} kg', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                          ],
+                        ),
                       ),
                     ],
                   ),
