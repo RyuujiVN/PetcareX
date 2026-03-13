@@ -150,69 +150,87 @@ class _AddPetPageState extends State<AddPetPage> {
       ),
       body: Consumer<PetProvider>(
         builder: (context, petProvider, child) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Avatar
-                  PetAvatarPicker(
-                    selectedImage: _selectedImage,
-                    avatarUrl: _uploadedAvatarUrl ?? petProvider.petAvatarUrl,
-                    isUploading: _isUploadingAvatar,
-                    onPickImage: _pickImage,
-                    compactStyle: false,
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Avatar
+                        PetAvatarPicker(
+                          selectedImage: _selectedImage,
+                          avatarUrl: _uploadedAvatarUrl ?? petProvider.petAvatarUrl,
+                          isUploading: _isUploadingAvatar,
+                          onPickImage: _pickImage,
+                          compactStyle: false,
+                        ),
+                        const SizedBox(height: 24),
+
+                        // Pet Name
+                        _buildPetNameField(),
+                        const SizedBox(height: 16),
+
+                        // Species & Breed
+                        PetSpeciesBreedFields(
+                          selectedSpeciesId: _selectedSpeciesId,
+                          selectedBreedId: _selectedBreedId,
+                          speciesList: petProvider.speciesList,
+                          breedList: petProvider.breedList,
+                          onSpeciesChanged: (value) {
+                            setState(() {
+                              _selectedSpeciesId = value;
+                              _selectedBreedId = null;
+                            });
+                            if (value != null) {
+                              petProvider.fetchBreeds(value);
+                            } else {
+                              petProvider.clearBreeds();
+                            }
+                          },
+                          onBreedChanged: (value) => setState(() => _selectedBreedId = value),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Gender
+                        PetGenderSelector(
+                          selectedGender: _selectedGender,
+                          onChanged: (value) => setState(() => _selectedGender = value),
+                          showIcons: true,
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Birthdate
+                        _buildBirthdateField(),
+                        const SizedBox(height: 16),
+
+                        // Weight & Fur Color
+                        _buildWeightAndFurColorRow(),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // Pet Name
-                  _buildPetNameField(),
-                  const SizedBox(height: 20),
-
-                  // Species & Breed
-                  PetSpeciesBreedFields(
-                    selectedSpeciesId: _selectedSpeciesId,
-                    selectedBreedId: _selectedBreedId,
-                    speciesList: petProvider.speciesList,
-                    breedList: petProvider.breedList,
-                    onSpeciesChanged: (value) {
-                      setState(() {
-                        _selectedSpeciesId = value;
-                        _selectedBreedId = null;
-                      });
-                      if (value != null) {
-                        petProvider.fetchBreeds(value);
-                      } else {
-                        petProvider.clearBreeds();
-                      }
-                    },
-                    onBreedChanged: (value) => setState(() => _selectedBreedId = value),
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Gender
-                  PetGenderSelector(
-                    selectedGender: _selectedGender,
-                    onChanged: (value) => setState(() => _selectedGender = value),
-                    showIcons: true,
-                  ),
-                  const SizedBox(height: 20),
-
-                  // Birthdate
-                  _buildBirthdateField(),
-                  const SizedBox(height: 20),
-
-                  // Weight & Fur Color
-                  _buildWeightAndFurColorRow(),
-                  const SizedBox(height: 32),
-
-                  // Save Button
-                  _buildSaveButton(petProvider),
-                ],
+                ),
               ),
-            ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: _buildSaveButton(petProvider),
+                ),
+              ),
+            ],
           );
         },
       ),

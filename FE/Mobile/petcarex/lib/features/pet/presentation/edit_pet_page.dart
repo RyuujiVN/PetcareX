@@ -228,108 +228,126 @@ class _EditPetPageState extends State<EditPetPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Avatar
-                  PetAvatarPicker(
-                    selectedImage: _selectedImage,
-                    avatarUrl: _uploadedAvatarUrl ?? petProvider.petAvatarUrl,
-                    isUploading: _isUploadingAvatar,
-                    onPickImage: _pickImage,
-                    compactStyle: true,
-                  ),
-                  const SizedBox(height: 12),
+          return Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        // Avatar
+                        PetAvatarPicker(
+                          selectedImage: _selectedImage,
+                          avatarUrl: _uploadedAvatarUrl ?? petProvider.petAvatarUrl,
+                          isUploading: _isUploadingAvatar,
+                          onPickImage: _pickImage,
+                          compactStyle: true,
+                        ),
+                        const SizedBox(height: 12),
 
-                  // Pet info header
-                  Text(
-                    widget.pet.name,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
-                  ),
-                  const SizedBox(height: 4),
-                  if (widget.pet.breed != null)
-                    Text(
-                      widget.pet.breed!.name,
-                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        // Pet info header
+                        Text(
+                          widget.pet.name,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
+                        ),
+                        const SizedBox(height: 4),
+                        if (widget.pet.breed != null)
+                          Text(
+                            widget.pet.breed!.name,
+                            style: const TextStyle(fontSize: 14, color: Colors.grey),
+                          ),
+                        const SizedBox(height: 8),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              _calculateAge(widget.pet.dateOfBirth),
+                              style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
+                            ),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text('•', style: TextStyle(color: Colors.grey)),
+                            ),
+                            Text(
+                              '${widget.pet.weight} kg',
+                              style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        
+                        const Row(
+                          children: [
+                            Icon(Icons.pets, color: AppColors.primary, size: 20),
+                            SizedBox(width: 8),
+                            Text('Thông tin thú cưng', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Pet Name
+                        _buildPetNameField(),
+                        const SizedBox(height: 12),
+
+                        // Species & Breed (vertical layout for edit page)
+                        PetSpeciesBreedFields(
+                          selectedSpeciesId: _selectedSpeciesId,
+                          selectedBreedId: _selectedBreedId,
+                          speciesList: petProvider.speciesList,
+                          breedList: petProvider.breedList,
+                          onSpeciesChanged: (value) {
+                            setState(() {
+                              _selectedSpeciesId = value;
+                              _selectedBreedId = null;
+                            });
+                            if (value != null) {
+                              petProvider.fetchBreeds(value);
+                            }
+                          },
+                          onBreedChanged: (value) => setState(() => _selectedBreedId = value),
+                          vertical: true,
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Gender & Birthdate Row
+                        _buildGenderAndBirthdateRow(),
+                        const SizedBox(height: 12),
+
+                        // Weight
+                        _buildWeightField(),
+                        const SizedBox(height: 12),
+
+                        // Fur Color / Notes
+                        _buildFurColorField(),
+                        const SizedBox(height: 12),
+
+                        // Owner
+                        _buildOwnerField(),
+                      ],
                     ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _calculateAge(widget.pet.dateOfBirth),
-                        style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
-                        child: Text('•', style: TextStyle(color: Colors.grey)),
-                      ),
-                      Text(
-                        '${widget.pet.weight} kg',
-                        style: const TextStyle(fontSize: 14, color: AppColors.primary, fontWeight: FontWeight.bold),
-                      ),
-                    ],
                   ),
-                  const SizedBox(height: 24),
-                  
-                  const Row(
-                    children: [
-                      Icon(Icons.pets, color: AppColors.primary, size: 20),
-                      SizedBox(width: 8),
-                      Text('Thông tin thú cưng', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Pet Name
-                  _buildPetNameField(),
-                  const SizedBox(height: 16),
-
-                  // Species & Breed (vertical layout for edit page)
-                  PetSpeciesBreedFields(
-                    selectedSpeciesId: _selectedSpeciesId,
-                    selectedBreedId: _selectedBreedId,
-                    speciesList: petProvider.speciesList,
-                    breedList: petProvider.breedList,
-                    onSpeciesChanged: (value) {
-                      setState(() {
-                        _selectedSpeciesId = value;
-                        _selectedBreedId = null;
-                      });
-                      if (value != null) {
-                        petProvider.fetchBreeds(value);
-                      }
-                    },
-                    onBreedChanged: (value) => setState(() => _selectedBreedId = value),
-                    vertical: true,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Gender & Birthdate Row
-                  _buildGenderAndBirthdateRow(),
-                  const SizedBox(height: 16),
-
-                  // Weight
-                  _buildWeightField(),
-                  const SizedBox(height: 16),
-
-                  // Fur Color / Notes
-                  _buildFurColorField(),
-                  const SizedBox(height: 16),
-
-                  // Owner
-                  _buildOwnerField(),
-                  const SizedBox(height: 32),
-
-                  // Action Buttons
-                  _buildActionButtons(petProvider),
-                ],
+                ),
               ),
-            ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  child: _buildActionButtons(petProvider),
+                ),
+              ),
+            ],
           );
         },
       ),
@@ -463,11 +481,11 @@ class _EditPetPageState extends State<EditPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Màu lông / Đặc điểm nhận dạng', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        const Text('Màu lông', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
         const SizedBox(height: 8),
         TextFormField(
           controller: noteController,
-          decoration: petInputDecoration('Màu lông / Đặc điểm nhận dạng'),
+          decoration: petInputDecoration('Màu lông'),
         ),
       ],
     );
