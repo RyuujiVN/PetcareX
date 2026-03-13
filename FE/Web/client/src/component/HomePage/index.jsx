@@ -152,7 +152,7 @@ export default function HomePage() {
             <div className="hero-buttons">
               <button className="btn btn-primary" onClick={handleLogin}>
                 <MdPets size={20}/> 
-                Dành cho Chủ nuôi
+                Tải ứng dụng ngay
               </button>
 
               <button className="btn btn-secondary-hero" onClick={handleRegister}>

@@ -99,8 +99,8 @@ export default function HomePageClinic() {
     { id: 4, image: './public/bs4.png', name: 'BS. Tuyết Mai' }
   ];
 
-  const goTodownLoadApp = () => {
-    navigate("/downloadApp");
+  const goToMainUser = () => {
+    navigate("/main-user");
   };
 
   const goToBookingAppointment = () => {
@@ -122,8 +122,8 @@ export default function HomePageClinic() {
           </p>
 
           <div className="hero-buttons">
-            <button className="btn btn-primary" onClick={goTodownLoadApp}>
-              Tải ứng dụng ngay
+            <button className="btn btn-primary" onClick={goToMainUser}>
+              Dành cho chủ nuôi
             </button>
             <button className="btn btn-secondary-hero" onClick={goToBookingAppointment}>
               Đặt lịch khám ngay

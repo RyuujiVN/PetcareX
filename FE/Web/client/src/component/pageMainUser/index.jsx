@@ -13,11 +13,6 @@ const dummyPets = [
   { id: 3, name: 'Bông',  breed: 'Mèo Ba Tư', age: '3 tuổi', avatar: '/public/lulu.png' },
 ];
 
-
-// const goToChatBot = () => Navigate("/chatbot");
-// const goToBooking = () => Navigate("/booking");
-
-
 export default function PageMainUser() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
@@ -30,12 +25,16 @@ export default function PageMainUser() {
     navigate("/booking");
   }
 
+  const goToMedicalRecords = () => {
+    navigate("/listPet");
+  }
+
   return (
     
     <div className="user-dashboard">
       <Header/>
       <header className="dashboard-header">
-        <h1>Chào mừng trở lại, {userProfile?.fullName || 'bạn'}!</h1>
+        <h1>Chào mừng, {userProfile?.fullName || 'bạn'}!</h1>
         <p>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
         <button className="btn-primaryy" onClick={goToBooking}>
           Đặt lịch khám ngay
@@ -44,7 +43,7 @@ export default function PageMainUser() {
       </header>
 
       <h2 className="section-titles">Thú cưng của bạn</h2>
-      <section className="pet-list">
+      <section className="pet-listts">
         {dummyPets.map(p => (
           <article key={p.id} className="pet-card">
             <img src={p.avatar} alt={p.name} className="pet-avatar" />
@@ -93,7 +92,9 @@ export default function PageMainUser() {
             <h3>Hồ sơ y tế điện tử</h3>
             <p>Xem được tất cả hồ sơ khám của thú cưng bạn</p>
           </div>
-          <a href="#" className="quick-link">Đi đến →</a>
+          <a href="#" className="quick-link" onClick={(e) => { e.preventDefault(); goToMedicalRecords(); }}>
+            Đi đến →
+          </a>
         </div>
       </section>
 

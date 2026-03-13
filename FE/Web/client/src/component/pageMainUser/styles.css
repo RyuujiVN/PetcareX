@@ -34,7 +34,7 @@
   margin: 0;
   font-size: 14;
   font-weight: 700;
-  margin-right: 25%;
+  margin-right: 23%;
   padding-top: 10px;
 }
 
@@ -62,8 +62,8 @@
   margin-right: 85%;
 }
 
-.pet-list {
-  display: grid;
+.pet-listts {
+  display: flex;
   grid-template-columns: repeat(4, minmax(160px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
@@ -146,7 +146,6 @@
   display: flex;
   gap: 2rem;
   margin-bottom: 2rem;
-  /* no wrapping on desktop, keep all cards same row */
   flex-wrap: nowrap;
 }
 
@@ -162,7 +161,6 @@
   overflow: hidden;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
-/* removed colored bar; design uses icon circle instead */
 .quick-card.green { background: #e6ffed; color: #16a34a; }
 .quick-card.blue { background: #e0e8ff; color: #3b82f6; }
 .quick-card.orange { background: #fff5eb; color: #ea580c; }
@@ -204,7 +202,6 @@
 
 .appointments {
   margin-bottom: 3rem;
-  /* limit width so list doesn’t stretch too far on wide screens */
   max-width: 800px;
   margin-left: auto;
   margin-right: auto;
