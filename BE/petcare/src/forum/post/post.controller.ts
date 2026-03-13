@@ -23,11 +23,15 @@ import { PostService } from './post.service';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 import { OptionJwtAuthGuard } from 'src/common/guards/option-jwt-auth.guard';
+import { CommentService } from '../comment/comment.service';
 
 @Controller('post')
 @ApiBearerAuth('JWT-auth')
 export class PostController {
-  constructor(private readonly postService: PostService) {}
+  constructor(
+    private readonly postService: PostService,
+    private readonly commentService: CommentService,
+  ) {}
 
   @Get('')
   @UseGuards(OptionJwtAuthGuard)
@@ -51,6 +55,22 @@ export class PostController {
       },
       req?.user?.id,
     );
+  }
+
+  @Get(':postId/comments')
+  @ApiOperation({ summary: 'Lấy danh sách bình luận của bài viết' })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  @ApiQuery({ name: 'createdAt', required: false, type: Date })
+  getAllComment(
+    @Param('postId') postId: string,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('createdAt') createdAt?: Date,
+  ) {
+    return this.commentService.findAllPagination({
+      postId,
+      limit,
+      createdAt,
+    });
   }
 
   @Post('')

@@ -19,6 +19,7 @@ import { MedicalModule } from './medical/medical.module';
 import { MedicalOrderModule } from './medical-order/medical-order.module';
 import { MedicineModule } from './medicine/medicine.module';
 import { ForumModule } from './forum/forum.module';
+import { InvoiceModule } from './invoice/invoice.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { ForumModule } from './forum/forum.module';
     MedicalOrderModule,
     MedicineModule,
     ForumModule,
+    InvoiceModule,
   ],
   controllers: [AppController],
   providers: [

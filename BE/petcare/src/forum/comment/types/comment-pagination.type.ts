@@ -1,4 +1,5 @@
 export type CommentPagination = {
+  postId?: string;
   limit: number;
   createdAt?: Date;
 };

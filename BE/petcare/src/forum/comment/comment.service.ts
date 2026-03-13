@@ -31,6 +31,7 @@ export class CommentService {
       .leftJoin('comment.user', 'user')
       .addSelect(['user.id', 'user.fullName', 'user.avatarUrl', 'user.role'])
       .where('comment.parentId IS NULL')
+      .andWhere('comment.postId = :id', { id: options.postId })
       .limit(options.limit)
       .orderBy('comment.createdAt', 'DESC');
 

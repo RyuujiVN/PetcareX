@@ -28,25 +28,16 @@ import { UpdateCommentDTO } from './dtos/update-comment.dto';
 export class CommentController {
   constructor(private readonly commentService: CommentService) {}
 
-  @Get()
-  @ApiOperation({ summary: 'Lấy danh sách bình luận' })
-  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
-  @ApiQuery({ name: 'createdAt', required: false, type: Date })
-  getAllComment(
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
-    @Query('createdAt') createdAt: Date,
-  ) {
-    return this.commentService.findAllPagination({
-      limit,
-      createdAt,
-    });
-  }
-
   @Get('replies')
   @ApiOperation({ summary: 'Lấy danh sách bình luận reply' })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
   @ApiQuery({ name: 'parentId', required: true, type: String })
-  @ApiQuery({ name: 'createdAt', required: false, type: Date })
+  @ApiQuery({
+    name: 'createdAt',
+    required: false,
+    type: Date,
+    description: 'Phân trang dựa vào thời gian bình luận cuối',
+  })
   getAllCommentReply(
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('parentId') parentId: string,
