@@ -292,7 +292,7 @@ class _EditPetPageState extends State<EditPetPage> {
                         _buildPetNameField(),
                         const SizedBox(height: 12),
 
-                        // Species & Breed (vertical layout for edit page)
+                        // Species & Breed
                         PetSpeciesBreedFields(
                           selectedSpeciesId: _selectedSpeciesId,
                           selectedBreedId: _selectedBreedId,
@@ -305,24 +305,29 @@ class _EditPetPageState extends State<EditPetPage> {
                             });
                             if (value != null) {
                               petProvider.fetchBreeds(value);
+                            } else {
+                              petProvider.clearBreeds();
                             }
                           },
                           onBreedChanged: (value) => setState(() => _selectedBreedId = value),
-                          vertical: true,
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 16),
 
-                        // Gender & Birthdate Row
-                        _buildGenderAndBirthdateRow(),
-                        const SizedBox(height: 12),
+                        // Gender
+                        PetGenderSelector(
+                          selectedGender: _selectedGender,
+                          onChanged: (value) => setState(() => _selectedGender = value),
+                          showIcons: true,
+                        ),
+                        const SizedBox(height: 16),
 
-                        // Weight
-                        _buildWeightField(),
-                        const SizedBox(height: 12),
+                        // Birthdate
+                        _buildBirthdateField(),
+                        const SizedBox(height: 16),
 
-                        // Fur Color / Notes
-                        _buildFurColorField(),
-                        const SizedBox(height: 12),
+                        // Weight & Fur Color
+                        _buildWeightAndFurColorRow(),
+                        const SizedBox(height: 16),
 
                         // Owner
                         _buildOwnerField(),
@@ -372,120 +377,66 @@ class _EditPetPageState extends State<EditPetPage> {
     );
   }
 
-  Widget _buildGenderAndBirthdateRow() {
+  Widget _buildBirthdateField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Ngày sinh', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: birthdateController,
+          readOnly: true,
+          onTap: () async {
+            await pickPetBirthdate(
+              context,
+              birthdateController,
+              initialDate: DateTime.tryParse(birthdateController.text),
+            );
+            if (mounted) setState(() {});
+          },
+          decoration: petInputDecoration('yyyy-mm-dd').copyWith(
+            suffixIcon: const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+          ),
+          validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng chọn ngày sinh' : null,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeightAndFurColorRow() {
     return Row(
       children: [
         Expanded(
-          flex: 1,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Giới tính', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const Text('Cân nặng (kg)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  Expanded(child: _buildGenderOption('Đực', 'male')),
-                  const SizedBox(width: 8),
-                  Expanded(child: _buildGenderOption('Cái', 'female')),
-                ],
+              TextFormField(
+                controller: weightController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: petInputDecoration('0.0'),
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Vui lòng nhập cân nặng';
+                  return null;
+                },
               ),
             ],
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          flex: 1,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Ngày sinh / Tuổi', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+              const Text('Màu lông', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
               const SizedBox(height: 8),
-              GestureDetector(
-                onTap: () async {
-                  await pickPetBirthdate(
-                    context,
-                    birthdateController,
-                    initialDate: DateTime.tryParse(birthdateController.text),
-                  );
-                  if (mounted) setState(() {});
-                },
-                child: Container(
-                  height: 48,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[200] ?? Colors.grey),
-                  ),
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    birthdateController.text.isNotEmpty ? _calculateAge(birthdateController.text) : 'Chọn ngày',
-                    style: TextStyle(
-                      color: birthdateController.text.isNotEmpty ? Colors.black : Colors.grey[400],
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
+              TextFormField(
+                controller: noteController,
+                decoration: petInputDecoration('VD: Trắng sữa'),
               ),
             ],
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGenderOption(String label, String value) {
-    final isSelected = _selectedGender == value;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedGender = value),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFEAF9F7) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? AppColors.primary : (Colors.grey[200] ?? Colors.grey)),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? AppColors.primary : Colors.black,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 14,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWeightField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Cân nặng (kg)', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: weightController,
-          keyboardType: TextInputType.number,
-          decoration: petInputDecoration('Cân nặng (kg)'),
-          validator: (value) {
-            if (value == null || value.isEmpty) return 'Vui lòng nhập cân nặng';
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFurColorField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Màu lông', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: noteController,
-          decoration: petInputDecoration('Màu lông'),
         ),
       ],
     );
