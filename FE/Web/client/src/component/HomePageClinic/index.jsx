@@ -103,8 +103,8 @@ export default function HomePageClinic() {
     navigate("/downloadApp");
   };
 
-  const goToMainUser = () => {
-    navigate("/main-user");
+  const goToBookingAppointment = () => {
+    navigate("/booking");
   };
 
   return (
@@ -125,8 +125,8 @@ export default function HomePageClinic() {
             <button className="btn btn-primary" onClick={goTodownLoadApp}>
               Tải ứng dụng ngay
             </button>
-            <button className="btn btn-secondary-hero" onClick={goToMainUser}>
-              Dành cho bạn
+            <button className="btn btn-secondary-hero" onClick={goToBookingAppointment}>
+              Đặt lịch khám ngay
             </button>
           </div>
         </div>

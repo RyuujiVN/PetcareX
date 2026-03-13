@@ -62,19 +62,11 @@ export default function ClinicSelection() {
             <input
               type="text"
               className="clinic-search"
-              placeholder="Tìm kiếm theo tên hoặc vị trí..."
+              placeholder="Tìm kiếm theo tên"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
-          <button type="button" className="search-option">
-            <FaClipboardList className="option-icon" />
-            <span>Dịch vụ</span>
-          </button>
-          <button type="button" className="search-option">
-            <FaMapMarkerAlt className="option-icon" />
-            <span>Khu vực</span>
-          </button>
         </div>
       </div>
 

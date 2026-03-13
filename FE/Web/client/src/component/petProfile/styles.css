@@ -146,10 +146,11 @@ body {
 }
 
 .profile-title{
-    font-size: 28px;
+    font-size: 25px;
     font-weight: 700;
     margin-right: 63%;
     color: rgb(8, 8, 8);
+    padding-bottom: 20px;
 }
 
 .profile-description {

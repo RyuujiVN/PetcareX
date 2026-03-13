@@ -34,7 +34,7 @@
   margin: 0;
 }
 
-.pet-list {
+.pet-lists {   
   display: flex;
   flex-direction: column;
   gap: 24px;

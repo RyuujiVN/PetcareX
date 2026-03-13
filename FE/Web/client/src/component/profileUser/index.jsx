@@ -79,6 +79,7 @@ export default function ProfileUser() {
       setProfileData((prev) => ({ ...prev, ...updateData }));
       await refreshUserProfile();
       message.success('Cập nhật hồ sơ thành công!');
+      navigate (-1);
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Cập nhật hồ sơ thất bại!';
       message.error(errorMsg);
@@ -92,7 +93,6 @@ export default function ProfileUser() {
     message.info('Đã hủy thay đổi');
     navigate(-1);
   };
-
   if (loading && !profileData) {
     return (
       <div className="profile-loading">
@@ -167,26 +167,6 @@ export default function ProfileUser() {
                   className="form-input"
                 />
               </Form.Item>
-
-              <Form.Item
-                label="Email"
-                name="email"
-                className="form-col"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập email!' },
-                  { type: 'email', message: 'Email không đúng định dạng!' }
-                ]}
-              >
-                <Input
-                  prefix={<MailOutlined />}
-                  placeholder="nguyen@email.com"
-                  size="large"
-                  className="form-input"
-                />
-              </Form.Item>
-            </div>
-
-            <div className="form-row">
               <Form.Item
                 label="Số điện thoại"
                 name="phone"
@@ -208,7 +188,24 @@ export default function ProfileUser() {
               </Form.Item>
             </div>
 
-            <Form.Item
+            <div className="form-row">
+              <Form.Item
+                label="Email"
+                name="email"
+                className="form-col"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập email!' },
+                  { type: 'email', message: 'Email không đúng định dạng!' }
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined />}
+                  placeholder="nguyen@email.com"
+                  size="large"
+                  className="form-input"
+                />
+              </Form.Item>
+                 <Form.Item
               label="Địa chỉ"
               name="address"
               rules={[
@@ -223,7 +220,7 @@ export default function ProfileUser() {
                 className="form-input"
               />
             </Form.Item>
-
+            </div>
             <Form.Item className="form-buttons">
               <Space style={{ width: '100%', gap: '12px' }}>
                 <Button

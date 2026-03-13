@@ -74,7 +74,7 @@ const ListPet = () => {
 
         <Spin spinning={loading}>
           {pets.length > 0 ? (
-            <div className="pet-list">
+            <div className="pet-lists">
               {pets.map((pet) => (
                 <div key={pet.id} className="pet-item">
                   <Row gutter={[16, 16]} align="middle">

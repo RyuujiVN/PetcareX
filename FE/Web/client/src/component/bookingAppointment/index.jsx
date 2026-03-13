@@ -71,7 +71,6 @@ export default function BookingAppointment() {
        <header className="dashboard-header">
         <h1>Chào mừng trở lại, Công Thành!</h1>
         <p>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
-        <button className="btn-primary">Đặt lịch khám ngay</button>
       </header>
       <div className="booking-content">
         <div className="form-column">
@@ -92,9 +91,12 @@ export default function BookingAppointment() {
                   </div>
                 </div>
               ))}
-              <div className="pet-card add-new">
+              {/* <div className="pet-card add-new">
                 <span> Thêm thú cưng</span>
-              </div>
+              </div> */}
+              <article className="pet-card add-new" onClick={() => navigate('/add-pet')} style={{cursor: 'pointer'}}>
+                  <span className="add-text">Thêm thú cưng mới</span>
+              </article>
             </div>
           </section>
 
