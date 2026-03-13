@@ -9,7 +9,6 @@ import {
   Typography,
 } from "antd";
 import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
-import "./styles.css";
 import { registerApi } from "../../api/auth";
 import { FaPaw } from "react-icons/fa";
 
@@ -81,16 +80,19 @@ export default function Register() {
   };
 
   return (
-    <div className="register-container">
-      <div className="login-header-bar">
-        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div className="relative min-h-screen overflow-hidden bg-white">
+      <div className="pointer-events-none absolute -left-20 top-10 h-56 w-56 rounded-full bg-cyan-100/70 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-6 h-72 w-72 rounded-full bg-indigo-100/60 blur-3xl" />
+
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2">
           <FaPaw size={28} color="#13ECDA" />
-          <h2 className="logo-name-small" style={{ margin: 0, color: '#333' }}>PetcareX</h2>
+          <h2 className="m-0 text-xl font-bold tracking-tight text-slate-800">PetcareX</h2>
         </div>
       </div>
 
-      <div style={{ padding: '40px 25px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+      <div className="relative mx-auto mt-6 w-full max-w-2xl rounded-3xl border border-slate-100 bg-white px-6 py-10 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] sm:px-10">
+        <div className="mb-6 text-center">
           <UserOutlined style={{ fontSize: '48px', color: '#13ECDA' }} />
           <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng ký tài khoản</Title>
         </div>
@@ -107,6 +109,7 @@ export default function Register() {
             label="Họ và tên"
             rules={[
               { required: true, message: "Vui lòng nhập họ và tên" },
+              { validator: (_, value) => validateFullName(value) },
             ]}
           >
             <Input
@@ -120,6 +123,7 @@ export default function Register() {
             label="Email"
             rules={[
               { required: true, message: "Vui lòng nhập email" },
+              { validator: (_, value) => validateEmail(value) },
             ]}
           >
             <Input
@@ -134,6 +138,7 @@ export default function Register() {
             label="Mật khẩu"
             rules={[
               { required: true, message: "Vui lòng nhập mật khẩu" },
+              { validator: (_, value) => validatePassword(value) },
             ]}
           >
             <Input.Password
@@ -189,26 +194,26 @@ export default function Register() {
             </Checkbox>
           </Form.Item>
 
-          <Form.Item>
+          <Form.Item className="mb-3">
             <Button
               type="primary"
               htmlType="submit"
               block
               loading={loading}
-              style={{ backgroundColor: '#13ECDA', color: 'white', fontWeight: 'bold', borderColor: '#13ECDA' }}
+              style={{ backgroundColor: '#13ECDA', color: 'white', fontWeight: 'bold', borderColor: '#13ECDA', height: 44 }}
             >
               Tạo tài khoản
             </Button>
           </Form.Item>
         </Form>
 
-        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+        <div className="mt-4 text-center">
           <Text type="secondary">
             Bạn đã có tài khoản? <a style={{ color: '#13ECDA', fontWeight: 'bold' }} onClick={() => navigate("/login")}>Đăng nhập ngay</a>
           </Text>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#666' }}>
+        <div className="mt-4 text-center text-xs text-slate-500">
           © 2026 PetcareX Việt Nam
         </div>
       </div>

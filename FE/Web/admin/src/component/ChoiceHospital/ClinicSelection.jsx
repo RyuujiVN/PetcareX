@@ -3,7 +3,6 @@ import Header from "../../default/header";
 import Footer from "../../default/footer";
 import { FaSearch, FaMapMarkerAlt, FaClipboardList } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import "./styles.css";  // own stylesheet with clinic list & modal rules
 
 const sampleClinics = [
   {
@@ -52,50 +51,51 @@ export default function ClinicSelection() {
   const closeModal = () => setSelectedClinic(null);
 
   return (
-    <div className="clinic-page">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-cyan-50/30">
       <Header />
-      <div className="clinic-header">
-        <h2>Danh sách phòng khám đối tác</h2>
-        <div className="search-form">
-          <div className="search-input-wrapper">
-            <FaSearch className="search-icon" />
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+        <h2 className="text-3xl font-bold text-slate-900">Danh sách phòng khám đối tác</h2>
+        <p className="mt-2 text-sm text-slate-500">Chọn phòng khám phù hợp để bắt đầu trải nghiệm chăm sóc thú cưng chuyên nghiệp.</p>
+        <div className="mt-5 flex flex-wrap gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="relative min-w-[260px] flex-1">
+            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              className="clinic-search"
+              className="h-11 w-full rounded-lg border border-slate-200 pl-10 pr-3 text-sm outline-none ring-cyan-300 transition focus:border-cyan-400 focus:ring"
               placeholder="Tìm kiếm theo tên hoặc vị trí..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
           </div>
-          <button type="button" className="search-option">
-            <FaClipboardList className="option-icon" />
+          <button type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <FaClipboardList className="text-slate-500" />
             <span>Dịch vụ</span>
           </button>
-          <button type="button" className="search-option">
-            <FaMapMarkerAlt className="option-icon" />
+          <button type="button" className="inline-flex h-11 items-center gap-2 rounded-lg border border-slate-200 px-4 text-sm font-medium text-slate-700 hover:bg-slate-50">
+            <FaMapMarkerAlt className="text-slate-500" />
             <span>Khu vực</span>
           </button>
         </div>
       </div>
 
-      <div className="clinic-grid">
+      <div className="mx-auto grid max-w-7xl gap-5 px-4 pb-10 sm:px-6 lg:grid-cols-3 lg:px-8">
         {filtered.map((clinic) => (
-          <div key={clinic.id} className="clinic-card">
-            <img src={clinic.image} alt={clinic.name} className="clinic-img" />
-            <div className="clinic-info">
-              <h3>{clinic.name}</h3>
-              <p>{clinic.address}</p>
-              <p>{clinic.time}</p>  
+          <div key={clinic.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
+            <img src={clinic.image} alt={clinic.name} className="h-52 w-full object-cover" />
+            <div className="space-y-2 p-5">
+              <h3 className="text-lg font-semibold text-slate-900">{clinic.name}</h3>
+              <p className="text-sm text-slate-600">{clinic.address}</p>
+              <p className="text-sm text-slate-500">{clinic.time}</p>
             </div>
-            <div className="clinic-meta">
-              <span className="rating">{clinic.rating} ⭐ ({clinic.reviews})</span>
+            <div className="flex items-center justify-between border-t border-slate-100 px-5 py-4">
+              <span className="text-sm font-medium text-amber-600">{clinic.rating} ⭐ ({clinic.reviews})</span>
+              <button
+                className="rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-cyan-600"
+                onClick={() => handleChoose(clinic)}
+              >
+                Chọn
+              </button>
             </div>
-            <button
-              className="btn-choose"
-              onClick={() => handleChoose(clinic)}
-            >
-              Chọn
-            </button>
           </div>
         ))}
       </div>

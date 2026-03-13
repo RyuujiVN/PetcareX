@@ -2,8 +2,6 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "../../default/header";
 import Footer from "../../default/footer";
-import "../HomePage/styles.css"; // reuse existing base styles
-import "./HomePageClinic.css";
 import { FaMobileAlt, FaRobot, FaStethoscope, FaHeartbeat, FaFire } from "react-icons/fa";
 
 export default function HomePageClinic() {
@@ -109,65 +107,76 @@ export default function HomePageClinic() {
   };
 
   return (
-    <div className="home-page clinic-page">
+    <div className="bg-slate-50 text-slate-900">
       <Header />
 
-      <section className="hero-section clinic-hero">
-        <div className="hero-content">
-          <h1 className="hero-title">
+      <section
+        className="relative overflow-hidden py-24 text-white"
+        style={{
+          backgroundImage:
+            "linear-gradient(135deg, rgba(16,92,117,0.75) 0%, rgba(15,105,99,0.72) 100%), url('./public/pageMainClinic.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
+        <div className="absolute inset-0 opacity-20 [background:radial-gradient(circle_at_top_right,#5eead4,transparent_45%)]" />
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h1 className="max-w-3xl text-4xl font-bold leading-tight sm:text-5xl">
             PetCar - Khởi đầu cuộc sống tốt đẹp nhất cho thú cưng của bạn tại đây
           </h1>
-          <p className="hero-description">
+          <p className="mt-4 max-w-2xl text-base leading-7 text-cyan-100">
             Vươn thương hiệu chăm sóc thú cưng số 1 Việt Nam, luôn đặt lợi ích của 
             thú cưng và chủ nuôi lên hàng đầu.
           </p>
 
-          <div className="hero-buttons">
-            <button className="btn btn-primary" onClick={goTodownLoadApp}>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <button className="rounded-xl bg-[#1abc9c] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-cyan-900/30 transition hover:-translate-y-0.5 hover:bg-[#16a085]" onClick={goTodownLoadApp}>
               Tải ứng dụng ngay
             </button>
-            <button className="btn btn-secondary-hero" onClick={goToforYou}>
+            <button className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-slate-800 shadow-lg shadow-black/20 transition hover:-translate-y-0.5 hover:bg-slate-100" onClick={goToforYou}>
               Dành cho bạn
             </button>
           </div>
         </div>
       </section>
 
-      <section className="about-section">
-        <div className="section-container about-grid about-split">
-          <div className="about-left">
-            <span className="about-label">Giới thiệu</span>
-            <h2 className="about-title">Bệnh viện thú y PetCar</h2>
+      <section className="bg-white py-14">
+        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+          <div>
+            <span className="text-xs font-semibold uppercase tracking-wide text-cyan-600">Giới thiệu</span>
+            <h2 className="mt-2 text-3xl font-bold">Bệnh viện thú y PetCar</h2>
           </div>
-          <div className="about-right">
-            <p className="about-text">
+          <div className="lg:col-span-2">
+            <p className="text-slate-600">
               Được thành lập vào năm 2021 với cái tên phòng khám thú y PetCar luôn tự hào là
               một trong những bệnh viện thú y hàng đầu Việt Nam. Nhiều năm qua, PetCar đã
               được khách hàng tin tưởng và luôn đồng hành. Cùng với những dịch vụ đa dạng,
               PetCar luôn mang đến những trải nghiệm tốt và đáng nhớ nhất cho quý khách.
             </p>
-            <button className="btn btn-secondary">ĐỌC THÊM -</button>
+            <button className="mt-5 rounded-lg border border-cyan-500 px-4 py-2 text-sm font-semibold text-cyan-600 hover:bg-cyan-50">ĐỌC THÊM -</button>
           </div>
-          <div className="about-highlight">
-            <div className="highlight-number">20 NĂM</div>
-            <div className="highlight-label">5 CHI NHÁNH</div>
+          <div className="rounded-2xl bg-cyan-50 p-6 text-center">
+            <div className="text-3xl font-bold text-cyan-700">20 NĂM</div>
+            <div className="mt-1 text-sm font-medium text-slate-600">5 CHI NHÁNH</div>
           </div>
         </div>
       </section>
 
-      <section className="clinic-features">
-        <div className="section-container">
-          <h2 className="section-title">Mọi thứ mà người bạn nhỏ của bạn cần</h2>
-          <p className="section-subtitle">
+      <section className="py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-center text-3xl font-bold">Mọi thứ mà người bạn nhỏ của bạn cần</h2>
+          <p className="mx-auto mt-2 max-w-2xl text-center text-slate-500">
             Bộ công cụ toàn diện để quản lý sức khỏe và hạnh phúc cho thú cưng của bạn.
           </p>
-          <div className="features-grid compact">
+          <div className="mt-8 grid gap-4 md:grid-cols-2">
             {features.map((f) => (
-              <div key={f.id} className="feature-card compact">
-                <div className={`feature-icon-wrapper ${f.colorClass}`}>{f.icon}</div>
-                <div className="feature-content">
-                  <h4 className="feature-title">{f.title}</h4>
-                  <p className="feature-desc">{f.description}</p>
+              <div key={f.id} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <div className="flex items-start gap-4">
+                  <div className="rounded-xl bg-cyan-50 p-3 text-cyan-600">{f.icon}</div>
+                  <div>
+                    <h4 className="text-lg font-semibold">{f.title}</h4>
+                    <p className="mt-1 text-sm text-slate-600">{f.description}</p>
+                  </div>
                 </div>
               </div>
             ))}
@@ -175,71 +184,70 @@ export default function HomePageClinic() {
         </div>
       </section>
 
-      <section className="team-section">
-        <div className="section-container">
-          <h2 className="section-title">ĐỘI NGŨ PHÒNG KHÁM</h2>
-          <div className="team-grid">
+      <section className="bg-white py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <h2 className="text-center text-3xl font-bold">ĐỘI NGŨ PHÒNG KHÁM</h2>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {doctors.map((doc) => (
-              <div key={doc.id} className="doctor-card">
-                <img src={doc.image} alt={doc.name} />
-                <div className="doctor-name">{doc.name}</div>
+              <div key={doc.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <img src={doc.image} alt={doc.name} className="h-56 w-full object-cover" />
+                <div className="p-4 text-sm font-semibold text-slate-800">{doc.name}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="services-section">
-        <div className="section-container services-layout">
-          <div className="services-column left">
+      <section className="py-14">
+        <div className="mx-auto grid max-w-7xl gap-6 px-4 sm:px-6 lg:grid-cols-3 lg:px-8">
+          <div className="space-y-4">
             {servicesLeft.map(s => (
-              <div key={s.id} className="service-item">
-                <h4 className="service-title">{s.title}</h4>
-                <p className="service-desc">{s.description}</p>
+              <div key={s.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <h4 className="text-sm font-bold text-cyan-700">{s.title}</h4>
+                <p className="mt-2 text-sm text-slate-600">{s.description}</p>
               </div>
             ))}
           </div>
 
-          <div className="services-center-image">
-            <img src="./public/pageMainClinic.png" alt="pet" />
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <img src="./public/pageMainClinic.png" alt="pet" className="h-full w-full object-cover" />
           </div>
 
-          <div className="services-column right">
+          <div className="space-y-4">
             {servicesRight.map(s => (
-              <div key={s.id} className="service-item">
-                <h4 className="service-title">{s.title}</h4>
-                <p className="service-desc">{s.description}</p>
+              <div key={s.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <h4 className="text-sm font-bold text-cyan-700">{s.title}</h4>
+                <p className="mt-2 text-sm text-slate-600">{s.description}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section className="community-section">
-        <div className="section-container">
-          <div className="community-header">
-            <span className="community-subtitle">CỘNG ĐỒNG KẾT NỐI</span>
-            <h2 className="section-title">Diễn đàn cộng đồng PetCareX</h2>
-            <div className="community-hot">
-              <FaFire className="hot-icon" /> <span>Thảo luận sôi nổi</span>
+      <section className="bg-white py-14">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <span className="text-xs font-semibold uppercase tracking-wide text-cyan-600">CỘNG ĐỒNG KẾT NỐI</span>
+            <h2 className="mt-2 text-3xl font-bold">Diễn đàn cộng đồng PetCareX</h2>
+            <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-red-50 px-3 py-1 text-sm font-medium text-red-500">
+              <FaFire /> <span>Thảo luận sôi nổi</span>
             </div>
           </div>
-          <div className="community-grid">
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             {posts.map((p) => (
-              <div key={p.id} className="community-card">
-                <img src={p.image} alt={p.title} />
-                <p>{p.title}</p>
+              <div key={p.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+                <img src={p.image} alt={p.title} className="h-48 w-full object-cover" />
+                <p className="p-4 text-sm font-semibold text-slate-800">{p.title}</p>
               </div>
             ))}
           </div>
-          <div className="community-doctors">
-            <h3 className="doctors-heading">Bác sĩ tiêu biểu trong cộng đồng</h3>
-            <div className="avatar-row">
+          <div className="mt-10">
+            <h3 className="text-center text-xl font-bold">Bác sĩ tiêu biểu trong cộng đồng</h3>
+            <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {avatars.map((a) => (
-                <div key={a.id} className="avatar-item">
-                  <img src={a.image} alt={a.name} />
-                  <span className="avatar-name">{a.name}</span>
-                  <span className="avatar-subtitle">{a.subtitle}</span>
+                <div key={a.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+                  <img src={a.image} alt={a.name} className="mx-auto h-16 w-16 rounded-full object-cover" />
+                  <span className="mt-2 block font-semibold text-slate-800">{a.name}</span>
                 </div>
               ))}
             </div>

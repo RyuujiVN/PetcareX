@@ -1,8 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Form, Input, Button, message, Spin } from 'antd';
-import { LockOutlined } from '@ant-design/icons';
-import './styles.css';
 import { FaPaw } from 'react-icons/fa';
 
 export default function ForgotPassword() {
@@ -52,17 +50,20 @@ export default function ForgotPassword() {
   };
 
   return (
-    <div className="forgot-password-container">
-      <div className="login-header-bar">
-              <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaPaw size={28} color="#13ECDA" />
-                <h2 className="logo-name-small" style={{ margin: 0, color: 'white' }}>PetcareX</h2>
-              </div>
-            </div>
-      <div className="forgot-password-content">
-        <div className="forgot-password-card">
-          <div className="forgot-password-icon">
-            <svg viewBox="0 0 80 80" className="lock-icon-svg">
+    <div className="relative min-h-screen overflow-hidden bg-white">
+      <div className="pointer-events-none absolute -left-16 top-12 h-52 w-52 rounded-full bg-cyan-100/70 blur-3xl" />
+      <div className="pointer-events-none absolute -right-16 bottom-10 h-72 w-72 rounded-full bg-sky-100/70 blur-3xl" />
+
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2">
+          <FaPaw size={28} color="#13ECDA" />
+          <h2 className="m-0 text-xl font-bold tracking-tight text-slate-800">PetcareX</h2>
+        </div>
+      </div>
+
+      <div className="relative mx-auto mt-6 w-full max-w-2xl rounded-3xl border border-slate-100 bg-white px-6 py-10 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] sm:px-10">
+        <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-cyan-50">
+          <svg viewBox="0 0 80 80" className="h-14 w-14">
               <defs>
                 <style>{`.lock-fill { fill: #13ECDA; }`}</style>
               </defs>
@@ -76,11 +77,11 @@ export default function ForgotPassword() {
                 className="lock-fill"
               />
             </svg>
-          </div>
+        </div>
 
-          <div className="forgot-password-header">
-            <h1 className="forgot-password-title">Quên mật khẩu?</h1>
-            <p className="forgot-password-subtitle">
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-bold text-slate-900">Quên mật khẩu?</h1>
+            <p className="mt-3 text-sm leading-6 text-slate-500">
               Đừng lo lắng! Nhập email liên kết với tài khoản của bạn và chúng tôi sẽ gửi mã OTP để bạn có thể khôi phục mật khẩu
             </p>
           </div>
@@ -94,7 +95,7 @@ export default function ForgotPassword() {
             >
               <Form.Item
                 name="email"
-                label={<span className="form-label">Địa chỉ Email</span>}
+                label={<span className="font-medium text-slate-700">Địa chỉ Email</span>}
                 rules={[
                   {
                     required: true,
@@ -108,7 +109,6 @@ export default function ForgotPassword() {
               >
                 <Input
                   placeholder="Nhập email của bạn"
-                  className="form-input"
                   disabled={loading}
                 />
               </Form.Item>
@@ -119,7 +119,7 @@ export default function ForgotPassword() {
                   htmlType="submit"
                   block
                   loading={loading}
-                  className="forgot-password-button"
+                  style={{ backgroundColor: '#13ECDA', borderColor: '#13ECDA', fontWeight: 700, height: 44 }}
                 >
                   Gửi mã OTP
                 </Button>
@@ -127,23 +127,21 @@ export default function ForgotPassword() {
             </Form>
           </Spin>
 
-          <div className="back-to-login">
+          <div className="text-center">
             <Button
               type="text"
               onClick={handleGoBack}
-              className="back-login-link"
               disabled={loading}
             >
               ← Quay lại Đăng nhập
             </Button>
           </div>
 
-          <div className="contact-support-link">
+          <div className="mt-3 text-center text-sm text-slate-500">
             <span>Bạn gặp khó khăn?</span>
-            <a href="/contact-support">Liên hệ bộ phận hỗ trợ</a>
+            <a className="ml-1 font-medium text-cyan-600" href="/contact-support">Liên hệ bộ phận hỗ trợ</a>
           </div>
         </div>
-      </div>
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { FaPaw } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
-import './styles.css';
 
 import { loginApi } from '../../api/auth';
 import { useAuth } from '../../context/AuthContext';
@@ -80,16 +79,19 @@ export default function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-header-bar">
-        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+    <div className="relative min-h-screen overflow-hidden bg-white">
+      <div className="pointer-events-none absolute -left-16 top-16 h-52 w-52 rounded-full bg-cyan-100/70 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-emerald-100/70 blur-3xl" />
+
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2">
           <FaPaw size={28} color="#13ECDA" />
-          <h2 className="logo-name-small" style={{ margin: 0, color: 'white' }}>PetcareX</h2>
+          <h2 className="m-0 text-xl font-bold tracking-tight text-slate-800">PetcareX</h2>
         </div>
       </div>
 
-      <div className="login-card" style={{ padding: '40px 30px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+      <div className="relative mx-auto mt-6 w-full max-w-2xl rounded-3xl border border-slate-100 bg-white px-6 py-10 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] sm:px-10">
+        <div className="mb-6 text-center">
           <LockOutlined style={{ fontSize: '48px', color: '#13ECDA' }} />
           <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng nhập</Title>
           <Text type="secondary">Chào mừng bạn đến với cộng đồng PetcareX</Text>
@@ -120,9 +122,9 @@ export default function Login() {
 
           <Form.Item
             label={
-              <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
+              <div className="flex w-full items-center justify-between">
                 <span>Mật khẩu</span>
-                <Link href="/forgot-password" style={{ float: 'right', marginLeft: '400px', color: '#13ECDA' }}>Quên mật khẩu?</Link>
+                <Link href="/forgot-password" style={{ color: '#13ECDA' }}>Quên mật khẩu?</Link>
               </div>
             }
             name="password"
@@ -137,13 +139,13 @@ export default function Login() {
             />
           </Form.Item>
 
-          <Form.Item>
+          <Form.Item className="mb-3">
             <Button
               type="primary"
               htmlType="submit"
               block
               loading={loading}
-              style={{ backgroundColor: '#13ECDA', color: 'white', fontWeight: 'bold', borderColor: '#13ECDA' }}
+              style={{ backgroundColor: '#13ECDA', color: 'white', fontWeight: 'bold', borderColor: '#13ECDA', height: 44 }}
             >
               Đăng nhập
             </Button>
@@ -151,7 +153,7 @@ export default function Login() {
 
         </Form>
 
-        <Divider style={{ borderColor: '#d9d9d9' }} plain>
+        <Divider style={{ borderColor: '#d9d9d9', marginTop: 8 }} plain>
           Hoặc tiếp tục đăng nhập với
         </Divider>
 
@@ -165,7 +167,7 @@ export default function Login() {
           Đăng nhập với Google
         </Button>
 
-        <div style={{ textAlign: 'center', marginTop: '16px' }}>
+        <div className="mt-4 text-center">
           <Text type="secondary">
             Chưa có tài khoản? <a style={{ color: '#13ECDA', fontWeight: 'bold' }} href="/register">Đăng ký ngay</a>
           </Text>

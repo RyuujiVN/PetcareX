@@ -7,7 +7,6 @@ import ForgotPassword from './component/ForgotPassword'
 import ReEnterPassword from './component/reEnterPassword'
 import ClinicSelection from './component/ChoiceHospital/ClinicSelection'
 import { AuthProvider } from "./context/AuthContext"
-import './App.css'
 function App() {
   return (
     <AuthProvider>

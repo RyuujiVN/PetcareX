@@ -1,10 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import './styles.css';
 import instance from '../../api/instance';
 import { FaPaw } from "react-icons/fa";
 import { MdLockReset } from "react-icons/md";
-import { Form, Input, Button, Card, Space, message } from 'antd';
+import { Form, Input, Button, message } from 'antd';
 
 
 export default function ReEnterPassword() {
@@ -110,37 +109,31 @@ export default function ReEnterPassword() {
   };
 
   return (
-    <div className="reset-password-container">
-      <div className="reset-password-header-bar">
-        <div className="header-left">
+    <div className="relative min-h-screen overflow-hidden bg-white">
+      <div className="pointer-events-none absolute -left-14 top-10 h-52 w-52 rounded-full bg-cyan-100/70 blur-3xl" />
+      <div className="pointer-events-none absolute -right-20 bottom-10 h-72 w-72 rounded-full bg-emerald-100/60 blur-3xl" />
+
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center gap-2">
           <FaPaw size={28} color="#13ECDA" />           
-          <h2 className="logo-name-small">PetcareX</h2>
+          <h2 className="text-xl font-bold tracking-tight text-slate-800">PetcareX</h2>
         </div>
       </div>
 
-      <div className="reset-password-card" style={{ padding: '50px 40px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '700px' }}>
-        <div className="lock-icon-section">
+      <div className="relative mx-auto mt-6 w-full max-w-2xl rounded-3xl border border-slate-100 bg-white px-6 py-10 shadow-[0_20px_60px_-30px_rgba(15,23,42,0.35)] sm:px-10">
+        <div className="mb-4 flex justify-center">
           <MdLockReset size={70} color="#13ECDA" />
         </div>
 
-        <div className="reset-password-header">
-          <h1 className="reset-password-title">Thiết lập lại mật khẩu</h1>
-          <p style={{ textAlign: 'center', color: '#666', marginTop: '8px' }}>
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-bold text-slate-900">Thiết lập lại mật khẩu</h1>
+          <p className="mt-2 text-sm text-slate-500">
             Mã OTP đã được gửi tới <strong>{email}</strong>
           </p>
         </div>
 
           {success && (
-            <div
-              style={{
-                padding: '12px',
-                backgroundColor: '#f6ffed',
-                border: '1px solid #b7eb8f',
-                borderRadius: '4px',
-                color: '#52c41a',
-                marginBottom: '16px',
-              }}
-            >
+            <div className="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
               {success}
             </div>
           )}
@@ -168,7 +161,7 @@ export default function ReEnterPassword() {
               />
             </Form.Item>
 
-            <div style={{ marginTop: '-16px', marginBottom: '16px', textAlign: 'right' }}>
+            <div className="-mt-4 mb-4 text-right">
               <Button
                 type="link"
                 onClick={handleResendOtp}
@@ -244,7 +237,7 @@ export default function ReEnterPassword() {
                   borderColor: '#13ECDA',
                   height: '44px',
                   fontSize: '16px',
-                  fontWeight: '500',
+                  fontWeight: '700',
                 }}
               >
                 {loading ? 'Đang cập nhật...' : 'Đặt lại mật khẩu'}
@@ -252,7 +245,7 @@ export default function ReEnterPassword() {
             </Form.Item>
           </Form>
 
-          <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <div className="mt-5 text-center">
             <Button
               type="link"
               onClick={handleGoBack}
