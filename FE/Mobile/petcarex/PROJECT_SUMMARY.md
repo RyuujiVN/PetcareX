@@ -7,10 +7,11 @@ PetCareX is a Flutter-based mobile application for pet care management, integrat
 - **Frontend:** Flutter (Dart)
 - **Backend:** NestJS (Node.js) — REST API
 - **State Management:** `provider` (ChangeNotifier, MultiProvider)
+- **Internationalization (i18n):** `flutter_localizations` with `.arb` files. Supports Vietnamese (vi) and English (en).
 - **Networking:** Custom `ApiClient` (http package) with JWT Bearer injection, 30s timeout, and masked debug logging.
 - **Security:** `flutter_secure_storage` for tokens and credentials.
 - **Hardware:** `mobile_scanner` (QR), `image_picker`, `permission_handler`.
-- **Local Storage:** `shared_preferences` for non-sensitive settings.
+- **Local Storage:** `shared_preferences` for language settings and auth info.
 
 ## 📡 Networking & Configuration
 - **Base URL:** `lib/core/constants/app_constants.dart` — `String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:3000')`.
@@ -20,57 +21,55 @@ PetCareX is a Flutter-based mobile application for pet care management, integrat
 ## ✅ Implemented Features
 
 ### 1. Authentication
-- **AuthProvider:** Login, logout, Google login, forgot/reset password, check auth status. JSON decode wrapped in try/catch; reset password uses correct `confirmPassword` key.
-- **Login:** API + optional admin test bypass (long-press). Remember Me + saved email. Mounted checks after async.
-- **Register:** Uses `ApiClient` + `AppConstants.registerEndpoint`; navigates to `MainNavigationWrapper`. JSON error body handled safely.
-- **Forgot / Reset password:** Full flow with OTP; Timer in reset page checks `mounted` before setState.
+- **AuthProvider:** Login, logout, Google login, forgot/reset password, check auth status.
+- **Login/Register:** Full UI with multi-language support. Handles validation and error messages from server.
+- **Forgot / Reset password:** OTP-based recovery flow.
 
 ### 2. Home & Navigation
-- **MainNavigationWrapper:** Bottom nav (Home, Booking, Chat, Account).
-- **Home:** Dashboard, pet list, QR scanner (FAB), booking entry.
+- **MainNavigationWrapper:** Bottom nav (Home, Booking, Schedule, Community, Profile) - Fully localized labels.
+- **Home:** Dashboard with greeting, pet list, QR scanner, and quick actions. Fully localized UI.
 
 ### 3. Pet Management
-- **Add/Edit pet:** Form, image pick, date picker, species/breed dropdowns. Upload avatar via `ApiClient.postMultipart`. Mounted checks after async; `TextEditingController` disposed.
-- **PetRepository:** getMyPets, getSpecies, getBreeds, uploadAvatar, createPet, updatePet. JSON decode in try/catch; uploadAvatar validates `data['file']` type.
+- **Add/Edit pet:** Form with dynamic **Species -> Breed** loading. Supports avatar upload, gender selection, and birthdate picker.
+- **PetRepository:** CRUD operations for pets, including specialized endpoints for species and breeds by ID.
+- **Data Persistence:** Uses standard ISO 8601 UTC format for dates.
 
-### 4. Chat
-- **ChatPage:** UI with `TextEditingController` disposed; message list type-safe access.
+### 4. Internationalization (i18n)
+- **LanguageProvider:** Manages `Locale` state and persists user choice using `shared_preferences`.
+- **Global Localization:** 100% of UI strings in major pages (Login, Home, Booking, Profile, Pet Mgmt) converted to use `AppLocalizations`.
+- **Build Config:** Uses `l10n.yaml` with `output-dir: lib/l10n/generated` for maximum stability on Flutter 3.27+.
 
-### 5. Booking
-- **BookingPage:** Multi-step UI (pet, clinic, service, doctor, date/time, confirm). **Currently mock-only:** no backend API; success view is placeholder.
+### 5. Account & Profile
+- **AccountPage:** Menu for personal info, pet info, language switching, and logout.
+- **ProfilePage:** View and update user details (fullName, email, phone, address, avatar).
 
 ## 📁 Project Structure
-- `lib/core/`: constants, `ApiClient`, theme, services (e.g. `CameraService`).
-- `lib/features/`: auth, home, pet, booking, chat, appointment (notifications).
+- `lib/core/`: constants, `ApiClient`, theme, providers (LanguageProvider), services.
+- `lib/features/`: auth, home, pet, booking, chat, appointment, community.
+- `lib/l10n/`: `.arb` translation files and generated localization code.
 
 ## 📝 API Reference
-- **Auth:** `/auth/login`, `/auth/login/google`, `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`.
-- **User:** `/user`.
-- **Pet:** `/pet`, `/pet/species`, `/pet/species/:id/breed`, `/pet/upload`.
-- **Headers:** `ApiClient` adds `Authorization: Bearer <token>` and masks tokens in debug logs.
+- **Auth:** `/auth/login`, `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`.
+- **Pet:** `/pet` (POST/GET), `/pet/species` (GET), `/pet/species/:id/breed` (GET), `/pet/upload` (POST).
+- **User:** `/user/profile` (GET), `/user/profile` (PATCH).
 
 ---
 
 ## 🔍 Code Quality & Scan Summary (Latest)
 
 ### Fixed in Codebase
-- Auth: typo `confirmPassword`; jsonDecode try/catch in auth_provider, register, pet_repository.
-- Lifecycle: Timer (reset password), date picker (add/edit pet), upload avatar — all use `mounted` checks; ChatPage disposes `TextEditingController`.
-- ApiClient: uses `AppConstants.baseUrl`, 30s timeout on all requests, request/response logging with password and token masked.
-- Register: uses ApiClient + MainNavigationWrapper; error parsing safe.
-- Models: Pet/User/PetSpecies/PetBreed fromJson null-safe where applicable.
-- Forgot password / booking summary: safe form validation and null `_selectedTime`.
+- **i18n Errors:** Corrected `import` paths after moving from synthetic to local generated package.
+- **Build Errors:** Fixed missing `mobile_scanner` import and `AppLocalizations.locale` getter issues.
+- **Data Integrity:** Ensured `breedId` is sent as string/UUID and dates are ISO format.
+- **Postgres Mapping:** Models now handle both `id` and `_id` for compatibility.
 
 ### Remaining / Known Items
 | Area | Item | Severity |
 |------|------|----------|
-| **Auth** | User-facing messages sometimes include raw exception text (e.g. `TimeoutException`). Consider mapping to friendly strings. | Medium |
-| **ApiClient** | Response body (first 200 chars) still logged in debug; may contain token/PII. Request side is masked. | Medium |
-| **PetProvider** | Error messages use `e.toString()`; can expose internals. | Medium |
-| **Booking** | Flow is UI-only; no real appointment API. High priority when backend is ready. | High |
-| **Multipart** | `request.send()` has timeout; `Response.fromStream()` does not. | Low |
+| **Data Translation** | Content returned from DB (e.g. breed names, service names) is still in the stored language. | Medium |
+| **Booking** | Flow UI is localized, but appointment creation depends on backend readiness. | High |
 
 ### Run After Reboot
 1. Start backend on PC (port 3000).
-2. `adb reverse tcp:3000 tcp:3000` (full path if needed: `C:\Users\Dell\AppData\Local\Android\Sdk\platform-tools\adb.exe`).
-3. Run app from IDE or `flutter run`.
+2. `adb reverse tcp:3000 tcp:3000`.
+3. Run app: `flutter run`.

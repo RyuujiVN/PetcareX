@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -21,12 +22,10 @@ class _LoginPageState extends State<LoginPage> {
 
   bool _isObscure = true;
   bool _rememberMe = false;
-  final bool _isAutoFilled = false;
 
   String? _emailError;
   String? _passwordError;
 
-  //Tk test admin
   void _quickAdminLogin() {
     setState(() {
       _emailController.text = "admin";
@@ -34,7 +33,6 @@ class _LoginPageState extends State<LoginPage> {
     });
     _login();
   }
-  // ---------------------------------------------------------
 
   @override
   void initState() {
@@ -59,7 +57,6 @@ class _LoginPageState extends State<LoginPage> {
       await authProvider.checkAuthStatus();
       if (!mounted) return;
       if (authProvider.isAuthenticated) {
-        if (!mounted) return;
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
@@ -76,6 +73,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _login() async {
+    final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
@@ -85,26 +83,14 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     if (email.isEmpty) {
-      setState(() => _emailError = "Vui lòng nhập email");
+      setState(() => _emailError = l10n.enterEmail);
       return;
     }
     if (password.isEmpty) {
-      setState(() => _passwordError = "Vui lòng nhập mật khẩu");
+      setState(() => _passwordError = l10n.enterPassword);
       return;
     }
 
-    // bypass tk, phải xóa sau khi release-
-    if (email == "admin" && password == "12345") {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
-      );
-      return;
-    }
-    // --------------------------
-
-    // GỌI LOGIC QUA PROVIDER
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.login(email, password, rememberMe: _rememberMe);
 
@@ -115,40 +101,17 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
       );
     } else {
-      // Thông báo lỗi đã được AuthProvider quản lý, ta chỉ cần hiển thị SnackBar
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? 'Đăng nhập thất bại'),
-        ),
+        SnackBar(content: Text(authProvider.errorMessage ?? l10n.loginFailed)),
       );
-    }
-  }
-
-  Future<void> _loginWithGoogle() async {
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.loginWithGoogle();
-
-    if (success) {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
-      );
-    } else {
-      if (!mounted) return;
-      if (authProvider.errorMessage != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(authProvider.errorMessage!)));
-      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Quan sát trạng thái Loading từ Provider
     final isLoading = context.watch<AuthProvider>().isLoading;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -157,10 +120,9 @@ class _LoginPageState extends State<LoginPage> {
           padding: const EdgeInsets.all(24.0),
           child: Column(
             children: [
-              _buildHeader(),
+              _buildHeader(l10n),
               const SizedBox(height: 20),
-              _buildLoginCard(isLoading),
-              _buildFooter(),
+              _buildLoginCard(isLoading, l10n),
             ],
           ),
         ),
@@ -168,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Center(
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -182,220 +144,99 @@ class _LoginPageState extends State<LoginPage> {
             child: Image.asset('assets/images/icon.png', width: 30, height: 30),
           ),
           const SizedBox(width: 12),
-          const Text(
-            'PetCareX',
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
-          ),
+          Text(l10n.appName, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
 
-  Widget _buildLoginCard(bool isLoading) {
+  Widget _buildLoginCard(bool isLoading, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-      BoxShadow(
-      color: Colors.black.withValues(alpha: 0.03),
-      blurRadius: 20,
-    ),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onLongPress:
-                _quickAdminLogin, // Long press to auto-fill admin & login
-            child: const Center(
-              child: Icon(Icons.account_circle_outlined, size: 60),
-            ),
-          ),
+          GestureDetector(onLongPress: _quickAdminLogin, child: const Center(child: Icon(Icons.account_circle_outlined, size: 60))),
           const SizedBox(height: 12),
-          const Center(child: Text('Đăng nhập', style: AppTextStyles.title)),
+          Center(child: Text(l10n.login, style: AppTextStyles.title)),
           const SizedBox(height: 24),
-
-          const Text('Email', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           TextField(
             controller: _emailController,
-            decoration: InputDecoration(
-              hintText: "example@email.com",
-              prefixIcon: const Icon(Icons.email_outlined),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              errorText: _emailError,
-            ),
+            decoration: InputDecoration(hintText: l10n.emailHint, prefixIcon: const Icon(Icons.email_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), errorText: _emailError),
           ),
-
           const SizedBox(height: 16),
-
-          const Text('Mật khẩu', style: TextStyle(fontWeight: FontWeight.bold)),
+          Text(l10n.password, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           TextField(
             controller: _passwordController,
             obscureText: _isObscure,
             decoration: InputDecoration(
               hintText: '● ● ● ● ● ● ● ●',
-              hintStyle: TextStyle(
-                color: AppColors.grey.withValues(alpha: 0.3),
-                fontSize: 10,
-                letterSpacing: 2,
-              ),
               prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isObscure ? Icons.visibility_off : Icons.visibility,
-                ),
-                onPressed: () => setState(() => _isObscure = !_isObscure),
-              ),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
+              suffixIcon: IconButton(icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _isObscure = !_isObscure)),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               errorText: _passwordError,
             ),
           ),
-
           const SizedBox(height: 8),
-          _buildRememberAndForgot(),
+          _buildRememberAndForgot(l10n),
           const SizedBox(height: 24),
-
-          _buildLoginButton(isLoading),
+          _buildLoginButton(isLoading, l10n),
           const SizedBox(height: 16),
-          _buildGoogleLoginButton(isLoading),
-          const SizedBox(height: 16),
-          _buildRegisterText(),
+          _buildRegisterText(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildGoogleLoginButton(bool isLoading) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : _loginWithGoogle,
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE0E0E0)),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/google.png', width: 24, height: 24),
-            const SizedBox(width: 12),
-            const Text(
-              'Đăng nhập với Google',
-              style: TextStyle(
-                color: Colors.black,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRememberAndForgot() {
+  Widget _buildRememberAndForgot(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Checkbox(
-              value: _rememberMe,
-              activeColor: AppColors.primary,
-              onChanged: (val) => setState(() => _rememberMe = val ?? false),
-            ),
-            const Text('Ghi nhớ đăng nhập', style: TextStyle(fontSize: 13)),
-          ],
-        ),
+        Row(children: [
+          Checkbox(value: _rememberMe, activeColor: AppColors.primary, onChanged: (val) => setState(() => _rememberMe = val ?? false)),
+          Text(l10n.rememberMe, style: const TextStyle(fontSize: 13)),
+        ]),
         TextButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ForgotPasswordPage()),
-          ),
-          child: const Text(
-            'Quên mật khẩu?',
-            style: TextStyle(color: AppColors.primary, fontSize: 13),
-          ),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
+          child: Text(l10n.forgotPassword, style: const TextStyle(color: AppColors.primary, fontSize: 13)),
         ),
       ],
     );
   }
 
-  Widget _buildLoginButton(bool isLoading) {
+  Widget _buildLoginButton(bool isLoading, AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
         onPressed: isLoading ? null : _login,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
-                ),
-              )
-            : const Text(
-                'Đăng nhập',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        child: isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.login, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
     );
   }
 
-  Widget _buildRegisterText() {
+  Widget _buildRegisterText(AppLocalizations l10n) {
     return Center(
       child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const RegisterPage()),
-        ),
+        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterPage())),
         child: RichText(
-          text: const TextSpan(
-            text: "Chưa có tài khoản? ",
-            style: TextStyle(color: Colors.grey),
-            children: [
-              TextSpan(
-                text: "Đăng ký ngay",
-                style: TextStyle(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
+          text: TextSpan(
+            text: l10n.dontHaveAccount,
+            style: const TextStyle(color: Colors.grey),
+            children: [TextSpan(text: l10n.registerNow, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildFooter() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 24),
-      child: Text(
-        '© 2026 PetCareX Vietnam.',
-        style: TextStyle(color: Colors.grey, fontSize: 10),
       ),
     );
   }

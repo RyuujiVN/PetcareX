@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -33,15 +34,16 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'Lịch khám thú cưng',
-          style: TextStyle(
+        title: Text(
+          l10n.navAppointments,
+          style: const TextStyle(
             color: Color(0xFF1A1C1E),
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -54,9 +56,9 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           unselectedLabelColor: Colors.grey,
           indicatorWeight: 3,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-          tabs: const [
-            Tab(text: 'Sắp tới'),
-            Tab(text: 'Lịch sử'),
+          tabs: [
+            Tab(text: l10n.upcoming),
+            Tab(text: l10n.history),
           ],
         ),
       ),
@@ -75,7 +77,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => provider.fetchAppointments(),
-                    child: const Text('Thử lại'),
+                    child: const Text('Try Again'),
                   ),
                 ],
               ),
@@ -85,8 +87,8 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           return TabBarView(
             controller: _tabController,
             children: [
-              _buildAppointmentList(provider.upcomingAppointments, isUpcoming: true),
-              _buildAppointmentList(provider.historicalAppointments, isUpcoming: false),
+              _buildAppointmentList(provider.upcomingAppointments, isUpcoming: true, l10n: l10n),
+              _buildAppointmentList(provider.historicalAppointments, isUpcoming: false, l10n: l10n),
             ],
           );
         },
@@ -94,7 +96,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
     );
   }
 
-  Widget _buildAppointmentList(List<Appointment> appointments, {required bool isUpcoming}) {
+  Widget _buildAppointmentList(List<Appointment> appointments, {required bool isUpcoming, required AppLocalizations l10n}) {
     if (appointments.isEmpty) {
       return RefreshIndicator(
         onRefresh: () => context.read<AppointmentProvider>().fetchAppointments(),
@@ -111,7 +113,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                     Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey[300]),
                     const SizedBox(height: 16),
                     Text(
-                      isUpcoming ? 'Bạn không có lịch hẹn sắp tới' : 'Chưa có lịch sử khám bệnh',
+                      isUpcoming ? l10n.upcoming : l10n.history,
                       style: TextStyle(color: Colors.grey[600], fontSize: 16),
                     ),
                   ],
@@ -130,13 +132,13 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
         padding: const EdgeInsets.all(16),
         itemCount: appointments.length,
         itemBuilder: (context, index) {
-          return _buildAppointmentCard(appointments[index], isUpcoming);
+          return _buildAppointmentCard(appointments[index], isUpcoming, l10n);
         },
       ),
     );
   }
 
-  Widget _buildAppointmentCard(Appointment item, bool isUpcoming) {
+  Widget _buildAppointmentCard(Appointment item, bool isUpcoming, AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
@@ -156,7 +158,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: () => _showAppointmentDetails(context, item),
+        onTap: () => _showAppointmentDetails(context, item, l10n),
         child: Column(
           children: [
             Padding(
@@ -218,7 +220,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                         '${DateFormat('dd/MM/yyyy').format(item.appointmentDate)} • ${item.appointmentTime}',
                       ),
                       const SizedBox(height: 6),
-                      _buildInfoRow(Icons.medical_services_outlined, 'Bác sĩ: ${item.veterinarian.fullName}'),
+                      _buildInfoRow(Icons.medical_services_outlined, '${l10n.doctor}: ${item.veterinarian.fullName}'),
                       const SizedBox(height: 6),
                       _buildInfoRow(Icons.location_on_outlined, item.clinic.address),
                     ],
@@ -230,7 +232,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           if (isUpcoming && item.status == 'Hẹn thành công') ...[
             const Divider(height: 1, indent: 16, endIndent: 16),
             InkWell(
-              onTap: () => _confirmCancel(item.id),
+              onTap: () => _confirmCancel(item.id, l10n),
               borderRadius: const BorderRadius.only(
                 bottomLeft: Radius.circular(24),
                 bottomRight: Radius.circular(24),
@@ -240,7 +242,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Center(
                   child: Text(
-                    'Hủy lịch',
+                    l10n.cancelAppointment,
                     style: TextStyle(
                       color: Colors.red[400],
                       fontWeight: FontWeight.bold,
@@ -252,11 +254,11 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
             ),
           ] else if (!isUpcoming) ...[
             const Divider(height: 1, indent: 16, endIndent: 16),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 14),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 14),
               child: Text(
-                'Xem lại',
-                style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
+                l10n.explore,
+                style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
               ),
             )
           ],
@@ -265,7 +267,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
     ));
   }
 
-  void _showAppointmentDetails(BuildContext context, Appointment item) {
+  void _showAppointmentDetails(BuildContext context, Appointment item, AppLocalizations l10n) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -300,9 +302,9 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'Chi tiết lịch hẹn',
-                    style: TextStyle(
+                  Text(
+                    l10n.appointmentDetail,
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
@@ -312,9 +314,8 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               ),
               const SizedBox(height: 20),
               
-              // Thông tin thú cưng
               Text(
-                'Thông tin thú cưng',
+                l10n.petInformation,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
@@ -336,48 +337,46 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                     children: [
                       Text(item.pet.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 2),
-                      Text('Giống loài: ${item.pet.breedName}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                      Text('${l10n.breed}: ${item.pet.breedName}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                     ],
                   )
                 ],
               ),
               const Divider(height: 30),
 
-              // Dịch vụ và Thời gian
               Text(
-                'Dịch vụ khám',
+                l10n.serviceInfo,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.medical_information_outlined, 'Dịch vụ:', item.service),
+              _buildDetailRow(Icons.medical_information_outlined, '${l10n.service}:', item.service),
               const SizedBox(height: 8),
               _buildDetailRow(
                 Icons.calendar_month_outlined, 
-                'Thời gian:', 
+                '${l10n.time}:', 
                 '${item.appointmentTime} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}'
               ),
               if (item.note.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                _buildDetailRow(Icons.notes_outlined, 'Ghi chú:', item.note),
+                _buildDetailRow(Icons.notes_outlined, '${l10n.note}:', item.note),
               ],
               const Divider(height: 30),
 
-              // Bác sĩ và phòng khám
               Text(
-                'Thông tin bác sĩ & Phòng khám',
+                l10n.doctorInfo,
                 style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.person_outline, 'Bác sĩ:', item.veterinarian.fullName),
+              _buildDetailRow(Icons.person_outline, '${l10n.doctor}:', item.veterinarian.fullName),
               if (item.veterinarian.specialty.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: _buildDetailRow(Icons.star_border_outlined, 'Chuyên môn:', item.veterinarian.specialty),
+                  child: _buildDetailRow(Icons.star_border_outlined, '${l10n.specialty}:', item.veterinarian.specialty),
                 ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.store_outlined, 'Phòng khám:', item.clinic.name),
+              _buildDetailRow(Icons.store_outlined, '${l10n.clinic}:', item.clinic.name),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.location_on_outlined, 'Địa chỉ:', item.clinic.address),
+              _buildDetailRow(Icons.location_on_outlined, '${l10n.address}:', item.clinic.address),
 
               const SizedBox(height: 20),
             ],
@@ -410,16 +409,16 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
     );
   }
 
-  void _confirmCancel(String id) {
+  void _confirmCancel(String id, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Xác nhận hủy'),
-        content: const Text('Bạn có chắc chắn muốn hủy lịch hẹn này không?'),
+        title: Text(l10n.confirmLogout),
+        content: Text(l10n.logoutMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Quay lại'),
+            child: Text(l10n.cancel),
           ),
           TextButton(
             onPressed: () async {
@@ -429,13 +428,13 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text(success ? 'Đã hủy lịch hẹn thành công' : 'Không thể hủy lịch, vui lòng thử lại'),
+                    content: Text(success ? l10n.success : l10n.failed),
                     backgroundColor: success ? Colors.green : Colors.red,
                   ),
                 );
               }
             },
-            child: const Text('Đồng ý hủy', style: TextStyle(color: Colors.red)),
+            child: Text(l10n.confirmAppointment, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

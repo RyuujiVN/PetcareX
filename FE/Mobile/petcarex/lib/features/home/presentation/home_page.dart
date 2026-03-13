@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart'; // Thêm lại import này
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -24,9 +25,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final CameraService _cameraService = CameraService();
-  
-  final double verticalOffset = -60;
-
   final bool _hasUnreadNotifications = true;
 
   @override
@@ -38,7 +36,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  Future<void> _openQRScanner() async {
+  Future<void> _openQRScanner(AppLocalizations l10n) async {
     bool hasPermission = await _cameraService.requestCameraPermission();
 
     if (hasPermission) {
@@ -51,7 +49,7 @@ class _HomePageState extends State<HomePage> {
           builder: (context) => QRScannerScreen(
             onScan: (code) {
               Navigator.pop(context);
-              _showQRResult(code);
+              _showQRResult(code, l10n);
             },
           ),
         ),
@@ -59,21 +57,21 @@ class _HomePageState extends State<HomePage> {
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bạn cần cấp quyền Camera để quét mã QR')),
+        SnackBar(content: Text(l10n.cameraPermission)),
       );
     }
   }
 
-  void _showQRResult(String code) {
+  void _showQRResult(String code, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Kết quả quét'),
-        content: Text('Nội dung mã QR: $code'),
+        title: Text(l10n.qrResult),
+        content: Text('${l10n.qrContent}: $code'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
+            child: Text(l10n.close),
           ),
         ],
       ),
@@ -82,6 +80,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -89,21 +88,21 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 16),
-            _buildHeader(),
+            _buildHeader(l10n),
             const SizedBox(height: 24),
-            _buildUserInfo(),
+            _buildUserInfo(l10n),
             const SizedBox(height: 24),
-            _buildPetList(),
+            _buildPetList(l10n),
             const SizedBox(height: 24),
-            _buildQuickActions(),
+            _buildQuickActions(l10n),
             const SizedBox(height: 32),
-            _buildSectionHeader("Lịch hẹn của tôi", "Xem tất cả", onTap: () {
+            _buildSectionHeader(l10n.myAppointments, l10n.viewAll, onTap: () {
               MainNavigationWrapper.of(context)?.setSelectedIndex(2);
             }),
             const SizedBox(height: 16),
-            _buildAppointmentCard(),
+            _buildAppointmentCard(l10n),
             const SizedBox(height: 32),
-            _buildSectionHeader("Diễn đàn PetCareX", "Khám phá", onTap: () {
+            _buildSectionHeader(l10n.petCareForum, l10n.explore, onTap: () {
               MainNavigationWrapper.of(context)?.setSelectedIndex(3);
             }),
             const SizedBox(height: 16),
@@ -115,7 +114,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -130,16 +129,16 @@ class _HomePageState extends State<HomePage> {
               child: Image.asset('assets/images/icon.png', width: 24, height: 24),
             ),
             const SizedBox(width: 10),
-            const Text(
-              'PetCareX',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
+            Text(
+              l10n.appName,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
             ),
           ],
         ),
         Row(
           children: [
             IconButton(
-              onPressed: _openQRScanner, 
+              onPressed: () => _openQRScanner(l10n), 
               icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF5F6368)),
             ),
             Stack(
@@ -173,13 +172,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildUserInfo() {
+  Widget _buildUserInfo(AppLocalizations l10n) {
     return Consumer<AuthProvider>(
       builder: (context, authProvider, child) {
         final user = authProvider.user;
         final String displayName = (user?.fullName != null && user!.fullName.trim().isNotEmpty) 
             ? user.fullName 
-            : "Người dùng";
+            : l10n.user;
 
         return Row(
           children: [
@@ -211,13 +210,13 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Chào bạn, $displayName!',
+                    '${l10n.hello}, $displayName!',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Hôm nay thú cưng của bạn thế nào?',
-                    style: TextStyle(fontSize: 14, color: Colors.grey, height: 1.4),
+                  Text(
+                    l10n.howIsPetToday,
+                    style: const TextStyle(fontSize: 14, color: Colors.grey, height: 1.4),
                   ),
                 ],
               ),
@@ -228,25 +227,21 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildPetList() {
-    // Dùng Selector thay Consumer: chỉ rebuild khi myPets thay đổi
+  Widget _buildPetList(AppLocalizations l10n) {
     return Selector<PetProvider, List<Pet>>(
       selector: (_, provider) => provider.myPets,
       builder: (context, myPets, child) {
-        // Sort 1 lần khi list thay đổi, không sort lại mỗi lần rebuild
         final pets = List<Pet>.from(myPets)
           ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
         
-        // Dùng ListView.builder: lazy render, chỉ build items hiển thị
         return SizedBox(
           height: 90,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            itemCount: pets.length + 1, // +1 cho nút "Thêm mới"
+            itemCount: pets.length + 1,
             itemBuilder: (context, index) {
-              // Nút thêm mới ở cuối
               if (index == pets.length) {
-                return _buildAddPetButton();
+                return _buildAddPetButton(l10n);
               }
               
               final pet = pets[index];
@@ -254,11 +249,7 @@ class _HomePageState extends State<HomePage> {
                 onTap: () => _onPetTapped(pet),
                 child: Padding(
                   padding: const EdgeInsets.only(right: 16),
-                  child: _buildPetItem(
-                    pet.name,
-                    pet.avatar,
-                    index == 0,
-                  ),
+                  child: _buildPetItem(pet.name, pet.avatar, index == 0),
                 ),
               );
             },
@@ -297,11 +288,10 @@ class _HomePageState extends State<HomePage> {
       }
     } catch (e) {
       if (mounted) Navigator.pop(context);
-      debugPrint("Lỗi khi đồng bộ dữ liệu: $e");
     }
   }
 
-  Widget _buildAddPetButton() {
+  Widget _buildAddPetButton(AppLocalizations l10n) {
     return GestureDetector(
       onTap: () async {
         final result = await Navigator.push(
@@ -325,7 +315,7 @@ class _HomePageState extends State<HomePage> {
             child: const Icon(Icons.add, color: Colors.grey),
           ),
           const SizedBox(height: 8),
-          const Text('Thêm mới', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          Text(l10n.addNew, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
     );
@@ -344,25 +334,15 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               width: 56,
               height: 56,
-              color: Colors.grey[200], // Nền xám mặc định
+              color: Colors.grey[200],
               child: (imageUrl != null && imageUrl.startsWith('http'))
                   ? CachedNetworkImage(
                       imageUrl: ImageHelper.getThumbnailUrl(imageUrl),
                       fit: BoxFit.cover,
-                      errorWidget: (context, url, error) {
-                        return const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28));
-                      },
-                      placeholder: (context, url) {
-                        return const Center(
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        );
-                      },
+                      errorWidget: (context, url, error) => const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28)),
+                      placeholder: (context, url) => const Center(child: SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))),
                     )
-                  : const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28)), // Nếu không có ảnh
+                  : const Center(child: Icon(Icons.pets, color: Colors.grey, size: 28)),
             ),
           ),
         ),
@@ -372,13 +352,13 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(AppLocalizations l10n) {
     return Column(
       children: [
         _buildActionTile(
           Icons.calendar_month,
-          "Đặt lịch khám nhanh",
-          "Chọn bác sĩ nhanh nhất ngay",
+          l10n.quickBooking,
+          l10n.quickBookingSub,
           const Color(0xFFE8F9F7),
           AppColors.primary,
           onTap: () {
@@ -388,8 +368,8 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 12),
         _buildActionTile(
           Icons.smart_toy_outlined, 
-          "Tư vấn AI Chatbot", 
-          "Hỗ trợ sức khỏe 24/7", 
+          l10n.aiChatbot, 
+          l10n.aiChatbotSub, 
           const Color(0xFFEEF3FF), 
           const Color(0xFF4285F4),
           onTap: () {
@@ -399,16 +379,13 @@ class _HomePageState extends State<HomePage> {
         const SizedBox(height: 12),
         _buildActionTile(
           Icons.location_on_outlined,
-          "Tìm phòng khám gần nhất",
-          "Tìm kiếm trên bản đồ",
+          l10n.findClinic,
+          l10n.findClinicSub,
           const Color(0xFFFFF4E8),
           const Color(0xFFFF9800),
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Tính năng đang phát triển'),
-                duration: Duration(seconds: 2),
-              ),
+              const SnackBar(content: Text('Developing...'), duration: Duration(seconds: 2)),
             );
           },
         ),
@@ -421,10 +398,7 @@ class _HomePageState extends State<HomePage> {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(20),
-        ),
+        decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(20)),
         child: Row(
           children: [
             Container(
@@ -463,7 +437,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildAppointmentCard() {
+  Widget _buildAppointmentCard(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -480,7 +454,7 @@ class _HomePageState extends State<HomePage> {
                 decoration: BoxDecoration(color: const Color(0xFFF0F2F5), borderRadius: BorderRadius.circular(12)),
                 child: const Column(
                   children: [
-                    Text("THỨ 4", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
+                    Text("WED", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
                     Text("15", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                   ],
                 ),
@@ -490,21 +464,13 @@ class _HomePageState extends State<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Tiêm phòng định kỳ – Mimi", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                    Text("Mimi – Vaccination", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                     SizedBox(height: 4),
                     Row(
                       children: [
                         Icon(Icons.access_time, size: 14, color: Colors.grey),
                         SizedBox(width: 4),
-                        Text("09:30 AM - BS. Hùng", style: TextStyle(fontSize: 12, color: Colors.grey)),
-                      ],
-                    ),
-                    SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(Icons.location_on_outlined, size: 14, color: Colors.grey),
-                        SizedBox(width: 4),
-                        Text("PetCare Center, Quận 7", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Text("09:30 AM - Dr. Hung", style: TextStyle(fontSize: 12, color: Colors.grey)),
                       ],
                     ),
                   ],
@@ -519,26 +485,16 @@ class _HomePageState extends State<HomePage> {
                 flex: 2,
                 child: ElevatedButton(
                   onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text("Xác nhận lịch", style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  child: Text(l10n.confirmAppointment, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF0F2F5),
-                    foregroundColor: Colors.grey[700],
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text("Hủy", style: TextStyle(fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFF0F2F5), foregroundColor: Colors.grey[700], elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                  child: Text(l10n.cancelAppointment, style: const TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -563,52 +519,24 @@ class _HomePageState extends State<HomePage> {
             children: [
               CachedNetworkImage(
                 imageUrl: 'https://i.pravatar.cc/150?u=woman1',
-                imageBuilder: (context, imageProvider) => CircleAvatar(
-                  radius: 18,
-                  backgroundImage: imageProvider,
-                ),
-                placeholder: (context, url) => const CircleAvatar(
-                  radius: 18,
-                  child: SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-                errorWidget: (context, url, error) => const CircleAvatar(
-                  radius: 18,
-                  child: Icon(Icons.person, size: 18),
-                ),
+                imageBuilder: (context, imageProvider) => CircleAvatar(radius: 18, backgroundImage: imageProvider),
+                placeholder: (context, url) => const CircleAvatar(radius: 18, child: SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2))),
+                errorWidget: (context, url, error) => const CircleAvatar(radius: 18, child: Icon(Icons.person, size: 18)),
               ),
               const SizedBox(width: 12),
               const Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Lan Hương", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                    Text("2 giờ trước • Kinh nghiệm nuôi mèo", style: TextStyle(fontSize: 11, color: Colors.grey)),
+                    Text("Lan Huong", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                    Text("2h ago • Cat Experience", style: TextStyle(fontSize: 11, color: Colors.grey)),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            "Có ai biết loại pate nào tốt cho mèo bị sỏi thận không ạ? Bé Mimi nhà mình dạo này kén ăn quá...",
-            style: TextStyle(fontSize: 13, height: 1.5),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(Icons.favorite_border, size: 16, color: Colors.grey[400]),
-              const SizedBox(width: 4),
-              Text("24", style: TextStyle(fontSize: 12, color: Colors.grey[400])),
-              const SizedBox(width: 16),
-              Icon(Icons.chat_bubble_outline, size: 16, color: Colors.grey[400]),
-              const SizedBox(width: 4),
-              Text("12", style: TextStyle(fontSize: 12, color: Colors.grey[400])),
-            ],
-          )
+          const Text("Any tips for kidney stones in cats?", style: TextStyle(fontSize: 13, height: 1.5)),
         ],
       ),
     );
@@ -617,9 +545,7 @@ class _HomePageState extends State<HomePage> {
 
 class QRScannerScreen extends StatefulWidget {
   final Function(String) onScan;
-
   const QRScannerScreen({super.key, required this.onScan});
-
   @override
   State<QRScannerScreen> createState() => _QRScannerScreenState();
 }
@@ -630,192 +556,31 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
     facing: CameraFacing.back,
     torchEnabled: false,
   );
-
   late AnimationController _animationController;
-  
-  final double verticalOffset = -60;
-
   @override
   void initState() {
     super.initState();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
+    _animationController = AnimationController(vsync: this, duration: const Duration(seconds: 2))..repeat(reverse: true);
   }
-
   @override
   void dispose() {
     controller.dispose();
     _animationController.dispose();
     super.dispose();
   }
-
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size.width * 0.7;
-
     return Scaffold(
       body: Stack(
         children: [
-          MobileScanner(
-            controller: controller,
-            onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                if (barcode.rawValue != null) {
-                  widget.onScan(barcode.rawValue!);
-                  break;
-                }
-              }
-            },
-          ),
-          Positioned.fill(
-            child: AnimatedBuilder(
-              animation: _animationController,
-              builder: (context, child) {
-                return CustomPaint(
-                  painter: ScannerOverlayPainter(
-                    scanBoxSize: size, 
-                    offset: verticalOffset,
-                    scanPosition: _animationController.value,
-                  ),
-                );
-              },
-            ),
-          ),
-          Positioned(
-            top: 40,
-            left: 10,
-            child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          Positioned(
-            top: 40,
-            right: 10,
-            child: IconButton(
-              icon: const Icon(Icons.flash_on, color: Colors.white),
-              onPressed: () => controller.toggleTorch(),
-            ),
-          ),
-          Center(
-            child: Transform.translate(
-              offset: Offset(0, verticalOffset + (size / 2) + 40),
-              child: const Text(
-                'Đặt mã QR trong khung',
-                style: TextStyle(
-                  color: Colors.white, 
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 60,
-            left: 0,
-            right: 0,
-            child: Column(
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.qr_code_2, color: Color(0xFF20C8B3), size: 24),
-                    SizedBox(width: 8),
-                    Text('Mã QR', style: TextStyle(color: Color(0xFF20C8B3), fontWeight: FontWeight.bold)),
-                  ],
-                ),
-                const SizedBox(height: 40),
-                Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 4),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          MobileScanner(controller: controller, onDetect: (capture) {
+            for (final barcode in capture.barcodes) {
+              if (barcode.rawValue != null) { widget.onScan(barcode.rawValue!); break; }
+            }
+          }),
+          Positioned(top: 40, left: 10, child: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30), onPressed: () => Navigator.pop(context))),
         ],
       ),
     );
   }
-}
-
-class ScannerOverlayPainter extends CustomPainter {
-  final double scanBoxSize;
-  final double offset;
-  final double scanPosition;
-
-  ScannerOverlayPainter({
-    required this.scanBoxSize, 
-    required this.offset,
-    required this.scanPosition,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final backgroundPaint = Paint()..color = Colors.black.withOpacity(0.5);
-    final center = Offset(size.width / 2, size.height / 2 + offset);
-    
-    final scanRect = Rect.fromCenter(
-      center: center,
-      width: scanBoxSize,
-      height: scanBoxSize,
-    );
-
-    canvas.drawPath(
-      Path.combine(
-        PathOperation.difference,
-        Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
-        Path()..addRRect(RRect.fromRectAndRadius(scanRect, const Radius.circular(20))),
-      ),
-      backgroundPaint,
-    );
-
-    final borderPaint = Paint()
-      ..color = Colors.white
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 4;
-    
-    final path = Path();
-    const cornerLen = 25.0;
-
-    path.moveTo(scanRect.left, scanRect.top + cornerLen);
-    path.lineTo(scanRect.left, scanRect.top);
-    path.lineTo(scanRect.left + cornerLen, scanRect.top);
-
-    path.moveTo(scanRect.right - cornerLen, scanRect.top);
-    path.lineTo(scanRect.right, scanRect.top);
-    path.lineTo(scanRect.right, scanRect.top + cornerLen);
-
-    path.moveTo(scanRect.left, scanRect.bottom - cornerLen);
-    path.lineTo(scanRect.left, scanRect.bottom);
-    path.lineTo(scanRect.left + cornerLen, scanRect.bottom);
-
-    path.moveTo(scanRect.right - cornerLen, scanRect.bottom);
-    path.lineTo(scanRect.right, scanRect.bottom);
-    path.lineTo(scanRect.right, scanRect.bottom - cornerLen);
-
-    canvas.drawPath(path, borderPaint);
-
-    final linePaint = Paint()
-      ..shader = LinearGradient(
-        colors: [Colors.white.withOpacity(0), Colors.white, Colors.white.withOpacity(0)],
-      ).createShader(Rect.fromLTWH(scanRect.left, scanRect.top + (scanBoxSize * scanPosition), scanBoxSize, 2))
-      ..strokeWidth = 2;
-
-    canvas.drawLine(
-      Offset(scanRect.left + 10, scanRect.top + (scanBoxSize * scanPosition)),
-      Offset(scanRect.right - 10, scanRect.top + (scanBoxSize * scanPosition)),
-      linePaint,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant ScannerOverlayPainter oldDelegate) => 
-      oldDelegate.scanPosition != scanPosition;
 }

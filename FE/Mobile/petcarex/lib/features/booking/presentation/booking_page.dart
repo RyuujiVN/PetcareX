@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -24,13 +25,6 @@ class BookingPage extends StatefulWidget {
 
 class _BookingPageState extends State<BookingPage> {
   int _currentStep = 0;
-  final List<String> _steps = [
-    'Thú cưng',
-    'Phòng khám',
-    'Dịch vụ',
-    'Bác sĩ',
-    'Thời gian',
-  ];
 
   final List<String> _services = ServiceEnum.values.map((e) => e.value).toList();
   
@@ -54,39 +48,37 @@ class _BookingPageState extends State<BookingPage> {
     });
   }
 
-  void _nextStep() async {
+  void _nextStep(AppLocalizations l10n) async {
     final bookingProvider = context.read<BookingProvider>();
 
-    // Validation
     if (_currentStep == 0 && bookingProvider.selectedPetId == null) {
-      _showError('Vui lòng chọn thú cưng');
+      _showError(l10n.choosePet);
       return;
     }
     if (_currentStep == 1 && bookingProvider.selectedClinic == null) {
-      _showError('Vui lòng chọn phòng khám');
+      _showError(l10n.stepClinic);
       return;
     }
     if (_currentStep == 2) {
       if (bookingProvider.selectedServiceName == null) {
-        _showError('Vui lòng chọn dịch vụ');
+        _showError(l10n.stepService);
         return;
       }
       if (bookingProvider.symptomsNote == null || bookingProvider.symptomsNote!.trim().isEmpty) {
-        _showError('Vui lòng nhập triệu chứng của thú cưng');
+        _showError(l10n.note);
         return;
       }
     }
     if (_currentStep == 3 && bookingProvider.selectedDoctor == null) {
-      _showError('Vui lòng chọn bác sĩ');
+      _showError(l10n.doctor);
       return;
     }
     if (_currentStep == 4) {
-      // Default to today if user never tapped a date (first date is already highlighted)
       if (bookingProvider.selectedDate == null) {
         bookingProvider.setDefaultDate(_availableDates[0]);
       }
       if (bookingProvider.selectedTime == null) {
-        _showError('Vui lòng chọn thời gian khám');
+        _showError(l10n.time);
         return;
       }
     }
@@ -94,12 +86,11 @@ class _BookingPageState extends State<BookingPage> {
     if (_currentStep < 5) {
       setState(() => _currentStep++);
     } else {
-      // Step 5: Confirm
       final success = await bookingProvider.confirmAppointment();
       if (success) {
         setState(() => _currentStep = 6);
       } else {
-        _showError(bookingProvider.errorMessage ?? 'Có lỗi xảy ra khi đặt lịch');
+        _showError(bookingProvider.errorMessage ?? l10n.failed);
       }
     }
   }
@@ -128,7 +119,15 @@ class _BookingPageState extends State<BookingPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final isSuccess = _currentStep == 6;
+    final List<String> steps = [
+      l10n.stepPet,
+      l10n.stepClinic,
+      l10n.stepService,
+      l10n.stepDoctor,
+      l10n.stepTime,
+    ];
 
     return PopScope(
       canPop: (_currentStep == 0 && Navigator.canPop(context)) || isSuccess,
@@ -148,9 +147,9 @@ class _BookingPageState extends State<BookingPage> {
                   icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
                   onPressed: _previousStep,
                 ),
-          title: const Text(
-            'Đặt lịch khám',
-            style: TextStyle(
+          title: Text(
+            l10n.bookingTitle,
+            style: const TextStyle(
               color: AppColors.textDark,
               fontWeight: FontWeight.bold,
               fontSize: 18,
@@ -161,7 +160,7 @@ class _BookingPageState extends State<BookingPage> {
           children: [
             StepIndicator(
               currentStep: _currentStep > 4 ? 4 : _currentStep,
-              steps: _steps,
+              steps: steps,
               isSuccess: isSuccess,
               onStepTapped: (index) {
                 if (index < _currentStep) {
@@ -170,16 +169,16 @@ class _BookingPageState extends State<BookingPage> {
               },
             ),
             Expanded(
-              child: _buildMainContent(),
+              child: _buildMainContent(l10n),
             ),
           ],
         ),
-        bottomNavigationBar: _buildBottomSection(),
+        bottomNavigationBar: _buildBottomSection(l10n),
       ),
     );
   }
 
-  Widget _buildMainContent() {
+  Widget _buildMainContent(AppLocalizations l10n) {
     final bookingProvider = context.watch<BookingProvider>();
     final petProvider = context.watch<PetProvider>();
 
@@ -207,7 +206,7 @@ class _BookingPageState extends State<BookingPage> {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSummary(
-          petName: pet?.name ?? 'Thú cưng',
+          petName: pet?.name ?? l10n.stepPet,
           clinicName: bookingProvider.selectedClinic?.name ?? '',
           serviceName: bookingProvider.selectedServiceName ?? '',
           doctorName: bookingProvider.selectedDoctor?.user.fullName ?? '',
@@ -220,7 +219,7 @@ class _BookingPageState extends State<BookingPage> {
     return CustomScrollView(
       key: ValueKey(_currentStep),
       slivers: [
-        _buildStepHeaderSliver(),
+        _buildStepHeaderSliver(l10n),
         _buildStepContentSliver(),
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
       ],
@@ -302,20 +301,20 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _buildStepHeaderSliver() {
+  Widget _buildStepHeaderSliver(AppLocalizations l10n) {
     final titles = [
-      'Chọn thú cưng của bạn',
-      'Chọn phòng khám cho thú cưng',
-      'Lựa chọn dịch vụ',
-      'Chọn bác sĩ cho thú cưng bạn',
-      'Chọn thời gian khám',
+      l10n.choosePet,
+      l10n.stepClinic,
+      l10n.stepService,
+      l10n.doctor,
+      l10n.stepTime,
     ];
     final subs = [
-      'Chọn thú cưng cần được thăm khám hôm nay',
-      'Chọn phòng khám mà bạn mong muốn nhé',
-      'Chọn một hoặc nhiều dịch vụ cho thú cưng của bạn',
-      'Chọn bác sĩ chuyên khoa phù hợp nhé',
-      'Lựa chọn ngày và thời gian khám cho thú cưng của bạn',
+      l10n.choosePetSub,
+      l10n.stepClinic,
+      l10n.stepService,
+      l10n.doctor,
+      l10n.stepTime,
     ];
 
     return SliverPadding(
@@ -339,7 +338,7 @@ class _BookingPageState extends State<BookingPage> {
     );
   }
 
-  Widget _buildBottomSection() {
+  Widget _buildBottomSection(AppLocalizations l10n) {
     final bookingProvider = context.watch<BookingProvider>();
     final isSuccess = _currentStep == 6;
 
@@ -361,7 +360,7 @@ class _BookingPageState extends State<BookingPage> {
                       setState(() => _currentStep = 0);
                       MainNavigationWrapper.of(context)?.setSelectedIndex(2);
                     }
-                  : _nextStep),
+                  : () => _nextStep(l10n)),
           style: ElevatedButton.styleFrom(
             backgroundColor: isSuccess ? Colors.white : AppColors.primary,
             foregroundColor: isSuccess ? AppColors.primary : Colors.white,
@@ -384,10 +383,10 @@ class _BookingPageState extends State<BookingPage> {
                   children: [
                     Text(
                       isSuccess
-                          ? 'Thoát'
+                          ? l10n.close
                           : (_currentStep == 5
-                              ? 'Xác nhận đặt lịch'
-                              : 'Tiếp tục'),
+                              ? l10n.confirmAppointment
+                              : l10n.continueBtn),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

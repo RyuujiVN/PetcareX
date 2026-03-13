@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/account/presentation/account_page.dart';
@@ -20,8 +21,7 @@ class MainNavigationWrapper extends StatefulWidget {
 class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _selectedIndex = 0;
 
-  // Lazy-loading: chỉ build page khi user navigate lần đầu
-  final Set<int> _initializedPages = {0}; // HomePage luôn init sẵn
+  final Set<int> _initializedPages = {0}; 
   final List<Widget?> _pages = List<Widget?>.filled(5, null);
 
   void setSelectedIndex(int index) {
@@ -52,7 +52,8 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   @override
   Widget build(BuildContext context) {
-    // Lazy init: chỉ tạo page khi cần
+    final l10n = AppLocalizations.of(context)!;
+    
     for (final i in _initializedPages) {
       _pages[i] ??= _buildPage(i);
     }
@@ -70,21 +71,21 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildNavItem(Icons.home_outlined, Icons.home, "TRANG CHỦ", 0),
+              _buildNavItem(Icons.home_outlined, Icons.home, l10n.navHome, 0),
               _buildNavItem(
                 Icons.edit_calendar_outlined,
                 Icons.edit_calendar,
-                "ĐẶT LỊCH",
+                l10n.navBooking,
                 1,
               ),
               _buildNavItem(
                 Icons.calendar_month_outlined,
                 Icons.calendar_month,
-                "LỊCH HẸN",
+                l10n.navAppointments,
                 2,
               ),
-              _buildNavItem(Icons.forum_outlined, Icons.forum, "CỘNG ĐỒNG", 3),
-              _buildNavItem(Icons.person_outline, Icons.person, "CÁ NHÂN", 4),
+              _buildNavItem(Icons.forum_outlined, Icons.forum, l10n.navCommunity, 3),
+              _buildNavItem(Icons.person_outline, Icons.person, l10n.navProfile, 4),
             ],
           ),
         ),

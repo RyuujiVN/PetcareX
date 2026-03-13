@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -24,6 +25,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   }
 
   Future<void> _sendResetLink() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authProvider = context.read<AuthProvider>();
@@ -34,7 +36,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar('Gửi mã OTP thành công', isError: false);
+      _showQuickSnackBar('OTP Sent Successfully', isError: false);
       
       Navigator.push(
         context,
@@ -43,12 +45,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Đã có lỗi xảy ra. Vui lòng thử lại.', isError: true);
+      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
     }
   }
 
   void _showQuickSnackBar(String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).clearSnackBars(); // Xóa các snackbar cũ ngay lập tức
+    ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
@@ -62,18 +64,19 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(l10n),
             Expanded(
               child: Center(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  child: _buildForgotCard(isLoading),
+                  child: _buildForgotCard(isLoading, l10n),
                 ),
               ),
             ),
@@ -84,7 +87,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: const BoxDecoration(
@@ -103,21 +106,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   border: Border.all(color: Colors.black, width: 1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Image.asset(
-                  'assets/images/icon.png',
-                  width: 30,
-                  height: 30,
-                  fit: BoxFit.contain,
-                ),
+                child: Image.asset('assets/images/icon.png', width: 30, height: 30),
               ),
               const SizedBox(width: 12),
-              const Text(
-                'PetCareX',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textDark,
-                ),
+              Text(
+                l10n.appName,
+                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark),
               ),
             ],
           ),
@@ -126,19 +120,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildForgotCard(bool isLoading) {
+  Widget _buildForgotCard(bool isLoading, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.grey.withValues(alpha: 0.2)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
+          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Form(
@@ -149,73 +138,49 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.restart_alt,
-                  size: 40,
-                  color: AppColors.primary,
-                ),
+                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                child: const Icon(Icons.restart_alt, size: 40, color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Quên mật khẩu?',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.title,
-            ),
+            Text(l10n.forgotPassword, textAlign: TextAlign.center, style: AppTextStyles.title),
             const SizedBox(height: 12),
             const Text(
-              'Đừng lo lắng! Nhập email liên kết với tài khoản của bạn và chúng tôi sẽ gửi hướng dẫn khôi phục mật khẩu.',
+              'Enter your email and we will send you an OTP code to reset your password.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 32),
-            _buildEmailField(isLoading),
+            _buildEmailField(isLoading, l10n),
             const SizedBox(height: 24),
-            _buildSubmitButton(isLoading),
+            _buildSubmitButton(isLoading, l10n),
             const SizedBox(height: 24),
-            _buildBackToLogin(isLoading),
+            _buildBackToLogin(isLoading, l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEmailField(bool isLoading) {
+  Widget _buildEmailField(bool isLoading, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Địa chỉ Email',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
+        Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         const SizedBox(height: 8),
         TextFormField(
           controller: emailController,
           keyboardType: TextInputType.emailAddress,
           enabled: !isLoading,
           decoration: InputDecoration(
-            hintText: 'example@email.com',
-            hintStyle: TextStyle(color: AppColors.grey.withValues(alpha: 0.5)),
+            hintText: l10n.emailHint,
             prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.grey),
-            contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             filled: true,
             fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           ),
           validator: (value) {
-            if (value == null || value.isEmpty) return 'Vui lòng nhập email';
-            if (!value.contains('@')) return 'Email không hợp lệ';
+            if (value == null || value.isEmpty) return l10n.enterEmail;
             return null;
           },
         ),
@@ -223,72 +188,25 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildSubmitButton(bool isLoading) {
+  Widget _buildSubmitButton(bool isLoading, AppLocalizations l10n) {
     return SizedBox(
       height: 54,
       child: ElevatedButton(
         onPressed: isLoading ? null : _sendResetLink,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-              )
-            : const Text(
-                'Gửi liên kết đặt lại',
-                style: AppTextStyles.button,
-              ),
+        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.white),
+        child: isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Send OTP'),
       ),
     );
   }
 
-  Widget _buildBackToLogin(bool isLoading) {
+  Widget _buildBackToLogin(bool isLoading, AppLocalizations l10n) {
     return GestureDetector(
       onTap: isLoading ? null : () => Navigator.pop(context),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(width: 4),
-          const Text(
-            'Quay lại Đăng nhập',
-            style: TextStyle(color: AppColors.grey, fontSize: 14),
-          ),
-        ],
-      ),
+      child: Center(child: Text(l10n.loginNow, style: const TextStyle(color: AppColors.grey, fontSize: 14))),
     );
   }
 
   Widget _buildFooter() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        children: [
-          RichText(
-            text: TextSpan(
-              text: 'Bạn gặp khó khăn? ',
-              style: const TextStyle(color: AppColors.textDark, fontSize: 13),
-              children: const [
-                TextSpan(
-                  text: 'Liên hệ bộ phận hỗ trợ',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 40),
-          const Text(
-            '© 2026 PETCAREX INC. BẢO MẬT THÔNG TIN CỦA BẠN LÀ ƯU TIÊN CỦA CHÚNG TÔI.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.grey, fontSize: 10, letterSpacing: 0.5),
-          ),
-        ],
-      ),
-    );
+    return const Padding(padding: EdgeInsets.all(24.0), child: Text('© 2026 PETCAREX INC.', style: TextStyle(color: AppColors.grey, fontSize: 10)));
   }
 }

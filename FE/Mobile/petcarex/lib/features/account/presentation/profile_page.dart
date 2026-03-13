@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/services/camera_service.dart';
@@ -42,7 +43,6 @@ class _ProfilePageState extends State<ProfilePage> {
     _addressController = TextEditingController(text: user?.address ?? '');
     _uploadedAvatarUrl = user?.avatarUrl;
     
-    // Fetch latest profile when entering the page
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _fetchProfile();
     });
@@ -91,7 +91,7 @@ class _ProfilePageState extends State<ProfilePage> {
               _uploadedAvatarUrl = url;
             } else {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(authProvider.errorMessage ?? 'Tải ảnh lên thất bại')),
+                SnackBar(content: Text(authProvider.errorMessage ?? 'Upload failed')),
               );
             }
           });
@@ -100,16 +100,17 @@ class _ProfilePageState extends State<ProfilePage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Không thể chọn ảnh: $e')),
+          SnackBar(content: Text('Error: $e')),
         );
       }
     }
   }
 
   Future<void> _handleSave() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_isUploadingAvatar) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui lòng đợi ảnh tải lên hoàn tất')),
+        const SnackBar(content: Text('Uploading...')),
       );
       return;
     }
@@ -119,7 +120,6 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isLoading = true);
     final authProvider = context.read<AuthProvider>();
 
-    // Cập nhật thông tin profile
     final success = await authProvider.updateProfile(
       fullName: _nameController.text.trim(),
       email: _emailController.text.trim(),
@@ -132,16 +132,16 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() => _isLoading = false);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cập nhật thông tin thành công'),
+          SnackBar(
+            content: Text(l10n.success),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context); // Quay lại trang trước
+        Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Cập nhật thất bại'),
+            content: Text(authProvider.errorMessage ?? l10n.failed),
             backgroundColor: Colors.red,
           ),
         );
@@ -149,22 +149,23 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  String _getRoleText(String role) {
+  String _getRoleText(String role, AppLocalizations l10n) {
     switch (role.toUpperCase()) {
       case 'CUSTOMER':
-        return 'Chủ nuôi thân thiết';
+        return l10n.loyalCustomer;
       case 'VET':
-        return 'Bác sĩ thú y';
+        return 'Vet';
       case 'ADMIN':
-        return 'Quản trị viên';
+        return 'Admin';
       default:
-        return 'Khách hàng';
+        return 'User';
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -176,9 +177,9 @@ class _ProfilePageState extends State<ProfilePage> {
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Hồ sơ cá nhân',
-          style: TextStyle(
+        title: Text(
+          l10n.profile,
+          style: const TextStyle(
             color: AppColors.textDark,
             fontSize: 18,
             fontWeight: FontWeight.bold,
@@ -194,7 +195,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 key: _formKey,
                 child: Column(
                   children: [
-                    // Avatar and Role Section
                     Center(
                       child: Column(
                         children: [
@@ -270,7 +270,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            _getRoleText(user.role),
+                            _getRoleText(user.role, l10n),
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
@@ -282,14 +282,13 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(height: 32),
                     
-                    // Personal Information Form
                     Row(
-                      children: const [
-                        Icon(Icons.person_outline, color: AppColors.textDark),
-                        SizedBox(width: 8),
+                      children: [
+                        const Icon(Icons.person_outline, color: AppColors.textDark),
+                        const SizedBox(width: 8),
                         Text(
-                          'Thông tin cá nhân',
-                          style: TextStyle(
+                          l10n.personalInfo,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textDark,
@@ -300,43 +299,42 @@ class _ProfilePageState extends State<ProfilePage> {
                     const SizedBox(height: 20),
                     
                     _buildInputField(
-                      label: 'Tên',
+                      label: l10n.fullName,
                       controller: _nameController,
                       validator: (value) => 
-                          value == null || value.isEmpty ? 'Vui lòng nhập tên' : null,
+                          value == null || value.isEmpty ? l10n.fullName : null,
                     ),
                     const SizedBox(height: 16),
                     
                     _buildInputField(
-                      label: 'Email',
+                      label: l10n.email,
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       enabled: true, 
                       validator: (value) => 
-                          value == null || value.isEmpty ? 'Vui lòng nhập email' : null,
+                          value == null || value.isEmpty ? l10n.email : null,
                     ),
                     const SizedBox(height: 16),
                     
                     _buildInputField(
-                      label: 'Số điện thoại',
+                      label: l10n.phone,
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
                       validator: (value) => 
-                          value == null || value.isEmpty ? 'Vui lòng nhập số điện thoại' : null,
+                          value == null || value.isEmpty ? l10n.phone : null,
                     ),
                     const SizedBox(height: 16),
                     
                     _buildInputField(
-                      label: 'Địa chỉ',
+                      label: l10n.address,
                       controller: _addressController,
                       maxLines: 3,
                       validator: (value) => 
-                          value == null || value.isEmpty ? 'Vui lòng nhập địa chỉ' : null,
+                          value == null || value.isEmpty ? l10n.address : null,
                     ),
                     
                     const SizedBox(height: 40),
                     
-                    // Action Buttons
                     Row(
                       children: [
                         Expanded(
@@ -351,9 +349,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                             ),
-                            child: const Text(
-                              'Hủy',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            child: Text(
+                              l10n.cancel,
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                             ),
                           ),
                         ),
@@ -379,9 +377,9 @@ class _ProfilePageState extends State<ProfilePage> {
                                       strokeWidth: 2,
                                     ),
                                   )
-                                : const Text(
-                                    'Lưu thay đổi',
-                                    style: TextStyle(
+                                : Text(
+                                    l10n.saveChanges,
+                                    style: const TextStyle(
                                       fontSize: 16, 
                                       fontWeight: FontWeight.w600,
                                     ),
