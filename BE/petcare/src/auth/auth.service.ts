@@ -19,9 +19,12 @@ import { ChangePasswordDTO } from './dtos/change-password.dto';
 import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
 import { LoginDTO } from './dtos/login.dto';
 import { ResetPasswordDTO } from './dtos/reset-password.dto';
+import { LoginTicket, OAuth2Client } from 'google-auth-library';
 
 @Injectable()
 export class AuthService {
+  private client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
@@ -69,6 +72,68 @@ export class AuthService {
       );
       payload.clinicId = veterinarian?.clinicId;
     }
+
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('ACCESS_TOKEN'),
+      expiresIn: '7d',
+    });
+
+    return {
+      userInfo: payload,
+      accessToken: accessToken,
+    };
+  }
+
+  async validateGoogleIdToken(idToken: string) {
+    try {
+      const loginTicket: LoginTicket = await this.client.verifyIdToken({
+        idToken,
+        audience: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      });
+
+      const payload = loginTicket.getPayload();
+
+      if (!payload) throw new UnauthorizedException('Invalid login token');
+
+      return payload.email;
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Không thể verify token');
+    }
+  }
+
+  async googleLogin(googleIdToken: string) {
+    // Validate token
+    const email = await this.validateGoogleIdToken(googleIdToken);
+    if (!email) throw new BadRequestException('In valid token');
+
+    // Kiểm tra xem user đã tồn tại hay chưa
+    const existedUser = await this.userService.findOneByEmail(email);
+    let user;
+
+    // Nếu chưa thì tạo mới
+    if (!existedUser) {
+      const fullName = email?.split('@')[0];
+
+      if (!fullName) throw new BadRequestException();
+
+      const newUser = new User();
+      newUser.email = email;
+      newUser.fullName = fullName;
+      newUser.role = RoleEnum.CUSTOMER;
+
+      user = await this.userRepository.save(newUser);
+    } else {
+      user = existedUser;
+    }
+
+    const payload: any = {
+      id: user.id,
+      fullName: user.fullName,
+      email: user.email,
+      role: user.role,
+      avatarUrl: user.avatarUrl,
+    };
 
     const accessToken = this.jwtService.sign(payload, {
       secret: this.configService.get<string>('ACCESS_TOKEN'),

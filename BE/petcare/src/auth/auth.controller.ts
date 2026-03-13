@@ -9,6 +9,7 @@ import { ChangePasswordDTO } from './dtos/change-password.dto';
 import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
 import { LoginDTO } from './dtos/login.dto';
 import { ResetPasswordDTO } from './dtos/reset-password.dto';
+import { LoginGoogleDTO } from './dtos/login-google.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -24,6 +25,15 @@ export class AuthController {
   })
   login(@Body() loginDTO: LoginDTO) {
     return this.authService.login(loginDTO);
+  }
+
+  @Post('login-google')
+  @ApiOperation({ summary: 'Đăng nhập bằng google' })
+  @ApiBody({
+    type: LoginGoogleDTO,
+  })
+  async googleLogin(@Body('googleIdToken') idToken: string) {
+    return this.authService.googleLogin(idToken);
   }
 
   @Post('register')
