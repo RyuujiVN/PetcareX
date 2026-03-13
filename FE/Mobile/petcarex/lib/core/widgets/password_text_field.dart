@@ -12,7 +12,7 @@ class PasswordTextField extends StatefulWidget {
     required this.controller,
     required this.label,
     this.errorText,
-    this.hintText = '••••••••',
+    this.hintText = '● ● ● ● ● ● ● ●',
   });
 
   @override

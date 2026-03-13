@@ -2,12 +2,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/password_text_field.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'providers/auth_provider.dart';
 
@@ -27,8 +28,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController confirmPasswordController = TextEditingController();
 
   bool _agreeToTerms = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   bool _isLoading = false;
 
   final ApiClient _apiClient = ApiClient();
@@ -65,7 +64,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Success!')),
+          SnackBar(content: Text(l10n.success)),
         );
         Navigator.pop(context);
       } else {
@@ -77,7 +76,7 @@ class _RegisterPageState extends State<RegisterPage> {
         }
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text((errorData is Map ? errorData['message'] : null) ?? 'Failed')),
+          SnackBar(content: Text((errorData is Map ? errorData['message'] : null) ?? l10n.failed)),
         );
       }
     } catch (e) {
@@ -190,9 +189,9 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 10),
             _buildTextField(label: l10n.email, hint: l10n.emailHint, controller: emailController, icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 10),
-            _buildPasswordField(label: l10n.password, hint: l10n.password, controller: passwordController, obscureText: _obscurePassword, onToggle: () => setState(() => _obscurePassword = !_obscurePassword)),
+            PasswordTextField(controller: passwordController, label: l10n.password),
             const SizedBox(height: 10),
-            _buildPasswordField(label: l10n.confirmPassword, hint: l10n.confirmPassword, controller: confirmPasswordController, obscureText: _obscureConfirmPassword, onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword)),
+            PasswordTextField(controller: confirmPasswordController, label: l10n.confirmPassword),
             const SizedBox(height: 12),
             _buildTermsCheckbox(l10n),
             const SizedBox(height: 16),
@@ -229,33 +228,6 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildPasswordField({required String label, required String hint, required TextEditingController controller, required bool obscureText, required VoidCallback onToggle}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-        const SizedBox(height: 4),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            hintText: hint,
-            prefixIcon: const Icon(Icons.lock_outline, size: 18),
-            suffixIcon: IconButton(icon: Icon(obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 18), onPressed: onToggle),
-            filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) return label;
-            if (label.contains('Confirm') && value != passwordController.text) return 'Not match';
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildTermsCheckbox(AppLocalizations l10n) {
     return Row(
       children: [
@@ -272,7 +244,7 @@ class _RegisterPageState extends State<RegisterPage> {
       child: ElevatedButton(
         onPressed: _isLoading ? null : _register,
         style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        child: _isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.createAccount),
+        child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : Text(l10n.createAccount),
       ),
     );
   }

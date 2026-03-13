@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/password_text_field.dart'; // Import mới
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'forgot_password_page.dart';
 import 'providers/auth_provider.dart';
@@ -20,7 +21,6 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
-  bool _isObscure = true;
   bool _rememberMe = false;
 
   String? _emailError;
@@ -174,18 +174,11 @@ class _LoginPageState extends State<LoginPage> {
             decoration: InputDecoration(hintText: l10n.emailHint, prefixIcon: const Icon(Icons.email_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), errorText: _emailError),
           ),
           const SizedBox(height: 16),
-          Text(l10n.password, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          TextField(
+          // Sử dụng PasswordTextField mới
+          PasswordTextField(
             controller: _passwordController,
-            obscureText: _isObscure,
-            decoration: InputDecoration(
-              hintText: '● ● ● ● ● ● ● ●',
-              prefixIcon: const Icon(Icons.lock_outline),
-              suffixIcon: IconButton(icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility), onPressed: () => setState(() => _isObscure = !_isObscure)),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              errorText: _passwordError,
-            ),
+            label: l10n.password,
+            errorText: _passwordError,
           ),
           const SizedBox(height: 8),
           _buildRememberAndForgot(l10n),

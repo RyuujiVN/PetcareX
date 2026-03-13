@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
+import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/password_text_field.dart';
 import 'providers/auth_provider.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -19,10 +20,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   final TextEditingController newPasswordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
 
-  bool _obscureOld = true;
-  bool _obscureNew = true;
-  bool _obscureConfirm = true;
-
   @override
   void dispose() {
     oldPasswordController.dispose();
@@ -36,7 +33,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final authProvider = context.read<AuthProvider>();
-    
     final success = await authProvider.changePassword(
       oldPassword: oldPasswordController.text,
       newPassword: newPasswordController.text,
@@ -49,7 +45,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       _showQuickSnackBar(l10n.save, isError: false);
       Navigator.pop(context);
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
+      _showQuickSnackBar(authProvider.errorMessage ?? l10n.failed, isError: true);
     }
   }
 
@@ -79,10 +75,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text(
-          l10n.changePassword,
-          style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold, fontSize: 18),
-        ),
+        title: Text(l10n.changePassword, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold, fontSize: 18)),
         centerTitle: true,
       ),
       body: SafeArea(
@@ -102,9 +95,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10)),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)],
       ),
       child: Form(
         key: _formKey,
@@ -123,11 +114,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             const SizedBox(height: 12),
             Text(l10n.changePasswordMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5)),
             const SizedBox(height: 32),
-            _buildPasswordField(label: l10n.oldPassword, controller: oldPasswordController, obscureText: _obscureOld, onToggle: () => setState(() => _obscureOld = !_obscureOld), l10n: l10n),
+            PasswordTextField(controller: oldPasswordController, label: l10n.oldPassword),
             const SizedBox(height: 16),
-            _buildPasswordField(label: l10n.newPassword, controller: newPasswordController, obscureText: _obscureNew, onToggle: () => setState(() => _obscureNew = !_obscureNew), l10n: l10n),
+            PasswordTextField(controller: newPasswordController, label: l10n.newPassword),
             const SizedBox(height: 16),
-            _buildPasswordField(label: l10n.confirmNewPassword, controller: confirmPasswordController, obscureText: _obscureConfirm, onToggle: () => setState(() => _obscureConfirm = !_obscureConfirm), l10n: l10n),
+            PasswordTextField(controller: confirmPasswordController, label: l10n.confirmNewPassword),
             const SizedBox(height: 32),
             _buildSubmitButton(isLoading, l10n),
           ],
@@ -136,39 +127,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     );
   }
 
-  Widget _buildPasswordField({required String label, required TextEditingController controller, required bool obscureText, required VoidCallback onToggle, required AppLocalizations l10n}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            hintText: '● ● ● ● ● ● ● ●',
-            prefixIcon: const Icon(Icons.lock_outline, size: 20, color: AppColors.grey),
-            suffixIcon: IconButton(icon: Icon(obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20, color: AppColors.grey), onPressed: onToggle),
-            filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
-          validator: (value) {
-            if (value == null || value.isEmpty) return label;
-            return null;
-          },
-        ),
-      ],
-    );
-  }
-
   Widget _buildSubmitButton(bool isLoading, AppLocalizations l10n) {
     return SizedBox(
       height: 54,
       child: ElevatedButton(
         onPressed: isLoading ? null : _changePassword,
-        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        child: isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.updatePassword),
+        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        child: isLoading 
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+            : Text(l10n.updatePassword, style: AppTextStyles.button),
       ),
     );
   }

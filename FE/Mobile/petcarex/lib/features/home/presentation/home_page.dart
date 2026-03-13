@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:mobile_scanner/mobile_scanner.dart'; // Thêm lại import này
+import 'package:mobile_scanner/mobile_scanner.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
@@ -557,6 +557,8 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
     torchEnabled: false,
   );
   late AnimationController _animationController;
+  final double verticalOffset = -60;
+
   @override
   void initState() {
     super.initState();
@@ -570,17 +572,88 @@ class _QRScannerScreenState extends State<QRScannerScreen> with SingleTickerProv
   }
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size.width * 0.7;
     return Scaffold(
       body: Stack(
         children: [
-          MobileScanner(controller: controller, onDetect: (capture) {
-            for (final barcode in capture.barcodes) {
-              if (barcode.rawValue != null) { widget.onScan(barcode.rawValue!); break; }
+          MobileScanner(
+            controller: controller, 
+            onDetect: (capture) {
+              for (final barcode in capture.barcodes) {
+                if (barcode.rawValue != null) { widget.onScan(barcode.rawValue!); break; }
+              }
             }
-          }),
+          ),
+          Positioned.fill(
+            child: AnimatedBuilder(
+              animation: _animationController,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: ScannerOverlayPainter(
+                    scanBoxSize: size, 
+                    offset: verticalOffset,
+                    scanPosition: _animationController.value,
+                  ),
+                );
+              },
+            ),
+          ),
           Positioned(top: 40, left: 10, child: IconButton(icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30), onPressed: () => Navigator.pop(context))),
+          Positioned(top: 40, right: 10, child: IconButton(icon: const Icon(Icons.flash_on, color: Colors.white), onPressed: () => controller.toggleTorch())),
         ],
       ),
     );
   }
+}
+
+class ScannerOverlayPainter extends CustomPainter {
+  final double scanBoxSize;
+  final double offset;
+  final double scanPosition;
+
+  ScannerOverlayPainter({required this.scanBoxSize, required this.offset, required this.scanPosition});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final backgroundPaint = Paint()..color = Colors.black.withOpacity(0.5);
+    final center = Offset(size.width / 2, size.height / 2 + offset);
+    final scanRect = Rect.fromCenter(center: center, width: scanBoxSize, height: scanBoxSize);
+
+    canvas.drawPath(
+      Path.combine(
+        PathOperation.difference,
+        Path()..addRect(Rect.fromLTWH(0, 0, size.width, size.height)),
+        Path()..addRRect(RRect.fromRectAndRadius(scanRect, const Radius.circular(20))),
+      ),
+      backgroundPaint,
+    );
+
+    final borderPaint = Paint()..color = Colors.white..style = PaintingStyle.stroke..strokeWidth = 4;
+    final path = Path();
+    const cornerLen = 25.0;
+
+    path.moveTo(scanRect.left, scanRect.top + cornerLen);
+    path.lineTo(scanRect.left, scanRect.top);
+    path.lineTo(scanRect.left + cornerLen, scanRect.top);
+
+    path.moveTo(scanRect.right - cornerLen, scanRect.top);
+    path.lineTo(scanRect.right, scanRect.top);
+    path.lineTo(scanRect.right, scanRect.top + cornerLen);
+
+    path.moveTo(scanRect.left, scanRect.bottom - cornerLen);
+    path.lineTo(scanRect.left, scanRect.bottom);
+    path.lineTo(scanRect.left + cornerLen, scanRect.bottom);
+
+    path.moveTo(scanRect.right - cornerLen, scanRect.bottom);
+    path.lineTo(scanRect.right, scanRect.bottom);
+    path.lineTo(scanRect.right, scanRect.bottom - cornerLen);
+
+    canvas.drawPath(path, borderPaint);
+
+    final linePaint = Paint()..shader = LinearGradient(colors: [Colors.white.withOpacity(0), Colors.white, Colors.white.withOpacity(0)]).createShader(Rect.fromLTWH(scanRect.left, scanRect.top + (scanBoxSize * scanPosition), scanBoxSize, 2))..strokeWidth = 2;
+    canvas.drawLine(Offset(scanRect.left + 10, scanRect.top + (scanBoxSize * scanPosition)), Offset(scanRect.right - 10, scanRect.top + (scanBoxSize * scanPosition)), linePaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant ScannerOverlayPainter oldDelegate) => oldDelegate.scanPosition != scanPosition;
 }
