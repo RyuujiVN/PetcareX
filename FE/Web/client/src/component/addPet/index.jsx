@@ -184,17 +184,6 @@ export default function AddPet() {
                   onChange={(e) => setWeight(e.target.value)}
                 />
               </div>
-
-              <div className="form-group">
-                <label className="form-label">Tên chủ thú cưng</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="Trương Công Thành"
-                  value={owner}
-                  onChange={(e) => setOwner(e.target.value)}
-                />
-              </div>
             </div>
             </div>
           </div>

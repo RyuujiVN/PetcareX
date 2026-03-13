@@ -34,7 +34,7 @@ function App() {
         <Route path="/booking" element={<BookingAppointment />} />
         <Route path="/add-pet" element={<AddPet />} />
         <Route path="/chatbot" element={<ChatBotAI />} />
-        <Route path="/profile/:id" element={<ProfileUser />} />
+        <Route path="/profile" element={<ProfileUser />} />
         <Route path="/appointments" element={<AppointmentDetail />} />
         <Route path="/success-booking" element={<SuccessBooking />} />
         <Route path="/petProfile" element={<PetProfile />} />
