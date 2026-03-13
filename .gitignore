@@ -1,0 +1,26 @@
+# --- Python environments ---
+.venv/
+venv/
+env/
+**/.venv/
+**/venv/
+**/env/
+
+# --- VS Code / IDE ---
+.vscode/
+.idea/
+
+# --- Python cache ---
+**/__pycache__/
+*.pyc
+*.pyo
+
+# --- AI heavy data (PetcareX) ---
+AI/Crawl_Tool/data_backup/
+AI/Crawl_Tool/pet_data_collector/data/
+AI/LLM_Model/data/
+AI/LLM_Model/vectorstore/
+
+# --- Generated / local runtime files ---
+*.log
+*.sqlite3
