@@ -11,15 +11,14 @@ class AppLogger {
       safeHeaders['Authorization'] = 'Bearer ***';
     }
 
-    print('┌[API REQUEST] ──────────────────');
-    print('│ Method: $method');
-    print('│ URL   : $url');
-    print('│ Header: $safeHeaders');
+    print('API REQUEST');
+    print('Method: $method');
+    print('URL   : $url');
+    print('Header: $safeHeaders');
     if (body != null) {
       final safeBody = _getSafeBody(body);
       print('│ Body  : ${jsonEncode(safeBody)}');
     }
-    print('└───────────────────────────────────');
   }
 
   static void logResponse(http.Response response) {
@@ -29,19 +28,17 @@ class AppLogger {
         ? '${response.body.substring(0, 500)}...' 
         : response.body;
 
-    print('┌[API RESPONSE] ──────────────────');
-    print('│ Status: ${response.statusCode}');
-    print('│ URL   : ${response.request?.url}');
-    print('│ Body  : $bodyPreview');
-    print('└───────────────────────────────────');
+    print('API RESPONSE');
+    print('Status: ${response.statusCode}');
+    print('URL: ${response.request?.url}');
+    print('Body: $bodyPreview');
   }
 
   static void logError(String message, [dynamic error]) {
     if (!kDebugMode) return;
-    print('┌[API ERROR] ─────────────────────');
-    print('│ Message: $message');
+    print('API ERROR');
+    print('Message: $message');
     if (error != null) print('│ Error  : $error');
-    print('└───────────────────────────────────');
   }
 
   static dynamic _getSafeBody(dynamic body) {
