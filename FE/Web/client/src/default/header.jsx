@@ -35,22 +35,22 @@ function Header() {
                         Lịch hẹn
                     </NavLink>
                     <NavLink 
-                        to="/choose-clinic" 
+                        to="/medical-records" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Phòng khám
+                        Hồ sơ y tế
                     </NavLink>
                     <NavLink 
-                        to="/dien-dan" 
+                        to="/forum" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
                         Diễn đàn
                     </NavLink>
                     <NavLink 
-                        to="/hoi-dap" 
+                        to="/chatbot" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Hỏi đáp
+                        Chat Bot AI
                     </NavLink>
                 </nav>
 
