@@ -6,7 +6,7 @@ import Header from '../../default/header';
 import Footer from '../../default/footer';
 import { useAuth } from '../../context/AuthContext';
 import { getMyPetsApi } from '../../api/petApi';
-import { getClinicListApi } from '../../api/clinicApi';
+import { getClinicByIdApi, getClinicListApi } from '../../api/clinicApi';
 import { getVeterinarianByClinicApi } from '../../api/veterinarianApi';
 import {
   APPOINTMENT_STATUS,
@@ -50,12 +50,13 @@ export default function BookingAppointment() {
 
   const [pets, setPets] = useState([]);
   const [clinics, setClinics] = useState([]);
+  const [clinicDetail, setClinicDetail] = useState(null);
   const [doctors, setDoctors] = useState([]);
   const [myAppointments, setMyAppointments] = useState([]);
 
   const selectedClinic = useMemo(
-    () => clinics.find((item) => item.id === clinicId) || null,
-    [clinicId, clinics],
+    () => clinicDetail || clinics.find((item) => item.id === clinicId) || null,
+    [clinicDetail, clinicId, clinics],
   );
 
   const selectedDoctor = useMemo(
@@ -119,6 +120,16 @@ export default function BookingAppointment() {
     }
   };
 
+  const fetchClinicById = async (nextClinicId) => {
+    if (!nextClinicId) {
+      setClinicDetail(null);
+      return;
+    }
+
+    const detail = await getClinicByIdApi(nextClinicId);
+    setClinicDetail(detail || null);
+  };
+
   const bootstrapData = async () => {
     try {
       setLoading(true);
@@ -135,8 +146,8 @@ export default function BookingAppointment() {
   }, []);
 
   useEffect(() => {
-    fetchDoctorsByClinic(clinicId).catch((error) => {
-      message.error(error.message || 'Không thể tải danh sách bác sĩ');
+    Promise.all([fetchDoctorsByClinic(clinicId), fetchClinicById(clinicId)]).catch((error) => {
+      message.error(error.message || 'Không thể tải dữ liệu phòng khám và bác sĩ');
     });
   }, [clinicId]);
 

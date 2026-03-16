@@ -12,3 +12,21 @@ export const getClinicListApi = async (page = 1, limit = 50, search = "") => {
     headers: buildHeaders(),
   });
 };
+
+export const getClinicByIdApi = async (clinicId) => {
+  return request(`/clinic/${clinicId}`, {
+    method: "GET",
+    headers: buildHeaders(),
+  });
+};
+
+export const uploadClinicAvatarApi = async (file) => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  return request("/clinic/upload", {
+    method: "POST",
+    headers: buildHeaders(),
+    body: formData,
+  });
+};
