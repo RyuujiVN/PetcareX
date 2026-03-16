@@ -124,5 +124,14 @@
   "featuredPosts": "Bài viết nổi bật",
   "handbook": "CẨM NANG",
   "health": "SỨC KHỎE",
-  "delete": "Xóa"
+  "delete": "Xóa",
+  "connectionError": "Lỗi kết nối tới máy chủ",
+  "invalidEmail": "Email không hợp lệ",
+  "passwordTooShort": "Mật khẩu phải từ 6 ký tự trở lên",
+  "passwordsNotMatch": "Mật khẩu không khớp",
+  "agreeToTermsError": "Bạn cần đồng ý với điều khoản dịch vụ",
+  "uploadSuccess": "Tải lên thành công",
+  "uploadFailed": "Tải lên thất bại",
+  "otpSent": "Mã OTP đã được gửi thành công",
+  "otpError": "Mã OTP không hợp lệ hoặc đã hết hạn"
 }

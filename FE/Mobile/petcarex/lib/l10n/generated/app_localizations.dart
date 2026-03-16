@@ -847,6 +847,60 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Xóa'**
   String get delete;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi kết nối tới máy chủ'**
+  String get connectionError;
+
+  /// No description provided for @invalidEmail.
+  ///
+  /// In vi, this message translates to:
+  /// **'Email không hợp lệ'**
+  String get invalidEmail;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu phải từ 6 ký tự trở lên'**
+  String get passwordTooShort;
+
+  /// No description provided for @passwordsNotMatch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu không khớp'**
+  String get passwordsNotMatch;
+
+  /// No description provided for @agreeToTermsError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn cần đồng ý với điều khoản dịch vụ'**
+  String get agreeToTermsError;
+
+  /// No description provided for @uploadSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tải lên thành công'**
+  String get uploadSuccess;
+
+  /// No description provided for @uploadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tải lên thất bại'**
+  String get uploadFailed;
+
+  /// No description provided for @otpSent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã OTP đã được gửi thành công'**
+  String get otpSent;
+
+  /// No description provided for @otpError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã OTP không hợp lệ hoặc đã hết hạn'**
+  String get otpError;
 }
 
 class _AppLocalizationsDelegate

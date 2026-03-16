@@ -34,7 +34,14 @@ PetCareX is a Flutter-based mobile application for pet care management, integrat
 - **PetRepository:** CRUD operations for pets, including specialized endpoints for species and breeds by ID.
 - **Data Persistence:** Uses standard ISO 8601 UTC format for dates.
 
-### 4. Internationalization (i18n)
+### 4. Booking
+- **BookingRepository:** Provides endpoints:
+  - `getClinics(page, limit, search)` handles clinic paging + search and maps result to `Clinic` models.
+  - `getVeterinariansByClinic(clinicId, page, limit)` returns veterinarians list with paging.
+  - `createAppointment(dto)` posts appointment payload and parses detailed validation errors from NestJS response shape (`error.error.message`, `error.message`).
+- **Error handling:** Distinctly supports list/string backend validation messages, and throws user-friendly text.
+
+### 5. Internationalization (i18n)
 - **LanguageProvider:** Manages `Locale` state and persists user choice using `shared_preferences`.
 - **Global Localization:** 100% of UI strings in major pages (Login, Home, Booking, Profile, Pet Mgmt) converted to use `AppLocalizations`.
 - **Build Config:** Uses `l10n.yaml` with `output-dir: lib/l10n/generated` for maximum stability on Flutter 3.27+.

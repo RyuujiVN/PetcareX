@@ -124,5 +124,14 @@
   "featuredPosts": "Featured Posts",
   "handbook": "HANDBOOK",
   "health": "HEALTH",
-  "delete": "Delete"
+  "delete": "Delete",
+  "connectionError": "Server connection error",
+  "invalidEmail": "Invalid email address",
+  "passwordTooShort": "Password must be at least 6 characters",
+  "passwordsNotMatch": "Passwords do not match",
+  "agreeToTermsError": "You must agree to the terms of service",
+  "uploadSuccess": "Upload successful",
+  "uploadFailed": "Upload failed",
+  "otpSent": "OTP code has been sent successfully",
+  "otpError": "OTP code is invalid or expired"
 }

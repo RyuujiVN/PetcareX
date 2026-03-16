@@ -385,4 +385,31 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get delete => 'Xóa';
+
+  @override
+  String get connectionError => 'Lỗi kết nối tới máy chủ';
+
+  @override
+  String get invalidEmail => 'Email không hợp lệ';
+
+  @override
+  String get passwordTooShort => 'Mật khẩu phải từ 6 ký tự trở lên';
+
+  @override
+  String get passwordsNotMatch => 'Mật khẩu không khớp';
+
+  @override
+  String get agreeToTermsError => 'Bạn cần đồng ý với điều khoản dịch vụ';
+
+  @override
+  String get uploadSuccess => 'Tải lên thành công';
+
+  @override
+  String get uploadFailed => 'Tải lên thất bại';
+
+  @override
+  String get otpSent => 'Mã OTP đã được gửi thành công';
+
+  @override
+  String get otpError => 'Mã OTP không hợp lệ hoặc đã hết hạn';
 }

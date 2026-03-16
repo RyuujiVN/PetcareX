@@ -386,4 +386,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get delete => 'Delete';
+
+  @override
+  String get connectionError => 'Server connection error';
+
+  @override
+  String get invalidEmail => 'Invalid email address';
+
+  @override
+  String get passwordTooShort => 'Password must be at least 6 characters';
+
+  @override
+  String get passwordsNotMatch => 'Passwords do not match';
+
+  @override
+  String get agreeToTermsError => 'You must agree to the terms of service';
+
+  @override
+  String get uploadSuccess => 'Upload successful';
+
+  @override
+  String get uploadFailed => 'Upload failed';
+
+  @override
+  String get otpSent => 'OTP code has been sent successfully';
+
+  @override
+  String get otpError => 'OTP code is invalid or expired';
 }
