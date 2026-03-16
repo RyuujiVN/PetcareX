@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'providers/auth_provider.dart';
 
 class ResetPasswordPage extends StatefulWidget {
@@ -90,15 +90,21 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     });
 
     if (success) {
-      _showQuickSnackBar('Success', isError: false);
+      _showQuickSnackBar(l10n.otpSent, isError: false);
       startTimer();
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
+      _showQuickSnackBar(authProvider.errorMessage ?? l10n.connectionError, isError: true);
     }
   }
 
   Future<void> _resetPassword() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!(_formKey.currentState?.validate() ?? false)) return;
+
+    if (passwordController.text != confirmPasswordController.text) {
+      _showQuickSnackBar(l10n.passwordsNotMatch, isError: true);
+      return;
+    }
 
     final authProvider = context.read<AuthProvider>();
     
@@ -112,12 +118,12 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar('Success', isError: false);
+      _showQuickSnackBar(l10n.success, isError: false);
       await Future.delayed(const Duration(milliseconds: 1000));
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
+      _showQuickSnackBar(authProvider.errorMessage ?? l10n.connectionError, isError: true);
     }
   }
 
@@ -240,7 +246,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           controller: otpController,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(hintText: 'OTP', prefixIcon: const Icon(Icons.security, size: 20), filled: true, fillColor: const Color(0xFFF8F9FA), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-          validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+          validator: (value) => (value == null || value.isEmpty) ? l10n.enterPassword.replaceAll('mật khẩu', 'OTP') : null,
         ),
       ],
     );
@@ -256,7 +262,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
           controller: controller,
           obscureText: obscureText,
           decoration: InputDecoration(hintText: '● ● ● ● ● ● ● ●', prefixIcon: const Icon(Icons.lock_outline, size: 20), suffixIcon: IconButton(icon: Icon(obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20), onPressed: onToggle), filled: true, fillColor: const Color(0xFFF8F9FA), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-          validator: (value) => (value == null || value.isEmpty) ? label : null,
+          validator: (value) => (value == null || value.isEmpty) ? 'Vui lòng ${label.toLowerCase()}' : null,
         ),
       ],
     );

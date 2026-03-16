@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'providers/auth_provider.dart';
 import 'reset_password_page.dart';
 
@@ -36,7 +36,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar('OTP Sent Successfully', isError: false);
+      _showQuickSnackBar(l10n.otpSent, isError: false);
       
       Navigator.push(
         context,
@@ -45,7 +45,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
+      _showQuickSnackBar(authProvider.errorMessage ?? l10n.connectionError, isError: true);
     }
   }
 
@@ -181,6 +181,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
           ),
           validator: (value) {
             if (value == null || value.isEmpty) return l10n.enterEmail;
+            final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+            if (!emailRegex.hasMatch(value)) return l10n.invalidEmail;
             return null;
           },
         ),
