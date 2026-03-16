@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
-import Header from "../../../../client/src/default/header";
-import Footer from "../../../../client/src/default/footer";
+import Header from "../../default/header";
+import Footer from "../../default/footer";
 
 import { TbCircleCheck } from "react-icons/tb";
 import { IoCloseCircle } from "react-icons/io5";
