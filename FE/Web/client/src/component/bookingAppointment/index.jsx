@@ -217,6 +217,10 @@ export default function BookingAppointment() {
     setSelectedPet(pet);
   };
 
+  const handleAddPet = () => {
+    navigate('/add-pet');
+  }
+
   const handleShowMyPets = async () => {
     try {
       setLoading(true);
@@ -297,10 +301,9 @@ export default function BookingAppointment() {
     <div className="booking-page">
       <Header />
       <header className="dashboard-header">
-        <h1>Chào mừng trở lại, {userProfile?.fullName || 'bạn'}!</h1>
-        <p>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
+        <h1 style={{marginRight: '40%'}}>Chào mừng trở lại, {userProfile?.fullName || 'bạn'}!</h1>
+        <p style={{marginRight: '60%'}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
       </header>
-
       <Spin spinning={loading || submitting}>
         <div className="booking-content">
           <div className="form-column">
@@ -323,10 +326,10 @@ export default function BookingAppointment() {
                 ))}
                 <article
                   className="pet-card add-new"
-                  onClick={handleShowMyPets}
+                  onClick={() => handleAddPet()}
                   style={{ cursor: 'pointer' }}
                 >
-                  <span className="add-text">Hiển thị thú cưng của tôi</span>
+                  <span className="add-text">Thêm thú cưng mới</span>
                 </article>
               </div>
             </section>
@@ -380,6 +383,7 @@ export default function BookingAppointment() {
                   placeholder="Ghi triệu chứng của thú cưng"
                   value={symptoms}
                   onChange={(e) => setSymptoms(e.target.value)}
+                  style={{ color:'#333' }}
                 />
               </div>
             </section>
@@ -388,14 +392,14 @@ export default function BookingAppointment() {
               <h2><span className="step-number">4</span> Chọn ngày & Giờ hẹn</h2>
               <div className="date-time-selector">
                 <div className="calendar">
-                  <div className="month-header">
+                  <div className="month-header" style={{color: '#333'}}>
                     <button onClick={prevMonth}>&lt;</button>
                     <span>Tháng {calendarMonth + 1}, {calendarYear}</span>
                     <button onClick={nextMonth}>&gt;</button>
                   </div>
-                  <table>
+                  <table style={{color: '#333'}}>
                     <thead>
-                      <tr>
+                      <tr >
                         <th>CN</th>
                         <th>T2</th>
                         <th>T3</th>
@@ -434,7 +438,7 @@ export default function BookingAppointment() {
                     </tbody>
                   </table>
                 </div>
-                <div className="time-slots">
+                <div className="time-slots" style={{color: '#333'}}>
                   {WORKING_SLOTS.map((timeValue) => {
                     const inPast = toDateTimeValue(selectedDate, timeValue) < new Date();
                     const isBooked = unavailableTimes.has(timeValue);

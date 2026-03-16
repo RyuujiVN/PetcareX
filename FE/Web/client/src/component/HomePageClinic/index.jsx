@@ -2,7 +2,7 @@ import { FaFire, FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-
 import { useNavigate } from "react-router-dom";
 import Footer from "../../default/footer";
 import Header from "../../default/header";
-import "../HomePage/styles.css"; // reuse existing base styles
+import "../HomePage/styles.css"; 
 import "./HomePageClinic.css";
 
 export default function HomePageClinic() {
@@ -179,7 +179,7 @@ export default function HomePageClinic() {
           <h2 className="section-title">ĐỘI NGŨ PHÒNG KHÁM</h2>
           <div className="team-grid">
             {doctors.map((doc) => (
-              <div key={doc.id} className="doctor-card">
+              <div key={doc.id} className="doctor-cards">
                 <img src={doc.image} alt={doc.name} />
                 <div className="doctor-name">{doc.name}</div>
               </div>

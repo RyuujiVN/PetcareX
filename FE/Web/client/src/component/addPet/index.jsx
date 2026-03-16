@@ -166,7 +166,7 @@ export default function AddPet() {
       setSubmitting(true);
       await createPetApi(payload);
       message.success('Thêm thú cưng mới thành công');
-      navigate('/listPet');
+      navigate(-1);
     } catch (error) {
       message.error(error.message || 'Không thể thêm thú cưng');
     } finally {

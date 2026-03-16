@@ -15,16 +15,14 @@ body {
 }
 
 .header-container {
-    max-width: 1400px;
+    max-width: 95%;
     margin: 0 auto;
-    padding: 0 20px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 70px;
 }
-
-/* ==================== Logo Section ==================== */
 
 .logo-section {
     display: flex;
@@ -52,14 +50,12 @@ body {
     letter-spacing: 0.5px;
 }
 
-/* ==================== Navigation Menu ==================== */
-
 .nav-menu {
     display: flex;
     gap: 30px;
     align-items: center;
     flex: 1;
-    margin-right: 29%;
+    margin-right: 45%;
     justify-content: center;
     padding-right: 50px;
 }
@@ -90,15 +86,12 @@ body {
     border-radius: 2px;
 }
 
-/* ==================== User Section ==================== */
-
 .user-section {
     position: relative;
     display: flex;
     align-items: center;
 }
 
-/* ==================== Auth buttons (guest) ==================== */
 
 .auth-buttons {
     display: flex;
@@ -184,8 +177,6 @@ body {
     transform: rotate(180deg);
 }
 
-/* ==================== User Dropdown Menu ==================== */
-
 .user-dropdown {
     position: absolute;
     top: 100%;
@@ -251,7 +242,6 @@ body {
     background-color: #ffe8e8;
 }
 
-/* ==================== Responsive Design ==================== */
 
 @media (max-width: 1024px) {
     .header-container {

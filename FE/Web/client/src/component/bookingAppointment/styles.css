@@ -1,9 +1,10 @@
 .booking-page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  min-height: 200vh;
   background-color: white;
   padding: 20px 0;
+  overflow-y: hidden;
 }
 
 .booking-content {
@@ -16,6 +17,7 @@
   margin: 0 auto;
   background-color: white;
 }
+
 
 .form-column {
   flex: 4;
@@ -41,7 +43,7 @@
     padding: 24px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    width: 180%;
+    width: 150%;
 }
 
 .step {
@@ -141,16 +143,19 @@
 .row.row-inline {
   flex-direction: row;
   gap: 24px;
+  color: #333;
 }
 .field-col {
   flex: 1;
   display: flex;
   flex-direction: column;
+  color: #333;
 }
 .row label {
   display: block;
   margin-bottom: 6px;
   font-weight: 500;
+  color: #333;
 }
 .row select,
 .row textarea,
@@ -298,7 +303,6 @@
 .selected-day {
   background: #00c9b7;
   color: white;
-  border-radius: 50%;
 }
 
 .disabled-day {
