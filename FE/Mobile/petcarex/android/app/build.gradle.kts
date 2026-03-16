@@ -23,7 +23,6 @@ android {
 
     defaultConfig {
         applicationId = "com.example.petcarex"
-        // Nâng minSdkVersion lên 21 để hỗ trợ Camera & QR Scanner
         minSdk = flutter.minSdkVersion 
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

@@ -1,18 +1,27 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'core/providers/language_provider.dart';
 import 'core/theme/app_theme.dart';
-import 'core/providers/language_provider.dart'; // Import mới
 import 'features/appointment/presentation/provider/appointment_provider.dart';
 import 'features/auth/presentation/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/booking/presentation/provider/booking_provider.dart';
 import 'features/pet/presentation/provider/pet_provider.dart';
+import 'firebase_options.dart';
+import 'l10n/generated/app_localizations.dart';
 
-void main() {
+// ...
+
+
+void main () async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+);
   WidgetsFlutterBinding.ensureInitialized();
 
   SystemChrome.setSystemUIOverlayStyle(
