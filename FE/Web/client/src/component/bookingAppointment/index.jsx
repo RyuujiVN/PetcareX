@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { message, Spin } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './styles.css';
 import Header from '../../default/header';
 import Footer from '../../default/footer';
@@ -33,8 +33,17 @@ const getAppointmentDateLabel = (dateValue) => {
 
 export default function BookingAppointment() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { userProfile } = useAuth();
   const today = useMemo(() => new Date(), []);
+
+  const preselectedClinicId = useMemo(() => {
+    const clinicIdFromState =
+      location.state?.selectedClinicId ||
+      (location.state?.clinic?.id ? String(location.state.clinic.id) : '');
+
+    return clinicIdFromState || sessionStorage.getItem('selectedClinicId') || '';
+  }, [location.state]);
 
   const [selectedPet, setSelectedPet] = useState(null);
   const [service, setService] = useState(SERVICE_OPTIONS[0]);
@@ -94,6 +103,15 @@ export default function BookingAppointment() {
     const clinicList = Array.isArray(res?.items) ? res.items : [];
     setClinics(clinicList);
     if (clinicList.length > 0) {
+      const hasPreselectedClinic = preselectedClinicId
+        ? clinicList.some((item) => String(item.id) === String(preselectedClinicId))
+        : false;
+
+      if (hasPreselectedClinic) {
+        setClinicId(String(preselectedClinicId));
+        return;
+      }
+
       setClinicId((prev) => prev || clinicList[0].id);
     }
   };
@@ -144,6 +162,12 @@ export default function BookingAppointment() {
   useEffect(() => {
     bootstrapData();
   }, []);
+
+  useEffect(() => {
+    if (preselectedClinicId) {
+      setClinicId(String(preselectedClinicId));
+    }
+  }, [preselectedClinicId]);
 
   useEffect(() => {
     Promise.all([fetchDoctorsByClinic(clinicId), fetchClinicById(clinicId)]).catch((error) => {
@@ -358,7 +382,11 @@ export default function BookingAppointment() {
                 </div>
                 <div className="field-col">
                   <label>Phòng khám gần bạn</label>
-                  <select value={clinicId} onChange={(e) => setClinicId(e.target.value)}>
+                  <select
+                    value={clinicId}
+                    onChange={(e) => setClinicId(e.target.value)}
+                    disabled={Boolean(preselectedClinicId)}
+                  >
                     {clinics.map((item) => (
                       <option key={item.id} value={item.id}>{item.name}</option>
                     ))}

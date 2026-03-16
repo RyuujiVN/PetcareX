@@ -59,7 +59,13 @@ export default function ClinicSelection() {
     try {
       setLoading(true);
       const clinicDetail = await getClinicByIdApi(clinic.id);
-      navigate("/clinic", { state: { clinic: clinicDetail } });
+      sessionStorage.setItem("selectedClinicId", String(clinic.id));
+      navigate("/clinic", {
+        state: {
+          clinic: clinicDetail,
+          selectedClinicId: String(clinic.id),
+        },
+      });
     } catch (error) {
       message.error(error.message || "Không thể tải chi tiết phòng khám");
     } finally {

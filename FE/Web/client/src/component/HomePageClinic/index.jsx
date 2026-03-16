@@ -1,5 +1,5 @@
 import { FaFire, FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../../default/footer";
 import Header from "../../default/header";
 import "../HomePage/styles.css"; 
@@ -7,6 +7,13 @@ import "./HomePageClinic.css";
 
 export default function HomePageClinic() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const selectedClinicId =
+    location.state?.selectedClinicId ||
+    (location.state?.clinic?.id ? String(location.state.clinic.id) : "") ||
+    sessionStorage.getItem("selectedClinicId") ||
+    "";
 
   const features = [
     {
@@ -104,7 +111,11 @@ export default function HomePageClinic() {
   };
 
   const goToBookingAppointment = () => {
-    navigate("/booking");
+    navigate("/booking", {
+      state: {
+        selectedClinicId,
+      },
+    });
   };
 
   return (
