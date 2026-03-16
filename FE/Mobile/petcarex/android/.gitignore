@@ -7,8 +7,10 @@ gradle-wrapper.jar
 GeneratedPluginRegistrant.java
 .cxx/
 
-# Remember to never publicly share your keystore.
+# Remember to never publicly share your PRODUCTION keystore.
 # See https://flutter.dev/to/reference-keystore
 key.properties
-**/*.keystore
 **/*.jks
+
+# Un-ignore debug.keystore so the team can share it for Google Sign-in to work
+!app/debug.keystore

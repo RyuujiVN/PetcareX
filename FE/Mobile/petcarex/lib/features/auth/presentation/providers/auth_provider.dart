@@ -111,11 +111,9 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // Helper để parse message lỗi từ NestJS
   String _parseErrorMessage(dynamic body) {
     if (body == null) return 'Đã có lỗi xảy ra';
     
-    // Nếu NestJS trả về cấu trúc throw new BadRequestException({message: [...]})
     if (body['error'] != null && body['error']['message'] != null) {
       final message = body['error']['message'];
       if (message is List) {
@@ -256,7 +254,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 7.1 Lấy thông tin Profile (Refresh)
+  // 7.1 Lấy thông tin Profile
   Future<bool> fetchProfile() async {
     try {
       final response = await _apiClient.get(AppConstants.userProfileEndpoint);
@@ -299,7 +297,7 @@ class AuthProvider extends ChangeNotifier {
       final response = await _apiClient.put('${AppConstants.userEndpoint}/${_user!.id}', data);
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Cập nhật thành công, gọi lại fetchProfile để lấy dữ liệu mới nhất
+        // Cập nhật thành công, gọi lại api Profile để lấy dữ liệu mới nhất
         await fetchProfile();
         _isLoading = false;
         notifyListeners();
@@ -377,7 +375,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 9. Đặt lại mật khẩu (Dùng OTP)
+  // 9. Đặt lại mật khẩu
   Future<bool> resetPassword({
     required String email, 
     required String otp, 
