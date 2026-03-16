@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import './styles.css';
 
 import { FaPaw } from "react-icons/fa";
 import { FiCamera } from "react-icons/fi";
@@ -33,40 +34,41 @@ export default function AddPet() {
   };
 
   return (
-    <div className="relative flex flex-col items-center justify-start bg-white pt-[60px]">
-      <div className="fixed top-0 right-0 left-0 z-[1000] flex h-[60px] items-center border-b border-white bg-white px-[50px] max-[900px]:px-[30px]">
+    
+    <div className="addpet-container">
+      <div className="addpet-header-bar">
         <Header/>
-        <div className="flex items-center gap-[10px]">
+        <div className="header-left">
           <FaPaw size={28} color="#13ECDA" />
-          <h2 className="m-0 text-[16px] font-semibold text-[#333333]">PetcareX</h2>
+          <h2 className="logo-name-small">PetcareX</h2>
         </div>
       </div>
 
-      <div className="flex w-[200%] max-w-[800px] flex-col items-center border-t border-white bg-white px-[50px] py-[30px] [animation:fadeIn_0.5s_ease-out] max-[900px]:max-w-full max-[900px]:px-[40px] max-[900px]:py-[60px]">
-        <div className="mb-[20px] w-full text-center">
-          <h1 className="mb-[8px] text-[28px] font-semibold text-[#333333]">Thêm thú cưng mới</h1>
-          <p className="text-[14px] text-[#666666]">
+      <div className="addpet-card">
+        <div className="addpet-header">
+          <h1 className="addpet-title">Thêm thú cưng mới</h1>
+          <p className="addpet-subtitle">
             Vui lòng nhập đầy đủ thông tin để khởi tạo hồ sơ y tế cho thú cưng của bạn.
           </p>
         </div>
 
-        <form className="w-full max-w-[750px]" onSubmit={handleSubmit}>
+        <form className="addpet-form" onSubmit={handleSubmit}>
 
-          <div className="mb-[30px]">
-            <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Ảnh đại diện thú cưng</label>
+          <div className="form-group upload-group">
+            <label className="form-label">Ảnh đại diện thú cưng</label>
             <div
-              className="relative flex h-[180px] cursor-pointer flex-col items-center justify-center rounded-[6px] border-2 border-dashed border-[#CBD5E1] text-center hover:bg-[#f9f9f9]"
+              className="upload-box"
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
             >
               {avatar ? (
-                <img src={avatar} className="max-h-full max-w-full rounded-[6px] object-cover" alt="preview" />
+                <img src={avatar} className="avatar-preview" alt="preview" />
               ) : (
                 <>
                   <FiCamera size={36} color="#13ECDA" />
-                  <p className="mt-[8px] text-[14px] text-[#666666]">Tải lên hình ảnh thú cưng của bạn</p>
+                  <p className="upload-text">Tải lên hình ảnh thú cưng của bạn</p>
                   <button
                     type="button"
-                    className="mt-[12px] cursor-pointer rounded-[4px] border-none bg-[#13ECDA] px-[16px] py-[8px] text-[13px] text-white"
+                    className="choose-file-button"
                   >
                     Chọn tệp tin
                   </button>
@@ -77,52 +79,52 @@ export default function AddPet() {
               type="file"
               accept="image/*"
               ref={fileInputRef}
-              className="hidden"
+              className="hidden-file-input"
               onChange={handleFileChange}
             />
           </div>
 
-          <div className="mb-[20px] rounded-[8px] bg-[#fafafa] px-[25px] py-[20px]">
-            <h2 className="mb-[15px] text-[16px] font-semibold text-[#333333]">Thông tin cơ bản</h2>
-            <div className="grid grid-cols-2 gap-y-[30px] gap-x-[40px] max-[900px]:grid-cols-1">
-            <div>
-              <div className="mb-[20px]">
-                <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Tên thú cưng</label>
+          <div className="basic-info-section">
+            <h2 className="section-title-small">Thông tin cơ bản</h2>
+            <div className="grid-two-column">
+            <div className="column">
+              <div className="form-group">
+                <label className="form-label">Tên thú cưng</label>
                 <input
                   type="text"
-                  className="w-full rounded-[6px] border border-[#CBD5E1] px-[14px] py-[12px] text-[14px] text-[#0F172A] transition-all duration-300 ease-in-out placeholder:text-[#CBD5E1] focus:outline-none focus:shadow-[0_0_0_3px_rgba(131,197,206,0.1)]"
+                  className="form-input"
                   placeholder="VD: Buddy"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
 
-              <div className="mb-[20px]">
-                <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Giống</label>
+              <div className="form-group">
+                <label className="form-label">Giống</label>
                 <input
                   type="text"
-                  className="w-full rounded-[6px] border border-[#CBD5E1] px-[14px] py-[12px] text-[14px] text-[#0F172A] transition-all duration-300 ease-in-out placeholder:text-[#CBD5E1] focus:outline-none focus:shadow-[0_0_0_3px_rgba(131,197,206,0.1)]"
+                  className="form-input"
                   placeholder="VD: Poodle, Golden Retriever"
                   value={breed}
                   onChange={(e) => setBreed(e.target.value)}
                 />
               </div>
 
-              <div className="mb-[20px]">
-                <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Ngày sinh / Tuổi</label>
+              <div className="form-group">
+                <label className="form-label">Ngày sinh / Tuổi</label>
                 <input
                   type="date"
-                  className="w-full rounded-[6px] border border-[#CBD5E1] px-[14px] py-[12px] text-[14px] text-[#0F172A] transition-all duration-300 ease-in-out focus:outline-none focus:shadow-[0_0_0_3px_rgba(131,197,206,0.1)]"
+                  className="form-input"
                   value={birthday}
                   onChange={(e) => setBirthday(e.target.value)}
                 />
               </div>
 
-              <div className="mb-[20px]">
-                <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Màu lông / Đặc điểm nhận dạng</label>
+              <div className="form-group">
+                <label className="form-label">Màu lông / Đặc điểm nhận dạng</label>
                 <input
                   type="text"
-                  className="w-full rounded-[6px] border border-[#CBD5E1] px-[14px] py-[12px] text-[14px] text-[#0F172A] transition-all duration-300 ease-in-out placeholder:text-[#CBD5E1] focus:outline-none focus:shadow-[0_0_0_3px_rgba(131,197,206,0.1)]"
+                  className="form-input"
                   placeholder="VD: Có đốm đen ở tai"
                   value={color}
                   onChange={(e) => setColor(e.target.value)}
@@ -131,11 +133,11 @@ export default function AddPet() {
             </div>
 
             {/* right column */}
-            <div>
-              <div className="mb-[20px]">
-                <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Loài</label>
+            <div className="column">
+              <div className="form-group">
+                <label className="form-label">Loài</label>
                 <select
-                  className="w-full rounded-[6px] border border-[#CBD5E1] px-[14px] py-[12px] text-[14px] text-[#0F172A] transition-all duration-300 ease-in-out focus:outline-none focus:shadow-[0_0_0_3px_rgba(131,197,206,0.1)]"
+                  className="form-input"
                   value={species}
                   onChange={(e) => setSpecies(e.target.value)}
                 >
@@ -147,9 +149,9 @@ export default function AddPet() {
                 </select>
               </div>
 
-              <div className="mb-[20px]">
-                <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Giới tính</label>
-                <div className="flex items-center gap-[20px]">
+              <div className="form-group">
+                <label className="form-label">Giới tính</label>
+                <div className="radio-group">
                   <label>
                     <input
                       type="radio"
@@ -171,11 +173,11 @@ export default function AddPet() {
                 </div>
               </div>
 
-              <div className="mb-[20px]">
-                <label className="mb-[8px] block text-[13px] font-semibold text-[#0F172A]">Cân nặng (kg)</label>
+              <div className="form-group">
+                <label className="form-label">Cân nặng (kg)</label>
                 <input
                   type="number"
-                  className="w-full rounded-[6px] border border-[#CBD5E1] px-[14px] py-[12px] text-[14px] text-[#0F172A] transition-all duration-300 ease-in-out placeholder:text-[#CBD5E1] focus:outline-none focus:shadow-[0_0_0_3px_rgba(131,197,206,0.1)]"
+                  className="form-input"
                   step="0.1"
                   placeholder="0.0"
                   value={weight}
@@ -186,17 +188,17 @@ export default function AddPet() {
             </div>
           </div>
 
-          <div className="mt-[30px] flex w-full max-w-[750px] justify-between">
+          <div className="button-group">
             <button
               type="button"
-              className="ml-[60%] cursor-pointer rounded-[6px] border border-[#475569] bg-transparent px-[20px] py-[12px] text-[14px] text-[#475569]"
+              className="cancel-button"
               onClick={() => navigate(-1)}
             >
               Hủy bỏ
             </button>
             <button
               type="submit"
-              className="cursor-pointer rounded-[6px] border-none bg-[#13ECDA] px-[20px] py-[12px] text-[14px] text-white"
+              className="submit-button"
             >
               Thêm thú cưng mới
             </button>
