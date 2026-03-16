@@ -14,15 +14,24 @@ class AppointmentProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Lọc lịch hẹn sắp tới (Chỉ những lịch đang ở trạng thái chờ khám)
+  // Hỗ trợ cả tiếng Việt và Key của Server (đề phòng)
   List<Appointment> get upcomingAppointments {
-    return _appointments.where((a) => a.status == 'Hẹn thành công' || a.status == 'Đang khám').toList()
+    return _appointments.where((a) => 
+      a.status == 'Hẹn thành công' || 
+      a.status == 'Đang khám' || 
+      a.status == 'SUCCESS' || 
+      a.status == 'PENDING'
+    ).toList()
       ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
   }
 
-  // Lọc lịch sử (Đã hoàn thành hoặc đã hủy)
   List<Appointment> get historicalAppointments {
-    return _appointments.where((a) => a.status == 'Đã khám xong' || a.status == 'Đã huỷ').toList()
+    return _appointments.where((a) => 
+      a.status == 'Đã khám xong' || 
+      a.status == 'Đã huỷ' || 
+      a.status == 'COMPLETED' || 
+      a.status == 'CANCELLED'
+    ).toList()
       ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
   }
 
@@ -34,7 +43,8 @@ class AppointmentProvider with ChangeNotifier {
     try {
       _appointments = await _appointmentService.getMyAppointments(page: 1, limit: 100);
     } catch (e) {
-      _errorMessage = 'Không thể tải danh sách lịch hẹn. Vui lòng thử lại!';
+      // Để null để UI có thể dùng l10n.failed
+      _errorMessage = 'failed';
       debugPrint('Error in AppointmentProvider: $e');
     } finally {
       _isLoading = false;

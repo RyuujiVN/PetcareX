@@ -47,10 +47,10 @@ class StepClinicSelector extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSel ? AppColors.primary : Colors.grey.shade200,
+            color: isSel ? AppColors.primary : AppColors.divider,
             width: 1.5,
           ),
         ),
@@ -59,7 +59,7 @@ class StepClinicSelector extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFE0F7F4),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: AppColors.primary),
@@ -75,17 +75,13 @@ class StepClinicSelector extends StatelessWidget {
                   ),
                   Text(
                     sub,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: AppColors.grey),
                   ),
                 ],
               ),
             ),
-            SizedBox(
-              width: 24,
-              child: isSel
-                  ? const Icon(Icons.check_circle, color: AppColors.primary, size: 24)
-                  : null,
-            ),
+            if (isSel)
+              const Icon(Icons.check_circle, color: AppColors.primary, size: 24),
           ],
         ),
       ),
