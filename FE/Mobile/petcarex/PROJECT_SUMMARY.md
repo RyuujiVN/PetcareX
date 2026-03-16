@@ -8,75 +8,46 @@ PetCareX is a Flutter-based mobile application for pet care management, integrat
 - **Backend:** NestJS (Node.js) — REST API
 - **State Management:** `provider` (ChangeNotifier, MultiProvider)
 - **Internationalization (i18n):** `flutter_localizations` with `.arb` files. Supports Vietnamese (vi) and English (en).
-- **Networking:** Custom `ApiClient` (http package) with JWT Bearer injection, 30s timeout, and masked debug logging.
-- **Security:** `flutter_secure_storage` for tokens and credentials.
-- **Hardware:** `mobile_scanner` (QR), `image_picker`, `permission_handler`.
-- **Local Storage:** `shared_preferences` for language settings and auth info.
+- **Networking:** Custom `ApiClient` (http package) with JWT Bearer injection and 30s timeout.
+- **Logging:** Centralized `AppLogger` for Request/Response tracking with sensitive data masking.
+- **Local Storage:** `shared_preferences` for language settings and `flutter_secure_storage` for credentials.
 
-## 📡 Networking & Configuration
-- **Base URL:** `lib/core/constants/app_constants.dart` — `String.fromEnvironment('BASE_URL', defaultValue: 'http://localhost:3000')`.
-- **Device testing:** Use `adb reverse tcp:3000 tcp:3000` then run app (or `flutter run --dart-define=BASE_URL=http://localhost:3000`). Backend must be running on PC port 3000.
-- **Android:** `usesCleartextTraffic="true"`, `minSdkVersion` 21.
+## ✅ Recent Refactoring & "Clean Code" Updates
 
-## ✅ Implemented Features
+### 🗑 Removed / Cleaned Up:
+- **Redundant State:** Removed multiple `bool _obscureText` variables across Login, Register, and Change Password pages.
+- **Hardcoded Strings:** Replaced ~100+ Vietnamese hardcoded strings with `AppLocalizations` keys.
+- **Manual Log Statements:** Deleted scattered `print()` statements in `api_client.dart` and various repositories.
+- **Synthetic Package:** Removed `synthetic-package: true` from `l10n.yaml` to fix build errors on newer Flutter versions.
+- **Duplicate Imports:** Cleaned up unused imports after widget refactoring.
+
+### ➕ Added / Unified:
+- **`PasswordTextField` Widget:** Created a reusable widget in `lib/core/widgets/` to unify password input style (bullet dots `•`, spacing, and visibility toggle) across the entire app.
+- **`AppLogger` Utility:** Added `lib/core/utils/logger.dart` to centralize API logging with a professional framed UI and automatic masking of passwords/tokens.
+- **Persistence:** Integrated `SharedPreferences` into `LanguageProvider` to remember user's language choice across sessions.
+- **Missing Features:** Restored **Google Login** button and logic in the Login/Register flow.
+- **QR Overlay:** Re-implemented `ScannerOverlayPainter` to provide a professional scanning UI (frame + laser effect).
+
+## 📁 Feature Status
 
 ### 1. Authentication
-- **AuthProvider:** Login, logout, Google login, forgot/reset password, check auth status.
-- **Login/Register:** Full UI with multi-language support. Handles validation and error messages from server.
-- **Forgot / Reset password:** OTP-based recovery flow.
+- **Status:** Fully localized & Secured.
+- **UI:** Login, Register, Forgot Password, Reset Password, Change Password. All use unified `PasswordTextField`.
 
-### 2. Home & Navigation
-- **MainNavigationWrapper:** Bottom nav (Home, Booking, Schedule, Community, Profile) - Fully localized labels.
-- **Home:** Dashboard with greeting, pet list, QR scanner, and quick actions. Fully localized UI.
+### 2. Pet Management
+- **Status:** Fully localized.
+- **UI:** Home dashboard, Add Pet, Edit Pet. Dynamic Species -> Breed loading implemented.
 
-### 3. Pet Management
-- **Add/Edit pet:** Form with dynamic **Species -> Breed** loading. Supports avatar upload, gender selection, and birthdate picker.
-- **PetRepository:** CRUD operations for pets, including specialized endpoints for species and breeds by ID.
-- **Data Persistence:** Uses standard ISO 8601 UTC format for dates.
+### 3. Navigation
+- **Status:** Unified.
+- **UI:** Bottom Navigation Bar labels dynamically switch based on selected language.
 
-### 4. Booking
-- **BookingRepository:** Provides endpoints:
-  - `getClinics(page, limit, search)` handles clinic paging + search and maps result to `Clinic` models.
-  - `getVeterinariansByClinic(clinicId, page, limit)` returns veterinarians list with paging.
-  - `createAppointment(dto)` posts appointment payload and parses detailed validation errors from NestJS response shape (`error.error.message`, `error.message`).
-- **Error handling:** Distinctly supports list/string backend validation messages, and throws user-friendly text.
+### 4. Networking
+- **Status:** Enhanced.
+- **UI:** `ApiClient` now calls `AppLogger` for all requests. Errors are localized via `AppLocalizations`.
 
-### 5. Internationalization (i18n)
-- **LanguageProvider:** Manages `Locale` state and persists user choice using `shared_preferences`.
-- **Global Localization:** 100% of UI strings in major pages (Login, Home, Booking, Profile, Pet Mgmt) converted to use `AppLocalizations`.
-- **Build Config:** Uses `l10n.yaml` with `output-dir: lib/l10n/generated` for maximum stability on Flutter 3.27+.
-
-### 5. Account & Profile
-- **AccountPage:** Menu for personal info, pet info, language switching, and logout.
-- **ProfilePage:** View and update user details (fullName, email, phone, address, avatar).
-
-## 📁 Project Structure
-- `lib/core/`: constants, `ApiClient`, theme, providers (LanguageProvider), services.
-- `lib/features/`: auth, home, pet, booking, chat, appointment, community.
-- `lib/l10n/`: `.arb` translation files and generated localization code.
-
-## 📝 API Reference
-- **Auth:** `/auth/login`, `/auth/register`, `/auth/forgot-password`, `/auth/reset-password`.
-- **Pet:** `/pet` (POST/GET), `/pet/species` (GET), `/pet/species/:id/breed` (GET), `/pet/upload` (POST).
-- **User:** `/user/profile` (GET), `/user/profile` (PATCH).
-
----
-
-## 🔍 Code Quality & Scan Summary (Latest)
-
-### Fixed in Codebase
-- **i18n Errors:** Corrected `import` paths after moving from synthetic to local generated package.
-- **Build Errors:** Fixed missing `mobile_scanner` import and `AppLocalizations.locale` getter issues.
-- **Data Integrity:** Ensured `breedId` is sent as string/UUID and dates are ISO format.
-- **Postgres Mapping:** Models now handle both `id` and `_id` for compatibility.
-
-### Remaining / Known Items
-| Area | Item | Severity |
-|------|------|----------|
-| **Data Translation** | Content returned from DB (e.g. breed names, service names) is still in the stored language. | Medium |
-| **Booking** | Flow UI is localized, but appointment creation depends on backend readiness. | High |
-
-### Run After Reboot
-1. Start backend on PC (port 3000).
-2. `adb reverse tcp:3000 tcp:3000`.
-3. Run app: `flutter run`.
+## 📝 Run & Debug
+1. **Sync Localizations:** Run `flutter gen-l10n` after any `.arb` file change.
+2. **Backend:** Start NestJS on port 3000.
+3. **Bridge:** `adb reverse tcp:3000 tcp:3000`.
+4. **App:** `flutter run`.
