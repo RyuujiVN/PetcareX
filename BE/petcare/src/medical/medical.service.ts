@@ -142,12 +142,12 @@ export class MedicalService {
   async findOneById(id: string) {
     const record = await this.medicalRecordRepository
       .createQueryBuilder('medical_record')
-      .leftJoinAndSelect('medical_record.pet', 'pet')
-      .leftJoinAndSelect('pet.breed', 'breed')
-      .leftJoinAndSelect('pet.owner', 'owner')
-      .leftJoinAndSelect('medical_record.clinic', 'clinic')
-      .leftJoinAndSelect('medical_record.veterinarian', 'veterinarian')
-      .leftJoinAndSelect('veterinarian.user', 'user')
+      .leftJoin('medical_record.pet', 'pet')
+      .leftJoin('pet.breed', 'breed')
+      .leftJoin('pet.owner', 'owner')
+      .leftJoin('medical_record.clinic', 'clinic')
+      .leftJoin('medical_record.veterinarian', 'veterinarian')
+      .leftJoin('veterinarian.user', 'user')
 
       .where('medical_record.id = :id', { id })
 
@@ -174,6 +174,7 @@ export class MedicalService {
         'pet.name',
         'pet.avatar',
 
+        'breed.id',
         'breed.name',
 
         'owner.id',
@@ -219,9 +220,9 @@ export class MedicalService {
   ): Promise<Pagination<MedicalRecord>> {
     const queryBuilder = this.medicalRecordRepository
       .createQueryBuilder('medical_record')
-      .leftJoinAndSelect('medical_record.pet', 'pet')
-      .leftJoinAndSelect('pet.breed', 'breed')
-      .leftJoinAndSelect('pet.owner', 'owner')
+      .leftJoin('medical_record.pet', 'pet')
+      .leftJoin('pet.breed', 'breed')
+      .leftJoin('pet.owner', 'owner')
       .where('medical_record.clinicId = :clinicId', {
         clinicId: options.clinicId,
       })
@@ -249,11 +250,11 @@ export class MedicalService {
   async findAllPaginationByPet(options: MedicalRecordPagination) {
     const queryBuilder = this.medicalRecordRepository
       .createQueryBuilder('medical_record')
-      .leftJoinAndSelect('medical_record.pet', 'pet')
-      .leftJoinAndSelect('medical_record.clinic', 'clinic')
-      .leftJoinAndSelect('medical_record.veterinarian', 'veterinarian')
-      .leftJoinAndSelect('veterinarian.user', 'user')
-      .leftJoinAndSelect('pet.breed', 'breed')
+      .leftJoin('medical_record.pet', 'pet')
+      .leftJoin('medical_record.clinic', 'clinic')
+      .leftJoin('medical_record.veterinarian', 'veterinarian')
+      .leftJoin('veterinarian.user', 'user')
+      .leftJoin('pet.breed', 'breed')
       .where('pet.id = :petId', {
         petId: options.petId,
       })
