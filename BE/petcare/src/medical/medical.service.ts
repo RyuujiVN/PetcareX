@@ -15,6 +15,9 @@ import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order'
 import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
 import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
 import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
+import { UserService } from 'src/user/user.service';
+import bcrypt from 'bcryptjs';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class MedicalService {
@@ -25,6 +28,8 @@ export class MedicalService {
     private readonly medicalRecordOrderRepo: Repository<MedicalRecordOrder>,
     @InjectRepository(MedicalRecordMedicine)
     private readonly medicalRecordMedicineRepo: Repository<MedicalRecordMedicine>,
+    private readonly userService: UserService,
+    private readonly mailService: MailService,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -312,6 +317,7 @@ export class MedicalService {
       const userRepo = manager.getRepository(User);
       const petRepo = manager.getRepository(Pet);
       let savedPet;
+      let password;
       const user = await userRepo.findOne({
         where: { email: createDTO.email },
       });
@@ -322,10 +328,14 @@ export class MedicalService {
           fullName: createDTO.customerName,
           email: createDTO.email,
           role: RoleEnum.CUSTOMER,
-          password: undefined,
         };
 
-        const savedUser = await userRepo.save(userPayload);
+        password = this.userService.generatePassword();
+
+        const savedUser = await userRepo.save({
+          ...userPayload,
+          password: await bcrypt.hash(password, 10),
+        });
 
         // 3. Tạo pet cho user
         const petPayload = {
@@ -355,7 +365,47 @@ export class MedicalService {
       medicalRecord.petId = savedPet.id;
       medicalRecord.veterinarianId = veterinarianId;
 
-      return await medicalRepo.save(medicalRecord);
+      const savedMedicalRecord = await medicalRepo.save(medicalRecord);
+
+      // 6. Gửi mail thông tin đăng nhập
+      if (password) {
+        const subject = 'Thông tin tài khoản đăng nhập của bạn';
+        const html = `
+          <div style="font-family: Arial, sans-serif; line-height:1.6">
+            <h2>PetcareX xin chào,</h2>
+
+            <p>Tài khoản của bạn đã được tạo thành công.</p>
+
+            <p><strong>Thông tin đăng nhập:</strong></p>
+
+            <div style="background:#f5f5f5; padding:16px; border-radius:6px; max-width:400px">
+                
+                <div style="margin-bottom:12px">
+                  <div style="font-weight:bold; color:#555">Tên tài khoản</div>
+                  <div>${createDTO.email}</div>
+                </div>
+
+                <div>
+                  <div style="font-weight:bold; color:#555">Mật khẩu tạm thời</div>
+                  <div>${password}</div>
+                </div>
+
+              </div>
+
+            <p style="margin-top:16px">
+              Vì lý do bảo mật, vui lòng đăng nhập và thay đổi mật khẩu ngay sau khi sử dụng lần đầu.
+            </p>
+
+            <p>Nếu bạn không yêu cầu tạo tài khoản, vui lòng bỏ qua email này.</p>
+
+            <br/>
+
+            <p>Trân trọng,<br/>PetcareX</p>
+          </div>`;
+        await this.mailService.sendMail(createDTO.email, subject, html);
+      }
+
+      return savedMedicalRecord;
     });
   }
 

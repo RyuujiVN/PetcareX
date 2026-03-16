@@ -40,15 +40,13 @@ export class AuthService {
 
     if (!user) throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
 
-    if (user.password != null) {
-      const passwordChecked = await bcrypt.compare(
-        loginDTO.password,
-        user.password,
-      );
+    const passwordChecked = await bcrypt.compare(
+      loginDTO.password,
+      user.password,
+    );
 
-      if (!passwordChecked)
-        throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
-    }
+    if (!passwordChecked)
+      throw new UnauthorizedException('Tài khoản hoặc mật khẩu sai');
 
     // Tạo accessToken
     const payload: any = {
@@ -117,10 +115,13 @@ export class AuthService {
 
       if (!fullName) throw new BadRequestException();
 
+      const password = this.userService.generatePassword();
+
       const newUser = new User();
       newUser.email = email;
       newUser.fullName = fullName;
       newUser.role = RoleEnum.CUSTOMER;
+      newUser.password = await bcrypt.hash(password, 10);
 
       user = await this.userRepository.save(newUser);
     } else {

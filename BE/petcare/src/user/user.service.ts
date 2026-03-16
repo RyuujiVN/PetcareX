@@ -26,6 +26,20 @@ export class UserService {
     private readonly veterinarianRepository: Repository<Veterinarian>,
   ) {}
 
+  // Tạo mật khẩu ngẫu nhiên
+  generatePassword(length = 12) {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+
+    let password = '';
+
+    for (let i = 0; i < length; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    return password;
+  }
+
   async findOneByid(userId: string) {
     const user = await this.userRepository.findOne({
       where: { id: userId },

@@ -39,9 +39,9 @@ export class User {
   })
   role: RoleEnum;
 
-  @Column({ nullable: true })
+  @Column()
   @Exclude()
-  password?: string;
+  password: string;
 
   @Column({ name: 'avatar_url', nullable: true })
   avatarUrl?: string;
