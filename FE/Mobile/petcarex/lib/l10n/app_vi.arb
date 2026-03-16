@@ -133,5 +133,11 @@
   "uploadSuccess": "Tải lên thành công",
   "uploadFailed": "Tải lên thất bại",
   "otpSent": "Mã OTP đã được gửi thành công",
-  "otpError": "Mã OTP không hợp lệ hoặc đã hết hạn"
+  "otpError": "Mã OTP không hợp lệ hoặc đã hết hạn",
+  "validChoosePet": "Vui lòng chọn một thú cưng để đặt lịch!",
+  "validChooseClinic": "Vui lòng chọn phòng khám!",
+  "validChooseService": "Vui lòng chọn dịch vụ!",
+  "validEnterNote": "Vui lòng nhập triệu chứng hoặc ghi chú cho thú cưng!",
+  "validChooseDoctor": "Vui lòng chọn bác sĩ thú y!",
+  "validChooseTime": "Vui lòng chọn khung giờ khám!"
 }

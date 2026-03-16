@@ -1,10 +1,10 @@
 ﻿import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
 import '../../../common/service_enum.dart';
+import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
@@ -52,25 +52,25 @@ class _BookingPageState extends State<BookingPage> {
     final bookingProvider = context.read<BookingProvider>();
 
     if (_currentStep == 0 && bookingProvider.selectedPetId == null) {
-      _showError(l10n.choosePet);
+      _showError(l10n.validChoosePet);
       return;
     }
     if (_currentStep == 1 && bookingProvider.selectedClinic == null) {
-      _showError(l10n.stepClinic);
+      _showError(l10n.validChooseClinic);
       return;
     }
     if (_currentStep == 2) {
       if (bookingProvider.selectedServiceName == null) {
-        _showError(l10n.stepService);
+        _showError(l10n.validChooseService);
         return;
       }
       if (bookingProvider.symptomsNote == null || bookingProvider.symptomsNote!.trim().isEmpty) {
-        _showError(l10n.note);
+        _showError(l10n.validEnterNote);
         return;
       }
     }
     if (_currentStep == 3 && bookingProvider.selectedDoctor == null) {
-      _showError(l10n.doctor);
+      _showError(l10n.validChooseDoctor);
       return;
     }
     if (_currentStep == 4) {
@@ -78,7 +78,7 @@ class _BookingPageState extends State<BookingPage> {
         bookingProvider.setDefaultDate(_availableDates[0]);
       }
       if (bookingProvider.selectedTime == null) {
-        _showError(l10n.time);
+        _showError(l10n.validChooseTime);
         return;
       }
     }
@@ -141,7 +141,8 @@ class _BookingPageState extends State<BookingPage> {
           backgroundColor: Colors.white,
           elevation: 0,
           centerTitle: true,
-          leading: isSuccess || (_currentStep == 0 && !Navigator.canPop(context))
+          automaticallyImplyLeading: false,
+          leading: isSuccess || _currentStep == 0
               ? const SizedBox()
               : IconButton(
                   icon: const Icon(Icons.arrow_back, color: AppColors.textDark),

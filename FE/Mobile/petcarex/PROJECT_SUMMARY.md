@@ -22,10 +22,11 @@ PetCareX is a Flutter-based mobile application for pet care management, integrat
 - **Duplicate Imports:** Cleaned up unused imports after widget refactoring.
 
 ### ➕ Added / Unified:
-- **`PasswordTextField` Widget:** Created a reusable widget in `lib/core/widgets/` to unify password input style (bullet dots `•`, spacing, and visibility toggle) across the entire app.
+- **`PasswordTextField` Widget:** Created a reusable widget in `lib/core/widgets/` to unify password input style (bullet dots `●`, spacing, and visibility toggle) across the entire app.
 - **`AppLogger` Utility:** Added `lib/core/utils/logger.dart` to centralize API logging with a professional framed UI and automatic masking of passwords/tokens.
 - **Persistence:** Integrated `SharedPreferences` into `LanguageProvider` to remember user's language choice across sessions.
-- **Missing Features:** Restored **Google Login** button and logic in the Login/Register flow.
+- **Google Auth Team Sharing:** Un-ignored `debug.keystore` in `.gitignore` and configured `build.gradle.kts` to share the same fingerprint across the team, solving SHA-1 access issues.
+- **UX Improvements:** Removed back button from the main Booking tab, synchronized button designs across Auth pages, and added SnackBar confirmations for Auth actions. Added highly specific validation feedback inside `.arb` files for the `BookingPage` flow (e.g. "Vui lòng chọn thú cưng" instead of just "thú cưng") for better clarity.
 - **QR Overlay:** Re-implemented `ScannerOverlayPainter` to provide a professional scanning UI (frame + laser effect).
 
 ## 📁 Feature Status

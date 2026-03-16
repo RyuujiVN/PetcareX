@@ -901,6 +901,42 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Mã OTP không hợp lệ hoặc đã hết hạn'**
   String get otpError;
+
+  /// No description provided for @validChoosePet.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng chọn một thú cưng để đặt lịch!'**
+  String get validChoosePet;
+
+  /// No description provided for @validChooseClinic.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng chọn phòng khám!'**
+  String get validChooseClinic;
+
+  /// No description provided for @validChooseService.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng chọn dịch vụ!'**
+  String get validChooseService;
+
+  /// No description provided for @validEnterNote.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng nhập triệu chứng hoặc ghi chú cho thú cưng!'**
+  String get validEnterNote;
+
+  /// No description provided for @validChooseDoctor.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng chọn bác sĩ thú y!'**
+  String get validChooseDoctor;
+
+  /// No description provided for @validChooseTime.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng chọn khung giờ khám!'**
+  String get validChooseTime;
 }
 
 class _AppLocalizationsDelegate

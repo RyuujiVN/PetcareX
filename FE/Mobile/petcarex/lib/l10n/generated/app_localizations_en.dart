@@ -413,4 +413,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get otpError => 'OTP code is invalid or expired';
+
+  @override
+  String get validChoosePet => 'Please select a pet to book an appointment!';
+
+  @override
+  String get validChooseClinic => 'Please select a clinic!';
+
+  @override
+  String get validChooseService => 'Please select a service!';
+
+  @override
+  String get validEnterNote => 'Please enter symptoms or notes for your pet!';
+
+  @override
+  String get validChooseDoctor => 'Please select a veterinarian!';
+
+  @override
+  String get validChooseTime => 'Please select an appointment time!';
 }

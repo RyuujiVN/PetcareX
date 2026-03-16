@@ -133,5 +133,11 @@
   "uploadSuccess": "Upload successful",
   "uploadFailed": "Upload failed",
   "otpSent": "OTP code has been sent successfully",
-  "otpError": "OTP code is invalid or expired"
+  "otpError": "OTP code is invalid or expired",
+  "validChoosePet": "Please select a pet to book an appointment!",
+  "validChooseClinic": "Please select a clinic!",
+  "validChooseService": "Please select a service!",
+  "validEnterNote": "Please enter symptoms or notes for your pet!",
+  "validChooseDoctor": "Please select a veterinarian!",
+  "validChooseTime": "Please select an appointment time!"
 }

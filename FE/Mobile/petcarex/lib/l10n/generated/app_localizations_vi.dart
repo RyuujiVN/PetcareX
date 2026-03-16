@@ -412,4 +412,23 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get otpError => 'Mã OTP không hợp lệ hoặc đã hết hạn';
+
+  @override
+  String get validChoosePet => 'Vui lòng chọn một thú cưng để đặt lịch!';
+
+  @override
+  String get validChooseClinic => 'Vui lòng chọn phòng khám!';
+
+  @override
+  String get validChooseService => 'Vui lòng chọn dịch vụ!';
+
+  @override
+  String get validEnterNote =>
+      'Vui lòng nhập triệu chứng hoặc ghi chú cho thú cưng!';
+
+  @override
+  String get validChooseDoctor => 'Vui lòng chọn bác sĩ thú y!';
+
+  @override
+  String get validChooseTime => 'Vui lòng chọn khung giờ khám!';
 }
