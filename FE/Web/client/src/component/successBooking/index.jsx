@@ -13,18 +13,17 @@ const SuccessBooking = () => {
   const [qrValue, setQrValue] = useState('');
 
   useEffect(() => {
-    const state = location.state?.appointmentData || {
-      petName: 'LuLu',
-      doctorName: 'Dr. Nam',
-      time: '09:00 AM 20/05/2024',
-      service: 'Khám sức khỏe định kỳ',
-      clinic: 'PetCare Clinic - Chi nhánh 1',
-      appointmentId: 'APT-' + Date.now(),
-    };
-    
+    const state = location.state?.appointmentData;
+
+    if (!state) {
+      message.warning('Không tìm thấy dữ liệu lịch hẹn vừa đặt');
+      navigate('/appointments');
+      return;
+    }
+
     setAppointmentData(state);
     setQrValue(`https://petcarex.app/check-in/${state.appointmentId}`);
-  }, [location.state]);
+  }, [location.state, navigate]);
 
   const handleViewAppointments = () => {
     navigate('/appointments');

@@ -1,91 +1,101 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import * as antd from 'antd';
 import * as icons from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import Header from '../../default/header';
 import Footer from '../../default/footer';
+import {
+  APPOINTMENT_STATUS,
+  getMyAppointmentsApi,
+  updateAppointmentStatusApi,
+} from '../../api/appointmentApi';
 import './styles.css';
+
+const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
+const formatTime = (timeValue) => (timeValue || '').slice(0, 5);
+
+const calcDaysAgo = (dateValue) => {
+  const now = new Date();
+  const date = new Date(dateValue);
+  const ms = now.getTime() - date.getTime();
+  const days = Math.max(Math.floor(ms / (1000 * 60 * 60 * 24)), 0);
+
+  if (days === 0) return 'Hôm nay';
+  if (days < 7) return `${days} ngày`;
+  return `${Math.floor(days / 7)} tuần`;
+};
+
 const AppointmentDetail = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upcoming');
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
-  const upcomingAppointments = [
-    {
-      id: 1,
-      petName: 'LuLu',
-      breed: 'Chó Poodle',
-      avatar: '/public/gaugau.png',
-      clinic: 'PetCare Clinic - Chi nhánh 1',
-      clinicAddress: '123 Đường Nguyễn Huệ, Quận 1',
-      service: 'Dịch vụ: Tiêm phòng',
-      date: '28/10/2023',
-      time: '09:00',
-      veterinarian: 'Bác sĩ Nguyễn Văn A',
-      notes: 'Vui lòng đưa thú cưng đến 15 phút trước giờ hẹn',
-    },
-    {
-      id: 2,
-      petName: 'Mimi',
-      breed: 'Mèo Anh Lông Ngắn',
-      avatar: '/public/meomeo.png',
-      clinic: 'PetCare Clinic - Chi nhánh 3',
-      clinicAddress: '456 Lê Lợi, Quận 5 Việt',
-      service: 'Dịch vụ: Khám tổng quát',
-      date: '30/10/2023',
-      time: '14:30',
-      veterinarian: 'Bác sĩ Trần Thị B',
-    },
-  ];
+  const [appointments, setAppointments] = useState([]);
 
-  const medicalHistory = [
-    {
-      id: 1,
-      petName: 'LuLu',
-      breed: 'Chó Poodle',
-      avatar: '/public/gaugau.png',
-      clinic: 'PetCare Clinic - Chi nhánh 1',
-      clinicAddress: '123 Đường Nguyễn Huệ, Quán 1',
-      service: 'Dịch vụ: Tiêm phòng',
-      date: '25/10/2023',
-      time: '14:30',
-      daysAgo: '3 ngày',
-      veterinarian: 'Bác sĩ Nguyễn Văn A',
-      diagnosis: 'Khỏe mạnh',
-      prescription: 'Tiêm phòng cúm',
-    },
-    {
-      id: 2,
-      petName: 'Mimi',
-      breed: 'Mèo Anh Lông Ngắn',
-      avatar: '/public/meomeo.png',
-      clinic: 'PetCare Clinic - Chi nhánh 3',
-      clinicAddress: '456 Lê Lợi, Quận 5 Việt',
-      service: 'Dịch vụ: Khám tổng quát',
-      date: '22/10/2023',
-      time: '09:00',
-      daysAgo: '2 ngày',
-      veterinarian: 'Bác sĩ Trần Thị B',
-      diagnosis: 'Cần kiểm tra văng tai',
-      prescription: 'Thuốc trị viêm tai',
-    },
-    {
-      id: 3,
-      petName: 'Bông',
-      breed: 'Mèo Ba Tư',
-      avatar: '/public/lulu.png',
-      clinic: 'PetCare Clinic - Chi nhánh 2',
-      clinicAddress: '789 Cách Mạng Tháng 8, Quận 3',
-      service: 'Dịch vụ: Khám nha khoa',
-      date: '20/10/2023',
-      time: '10:30',
-      daysAgo: '1 tuần',
-      veterinarian: 'Bác sĩ Lê Văn C',
-      diagnosis: 'Sạch răng - Không có sâu',
-      prescription: 'Vệ sinh lại định kỳ',
-    },
-  ];
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const res = await getMyAppointmentsApi(1, 200);
+      setAppointments(Array.isArray(res?.items) ? res.items : []);
+    } catch (error) {
+      antd.message.error(error.message || 'Không thể tải lịch hẹn');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const mappedAppointments = useMemo(() => {
+    return appointments.map((item) => {
+      const date = item.appointmentDate;
+      const dateText = formatDate(date);
+      const timeText = formatTime(item.appointmentTime);
+
+      return {
+        id: item.id,
+        petId: item.pet?.id,
+        petName: item.pet?.name || 'Không rõ',
+        breed: item.pet?.breed?.name || 'Không rõ',
+        avatar: item.pet?.avatar || '/gaugau.png',
+        clinic: item.clinic?.name || 'Không rõ',
+        clinicAddress: item.clinic?.address || 'Không rõ',
+        service: `Dịch vụ: ${item.service}`,
+        date: dateText,
+        time: timeText,
+        veterinarian: item.veterinarian?.user?.fullName || 'Không rõ',
+        notes: item.note,
+        rawDate: date,
+        status: item.status,
+        daysAgo: calcDaysAgo(date),
+      };
+    });
+  }, [appointments]);
+
+  const upcomingAppointments = useMemo(() => {
+    const now = new Date();
+    return mappedAppointments.filter((item) => {
+      const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
+      const isFuture = dateTime >= now;
+      const isDone = item.status === APPOINTMENT_STATUS.DONE;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      return isFuture && !isDone && !isCanceled;
+    });
+  }, [mappedAppointments]);
+
+  const medicalHistory = useMemo(() => {
+    const now = new Date();
+    return mappedAppointments.filter((item) => {
+      const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
+      const isPast = dateTime < now;
+      const isDone = item.status === APPOINTMENT_STATUS.DONE;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      return isPast || isDone || isCanceled;
+    });
+  }, [mappedAppointments]);
 
   const handleCancelAppointment = (appointmentId) => {
     antd.Modal.confirm({
@@ -94,9 +104,14 @@ const AppointmentDetail = () => {
       okText: 'Có, hủy',
       cancelText: 'Không, quay lại',
       okButtonProps: { danger: true },
-      onOk() {
-      antd.message.success('Hủy lịch khám thành công');
-      setActiveTab('upcoming');
+      async onOk() {
+        try {
+          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELED);
+          antd.message.success('Hủy lịch khám thành công');
+          await fetchAppointments();
+        } catch (error) {
+          antd.message.error(error.message || 'Không thể hủy lịch khám');
+        }
       },
     });
   };
@@ -149,9 +164,9 @@ const AppointmentDetail = () => {
           </div>
         </antd.Col>
         <antd.Col xs={24} sm={6}>
-          <antd.Space direction="vertical" style={{ width: '100%'}}>
+          <antd.Space direction="vertical" style={{ width: '100%' }}>
             <antd.Button
-              style={{backgroundColor: '#13ECDA'}}
+              style={{ backgroundColor: '#13ECDA' }}
               type="primary"
               block
               icon={<icons.EyeOutlined />}
@@ -181,7 +196,7 @@ const AppointmentDetail = () => {
       <div className="appointment-detail-container">
         <div className="appointment-header-section">
           <h1>Lịch sử khám</h1>
-          <p>Quản lý các cuộc khám sức khỏe cho các bạn cưng của bạn để đảng</p>
+          <p>Quản lý các cuộc khám sức khỏe cho các bạn cưng của bạn</p>
           <antd.Button
             type="primary"
             size="large"
@@ -201,7 +216,7 @@ const AppointmentDetail = () => {
               key: 'upcoming',
               label: (
                 <span>
-                  <icons.CalendarOutlined/>
+                  <icons.CalendarOutlined />
                   Lịch sắp tới ({upcomingAppointments.length})
                 </span>
               ),
@@ -220,7 +235,7 @@ const AppointmentDetail = () => {
                   ) : (
                     <antd.Empty
                       description="Không có lịch khám sắp tới"
-                      style={{ marginTop: '48px'}}
+                      style={{ marginTop: '48px' }}
                     />
                   )}
                 </antd.Spin>
@@ -242,12 +257,12 @@ const AppointmentDetail = () => {
                         <AppointmentCard
                           key={appointment.id}
                           appointment={appointment}
-                          isHistory={true}
+                          isHistory
                         />
                       ))}
                     </div>
                   ) : (
-                    <antd.Empty  description="Chưa có lịch khám" style={{ marginTop: '48px' }} />
+                    <antd.Empty description="Chưa có lịch khám" style={{ marginTop: '48px' }} />
                   )}
                 </antd.Spin>
               ),
@@ -264,12 +279,12 @@ const AppointmentDetail = () => {
               Đóng
             </antd.Button>,
             <antd.Button
-            style = {{ backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
+              style={{ backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
               key="submit"
               type="primary"
               onClick={() => {
                 setIsModalVisible(false);
-                navigate('/profile');
+                navigate(`/petProfile?id=${selectedAppointment.petId}`);
               }}
             >
               Xem hồ sơ thú cưng
@@ -317,19 +332,6 @@ const AppointmentDetail = () => {
                   </p>
                 </antd.Col>
               </antd.Row>
-
-              {selectedAppointment.diagnosis && (
-                <>
-                  <antd.Divider />
-                  <h3>Kết quả khám</h3>
-                  <p>
-                    <strong>Chẩn đoán:</strong> {selectedAppointment.diagnosis}
-                  </p>
-                  <p>
-                    <strong>Đơn thuốc:</strong> {selectedAppointment.prescription}
-                  </p>
-                </>
-              )}
 
               {selectedAppointment.notes && (
                 <>

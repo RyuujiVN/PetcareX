@@ -1,35 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
-
-const buildHeaders = (customHeaders = {}) => {
-  const token = localStorage.getItem("accessToken");
-
-  return {
-    Accept: "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    ...customHeaders,
-  };
-};
-
-const parseResponse = async (response) => {
-  const contentType = response.headers.get("content-type") || "";
-  const isJson = contentType.includes("application/json");
-  const payload = isJson ? await response.json() : await response.text();
-
-  if (!response.ok) {
-    const message =
-      (isJson && (payload?.message || payload?.error)) ||
-      `Request failed with status ${response.status}`;
-
-    throw new Error(message);
-  }
-
-  return payload;
-};
-
-const request = async (path, options = {}) => {
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
-  return parseResponse(response);
-};
+import { buildHeaders, request } from "./fetchApi";
 
 export const getMyPetsApi = async () => {
   return request("/pet", {
