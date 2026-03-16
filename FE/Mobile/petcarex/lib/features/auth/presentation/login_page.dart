@@ -97,8 +97,8 @@ class _LoginPageState extends State<LoginPage> {
     if (success) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập thành công!'),
+        SnackBar(
+          content: Text(l10n.loginSuccess),
           backgroundColor: Colors.green,
         ),
       );
@@ -124,8 +124,8 @@ class _LoginPageState extends State<LoginPage> {
     if (success) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập Google thành công!'),
+        SnackBar(
+          content: Text(l10n.loginGoogleSuccess),
           backgroundColor: Colors.green,
         ),
       );

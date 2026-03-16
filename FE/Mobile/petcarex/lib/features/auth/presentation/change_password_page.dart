@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/password_text_field.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'providers/auth_provider.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -42,7 +42,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar(l10n.save, isError: false);
+      _showQuickSnackBar(l10n.changePasswordSuccess, isError: false);
       Navigator.pop(context);
     } else {
       _showQuickSnackBar(authProvider.errorMessage ?? l10n.failed, isError: true);

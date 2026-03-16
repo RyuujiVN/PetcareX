@@ -386,6 +386,36 @@ abstract class AppLocalizations {
   /// **'Vui lòng nhập mật khẩu cũ và mật khẩu mới để bảo mật tài khoản của bạn.'**
   String get changePasswordMessage;
 
+  /// No description provided for @changePasswordSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thay đổi mật khẩu thành công'**
+  String get changePasswordSuccess;
+
+  /// No description provided for @loginSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập thành công!'**
+  String get loginSuccess;
+
+  /// No description provided for @loginGoogleSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng nhập Google thành công!'**
+  String get loginGoogleSuccess;
+
+  /// No description provided for @registerSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đăng ký thành công!'**
+  String get registerSuccess;
+
+  /// No description provided for @resetPasswordSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thiết lập lại mật khẩu thành công!'**
+  String get resetPasswordSuccess;
+
   /// No description provided for @oldPassword.
   ///
   /// In vi, this message translates to:

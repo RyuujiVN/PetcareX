@@ -45,7 +45,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.agreeTerms)),
+        SnackBar(content: Text(l10n.agreeToTermsError)),
       );
       return;
     }
@@ -63,8 +63,8 @@ class _RegisterPageState extends State<RegisterPage> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đăng ký thành công!'),
+          SnackBar(
+            content: Text(l10n.registerSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -92,14 +92,15 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _registerWithGoogle() async {
+    final l10n = AppLocalizations.of(context)!;
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.loginWithGoogle();
 
     if (success) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập Google thành công!'),
+        SnackBar(
+          content: Text(l10n.loginGoogleSuccess),
           backgroundColor: Colors.green,
         ),
       );

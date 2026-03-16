@@ -155,6 +155,21 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please enter your old and new password to secure your account.';
 
   @override
+  String get changePasswordSuccess => 'Password changed successfully';
+
+  @override
+  String get loginSuccess => 'Login successful!';
+
+  @override
+  String get loginGoogleSuccess => 'Google login successful!';
+
+  @override
+  String get registerSuccess => 'Registration successful!';
+
+  @override
+  String get resetPasswordSuccess => 'Password reset successfully!';
+
+  @override
   String get oldPassword => 'Old Password';
 
   @override

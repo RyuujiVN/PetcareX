@@ -118,7 +118,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar(l10n.success, isError: false);
+      _showQuickSnackBar(l10n.resetPasswordSuccess, isError: false);
       await Future.delayed(const Duration(milliseconds: 1000));
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);

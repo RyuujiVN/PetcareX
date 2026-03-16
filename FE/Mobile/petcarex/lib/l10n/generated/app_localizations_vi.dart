@@ -156,6 +156,21 @@ class AppLocalizationsVi extends AppLocalizations {
       'Vui lòng nhập mật khẩu cũ và mật khẩu mới để bảo mật tài khoản của bạn.';
 
   @override
+  String get changePasswordSuccess => 'Thay đổi mật khẩu thành công';
+
+  @override
+  String get loginSuccess => 'Đăng nhập thành công!';
+
+  @override
+  String get loginGoogleSuccess => 'Đăng nhập Google thành công!';
+
+  @override
+  String get registerSuccess => 'Đăng ký thành công!';
+
+  @override
+  String get resetPasswordSuccess => 'Thiết lập lại mật khẩu thành công!';
+
+  @override
   String get oldPassword => 'Mật khẩu cũ';
 
   @override

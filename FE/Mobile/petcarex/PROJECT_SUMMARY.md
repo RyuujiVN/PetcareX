@@ -26,7 +26,7 @@ PetCareX is a Flutter-based mobile application for pet care management, integrat
 - **`AppLogger` Utility:** Added `lib/core/utils/logger.dart` to centralize API logging with a professional framed UI and automatic masking of passwords/tokens.
 - **Persistence:** Integrated `SharedPreferences` into `LanguageProvider` to remember user's language choice across sessions.
 - **Google Auth Team Sharing:** Un-ignored `debug.keystore` in `.gitignore` and configured `build.gradle.kts` to share the same fingerprint across the team, solving SHA-1 access issues.
-- **UX Improvements:** Removed back button from the main Booking tab, synchronized button designs across Auth pages, and added SnackBar confirmations for Auth actions. Added highly specific validation feedback inside `.arb` files for the `BookingPage` flow (e.g. "Vui lòng chọn thú cưng" instead of just "thú cưng") for better clarity.
+- **UX Improvements:** Removed back button from the main Booking tab, synchronized button designs across Auth pages. Shifted towards highly specific and semantically precise notifications (SnackBar) for Auth actions (Login, Register, Password Reset) using fully matched `AppLocalizations` avoiding generic terms like "lưu thành công". Added highly specific validation feedback inside `.arb` files for the `BookingPage` flow (e.g. "Vui lòng chọn thú cưng" instead of just "thú cưng") for better clarity.
 - **QR Overlay:** Re-implemented `ScannerOverlayPainter` to provide a professional scanning UI (frame + laser effect).
 
 ## 📁 Feature Status
