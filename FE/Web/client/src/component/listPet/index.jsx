@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Spin, Empty, message } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { getMyPetsApi } from '../../api/petApi';
 import './styles.css';
 import Header from '../../default/header';
 const ListPet = () => {
@@ -10,51 +11,19 @@ const ListPet = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setLoading(true);
-    try {
-      const petData = [
-        {
-          id: 1,
-          name: 'LuLu',
-          breed: 'Chó Poodle',
-          avatar: '/public/gaugau.png',
-          species: 'Chó',
-        },
-        {
-          id: 2,
-          name: 'Mimi',
-          breed: 'Mèo Anh Lông Ngắn',
-          avatar: '/public/meomeo.png',
-          species: 'Mèo',
-        },
-        {
-          id: 3,
-          name: 'LuLu',
-          breed: 'Chó Poodle',
-          avatar: '/public/gaugau.png',
-          species: 'Chó',
-        },
-        {
-          id: 4,
-          name: 'LuLu',
-          breed: 'Chó Poodle',
-          avatar: '/public/gaugau.png',
-          species: 'Chó',
-        },
-        {
-          id: 5,
-          name: 'LuLu',
-          breed: 'Chó Poodle',
-          avatar: '/public/gaugau.png',
-          species: 'Chó',
-        },
-      ];
-      setPets(petData);
-    } catch (error) {
-      message.error('Lỗi khi tải danh sách thú cưng');
-    } finally {
-      setLoading(false);
-    }
+    const fetchPets = async () => {
+      try {
+        setLoading(true);
+        const petData = await getMyPetsApi();
+        setPets(Array.isArray(petData) ? petData : []);
+      } catch (error) {
+        message.error(error.message || 'Lỗi khi tải danh sách thú cưng');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPets();
   }, []);
 
   const handleViewDetails = (petId) => {
@@ -80,14 +49,14 @@ const ListPet = () => {
                   <Row gutter={[16, 16]} align="middle">
                     <Col xs={24} sm={6} className="pet-avatar-col">
                       <img 
-                        src={pet.avatar} 
+                        src={pet.avatar || '/public/gaugau.png'} 
                         alt={pet.name} 
                         className="pet-avatar"
                       />
                     </Col>
                     <Col xs={24} sm={12} className="pet-info-col">
                       <div className="pet-info">
-                        <h3 className="pet-name">{pet.name} - {pet.breed}</h3>
+                        <h3 className="pet-name">{pet.name} - {pet.breed?.name || 'Chưa cập nhật giống'}</h3>
                       </div>
                     </Col>
                     <Col xs={24} sm={6} className="pet-action-col">

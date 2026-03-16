@@ -20,8 +20,14 @@ import {
 } from "antd";
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { getUserProfileApi } from "../../api/user";
+import {
+  getBreedsBySpeciesApi,
+  getMyPetsApi,
+  getPetSpeciesApi,
+  updatePetApi,
+} from "../../api/petApi";
 
 import dayjs from "dayjs";
 
@@ -29,103 +35,131 @@ import "./styles.css";
 import Header from "../../default/header";
 
 export default function PetProfile() {
-
   const [form] = Form.useForm();
+  const [searchParams] = useSearchParams();
 
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [petData, setPetData] = useState(null);
   const [ownerName, setOwnerName] = useState("");
+  const [speciesList, setSpeciesList] = useState([]);
+  const [breedList, setBreedList] = useState([]);
+  const [selectedSpeciesId, setSelectedSpeciesId] = useState("");
+  const [currentPetId, setCurrentPetId] = useState("");
 
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchUser();
+    fetchSpecies();
   }, []);
 
   useEffect(() => {
-    if (ownerName) {
-      fetchPetData();
+    fetchPetData();
+  }, []);
+
+  useEffect(() => {
+    if (!selectedSpeciesId) {
+      setBreedList([]);
+      return;
     }
-  }, [ownerName]);
+
+    fetchBreedsBySpecies(selectedSpeciesId);
+  }, [selectedSpeciesId]);
+
+  useEffect(() => {
+    if (!ownerName) {
+      return;
+    }
+
+    form.setFieldValue("owner", ownerName);
+    setPetData((prev) => (prev ? { ...prev, owner: prev.owner || ownerName } : prev));
+  }, [ownerName, form]);
 
   const fetchUser = async () => {
     try {
       const res = await getUserProfileApi();
-      setOwnerName(res.data.fullName);
+      setOwnerName(res.data?.fullName || "");
     } catch (error) {
-      console.log("Không lấy được user");
+      message.warning("Không lấy được thông tin người dùng");
     }
   };
 
-  const fetchPetData = () => {
-
+  const fetchSpecies = async () => {
     try {
+      const speciesData = await getPetSpeciesApi();
+      setSpeciesList(Array.isArray(speciesData) ? speciesData : []);
+    } catch (error) {
+      message.error(error.message || "Không thể tải danh sách loài");
+    }
+  };
 
+  const fetchBreedsBySpecies = async (speciesId) => {
+    try {
+      const breedsData = await getBreedsBySpeciesApi(speciesId);
+      setBreedList(Array.isArray(breedsData) ? breedsData : []);
+    } catch (error) {
+      message.error(error.message || "Không thể tải danh sách giống");
+    }
+  };
+
+  const fetchPetData = async () => {
+    try {
       setLoading(true);
 
-      const pets = JSON.parse(localStorage.getItem("pets")) || [];
+      const petIdFromQuery = searchParams.get("id");
+      const pets = await getMyPetsApi();
+      const petList = Array.isArray(pets) ? pets : [];
 
-      const petInfo = pets[0]; // chỉ lấy pet đầu tiên
+      const petInfo = petIdFromQuery
+        ? petList.find((item) => item.id === petIdFromQuery)
+        : petList[0];
 
-      if (petInfo) {
-
-        let age = null;
-
-        if (petInfo.birthDate) {
-          age = dayjs().diff(dayjs(petInfo.birthDate), "year");
-        }
-
-        setPetData(petInfo);
-
-        form.setFieldsValue({
-          petName: petInfo.petName || "",
-          species: petInfo.species || "",
-          breed: petInfo.breed || "",
-          gender: petInfo.gender || "",
-          birthDate: petInfo.birthDate ? dayjs(petInfo.birthDate) : null,
-          age: age,
-          weight: petInfo.weight || "",
-          features: petInfo.features || "",
-          owner: petInfo.owner || ownerName
-        });
-
-        setImagePreview(petInfo.avatar || null);
-
-      } else {
-
+      if (!petInfo) {
         message.warning("Chưa có thú cưng");
-
+        return;
       }
 
+      const speciesId = petInfo.breed?.speciesId || "";
+      setCurrentPetId(petInfo.id || "");
+      setSelectedSpeciesId(speciesId);
+
+      const mappedPetData = {
+        id: petInfo.id,
+        petName: petInfo.name || "",
+        species: speciesId,
+        breed: petInfo.breed?.name || "",
+        gender: petInfo.gender ? "Đực" : "Cái",
+        birthDate: petInfo.dateOfBirth || null,
+        weight: petInfo.weight ? Number(petInfo.weight) : "",
+        features: petInfo.note || "",
+        owner: ownerName,
+        avatar: petInfo.avatar || null,
+      };
+
+      setPetData(mappedPetData);
+
+      form.setFieldsValue({
+        petName: mappedPetData.petName,
+        species: mappedPetData.species || undefined,
+        breed: mappedPetData.breed,
+        gender: mappedPetData.gender,
+        birthDate: mappedPetData.birthDate ? dayjs(mappedPetData.birthDate) : null,
+        weight: mappedPetData.weight,
+        features: mappedPetData.features,
+        owner: mappedPetData.owner,
+      });
+
+      setImagePreview(mappedPetData.avatar);
     } catch (error) {
-
-      message.error("Không thể tải thông tin thú cưng!");
-
+      message.error(error.message || "Không thể tải thông tin thú cưng!");
     } finally {
-
       setLoading(false);
-
     }
-
-  };
-
-  const calculateAge = (birthDate) => {
-
-    if (!birthDate) return;
-
-    const age = dayjs().diff(birthDate, "year");
-
-    form.setFieldsValue({
-      age: age
-    });
-
   };
 
   const handleImageChange = (e) => {
-
     const file = e.target.files[0];
-
     if (!file) return;
 
     const reader = new FileReader();
@@ -135,69 +169,68 @@ export default function PetProfile() {
     };
 
     reader.readAsDataURL(file);
-
   };
 
-  const handleSubmit = (values) => {
+  const handleSubmit = async (values) => {
+    if (!currentPetId) {
+      message.error("Không tìm thấy thú cưng để cập nhật");
+      return;
+    }
+
+    const matchedBreed =
+      breedList.find(
+        (item) => (item.name || "").toLowerCase() === (values.breed || "").trim().toLowerCase(),
+      ) || breedList[0];
+
+    if (!matchedBreed?.id) {
+      message.warning("Vui lòng chọn giống hợp lệ");
+      return;
+    }
 
     try {
-
       setLoading(true);
 
-      const updateData = {
+      const updatePayload = {
+        name: values.petName,
+        breedId: matchedBreed.id,
+        gender: values.gender === "Đực",
+        dateOfBirth: values.birthDate ? values.birthDate.format("YYYY-MM-DD") : null,
+        weight: Number(values.weight),
+        note: values.features,
+      };
+
+      if (imagePreview && imagePreview.startsWith("http")) {
+        updatePayload.avatar = imagePreview;
+      }
+
+      await updatePetApi(currentPetId, updatePayload);
+
+      setPetData((prev) => ({
+        ...prev,
         petName: values.petName,
         species: values.species,
         breed: values.breed,
         gender: values.gender,
-        birthDate: values.birthDate
-          ? values.birthDate.format("YYYY-MM-DD")
-          : null,
-        weight: values.weight,
+        birthDate: updatePayload.dateOfBirth,
+        weight: Number(values.weight),
         features: values.features,
         owner: values.owner,
-        avatar: imagePreview
-      };
-
-      const pets = JSON.parse(localStorage.getItem("pets")) || [];
-
-      if (pets.length > 0) {
-
-        pets[0] = updateData;
-
-      } else {
-
-        pets.push(updateData);
-
-      }
-
-      localStorage.setItem("pets", JSON.stringify(pets));
-
-      setPetData(updateData);
+        avatar: imagePreview,
+      }));
 
       message.success("Cập nhật thông tin thú cưng thành công!");
-
       navigate(-1);
-
     } catch (error) {
-
-      message.error("Cập nhật thất bại!");
-
+      message.error(error.message || "Cập nhật thất bại!");
     } finally {
-
       setLoading(false);
-
     }
-
   };
 
   const handleCancel = () => {
-
     fetchPetData();
-
     message.info("Đã hủy thay đổi");
-
     navigate(-1);
-
   };
 
   if (loading && !petData) {
@@ -298,11 +331,11 @@ export default function PetProfile() {
               >
                 <Select
                   size="large"
-                  options={[
-                    { label: "Mèo", value: "Mèo" },
-                    { label: "Chó", value: "Chó" },
-                    { label: "Khác", value: "Khác" }
-                  ]}
+                  options={speciesList.map((item) => ({
+                    label: item.name,
+                    value: item.id,
+                  }))}
+                  onChange={(value) => setSelectedSpeciesId(value)}
                 />
               </Form.Item>
 
@@ -315,8 +348,17 @@ export default function PetProfile() {
                 name="breed"
                 className="form-col"
               >
-                <Input size="large" />
+                <Input
+                  size="large"
+                  list="profile-breed-suggestion-list"
+                />
               </Form.Item>
+
+              <datalist id="profile-breed-suggestion-list">
+                {breedList.map((item) => (
+                  <option key={item.id} value={item.name} />
+                ))}
+              </datalist>
 
               <Form.Item
                 label="Giới tính"

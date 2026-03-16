@@ -117,13 +117,20 @@ body::-webkit-scrollbar {
 
 .form-input {
   width: 100%;
-  padding: 12px 14px;
+  height: 44px;
+  padding: 10px 14px;
   border: 1px solid #CBD5E1;
   border-radius: 6px;
   font-size: 14px;
   color: #0F172A;
   transition: all 0.3s ease;
   font-family: inherit;
+}
+
+select.form-input,
+input.form-input[type="number"],
+input.form-input[type="text"] {
+  height: 44px;
 }
 
 .form-input:focus {
@@ -201,6 +208,36 @@ body::-webkit-scrollbar {
   cursor: pointer;
   position: relative;
   text-align: center;
+}
+
+.date-age-input-wrapper {
+  position: relative;
+}
+
+.date-age-display {
+  padding-right: 44px;
+}
+
+.date-picker-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.hidden-date-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
 }
 
 .upload-box:hover {

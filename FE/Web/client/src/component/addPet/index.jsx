@@ -1,15 +1,23 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 import { FaPaw } from "react-icons/fa";
-import { FiCamera } from "react-icons/fi";
+import { FiCamera, FiCalendar } from "react-icons/fi";
 import Header from '../../default/header';
+import { message } from 'antd';
+import {
+  createPetApi,
+  getBreedsBySpeciesApi,
+  getPetSpeciesApi,
+  uploadPetAvatarApi,
+} from '../../api/petApi';
 
 export default function AddPet() {
   const navigate = useNavigate();
 
   const [avatar, setAvatar] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
   const [name, setName] = useState('');
   const [species, setSpecies] = useState('');
   const [breed, setBreed] = useState('');
@@ -18,19 +26,152 @@ export default function AddPet() {
   const [weight, setWeight] = useState('');
   const [color, setColor] = useState('');
   const [owner, setOwner] = useState('');
+  const [speciesList, setSpeciesList] = useState([]);
+  const [breedList, setBreedList] = useState([]);
+  const [loadingMeta, setLoadingMeta] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const fileInputRef = useRef();
+  const dateInputRef = useRef();
+
+  const calculateAgeFromDate = (dateValue) => {
+    if (!dateValue) {
+      return '';
+    }
+
+    const today = new Date();
+    const birthDate = new Date(dateValue);
+
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age -= 1;
+    }
+
+    return `${Math.max(age, 0)} tuổi`;
+  };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      setAvatarFile(file);
       setAvatar(URL.createObjectURL(file));
     }
   };
 
-  const handleSubmit = (e) => {
+  const handlePickBirthday = () => {
+    if (!dateInputRef.current) {
+      return;
+    }
+
+    if (typeof dateInputRef.current.showPicker === 'function') {
+      dateInputRef.current.showPicker();
+      return;
+    }
+
+    dateInputRef.current.click();
+  };
+  useEffect(() => {
+    const fetchSpecies = async () => {
+      try {
+        setLoadingMeta(true);
+        const speciesData = await getPetSpeciesApi();
+        setSpeciesList(Array.isArray(speciesData) ? speciesData : []);
+      } catch (error) {
+        message.error(error.message || 'Không thể tải danh sách loài');
+      } finally {
+        setLoadingMeta(false);
+      }
+    };
+
+    fetchSpecies();
+  }, []);
+
+  useEffect(() => {
+    if (!species) {
+      setBreedList([]);
+      setBreed('');
+      return;
+    }
+
+    const fetchBreeds = async () => {
+      try {
+        setLoadingMeta(true);
+        const breedsData = await getBreedsBySpeciesApi(species);
+        const nextBreeds = Array.isArray(breedsData) ? breedsData : [];
+        setBreedList(nextBreeds);
+
+        if (nextBreeds.length > 0) {
+          setBreed(nextBreeds[0].name || '');
+        }
+      } catch (error) {
+        message.error(error.message || 'Không thể tải danh sách giống');
+      } finally {
+        setLoadingMeta(false);
+      }
+    };
+
+    fetchBreeds();
+  }, [species]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log({ avatar, name, species, breed, gender, birthday, weight, color, owner });
+
+    if (!name || !species || !breed || !gender || !birthday || !weight) {
+      message.warning('Vui lòng điền đầy đủ thông tin bắt buộc');
+      return;
+    }
+
+    const matchedBreed =
+      breedList.find(
+        (item) => (item.name || '').toLowerCase() === breed.trim().toLowerCase(),
+      ) || breedList[0];
+
+    if (!matchedBreed?.id) {
+      message.warning('Vui lòng chọn giống hợp lệ theo loài đã chọn');
+      return;
+    }
+
+    let avatarUrl = '';
+
+    try {
+      if (avatarFile) {
+        const uploadRes = await uploadPetAvatarApi(avatarFile);
+        avatarUrl = uploadRes?.file || '';
+      } else if (avatar && avatar.startsWith('http')) {
+        avatarUrl = avatar;
+      }
+    } catch (error) {
+      message.error(error.message || 'Không thể tải ảnh thú cưng');
+      return;
+    }
+
+    if (!avatarUrl) {
+      message.warning('Vui lòng tải ảnh đại diện thú cưng');
+      return;
+    }
+
+    const payload = {
+      name: name.trim(),
+      breedId: matchedBreed.id,
+      gender: gender === 'male',
+      dateOfBirth: birthday,
+      weight: Number(weight),
+      avatar: avatarUrl,
+      note: color,
+    };
+
+    try {
+      setSubmitting(true);
+      await createPetApi(payload);
+      message.success('Thêm thú cưng mới thành công');
+      navigate('/listPet');
+    } catch (error) {
+      message.error(error.message || 'Không thể thêm thú cưng');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -107,17 +248,42 @@ export default function AddPet() {
                   placeholder="VD: Poodle, Golden Retriever"
                   value={breed}
                   onChange={(e) => setBreed(e.target.value)}
+                  list="breed-suggestion-list"
+                  disabled={loadingMeta || !species}
                 />
+                <datalist id="breed-suggestion-list">
+                  {breedList.map((item) => (
+                    <option key={item.id} value={item.name} />
+                  ))}
+                </datalist>
               </div>
 
               <div className="form-group">
                 <label className="form-label">Ngày sinh / Tuổi</label>
-                <input
-                  type="date"
-                  className="form-input"
-                  value={birthday}
-                  onChange={(e) => setBirthday(e.target.value)}
-                />
+                <div className="date-age-input-wrapper">
+                  <input
+                    type="text"
+                    className="form-input date-age-display"
+                    value={calculateAgeFromDate(birthday)}
+                    placeholder="Chọn ngày sinh để hiển thị tuổi"
+                    readOnly
+                  />
+                  <button
+                    type="button"
+                    className="date-picker-button"
+                    onClick={handlePickBirthday}
+                    aria-label="Chọn ngày sinh"
+                  >
+                    <FiCalendar size={18} />
+                  </button>
+                  <input
+                    type="date"
+                    ref={dateInputRef}
+                    className="hidden-date-input"
+                    value={birthday}
+                    onChange={(e) => setBirthday(e.target.value)}
+                  />
+                </div>
               </div>
 
               <div className="form-group">
@@ -140,12 +306,14 @@ export default function AddPet() {
                   className="form-input"
                   value={species}
                   onChange={(e) => setSpecies(e.target.value)}
+                  disabled={loadingMeta}
                 >
                   <option value="">Chọn loài</option>
-                  <option value="dog">Chó</option>
-                  <option value="cat">Mèo</option>
-                  <option value="bird">Chim</option>
-                  <option value="other">Khác</option>
+                  {speciesList.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -199,8 +367,9 @@ export default function AddPet() {
             <button
               type="submit"
               className="submit-button"
+              disabled={submitting}
             >
-              Thêm thú cưng mới
+              {submitting ? 'Đang lưu...' : 'Thêm thú cưng mới'}
             </button>
           </div>
         </form>
