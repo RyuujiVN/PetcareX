@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_colors.dart';
 
 class PasswordTextField extends StatefulWidget {
@@ -12,7 +13,7 @@ class PasswordTextField extends StatefulWidget {
     required this.controller,
     required this.label,
     this.errorText,
-    this.hintText = '••••••••', // Đổi từ ● sang • thanh mảnh hơn
+    this.hintText = '••••••••', // Đổi từ ● sang • thanh mảnh hơn 
   });
 
   @override
@@ -35,15 +36,15 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
         TextField(
           controller: widget.controller,
           obscureText: _isObscure,
-          // Ký tự dấu chấm khi đang nhập
-          obscuringCharacter: '•',
-          style: const TextStyle(letterSpacing: 2.0),
+          // Ký tự dấu chấm khi đang nhập (dùng ký tự Unicode lớn tròn, rõ ràng hơn)
+          obscuringCharacter: '●',
+          style: const TextStyle(letterSpacing: 2.0, fontSize: 16),
           decoration: InputDecoration(
             // Dấu chấm gợi ý (Hint)
             hintText: widget.hintText,
             hintStyle: TextStyle(
-              color: AppColors.grey.withOpacity(0.3),
-              fontSize: 10,
+              color: AppColors.grey.withOpacity(0.4),
+              fontSize: 14,
               letterSpacing: 2.0,
             ),
             prefixIcon: const Icon(Icons.lock_outline),

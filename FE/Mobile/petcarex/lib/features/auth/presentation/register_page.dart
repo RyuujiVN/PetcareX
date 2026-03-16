@@ -1,14 +1,13 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/password_text_field.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'providers/auth_provider.dart';
 
@@ -64,7 +63,10 @@ class _RegisterPageState extends State<RegisterPage> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.success)),
+          const SnackBar(
+            content: Text('Đăng ký thành công!'),
+            backgroundColor: Colors.green,
+          ),
         );
         Navigator.pop(context);
       } else {
@@ -95,6 +97,12 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (success) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đăng nhập Google thành công!'),
+          backgroundColor: Colors.green,
+        ),
+      );
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
@@ -252,10 +260,21 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget _buildGoogleButton(AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
-      height: 44,
+      height: 50,
       child: OutlinedButton(
-        onPressed: _registerWithGoogle,
-        child: Text(l10n.loginWithGoogle),
+        onPressed: _isLoading ? null : _registerWithGoogle,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Color(0xFFE0E0E0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/google.png', width: 24, height: 24),
+            const SizedBox(width: 12),
+            Text(l10n.loginWithGoogle, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

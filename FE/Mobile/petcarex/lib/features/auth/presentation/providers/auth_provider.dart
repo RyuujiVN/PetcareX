@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -141,6 +142,7 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Đăng nhập Google để lấy thông tin xác thực
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         _isLoading = false;
@@ -149,12 +151,26 @@ class AuthProvider extends ChangeNotifier {
       }
 
       final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      
-      final response = await _apiClient.post('${AppConstants.loginEndpoint}/google', {
-        'email': googleUser.email,
-        'fullName': googleUser.displayName,
-        'idToken': googleAuth.idToken,
-        'accessToken': googleAuth.accessToken,
+      final idToken = googleAuth.idToken;
+
+      // Đảm bảo tokenid không null
+      if (idToken == null) {
+        _errorMessage = 'Không thể lấy được token xác thực từ Google.';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      // Lấy tokenid từ google
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+      await FirebaseAuth.instance.signInWithCredential(credential);
+
+      // Gửi tokenid xuống BE
+      final response = await _apiClient.post(AppConstants.loginGoogleEndpoint, {
+        'googleIdToken': idToken,
       });
 
       final body = jsonDecode(response.body);
@@ -171,13 +187,20 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       } else {
-        _errorMessage = body['message'] ?? 'Đăng nhập Google thất bại';
+        _errorMessage = _parseErrorMessage(body);
         _isLoading = false;
         notifyListeners();
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi đăng nhập Google: $e';
+      if (e.toString().contains('ApiException: 7') || e.toString().contains('network_error')) {
+         _errorMessage = 'Lỗi mạng: Kiểm tra kết nối Internet của thiết bị. Nếu ở máy ảo, đảm bảo máy ảo có mạng.';
+      } else if (e.toString().contains('ApiException: 10')) {
+         _errorMessage = 'Lỗi cấu hình Cấu hình Firebase: Có thể SHA-1 chưa được khai báo ở Console của Firebase.';
+      } else {
+         _errorMessage = 'Lỗi đăng nhập Google hoặc Backend: $e';
+      }
+      
       _isLoading = false;
       notifyListeners();
       return false;
@@ -190,6 +213,7 @@ class AuthProvider extends ChangeNotifier {
     await _storage.delete(key: 'accessToken');
     await _storage.delete(key: 'rememberMe');
     await _googleSignIn.signOut();
+    await FirebaseAuth.instance.signOut(); // Đăng xuất khỏi Firebase
     notifyListeners();
   }
 

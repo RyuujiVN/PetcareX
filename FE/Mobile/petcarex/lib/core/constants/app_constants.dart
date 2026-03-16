@@ -10,6 +10,7 @@ class AppConstants {
 
   // Auth Endpoints
   static const String loginEndpoint = '$apiPrefix/auth/login';
+  static const String loginGoogleEndpoint = '$apiPrefix/auth/login-google'; // Endpoint mới cho Google
   static const String registerEndpoint = '$apiPrefix/auth/register';
   static const String forgotPasswordEndpoint = '$apiPrefix/auth/forgot-password';
   static const String resetPasswordEndpoint = '$apiPrefix/auth/reset-password';

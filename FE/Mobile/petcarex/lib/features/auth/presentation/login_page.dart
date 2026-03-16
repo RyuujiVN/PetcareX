@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/password_text_field.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'forgot_password_page.dart';
 import 'providers/auth_provider.dart';
@@ -96,6 +96,12 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đăng nhập thành công!'),
+          backgroundColor: Colors.green,
+        ),
+      );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
@@ -117,6 +123,12 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đăng nhập Google thành công!'),
+          backgroundColor: Colors.green,
+        ),
+      );
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
