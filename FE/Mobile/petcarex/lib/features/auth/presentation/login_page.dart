@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/widgets/password_text_field.dart'; // Import mới
+import '../../../../core/widgets/password_text_field.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'forgot_password_page.dart';
 import 'providers/auth_provider.dart';
@@ -103,6 +103,27 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
+        ),
+      );
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    final l10n = AppLocalizations.of(context)!;
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.loginWithGoogle();
+
+    if (success) {
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(authProvider.errorMessage ?? l10n.loginFailed)),
       );
     }
@@ -174,7 +195,6 @@ class _LoginPageState extends State<LoginPage> {
             decoration: InputDecoration(hintText: l10n.emailHint, prefixIcon: const Icon(Icons.email_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), errorText: _emailError),
           ),
           const SizedBox(height: 16),
-          // Sử dụng PasswordTextField mới
           PasswordTextField(
             controller: _passwordController,
             label: l10n.password,
@@ -185,8 +205,32 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 24),
           _buildLoginButton(isLoading, l10n),
           const SizedBox(height: 16),
+          _buildGoogleLoginButton(isLoading, l10n),
+          const SizedBox(height: 16),
           _buildRegisterText(l10n),
         ],
+      ),
+    );
+  }
+
+  Widget _buildGoogleLoginButton(bool isLoading, AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: OutlinedButton(
+        onPressed: isLoading ? null : _loginWithGoogle,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: Color(0xFFE0E0E0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/google.png', width: 24, height: 24),
+            const SizedBox(width: 12),
+            Text(l10n.loginWithGoogle, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
