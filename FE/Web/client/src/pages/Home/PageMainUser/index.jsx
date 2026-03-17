@@ -1,5 +1,5 @@
 import { FaBolt, FaFileMedical, FaPlus, FaRobot } from "react-icons/fa";
-import { message, Spin } from "antd";
+import { Empty, message, Spin } from "antd";
 import Footer from "../../../components/layout/footer";
 import Header from "../../../components/layout/header";
 import "./styles.css";
@@ -123,7 +123,10 @@ export default function PageMainUser() {
     navigate("/appointments");
   };
 
+  const displayedAppointments = activeTab === "upcoming" ? upcomingAppointments : historyAppointments;
+
   return (
+    <div>
     <div className="user-dashboard">
       <Header />
 
@@ -153,7 +156,7 @@ export default function PageMainUser() {
           {pets.map((p) => (
             <article
               key={p.id}
-              className="pet-card"
+              className="pets-card"
               style={{ width: "200px" }}
             >
               <img
@@ -184,14 +187,10 @@ export default function PageMainUser() {
           ))}
 
           <article
-            className="pet-card add-pet"
+            className="pets-card add-pet"
             onClick={() => navigate("/add-pet")}
             style={{ cursor: "pointer" }}
           >
-            <div className="plus-circle">
-              <FaPlus className="plus-icon" />
-            </div>
-
             <span className="add-text">
               Thêm thú cưng mới
             </span>
@@ -311,32 +310,39 @@ export default function PageMainUser() {
             </a>
           </div>
 
-          <ul>
-            {(activeTab === "upcoming" ? upcomingAppointments : historyAppointments).map((a) => (
-              <li key={a.id}>
-                <span
-                  className="time"
-                  style={{
-                    padding: "10px",
-                    color: "#f32d26",
-                  }}
-                >
-                  {a.time}
-                </span>
+          {displayedAppointments.length > 0 ? (
+            <ul>
+              {displayedAppointments.map((a) => (
+                <li key={a.id}>
+                  <span
+                    className="time"
+                    style={{
+                      padding: "10px",
+                      color: "#f32d26",
+                    }}
+                  >
+                    {a.time}
+                  </span>
 
-                {a.title}
+                  {a.title}
 
-                <span
-                  className={`status ${activeTab === "upcoming" ? "upcoming" : "done"}`}
-                >
-                  {a.status}
-                </span>
-              </li>
-            ))}
-          </ul>
+                  <span
+                    className={`status ${activeTab === "upcoming" ? "upcoming" : "done"}`}
+                  >
+                    {a.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Empty
+              description={activeTab === "upcoming" ? "Không có lịch khám sắp tới" : "Chưa có lịch sử khám"}
+            />
+          )}
         </section>
       </Spin>
 
+      </div>
       <Footer />
     </div>
   );
