@@ -7,15 +7,15 @@ export const APPOINTMENT_STATUS = {
   CANCELED: "Đã huỷ",
 };
 
-export const SERVICE_OPTIONS = [
-  "Khám sức khoẻ định kỳ",
-  "Khám bệnh",
-  "Tiêm chủng",
-  "Tẩy giun",
-  "Siêu âm xét nghiệm",
-  "Phẫu thuật",
-  "Cấp cứu",
-];
+export const SERVICE_OPTIONS = {
+  GENERAL_CHECKUP: "Khám sức khoẻ định kỳ",
+  MEDICAL_EXAM: "Khám bệnh",
+  VACCINATION: "Tiêm chủng",
+  DEWORMING: "Tẩy giun",
+  LAB_TEST: "Siêu âm xét nghiệm",
+  SURGERY: "Phẫu thuật",
+  EMERGENCY: "Cấp cứu",
+};
 
 export const getMyAppointmentsApi = (page = 1, limit = 100) => {
   return instance.get('/appointment/my', {
