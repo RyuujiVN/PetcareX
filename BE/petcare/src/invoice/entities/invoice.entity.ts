@@ -48,5 +48,6 @@ export class Invoice {
   @OneToOne(() => MedicalRecord, (medicalRecord) => medicalRecord.invoice, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'medical_record_id' })
   medicalRecord: MedicalRecord;
 }

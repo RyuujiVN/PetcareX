@@ -1,7 +1,8 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateInvoiceDTO } from './dtos/create-invoice.dto';
+import { UpdateInvoiceDTO } from './dtos/update-invoice.dto';
 
 @Controller('invoice')
 export class InvoiceController {
@@ -14,5 +15,21 @@ export class InvoiceController {
   })
   createInvoice(@Body() createDTO: CreateInvoiceDTO) {
     return this.invoiceService.createInvoice(createDTO);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Chỉnh sửa hoá đơn' })
+  @ApiBody({
+    type: UpdateInvoiceDTO,
+  })
+  async updateInvoice(
+    @Param('id') id: string,
+    @Body() updateDTO: UpdateInvoiceDTO,
+  ) {
+    await this.invoiceService.updateInvoice(updateDTO, id);
+
+    return {
+      message: 'Cập nhật hoá đơn thành công',
+    };
   }
 }
