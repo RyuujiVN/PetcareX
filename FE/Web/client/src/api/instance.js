@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const instance = axios.create({
-  baseURL: "http://localhost:3000/api",
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3000/api",
 });
 
 instance.interceptors.request.use(
@@ -23,6 +23,15 @@ instance.interceptors.response.use(
   (response) => response,
 
   (error) => {
+
+    const responseData = error.response?.data;
+    const normalizedMessage = Array.isArray(responseData?.message)
+      ? responseData.message[0]
+      : responseData?.message;
+
+    if (normalizedMessage || responseData?.error) {
+      error.message = normalizedMessage || responseData.error;
+    }
 
     if (error.response?.status === 401) {
 

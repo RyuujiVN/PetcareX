@@ -1,67 +1,36 @@
-import { buildHeaders, request } from "./fetchApi";
+import instance from './instance';
 
-export const getMyPetsApi = async () => {
-  return request("/pet", {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+export const getMyPetsApi = () => {
+  return instance.get('/pet').then((response) => response.data);
 };
 
-export const getPetByIdApi = async (petId) => {
-  return request(`/pet/${petId}`, {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+export const getPetByIdApi = (petId) => {
+  return instance.get(`/pet/${petId}`).then((response) => response.data);
 };
 
-export const createPetApi = async (data) => {
-  return request("/pet", {
-    method: "POST",
-    headers: buildHeaders({
-      "Content-Type": "application/json",
-    }),
-    body: JSON.stringify(data),
-  });
+export const createPetApi = (data) => {
+  return instance.post('/pet', data).then((response) => response.data);
 };
 
-export const updatePetApi = async (petId, data) => {
-  return request(`/pet/${petId}`, {
-    method: "PUT",
-    headers: buildHeaders({
-      "Content-Type": "application/json",
-    }),
-    body: JSON.stringify(data),
-  });
+export const updatePetApi = (petId, data) => {
+  return instance.put(`/pet/${petId}`, data).then((response) => response.data);
 };
 
-export const deletePetApi = async (petId) => {
-  return request(`/pet/${petId}`, {
-    method: "DELETE",
-    headers: buildHeaders(),
-  });
+export const deletePetApi = (petId) => {
+  return instance.delete(`/pet/${petId}`).then((response) => response.data);
 };
 
-export const getPetSpeciesApi = async () => {
-  return request("/pet/species", {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+export const getPetSpeciesApi = () => {
+  return instance.get('/pet/species').then((response) => response.data);
 };
 
-export const getBreedsBySpeciesApi = async (speciesId) => {
-  return request(`/pet/species/${speciesId}/breed`, {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+export const getBreedsBySpeciesApi = (speciesId) => {
+  return instance.get(`/pet/species/${speciesId}/breed`).then((response) => response.data);
 };
 
-export const uploadPetAvatarApi = async (file) => {
+export const uploadPetAvatarApi = (file) => {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append('file', file);
 
-  return request("/pet/upload", {
-    method: "POST",
-    headers: buildHeaders(),
-    body: formData,
-  });
+  return instance.post('/pet/upload', formData).then((response) => response.data);
 };

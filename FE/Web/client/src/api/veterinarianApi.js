@@ -1,22 +1,19 @@
-import { buildHeaders, request } from "./fetchApi";
+import instance from './instance';
 
-export const getVeterinarianByClinicApi = async (
+export const getVeterinarianByClinicApi = (
   clinicId,
   page = 1,
   limit = 50,
-  search = "",
-  specialty = "",
+  search = '',
+  specialty = '',
 ) => {
-  const query = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-    clinicId,
-    ...(search ? { search } : {}),
-    ...(specialty ? { specialty } : {}),
-  });
-
-  return request(`/veterinarian?${query.toString()}`, {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+  return instance.get('/veterinarian', {
+    params: {
+      page,
+      limit,
+      clinicId,
+      ...(search ? { search } : {}),
+      ...(specialty ? { specialty } : {}),
+    },
+  }).then((response) => response.data);
 };

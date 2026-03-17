@@ -1,4 +1,4 @@
-import { buildHeaders, request } from "./fetchApi";
+import instance from './instance';
 
 export const APPOINTMENT_STATUS = {
   SUCCESS: "Hẹn thành công",
@@ -17,29 +17,19 @@ export const SERVICE_OPTIONS = [
   "Cấp cứu",
 ];
 
-export const getMyAppointmentsApi = async (page = 1, limit = 100) => {
-  return request(`/appointment/my?page=${page}&limit=${limit}`, {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+export const getMyAppointmentsApi = (page = 1, limit = 100) => {
+  return instance.get('/appointment/my', {
+    params: {
+      page,
+      limit,
+    },
+  }).then((response) => response.data);
 };
 
-export const createAppointmentApi = async (data) => {
-  return request("/appointment", {
-    method: "POST",
-    headers: buildHeaders({
-      "Content-Type": "application/json",
-    }),
-    body: JSON.stringify(data),
-  });
+export const createAppointmentApi = (data) => {
+  return instance.post('/appointment', data).then((response) => response.data);
 };
 
-export const updateAppointmentStatusApi = async (appointmentId, status) => {
-  return request(`/appointment/${appointmentId}`, {
-    method: "PATCH",
-    headers: buildHeaders({
-      "Content-Type": "application/json",
-    }),
-    body: JSON.stringify({ status }),
-  });
+export const updateAppointmentStatusApi = (appointmentId, status) => {
+  return instance.patch(`/appointment/${appointmentId}`, { status }).then((response) => response.data);
 };

@@ -1,32 +1,22 @@
-import { buildHeaders, request } from "./fetchApi";
+import instance from './instance';
 
-export const getClinicListApi = async (page = 1, limit = 50, search = "") => {
-  const query = new URLSearchParams({
-    page: String(page),
-    limit: String(limit),
-    ...(search ? { search } : {}),
-  });
-
-  return request(`/clinic?${query.toString()}`, {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+export const getClinicListApi = (page = 1, limit = 50, search = '') => {
+  return instance.get('/clinic', {
+    params: {
+      page,
+      limit,
+      ...(search ? { search } : {}),
+    },
+  }).then((response) => response.data);
 };
 
-export const getClinicByIdApi = async (clinicId) => {
-  return request(`/clinic/${clinicId}`, {
-    method: "GET",
-    headers: buildHeaders(),
-  });
+export const getClinicByIdApi = (clinicId) => {
+  return instance.get(`/clinic/${clinicId}`).then((response) => response.data);
 };
 
-export const uploadClinicAvatarApi = async (file) => {
+export const uploadClinicAvatarApi = (file) => {
   const formData = new FormData();
-  formData.append("file", file);
+  formData.append('file', file);
 
-  return request("/clinic/upload", {
-    method: "POST",
-    headers: buildHeaders(),
-    body: formData,
-  });
+  return instance.post('/clinic/upload', formData).then((response) => response.data);
 };
