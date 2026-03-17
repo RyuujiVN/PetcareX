@@ -125,7 +125,7 @@ export default function HomePageClinic() {
       <section className="hero-section clinic-hero">
         <div className="hero-content">
           <h1 className="hero-title">
-            PetCareX - Khởi đầu cuộc sống tốt đẹp nhất cho thú cưng của bạn tại đây
+            PetCar - Khởi đầu cuộc sống tốt đẹp nhất cho thú cưng của bạn tại đây
           </h1>
           <p className="hero-description">
             Vươn thương hiệu chăm sóc thú cưng số 1 Việt Nam, luôn đặt lợi ích của 
