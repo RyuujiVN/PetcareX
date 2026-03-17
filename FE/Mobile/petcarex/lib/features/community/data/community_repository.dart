@@ -48,4 +48,30 @@ class CommunityRepository {
     }
     return null;
   }
+
+  // --- Comment Methods ---
+
+  Future<List<Comment>> getComments(String postId, {int limit = 10, String? lastCreatedAt}) async {
+    String url = '${AppConstants.postCommentsEndpoint(postId)}?limit=$limit';
+    if (lastCreatedAt != null) url += '&createdAt=$lastCreatedAt';
+
+    final response = await _apiClient.get(url);
+    if (response.statusCode == 200) {
+      final List data = jsonDecode(response.body);
+      return data.map((json) => Comment.fromJson(json)).toList();
+    }
+    return [];
+  }
+
+  Future<Comment?> createComment(String postId, String content, {String? parentId}) async {
+    final response = await _apiClient.post(AppConstants.commentEndpoint, {
+      'postId': postId,
+      'content': content,
+      'parentId': parentId,
+    });
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      return Comment.fromJson(jsonDecode(response.body));
+    }
+    return null;
+  }
 }

@@ -125,6 +125,36 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _loginWithGoogle() async {
+    final l10n = AppLocalizations.of(context)!;
+    final authProvider = context.read<AuthProvider>();
+    final success = await authProvider.loginWithGoogle();
+
+    if (success) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.loginGoogleSuccess),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final isLoading = context.watch<AuthProvider>().isLoading;
@@ -272,7 +302,7 @@ class _LoginPageState extends State<LoginPage> {
       width: double.infinity,
       height: 54,
       child: OutlinedButton(
-        onPressed: isLoading ? null : () => context.read<AuthProvider>().loginWithGoogle(),
+        onPressed: isLoading ? null : _loginWithGoogle,
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: AppColors.formBorder),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

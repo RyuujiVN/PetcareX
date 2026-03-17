@@ -7,6 +7,9 @@ class CommunityProvider with ChangeNotifier {
 
   List<Post> _posts = [];
   List<Topic> _topics = [];
+  Map<String, List<Comment>> _postComments = {};
+  Map<String, bool> _isCommentsLoading = {};
+  
   bool _isLoading = false;
   bool _isMoreLoading = false;
   String? _errorMessage;
@@ -18,6 +21,9 @@ class CommunityProvider with ChangeNotifier {
   bool get isMoreLoading => _isMoreLoading;
   String? get errorMessage => _errorMessage;
   String? get selectedTopicId => _selectedTopicId;
+
+  List<Comment> getCommentsForPost(String postId) => _postComments[postId] ?? [];
+  bool isCommentsLoading(String postId) => _isCommentsLoading[postId] ?? false;
 
   Future<void> fetchInitialData() async {
     _isLoading = true;
@@ -70,7 +76,7 @@ class CommunityProvider with ChangeNotifier {
       );
       _posts.addAll(newPosts);
     } catch (e) {
-      // Có thể log lỗi ở đây
+      // Log error
     } finally {
       _isMoreLoading = false;
       notifyListeners();
@@ -84,9 +90,7 @@ class CommunityProvider with ChangeNotifier {
     final post = _posts[postIndex];
     final originalIsLiked = post.isLiked;
     
-    // Optimistic UI Update
     post.isLiked = !post.isLiked;
-    // Lưu ý: Cần xử lý cộng/trừ likesCount trong Post model nếu cần
     notifyListeners();
 
     try {
@@ -98,7 +102,6 @@ class CommunityProvider with ChangeNotifier {
       }
 
       if (!success) {
-        // Rollback nếu API thất bại
         post.isLiked = originalIsLiked;
         notifyListeners();
       }
@@ -108,12 +111,41 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
+  Future<void> fetchComments(String postId) async {
+    _isCommentsLoading[postId] = true;
+    notifyListeners();
+    try {
+      final comments = await _repository.getComments(postId);
+      _postComments[postId] = comments;
+    } catch (e) {
+      // Log error
+    } finally {
+      _isCommentsLoading[postId] = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> sendComment(String postId, String content) async {
+    try {
+      final newComment = await _repository.createComment(postId, content);
+      if (newComment != null) {
+        if (!_postComments.containsKey(postId)) {
+          _postComments[postId] = [];
+        }
+        _postComments[postId]!.insert(0, newComment);
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      _errorMessage = e.toString();
+    }
+    return false;
+  }
+
   Future<bool> createNewPost(String content) async {
     if (_selectedTopicId == null && _topics.isNotEmpty) {
-      // Mặc định chọn topic đầu tiên nếu chưa chọn
       _selectedTopicId = _topics.first.id;
     }
-    
     if (_selectedTopicId == null) return false;
 
     try {
