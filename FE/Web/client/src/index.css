@@ -11,7 +11,6 @@
   }
 }
 
-/* appointmentDetail - slideIn animation (from styles.css) */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -27,7 +26,6 @@
   animation: slideIn 0.3s ease;
 }
 
-/* appointmentDetail - Ant Design Tabs overrides (from styles.css) */
 .appointment-tabs .ant-tabs-nav {
   border-bottom: 1px solid #f0f0f0;
   padding-bottom: 0;
@@ -56,13 +54,6 @@
     padding: 8px 12px;
   }
 }
-
-/* appointmentDetail - Action column button overrides (from styles.css)
-   .action-col .ant-btn { padding: 4px 12px; font-size: 12px }
-   .action-col .ant-btn-primary { background:#13ECDA; border-color:#13ECDA; color:white; font-weight:500 }
-   .action-col .ant-btn-primary:hover { background:#0dcfc3; border-color:#0dcfc3 }
-   .action-col .ant-btn-text { color:#999 !important }
-*/
 .action-col .ant-btn {
   padding: 4px 12px;
   font-size: 12px;
@@ -91,10 +82,7 @@
   }
 }
 
-/* appointmentDetail - Global Ant Design overrides (from styles.css :global)
-   :global(.ant-empty) { padding: 48px 0 }
-   :global(.ant-badge-count) { background-color:#ff4d4f; font-size:11px; padding:0 6px; margin-left:8px }
-*/
+
 .ant-empty {
   padding: 48px 0;
 }

@@ -1,0 +1,353 @@
+import React, { useEffect, useMemo, useState } from 'react';
+import * as antd from 'antd';
+import * as icons from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import Header from '../../../components/layout/header';
+import Footer from '../../../components/layout/footer';
+import {
+  APPOINTMENT_STATUS,
+  getMyAppointmentsApi,
+  updateAppointmentStatusApi,
+} from '../../../data/api/appointmentApi';
+import './styles.css';
+
+const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
+const formatTime = (timeValue) => (timeValue || '').slice(0, 5);
+
+const calcDaysAgo = (dateValue) => {
+  const now = new Date();
+  const date = new Date(dateValue);
+  const ms = now.getTime() - date.getTime();
+  const days = Math.max(Math.floor(ms / (1000 * 60 * 60 * 24)), 0);
+
+  if (days === 0) return 'Hôm nay';
+  if (days < 7) return `${days} ngày`;
+  return `${Math.floor(days / 7)} tuần`;
+};
+
+const AppointmentDetail = () => {
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('upcoming');
+  const [loading, setLoading] = useState(false);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [selectedAppointment, setSelectedAppointment] = useState(null);
+  const [appointments, setAppointments] = useState([]);
+
+  const fetchAppointments = async () => {
+    try {
+      setLoading(true);
+      const res = await getMyAppointmentsApi(1, 200);
+      setAppointments(Array.isArray(res?.items) ? res.items : []);
+    } catch (error) {
+      antd.message.error(error.message || 'Không thể tải lịch hẹn');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const mappedAppointments = useMemo(() => {
+    return appointments.map((item) => {
+      const date = item.appointmentDate;
+      const dateText = formatDate(date);
+      const timeText = formatTime(item.appointmentTime);
+
+      return {
+        id: item.id,
+        petId: item.pet?.id,
+        petName: item.pet?.name || 'Không rõ',
+        breed: item.pet?.breed?.name || 'Không rõ',
+        avatar: item.pet?.avatar || '/gaugau.png',
+        clinic: item.clinic?.name || 'Không rõ',
+        clinicAddress: item.clinic?.address || 'Không rõ',
+        service: `Dịch vụ: ${item.service}`,
+        date: dateText,
+        time: timeText,
+        veterinarian: item.veterinarian?.user?.fullName || 'Không rõ',
+        notes: item.note,
+        rawDate: date,
+        status: item.status,
+        daysAgo: calcDaysAgo(date),
+      };
+    });
+  }, [appointments]);
+
+  const upcomingAppointments = useMemo(() => {
+    const now = new Date();
+    return mappedAppointments.filter((item) => {
+      const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
+      const isFuture = dateTime >= now;
+      const isDone = item.status === APPOINTMENT_STATUS.DONE;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      return isFuture && !isDone && !isCanceled;
+    });
+  }, [mappedAppointments]);
+
+  const medicalHistory = useMemo(() => {
+    const now = new Date();
+    return mappedAppointments.filter((item) => {
+      const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
+      const isPast = dateTime < now;
+      const isDone = item.status === APPOINTMENT_STATUS.DONE;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      return isPast || isDone || isCanceled;
+    });
+  }, [mappedAppointments]);
+
+  const handleCancelAppointment = (appointmentId) => {
+    antd.Modal.confirm({
+      title: 'Hủy lịch khám',
+      content: 'Bạn chắc chắn muốn hủy lịch khám này không?',
+      okText: 'Có, hủy',
+      cancelText: 'Không, quay lại',
+      okButtonProps: { danger: true },
+      async onOk() {
+        try {
+          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELED);
+          antd.message.success('Hủy lịch khám thành công');
+          await fetchAppointments();
+        } catch (error) {
+          antd.message.error(error.message || 'Không thể hủy lịch khám');
+        }
+      },
+    });
+  };
+
+  const handleViewDetails = (appointment) => {
+    setSelectedAppointment(appointment);
+    setIsModalVisible(true);
+  };
+
+  const handleBookingNew = () => {
+    navigate('/booking');
+  };
+
+  const AppointmentCard = ({ appointment, isHistory = false }) => (
+    <antd.Card className="appointment-card" hoverable style={{ marginBottom: '16px' }}>
+      <antd.Row gutter={[16, 16]}>
+        <antd.Col xs={24} sm={6}>
+          <div className="appointment-pet-image">
+            <img src={appointment.avatar} alt={appointment.petName} />
+            {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: '#1890ff' }} />}
+          </div>
+        </antd.Col>
+        <antd.Col xs={24} sm={12}>
+          <div className="appointment-content">
+            <div className="appointment-header">
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
+                {appointment.petName} - {appointment.breed}
+              </h3>
+              {isHistory && <antd.Tag color="blue">{appointment.daysAgo}</antd.Tag>}
+            </div>
+
+            <div className="appointment-info">
+              <p style={{ marginBottom: '8px' }}>
+                <icons.MedicineBoxOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
+                {appointment.service}
+              </p>
+              <p style={{ marginBottom: '8px' }}>
+                <icons.EnvironmentOutlined style={{ marginRight: '8px', color: '#52c41a' }} />
+                {appointment.clinic}
+              </p>
+              <p style={{ marginBottom: '8px' }}>
+                <span style={{ fontSize: '12px', color: '#999' }}>{appointment.clinicAddress}</span>
+              </p>
+              <p style={{ marginBottom: '0' }}>
+                <icons.CalendarOutlined style={{ marginRight: '8px', color: '#faad14' }} />
+                {appointment.date} <icons.ClockCircleOutlined style={{ marginLeft: '16px', marginRight: '8px' }} />
+                {appointment.time}
+              </p>
+            </div>
+          </div>
+        </antd.Col>
+        <antd.Col xs={24} sm={6}>
+          <antd.Space direction="vertical" style={{ width: '100%' }}>
+            <antd.Button
+              style={{ backgroundColor: '#13ECDA' }}
+              type="primary"
+              block
+              icon={<icons.EyeOutlined />}
+              onClick={() => handleViewDetails(appointment)}
+            >
+              Xem chi tiết
+            </antd.Button>
+            {!isHistory && (
+              <antd.Button
+                danger
+                block
+                icon={<icons.DeleteOutlined />}
+                onClick={() => handleCancelAppointment(appointment.id)}
+              >
+                Hủy lịch
+              </antd.Button>
+            )}
+          </antd.Space>
+        </antd.Col>
+      </antd.Row>
+    </antd.Card>
+  );
+
+  return (
+    <div className="appointment-detail-wrapper">
+      <Header />
+      <div className="appointment-detail-container">
+        <div className="appointment-header-section">
+          <h1>Lịch sử khám</h1>
+          <p>Quản lý các cuộc khám sức khỏe cho các bạn cưng của bạn</p>
+          <antd.Button
+            type="primary"
+            size="large"
+            onClick={handleBookingNew}
+            style={{ marginTop: '16px', backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
+          >
+            + Đặt lịch khám mới
+          </antd.Button>
+        </div>
+
+        <antd.Tabs
+          activeKey={activeTab}
+          onChange={setActiveTab}
+          className="appointment-tabs"
+          items={[
+            {
+              key: 'upcoming',
+              label: (
+                <span>
+                  <icons.CalendarOutlined />
+                  Lịch sắp tới ({upcomingAppointments.length})
+                </span>
+              ),
+              children: (
+                <antd.Spin spinning={loading}>
+                  {upcomingAppointments.length > 0 ? (
+                    <div>
+                      {upcomingAppointments.map((appointment) => (
+                        <AppointmentCard
+                          key={appointment.id}
+                          appointment={appointment}
+                          isHistory={false}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <antd.Empty
+                      description="Không có lịch khám sắp tới"
+                      style={{ marginTop: '48px' }}
+                    />
+                  )}
+                </antd.Spin>
+              ),
+            },
+            {
+              key: 'history',
+              label: (
+                <span>
+                  <icons.MedicineBoxOutlined />
+                  Lịch sử khám ({medicalHistory.length})
+                </span>
+              ),
+              children: (
+                <antd.Spin spinning={loading}>
+                  {medicalHistory.length > 0 ? (
+                    <div>
+                      {medicalHistory.map((appointment) => (
+                        <AppointmentCard
+                          key={appointment.id}
+                          appointment={appointment}
+                          isHistory
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <antd.Empty description="Chưa có lịch khám" style={{ marginTop: '48px' }} />
+                  )}
+                </antd.Spin>
+              ),
+            },
+          ]}
+        />
+
+        <antd.Modal
+          title="Chi tiết lịch khám"
+          open={isModalVisible}
+          onCancel={() => setIsModalVisible(false)}
+          footer={[
+            <antd.Button key="back" onClick={() => setIsModalVisible(false)}>
+              Đóng
+            </antd.Button>,
+            <antd.Button
+              style={{ backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
+              key="submit"
+              type="primary"
+              onClick={() => {
+                setIsModalVisible(false);
+                navigate(`/petProfile?id=${selectedAppointment.petId}`);
+              }}
+            >
+              Xem hồ sơ thú cưng
+            </antd.Button>,
+          ]}
+          width={700}
+        >
+          {selectedAppointment && (
+            <div className="modal-contents">
+              <antd.Row gutter={[16, 16]}>
+                <antd.Col span={8}>
+                  <img
+                    src={selectedAppointment.avatar}
+                    alt={selectedAppointment.petName}
+                    style={{ width: '100%', borderRadius: '8px' }}
+                  />
+                </antd.Col>
+                <antd.Col span={16}>
+                  <h3>Thông tin thú cưng</h3>
+                  <p>
+                    <strong>Tên:</strong> {selectedAppointment.petName}
+                  </p>
+                  <p>
+                    <strong>Giống loại:</strong> {selectedAppointment.breed}
+                  </p>
+                  <antd.Divider />
+                  <h3>Thông tin lịch khám</h3>
+                  <p>
+                    <icons.CalendarOutlined /> <strong>Ngày:</strong> {selectedAppointment.date}
+                  </p>
+                  <p>
+                    <icons.ClockCircleOutlined /> <strong>Giờ:</strong> {selectedAppointment.time}
+                  </p>
+                  <p>
+                    <icons.EnvironmentOutlined /> <strong>Phòng khám:</strong>{' '}
+                    {selectedAppointment.clinic}
+                  </p>
+                  <p>
+                    <icons.UserOutlined /> <strong>Bác sĩ:</strong>{' '}
+                    {selectedAppointment.veterinarian}
+                  </p>
+                  <p>
+                    <icons.MedicineBoxOutlined /> <strong>Dịch vụ:</strong>{' '}
+                    {selectedAppointment.service}
+                  </p>
+                </antd.Col>
+              </antd.Row>
+
+              {selectedAppointment.notes && (
+                <>
+                  <antd.Divider />
+                  <p>
+                    <strong>Ghi chú:</strong> {selectedAppointment.notes}
+                  </p>
+                </>
+              )}
+            </div>
+          )}
+        </antd.Modal>
+      </div>
+      <Footer />
+    </div>
+  );
+};
+
+export default AppointmentDetail;
