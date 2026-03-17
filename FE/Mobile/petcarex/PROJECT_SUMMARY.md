@@ -21,6 +21,9 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Cảnh báo Deprecated:** Loại bỏ việc sử dụng `withOpacity` (thay bằng `withValues`).
 - **Biến trạng thái dư thừa:** Xóa bỏ các biến `bool _obscureText` tại toàn bộ các trang nhập mật khẩu.
 
+### 🐛 Các vấn đề Logic đã khắc phục
+- **Đứt gãy luồng điều hướng Async (Navigation Flow):** Đã khắc phục lỗi các action bên ngoài Provider (như Đăng nhập bằng Google) gọi API thành công nhưng không điều hướng. Chuẩn hóa: Bất kỳ Future<bool> nào gọi từ Provider cũng phải được `await` và xử lý kết quả bằng `Navigator` ở tầng UI (Kèm `if(!mounted) return;`).
+
 ### ➕ Các thành phần thêm mới & Hợp nhất (Added / Unified)
 - **Hệ thống màu Ngữ nghĩa (Semantic Colors):** 
     - Mở rộng `AppColors` với bộ màu: `onPrimary`, `appBarBackground`, `cardBackground`, `formFill`, `formBorder`, `formLabel`.
