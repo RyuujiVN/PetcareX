@@ -524,4 +524,75 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get serviceEmergency => 'Cấp cứu';
+
+  @override
+  String get bookingErrorCompleteAllSteps =>
+      'Vui lòng hoàn thành tất cả các bước!';
+
+  @override
+  String get bookingServiceQualityDescription =>
+      'Dịch vụ chăm sóc chất lượng cao';
+
+  @override
+  String get bookingPetSymptomsLabel => 'Triệu chứng của thú cưng ';
+
+  @override
+  String get bookingSymptomsHint =>
+      'Ghi rõ triệu chứng hoặc tình trạng bệnh...';
+
+  @override
+  String get bookingDoctorNotFoundBySpecialty =>
+      'Không tìm thấy bác sĩ cho chuyên môn này';
+
+  @override
+  String get bookingInfo => 'Thông tin';
+
+  @override
+  String get bookingSelectExamDate => 'Chọn ngày khám';
+
+  @override
+  String get bookingMorning => 'Buổi sáng';
+
+  @override
+  String get bookingAfternoon => 'Buổi chiều';
+
+  @override
+  String get bookingTimeMinAdvanceNotice =>
+      'Chỉ được đặt lịch cách thời điểm hiện tại ít nhất 3 tiếng';
+
+  @override
+  String get bookingSummaryInstruction =>
+      'Vui lòng kiểm tra lại thông tin trước khi xác nhận đặt lịch';
+
+  @override
+  String get bookingSummaryTitle => 'Tóm tắt lịch hẹn';
+
+  @override
+  String get bookingSuccessTitle => 'Đặt lịch thành công';
+
+  @override
+  String get bookingSuccessSubtitle =>
+      'Lịch hẹn của bạn đã được đặt! Vui lòng kiểm tra lại thông tin bên dưới';
+
+  @override
+  String get bookingCheckinQrTitle => 'Mã QR check-in';
+
+  @override
+  String get bookingQrInstruction =>
+      'Vui lòng xuất trình mã QR này tại quầy lễ tân khi bạn đến\nđể làm thủ tục check-in nhanh chóng.';
+
+  @override
+  String get specialtyGeneralExamination => 'Khám tổng quát';
+
+  @override
+  String get specialtyInternalMedicine => 'Nội khoa';
+
+  @override
+  String get specialtySurgery => 'Phẫu thuật';
+
+  @override
+  String get specialtyUltrasound => 'Siêu âm';
+
+  @override
+  String get specialtyVaccinationAndPrevention => 'Tiêm phòng & phòng ngừa';
 }

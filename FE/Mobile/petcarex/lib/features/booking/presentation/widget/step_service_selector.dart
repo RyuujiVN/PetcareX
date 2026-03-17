@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../core/enums/service_enum.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class StepServiceSelector extends StatelessWidget {
   final String? selectedServiceName;
@@ -21,6 +22,8 @@ class StepServiceSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -31,7 +34,7 @@ class StepServiceSelector extends StatelessWidget {
           itemBuilder: (context, i) => _listTile(
             services[i].value,
             services[i].getTranslatedName(context),
-            'Dịch vụ chăm sóc chất lượng cao',
+            l10n.bookingServiceQualityDescription,
             selectedServiceName,
             onSelected,
             Icons.medical_information_outlined,
@@ -39,11 +42,17 @@ class StepServiceSelector extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         RichText(
-          text: const TextSpan(
-            text: 'Triệu chứng của thú cưng ',
-            style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+          text: TextSpan(
+            text: l10n.bookingPetSymptomsLabel,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: AppColors.textDark,
+            ),
             children: [
-              TextSpan(text: '*', style: TextStyle(color: Colors.red)),
+              const TextSpan(
+                text: '*',
+                style: TextStyle(color: AppColors.error),
+              ),
             ],
           ),
         ),
@@ -51,19 +60,21 @@ class StepServiceSelector extends StatelessWidget {
         TextField(
           maxLines: 4,
           onChanged: onSymptomsChanged,
-          controller: TextEditingController(text: symptoms)..selection = TextSelection.collapsed(offset: symptoms?.length ?? 0),
+          controller: TextEditingController(
+            text: symptoms,
+          )..selection = TextSelection.collapsed(offset: symptoms?.length ?? 0),
           decoration: InputDecoration(
-            hintText: 'Ghi rõ triệu chứng hoặc tình trạng bệnh...',
-            hintStyle: TextStyle(color: Colors.grey.shade400),
+            hintText: l10n.bookingSymptomsHint,
+            hintStyle: const TextStyle(color: AppColors.textGrey),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderSide: const BorderSide(color: AppColors.divider),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey.shade200),
+              borderSide: const BorderSide(color: AppColors.divider),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
@@ -118,7 +129,10 @@ class StepServiceSelector extends StatelessWidget {
                   ),
                   Text(
                     sub,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textGrey,
+                    ),
                   ),
                 ],
               ),

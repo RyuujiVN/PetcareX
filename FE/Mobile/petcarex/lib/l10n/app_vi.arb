@@ -201,6 +201,27 @@
   "serviceDeworming": "Tẩy giun",
   "serviceUltrasoundAndTest": "Siêu âm xét nghiệm",
   "serviceSurgery": "Phẫu thuật",
-  "serviceEmergency": "Cấp cứu"
+  "serviceEmergency": "Cấp cứu",
+  "bookingErrorCompleteAllSteps": "Vui lòng hoàn thành tất cả các bước!",
+  "bookingServiceQualityDescription": "Dịch vụ chăm sóc chất lượng cao",
+  "bookingPetSymptomsLabel": "Triệu chứng của thú cưng ",
+  "bookingSymptomsHint": "Ghi rõ triệu chứng hoặc tình trạng bệnh...",
+  "bookingDoctorNotFoundBySpecialty": "Không tìm thấy bác sĩ cho chuyên môn này",
+  "bookingInfo": "Thông tin",
+  "bookingSelectExamDate": "Chọn ngày khám",
+  "bookingMorning": "Buổi sáng",
+  "bookingAfternoon": "Buổi chiều",
+  "bookingTimeMinAdvanceNotice": "Chỉ được đặt lịch cách thời điểm hiện tại ít nhất 3 tiếng",
+  "bookingSummaryInstruction": "Vui lòng kiểm tra lại thông tin trước khi xác nhận đặt lịch",
+  "bookingSummaryTitle": "Tóm tắt lịch hẹn",
+  "bookingSuccessTitle": "Đặt lịch thành công",
+  "bookingSuccessSubtitle": "Lịch hẹn của bạn đã được đặt! Vui lòng kiểm tra lại thông tin bên dưới",
+  "bookingCheckinQrTitle": "Mã QR check-in",
+  "bookingQrInstruction": "Vui lòng xuất trình mã QR này tại quầy lễ tân khi bạn đến\nđể làm thủ tục check-in nhanh chóng.",
+  "specialtyGeneralExamination": "Khám tổng quát",
+  "specialtyInternalMedicine": "Nội khoa",
+  "specialtySurgery": "Phẫu thuật",
+  "specialtyUltrasound": "Siêu âm",
+  "specialtyVaccinationAndPrevention": "Tiêm phòng & phòng ngừa"
 }
 

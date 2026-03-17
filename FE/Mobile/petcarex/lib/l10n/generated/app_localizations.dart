@@ -1099,6 +1099,132 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Cấp cứu'**
   String get serviceEmergency;
+
+  /// No description provided for @bookingErrorCompleteAllSteps.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng hoàn thành tất cả các bước!'**
+  String get bookingErrorCompleteAllSteps;
+
+  /// No description provided for @bookingServiceQualityDescription.
+  ///
+  /// In vi, this message translates to:
+  /// **'Dịch vụ chăm sóc chất lượng cao'**
+  String get bookingServiceQualityDescription;
+
+  /// No description provided for @bookingPetSymptomsLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Triệu chứng của thú cưng '**
+  String get bookingPetSymptomsLabel;
+
+  /// No description provided for @bookingSymptomsHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ghi rõ triệu chứng hoặc tình trạng bệnh...'**
+  String get bookingSymptomsHint;
+
+  /// No description provided for @bookingDoctorNotFoundBySpecialty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy bác sĩ cho chuyên môn này'**
+  String get bookingDoctorNotFoundBySpecialty;
+
+  /// No description provided for @bookingInfo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin'**
+  String get bookingInfo;
+
+  /// No description provided for @bookingSelectExamDate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ngày khám'**
+  String get bookingSelectExamDate;
+
+  /// No description provided for @bookingMorning.
+  ///
+  /// In vi, this message translates to:
+  /// **'Buổi sáng'**
+  String get bookingMorning;
+
+  /// No description provided for @bookingAfternoon.
+  ///
+  /// In vi, this message translates to:
+  /// **'Buổi chiều'**
+  String get bookingAfternoon;
+
+  /// No description provided for @bookingTimeMinAdvanceNotice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉ được đặt lịch cách thời điểm hiện tại ít nhất 3 tiếng'**
+  String get bookingTimeMinAdvanceNotice;
+
+  /// No description provided for @bookingSummaryInstruction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng kiểm tra lại thông tin trước khi xác nhận đặt lịch'**
+  String get bookingSummaryInstruction;
+
+  /// No description provided for @bookingSummaryTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tóm tắt lịch hẹn'**
+  String get bookingSummaryTitle;
+
+  /// No description provided for @bookingSuccessTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lịch thành công'**
+  String get bookingSuccessTitle;
+
+  /// No description provided for @bookingSuccessSubtitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn của bạn đã được đặt! Vui lòng kiểm tra lại thông tin bên dưới'**
+  String get bookingSuccessSubtitle;
+
+  /// No description provided for @bookingCheckinQrTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã QR check-in'**
+  String get bookingCheckinQrTitle;
+
+  /// No description provided for @bookingQrInstruction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng xuất trình mã QR này tại quầy lễ tân khi bạn đến\nđể làm thủ tục check-in nhanh chóng.'**
+  String get bookingQrInstruction;
+
+  /// No description provided for @specialtyGeneralExamination.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khám tổng quát'**
+  String get specialtyGeneralExamination;
+
+  /// No description provided for @specialtyInternalMedicine.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nội khoa'**
+  String get specialtyInternalMedicine;
+
+  /// No description provided for @specialtySurgery.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phẫu thuật'**
+  String get specialtySurgery;
+
+  /// No description provided for @specialtyUltrasound.
+  ///
+  /// In vi, this message translates to:
+  /// **'Siêu âm'**
+  String get specialtyUltrasound;
+
+  /// No description provided for @specialtyVaccinationAndPrevention.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiêm phòng & phòng ngừa'**
+  String get specialtyVaccinationAndPrevention;
 }
 
 class _AppLocalizationsDelegate

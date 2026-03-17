@@ -544,4 +544,72 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get serviceEmergency => 'Emergency';
+
+  @override
+  String get bookingErrorCompleteAllSteps => 'Please complete all steps!';
+
+  @override
+  String get bookingServiceQualityDescription => 'High-quality care service';
+
+  @override
+  String get bookingPetSymptomsLabel => 'Pet symptoms ';
+
+  @override
+  String get bookingSymptomsHint => 'Describe symptoms or current condition...';
+
+  @override
+  String get bookingDoctorNotFoundBySpecialty =>
+      'No doctors found for this specialty';
+
+  @override
+  String get bookingInfo => 'Info';
+
+  @override
+  String get bookingSelectExamDate => 'Select examination date';
+
+  @override
+  String get bookingMorning => 'Morning';
+
+  @override
+  String get bookingAfternoon => 'Afternoon';
+
+  @override
+  String get bookingTimeMinAdvanceNotice =>
+      'Appointments must be booked at least 3 hours in advance';
+
+  @override
+  String get bookingSummaryInstruction =>
+      'Please review your information before confirming appointment';
+
+  @override
+  String get bookingSummaryTitle => 'Appointment Summary';
+
+  @override
+  String get bookingSuccessTitle => 'Booking Successful';
+
+  @override
+  String get bookingSuccessSubtitle =>
+      'Your appointment has been booked. Please review the details below';
+
+  @override
+  String get bookingCheckinQrTitle => 'Check-in QR Code';
+
+  @override
+  String get bookingQrInstruction =>
+      'Please present this QR code at the reception desk when you arrive\nfor faster check-in.';
+
+  @override
+  String get specialtyGeneralExamination => 'General Examination';
+
+  @override
+  String get specialtyInternalMedicine => 'Internal Medicine';
+
+  @override
+  String get specialtySurgery => 'Surgery';
+
+  @override
+  String get specialtyUltrasound => 'Ultrasound';
+
+  @override
+  String get specialtyVaccinationAndPrevention => 'Vaccination & Prevention';
 }
