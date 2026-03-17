@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Invoice } from './entities/invoice.entity';
 import { Repository } from 'typeorm';
@@ -74,5 +78,16 @@ export class InvoiceService {
     Object.assign(invoice, updateDTO);
 
     await this.invoiceRepository.save(invoice);
+  }
+
+  async deleteInvoice(id: string) {
+    const invoice = await this.invoiceRepository.findOne({ where: { id: id } });
+
+    if (!invoice) throw new NotFoundException('Không tìm thấy hoá đơn');
+
+    if (invoice.status === InvoiceStatusEnum.PAID)
+      throw new ForbiddenException('Hoá đơn đã thanh toán không có quyền xoá');
+
+    await this.invoiceRepository.delete({ id: invoice.id });
   }
 }
