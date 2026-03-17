@@ -8,10 +8,12 @@ import {
   JoinColumn,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { MedicalRecordMedicine } from './medical-record-medicine.entity';
 import { MedicalRecordOrder } from './medical-record-order.entity';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
 
 @Entity('medical_record')
 export class MedicalRecord {
@@ -101,4 +103,9 @@ export class MedicalRecord {
     (medicalRecordOrder) => medicalRecordOrder.medicalRecord,
   )
   medicalOrders: MedicalRecordMedicine[];
+
+  @OneToOne(() => Invoice, (invoice) => invoice.medicalRecord, {
+    onDelete: 'CASCADE',
+  })
+  invoice: Invoice;
 }
