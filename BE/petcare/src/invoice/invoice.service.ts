@@ -20,46 +20,76 @@ export class InvoiceService {
     private readonly medicalRecordRepo: Repository<MedicalRecord>,
   ) {}
 
+  async findOneByMedicalRecordId(medicalRecordId: string) {
+    const invoice = await this.invoiceRepository.findOne({
+      where: { medicalRecordId },
+      relations: [
+        'medicalRecord',
+        'medicalRecord.medicalOrders',
+        'medicalRecord.medicalOrders.medicalOrder',
+        'medicalRecord.medicines',
+        'medicalRecord.medicines.medicine',
+      ],
+    });
+
+    if (!invoice)
+      throw new NotFoundException('Không tìm thấy hoá đơn theo id phiếu khám');
+
+    const medicalOrders = invoice?.medicalRecord?.medicalOrders?.map(
+      (item) => ({
+        id: item.id,
+        note: item.note,
+        priceAtTime: item.priceAtTime,
+        name: item.medicalOrder.name,
+      }),
+    );
+
+    const medicines =
+      invoice.medicalRecord?.medicines?.map((item) => ({
+        id: item.id,
+        note: item.note,
+        priceAtTime: item.priceAtTime,
+        quantity: item.quantity,
+        name: item.medicine?.name,
+        unit: item.medicine?.unit,
+      })) ?? [];
+
+    const response = {
+      id: invoice?.id,
+      totalAmount: invoice?.totalAmount,
+      note: invoice?.note,
+      status: invoice?.status,
+      createdAt: invoice?.createdAt,
+      medicalOrders: medicalOrders,
+      medicines: medicines,
+    };
+
+    return response;
+  }
+
   async createInvoice(createDTO: CreateInvoiceDTO) {
-    const data = await this.medicalRecordRepo
-      .createQueryBuilder('medical_record')
-      .leftJoin('medical_record.medicalOrders', 'medical_record_order')
-      .leftJoin('medical_record_order.medicalOrder', 'medical_order')
-      .leftJoin('medical_record.medicines', 'medical_record_medicine')
-      .leftJoin('medical_record_medicine.medicine', 'medicine')
-      .where('medical_record.id = :id', { id: createDTO.medicalRecordId })
-      .select([
-        'medical_record.id',
+    const medicalRecord = await this.medicalRecordRepo.findOne({
+      where: { id: createDTO.medicalRecordId },
+      relations: [
+        'medicalOrders',
+        'medicalOrders.medicalOrder',
+        'medicines',
+        'medicines.medicine',
+      ],
+    });
 
-        'medical_record_order.id',
-        'medical_record_order.note',
-        'medical_record_order.priceAtTime',
+    if (!medicalRecord)
+      throw new NotFoundException('Không tìm thấy phiếu khám');
 
-        'medical_order.id',
-        'medical_order.name',
+    const totalCostMedicalOrders = medicalRecord.medicalOrders?.reduce(
+      (total, value) => total + value.priceAtTime,
+      0,
+    );
 
-        'medical_record_medicine.id',
-        'medical_record_medicine.note',
-        'medical_record_medicine.quantity',
-        'medical_record_medicine.priceAtTime',
-
-        'medicine.id',
-        'medicine.name',
-        'medicine.unit',
-      ])
-      .getOne();
-
-    const totalCostMedicalOrders =
-      data?.medicalOrders?.reduce(
-        (total, value) => total + value.priceAtTime,
-        0,
-      ) ?? 0;
-
-    const totalCostMedicines =
-      data?.medicines?.reduce(
-        (total, value) => total + value.priceAtTime * value.quantity,
-        0,
-      ) ?? 0;
+    const totalCostMedicines = medicalRecord?.medicines?.reduce(
+      (total, value) => total + value.priceAtTime * value.quantity,
+      0,
+    );
 
     const invoice = new Invoice();
     invoice.petOwnerId = createDTO.petOwnerId;
