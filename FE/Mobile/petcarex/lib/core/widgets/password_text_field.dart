@@ -7,6 +7,9 @@ class PasswordTextField extends StatefulWidget {
   final String label;
   final String? errorText;
   final String hintText;
+  final FocusNode? focusNode;
+  final TextInputAction? textInputAction;
+  final ValueChanged<String>? onSubmitted;
 
   const PasswordTextField({
     super.key,
@@ -14,6 +17,9 @@ class PasswordTextField extends StatefulWidget {
     required this.label,
     this.errorText,
     this.hintText = '••••••••',
+    this.focusNode,
+    this.textInputAction,
+    this.onSubmitted,
   });
 
   @override
@@ -30,29 +36,42 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
       children: [
         Text(
           widget.label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark),
         ),
         const SizedBox(height: 8),
         TextField(
           controller: widget.controller,
           obscureText: _isObscure,
+          focusNode: widget.focusNode,
+          textInputAction: widget.textInputAction,
+          onSubmitted: widget.onSubmitted,
           obscuringCharacter: '●',
-          style: const TextStyle(letterSpacing: 2.0, fontSize: 16),
+          style: const TextStyle(letterSpacing: 2.0, fontSize: 16, color: AppColors.textDark),
           decoration: InputDecoration(
-            // Dấu chấm gợi ý (Hint)
             hintText: widget.hintText,
             hintStyle: TextStyle(
-              color: AppColors.grey.withOpacity(0.4),
+              color: AppColors.iconGrey.withValues(alpha: 0.4),
               fontSize: 14,
               letterSpacing: 2.0,
             ),
-            prefixIcon: const Icon(Icons.lock_outline),
+            prefixIcon: const Icon(Icons.lock_outline, color: AppColors.iconGrey),
             suffixIcon: IconButton(
-              icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility),
+              icon: Icon(_isObscure ? Icons.visibility_off : Icons.visibility, color: AppColors.iconGrey),
               onPressed: () => setState(() => _isObscure = !_isObscure),
             ),
+            filled: true,
+            fillColor: AppColors.formFill,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.formBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.formBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
             errorText: widget.errorText,
           ),

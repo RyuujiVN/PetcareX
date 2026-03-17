@@ -20,19 +20,13 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
 
   bool _rememberMe = false;
-
   String? _emailError;
   String? _passwordError;
-
-  void _quickAdminLogin() {
-    setState(() {
-      _emailController.text = "admin";
-      _passwordController.text = "12345";
-    });
-    _login();
-  }
 
   @override
   void initState() {
@@ -69,7 +63,17 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
+  }
+
+  void _quickAdminLogin() {
+    setState(() {
+      _emailController.text = "admin";
+      _passwordController.text = "12345";
+    });
+    _login();
   }
 
   Future<void> _login() async {
@@ -84,10 +88,12 @@ class _LoginPageState extends State<LoginPage> {
 
     if (email.isEmpty) {
       setState(() => _emailError = l10n.enterEmail);
+      _emailFocus.requestFocus();
       return;
     }
     if (password.isEmpty) {
       setState(() => _passwordError = l10n.enterPassword);
+      _passwordFocus.requestFocus();
       return;
     }
 
@@ -100,6 +106,7 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(
           content: Text(l10n.loginSuccess),
           backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
         ),
       );
       Navigator.pushReplacement(
@@ -112,34 +119,7 @@ class _LoginPageState extends State<LoginPage> {
         SnackBar(
           content: Text(authProvider.errorMessage ?? l10n.loginFailed),
           backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _loginWithGoogle() async {
-    final l10n = AppLocalizations.of(context)!;
-    final authProvider = context.read<AuthProvider>();
-    final success = await authProvider.loginWithGoogle();
-
-    if (success) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.loginGoogleSuccess),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
-      );
-    } else {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
-          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -153,14 +133,16 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              _buildHeader(l10n),
-              const SizedBox(height: 20),
-              _buildLoginCard(isLoading, l10n),
-            ],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                _buildHeader(l10n),
+                const SizedBox(height: 32),
+                _buildLoginCard(isLoading, l10n),
+              ],
+            ),
           ),
         ),
       ),
@@ -168,22 +150,20 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Widget _buildHeader(AppLocalizations l10n) {
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.textDark, width: 1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Image.asset('assets/images/icon.png', width: 30, height: 30),
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: 0.05), blurRadius: 10)],
           ),
-          const SizedBox(width: 12),
-          Text(l10n.appName, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-        ],
-      ),
+          child: Image.asset('assets/images/icon.png', width: 50, height: 50),
+        ),
+        const SizedBox(height: 16),
+        Text(l10n.appName, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+      ],
     );
   }
 
@@ -200,43 +180,89 @@ class _LoginPageState extends State<LoginPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(
-            onLongPress: _quickAdminLogin,
-            child: const Center(child: Icon(Icons.account_circle_outlined, size: 60, color: AppColors.primary)),
-          ),
-          const SizedBox(height: 12),
           Center(child: Text(l10n.login, style: AppTextStyles.title)),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
           const SizedBox(height: 8),
           TextField(
             controller: _emailController,
+            focusNode: _emailFocus,
+            autofocus: true,
+            textInputAction: TextInputAction.next,
+            onSubmitted: (_) => _passwordFocus.requestFocus(),
             style: const TextStyle(color: AppColors.textDark),
             decoration: InputDecoration(
               hintText: l10n.emailHint,
               prefixIcon: const Icon(Icons.email_outlined, color: AppColors.iconGrey),
               filled: true,
               fillColor: AppColors.formFill,
+              errorText: _emailError,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
               enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
-              errorText: _emailError,
             ),
           ),
           const SizedBox(height: 16),
           PasswordTextField(
             controller: _passwordController,
+            focusNode: _passwordFocus,
             label: l10n.password,
             errorText: _passwordError,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _login(),
           ),
           const SizedBox(height: 8),
           _buildRememberAndForgot(l10n),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           _buildLoginButton(isLoading, l10n),
           const SizedBox(height: 16),
           _buildGoogleLoginButton(isLoading, l10n),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           _buildRegisterText(l10n),
         ],
+      ),
+    );
+  }
+
+  Widget _buildRememberAndForgot(AppLocalizations l10n) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(children: [
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: _rememberMe, 
+              activeColor: AppColors.primary, 
+              onChanged: (val) => setState(() => _rememberMe = val ?? false)
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(l10n.rememberMe, style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
+        ]),
+        TextButton(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
+          child: Text(l10n.forgotPassword, style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoginButton(bool isLoading, AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton(
+        onPressed: isLoading ? null : _login,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary, 
+          foregroundColor: AppColors.onPrimary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 0,
+        ),
+        child: isLoading 
+          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2)) 
+          : Text(l10n.login, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       ),
     );
   }
@@ -244,9 +270,9 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildGoogleLoginButton(bool isLoading, AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 54,
       child: OutlinedButton(
-        onPressed: isLoading ? null : _loginWithGoogle,
+        onPressed: isLoading ? null : () => context.read<AuthProvider>().loginWithGoogle(),
         style: OutlinedButton.styleFrom(
           side: const BorderSide(color: AppColors.formBorder),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -263,41 +289,6 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  Widget _buildRememberAndForgot(AppLocalizations l10n) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(children: [
-          Checkbox(value: _rememberMe, activeColor: AppColors.primary, onChanged: (val) => setState(() => _rememberMe = val ?? false)),
-          Text(l10n.rememberMe, style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
-        ]),
-        TextButton(
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
-          child: Text(l10n.forgotPassword, style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w600)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLoginButton(bool isLoading, AppLocalizations l10n) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : _login,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.onPrimary,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: isLoading 
-          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2)) 
-          : Text(l10n.login, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-      ),
-    );
-  }
-
   Widget _buildRegisterText(AppLocalizations l10n) {
     return Center(
       child: GestureDetector(
@@ -306,7 +297,12 @@ class _LoginPageState extends State<LoginPage> {
           text: TextSpan(
             text: l10n.dontHaveAccount,
             style: const TextStyle(color: AppColors.textGrey),
-            children: [TextSpan(text: l10n.registerNow, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))],
+            children: [
+              TextSpan(
+                text: l10n.registerNow, 
+                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)
+              )
+            ],
           ),
         ),
       ),
