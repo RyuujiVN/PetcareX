@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaPaw } from "react-icons/fa";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/AuthContext";
-import "./header.module.css";
+import "./header.css";
 
 function Header() {
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
