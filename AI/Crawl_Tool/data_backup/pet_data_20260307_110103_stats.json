@@ -1,0 +1,31 @@
+{
+  "total_items": 50,
+  "total_sources": 1,
+  "by_source_type": {
+    "reddit": 50
+  },
+  "by_pet_type": {
+    "dog": 50,
+    "cat": 11,
+    "general": 1,
+    "bird": 1,
+    "rabbit": 1
+  },
+  "by_category": {
+    "other": 14,
+    "health": 13,
+    "nutrition": 19,
+    "care": 19,
+    "training": 10,
+    "emergency": 12,
+    "breed_info": 9
+  },
+  "by_language": {
+    "en": 50
+  },
+  "quality_distribution": {
+    "high": 8,
+    "medium": 37,
+    "low": 5
+  }
+}
