@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/camera_service.dart';
+import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import '../data/models/pet_models.dart';
 import 'provider/pet_provider.dart';
 
@@ -305,7 +305,7 @@ class _AddPetPageState extends State<AddPetPage> {
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 isExpanded: true,
-                value: _selectedSpeciesId,
+                initialValue: _selectedSpeciesId,
                 decoration: _inputDecoration(l10n.species),
                 hint: Text(l10n.species, style: const TextStyle(fontSize: 14)),
                 items: provider.speciesList.map<DropdownMenuItem<String>>((species) {
@@ -338,7 +338,7 @@ class _AddPetPageState extends State<AddPetPage> {
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 isExpanded: true,
-                value: _selectedBreedId,
+                initialValue: _selectedBreedId,
                 decoration: _inputDecoration(l10n.breed),
                 hint: Text(l10n.breed, style: const TextStyle(fontSize: 14)),
                 items: provider.breedList.map<DropdownMenuItem<String>>((breed) {
