@@ -1,4 +1,12 @@
-import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateInvoiceDTO } from './dtos/create-invoice.dto';
@@ -7,6 +15,12 @@ import { UpdateInvoiceDTO } from './dtos/update-invoice.dto';
 @Controller('invoice')
 export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
+
+  @Get(':medicalRecordId')
+  @ApiOperation({ summary: 'Lấy hoá đơn theo phiếu khám' })
+  getOneByMedicalRecordId(@Param('medicalRecordId') medicalRecordId: string) {
+    return this.invoiceService.findOneByMedicalRecordId(medicalRecordId);
+  }
 
   @Post('')
   @ApiOperation({ summary: 'Tạo mới hoá đơn' })
