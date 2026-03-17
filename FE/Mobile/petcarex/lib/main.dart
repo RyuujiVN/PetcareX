@@ -10,19 +10,16 @@ import 'features/appointment/presentation/provider/appointment_provider.dart';
 import 'features/auth/presentation/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/booking/presentation/provider/booking_provider.dart';
+import 'features/community/presentation/provider/community_provider.dart';
 import 'features/pet/presentation/provider/pet_provider.dart';
 import 'firebase_options.dart';
 import 'l10n/generated/app_localizations.dart';
-
-// ...
-
 
 void main () async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-);
-  WidgetsFlutterBinding.ensureInitialized();
+  );
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -34,11 +31,12 @@ void main () async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => LanguageProvider()), // Sử dụng class từ file riêng
+        ChangeNotifierProvider(create: (_) => LanguageProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => PetProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => AppointmentProvider()),
+        ChangeNotifierProvider(create: (_) => CommunityProvider()),
       ],
       child: const MyApp(),
     ),
@@ -50,7 +48,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // watch sẽ rebuild MyApp khi locale thay đổi
     final languageProvider = context.watch<LanguageProvider>();
 
     return MaterialApp(
