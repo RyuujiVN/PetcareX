@@ -32,8 +32,8 @@ export class AuthController {
   @ApiBody({
     type: LoginGoogleDTO,
   })
-  async googleLogin(@Body('googleIdToken') idToken: string) {
-    return this.authService.googleLogin(idToken);
+  async googleLogin(@Body() loginGoogleDTO: LoginGoogleDTO) {
+    return this.authService.googleLogin(loginGoogleDTO);
   }
 
   @Post('register')
