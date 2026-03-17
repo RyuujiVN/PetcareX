@@ -1,7 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../common/veterinary_specialty_enum.dart';
+import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../data/models/booking_models.dart';
 
 class StepDoctorSelector extends StatefulWidget {

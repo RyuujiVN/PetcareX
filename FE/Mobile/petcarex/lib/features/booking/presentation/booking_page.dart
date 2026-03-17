@@ -1,10 +1,10 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/enums/service_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
-import '../../../common/service_enum.dart';
-import '../../../l10n/generated/app_localizations.dart'; 
+import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
@@ -26,7 +26,7 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   int _currentStep = 0;
 
-  final List<String> _services = ServiceEnum.values.map((e) => e.value).toList();
+  final List<ServiceEnum> _services = ServiceEnum.values;
   
   late final List<DateTime> _availableDates;
 
@@ -188,12 +188,14 @@ class _BookingPageState extends State<BookingPage> {
 
     if (_currentStep == 6) {
       final res = bookingProvider.appointmentResult;
+      final rawService = res?['service'] ?? '';
+      final translatedService = ServiceEnum.fromValue(rawService)?.getTranslatedName(context) ?? rawService;
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSuccess(
           petName: res?['pet']?['name'] ?? '',
           clinicName: res?['clinic']?['name'] ?? '',
-          serviceName: res?['service'] ?? '',
+          serviceName: translatedService,
           doctorName: res?['veterinarian']?['user']?['fullName'] ?? '',
           time: (res?['appointmentTime'] ?? '').toString().substring(0, 5),
           date:
@@ -207,12 +209,15 @@ class _BookingPageState extends State<BookingPage> {
           ? petProvider.myPets.firstWhere((p) => p.id == bookingProvider.selectedPetId)
           : null;
 
+      final rawService = bookingProvider.selectedServiceName ?? '';
+      final translatedService = ServiceEnum.fromValue(rawService)?.getTranslatedName(context) ?? rawService;
+
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSummary(
           petName: pet?.name ?? l10n.stepPet,
           clinicName: bookingProvider.selectedClinic?.name ?? '',
-          serviceName: bookingProvider.selectedServiceName ?? '',
+          serviceName: translatedService,
           doctorName: bookingProvider.selectedDoctor?.user.fullName ?? '',
           time: bookingProvider.selectedTime ?? '',
           date: bookingProvider.selectedDate ?? DateTime.now(),

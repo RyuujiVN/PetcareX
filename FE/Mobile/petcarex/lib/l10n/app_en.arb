@@ -166,5 +166,12 @@
   "errorUnknown": "An unknown error occurred",
   "errorNetwork": "Network error: Please check your Internet connection.",
   "errorFirebase": "System configuration error (Firebase).",
-  "errorGoogleAuth": "Failed to retrieve authentication token from Google."
+  "errorGoogleAuth": "Failed to retrieve authentication token from Google.",
+  "servicePeriodicHealthCheck": "Periodic Health Check",
+  "serviceMedicalExamination": "Medical Examination",
+  "serviceVaccination": "Vaccination",
+  "serviceDeworming": "Deworming",
+  "serviceUltrasoundAndTest": "Ultrasound & Testing",
+  "serviceSurgery": "Surgery",
+  "serviceEmergency": "Emergency"
 }

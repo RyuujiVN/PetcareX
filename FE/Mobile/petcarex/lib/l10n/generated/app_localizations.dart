@@ -1057,6 +1057,48 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Không thể lấy thông tin xác thực từ Google.'**
   String get errorGoogleAuth;
+
+  /// No description provided for @servicePeriodicHealthCheck.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khám sức khoẻ định kỳ'**
+  String get servicePeriodicHealthCheck;
+
+  /// No description provided for @serviceMedicalExamination.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khám bệnh'**
+  String get serviceMedicalExamination;
+
+  /// No description provided for @serviceVaccination.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiêm chủng'**
+  String get serviceVaccination;
+
+  /// No description provided for @serviceDeworming.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tẩy giun'**
+  String get serviceDeworming;
+
+  /// No description provided for @serviceUltrasoundAndTest.
+  ///
+  /// In vi, this message translates to:
+  /// **'Siêu âm xét nghiệm'**
+  String get serviceUltrasoundAndTest;
+
+  /// No description provided for @serviceSurgery.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phẫu thuật'**
+  String get serviceSurgery;
+
+  /// No description provided for @serviceEmergency.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấp cứu'**
+  String get serviceEmergency;
 }
 
 class _AppLocalizationsDelegate

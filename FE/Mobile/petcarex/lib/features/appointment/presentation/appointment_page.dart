@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/enums/service_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../data/appointment_model.dart';
 import 'provider/appointment_provider.dart';
 
@@ -210,7 +211,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        item.service,
+                        ServiceEnum.fromValue(item.service)?.getTranslatedName(context) ?? item.service,
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textGrey,
@@ -352,7 +353,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                 style: const TextStyle(fontSize: 14, color: AppColors.textGrey, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.medical_information_outlined, '${l10n.service}:', item.service),
+                _buildDetailRow(Icons.medical_information_outlined, '${l10n.service}:', ServiceEnum.fromValue(item.service)?.getTranslatedName(context) ?? item.service),
               const SizedBox(height: 8),
               _buildDetailRow(
                 Icons.calendar_month_outlined, 

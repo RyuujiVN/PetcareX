@@ -503,4 +503,25 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get errorGoogleAuth => 'Không thể lấy thông tin xác thực từ Google.';
+
+  @override
+  String get servicePeriodicHealthCheck => 'Khám sức khoẻ định kỳ';
+
+  @override
+  String get serviceMedicalExamination => 'Khám bệnh';
+
+  @override
+  String get serviceVaccination => 'Tiêm chủng';
+
+  @override
+  String get serviceDeworming => 'Tẩy giun';
+
+  @override
+  String get serviceUltrasoundAndTest => 'Siêu âm xét nghiệm';
+
+  @override
+  String get serviceSurgery => 'Phẫu thuật';
+
+  @override
+  String get serviceEmergency => 'Cấp cứu';
 }

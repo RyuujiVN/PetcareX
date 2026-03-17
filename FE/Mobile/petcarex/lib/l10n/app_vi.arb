@@ -194,6 +194,13 @@
   "errorUnknown": "Đã có lỗi xảy ra",
   "errorNetwork": "Lỗi mạng: Vui lòng kiểm tra lại kết nối Internet.",
   "errorFirebase": "Lỗi cấu hình hệ thống (Firebase).",
-  "errorGoogleAuth": "Không thể lấy thông tin xác thực từ Google."
+  "errorGoogleAuth": "Không thể lấy thông tin xác thực từ Google.",
+  "servicePeriodicHealthCheck": "Khám sức khoẻ định kỳ",
+  "serviceMedicalExamination": "Khám bệnh",
+  "serviceVaccination": "Tiêm chủng",
+  "serviceDeworming": "Tẩy giun",
+  "serviceUltrasoundAndTest": "Siêu âm xét nghiệm",
+  "serviceSurgery": "Phẫu thuật",
+  "serviceEmergency": "Cấp cứu"
 }
 

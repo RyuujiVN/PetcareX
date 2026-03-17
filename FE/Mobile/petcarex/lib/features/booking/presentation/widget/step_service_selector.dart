@@ -1,11 +1,12 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../core/enums/service_enum.dart';
 
 class StepServiceSelector extends StatelessWidget {
   final String? selectedServiceName;
   final Function(String) onSelected;
-  final List<String> services;
+  final List<ServiceEnum> services;
   final Function(String) onSymptomsChanged;
   final String? symptoms;
 
@@ -28,8 +29,8 @@ class StepServiceSelector extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: services.length,
           itemBuilder: (context, i) => _listTile(
-            services[i],
-            services[i],
+            services[i].value,
+            services[i].getTranslatedName(context),
             'Dịch vụ chăm sóc chất lượng cao',
             selectedServiceName,
             onSelected,

@@ -523,4 +523,25 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorGoogleAuth =>
       'Failed to retrieve authentication token from Google.';
+
+  @override
+  String get servicePeriodicHealthCheck => 'Periodic Health Check';
+
+  @override
+  String get serviceMedicalExamination => 'Medical Examination';
+
+  @override
+  String get serviceVaccination => 'Vaccination';
+
+  @override
+  String get serviceDeworming => 'Deworming';
+
+  @override
+  String get serviceUltrasoundAndTest => 'Ultrasound & Testing';
+
+  @override
+  String get serviceSurgery => 'Surgery';
+
+  @override
+  String get serviceEmergency => 'Emergency';
 }
