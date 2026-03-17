@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
 import { ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateInvoiceDTO } from './dtos/create-invoice.dto';
@@ -30,6 +30,16 @@ export class InvoiceController {
 
     return {
       message: 'Cập nhật hoá đơn thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Xoá hoá đơn' })
+  async deleteInvoice(@Param('id') id: string) {
+    await this.invoiceService.deleteInvoice(id);
+
+    return {
+      message: 'Xoá hoá đơn thành công',
     };
   }
 }
