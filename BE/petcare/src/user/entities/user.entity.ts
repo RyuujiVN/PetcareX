@@ -15,6 +15,7 @@ import { Pet } from 'src/pet/entities/pet.entity';
 import { ForumComment } from 'src/forum/entities/forum_comment.entity';
 import { ForumPost } from 'src/forum/entities/forum_post.entity';
 import { Like } from 'src/forum/entities/like.entity';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
 
 @Entity('user')
 export class User {
@@ -72,4 +73,7 @@ export class User {
 
   @OneToMany(() => Like, (like) => like.user)
   likes: Like[];
+
+  @OneToMany(() => Invoice, (invoice) => invoice.petOwner)
+  invoices: Invoice[];
 }

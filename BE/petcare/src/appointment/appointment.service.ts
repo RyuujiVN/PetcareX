@@ -96,7 +96,7 @@ export class AppointmentService {
   // Tạo mới lịch hẹn
   async createAppointment(createDTO: CreateAppointmentDTO) {
     const appointment = this.appointmentRepository.create(createDTO);
-    appointment.status = AppointmentStatusEnum.HEN_THANH_CONG;
+    appointment.status = AppointmentStatusEnum.BOOKED;
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
 
