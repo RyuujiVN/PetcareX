@@ -279,6 +279,21 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cancelAppointment => 'Hủy';
 
   @override
+  String get confirmCancel => 'Xác nhận hủy lịch';
+
+  @override
+  String get cancelMessage => 'Bạn có chắc chắn muốn hủy lịch hẹn này không?';
+
+  @override
+  String get statusUpcoming => 'Hẹn thành công';
+
+  @override
+  String get statusCompleted => 'Đã khám xong';
+
+  @override
+  String get statusCancelled => 'Đã huỷ';
+
+  @override
   String get success => 'Thành công!';
 
   @override

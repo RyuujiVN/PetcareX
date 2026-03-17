@@ -4,6 +4,7 @@ class AppColors {
   // Màu chủ đạo & Nội dung trên nền chủ đạo
   static const primary = Color(0xFF13ECDA);
   static const onPrimary = Colors.white; 
+  static const primaryLight = Color(0xFFE0F7F4); // Nền xanh nhẹ
   
   // Màu nền hệ thống
   static const background = Color(0xFFF8F9FA);
@@ -35,7 +36,10 @@ class AppColors {
 
   // Màu trạng thái
   static const success = Colors.green;
+  static const successLight = Color(0xFFE8F5E9); // Nền lục nhẹ
   static const error = Color(0xFFEA5455);
+  static const errorLight = Color(0xFFFFEAEA); // Nền đỏ nhẹ
+  static const errorBorder = Color(0xFFFFC1C1);
   static const warning = Colors.orange;
   
   // Màu giới tính
@@ -46,6 +50,4 @@ class AppColors {
   static const infoAccent = Color(0xFF00CFE8);
   static const petAccent = Color(0xFFFAAF00);
   static const securityAccent = Color(0xFF7367F0);
-  static const errorLight = Color(0xFFFFEAEA);
-  static const errorBorder = Color(0xFFFFC1C1);
 }

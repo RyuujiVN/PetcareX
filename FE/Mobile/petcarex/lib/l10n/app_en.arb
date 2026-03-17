@@ -89,6 +89,8 @@
   "qrContent": "QR Code Content",
   "confirmAppointment": "Confirm",
   "cancelAppointment": "Cancel",
+  "confirmCancel": "Confirm Cancellation",
+  "cancelMessage": "Are you sure you want to cancel this appointment?",
   "success": "Success!",
   "failed": "Failed",
   "myPets": "My Pets",

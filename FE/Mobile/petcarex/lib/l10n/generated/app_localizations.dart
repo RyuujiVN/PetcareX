@@ -632,6 +632,36 @@ abstract class AppLocalizations {
   /// **'Hủy'**
   String get cancelAppointment;
 
+  /// No description provided for @confirmCancel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận hủy lịch'**
+  String get confirmCancel;
+
+  /// No description provided for @cancelMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có chắc chắn muốn hủy lịch hẹn này không?'**
+  String get cancelMessage;
+
+  /// No description provided for @statusUpcoming.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hẹn thành công'**
+  String get statusUpcoming;
+
+  /// No description provided for @statusCompleted.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã khám xong'**
+  String get statusCompleted;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã huỷ'**
+  String get statusCancelled;
+
   /// No description provided for @success.
   ///
   /// In vi, this message translates to:

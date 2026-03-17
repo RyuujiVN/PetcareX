@@ -36,9 +36,9 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.white,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         centerTitle: true,
         title: Text(
@@ -53,7 +53,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.grey,
+          unselectedLabelColor: AppColors.textGrey,
           indicatorWeight: 3,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold),
           tabs: [
@@ -73,11 +73,12 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(l10n.failed, textAlign: TextAlign.center),
+                  Text(provider.errorMessage ?? l10n.failed, textAlign: TextAlign.center),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => provider.fetchAppointments(),
-                    child: Text(l10n.explore),
+                    style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+                    child: Text(l10n.explore, style: const TextStyle(color: AppColors.onPrimary)),
                   ),
                 ],
               ),
@@ -110,11 +111,11 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey[300]),
+                    const Icon(Icons.calendar_today_outlined, size: 64, color: AppColors.iconGrey),
                     const SizedBox(height: 16),
                     Text(
                       isUpcoming ? l10n.upcoming : l10n.history,
-                      style: const TextStyle(color: AppColors.grey, fontSize: 16),
+                      style: const TextStyle(color: AppColors.textGrey, fontSize: 16),
                     ),
                   ],
                 ),
@@ -142,15 +143,15 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isUpcoming ? AppColors.primary.withOpacity(0.3) : AppColors.divider,
+          color: isUpcoming ? AppColors.primary.withValues(alpha: 0.3) : AppColors.divider,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(0.03),
+            color: AppColors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -177,15 +178,15 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                           errorBuilder: (context, error, stackTrace) => Container(
                             width: 70,
                             height: 70,
-                            color: Colors.grey[200],
-                            child: const Icon(Icons.pets, color: Colors.grey),
+                            color: AppColors.background,
+                            child: const Icon(Icons.pets, color: AppColors.iconGrey),
                           ),
                         )
                       : Container(
                           width: 70,
                           height: 70,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.pets, color: Colors.grey),
+                          color: AppColors.background,
+                          child: const Icon(Icons.pets, color: AppColors.iconGrey),
                         ),
                 ),
                 const SizedBox(width: 16),
@@ -201,6 +202,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                             style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: AppColors.textDark,
                             ),
                           ),
                           _buildStatusBadge(item.status),
@@ -209,9 +211,9 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                       const SizedBox(height: 4),
                       Text(
                         item.service,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
-                          color: Colors.grey.shade600,
+                          color: AppColors.textGrey,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -229,8 +231,8 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               ],
             ),
           ),
-          if (isUpcoming && (item.status == 'Hẹn thành công' || item.status == 'SUCCESS')) ...[
-            const Divider(height: 1, indent: 16, endIndent: 16),
+          if (isUpcoming && (item.status.toUpperCase() == 'HẸN THÀNH CÔNG' || item.status.toUpperCase() == 'SUCCESS')) ...[
+            const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.divider),
             InkWell(
               onTap: () => _confirmCancel(item.id, l10n),
               borderRadius: const BorderRadius.only(
@@ -253,12 +255,12 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               ),
             ),
           ] else if (!isUpcoming) ...[
-            const Divider(height: 1, indent: 16, endIndent: 16),
+            const Divider(height: 1, indent: 16, endIndent: 16, color: AppColors.divider),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 14),
               child: Text(
                 l10n.explore,
-                style: const TextStyle(color: AppColors.grey, fontSize: 13, fontWeight: FontWeight.bold),
+                style: const TextStyle(color: AppColors.textGrey, fontSize: 13, fontWeight: FontWeight.bold),
               ),
             )
           ],
@@ -275,7 +277,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
       builder: (context) {
         return Container(
           decoration: const BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.only(
@@ -293,7 +295,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.divider,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -307,6 +309,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
                     ),
                   ),
                   _buildStatusBadge(item.status),
@@ -316,7 +319,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               
               Text(
                 l10n.petInformation,
-                style: const TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 14, color: AppColors.textGrey, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Row(
@@ -326,27 +329,27 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                     backgroundImage: (item.pet.avatar != null && item.pet.avatar!.isNotEmpty)
                         ? NetworkImage(item.pet.avatar!)
                         : null,
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: AppColors.background,
                     child: (item.pet.avatar == null || item.pet.avatar!.isEmpty)
-                        ? const Icon(Icons.pets, color: Colors.grey)
+                        ? const Icon(Icons.pets, color: AppColors.iconGrey)
                         : null,
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.pet.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(item.pet.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)),
                       const SizedBox(height: 2),
-                      Text('${l10n.breed}: ${item.pet.breedName}', style: const TextStyle(color: AppColors.grey, fontSize: 12)),
+                      Text('${l10n.breed}: ${item.pet.breedName}', style: const TextStyle(color: AppColors.textGrey, fontSize: 12)),
                     ],
                   )
                 ],
               ),
-              const Divider(height: 30),
+              const Divider(height: 30, color: AppColors.divider),
 
               Text(
                 l10n.serviceInfo,
-                style: const TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 14, color: AppColors.textGrey, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               _buildDetailRow(Icons.medical_information_outlined, '${l10n.service}:', item.service),
@@ -360,11 +363,11 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                 const SizedBox(height: 8),
                 _buildDetailRow(Icons.notes_outlined, '${l10n.note}:', item.note),
               ],
-              const Divider(height: 30),
+              const Divider(height: 30, color: AppColors.divider),
 
               Text(
                 l10n.doctorInfo,
-                style: const TextStyle(fontSize: 14, color: AppColors.grey, fontWeight: FontWeight.bold),
+                style: const TextStyle(fontSize: 14, color: AppColors.textGrey, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               _buildDetailRow(Icons.person_outline, '${l10n.doctor}:', item.veterinarian.fullName),
@@ -396,13 +399,13 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           width: 90,
           child: Text(
             label,
-            style: const TextStyle(color: AppColors.grey, fontSize: 14),
+            style: const TextStyle(color: AppColors.textGrey, fontSize: 14),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14, color: AppColors.textDark),
           ),
         ),
       ],
@@ -413,12 +416,13 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.confirmLogout),
-        content: Text(l10n.logoutMessage),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.confirmCancel),
+        content: Text(l10n.cancelMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textGrey)),
           ),
           TextButton(
             onPressed: () async {
@@ -434,7 +438,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                 );
               }
             },
-            child: Text(l10n.confirmAppointment, style: const TextStyle(color: AppColors.error)),
+            child: Text(l10n.confirmAppointment, style: const TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -444,26 +448,32 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
   Widget _buildStatusBadge(String status) {
     Color bgColor;
     Color textColor;
+    String label;
+    final l10n = AppLocalizations.of(context)!;
 
-    switch (status) {
-      case 'Hẹn thành công':
+    switch (status.toUpperCase()) {
+      case 'HẸN THÀNH CÔNG':
       case 'SUCCESS':
-        bgColor = const Color(0xFFE0F7F4);
+        bgColor = AppColors.primaryLight;
         textColor = AppColors.primary;
+        label = l10n.statusUpcoming;
         break;
-      case 'Đã khám xong':
+      case 'ĐÃ KHÁM XONG':
       case 'COMPLETED':
-        bgColor = const Color(0xFFE8F5E9);
+        bgColor = AppColors.successLight;
         textColor = AppColors.success;
+        label = l10n.statusCompleted;
         break;
-      case 'Đã huỷ':
+      case 'ĐÃ HUỶ':
       case 'CANCELLED':
-        bgColor = const Color(0xFFFFEBEE);
+        bgColor = AppColors.errorLight;
         textColor = AppColors.error;
+        label = l10n.statusCancelled;
         break;
       default:
-        bgColor = Colors.grey.shade100;
-        textColor = AppColors.grey;
+        bgColor = AppColors.background;
+        textColor = AppColors.textGrey;
+        label = status;
     }
 
     return Container(
@@ -473,7 +483,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        status.toUpperCase(),
+        label.toUpperCase(),
         style: TextStyle(
           color: textColor,
           fontSize: 10,
@@ -486,7 +496,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: AppColors.grey),
+        Icon(icon, size: 14, color: AppColors.iconGrey),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -495,7 +505,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
             overflow: TextOverflow.ellipsis,
             style: const TextStyle(
               fontSize: 12,
-              color: AppColors.grey,
+              color: AppColors.textGrey,
             ),
           ),
         ),

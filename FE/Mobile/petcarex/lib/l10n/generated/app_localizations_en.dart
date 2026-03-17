@@ -279,6 +279,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cancelAppointment => 'Cancel';
 
   @override
+  String get confirmCancel => 'Confirm Cancellation';
+
+  @override
+  String get cancelMessage =>
+      'Are you sure you want to cancel this appointment?';
+
+  @override
+  String get statusUpcoming => 'Hẹn thành công';
+
+  @override
+  String get statusCompleted => 'Đã khám xong';
+
+  @override
+  String get statusCancelled => 'Đã huỷ';
+
+  @override
   String get success => 'Success!';
 
   @override
