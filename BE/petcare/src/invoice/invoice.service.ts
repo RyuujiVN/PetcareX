@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Invoice } from './entities/invoice.entity';
 import { Repository } from 'typeorm';
 import { CreateInvoiceDTO } from './dtos/create-invoice.dto';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
+import { UpdateInvoiceDTO } from './dtos/update-invoice.dto';
 
 @Injectable()
 export class InvoiceService {
@@ -63,5 +64,15 @@ export class InvoiceService {
     invoice.status = InvoiceStatusEnum.UNPAID;
 
     return await this.invoiceRepository.save(invoice);
+  }
+
+  async updateInvoice(updateDTO: UpdateInvoiceDTO, id: string) {
+    const invoice = await this.invoiceRepository.findOne({ where: { id: id } });
+
+    if (!invoice) throw new NotFoundException('Không tìm thấy hoá đơn');
+
+    Object.assign(invoice, updateDTO);
+
+    await this.invoiceRepository.save(invoice);
   }
 }
