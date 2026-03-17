@@ -12,7 +12,7 @@ function Footer() {
             Nền tảng công nghệ toàn diện kết nối hệ sinh thái thú cưng tại Việt
             Nam. Vì sức khỏe của những người bạn bốn chân.
           </p>
-          <div className="social-icons">
+          <div className="social-icons" style={{display:"flex", paddingTop:"10px"}}>
             <a href="#" aria-label="Website">
               <FaGlobe />
             </a>

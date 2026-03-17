@@ -166,8 +166,8 @@ export default function HomePage() {
 
 
       <section className="stats-section">
-        <div className="stats-container">
-          <h2> <AiOutlineRise size={30} color="#eb524d"/> Cung cấp công cụ chăm sóc thú cưng toàn diện</h2>
+        <div className="stats-containers">
+          <h2> <AiOutlineRise size={45} color="#eb524d"/> Cung cấp công cụ chăm sóc thú cưng toàn diện</h2>
 
           <div className="stats-grid">
             {stats.map((stat) => (
@@ -181,7 +181,7 @@ export default function HomePage() {
       </section>
 
 
-      <section className="challenges-section">
+      <section className="challenges-sections">
         <div className="section-container">
           <h2 className="section-title">Thách thức & Giải pháp</h2>
           <p className="section-subtitle">
