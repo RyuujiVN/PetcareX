@@ -402,6 +402,29 @@ class AppLocalizationsVi extends AppLocalizations {
   String get delete => 'Xóa';
 
   @override
+  String get confirmDelete => 'Xác nhận xóa';
+
+  @override
+  String deletePetMessage(String name) {
+    return 'Bạn có chắc chắn muốn xóa thú cưng \"$name\" không?';
+  }
+
+  @override
+  String ageYears(int count) {
+    return '$count tuổi';
+  }
+
+  @override
+  String ageMonths(int count) {
+    return '$count tháng';
+  }
+
+  @override
+  String ageDays(int count) {
+    return '$count ngày';
+  }
+
+  @override
   String get connectionError => 'Lỗi kết nối tới máy chủ';
 
   @override

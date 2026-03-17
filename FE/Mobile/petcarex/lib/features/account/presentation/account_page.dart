@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'package:petcarex/features/auth/presentation/login_page.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/providers/language_provider.dart'; // Import mới
+import '../../../core/providers/language_provider.dart';
 import '../../auth/presentation/change_password_page.dart';
 import 'my_pets_page.dart';
 import 'profile_page.dart';
@@ -28,7 +29,7 @@ class _AccountPageState extends State<AccountPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel, style: const TextStyle(color: Colors.grey)),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.textGrey)),
             ),
             ElevatedButton(
               onPressed: () async {
@@ -43,11 +44,7 @@ class _AccountPageState extends State<AccountPage> {
                   );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEA5455),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
               child: Text(l10n.logout),
             ),
           ],
@@ -56,7 +53,7 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  void _showLanguageDialog(AppLocalizations l10n) {
+  void _showLanguageDialog() {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -112,16 +109,16 @@ class _AccountPageState extends State<AccountPage> {
               Text('${l10n.version}: 1.0.0'),
               const Text('Developed by: PetCareX Team'),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'This application helps you manage health, appointments, and connect with reputable veterinarians quickly.',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+                style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(l10n.close, style: const TextStyle(color: Color(0xFF00CFE8))),
+              child: Text(l10n.close, style: const TextStyle(color: AppColors.primary)),
             ),
           ],
         );
@@ -135,20 +132,8 @@ class _AccountPageState extends State<AccountPage> {
     final langProvider = context.watch<LanguageProvider>();
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Text(
-          l10n.account,
-          style: const TextStyle(
-            color: Color(0xFF1E1E1E),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        centerTitle: true,
+        title: Text(l10n.account),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -160,13 +145,13 @@ class _AccountPageState extends State<AccountPage> {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF1E1E1E),
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.person_outline_rounded,
-              iconColor: const Color(0xFF00CFE8),
+              iconColor: AppColors.infoAccent,
               title: l10n.personalInfo,
               subtitle: l10n.personalInfoSubtitle,
               onTap: () {
@@ -179,7 +164,7 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.pets_outlined,
-              iconColor: const Color(0xFFFAAF00),
+              iconColor: AppColors.petAccent,
               title: l10n.petInfo,
               subtitle: l10n.petInfoSubtitle,
               onTap: () {
@@ -192,15 +177,15 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.language_rounded,
-              iconColor: const Color(0xFF00CFE8),
+              iconColor: AppColors.primary,
               title: langProvider.locale.languageCode == 'vi' ? 'Ngôn ngữ' : 'Language',
               subtitle: langProvider.locale.languageCode == 'vi' ? 'Tiếng Việt' : 'English',
-              onTap: () => _showLanguageDialog(l10n),
+              onTap: _showLanguageDialog,
             ),
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.lock_outline_rounded,
-              iconColor: const Color(0xFF7367F0),
+              iconColor: AppColors.securityAccent,
               title: l10n.changePassword,
               subtitle: l10n.changePasswordSubtitle,
               onTap: () {
@@ -216,13 +201,13 @@ class _AccountPageState extends State<AccountPage> {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1E1E1E),
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.info_outline_rounded,
-              iconColor: const Color(0xFF7367F0),
+              iconColor: AppColors.securityAccent,
               title: l10n.aboutUs,
               subtitle: l10n.aboutUsSubtitle,
               onTap: () => _showAboutUsDialog(l10n),
@@ -230,10 +215,10 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.logout_rounded,
-              iconColor: const Color(0xFFEA5455),
+              iconColor: AppColors.error,
               title: l10n.logout,
               subtitle: l10n.exitAccount,
-              titleColor: const Color(0xFFEA5455),
+              titleColor: AppColors.error,
               isDestructive: true,
               onTap: () => _showLogoutDialog(l10n),
             ),
@@ -259,12 +244,12 @@ class _AccountPageState extends State<AccountPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isDestructive ? const Color(0xFFFFEAEA) : Colors.white,
+          color: isDestructive ? AppColors.errorLight : AppColors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isDestructive
-                ? const Color(0xFFFFC1C1).withOpacity(0.5)
-                : Colors.grey.withOpacity(0.12),
+                ? AppColors.errorBorder
+                : AppColors.borderGrey,
             width: 1,
           ),
         ),
@@ -288,24 +273,24 @@ class _AccountPageState extends State<AccountPage> {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: titleColor ?? const Color(0xFF1E1E1E),
+                      color: titleColor ?? AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: AppColors.textGrey,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios_rounded,
-              color: Colors.grey[400],
+              color: AppColors.iconGrey,
               size: 16,
             ),
           ],

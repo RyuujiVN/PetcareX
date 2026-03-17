@@ -130,6 +130,39 @@
   "handbook": "HANDBOOK",
   "health": "HEALTH",
   "delete": "Delete",
+  "confirmDelete": "Confirm Delete",
+  "deletePetMessage": "Are you sure you want to delete pet \"{name}\"?",
+  "@deletePetMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ageYears": "{count, plural, =1{1 year old} other{{count} years old}}",
+  "@ageYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageMonths": "{count, plural, =1{1 month old} other{{count} months old}}",
+  "@ageMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDays": "{count, plural, =1{1 day old} other{{count} days old}}",
+  "@ageDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connectionError": "Server connection error",
   "invalidEmail": "Invalid email address",
   "passwordTooShort": "Password must be at least 6 characters",

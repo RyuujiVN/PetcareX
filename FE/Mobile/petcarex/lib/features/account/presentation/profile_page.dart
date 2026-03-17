@@ -134,7 +134,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.success),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         Navigator.pop(context);
@@ -142,7 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? l10n.failed),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -168,9 +168,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -206,7 +206,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.2),
+                                    color: AppColors.primary.withValues(alpha: 0.2),
                                     width: 2,
                                   ),
                                 ),
@@ -215,7 +215,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   children: [
                                     CircleAvatar(
                                       radius: 50,
-                                      backgroundColor: const Color(0xFFFDE8E1),
+                                      backgroundColor: AppColors.formFillDisabled,
                                       backgroundImage: _selectedImage != null
                                           ? FileImage(_selectedImage!) as ImageProvider
                                           : (_uploadedAvatarUrl != null
@@ -251,7 +251,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                     child: const Icon(
                                       Icons.camera_alt,
-                                      color: Colors.white,
+                                      color: AppColors.onPrimary,
                                       size: 16,
                                     ),
                                   ),
@@ -341,8 +341,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE9ECEF),
-                              foregroundColor: const Color(0xFF495057),
+                              backgroundColor: AppColors.buttonSecondary,
+                              foregroundColor: AppColors.buttonSecondaryText,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -361,7 +361,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             onPressed: (_isLoading || _isUploadingAvatar) ? null : _handleSave,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.onPrimary,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -373,7 +373,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     height: 24,
                                     width: 24,
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
+                                      color: AppColors.onPrimary,
                                       strokeWidth: 2,
                                     ),
                                   )
@@ -412,7 +412,7 @@ class _ProfilePageState extends State<ProfilePage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF495057),
+            color: AppColors.formLabel,
           ),
         ),
         const SizedBox(height: 8),
@@ -424,24 +424,24 @@ class _ProfilePageState extends State<ProfilePage> {
           validator: validator,
           style: TextStyle(
             fontSize: 15,
-            color: enabled ? AppColors.textDark : Colors.grey,
+            color: enabled ? AppColors.textDark : AppColors.grey,
           ),
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: const BorderSide(color: AppColors.formBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: const BorderSide(color: AppColors.formBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
             filled: true,
-            fillColor: enabled ? Colors.white : Colors.grey.shade100,
+            fillColor: enabled ? AppColors.formFill : AppColors.formFillDisabled,
           ),
         ),
       ],

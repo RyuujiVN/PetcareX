@@ -403,6 +403,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delete => 'Delete';
 
   @override
+  String get confirmDelete => 'Confirm Delete';
+
+  @override
+  String deletePetMessage(String name) {
+    return 'Are you sure you want to delete pet \"$name\"?';
+  }
+
+  @override
+  String ageYears(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years old',
+      one: '1 year old',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ageMonths(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count months old',
+      one: '1 month old',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String ageDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days old',
+      one: '1 day old',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get connectionError => 'Server connection error';
 
   @override

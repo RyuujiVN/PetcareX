@@ -1,54 +1,49 @@
 # PetCareX Mobile Project Summary
 
-## 📌 Project Overview
-PetCareX is a Flutter-based mobile application for pet care management, integrated with a NestJS backend.
+## 📌 Tổng quan dự án
+PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được phát triển bằng Flutter, tích hợp với hệ thống Backend NestJS. Dự án vừa trải qua một đợt tối ưu hóa mã nguồn (Refactoring) và đồng bộ hóa giao diện (UI/UX) toàn diện.
 
 ## 🛠 Tech Stack
 - **Frontend:** Flutter (Dart)
-- **Backend:** NestJS (Node.js) — REST API
-- **State Management:** `provider` (ChangeNotifier, MultiProvider)
-- **Internationalization (i18n):** `flutter_localizations` with `.arb` files. Supports Vietnamese (vi) and English (en).
-- **Networking:** Custom `ApiClient` (http package) with JWT Bearer injection and 30s timeout.
-- **Logging:** Centralized `AppLogger` for Request/Response tracking with sensitive data masking.
-- **Local Storage:** `shared_preferences` for language settings and `flutter_secure_storage` for credentials.
+- **State Management:** `provider` (MultiProvider)
+- **Đa ngôn ngữ:** `flutter_localizations` (Hỗ trợ Tiếng Việt & Tiếng Anh).
+- **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
+- **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
-## ✅ Recent Refactoring & "Clean Code" Updates
+## ✅ Nhật ký thay đổi (Refactoring & Clean Code)
 
-### 🗑 Removed / Cleaned Up:
-- **Redundant State:** Removed multiple `bool _obscureText` variables across Login, Register, and Change Password pages.
-- **Hardcoded Strings:** Replaced ~100+ Vietnamese hardcoded strings with `AppLocalizations` keys.
-- **Manual Log Statements:** Deleted scattered `print()` statements in `api_client.dart` and various repositories.
-- **Synthetic Package:** Removed `synthetic-package: true` from `l10n.yaml` to fix build errors on newer Flutter versions.
-- **Duplicate Imports:** Cleaned up unused imports after widget refactoring.
+Dưới đây là chi tiết các thành phần đã được xóa bỏ và thêm mới để đảm bảo dự án sạch và dễ quản lý:
 
-### ➕ Added / Unified:
-- **`PasswordTextField` Widget:** Created a reusable widget in `lib/core/widgets/` to unify password input style (bullet dots `●`, spacing, and visibility toggle) across the entire app.
-- **`AppLogger` Utility:** Added `lib/core/utils/logger.dart` to centralize API logging with a professional framed UI and automatic masking of passwords/tokens.
-- **Persistence:** Integrated `SharedPreferences` into `LanguageProvider` to remember user's language choice across sessions.
-- **Google Auth Team Sharing:** Un-ignored `debug.keystore` in `.gitignore` and configured `build.gradle.kts` to share the same fingerprint across the team, solving SHA-1 access issues.
-- **UX Improvements:** Removed back button from the main Booking tab, synchronized button designs across Auth pages. Shifted towards highly specific and semantically precise notifications (SnackBar) for Auth actions (Login, Register, Password Reset) using fully matched `AppLocalizations` avoiding generic terms like "lưu thành công". Added highly specific validation feedback inside `.arb` files for the `BookingPage` flow (e.g. "Vui lòng chọn thú cưng" instead of just "thú cưng") for better clarity.
-- **QR Overlay:** Re-implemented `ScannerOverlayPainter` to provide a professional scanning UI (frame + laser effect).
+### 🗑 Các thành phần đã XÓA (Removed)
+- **Chuỗi cứng (Hardcoded Strings):** Loại bỏ hơn 150 vị trí viết text tiếng Việt/Anh trực tiếp trong code. Thay thế hoàn toàn bằng hệ thống `AppLocalizations` (.arb files).
+- **Màu sắc cứng (Hardcoded Colors):** Xóa bỏ các mã màu Hex (ví dụ: `Color(0xFF...)`) rải rác trong các file giao diện.
+- **Biến trạng thái dư thừa:** Xóa bỏ các biến `bool _obscureText` tại trang Login, Register, Change Password.
+- **Log rác:** Loại bỏ các lệnh `print()` thủ công trong `ApiClient` và các Repositories gây nhiễu Console.
+- **Cấu hình lỗi thời:** Xóa bỏ `synthetic-package: true` trong `l10n.yaml` để tương thích với các bản Flutter mới (3.27+).
 
-## 📁 Feature Status
+### ➕ Các thành phần thêm mới & Hợp nhất (Added / Unified)
+- **`AppTheme` (Tối ưu hóa):** Hợp nhất toàn bộ kiểu dáng AppBar, ElevatedButton, và InputDecoration vào `ThemeData` toàn cục. Không còn cần set màu nền thủ công cho từng màn hình.
+- **`AppColors` (Mở rộng):** Định nghĩa bộ mã màu chuẩn gồm `primary`, `background`, `divider`, `success`, `error`, và các mã màu `accent` đặc thù.
+- **`PasswordTextField` Widget:** Widget dùng chung duy nhất cho mọi ô nhập mật khẩu. Thống nhất kiểu dấu chấm `•`, khoảng cách `letterSpacing` và logic ẩn/hiện.
+- **`AppLogger` Utility:** Công cụ ghi nhật ký API chuyên nghiệp, có khung viền phân tách rõ ràng và tự động che giấu mật khẩu/token.
+- **`LanguageProvider` Persistence:** Tích hợp `SharedPreferences` để ứng dụng ghi nhớ ngôn ngữ người dùng đã chọn sau khi tắt máy.
+- **QR Scanner Overlay:** Khôi phục giao diện quét QR chuyên nghiệp với khung bo góc và hiệu ứng tia laser chuyển động.
 
-### 1. Authentication
-- **Status:** Fully localized & Secured.
-- **UI:** Login, Register, Forgot Password, Reset Password, Change Password. All use unified `PasswordTextField`.
+## 📁 Trạng thái các tính năng
 
-### 2. Pet Management
-- **Status:** Fully localized.
-- **UI:** Home dashboard, Add Pet, Edit Pet. Dynamic Species -> Breed loading implemented.
+### 1. Hệ thống đa ngôn ngữ (i18n)
+- **Trạng thái:** Hoàn thành 100%.
+- **Phạm vi:** Login, Register, Home, Booking (5 bước), Appointment, Profile, Account.
+- **Đặc biệt:** Đã dịch cả các trạng thái lịch hẹn (Status) và các thứ trong tuần (Monday - Sunday).
 
-### 3. Navigation
-- **Status:** Unified.
-- **UI:** Bottom Navigation Bar labels dynamically switch based on selected language.
+### 2. Quản lý thú cưng & Đặt lịch
+- **Giao diện:** Đã đồng bộ màu sắc theo Theme mới.
+- **Logic:** Hỗ trợ load động **Loài -> Giống** (Species -> Breed). Dữ liệu gửi lên server chuẩn UUID và định dạng ngày ISO 8601.
 
-### 4. Networking
-- **Status:** Enhanced.
-- **UI:** `ApiClient` now calls `AppLogger` for all requests. Errors are localized via `AppLocalizations`.
+### 3. Bảo mật & Nhật ký
+- Toàn bộ các yêu cầu API đều được qua bộ lọc của `AppLogger` để theo dõi và bảo mật thông tin nhạy cảm.
 
-## 📝 Run & Debug
-1. **Sync Localizations:** Run `flutter gen-l10n` after any `.arb` file change.
-2. **Backend:** Start NestJS on port 3000.
-3. **Bridge:** `adb reverse tcp:3000 tcp:3000`.
-4. **App:** `flutter run`.
+## 📝 Hướng dẫn chạy dự án
+1. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.
+2. **Kết nối Server:** `adb reverse tcp:3000 tcp:3000`.
+3. **Khởi chạy:** `flutter run`.

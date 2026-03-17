@@ -878,6 +878,36 @@ abstract class AppLocalizations {
   /// **'Xóa'**
   String get delete;
 
+  /// No description provided for @confirmDelete.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xác nhận xóa'**
+  String get confirmDelete;
+
+  /// No description provided for @deletePetMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có chắc chắn muốn xóa thú cưng \"{name}\" không?'**
+  String deletePetMessage(String name);
+
+  /// No description provided for @ageYears.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} tuổi'**
+  String ageYears(int count);
+
+  /// No description provided for @ageMonths.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} tháng'**
+  String ageMonths(int count);
+
+  /// No description provided for @ageDays.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} ngày'**
+  String ageDays(int count);
+
   /// No description provided for @connectionError.
   ///
   /// In vi, this message translates to:

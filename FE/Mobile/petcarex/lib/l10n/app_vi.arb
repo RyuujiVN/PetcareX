@@ -130,6 +130,39 @@
   "handbook": "CẨM NANG",
   "health": "SỨC KHỎE",
   "delete": "Xóa",
+  "confirmDelete": "Xác nhận xóa",
+  "deletePetMessage": "Bạn có chắc chắn muốn xóa thú cưng \"{name}\" không?",
+  "@deletePetMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "ageYears": "{count} tuổi",
+  "@ageYears": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageMonths": "{count} tháng",
+  "@ageMonths": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDays": "{count} ngày",
+  "@ageDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "connectionError": "Lỗi kết nối tới máy chủ",
   "invalidEmail": "Email không hợp lệ",
   "passwordTooShort": "Mật khẩu phải từ 6 ký tự trở lên",

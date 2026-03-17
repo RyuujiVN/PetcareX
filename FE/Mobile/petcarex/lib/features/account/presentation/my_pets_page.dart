@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/image_helper.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../pet/data/models/pet_models.dart';
 import '../../pet/presentation/add_pet_page.dart';
 import '../../pet/presentation/edit_pet_page.dart';
@@ -21,11 +22,13 @@ class _MyPetsPageState extends State<MyPetsPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PetProvider>().fetchMyPets();
+      if (mounted) {
+        context.read<PetProvider>().fetchMyPets();
+      }
     });
   }
 
-  String _calculateAge(String dateOfBirthStr) {
+  String _calculateAge(String dateOfBirthStr, AppLocalizations l10n) {
     try {
       final dob = DateTime.parse(dateOfBirthStr);
       final now = DateTime.now();
@@ -44,38 +47,33 @@ class _MyPetsPageState extends State<MyPetsPage> {
         days += previousMonth.day;
         months--;
       }
-
-      if (years > 0) {
-        return '$years tuổi';
-      } else if (months > 0) {
-        return '$months tháng';
-      } else {
-        return '${days == 0 ? 1 : days} ngày';
-      }
+      
+      if (years > 0) return l10n.ageYears(years);
+      if (months > 0) return l10n.ageMonths(months);
+      return l10n.ageDays(days <= 0 ? 1 : days);
     } catch (e) {
-      return 'Chưa rõ';
+      return l10n.failed;
     }
   }
 
-  void _showDeleteConfirmDialog(BuildContext context, Pet pet) {
+  void _showDeleteConfirmDialog(BuildContext context, Pet pet, AppLocalizations l10n) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: const Text('Xác nhận xoá', style: TextStyle(fontWeight: FontWeight.bold)),
-          content: Text('Bạn có chắc chắn muốn xoá thú cưng "${pet.name}" không? Thao tác này không thể hoàn tác.'),
+          title: Text(l10n.confirmDelete, style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(l10n.deletePetMessage(pet.name)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              style: TextButton.styleFrom(foregroundColor: Colors.grey),
-              child: const Text('Hủy', style: TextStyle(fontWeight: FontWeight.bold)),
+              style: TextButton.styleFrom(foregroundColor: AppColors.textGrey),
+              child: Text(l10n.cancel, style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.pop(dialogContext); // Đóng dialog
+                Navigator.pop(dialogContext);
                 
-                // Hiện loading mờ
                 showDialog(
                   context: context,
                   barrierDismissible: false,
@@ -85,26 +83,26 @@ class _MyPetsPageState extends State<MyPetsPage> {
                 final provider = context.read<PetProvider>();
                 final success = await provider.deletePet(pet.id);
 
-                if (mounted) {
-                  Navigator.pop(context); // Tắt loading
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Xoá thú cưng thành công', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(provider.errorMessage ?? 'Xoá thất bại', style: const TextStyle(color: Colors.white)), backgroundColor: Colors.red),
-                    );
-                  }
+                if (!context.mounted) return;
+                Navigator.pop(context);
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(l10n.success), backgroundColor: AppColors.success),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(provider.errorMessage ?? l10n.failed), backgroundColor: AppColors.error),
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.redAccent,
-                foregroundColor: Colors.white,
+                backgroundColor: AppColors.error,
+                foregroundColor: AppColors.white,
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
               ),
-              child: const Text('Xoá', style: TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(l10n.delete, style: const TextStyle(fontWeight: FontWeight.bold)),
             ),
           ],
         );
@@ -112,20 +110,20 @@ class _MyPetsPageState extends State<MyPetsPage> {
     );
   }
 
-  Widget _buildPetCard(Pet pet) {
+  Widget _buildPetCard(Pet pet, AppLocalizations l10n) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: AppColors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 4),
           )
         ],
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: AppColors.borderGrey),
       ),
       child: Material(
         color: Colors.transparent,
@@ -150,8 +148,8 @@ class _MyPetsPageState extends State<MyPetsPage> {
                 context,
                 MaterialPageRoute(builder: (context) => EditPetPage(pet: pet))
               );
-              if (result == true) {
-                provider.fetchMyPets();
+              if (result == true && mounted) {
+                context.read<PetProvider>().fetchMyPets();
               }
             } catch (e) {
               if (mounted) Navigator.pop(context);
@@ -161,13 +159,12 @@ class _MyPetsPageState extends State<MyPetsPage> {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
-                // Avatar thú cưng
                 Container(
                   width: 65,
                   height: 65,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(color: AppColors.primary.withOpacity(0.5), width: 2),
+                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.5), width: 2),
                   ),
                   child: ClipOval(
                     child: (pet.avatar != null && pet.avatar!.startsWith('http'))
@@ -178,17 +175,16 @@ class _MyPetsPageState extends State<MyPetsPage> {
                             padding: EdgeInsets.all(8.0),
                             child: CircularProgressIndicator(strokeWidth: 2),
                           ),
-                          errorWidget: (context, url, error) => const Icon(Icons.pets, color: Colors.grey),
+                          errorWidget: (context, url, error) => const Icon(Icons.pets, color: AppColors.iconGrey),
                         )
                       : Container(
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.pets, color: Colors.grey, size: 30),
+                          color: AppColors.background,
+                          child: const Icon(Icons.pets, color: AppColors.iconGrey, size: 30),
                         ),
                   ),
                 ),
                 const SizedBox(width: 16),
                 
-                // Thông tin
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,17 +198,17 @@ class _MyPetsPageState extends State<MyPetsPage> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            Icon(Icons.category_outlined, size: 14, color: Colors.grey[600]),
+                            const Icon(Icons.category_outlined, size: 14, color: AppColors.textGrey),
                             const SizedBox(width: 4),
-                            Text(pet.breed?.name ?? 'Chưa cập nhật', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                            Text(pet.breed?.name ?? l10n.failed, style: const TextStyle(color: AppColors.textGrey, fontSize: 13)),
                             const SizedBox(width: 12),
                             Icon(pet.gender ? Icons.male : Icons.female, 
                                  size: 14, 
-                                 color: pet.gender ? Colors.blue : Colors.pink),
+                                 color: pet.gender ? AppColors.male : AppColors.female),
                             const SizedBox(width: 4),
                             Text(
-                              pet.gender ? 'Đực' : 'Cái',
-                              style: TextStyle(color: Colors.grey[600], fontSize: 13)
+                              pet.gender ? l10n.male : l10n.female,
+                              style: const TextStyle(color: AppColors.textGrey, fontSize: 13)
                             ),
                           ],
                         ),
@@ -222,13 +218,13 @@ class _MyPetsPageState extends State<MyPetsPage> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            Icon(Icons.cake_outlined, size: 14, color: Colors.grey[600]),
+                            const Icon(Icons.cake_outlined, size: 14, color: AppColors.textGrey),
                             const SizedBox(width: 4),
-                            Text(_calculateAge(pet.dateOfBirth), style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                            Text(_calculateAge(pet.dateOfBirth, l10n), style: const TextStyle(color: AppColors.textGrey, fontSize: 13)),
                             const SizedBox(width: 12),
-                            Icon(Icons.monitor_weight_outlined, size: 14, color: Colors.grey[600]),
+                            const Icon(Icons.monitor_weight_outlined, size: 14, color: AppColors.textGrey),
                             const SizedBox(width: 4),
-                            Text('${pet.weight} kg', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+                            Text('${pet.weight} kg', style: const TextStyle(color: AppColors.textGrey, fontSize: 13)),
                           ],
                         ),
                       ),
@@ -236,11 +232,10 @@ class _MyPetsPageState extends State<MyPetsPage> {
                   ),
                 ),
                 
-                // Nút Xoá
                 IconButton(
-                  onPressed: () => _showDeleteConfirmDialog(context, pet),
-                  icon: const Icon(Icons.delete_outline, color: Colors.redAccent),
-                  tooltip: 'Xoá thú cưng',
+                  onPressed: () => _showDeleteConfirmDialog(context, pet, l10n),
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                  tooltip: l10n.delete,
                 ),
               ],
             ),
@@ -252,11 +247,13 @@ class _MyPetsPageState extends State<MyPetsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Thú cưng của tôi', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark)),
-        backgroundColor: Colors.white,
+        title: Text(l10n.myPets, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textDark)),
+        backgroundColor: AppColors.white,
         centerTitle: true,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -267,13 +264,12 @@ class _MyPetsPageState extends State<MyPetsPage> {
         actions: [
           IconButton(
             onPressed: () async {
-              final provider = context.read<PetProvider>();
               final result = await Navigator.push(
                 context, 
                 MaterialPageRoute(builder: (context) => const AddPetPage())
               );
-              if (result == true) {
-                provider.fetchMyPets();
+              if (result == true && mounted) {
+                context.read<PetProvider>().fetchMyPets();
               }
             },
             icon: const Icon(Icons.add_circle_outline, color: AppColors.primary, size: 28),
@@ -292,9 +288,9 @@ class _MyPetsPageState extends State<MyPetsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.pets, size: 80, color: Colors.grey[300]),
+                  const Icon(Icons.pets, size: 80, color: AppColors.iconGrey),
                   const SizedBox(height: 16),
-                  Text('Bạn chưa có thú cưng nào', style: TextStyle(color: Colors.grey[600], fontSize: 16)),
+                  Text(l10n.petInfoSubtitle, style: const TextStyle(color: AppColors.textGrey, fontSize: 16)),
                   const SizedBox(height: 24),
                   ElevatedButton.icon(
                     onPressed: () async {
@@ -302,12 +298,12 @@ class _MyPetsPageState extends State<MyPetsPage> {
                         context, 
                         MaterialPageRoute(builder: (context) => const AddPetPage())
                       );
-                      if (result == true) {
-                        provider.fetchMyPets();
+                      if (result == true && mounted) {
+                        context.read<PetProvider>().fetchMyPets();
                       }
                     },
-                    icon: const Icon(Icons.add, color: Colors.white),
-                    label: const Text('Thêm thú cưng ngay', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
+                    icon: const Icon(Icons.add, color: AppColors.white),
+                    label: Text(l10n.addPet, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
@@ -325,7 +321,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
               padding: const EdgeInsets.all(20),
               itemCount: sortedPets.length,
               itemBuilder: (context, index) {
-                return _buildPetCard(sortedPets[index]);
+                return _buildPetCard(sortedPets[index], l10n);
               },
             ),
           );

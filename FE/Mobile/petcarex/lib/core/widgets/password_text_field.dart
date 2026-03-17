@@ -13,7 +13,7 @@ class PasswordTextField extends StatefulWidget {
     required this.controller,
     required this.label,
     this.errorText,
-    this.hintText = '••••••••', // Đổi từ ● sang • thanh mảnh hơn 
+    this.hintText = '••••••••',
   });
 
   @override
@@ -36,7 +36,6 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
         TextField(
           controller: widget.controller,
           obscureText: _isObscure,
-          // Ký tự dấu chấm khi đang nhập (dùng ký tự Unicode lớn tròn, rõ ràng hơn)
           obscuringCharacter: '●',
           style: const TextStyle(letterSpacing: 2.0, fontSize: 16),
           decoration: InputDecoration(
