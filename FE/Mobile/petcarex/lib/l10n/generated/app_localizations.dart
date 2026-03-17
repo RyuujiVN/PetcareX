@@ -938,11 +938,35 @@ abstract class AppLocalizations {
   /// **'{count} ngày'**
   String ageDays(int count);
 
-  /// No description provided for @connectionError.
+  /// No description provided for @forgotPasswordSubtitle.
   ///
   /// In vi, this message translates to:
-  /// **'Lỗi kết nối tới máy chủ'**
-  String get connectionError;
+  /// **'Nhập email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.'**
+  String get forgotPasswordSubtitle;
+
+  /// No description provided for @sendOTP.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi mã OTP'**
+  String get sendOTP;
+
+  /// No description provided for @otpLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã OTP'**
+  String get otpLabel;
+
+  /// No description provided for @pleaseEnter.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng nhập {field}'**
+  String pleaseEnter(String field);
+
+  /// No description provided for @footerCopyright.
+  ///
+  /// In vi, this message translates to:
+  /// **'© 2026 PetCareX Vietnam'**
+  String get footerCopyright;
 
   /// No description provided for @invalidEmail.
   ///
@@ -950,11 +974,17 @@ abstract class AppLocalizations {
   /// **'Email không hợp lệ'**
   String get invalidEmail;
 
-  /// No description provided for @passwordTooShort.
+  /// No description provided for @otpSent.
   ///
   /// In vi, this message translates to:
-  /// **'Mật khẩu phải từ 6 ký tự trở lên'**
-  String get passwordTooShort;
+  /// **'Mã OTP đã được gửi thành công'**
+  String get otpSent;
+
+  /// No description provided for @connectionError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi kết nối tới máy chủ'**
+  String get connectionError;
 
   /// No description provided for @passwordsNotMatch.
   ///
@@ -967,30 +997,6 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Bạn cần đồng ý với điều khoản dịch vụ'**
   String get agreeToTermsError;
-
-  /// No description provided for @uploadSuccess.
-  ///
-  /// In vi, this message translates to:
-  /// **'Tải lên thành công'**
-  String get uploadSuccess;
-
-  /// No description provided for @uploadFailed.
-  ///
-  /// In vi, this message translates to:
-  /// **'Tải lên thất bại'**
-  String get uploadFailed;
-
-  /// No description provided for @otpSent.
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã OTP đã được gửi thành công'**
-  String get otpSent;
-
-  /// No description provided for @otpError.
-  ///
-  /// In vi, this message translates to:
-  /// **'Mã OTP không hợp lệ hoặc đã hết hạn'**
-  String get otpError;
 
   /// No description provided for @validChoosePet.
   ///

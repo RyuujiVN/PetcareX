@@ -286,13 +286,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to cancel this appointment?';
 
   @override
-  String get statusUpcoming => 'Hẹn thành công';
+  String get statusUpcoming => 'Confirmed';
 
   @override
-  String get statusCompleted => 'Đã khám xong';
+  String get statusCompleted => 'Completed';
 
   @override
-  String get statusCancelled => 'Đã huỷ';
+  String get statusCancelled => 'Cancelled';
 
   @override
   String get success => 'Success!';
@@ -460,31 +460,37 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get connectionError => 'Server connection error';
+  String get forgotPasswordSubtitle =>
+      'Enter your email and we will send you an OTP code to reset your password.';
+
+  @override
+  String get sendOTP => 'Send OTP';
+
+  @override
+  String get otpLabel => 'OTP Code';
+
+  @override
+  String pleaseEnter(String field) {
+    return 'Please enter $field';
+  }
+
+  @override
+  String get footerCopyright => '© 2026 PetCareX Vietnam';
 
   @override
   String get invalidEmail => 'Invalid email address';
 
   @override
-  String get passwordTooShort => 'Password must be at least 6 characters';
+  String get otpSent => 'OTP code has been sent successfully';
+
+  @override
+  String get connectionError => 'Server connection error';
 
   @override
   String get passwordsNotMatch => 'Passwords do not match';
 
   @override
   String get agreeToTermsError => 'You must agree to the terms of service';
-
-  @override
-  String get uploadSuccess => 'Upload successful';
-
-  @override
-  String get uploadFailed => 'Upload failed';
-
-  @override
-  String get otpSent => 'OTP code has been sent successfully';
-
-  @override
-  String get otpError => 'OTP code is invalid or expired';
 
   @override
   String get validChoosePet => 'Please select a pet to book an appointment!';

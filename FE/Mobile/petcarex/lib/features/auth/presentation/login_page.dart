@@ -99,7 +99,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.loginSuccess),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         ),
       );
       Navigator.pushReplacement(
@@ -111,6 +111,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(authProvider.errorMessage ?? l10n.loginFailed),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -126,7 +127,7 @@ class _LoginPageState extends State<LoginPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.loginGoogleSuccess),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         ),
       );
       Navigator.pushReplacement(
@@ -136,7 +137,10 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.errorMessage ?? l10n.loginFailed)),
+        SnackBar(
+          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
+          backgroundColor: AppColors.error,
+        ),
       );
     }
   }
@@ -171,13 +175,13 @@ class _LoginPageState extends State<LoginPage> {
           Container(
             padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 1),
+              border: Border.all(color: AppColors.textDark, width: 1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Image.asset('assets/images/icon.png', width: 30, height: 30),
           ),
           const SizedBox(width: 12),
-          Text(l10n.appName, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
+          Text(l10n.appName, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: AppColors.textDark)),
         ],
       ),
     );
@@ -187,24 +191,36 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20),
+          BoxShadow(color: AppColors.black.withValues(alpha: 0.03), blurRadius: 20),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(onLongPress: _quickAdminLogin, child: const Center(child: Icon(Icons.account_circle_outlined, size: 60))),
+          GestureDetector(
+            onLongPress: _quickAdminLogin,
+            child: const Center(child: Icon(Icons.account_circle_outlined, size: 60, color: AppColors.primary)),
+          ),
           const SizedBox(height: 12),
           Center(child: Text(l10n.login, style: AppTextStyles.title)),
           const SizedBox(height: 24),
-          Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
           const SizedBox(height: 8),
           TextField(
             controller: _emailController,
-            decoration: InputDecoration(hintText: l10n.emailHint, prefixIcon: const Icon(Icons.email_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), errorText: _emailError),
+            style: const TextStyle(color: AppColors.textDark),
+            decoration: InputDecoration(
+              hintText: l10n.emailHint,
+              prefixIcon: const Icon(Icons.email_outlined, color: AppColors.iconGrey),
+              filled: true,
+              fillColor: AppColors.formFill,
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
+              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
+              errorText: _emailError,
+            ),
           ),
           const SizedBox(height: 16),
           PasswordTextField(
@@ -232,7 +248,7 @@ class _LoginPageState extends State<LoginPage> {
       child: OutlinedButton(
         onPressed: isLoading ? null : _loginWithGoogle,
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE0E0E0)),
+          side: const BorderSide(color: AppColors.formBorder),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Row(
@@ -240,7 +256,7 @@ class _LoginPageState extends State<LoginPage> {
           children: [
             Image.asset('assets/images/google.png', width: 24, height: 24),
             const SizedBox(width: 12),
-            Text(l10n.loginWithGoogle, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            Text(l10n.loginWithGoogle, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -253,11 +269,11 @@ class _LoginPageState extends State<LoginPage> {
       children: [
         Row(children: [
           Checkbox(value: _rememberMe, activeColor: AppColors.primary, onChanged: (val) => setState(() => _rememberMe = val ?? false)),
-          Text(l10n.rememberMe, style: const TextStyle(fontSize: 13)),
+          Text(l10n.rememberMe, style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
         ]),
         TextButton(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
-          child: Text(l10n.forgotPassword, style: const TextStyle(color: AppColors.primary, fontSize: 13)),
+          child: Text(l10n.forgotPassword, style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.w600)),
         ),
       ],
     );
@@ -269,8 +285,15 @@ class _LoginPageState extends State<LoginPage> {
       height: 50,
       child: ElevatedButton(
         onPressed: isLoading ? null : _login,
-        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-        child: isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.login, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.onPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: isLoading 
+          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2)) 
+          : Text(l10n.login, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       ),
     );
   }
@@ -282,7 +305,7 @@ class _LoginPageState extends State<LoginPage> {
         child: RichText(
           text: TextSpan(
             text: l10n.dontHaveAccount,
-            style: const TextStyle(color: Colors.grey),
+            style: const TextStyle(color: AppColors.textGrey),
             children: [TextSpan(text: l10n.registerNow, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))],
           ),
         ),

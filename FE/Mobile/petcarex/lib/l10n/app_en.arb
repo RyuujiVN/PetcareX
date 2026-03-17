@@ -91,6 +91,9 @@
   "cancelAppointment": "Cancel",
   "confirmCancel": "Confirm Cancellation",
   "cancelMessage": "Are you sure you want to cancel this appointment?",
+  "statusUpcoming": "Confirmed",
+  "statusCompleted": "Completed",
+  "statusCancelled": "Cancelled",
   "success": "Success!",
   "failed": "Failed",
   "myPets": "My Pets",
@@ -134,46 +137,26 @@
   "delete": "Delete",
   "confirmDelete": "Confirm Delete",
   "deletePetMessage": "Are you sure you want to delete pet \"{name}\"?",
-  "@deletePetMessage": {
+  "ageYears": "{count, plural, =1{1 year old} other{{count} years old}}",
+  "ageMonths": "{count, plural, =1{1 month old} other{{count} months old}}",
+  "ageDays": "{count, plural, =1{1 day old} other{{count} days old}}",
+  "forgotPasswordSubtitle": "Enter your email and we will send you an OTP code to reset your password.",
+  "sendOTP": "Send OTP",
+  "otpLabel": "OTP Code",
+  "pleaseEnter": "Please enter {field}",
+  "@pleaseEnter": {
     "placeholders": {
-      "name": {
+      "field": {
         "type": "String"
       }
     }
   },
-  "ageYears": "{count, plural, =1{1 year old} other{{count} years old}}",
-  "@ageYears": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "ageMonths": "{count, plural, =1{1 month old} other{{count} months old}}",
-  "@ageMonths": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "ageDays": "{count, plural, =1{1 day old} other{{count} days old}}",
-  "@ageDays": {
-    "placeholders": {
-      "count": {
-        "type": "int"
-      }
-    }
-  },
-  "connectionError": "Server connection error",
+  "footerCopyright": "© 2026 PetCareX Vietnam",
   "invalidEmail": "Invalid email address",
-  "passwordTooShort": "Password must be at least 6 characters",
+  "otpSent": "OTP code has been sent successfully",
+  "connectionError": "Server connection error",
   "passwordsNotMatch": "Passwords do not match",
   "agreeToTermsError": "You must agree to the terms of service",
-  "uploadSuccess": "Upload successful",
-  "uploadFailed": "Upload failed",
-  "otpSent": "OTP code has been sent successfully",
-  "otpError": "OTP code is invalid or expired",
   "validChoosePet": "Please select a pet to book an appointment!",
   "validChooseClinic": "Please select a clinic!",
   "validChooseService": "Please select a service!",

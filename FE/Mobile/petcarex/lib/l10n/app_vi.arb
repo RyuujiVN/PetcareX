@@ -168,15 +168,23 @@
       }
     }
   },
-  "connectionError": "Lỗi kết nối tới máy chủ",
+  "forgotPasswordSubtitle": "Nhập email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.",
+  "sendOTP": "Gửi mã OTP",
+  "otpLabel": "Mã OTP",
+  "pleaseEnter": "Vui lòng nhập {field}",
+  "@pleaseEnter": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "footerCopyright": "© 2026 PetCareX Vietnam",
   "invalidEmail": "Email không hợp lệ",
-  "passwordTooShort": "Mật khẩu phải từ 6 ký tự trở lên",
+  "otpSent": "Mã OTP đã được gửi thành công",
+  "connectionError": "Lỗi kết nối tới máy chủ",
   "passwordsNotMatch": "Mật khẩu không khớp",
   "agreeToTermsError": "Bạn cần đồng ý với điều khoản dịch vụ",
-  "uploadSuccess": "Tải lên thành công",
-  "uploadFailed": "Tải lên thất bại",
-  "otpSent": "Mã OTP đã được gửi thành công",
-  "otpError": "Mã OTP không hợp lệ hoặc đã hết hạn",
   "validChoosePet": "Vui lòng chọn một thú cưng để đặt lịch!",
   "validChooseClinic": "Vui lòng chọn phòng khám!",
   "validChooseService": "Vui lòng chọn dịch vụ!",

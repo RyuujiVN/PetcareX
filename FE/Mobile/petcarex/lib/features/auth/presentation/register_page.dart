@@ -45,7 +45,7 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!(_formKey.currentState?.validate() ?? false)) return;
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.agreeToTermsError)),
+        SnackBar(content: Text(l10n.agreeToTermsError), backgroundColor: AppColors.error),
       );
       return;
     }
@@ -65,7 +65,7 @@ class _RegisterPageState extends State<RegisterPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(l10n.registerSuccess),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.success,
           ),
         );
         Navigator.pop(context);
@@ -78,13 +78,16 @@ class _RegisterPageState extends State<RegisterPage> {
         }
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text((errorData is Map ? errorData['message'] : null) ?? l10n.failed)),
+          SnackBar(
+            content: Text((errorData is Map ? errorData['message'] : null) ?? l10n.failed),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -101,7 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(l10n.loginGoogleSuccess),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.success,
         ),
       );
       Navigator.pushAndRemoveUntil(
@@ -113,7 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       if (authProvider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.errorMessage!)),
+          SnackBar(content: Text(authProvider.errorMessage!), backgroundColor: AppColors.error),
         );
       }
     }
@@ -136,7 +139,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 ),
               ),
             ),
-            _buildFooter(),
+            _buildFooter(l10n),
           ],
         ),
       ),
@@ -147,8 +150,8 @@ class _RegisterPageState extends State<RegisterPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEEF2F3))),
+        color: AppColors.appBarBackground,
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -160,7 +163,7 @@ class _RegisterPageState extends State<RegisterPage> {
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1),
+                  border: Border.all(color: AppColors.textDark, width: 1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Image.asset('assets/images/icon.png', width: 24, height: 24),
@@ -172,7 +175,7 @@ class _RegisterPageState extends State<RegisterPage> {
               ),
             ],
           ),
-          const Icon(Icons.help_outline, color: AppColors.grey, size: 20),
+          const Icon(Icons.help_outline, color: AppColors.iconGrey, size: 20),
         ],
       ),
     );
@@ -182,21 +185,21 @@ class _RegisterPageState extends State<RegisterPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: AppColors.black.withValues(alpha: 0.03), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Form(
         key: _formKey,
         child: Column(
           children: [
-            Text(l10n.register, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(l10n.register, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark)),
             const SizedBox(height: 16),
-            _buildTextField(label: l10n.fullName, hint: l10n.fullName, controller: nameController, icon: Icons.person_outline),
+            _buildTextField(l10n: l10n, label: l10n.fullName, hint: l10n.fullName, controller: nameController, icon: Icons.person_outline),
             const SizedBox(height: 10),
-            _buildTextField(label: l10n.email, hint: l10n.emailHint, controller: emailController, icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
+            _buildTextField(l10n: l10n, label: l10n.email, hint: l10n.emailHint, controller: emailController, icon: Icons.email_outlined, keyboardType: TextInputType.emailAddress),
             const SizedBox(height: 10),
             PasswordTextField(controller: passwordController, label: l10n.password),
             const SizedBox(height: 10),
@@ -215,23 +218,32 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildTextField({required String label, required String hint, required TextEditingController controller, required IconData icon, TextInputType keyboardType = TextInputType.text}) {
+  Widget _buildTextField({
+    required AppLocalizations l10n, 
+    required String label, 
+    required String hint, 
+    required TextEditingController controller, 
+    required IconData icon, 
+    TextInputType keyboardType = TextInputType.text,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark)),
         const SizedBox(height: 4),
         TextFormField(
           controller: controller,
+          style: const TextStyle(color: AppColors.textDark),
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon, size: 18),
+            prefixIcon: Icon(icon, size: 18, color: AppColors.iconGrey),
             filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+            fillColor: AppColors.formFill,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.formBorder)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: const BorderSide(color: AppColors.formBorder)),
           ),
-          validator: (value) => (value == null || value.isEmpty) ? label : null,
+          validator: (value) => (value == null || value.isEmpty) ? l10n.pleaseEnter(label) : null,
         ),
       ],
     );
@@ -241,7 +253,7 @@ class _RegisterPageState extends State<RegisterPage> {
     return Row(
       children: [
         Checkbox(value: _agreeToTerms, activeColor: AppColors.primary, onChanged: (val) => setState(() => _agreeToTerms = val ?? false)),
-        Expanded(child: Text(l10n.agreeTerms, style: const TextStyle(fontSize: 11))),
+        Expanded(child: Text(l10n.agreeTerms, style: const TextStyle(fontSize: 11, color: AppColors.textGrey))),
       ],
     );
   }
@@ -252,8 +264,10 @@ class _RegisterPageState extends State<RegisterPage> {
       height: 48,
       child: ElevatedButton(
         onPressed: _isLoading ? null : _register,
-        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
-        child: _isLoading ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) : Text(l10n.createAccount),
+        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.onPrimary, elevation: 0),
+        child: _isLoading 
+          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2)) 
+          : Text(l10n.createAccount, style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -265,7 +279,7 @@ class _RegisterPageState extends State<RegisterPage> {
       child: OutlinedButton(
         onPressed: _isLoading ? null : _registerWithGoogle,
         style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE0E0E0)),
+          side: const BorderSide(color: AppColors.formBorder),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Row(
@@ -273,7 +287,7 @@ class _RegisterPageState extends State<RegisterPage> {
           children: [
             Image.asset('assets/images/google.png', width: 24, height: 24),
             const SizedBox(width: 12),
-            Text(l10n.loginWithGoogle, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+            Text(l10n.loginWithGoogle, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -284,13 +298,19 @@ class _RegisterPageState extends State<RegisterPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(l10n.alreadyHaveAccount),
-        GestureDetector(onTap: () => Navigator.pop(context), child: Text(l10n.loginNow, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
+        Text(l10n.alreadyHaveAccount, style: const TextStyle(color: AppColors.textGrey)),
+        GestureDetector(
+          onTap: () => Navigator.pop(context), 
+          child: Text(l10n.loginNow, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))
+        ),
       ],
     );
   }
 
-  Widget _buildFooter() {
-    return const Padding(padding: EdgeInsets.symmetric(vertical: 8), child: Text('© 2026 PetCareX Vietnam', style: TextStyle(color: AppColors.grey, fontSize: 9)));
+  Widget _buildFooter(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8), 
+      child: Text(l10n.footerCopyright, style: const TextStyle(color: AppColors.textGrey, fontSize: 9))
+    );
   }
 }

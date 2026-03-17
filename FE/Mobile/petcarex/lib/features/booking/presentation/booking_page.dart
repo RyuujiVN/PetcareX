@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
 import '../../../common/service_enum.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
+import '../../../l10n/generated/app_localizations.dart'; 
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
@@ -39,11 +39,13 @@ class _BookingPageState extends State<BookingPage> {
     );
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PetProvider>().fetchMyPets();
-      final bp = context.read<BookingProvider>();
-      bp.fetchClinics();
-      if (bp.selectedDate == null) {
-        bp.selectDate(_availableDates[0]);
+      if (mounted) {
+        context.read<PetProvider>().fetchMyPets();
+        final bp = context.read<BookingProvider>();
+        bp.fetchClinics();
+        if (bp.selectedDate == null) {
+          bp.selectDate(_availableDates[0]);
+        }
       }
     });
   }
@@ -101,6 +103,7 @@ class _BookingPageState extends State<BookingPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
+        backgroundColor: AppColors.error,
         duration: const Duration(milliseconds: 2500),
         behavior: SnackBarBehavior.floating,
       ),
@@ -125,7 +128,7 @@ class _BookingPageState extends State<BookingPage> {
       l10n.stepPet,
       l10n.stepClinic,
       l10n.stepService,
-      l10n.stepDoctor,
+      l10n.doctor,
       l10n.stepTime,
     ];
 
@@ -138,7 +141,7 @@ class _BookingPageState extends State<BookingPage> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.appBarBackground,
           elevation: 0,
           centerTitle: true,
           automaticallyImplyLeading: false,
@@ -235,7 +238,7 @@ class _BookingPageState extends State<BookingPage> {
     switch (_currentStep) {
       case 0:
         if (petProvider.isLoading) {
-          content = const Center(child: CircularProgressIndicator());
+          content = const Center(child: CircularProgressIndicator(color: AppColors.primary));
         } else {
           content = StepPetSelector(
             selectedPetId: bookingProvider.selectedPetId,
@@ -247,7 +250,7 @@ class _BookingPageState extends State<BookingPage> {
       case 1:
         if (bookingProvider.isLoading && bookingProvider.clinics.isEmpty) {
           return const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
           );
         }
         content = StepClinicSelector(
@@ -268,7 +271,7 @@ class _BookingPageState extends State<BookingPage> {
       case 3:
         if (bookingProvider.isDoctorsLoading) {
           return const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
           );
         }
         content = StepDoctorSelector(
@@ -326,12 +329,12 @@ class _BookingPageState extends State<BookingPage> {
           children: [
             Text(
               titles[_currentStep],
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
             ),
             const SizedBox(height: 8),
             Text(
               subs[_currentStep],
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+              style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
             ),
           ],
         ),
@@ -346,8 +349,8 @@ class _BookingPageState extends State<BookingPage> {
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F1F1))),
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.divider)),
       ),
       child: SizedBox(
         width: double.infinity,
@@ -363,8 +366,8 @@ class _BookingPageState extends State<BookingPage> {
                     }
                   : () => _nextStep(l10n)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: isSuccess ? Colors.white : AppColors.primary,
-            foregroundColor: isSuccess ? AppColors.primary : Colors.white,
+            backgroundColor: isSuccess ? AppColors.surface : AppColors.primary,
+            foregroundColor: isSuccess ? AppColors.primary : AppColors.onPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(27),
             ),
@@ -375,10 +378,10 @@ class _BookingPageState extends State<BookingPage> {
           ),
           child: bookingProvider.isLoading
               ? const SizedBox(
-                  height: 20,
-                  width: 20,
+                  height: 24,
+                  width: 24,
                   child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2))
+                      color: AppColors.onPrimary, strokeWidth: 2))
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
