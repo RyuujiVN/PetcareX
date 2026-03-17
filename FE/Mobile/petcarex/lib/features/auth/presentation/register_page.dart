@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
@@ -87,7 +88,7 @@ class _RegisterPageState extends State<RegisterPage> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString()), backgroundColor: AppColors.error),
+        SnackBar(content: Text(ErrorHandler.getLocalizedError('errorConnection', context)), backgroundColor: AppColors.error),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -116,7 +117,7 @@ class _RegisterPageState extends State<RegisterPage> {
       if (!mounted) return;
       if (authProvider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(authProvider.errorMessage!), backgroundColor: AppColors.error),
+          SnackBar(content: Text(ErrorHandler.getLocalizedError(authProvider.errorMessage, context)), backgroundColor: AppColors.error),
         );
       }
     }

@@ -190,5 +190,10 @@
   "validChooseService": "Vui lòng chọn dịch vụ!",
   "validEnterNote": "Vui lòng nhập triệu chứng hoặc ghi chú cho thú cưng!",
   "validChooseDoctor": "Vui lòng chọn bác sĩ thú y!",
-  "validChooseTime": "Vui lòng chọn khung giờ khám!"
+  "validChooseTime": "Vui lòng chọn khung giờ khám!",
+  "errorUnknown": "Đã có lỗi xảy ra",
+  "errorNetwork": "Lỗi mạng: Vui lòng kiểm tra lại kết nối Internet.",
+  "errorFirebase": "Lỗi cấu hình hệ thống (Firebase).",
+  "errorGoogleAuth": "Không thể lấy thông tin xác thực từ Google."
 }
+

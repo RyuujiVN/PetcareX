@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'providers/auth_provider.dart';
@@ -103,7 +104,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       startTimer();
       _otpFocusNodes[0].requestFocus(); 
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? l10n.connectionError, isError: true);
+      _showQuickSnackBar(ErrorHandler.getLocalizedError(authProvider.errorMessage, context), isError: true);
     }
   }
 
@@ -139,7 +140,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? l10n.connectionError, isError: true);
+      _showQuickSnackBar(ErrorHandler.getLocalizedError(authProvider.errorMessage, context), isError: true);
     }
   }
 

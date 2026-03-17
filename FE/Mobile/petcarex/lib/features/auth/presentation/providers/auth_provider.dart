@@ -62,7 +62,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -104,7 +104,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -112,7 +112,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   String _parseErrorMessage(dynamic body) {
-    if (body == null) return 'Đã có lỗi xảy ra';
+    if (body == null) return 'errorUnknown';
     
     if (body['error'] != null && body['error']['message'] != null) {
       final message = body['error']['message'];
@@ -130,7 +130,7 @@ class AuthProvider extends ChangeNotifier {
       return message.toString();
     }
     
-    return 'Lỗi không xác định';
+    return 'errorUnknown';
   }
 
   // 3. Đăng nhập bằng Google
@@ -153,7 +153,7 @@ class AuthProvider extends ChangeNotifier {
 
       // Đảm bảo tokenid không null
       if (idToken == null) {
-        _errorMessage = 'Không thể lấy được token xác thực từ Google.';
+        _errorMessage = 'errorGoogleAuth';
         _isLoading = false;
         notifyListeners();
         return false;
@@ -192,11 +192,11 @@ class AuthProvider extends ChangeNotifier {
       }
     } catch (e) {
       if (e.toString().contains('ApiException: 7') || e.toString().contains('network_error')) {
-         _errorMessage = 'Lỗi mạng: Kiểm tra kết nối Internet của thiết bị. Nếu ở máy ảo, đảm bảo máy ảo có mạng.';
+         _errorMessage = 'errorNetwork';
       } else if (e.toString().contains('ApiException: 10')) {
-         _errorMessage = 'Lỗi cấu hình Cấu hình Firebase: Có thể SHA-1 chưa được khai báo ở Console của Firebase.';
+         _errorMessage = 'errorFirebase';
       } else {
-         _errorMessage = 'Lỗi đăng nhập Google hoặc Backend: $e';
+         _errorMessage = 'errorGoogleAuth';
       }
       
       _isLoading = false;
@@ -310,7 +310,7 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -344,7 +344,7 @@ class AuthProvider extends ChangeNotifier {
         return null;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi upload ảnh: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return null;
@@ -364,11 +364,11 @@ class AuthProvider extends ChangeNotifier {
         notifyListeners();
         return true;
       }
-      _errorMessage = jsonDecode(response.body)['message'] ?? 'Gửi yêu cầu thất bại';
+      _errorMessage = jsonDecode(response.body)['message'] ?? 'errorUnknown';
       notifyListeners();
       return false;
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;
@@ -403,7 +403,7 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;

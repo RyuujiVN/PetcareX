@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'providers/auth_provider.dart';
@@ -45,7 +46,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       _showQuickSnackBar(l10n.changePasswordSuccess, isError: false);
       Navigator.pop(context);
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? l10n.failed, isError: true);
+      _showQuickSnackBar(ErrorHandler.getLocalizedError(authProvider.errorMessage, context), isError: true);
     }
   }
 

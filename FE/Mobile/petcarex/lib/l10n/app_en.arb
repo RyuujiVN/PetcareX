@@ -162,5 +162,9 @@
   "validChooseService": "Please select a service!",
   "validEnterNote": "Please enter symptoms or notes for your pet!",
   "validChooseDoctor": "Please select a veterinarian!",
-  "validChooseTime": "Please select an appointment time!"
+  "validChooseTime": "Please select an appointment time!",
+  "errorUnknown": "An unknown error occurred",
+  "errorNetwork": "Network error: Please check your Internet connection.",
+  "errorFirebase": "System configuration error (Firebase).",
+  "errorGoogleAuth": "Failed to retrieve authentication token from Google."
 }

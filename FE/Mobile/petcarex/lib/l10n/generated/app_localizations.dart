@@ -1033,6 +1033,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Vui lòng chọn khung giờ khám!'**
   String get validChooseTime;
+
+  /// No description provided for @errorUnknown.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã có lỗi xảy ra'**
+  String get errorUnknown;
+
+  /// No description provided for @errorNetwork.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi mạng: Vui lòng kiểm tra lại kết nối Internet.'**
+  String get errorNetwork;
+
+  /// No description provided for @errorFirebase.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi cấu hình hệ thống (Firebase).'**
+  String get errorFirebase;
+
+  /// No description provided for @errorGoogleAuth.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể lấy thông tin xác thực từ Google.'**
+  String get errorGoogleAuth;
 }
 
 class _AppLocalizationsDelegate

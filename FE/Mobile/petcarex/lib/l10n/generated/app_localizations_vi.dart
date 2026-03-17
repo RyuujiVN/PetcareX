@@ -490,4 +490,17 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get validChooseTime => 'Vui lòng chọn khung giờ khám!';
+
+  @override
+  String get errorUnknown => 'Đã có lỗi xảy ra';
+
+  @override
+  String get errorNetwork =>
+      'Lỗi mạng: Vui lòng kiểm tra lại kết nối Internet.';
+
+  @override
+  String get errorFirebase => 'Lỗi cấu hình hệ thống (Firebase).';
+
+  @override
+  String get errorGoogleAuth => 'Không thể lấy thông tin xác thực từ Google.';
 }

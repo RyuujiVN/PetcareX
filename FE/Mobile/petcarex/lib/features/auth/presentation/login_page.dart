@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/providers/language_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
@@ -68,14 +70,6 @@ class _LoginPageState extends State<LoginPage> {
     super.dispose();
   }
 
-  void _quickAdminLogin() {
-    setState(() {
-      _emailController.text = "admin";
-      _passwordController.text = "12345";
-    });
-    _login();
-  }
-
   Future<void> _login() async {
     final l10n = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
@@ -117,7 +111,7 @@ class _LoginPageState extends State<LoginPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
+          content: Text(ErrorHandler.getLocalizedError(authProvider.errorMessage, context)),
           backgroundColor: AppColors.error,
           behavior: SnackBarBehavior.floating,
         ),
@@ -149,7 +143,7 @@ class _LoginPageState extends State<LoginPage> {
       if (authProvider.errorMessage != null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage!),
+            content: Text(ErrorHandler.getLocalizedError(authProvider.errorMessage, context)),
             backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
@@ -166,19 +160,93 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              children: [
-                _buildHeader(l10n),
-                const SizedBox(height: 32),
-                _buildLoginCard(isLoading, l10n),
-              ],
+        child: Stack(
+          children: [
+            Center(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    _buildHeader(l10n),
+                    const SizedBox(height: 32),
+                    _buildLoginCard(isLoading, l10n),
+                  ],
+                ),
+              ),
             ),
-          ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: _buildLanguageSelector(),
+            ),
+          ],
         ),
       ),
+    );
+  }
+
+  Widget _buildLanguageSelector() {
+    final currentLocale = context.watch<LanguageProvider>().locale.languageCode;
+    return PopupMenuButton<String>(
+      tooltip: '', // Tắt tooltip mặc định (Hiển thị menu)
+      onSelected: (String languageCode) {
+        context.read<LanguageProvider>().setLocale(Locale(languageCode));
+      },
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(color: AppColors.black.withValues(alpha: 0.05), blurRadius: 10),
+          ],
+        ),
+        child: const Icon(Icons.language, color: AppColors.primary, size: 24),
+      ),
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        PopupMenuItem<String>(
+          value: 'vi',
+          child: Row(
+            children: [
+              const Text('🇻🇳', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
+              Text(
+                'Tiếng Việt', 
+                style: TextStyle(
+                  fontWeight: currentLocale == 'vi' ? FontWeight.bold : FontWeight.normal,
+                  color: currentLocale == 'vi' ? AppColors.primary : AppColors.textDark,
+                ),
+              ),
+              if (currentLocale == 'vi') ...[
+                const Spacer(),
+                const Icon(Icons.check, color: AppColors.primary, size: 18),
+              ]
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'en',
+          child: Row(
+            children: [
+              const Text('🇺🇸', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
+              Text(
+                'English', 
+                style: TextStyle(
+                  fontWeight: currentLocale == 'en' ? FontWeight.bold : FontWeight.normal,
+                  color: currentLocale == 'en' ? AppColors.primary : AppColors.textDark,
+                ),
+              ),
+              if (currentLocale == 'en') ...[
+                const Spacer(),
+                const Icon(Icons.check, color: AppColors.primary, size: 18),
+              ]
+            ],
+          ),
+        ),
+      ],
     );
   }
 

@@ -509,4 +509,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get validChooseTime => 'Please select an appointment time!';
+
+  @override
+  String get errorUnknown => 'An unknown error occurred';
+
+  @override
+  String get errorNetwork =>
+      'Network error: Please check your Internet connection.';
+
+  @override
+  String get errorFirebase => 'System configuration error (Firebase).';
+
+  @override
+  String get errorGoogleAuth =>
+      'Failed to retrieve authentication token from Google.';
 }
