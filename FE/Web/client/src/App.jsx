@@ -15,6 +15,7 @@ import AppointmentDetail from './pages/User/AppointmentDetail'
 import SuccessBooking from './pages/User/SuccessBooking'
 import PetProfile from './pages/User/PetProfile'
 import ListPet from './pages/User/ListPet';
+import MedicalRecords from './pages/User/MedicalRecords/medicalRecords'
 import './App.css'
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
       <Route path="/success-booking" element={<SuccessBooking />} />
       <Route path="/petProfile" element={<PetProfile />} />
       <Route path="/listPet" element={<ListPet />} />
+      <Route path="/medical-records" element={<MedicalRecords />} />
     </Routes>
   )
 }

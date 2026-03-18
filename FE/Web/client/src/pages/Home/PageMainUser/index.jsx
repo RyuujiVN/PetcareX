@@ -116,7 +116,7 @@ export default function PageMainUser() {
   };
 
   const goToMedicalRecords = () => {
-    navigate("/listPet");
+    navigate("/medical-records");
   };
 
   const goToAppointmentDetail = () => {
