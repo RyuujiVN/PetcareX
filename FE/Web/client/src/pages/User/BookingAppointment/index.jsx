@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { message, Spin } from 'antd';
+import { Select, Card, Avatar, Row, Col, Input } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './styles.css';
 import Header from '../../../components/layout/header';
@@ -382,69 +383,87 @@ export default function BookingAppointment() {
             </section>
 
             <section className="step">
-              <h2><span className="step-number">2</span> Dịch vụ & Phòng khám</h2>
-              <div className="row row-inline">
-                <div className="field-col">
-                  <label>Chọn dịch vụ</label>
-                  <select value={service} onChange={(e) => setService(e.target.value)}>
-                    {serviceOptions.map((item) => (
-                      <option key={item} value={item}>{item}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="field-col">
-                  <label>Phòng khám gần bạn</label>
-                  <select
+              <h2>
+                <span className="step-number">2</span> Dịch vụ & Phòng khám
+              </h2>
+              <Row gutter={16}>
+                <Col span={12}>
+                  <label style={{color:'#333', padding: 2}}>Chọn dịch vụ</label>
+                  <Select
+                    style={{ width: '100%'}}
+                    value={service}
+                    onChange={(value) => setService(value)}
+                    options={serviceOptions.map((item) => ({
+                      label: item,
+                      value: item,
+                    }))}
+                  />
+                </Col>
+
+                <Col span={12}>
+                  <label style={{color:'#333', padding: 2}}>Phòng khám gần bạn</label>
+                  <Select
+                    style={{ width: '100%' }}
                     value={clinicId}
-                    onChange={(e) => setClinicId(e.target.value)}
+                    onChange={(value) => setClinicId(value)}
                     disabled={Boolean(preselectedClinicId)}
-                  >
-                    {clinics.map((item) => (
-                      <option key={item.id} value={item.id}>{item.name}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+                    options={clinics.map((item) => ({
+                      label: item.name,
+                      value: item.id,
+                    }))}
+                  />
+                </Col>
+              </Row>
             </section>
 
             <section className="step">
-              <h2><span className="step-number">3</span> Chọn Bác sĩ chuyên khoa</h2>
-              <div className="row row-inline">
-                <div className="field-col">
-                  <label>Bác sĩ</label>
-                  <select value={doctorId} onChange={(e) => setDoctorId(e.target.value)}>
-                    {doctors.map((item) => (
-                      <option key={item.userId} value={item.userId}>{item.user?.fullName}</option>
-                    ))}
-                  </select>
-                </div>
-            <div className="field-col doctor-card">
-              <div className="doctor-card-inner">
-                <img
-                  className="doctor-avatar"
-                  src={selectedDoctor?.user?.avatarUrl || '/bs1.png'}
-                  alt={selectedDoctorName || 'Bác sĩ'}
-                />
+              <h2>
+                <span className="step-number">3</span> Chọn Bác sĩ chuyên khoa
+              </h2>
 
-                <div className="doctor-info">
-                  <div className="doctor-name">
-                    {selectedDoctorName || 'Chưa chọn bác sĩ'}
-                  </div>
+              <Row gutter={16} align="middle">
+                <Col span={12}>
+                  <label style={{color:'#333', padding: 2}}>Bác sĩ</label>
+                  <Select
+                    style={{ width: '100%', marginBottom: 60 }}
+                    value={doctorId}
+                    onChange={(value) => setDoctorId(value)}
+                    options={doctors.map((item) => ({
+                      label: item.user?.fullName,
+                      value: item.userId,
+                    }))}
+                  />
+                </Col>
 
-                  <div className="doctor-specialty">
-                    {selectedDoctor?.specialty || 'Chưa có chuyên môn'}
-                  </div>
-                </div>
-              </div>
-            </div>
-              </div>
-              <div className="row">
-                <label>Triệu chứng</label>
-                <textarea
+                <Col span={12}>
+                  <Card
+                    style={{ borderRadius: 12 }}
+                    bodyStyle={{ display: 'flex', alignItems: 'center', gap: 16 }}
+                  >
+                    <Avatar
+                      size={64}
+                      src={selectedDoctor?.user?.avatarUrl || '/bs1.png'}
+                    />
+
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 16 }}>
+                        {selectedDoctorName || 'Chưa chọn bác sĩ'}
+                      </div>
+
+                      <div style={{ color: '#888' }}>
+                        {selectedDoctor?.specialty || 'Chưa có chuyên môn'}
+                      </div>
+                    </div>
+                  </Card>
+                </Col>
+              </Row>
+              <div style={{ marginTop: 16 }}>
+                <label style={{color:'#333', padding: 2}}>Triệu chứng</label>
+                <Input.TextArea
                   placeholder="Ghi triệu chứng của thú cưng"
                   value={symptoms}
                   onChange={(e) => setSymptoms(e.target.value)}
-                  style={{ color:'#333' }}
+                  rows={4}
                 />
               </div>
             </section>

@@ -44,7 +44,20 @@ const AppointmentDetail = () => {
       setLoading(false);
     }
   };
+useEffect(() => {
+  if (isModalVisible) {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  }
 
+  return () => {
+    document.body.style.overflow = '';
+    document.documentElement.style.overflow = '';
+  };
+}, [isModalVisible]);
   useEffect(() => {
     fetchAppointments();
   }, []);
@@ -104,6 +117,7 @@ const AppointmentDetail = () => {
       okText: 'Có, hủy',
       cancelText: 'Không, quay lại',
       okButtonProps: { danger: true },
+      centered: true,
       async onOk() {
         try {
           await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELED);
@@ -131,7 +145,6 @@ const AppointmentDetail = () => {
         <antd.Col xs={24} sm={6}>
           <div className="appointment-pet-image">
             <img src={appointment.avatar} alt={appointment.petName} />
-            {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: '#1890ff' }} />}
           </div>
         </antd.Col>
         <antd.Col xs={24} sm={12}>
@@ -141,6 +154,7 @@ const AppointmentDetail = () => {
                 {appointment.petName} - {appointment.breed}
               </h3>
               {isHistory && <antd.Tag color="blue">{appointment.daysAgo}</antd.Tag>}
+              {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: '#1890ff' }} />}
             </div>
 
             <div className="appointment-info">
@@ -269,11 +283,13 @@ const AppointmentDetail = () => {
             },
           ]}
         />
-
         <antd.Modal
           title="Chi tiết lịch khám"
           open={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
+          centered
+          maskClosable={false}
+          destroyOnClose
           footer={[
             <antd.Button key="back" onClick={() => setIsModalVisible(false)}>
               Đóng
@@ -291,57 +307,67 @@ const AppointmentDetail = () => {
             </antd.Button>,
           ]}
           width={700}
+          className="custom-modal-fixed"
         >
           {selectedAppointment && (
-            <div className="modal-contents">
-              <antd.Row gutter={[16, 16]}>
-                <antd.Col span={8}>
-                  <img
-                    src={selectedAppointment.avatar}
-                    alt={selectedAppointment.petName}
-                    style={{ width: '100%', borderRadius: '8px' }}
-                  />
-                </antd.Col>
-                <antd.Col span={16}>
-                  <h3>Thông tin thú cưng</h3>
-                  <p>
-                    <strong>Tên:</strong> {selectedAppointment.petName}
-                  </p>
-                  <p>
-                    <strong>Giống loại:</strong> {selectedAppointment.breed}
-                  </p>
-                  <antd.Divider />
-                  <h3>Thông tin lịch khám</h3>
-                  <p>
-                    <icons.CalendarOutlined /> <strong>Ngày:</strong> {selectedAppointment.date}
-                  </p>
-                  <p>
-                    <icons.ClockCircleOutlined /> <strong>Giờ:</strong> {selectedAppointment.time}
-                  </p>
-                  <p>
-                    <icons.EnvironmentOutlined /> <strong>Phòng khám:</strong>{' '}
-                    {selectedAppointment.clinic}
-                  </p>
-                  <p>
-                    <icons.UserOutlined /> <strong>Bác sĩ:</strong>{' '}
-                    {selectedAppointment.veterinarian}
-                  </p>
-                  <p>
-                    <icons.MedicineBoxOutlined /> <strong>Dịch vụ:</strong>{' '}
-                    {selectedAppointment.service}
-                  </p>
-                </antd.Col>
-              </antd.Row>
+       <div className="modal-contents">
 
-              {selectedAppointment.notes && (
-                <>
-                  <antd.Divider />
-                  <p>
-                    <strong>Ghi chú:</strong> {selectedAppointment.notes}
-                  </p>
-                </>
-              )}
-            </div>
+  <antd.Row gutter={16} align="middle">
+    <antd.Col span={5}>
+      <img
+        src={selectedAppointment.avatar}
+        alt={selectedAppointment.petName}
+        className="modal-avatar"
+      />
+    </antd.Col>
+
+    <antd.Col span={16}>
+      <div className="info-header">
+        <h3>Thông tin thú cưng</h3>
+        <p><strong>Tên:</strong> {selectedAppointment.petName}</p>
+        <p><strong>Giống loại:</strong> {selectedAppointment.breed}</p>
+      </div>
+    </antd.Col>
+  </antd.Row>
+
+  <antd.Divider />
+
+  <div className="appointment-detail-info">
+    <h3>Thông tin lịch khám</h3>
+
+    <p>
+      <icons.CalendarOutlined /> <strong>Ngày:</strong> {selectedAppointment.date}
+    </p>
+
+    <p>
+      <icons.ClockCircleOutlined /> <strong>Giờ:</strong> {selectedAppointment.time}
+    </p>
+
+    <p>
+      <icons.EnvironmentOutlined /> <strong>Phòng khám:</strong> {selectedAppointment.clinic}
+    </p>
+
+    <p>
+      <icons.UserOutlined /> <strong>Bác sĩ:</strong> {selectedAppointment.veterinarian}
+    </p>
+
+    <p>
+      <icons.MedicineBoxOutlined /> <strong>Dịch vụ:</strong> {selectedAppointment.service}
+    </p>
+  </div>
+
+  {selectedAppointment.notes && (
+    <>
+      <antd.Divider />
+      <div className="appointment-notes">
+        <strong>Ghi chú:</strong>
+      <div className="notes-content modal-notes">
+      {selectedAppointment.notes}
+        </div>
+      </div>
+    </>
+  )}
+</div>
           )}
         </antd.Modal>
       </div>
