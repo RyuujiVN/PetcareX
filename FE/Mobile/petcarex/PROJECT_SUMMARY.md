@@ -83,6 +83,10 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
         - Nếu backend trả mảng lỗi validate, FE chỉ lấy **lỗi đầu tiên** để hiển thị cho người dùng (tránh nhồi nhiều lỗi một lúc).
         - Tránh hiển thị chung chung `Bad Request Exception` khi có thông điệp chi tiết.
 - **Map lỗi backend sang i18n:** `ErrorHandler` đã bổ sung mapping các thông điệp validate phổ biến (ví dụ `Email không hợp lệ`, rule độ mạnh mật khẩu) sang key localization để hiển thị đúng theo ngôn ngữ hiện tại.
+- **Google Auth Contract Sync (FE-BE):**
+    - Backend `LoginGoogleDTO` hiện yêu cầu payload gồm `googleIdToken`, `fullName`, `avatarUrl`.
+    - FE `AuthProvider.loginWithGoogle(...)` đã đồng bộ gửi đủ 3 trường trong **một request** cho cả luồng Login và Register (2 màn này dùng chung provider method).
+    - Nguồn dữ liệu profile ưu tiên: `GoogleSignInAccount` -> `FirebaseAuth.currentUser`; nếu thiếu tên hiển thị thì fallback bằng phần trước `@` của email để tránh fail validate `fullName`.
 - **Reset Password UX đồng bộ Register:**
     - Trường `Nhập mật khẩu mới` và `Nhập lại mật khẩu` đã dùng inline validation theo `Form` (không chỉ báo Snackbar cho lỗi sai khớp như trước).
     - Rule hiển thị lỗi thống nhất: `enterPassword`, `enterConfirmPassword`, `passwordsNotMatch`.

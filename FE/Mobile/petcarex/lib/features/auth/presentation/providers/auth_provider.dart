@@ -192,10 +192,24 @@ class AuthProvider extends ChangeNotifier {
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
 
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      String fullName =
+          (googleUser.displayName ?? firebaseUser?.displayName ?? '').trim();
+      if (fullName.isEmpty) {
+        fullName = googleUser.email.split('@').first;
+      }
+
+      final avatarUrl =
+          (googleUser.photoUrl ?? firebaseUser?.photoURL ?? '').trim();
+
       // Gửi tokenid xuống BE
       final response = await _apiClient.post(
         AppConstants.END_POINT_AUTH_LOGIN_GOOGLE,
-        {'googleIdToken': idToken},
+        {
+          'googleIdToken': idToken,
+          'fullName': fullName,
+          'avatarUrl': avatarUrl,
+        },
       );
 
       final body = jsonDecode(response.body);
