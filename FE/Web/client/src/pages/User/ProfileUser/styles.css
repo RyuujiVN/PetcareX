@@ -54,7 +54,6 @@ body {
   position: relative;
 }
 
-/* Back Button */
 .profile-back-button {
   padding: 16px 30px;
   border-bottom: 1px solid var(--border-color);
@@ -75,7 +74,6 @@ body {
   transform: translateX(-4px);
 }
 
-/* Header với Avatar */
 .profile-header {
   background: linear-gradient( white);
   padding: 40px 30px;
@@ -139,13 +137,13 @@ body {
   color: rgb(8, 8, 8);
 }
 
-.profile-subtitle {
+.profile-subtitles {
   font-size: 14px;
-  color: #13ECDA;
+  color: #d64f26;
   margin: 0;
 }
 
-.profile-title{
+.profile-titles{
     font-size: 28px;
     font-weight: 700;
     margin-right: 63%;
@@ -161,7 +159,6 @@ body {
 
 }
 
-/* Form Card */
 .profile-form-card {
   border: none !important;
   box-shadow: none !important;
@@ -173,7 +170,6 @@ body {
   padding: 0 !important;
 }
 
-/* Form Layout */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -189,7 +185,6 @@ body {
   margin-bottom: 0 !important;
 }
 
-/* Form Labels */
 .profile-form-card :where(.ant-form-item-label > label) {
   color: var(--text-primary) !important;
   font-weight: 600 !important;
@@ -197,7 +192,6 @@ body {
   margin-bottom: 8px !important;
 }
 
-/* Form Inputs */
 .form-input {
   border-radius: 8px !important;
   border: 1px solid var(--border-color) !important;
@@ -228,7 +222,6 @@ body {
   color: var(--text-secondary) !important;
 }
 
-/* Select Dropdown */
 .form-input .ant-select-selector {
   border-radius: 8px !important;
   border: 1px solid var(--border-color) !important;
@@ -306,7 +299,6 @@ body {
   background: #0BB5A5 !important;
 }
 
-/* Error Message */
 .ant-form-item-explain-error {
   color: #ef4444 !important;
   font-size: 13px !important;
@@ -321,7 +313,6 @@ body {
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .profile-container {
     padding: 20px 15px;
@@ -396,7 +387,6 @@ body {
   }
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -412,7 +402,6 @@ body {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Spinner Animation */
 .ant-spin {
   color: var(--primary-color) !important;
 }

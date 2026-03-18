@@ -106,7 +106,7 @@ export default function ProfileUser() {
         <Header/>
       <div className="profile-wrapper">
         <div className="profile-header">
-                        <h2 className="profile-title">Thông tin cá nhân</h2>
+        <h2 className="profile-titles">Thông tin cá nhân</h2>
 
           <div className="profile-avatar-section">
               <p className="profile-description">
@@ -137,7 +137,7 @@ export default function ProfileUser() {
               <h2 className="profile-name">
                 {profileData?.fullName || 'Người dùng'}
               </h2>
-              <p className="profile-subtitle">Chủ nuôi thú cưng</p>
+              <p className="profile-subtitles">Chủ nuôi thú cưng</p>
             </div>
           </div>
         </div>
@@ -200,7 +200,7 @@ export default function ProfileUser() {
               >
                 <Input
                   prefix={<MailOutlined />}
-                  placeholder="nguyen@email.com"
+                  placeholder="Nhập email của bạn"
                   size="large"
                   className="form-input"
                 />
@@ -215,7 +215,7 @@ export default function ProfileUser() {
             >
               <Input
                 prefix={<HomeOutlined />}
-                placeholder="145/7 Trần Cao Vân, TP. Đà Nẵng"
+                placeholder="Nhập địa chỉ của bạn"
                 size="large"
                 className="form-input"
               />
