@@ -3,6 +3,7 @@ import { RoomService } from './room.service';
 import {
   Body,
   Controller,
+  Delete,
   Param,
   Patch,
   Post,
@@ -42,6 +43,16 @@ export class RoomController {
 
     return {
       message: 'Sửa tên đoạn chat thành công',
+    };
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Xoá đoạn chat' })
+  async deleteRoom(@Req() req, @Param(':id') id: string) {
+    await this.roomService.deleteRoom(id, req?.user?.id);
+
+    return {
+      message: 'Xoá đoạn chat thành công',
     };
   }
 }
