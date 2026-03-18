@@ -388,9 +388,9 @@ export default function BookingAppointment() {
               </h2>
               <Row gutter={16}>
                 <Col span={12}>
-                  <label style={{color:'#333', padding: 2}}>Chọn dịch vụ</label>
+                  <label style={{color:'#333', padding: 2, fontSize: 16}}>Chọn dịch vụ</label>
                   <Select
-                    style={{ width: '100%'}}
+                    style={{ width: '100%', height: '70%' }}
                     value={service}
                     onChange={(value) => setService(value)}
                     options={serviceOptions.map((item) => ({
@@ -401,9 +401,9 @@ export default function BookingAppointment() {
                 </Col>
 
                 <Col span={12}>
-                  <label style={{color:'#333', padding: 2}}>Phòng khám gần bạn</label>
+                  <label style={{color:'#333', padding: 2, fontSize: 16}}>Phòng khám gần bạn</label>
                   <Select
-                    style={{ width: '100%' }}
+                    style={{ width: '100%', height: '70%' }}
                     value={clinicId}
                     onChange={(value) => setClinicId(value)}
                     disabled={Boolean(preselectedClinicId)}
@@ -423,9 +423,9 @@ export default function BookingAppointment() {
 
               <Row gutter={16} align="middle">
                 <Col span={12}>
-                  <label style={{color:'#333', padding: 2}}>Bác sĩ</label>
+                  <label style={{color:'#333', padding: 2, fontSize: 16}}>Bác sĩ</label>
                   <Select
-                    style={{ width: '100%', marginBottom: 60 }}
+                    style={{ width: '100%',  marginBottom: 60 }}
                     value={doctorId}
                     onChange={(value) => setDoctorId(value)}
                     options={doctors.map((item) => ({
@@ -434,7 +434,6 @@ export default function BookingAppointment() {
                     }))}
                   />
                 </Col>
-
                 <Col span={12}>
                   <Card
                     style={{ borderRadius: 12 }}
@@ -458,7 +457,7 @@ export default function BookingAppointment() {
                 </Col>
               </Row>
               <div style={{ marginTop: 16 }}>
-                <label style={{color:'#333', padding: 2}}>Triệu chứng</label>
+                <label style={{color:'#333', padding: 2, fontSize: 16}}>Triệu chứng</label>
                 <Input.TextArea
                   placeholder="Ghi triệu chứng của thú cưng"
                   value={symptoms}
