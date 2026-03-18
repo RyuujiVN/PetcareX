@@ -33,6 +33,7 @@ const getAppointmentDateLabel = (dateValue) => {
 
 export default function BookingAppointment() {
   const navigate = useNavigate();
+  const [showSummary, setShowSummary] = useState(false);
   const location = useLocation();
   const { userProfile } = useAuth();
   const today = useMemo(() => new Date(), []);
@@ -347,8 +348,8 @@ export default function BookingAppointment() {
     <div className="booking-page">
       <Header />
       <header className="dashboard-header">
-        <h1 style={{marginRight: '40%'}}>Chào mừng trở lại, {userProfile?.fullName || 'bạn'}!</h1>
-        <p style={{marginRight: '60%'}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
+        <h1 style={{marginRight: '30%'}}>Chào mừng, {userProfile?.fullName || 'bạn'}!</h1>
+        <p style={{marginRight: '48%'}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
       </header>
       <Spin spinning={loading || submitting}>
         <div className="booking-content">
@@ -417,15 +418,25 @@ export default function BookingAppointment() {
                     ))}
                   </select>
                 </div>
-                <div className="field-col doctor-card">
-                  <div className="card-content">
-                    <img src={selectedDoctor?.user?.avatarUrl || '/bs1.png'} alt={selectedDoctorName || 'Bác sĩ'} />
-                    <div className="info">
-                      <strong>{selectedDoctorName || 'Chưa chọn bác sĩ'}</strong>
-                      <span>{selectedDoctor?.specialty || 'Chưa có chuyên môn'}</span>
-                    </div>
+            <div className="field-col doctor-card">
+              <div className="doctor-card-inner">
+                <img
+                  className="doctor-avatar"
+                  src={selectedDoctor?.user?.avatarUrl || '/bs1.png'}
+                  alt={selectedDoctorName || 'Bác sĩ'}
+                />
+
+                <div className="doctor-info">
+                  <div className="doctor-name">
+                    {selectedDoctorName || 'Chưa chọn bác sĩ'}
+                  </div>
+
+                  <div className="doctor-specialty">
+                    {selectedDoctor?.specialty || 'Chưa có chuyên môn'}
                   </div>
                 </div>
+              </div>
+            </div>
               </div>
               <div className="row">
                 <label>Triệu chứng</label>
@@ -510,61 +521,88 @@ export default function BookingAppointment() {
                   })}
                 </div>
               </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
+          <button
+            className="btn-confirm"
+            onClick={() => setShowSummary(true)}
+            style={{ width: '200px', border: '1px solid #ccc' , padding: '10px', borderRadius:'10px', backgroundColor: '#6d6d6d', color: '#ffffff' }}
+          >
+            Xác nhận
+          </button>
+        </div>
             </section>
           </div>
-
-          <aside className="summary-column">
-            <div className="summary-card">
-              <h3>Tóm tắt lịch hẹn</h3>
-              <p>Vui lòng kiểm tra kỹ thông tin</p>
-              {selectedPet && (
-                <div className="summary-line">
-                  <span className="icon">🐾</span>
-                  <div className="text">
-                    <div className="label">THÚ CƯNG</div>
-                    <div className="value">{selectedPet.name} ({selectedPet.breed?.name || 'Chưa có giống'})</div>
-                  </div>
-                </div>
-              )}
-              <div className="summary-line">
-                <span className="icon">🩺</span>
-                <div className="text">
-                  <div className="label">DỊCH VỤ</div>
-                  <div className="value">{service}</div>
-                </div>
-              </div>
-              <div className="summary-line">
-                <span className="icon">👨‍⚕️</span>
-                <div className="text">
-                  <div className="label">BÁC SĨ</div>
-                  <div className="value">{selectedDoctorName || 'Chưa chọn'}</div>
-                </div>
-              </div>
-              <div className="summary-line">
-                <span className="icon">🏥</span>
-                <div className="text">
-                  <div className="label">PHÒNG KHÁM</div>
-                  <div className="value">{selectedClinic?.name || 'Chưa chọn'}</div>
-                </div>
-              </div>
-              <div className="summary-line">
-                <span className="icon">⏰</span>
-                <div className="text">
-                  <div className="label">THỜI GIAN</div>
-                  <div className="value">{selectedTime || 'Chưa chọn giờ'}, {getAppointmentDateLabel(selectedDate)}</div>
-                </div>
-              </div>
-              <hr />
-              <button className="btn-confirm" onClick={handleConfirm}>
-                Xác nhận đặt lịch →
-              </button>
-              <p className="footnote">Khung giờ mờ là giờ đã qua hoặc đã có lịch đặt.</p>
-            </div>
-          </aside>
         </div>
       </Spin>
-
       <Footer />
+      {showSummary && (
+  <div className="summary-overlay">
+    <div className="summary-modal">
+      <h3>Tóm tắt lịch hẹn</h3>
+      {selectedPet && (
+        <div className="summary-line">
+          <span className="icon">🐾</span>
+          <div className="text">
+            <div className="label">THÚ CƯNG</div>
+            <div className="value">
+              {selectedPet.name} ({selectedPet.breed?.name || 'Chưa có giống'})
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="summary-line">
+        <span className="icon">🩺</span>
+        <div className="text">
+          <div className="label">DỊCH VỤ</div>
+          <div className="value">{service}</div>
+        </div>
+      </div>
+
+      <div className="summary-line">
+        <span className="icon">👨‍⚕️</span>
+        <div className="text">
+          <div className="label">BÁC SĨ</div>
+          <div className="value">{selectedDoctorName || 'Chưa chọn'}</div>
+        </div>
+      </div>
+
+      <div className="summary-line">
+        <span className="icon">🏥</span>
+        <div className="text">
+          <div className="label">PHÒNG KHÁM</div>
+          <div className="value">{selectedClinic?.name || 'Chưa chọn'}</div>
+        </div>
+      </div>
+
+      <div className="summary-line">
+        <span className="icon">⏰</span>
+        <div className="text">
+          <div className="label">THỜI GIAN</div>
+          <div className="value">
+            {selectedTime || 'Chưa chọn giờ'}, {getAppointmentDateLabel(selectedDate)}
+          </div>
+        </div>
+      </div>
+
+      <div className="modal-actions">
+        <button
+          className="btn-cancels"
+          onClick={() => setShowSummary(false)}
+        >
+          Quay lại
+        </button>
+
+        <button
+          className="btn-confirms"
+          onClick={handleConfirm}
+        >
+          Xác nhận đặt lịch
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

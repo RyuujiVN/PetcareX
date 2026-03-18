@@ -1,4 +1,4 @@
-import { FaFire, FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
+import { FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../../../components/layout/footer";
 import Header from "../../../components/layout/header";
@@ -230,9 +230,6 @@ export default function HomePageClinic() {
           <div className="community-header">
             <span className="community-subtitle">CỘNG ĐỒNG KẾT NỐI</span>
             <h2 className="section-title">Diễn đàn cộng đồng PetCareX</h2>
-            <div className="community-hot">
-              <FaFire className="hot-icon" /> <span>Thảo luận sôi nổi</span>
-            </div>
           </div>
           <div className="community-grid">
             {posts.map((p) => (
