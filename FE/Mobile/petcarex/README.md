@@ -16,5 +16,10 @@ For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
 
-## Trước khi chạy phải chạy 
-powershell C:\Users\Dell\AppData\Local\Android\Sdk\platform-tools\adb.exe reverse tcp:3000 tcp:3000
+## Chạy app Android (USB)
+Nếu thiết bị chưa ở trạng thái `device` (ví dụ `unauthorized`), hãy mở lại USB debugging và chạy tay lệnh sau khi cần:
+```powershell
+adb reverse tcp:3000 tcp:3000
+```
+Hoặc chạy tại cmd:
+C:\Users\{Model Device}\AppData\Local\Android\Sdk\platform-tools\adb.exe reverse tcp:3000 tcp:3000
