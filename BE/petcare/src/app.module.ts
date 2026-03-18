@@ -20,6 +20,7 @@ import { MedicalOrderModule } from './medical-order/medical-order.module';
 import { MedicineModule } from './medicine/medicine.module';
 import { ForumModule } from './forum/forum.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { ChatbotModule } from './chatbot/chatbot.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     MedicineModule,
     ForumModule,
     InvoiceModule,
+    ChatbotModule,
   ],
   controllers: [AppController],
   providers: [
