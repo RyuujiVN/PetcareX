@@ -107,6 +107,11 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Chuẩn hóa Enum trạng thái lịch hẹn:** `AppointmentStatusEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)`; luồng `AppointmentProvider` và `AppointmentPage` bắt buộc map status qua enum, không hardcode chuỗi tại UI/Provider.
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
 - **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo 2 nguồn chuẩn của enum (`enum.name` từ API key: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED` và `enum.value` tiếng Việt từ backend). Đã loại bỏ alias legacy dư thừa như `SUCCESS`, `PENDING`, `CONFIRMED` để giữ code gọn và dễ bảo trì.
+- **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).
+- **Nâng cấp Empty State cho Appointment:**
+    - Tab **Sắp tới**: hiển thị tiêu đề + mô tả rõ nghĩa + CTA `Đặt lịch ngay` để dẫn người dùng qua luồng tạo lịch mới.
+    - Tab **Lịch sử**: hiển thị thông điệp định hướng rằng dữ liệu hoàn thành/đã hủy sẽ xuất hiện tại đây (tránh trạng thái chỉ còn mỗi chữ tên tab).
+    - Vẫn giữ `RefreshIndicator` để người dùng kéo xuống tải lại dữ liệu.
 - **Chuẩn hóa lỗi nghiệp vụ Booking:** `BookingProvider` trả về error key (`bookingErrorCompleteAllSteps`) thay vì chuỗi tiếng Việt cứng; UI map key sang `AppLocalizations` trước khi hiển thị.
 - **Logic:** Tự động dịch trạng thái từ Server sang ngôn ngữ người dùng.
 - **UI:** Badge trạng thái sử dụng hệ thống màu nhẹ (Light Colors) chuyên nghiệp.

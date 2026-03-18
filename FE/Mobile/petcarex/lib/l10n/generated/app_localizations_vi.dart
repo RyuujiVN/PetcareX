@@ -216,6 +216,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get navAppointments => 'LỊCH HẸN';
 
   @override
+  String get appointmentsTitle => 'Lịch hẹn';
+
+  @override
   String get navCommunity => 'CỘNG ĐỒNG';
 
   @override
@@ -370,6 +373,23 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get history => 'Lịch sử';
+
+  @override
+  String get appointmentEmptyUpcomingTitle => 'Chưa có lịch hẹn sắp tới';
+
+  @override
+  String get appointmentEmptyUpcomingDescription =>
+      'Bạn chưa có lịch hẹn nào. Hãy đặt lịch để theo dõi sức khỏe thú cưng.';
+
+  @override
+  String get appointmentBookNow => 'Đặt lịch ngay';
+
+  @override
+  String get appointmentEmptyHistoryTitle => 'Chưa có lịch sử khám';
+
+  @override
+  String get appointmentEmptyHistoryDescription =>
+      'Các lịch đã hoàn thành hoặc đã hủy sẽ xuất hiện tại đây.';
 
   @override
   String get appointmentDetail => 'Chi tiết lịch hẹn';

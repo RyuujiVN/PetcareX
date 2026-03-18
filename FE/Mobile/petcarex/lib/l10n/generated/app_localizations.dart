@@ -506,6 +506,12 @@ abstract class AppLocalizations {
   /// **'LỊCH HẸN'**
   String get navAppointments;
 
+  /// No description provided for @appointmentsTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn'**
+  String get appointmentsTitle;
+
   /// No description provided for @navCommunity.
   ///
   /// In vi, this message translates to:
@@ -817,6 +823,36 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Lịch sử'**
   String get history;
+
+  /// No description provided for @appointmentEmptyUpcomingTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có lịch hẹn sắp tới'**
+  String get appointmentEmptyUpcomingTitle;
+
+  /// No description provided for @appointmentEmptyUpcomingDescription.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn chưa có lịch hẹn nào. Hãy đặt lịch để theo dõi sức khỏe thú cưng.'**
+  String get appointmentEmptyUpcomingDescription;
+
+  /// No description provided for @appointmentBookNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lịch ngay'**
+  String get appointmentBookNow;
+
+  /// No description provided for @appointmentEmptyHistoryTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có lịch sử khám'**
+  String get appointmentEmptyHistoryTitle;
+
+  /// No description provided for @appointmentEmptyHistoryDescription.
+  ///
+  /// In vi, this message translates to:
+  /// **'Các lịch đã hoàn thành hoặc đã hủy sẽ xuất hiện tại đây.'**
+  String get appointmentEmptyHistoryDescription;
 
   /// No description provided for @appointmentDetail.
   ///

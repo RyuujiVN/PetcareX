@@ -215,6 +215,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navAppointments => 'SCHEDULE';
 
   @override
+  String get appointmentsTitle => 'Appointments';
+
+  @override
   String get navCommunity => 'COMMUNITY';
 
   @override
@@ -371,6 +374,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get history => 'History';
+
+  @override
+  String get appointmentEmptyUpcomingTitle => 'No upcoming appointments yet';
+
+  @override
+  String get appointmentEmptyUpcomingDescription =>
+      'You don\'t have any upcoming appointments. Book one to keep track of your pet\'s care.';
+
+  @override
+  String get appointmentBookNow => 'Book now';
+
+  @override
+  String get appointmentEmptyHistoryTitle => 'No appointment history yet';
+
+  @override
+  String get appointmentEmptyHistoryDescription =>
+      'Completed or cancelled appointments will appear here.';
 
   @override
   String get appointmentDetail => 'Appointment Details';

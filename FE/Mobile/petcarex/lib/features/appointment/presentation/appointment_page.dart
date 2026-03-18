@@ -7,6 +7,7 @@ import '../../../../core/enums/service_enum.dart';
 import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../data/appointment_model.dart';
 import 'provider/appointment_provider.dart';
 
@@ -46,7 +47,7 @@ class _AppointmentPageState extends State<AppointmentPage>
         elevation: 0,
         centerTitle: true,
         title: Text(
-          l10n.navAppointments,
+          l10n.appointmentsTitle,
           style: const TextStyle(
             color: AppColors.textDark,
             fontWeight: FontWeight.bold,
@@ -135,23 +136,12 @@ class _AppointmentPageState extends State<AppointmentPage>
             SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.calendar_today_outlined,
-                      size: 64,
-                      color: AppColors.iconGrey,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      isUpcoming ? l10n.upcoming : l10n.history,
-                      style: const TextStyle(
-                        color: AppColors.textGrey,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _buildEmptyState(
+                    isUpcoming: isUpcoming,
+                    l10n: l10n,
+                  ),
                 ),
               ),
             ),
@@ -171,6 +161,83 @@ class _AppointmentPageState extends State<AppointmentPage>
         },
       ),
     );
+  }
+
+  Widget _buildEmptyState({
+    required bool isUpcoming,
+    required AppLocalizations l10n,
+  }) {
+    final title = isUpcoming
+        ? l10n.appointmentEmptyUpcomingTitle
+        : l10n.appointmentEmptyHistoryTitle;
+    final description = isUpcoming
+        ? l10n.appointmentEmptyUpcomingDescription
+        : l10n.appointmentEmptyHistoryDescription;
+    final icon = isUpcoming
+        ? Icons.event_available_outlined
+        : Icons.history_toggle_off_outlined;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.2),
+            ),
+          ),
+          child: Icon(icon, size: 42, color: AppColors.primary),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textDark,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          description,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textGrey,
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+        if (isUpcoming) ...[
+          const SizedBox(height: 22),
+          ElevatedButton.icon(
+            onPressed: _openBookingPage,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.add_circle_outline, size: 18),
+            label: Text(
+              l10n.appointmentBookNow,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _openBookingPage() {
+    MainNavigationWrapper.of(context)?.setSelectedIndex(1);
   }
 
   Widget _buildAppointmentCard(
