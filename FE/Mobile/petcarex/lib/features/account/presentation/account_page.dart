@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../core/theme/app_colors.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:petcarex/features/auth/presentation/login_page.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/providers/language_provider.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/change_password_page.dart';
 import 'my_pets_page.dart';
 import 'profile_page.dart';
@@ -24,38 +24,45 @@ class _AccountPageState extends State<AccountPage> {
 
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) { // Đổi tên thành dialogContext
+      builder: (BuildContext dialogContext) {
+        // Đổi tên thành dialogContext
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(l10n.confirmLogout),
           content: Text(l10n.logoutMessage),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textGrey)),
+              child: Text(
+                l10n.cancel,
+                style: const TextStyle(color: AppColors.textGrey),
+              ),
             ),
             ElevatedButton(
               onPressed: () async {
                 // 1. Đóng dialog bằng dialogContext
                 Navigator.pop(dialogContext);
-                
+
                 // 2. Thực hiện logout
                 await authProvider.logout();
-                
+
                 // 3. Điều hướng bằng context của trang (sử dụng context.mounted để an toàn)
-                if (context.mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                    (route) => false,
-                  );
-                }
+                if (!mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (route) => false,
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.error,
                 foregroundColor: AppColors.onPrimary,
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: Text(l10n.logout),
             ),
@@ -68,7 +75,8 @@ class _AccountPageState extends State<AccountPage> {
   void _showLanguageDialog() {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog( // Đổi tên thành dialogContext
+      builder: (dialogContext) => AlertDialog(
+        // Đổi tên thành dialogContext
         title: const Text('Chọn ngôn ngữ / Select Language'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
@@ -78,7 +86,9 @@ class _AccountPageState extends State<AccountPage> {
               leading: const Text('🇻🇳', style: TextStyle(fontSize: 24)),
               title: const Text('Tiếng Việt'),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(const Locale('vi'));
+                await context.read<LanguageProvider>().setLocale(
+                  const Locale('vi'),
+                );
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
               },
             ),
@@ -86,7 +96,9 @@ class _AccountPageState extends State<AccountPage> {
               leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
               title: const Text('English'),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(const Locale('en'));
+                await context.read<LanguageProvider>().setLocale(
+                  const Locale('en'),
+                );
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
               },
             ),
@@ -99,9 +111,12 @@ class _AccountPageState extends State<AccountPage> {
   void _showAboutUsDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) { // Đổi tên thành dialogContext
+      builder: (BuildContext dialogContext) {
+        // Đổi tên thành dialogContext
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Row(
             children: [
               Image.asset('assets/images/icon.png', width: 24, height: 24),
@@ -130,7 +145,13 @@ class _AccountPageState extends State<AccountPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text(l10n.close, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              child: Text(
+                l10n.close,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         );
@@ -146,7 +167,10 @@ class _AccountPageState extends State<AccountPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(l10n.account, style: const TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(
+          l10n.account,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         centerTitle: true,
@@ -194,8 +218,12 @@ class _AccountPageState extends State<AccountPage> {
             _buildAccountItem(
               icon: Icons.language_rounded,
               iconColor: AppColors.primary,
-              title: langProvider.locale.languageCode == 'vi' ? 'Ngôn ngữ' : 'Language',
-              subtitle: langProvider.locale.languageCode == 'vi' ? 'Tiếng Việt' : 'English',
+              title: langProvider.locale.languageCode == 'vi'
+                  ? 'Ngôn ngữ'
+                  : 'Language',
+              subtitle: langProvider.locale.languageCode == 'vi'
+                  ? 'Tiếng Việt'
+                  : 'English',
               onTap: _showLanguageDialog,
             ),
             const SizedBox(height: 16),
@@ -207,7 +235,9 @@ class _AccountPageState extends State<AccountPage> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const ChangePasswordPage(),
+                  ),
                 );
               },
             ),
@@ -260,12 +290,12 @@ class _AccountPageState extends State<AccountPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isDestructive ? AppColors.errorLight : AppColors.cardBackground,
+          color: isDestructive
+              ? AppColors.errorLight
+              : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isDestructive
-                ? AppColors.errorBorder
-                : AppColors.formBorder,
+            color: isDestructive ? AppColors.errorBorder : AppColors.formBorder,
             width: 1,
           ),
         ),
