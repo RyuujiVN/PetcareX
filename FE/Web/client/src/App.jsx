@@ -16,6 +16,7 @@ import SuccessBooking from './pages/User/SuccessBooking'
 import PetProfile from './pages/User/PetProfile'
 import ListPet from './pages/User/ListPet';
 import MedicalRecords from './pages/User/MedicalRecords/medicalRecords'
+import Forum from './pages/User/Forum/forum'
 import './App.css'
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
       <Route path="/petProfile" element={<PetProfile />} />
       <Route path="/listPet" element={<ListPet />} />
       <Route path="/medical-records" element={<MedicalRecords />} />
+      <Route path="/forum" element={<Forum />} />
     </Routes>
   )
 }
