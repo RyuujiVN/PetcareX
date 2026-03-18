@@ -400,39 +400,67 @@ class PetSpeciesBreedFields extends StatelessWidget {
   }
 
   Widget _buildBreedDropdown() {
+    final bool isBreedEnabled =
+        selectedSpeciesId != null && selectedSpeciesId!.isNotEmpty;
     final bool hasValue = breedList.any((b) => b.id == selectedBreedId);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          l10n.breed,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            color: AppColors.formLabel,
+    return AnimatedOpacity(
+      duration: const Duration(milliseconds: 180),
+      opacity: isBreedEnabled ? 1 : 0.55,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l10n.breed,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: isBreedEnabled ? AppColors.formLabel : AppColors.textGrey,
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        DropdownButtonFormField<String>(
-          isExpanded: true,
-          initialValue: hasValue ? selectedBreedId : null,
-          decoration: petInputDecoration(l10n.breed),
-          hint: Text(l10n.breed, style: const TextStyle(fontSize: 14)),
-          items: breedList.map<DropdownMenuItem<String>>((breed) {
-            return DropdownMenuItem<String>(
-              value: breed.id,
-              child: Text(breed.name,
-                  style: const TextStyle(fontSize: 14), overflow: TextOverflow.ellipsis),
-            );
-          }).toList(),
-          onChanged: onBreedChanged,
-          validator: (value) => validateRequiredSelection(
-            value: value,
-            l10n: l10n,
-            fieldLabel: l10n.breed,
+          const SizedBox(height: 8),
+          IgnorePointer(
+            ignoring: !isBreedEnabled,
+            child: DropdownButtonFormField<String>(
+              isExpanded: true,
+              initialValue: isBreedEnabled && hasValue ? selectedBreedId : null,
+              decoration: petInputDecoration(
+                isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
+              ).copyWith(
+                fillColor: isBreedEnabled
+                    ? AppColors.formFill
+                    : AppColors.formFillDisabled,
+              ),
+              hint: Text(
+                isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
+                style: const TextStyle(fontSize: 14),
+              ),
+              items: isBreedEnabled
+                  ? breedList.map<DropdownMenuItem<String>>((breed) {
+                      return DropdownMenuItem<String>(
+                        value: breed.id,
+                        child: Text(
+                          breed.name,
+                          style: const TextStyle(fontSize: 14),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      );
+                    }).toList()
+                  : const [],
+              onChanged: isBreedEnabled ? onBreedChanged : null,
+              validator: (value) {
+                if (!isBreedEnabled) {
+                  return null;
+                }
+                return validateRequiredSelection(
+                  value: value,
+                  l10n: l10n,
+                  fieldLabel: l10n.breed,
+                );
+              },
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

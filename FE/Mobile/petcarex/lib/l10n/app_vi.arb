@@ -190,6 +190,7 @@
       }
     }
   },
+  "selectSpeciesFirst": "Chọn loài trước",
   "invalidWeight": "Vui lòng nhập cân nặng hợp lệ lớn hơn 0",
   "invalidWeightMax": "Cân nặng tối đa là 99.9 kg",
   "uploadPhoto": "Tải ảnh",

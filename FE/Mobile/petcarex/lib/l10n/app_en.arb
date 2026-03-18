@@ -162,6 +162,7 @@
       }
     }
   },
+  "selectSpeciesFirst": "Select species first",
   "invalidWeight": "Please enter a valid weight greater than 0",
   "invalidWeightMax": "Maximum allowed weight is 99.9 kg",
   "uploadPhoto": "Upload Photo",

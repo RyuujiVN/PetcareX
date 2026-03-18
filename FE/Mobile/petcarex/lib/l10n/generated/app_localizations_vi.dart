@@ -469,6 +469,9 @@ class AppLocalizationsVi extends AppLocalizations {
   }
 
   @override
+  String get selectSpeciesFirst => 'Chọn loài trước';
+
+  @override
   String get invalidWeight => 'Vui lòng nhập cân nặng hợp lệ lớn hơn 0';
 
   @override

@@ -489,6 +489,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get selectSpeciesFirst => 'Select species first';
+
+  @override
   String get invalidWeight => 'Please enter a valid weight greater than 0';
 
   @override

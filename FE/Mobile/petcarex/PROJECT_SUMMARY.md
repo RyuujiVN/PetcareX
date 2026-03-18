@@ -94,6 +94,7 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Khắc phục lỗi lệch form khi validate:**
     - Chuẩn hóa `InputDecoration` và chừa khoảng helper cố định để khi có lỗi không làm nhảy lệch hàng input.
     - Ở màn hình hẹp, hàng 2 cột (Loài/Giống, Cân nặng/Màu lông) tự chuyển sang dạng dọc để tránh chèn ép giao diện.
+    - Trường **Giống** được làm mờ + khóa tương tác khi người dùng chưa chọn **Loài**; chỉ mở khi đã có loài để tránh thao tác sai luồng.
 - **Thông báo validate có ngữ nghĩa (i18n):**
     - Bỏ kiểu trả về đúng tên trường (ví dụ chỉ hiện `Giống`, `Cân nặng (kg)`).
     - Dùng message rõ nghĩa qua localization:
@@ -102,7 +103,7 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
         - `invalidWeight` (cân nặng phải hợp lệ và lớn hơn 0)
         - `invalidWeightMax` (giới hạn tối đa 99.9 kg, chuẩn hóa VI/EN)
 - **Đồng bộ đa ngôn ngữ trong pet flow:**
-    - Bổ sung key i18n mới trong `app_vi.arb` và `app_en.arb`: `pleaseSelect`, `invalidWeight`, `invalidWeightMax`, `uploadPhoto`, `uploadingImage`, `uploadImageSuccess`, `uploadImageFailed`.
+    - Bổ sung key i18n mới trong `app_vi.arb` và `app_en.arb`: `pleaseSelect`, `selectSpeciesFirst`, `invalidWeight`, `invalidWeightMax`, `uploadPhoto`, `uploadingImage`, `uploadImageSuccess`, `uploadImageFailed`.
     - EditPet loại bỏ logic thủ công `if (locale == 'vi')` để tính tuổi; chuyển về `l10n.ageYears/ageMonths/ageDays`.
 - **Ràng buộc dữ liệu Pet (đồng bộ FE-BE):**
     - **Cân nặng:** chặn ngay từ UI nếu > `99.9 kg` để tránh đẩy lỗi thô từ backend.

@@ -986,6 +986,12 @@ abstract class AppLocalizations {
   /// **'Vui lòng chọn {field}'**
   String pleaseSelect(String field);
 
+  /// No description provided for @selectSpeciesFirst.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn loài trước'**
+  String get selectSpeciesFirst;
+
   /// No description provided for @invalidWeight.
   ///
   /// In vi, this message translates to:
