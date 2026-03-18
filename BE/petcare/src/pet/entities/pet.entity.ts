@@ -23,7 +23,7 @@ export class Pet {
   @Column({ length: 50 })
   name: string;
 
-  @Column({ name: 'breed_id' })
+  @Column({ name: 'breed_id', nullable: true })
   breedId: string;
 
   @Column({ type: 'boolean', nullable: true })

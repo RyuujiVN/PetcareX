@@ -20,13 +20,13 @@ export class MedicalRecord {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', name: 'pet_id' })
+  @Column({ type: 'uuid', name: 'pet_id', nullable: true })
   petId: string;
 
-  @Column({ type: 'uuid', name: 'clinic_id' })
+  @Column({ type: 'uuid', name: 'clinic_id', nullable: true })
   clinicId: string;
 
-  @Column({ name: 'veterinarian_id' })
+  @Column({ name: 'veterinarian_id', nullable: true })
   veterinarianId: string;
 
   @Column({ name: 'pet_name' })
@@ -70,6 +70,7 @@ export class MedicalRecord {
 
   @ManyToOne(() => Pet, (pet) => pet.medicalRecords, {
     onDelete: 'SET NULL',
+    nullable: true,
   })
   @JoinColumn({ name: 'pet_id' })
   pet: Pet;
