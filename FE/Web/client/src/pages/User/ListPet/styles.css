@@ -238,7 +238,6 @@
   color: #999 !important;
 }
 
-/* Modal Styles */
 .modal-contents {
   padding: 16px 0;
 }
@@ -260,7 +259,6 @@
   color: #262626;
 }
 
-/* Ant Design Overrides */
 :global(.ant-empty) {
   padding: 48px 0;
 }
@@ -272,7 +270,6 @@
   margin-left: 8px;
 }
 
-/* Responsive */
 @media (max-width: 992px) {
   .appointment-card {
     padding: 16px;
@@ -361,7 +358,6 @@
   }
 }
 
-/* Animation */
 @keyframes slideIn {
   from {
     opacity: 0;
@@ -375,4 +371,14 @@
 
 .appointment-card {
   animation: slideIn 0.3s ease;
+}
+.pet-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.delete-btn {
+  border-radius: 8px;
+  height: 40px;
 }

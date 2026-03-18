@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 import { FaPaw } from "react-icons/fa";
-import { FiCamera, FiCalendar } from "react-icons/fi";
+import { FiCamera } from "react-icons/fi";
 import Header from '../../../components/layout/header';
-import { message } from 'antd';
+import { message, Radio, Select } from 'antd';
 import {
   createPetApi,
   getBreedsBySpeciesApi,
@@ -25,12 +25,10 @@ export default function AddPet() {
   const [birthday, setBirthday] = useState('');
   const [weight, setWeight] = useState('');
   const [color, setColor] = useState('');
-  const [owner, setOwner] = useState('');
   const [speciesList, setSpeciesList] = useState([]);
   const [breedList, setBreedList] = useState([]);
   const [loadingMeta, setLoadingMeta] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
   const fileInputRef = useRef();
   const dateInputRef = useRef();
 
@@ -176,8 +174,8 @@ export default function AddPet() {
 
   return (
     
-    <div className="addpet-container">
-      <div className="addpet-header-bar">
+    <div className="addPets-container">
+      <div className="addPets-header-bar">
         <Header/>
         <div className="header-left">
           <FaPaw size={28} color="#13ECDA" />
@@ -185,18 +183,18 @@ export default function AddPet() {
         </div>
       </div>
 
-      <div className="addpet-card">
-        <div className="addpet-header">
-          <h1 className="addpet-title">Thêm thú cưng mới</h1>
-          <p className="addpet-subtitle">
+      <div className="addPets-card">
+        <div className="addPets-header">
+          <h1 className="addPets-title">Thêm thú cưng mới</h1>
+          <p className="addPets-subtitle">
             Vui lòng nhập đầy đủ thông tin để khởi tạo hồ sơ y tế cho thú cưng của bạn.
           </p>
         </div>
 
-        <form className="addpet-form" onSubmit={handleSubmit}>
+        <form className="addPets-form" onSubmit={handleSubmit}>
 
-          <div className="form-group upload-group">
-            <label className="form-label">Ảnh đại diện thú cưng</label>
+          <div className="form-groups upload-group">
+            <label className="form-labels">Ảnh đại diện thú cưng</label>
             <div
               className="upload-box"
               onClick={() => fileInputRef.current && fileInputRef.current.click()}
@@ -228,132 +226,109 @@ export default function AddPet() {
           <div className="basic-info-section">
             <h2 className="section-title-small">Thông tin cơ bản</h2>
             <div className="grid-two-column">
-            <div className="column">
-              <div className="form-group">
-                <label className="form-label">Tên thú cưng</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="VD: Buddy"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Giống</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="VD: Poodle, Golden Retriever"
-                  value={breed}
-                  onChange={(e) => setBreed(e.target.value)}
-                  list="breed-suggestion-list"
-                  disabled={loadingMeta || !species}
-                />
-                <datalist id="breed-suggestion-list">
-                  {breedList.map((item) => (
-                    <option key={item.id} value={item.name} />
-                  ))}
-                </datalist>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Ngày sinh / Tuổi</label>
-                <div className="date-age-input-wrapper">
-                  <input
-                    type="text"
-                    className="form-input date-age-display"
-                    value={calculateAgeFromDate(birthday)}
-                    placeholder="Chọn ngày sinh để hiển thị tuổi"
-                    readOnly
-                  />
-                  <button
-                    type="button"
-                    className="date-picker-button"
-                    onClick={handlePickBirthday}
-                    aria-label="Chọn ngày sinh"
-                  >
-                    <FiCalendar size={18} />
-                  </button>
-                  <input
-                    type="date"
-                    ref={dateInputRef}
-                    className="hidden-date-input"
-                    value={birthday}
-                    onChange={(e) => setBirthday(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Màu lông / Đặc điểm nhận dạng</label>
-                <input
-                  type="text"
-                  className="form-input"
-                  placeholder="VD: Có đốm đen ở tai"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                />
-              </div>
+            <div className="form-groups">
+              <label className="form-labels">Tên thú cưng</label>
+              <input
+                type="text"
+                className="form-input"
+                placeholder="VD: Buddy"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
 
-            {/* right column */}
-            <div className="column">
-              <div className="form-group">
-                <label className="form-label">Loài</label>
-                <select
-                  className="form-input"
-                  value={species}
-                  onChange={(e) => setSpecies(e.target.value)}
-                  disabled={loadingMeta}
-                >
-                  <option value="">Chọn loài</option>
-                  {speciesList.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Giới tính</label>
-                <div className="radio-group">
-                  <label>
-                    <input
-                      type="radio"
-                      name="gender"
-                      value="male"
-                      checked={gender === 'male'}
-                      onChange={(e) => setGender(e.target.value)}
-                    /> Đực
-                  </label>
-                  <label>
-                    <input
-                      type="radio"
-                      name="gender"
-                      value="female"
-                      checked={gender === 'female'}
-                      onChange={(e) => setGender(e.target.value)}
-                    /> Cái
-                  </label>
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label className="form-label">Cân nặng (kg)</label>
-                <input
-                  type="number"
-                  className="form-input"
-                  step="0.1"
-                  placeholder="0.0"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                />
-              </div>
+            <div className="form-groups">
+              <label className="form-labels">Loài</label>
+              <Select
+                style={{ width: '100%' }} 
+                value={species || undefined}
+                onChange={(value) => setSpecies(value)}
+                placeholder="Chọn loài"
+                loading={loadingMeta}
+                className="form-input"
+                options={speciesList.map(item => ({
+                  label: item.name,
+                  value: item.id
+                }))}
+              />
             </div>
+
+            <div className="form-groups">
+              <label className="form-labels">Giống</label>
+              <Select
+                style={{ width: '100%', height: '100%' }}
+                value={breed || undefined}
+                onChange={(value) => setBreed(value)}
+                placeholder="Chọn giống"
+                loading={loadingMeta}
+                disabled={!species}
+                options={breedList.map(item => ({
+                  label: item.name,
+                  value: item.id
+                }))}
+              />
             </div>
+
+            <div className="form-groups">
+              <label className="form-labels">Giới tính</label>
+              <Radio.Group
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="gender-radio-group"
+              >
+                <Radio.Button value="male" className="gender-radio">
+                  Đực
+                </Radio.Button>
+
+                <Radio.Button value="female" className="gender-radio">
+                  Cái
+                </Radio.Button>
+              </Radio.Group>
+            </div>
+
+            <div className="form-groups">
+            <label className="form-labels">Ngày sinh</label>
+            <input
+              type="date"
+              className="form-input date-input"
+              value={birthday}
+              max={new Date().toISOString().split('T')[0]} 
+              onChange={(e) => setBirthday(e.target.value)}
+            />
+          </div>
+
+            <div className="form-groups">
+              <label className="form-labels">Tuổi</label>
+              <input
+                type="text"
+                className="form-input age-display"
+                value={calculateAgeFromDate(birthday)}
+                readOnly
+              />
+            </div>
+
+            <div className="form-groups">
+              <label className="form-labels">Màu lông / Đặc điểm</label>
+              <input
+                type="text"
+                className="form-input"
+                value={color}
+                onChange={(e) => setColor(e.target.value)}
+              />
+            </div>
+
+            <div className="form-groups">
+              <label className="form-labels">Cân nặng (kg)</label>
+              <input
+                type="number"
+                className="form-input"
+                step="0.1"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+              />
+            </div>
+
+          </div>
           </div>
 
           <div className="button-group">
@@ -365,12 +340,18 @@ export default function AddPet() {
               Hủy bỏ
             </button>
             <button
-              type="submit"
-              className="submit-button"
-              disabled={submitting}
-            >
-              {submitting ? 'Đang lưu...' : 'Thêm thú cưng mới'}
-            </button>
+                type="submit"
+                className="submit-button"
+                disabled={submitting}
+              >
+                {submitting ? (
+                  <>
+                    <span className="spinner"></span> Đang lưu...
+                  </>
+                ) : (
+                  'Thêm thú cưng mới'
+                )}
+              </button>
           </div>
         </form>
       </div>

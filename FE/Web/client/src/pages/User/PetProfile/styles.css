@@ -1,22 +1,3 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root {
-  --primary-color: #13ECDA;
-  --primary-hover: #0DD9C7;
-  --text-primary: #1f2937;
-  --text-secondary: #6b7280;
-  --border-color: #e5e7eb;
-  --bg-light: #f9fafb;
-  --bg-white: #ffffff;
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
 body {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
@@ -54,7 +35,6 @@ body {
   position: relative;
 }
 
-/* Back Button */
 .profile-back-button {
   padding: 16px 30px;
   border-bottom: 1px solid var(--border-color);
@@ -75,10 +55,9 @@ body {
   transform: translateX(-4px);
 }
 
-/* Header với Avatar */
 .profile-header {
   background: linear-gradient( white);
-  padding: 40px 30px;
+  padding: 20px 30px;
   color: white;
   text-align: center;
 }
@@ -141,7 +120,7 @@ body {
 
 .profile-subtitle {
   font-size: 14px;
-  color: #13ECDA;
+  color: #d64f26;
   margin: 0;
 }
 
@@ -162,7 +141,6 @@ body {
 
 }
 
-/* Form Card */
 .profile-form-card {
   border: none !important;
   box-shadow: none !important;
@@ -174,7 +152,6 @@ body {
   padding: 0 !important;
 }
 
-/* Form Layout */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -190,7 +167,6 @@ body {
   margin-bottom: 0 !important;
 }
 
-/* Form Labels */
 .profile-form-card :where(.ant-form-item-label > label) {
   color: var(--text-primary) !important;
   font-weight: 600 !important;
@@ -198,7 +174,6 @@ body {
   margin-bottom: 8px !important;
 }
 
-/* Form Inputs */
 .form-input {
   border-radius: 8px !important;
   border: 1px solid var(--border-color) !important;
@@ -229,7 +204,6 @@ body {
   color: var(--text-secondary) !important;
 }
 
-/* Select Dropdown */
 .form-input .ant-select-selector {
   border-radius: 8px !important;
   border: 1px solid var(--border-color) !important;
@@ -254,7 +228,6 @@ body {
   color: var(--primary-color) !important;
 }
 
-/* Input Number */
 .form-input .ant-input-number {
   width: 100% !important;
 }
@@ -308,7 +281,6 @@ body {
   background: #0BB5A5 !important;
 }
 
-/* Error Message */
 .ant-form-item-explain-error {
   color: #ef4444 !important;
   font-size: 13px !important;
@@ -323,7 +295,6 @@ body {
   box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .profile-container {
     padding: 20px 15px;
@@ -398,7 +369,6 @@ body {
   }
 }
 
-/* Animations */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -414,7 +384,6 @@ body {
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Spinner Animation */
 .ant-spin {
   color: var(--primary-color) !important;
 }
