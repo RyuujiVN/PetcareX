@@ -102,6 +102,8 @@
   "male": "Đực",
   "female": "Cái",
   "saveChanges": "Lưu thay đổi",
+  "petUpdateSuccess": "Chỉnh sửa thú cưng thành công!",
+  "petDeleteSuccess": "Xóa thú cưng thành công!",
   "profile": "Hồ sơ cá nhân",
   "loyalCustomer": "Chủ nuôi thân thiết",
   "phone": "Số điện thoại",
@@ -180,6 +182,20 @@
       }
     }
   },
+  "pleaseSelect": "Vui lòng chọn {field}",
+  "@pleaseSelect": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidWeight": "Vui lòng nhập cân nặng hợp lệ lớn hơn 0",
+  "invalidWeightMax": "Cân nặng tối đa là 99.9 kg",
+  "uploadPhoto": "Tải ảnh",
+  "uploadingImage": "Đang tải ảnh lên, vui lòng đợi...",
+  "uploadImageSuccess": "Tải ảnh thành công!",
+  "uploadImageFailed": "Tải ảnh thất bại. Vui lòng thử lại.",
   "footerCopyright": "© 2026 PetCareX Vietnam",
   "invalidEmail": "Email không hợp lệ",
   "otpSent": "Mã OTP đã được gửi thành công",

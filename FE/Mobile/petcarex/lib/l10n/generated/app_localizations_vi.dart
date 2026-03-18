@@ -318,6 +318,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get saveChanges => 'Lưu thay đổi';
 
   @override
+  String get petUpdateSuccess => 'Chỉnh sửa thú cưng thành công!';
+
+  @override
+  String get petDeleteSuccess => 'Xóa thú cưng thành công!';
+
+  @override
   String get profile => 'Hồ sơ cá nhân';
 
   @override
@@ -456,6 +462,29 @@ class AppLocalizationsVi extends AppLocalizations {
   String pleaseEnter(String field) {
     return 'Vui lòng nhập $field';
   }
+
+  @override
+  String pleaseSelect(String field) {
+    return 'Vui lòng chọn $field';
+  }
+
+  @override
+  String get invalidWeight => 'Vui lòng nhập cân nặng hợp lệ lớn hơn 0';
+
+  @override
+  String get invalidWeightMax => 'Cân nặng tối đa là 99.9 kg';
+
+  @override
+  String get uploadPhoto => 'Tải ảnh';
+
+  @override
+  String get uploadingImage => 'Đang tải ảnh lên, vui lòng đợi...';
+
+  @override
+  String get uploadImageSuccess => 'Tải ảnh thành công!';
+
+  @override
+  String get uploadImageFailed => 'Tải ảnh thất bại. Vui lòng thử lại.';
 
   @override
   String get footerCopyright => '© 2026 PetCareX Vietnam';

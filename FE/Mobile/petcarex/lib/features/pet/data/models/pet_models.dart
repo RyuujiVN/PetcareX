@@ -99,7 +99,7 @@ class PetFormDto {
       'gender': gender,
       'dateOfBirth': dateOfBirth,
       'weight': weight,
-      if (avatar != null) 'avatar': avatar,
+      'avatar': avatar ?? '',
       'breedId': breedId,
       'note': note,
     };

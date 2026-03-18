@@ -85,7 +85,34 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Logic:** Tự động dịch trạng thái từ Server sang ngôn ngữ người dùng.
 - **UI:** Badge trạng thái sử dụng hệ thống màu nhẹ (Light Colors) chuyên nghiệp.
 
-### 4. Dev Connectivity (Android USB)
+### 4. Module Pet (Add/Edit UI & Validation)
+- **Mục tiêu UX:** Tối ưu lại màn hình **Thêm thú cưng** và **Sửa thú cưng** để tránh lệch bố cục khi báo lỗi và tăng rõ ràng thông báo cho người dùng.
+- **Chuẩn hóa kiến trúc form:**
+    - Dùng chung widget tại `lib/features/pet/presentation/widgets/pet_form_fields.dart` cho cả Add/Edit để đồng bộ style + logic.
+    - AddPet chuyển sang cùng mô hình với EditPet: nội dung cuộn + **action bar cố định ở đáy** để nút lưu không bị trôi theo scroll.
+    - Form được bọc `ConstrainedBox(maxWidth)` + `SizedBox(width: double.infinity)` để giữ hành vi layout ổn định trên nhiều kích thước màn hình.
+- **Khắc phục lỗi lệch form khi validate:**
+    - Chuẩn hóa `InputDecoration` và chừa khoảng helper cố định để khi có lỗi không làm nhảy lệch hàng input.
+    - Ở màn hình hẹp, hàng 2 cột (Loài/Giống, Cân nặng/Màu lông) tự chuyển sang dạng dọc để tránh chèn ép giao diện.
+- **Thông báo validate có ngữ nghĩa (i18n):**
+    - Bỏ kiểu trả về đúng tên trường (ví dụ chỉ hiện `Giống`, `Cân nặng (kg)`).
+    - Dùng message rõ nghĩa qua localization:
+        - `pleaseEnter(field)`
+        - `pleaseSelect(field)`
+        - `invalidWeight` (cân nặng phải hợp lệ và lớn hơn 0)
+        - `invalidWeightMax` (giới hạn tối đa 99.9 kg, chuẩn hóa VI/EN)
+- **Đồng bộ đa ngôn ngữ trong pet flow:**
+    - Bổ sung key i18n mới trong `app_vi.arb` và `app_en.arb`: `pleaseSelect`, `invalidWeight`, `invalidWeightMax`, `uploadPhoto`, `uploadingImage`, `uploadImageSuccess`, `uploadImageFailed`.
+    - EditPet loại bỏ logic thủ công `if (locale == 'vi')` để tính tuổi; chuyển về `l10n.ageYears/ageMonths/ageDays`.
+- **Ràng buộc dữ liệu Pet (đồng bộ FE-BE):**
+    - **Cân nặng:** chặn ngay từ UI nếu > `99.9 kg` để tránh đẩy lỗi thô từ backend.
+    - **Avatar:** người dùng có thể không upload ảnh tại thời điểm tạo/sửa; FE cho phép để trống và serialize về chuỗi rỗng khi gửi API để tương thích rule backend hiện tại (`avatar` phải là string).
+    - **Màu lông:** chuyển thành bắt buộc nhập ở cả AddPet và EditPet.
+- **Tối ưu loading và phản hồi:**
+    - Không chặn trắng toàn màn hình khi đang tải species/breeds; dùng chỉ báo mảnh (linear progress) để giữ ngữ cảnh form.
+    - Toast/SnackBar upload ảnh và lưu dữ liệu được chuẩn hóa thông điệp theo locale.
+
+### 5. Dev Connectivity (Android USB)
 - **Nguyên nhân cốt lõi:** Mobile đang dùng `AppConstants.baseUrl` mặc định `http://localhost:3000`; với thiết bị Android thật, `localhost` là máy điện thoại nên cần tunnel `adb reverse` về máy dev.
 - **Tính chất kết nối:** `adb reverse` không bền vững qua lần rút/cắm cáp hoặc reconnect ADB, nên có thể mất mapping sau mỗi phiên.
 - **Chuẩn vận hành mới (git-friendly):** `android/app/build.gradle.kts` có task `autoAdbReverseDebug` và được hook vào `preDebugBuild`, nên khi chạy `flutter run` (Android debug) sẽ tự set `adb reverse tcp:3000 tcp:3000` cho các thiết bị đang kết nối.
@@ -96,3 +123,4 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 1. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.
 2. **Android USB (mặc định):** Chạy `flutter run` (debug) để kích hoạt auto reverse qua Gradle.
 3. **Nếu cần set reverse thủ công:** `adb reverse tcp:3000 tcp:3000` rồi `flutter run`.
+4. **Quy ước ghi file bằng PowerShell (tránh lỗi tiếng Việt):** Khi dùng `Set-Content` hoặc `Out-File`, luôn bắt buộc chỉ định `-Encoding UTF8`.

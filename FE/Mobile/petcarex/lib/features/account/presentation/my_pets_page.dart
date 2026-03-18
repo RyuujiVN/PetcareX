@@ -88,7 +88,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
 
                 if (success) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(l10n.success), backgroundColor: AppColors.success),
+                    SnackBar(content: Text(l10n.petDeleteSuccess), backgroundColor: AppColors.success),
                   );
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -268,7 +268,8 @@ class _MyPetsPageState extends State<MyPetsPage> {
                 context, 
                 MaterialPageRoute(builder: (context) => const AddPetPage())
               );
-              if (result == true && mounted) {
+              if (!context.mounted) return;
+              if (result == true) {
                 context.read<PetProvider>().fetchMyPets();
               }
             },
@@ -298,7 +299,8 @@ class _MyPetsPageState extends State<MyPetsPage> {
                         context, 
                         MaterialPageRoute(builder: (context) => const AddPetPage())
                       );
-                      if (result == true && mounted) {
+                      if (!context.mounted) return;
+                      if (result == true) {
                         context.read<PetProvider>().fetchMyPets();
                       }
                     },

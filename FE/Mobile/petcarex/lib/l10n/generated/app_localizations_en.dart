@@ -319,6 +319,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveChanges => 'Save Changes';
 
   @override
+  String get petUpdateSuccess => 'Pet updated successfully!';
+
+  @override
+  String get petDeleteSuccess => 'Pet deleted successfully!';
+
+  @override
   String get profile => 'Personal Profile';
 
   @override
@@ -476,6 +482,29 @@ class AppLocalizationsEn extends AppLocalizations {
   String pleaseEnter(String field) {
     return 'Please enter $field';
   }
+
+  @override
+  String pleaseSelect(String field) {
+    return 'Please select $field';
+  }
+
+  @override
+  String get invalidWeight => 'Please enter a valid weight greater than 0';
+
+  @override
+  String get invalidWeightMax => 'Maximum allowed weight is 99.9 kg';
+
+  @override
+  String get uploadPhoto => 'Upload Photo';
+
+  @override
+  String get uploadingImage => 'Image is uploading, please wait...';
+
+  @override
+  String get uploadImageSuccess => 'Image uploaded successfully!';
+
+  @override
+  String get uploadImageFailed => 'Image upload failed. Please try again.';
 
   @override
   String get footerCopyright => '© 2026 PetCareX Vietnam';

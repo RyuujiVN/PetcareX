@@ -102,6 +102,8 @@
   "male": "Male",
   "female": "Female",
   "saveChanges": "Save Changes",
+  "petUpdateSuccess": "Pet updated successfully!",
+  "petDeleteSuccess": "Pet deleted successfully!",
   "profile": "Personal Profile",
   "loyalCustomer": "Loyal Customer",
   "phone": "Phone Number",
@@ -152,6 +154,20 @@
       }
     }
   },
+  "pleaseSelect": "Please select {field}",
+  "@pleaseSelect": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "invalidWeight": "Please enter a valid weight greater than 0",
+  "invalidWeightMax": "Maximum allowed weight is 99.9 kg",
+  "uploadPhoto": "Upload Photo",
+  "uploadingImage": "Image is uploading, please wait...",
+  "uploadImageSuccess": "Image uploaded successfully!",
+  "uploadImageFailed": "Image upload failed. Please try again.",
   "footerCopyright": "© 2026 PetCareX Vietnam",
   "invalidEmail": "Invalid email address",
   "otpSent": "OTP code has been sent successfully",

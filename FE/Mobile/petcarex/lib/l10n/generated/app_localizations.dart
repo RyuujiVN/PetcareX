@@ -710,6 +710,18 @@ abstract class AppLocalizations {
   /// **'Lưu thay đổi'**
   String get saveChanges;
 
+  /// No description provided for @petUpdateSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉnh sửa thú cưng thành công!'**
+  String get petUpdateSuccess;
+
+  /// No description provided for @petDeleteSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa thú cưng thành công!'**
+  String get petDeleteSuccess;
+
   /// No description provided for @profile.
   ///
   /// In vi, this message translates to:
@@ -967,6 +979,48 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Vui lòng nhập {field}'**
   String pleaseEnter(String field);
+
+  /// No description provided for @pleaseSelect.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng chọn {field}'**
+  String pleaseSelect(String field);
+
+  /// No description provided for @invalidWeight.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng nhập cân nặng hợp lệ lớn hơn 0'**
+  String get invalidWeight;
+
+  /// No description provided for @invalidWeightMax.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cân nặng tối đa là 99.9 kg'**
+  String get invalidWeightMax;
+
+  /// No description provided for @uploadPhoto.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tải ảnh'**
+  String get uploadPhoto;
+
+  /// No description provided for @uploadingImage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tải ảnh lên, vui lòng đợi...'**
+  String get uploadingImage;
+
+  /// No description provided for @uploadImageSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tải ảnh thành công!'**
+  String get uploadImageSuccess;
+
+  /// No description provided for @uploadImageFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tải ảnh thất bại. Vui lòng thử lại.'**
+  String get uploadImageFailed;
 
   /// No description provided for @footerCopyright.
   ///

@@ -5,25 +5,97 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/image_helper.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/models/pet_models.dart';
 
-InputDecoration petInputDecoration(String hint) {
+const double petWeightMax = 99.9;
+
+double? parsePetWeight(String? rawValue) {
+  if (rawValue == null) {
+    return null;
+  }
+  return double.tryParse(rawValue.trim().replaceAll(',', '.'));
+}
+
+InputDecoration petInputDecoration(
+  String hint, {
+  bool reserveErrorSpace = true,
+}) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+    hintStyle: const TextStyle(color: AppColors.iconGrey, fontSize: 14),
     filled: true,
-    fillColor: Colors.white,
+    fillColor: AppColors.formFill,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.formBorder),
+    ),
     enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.formBorder),
+    ),
     focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+    ),
+    errorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.error),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: const BorderSide(color: AppColors.error, width: 1.2),
+    ),
+    errorMaxLines: 2,
+    helperText: reserveErrorSpace ? ' ' : null,
+    helperStyle: const TextStyle(fontSize: 11, height: 1),
   );
+}
+
+String? validateRequiredField({
+  required String? value,
+  required AppLocalizations l10n,
+  required String fieldLabel,
+}) {
+  if (value == null || value.trim().isEmpty) {
+    return l10n.pleaseEnter(fieldLabel);
+  }
+  return null;
+}
+
+String? validateRequiredSelection({
+  required String? value,
+  required AppLocalizations l10n,
+  required String fieldLabel,
+}) {
+  if (value == null || value.trim().isEmpty) {
+    return l10n.pleaseSelect(fieldLabel);
+  }
+  return null;
+}
+
+String? validatePetWeight({
+  required String? value,
+  required AppLocalizations l10n,
+}) {
+  final requiredValidation = validateRequiredField(
+    value: value,
+    l10n: l10n,
+    fieldLabel: l10n.weight,
+  );
+  if (requiredValidation != null) {
+    return requiredValidation;
+  }
+
+  final parsed = parsePetWeight(value);
+  if (parsed == null || parsed <= 0) {
+    return l10n.invalidWeight;
+  }
+  if (parsed > petWeightMax) {
+    return l10n.invalidWeightMax;
+  }
+  return null;
 }
 
 class PetAvatarPicker extends StatelessWidget {
@@ -31,6 +103,7 @@ class PetAvatarPicker extends StatelessWidget {
   final String? avatarUrl;
   final bool isUploading;
   final VoidCallback onPickImage;
+  final String uploadLabel;
 
   final bool compactStyle;
 
@@ -40,6 +113,7 @@ class PetAvatarPicker extends StatelessWidget {
     required this.avatarUrl,
     required this.isUploading,
     required this.onPickImage,
+    this.uploadLabel = 'Upload',
     this.compactStyle = false,
   });
 
@@ -69,7 +143,7 @@ class PetAvatarPicker extends StatelessWidget {
               Icon(Icons.camera_alt_outlined,
                   size: 16, color: isUploading ? Colors.grey : AppColors.primary),
               const SizedBox(width: 6),
-              const Text('Tải ảnh lên'),
+              Text(uploadLabel),
             ],
           ),
         ),
@@ -96,7 +170,7 @@ class PetAvatarPicker extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withValues(alpha: 0.4),
               ),
               child: const Center(
                 child: CircularProgressIndicator(color: Colors.white),
@@ -141,7 +215,7 @@ class PetAvatarPicker extends StatelessWidget {
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
             ),
             child: const Center(
               child: CircularProgressIndicator(color: Colors.white),
@@ -172,12 +246,14 @@ class PetAvatarPicker extends StatelessWidget {
 }
 
 class PetGenderSelector extends StatelessWidget {
+  final AppLocalizations l10n;
   final String selectedGender;
   final ValueChanged<String> onChanged;
   final bool showIcons;
 
   const PetGenderSelector({
     super.key,
+    required this.l10n,
     required this.selectedGender,
     required this.onChanged,
     this.showIcons = true,
@@ -188,14 +264,20 @@ class PetGenderSelector extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Giới tính',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
+        Text(
+          l10n.gender,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: AppColors.formLabel,
+          ),
+        ),
         const SizedBox(height: 12),
         Row(
           children: [
-            Expanded(child: _buildOption('Đực', 'male', Icons.male)),
+            Expanded(child: _buildOption(l10n.male, 'male', Icons.male)),
             SizedBox(width: showIcons ? 16 : 8),
-            Expanded(child: _buildOption('Cái', 'female', Icons.female)),
+            Expanded(child: _buildOption(l10n.female, 'female', Icons.female)),
           ],
         ),
       ],
@@ -236,6 +318,7 @@ class PetGenderSelector extends StatelessWidget {
 }
 
 class PetSpeciesBreedFields extends StatelessWidget {
+  final AppLocalizations l10n;
   final String? selectedSpeciesId;
   final String? selectedBreedId;
   final List<PetSpecies> speciesList;
@@ -246,6 +329,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
 
   const PetSpeciesBreedFields({
     super.key,
+    required this.l10n,
     required this.selectedSpeciesId,
     required this.selectedBreedId,
     required this.speciesList,
@@ -284,14 +368,20 @@ class PetSpeciesBreedFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Loài',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
+        Text(
+          l10n.species,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: AppColors.formLabel,
+          ),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           isExpanded: true,
           initialValue: hasValue ? selectedSpeciesId : null,
-          decoration: petInputDecoration('Chọn loài'),
-          hint: const Text('Chọn loài', style: TextStyle(fontSize: 14)),
+          decoration: petInputDecoration(l10n.species),
+          hint: Text(l10n.species, style: const TextStyle(fontSize: 14)),
           items: speciesList.map<DropdownMenuItem<String>>((species) {
             return DropdownMenuItem<String>(
               value: species.id,
@@ -299,7 +389,11 @@ class PetSpeciesBreedFields extends StatelessWidget {
             );
           }).toList(),
           onChanged: onSpeciesChanged,
-          validator: (value) => value == null ? 'Vui lòng chọn loài' : null,
+          validator: (value) => validateRequiredSelection(
+            value: value,
+            l10n: l10n,
+            fieldLabel: l10n.species,
+          ),
         ),
       ],
     );
@@ -310,14 +404,20 @@ class PetSpeciesBreedFields extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Giống',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
+        Text(
+          l10n.breed,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: AppColors.formLabel,
+          ),
+        ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
           isExpanded: true,
           initialValue: hasValue ? selectedBreedId : null,
-          decoration: petInputDecoration('Chọn giống'),
-          hint: const Text('Chọn giống', style: TextStyle(fontSize: 14)),
+          decoration: petInputDecoration(l10n.breed),
+          hint: Text(l10n.breed, style: const TextStyle(fontSize: 14)),
           items: breedList.map<DropdownMenuItem<String>>((breed) {
             return DropdownMenuItem<String>(
               value: breed.id,
@@ -326,7 +426,11 @@ class PetSpeciesBreedFields extends StatelessWidget {
             );
           }).toList(),
           onChanged: onBreedChanged,
-          validator: (value) => value == null ? 'Vui lòng chọn giống' : null,
+          validator: (value) => validateRequiredSelection(
+            value: value,
+            l10n: l10n,
+            fieldLabel: l10n.breed,
+          ),
         ),
       ],
     );
@@ -363,21 +467,25 @@ Future<void> pickPetBirthdate(
 }
 
 Future<bool> showDeletePetDialog(BuildContext context, String petName) async {
+  final l10n = AppLocalizations.of(context)!;
   final result = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Xóa thú cưng', style: TextStyle(fontWeight: FontWeight.bold)),
-      content: Text('Bạn có chắc chắn muốn xóa $petName không? Hành động này không thể hoàn tác.'),
+      title: Text(
+        l10n.confirmDelete,
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      content: Text(l10n.deletePetMessage(petName)),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Hủy', style: TextStyle(color: Colors.grey)),
+          child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textGrey)),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
           style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: const Text('Xóa', style: TextStyle(fontWeight: FontWeight.bold)),
+          child: Text(l10n.delete, style: const TextStyle(fontWeight: FontWeight.bold)),
         ),
       ],
     ),
