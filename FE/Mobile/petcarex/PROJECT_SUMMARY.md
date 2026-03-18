@@ -37,6 +37,23 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **`PasswordTextField` Widget:** Hợp nhất logic nhập mật khẩu vào một Widget dùng chung duy nhất cho toàn bộ ứng dụng.
 - **Xử lý Async an toàn:** Áp dụng kiểm tra `mounted` và `context.mounted` cho tất cả các tác vụ điều hướng và hiển thị thông báo sau khi `await`.
 
+### ➕ Chuẩn hóa API Endpoint Registry (Refactor 2026-03)
+- **Tách lớp cấu hình & endpoint rõ ràng:**
+    - `lib/core/constants/app_config.dart`: chứa `appName`, `baseUrl`, `apiPrefix`.
+    - `lib/core/constants/app_constants.dart`: chỉ chứa endpoint cố định theo domain (không chứa logic build URL/query).
+    - `lib/core/network/api_helper.dart`: chứa helper build endpoint động + query params.
+- **Chuẩn naming endpoint:** Bổ sung bộ hằng số gốc theo domain API (`END_POINT_USER`, `END_POINT_PET`, `END_POINT_CLINIC`, `END_POINT_VETERINARIAN`, `END_POINT_APPOINTMENT`, `END_POINT_MEDICAL`, `END_POINT_POST`, `END_POINT_COMMENT`, `END_POINT_TOPIC`, `END_POINT_INVOICE`, ...).
+- **Chuẩn endpoint con:** Khai báo rõ ràng endpoint cố định như `profile`, `upload`, `species`, `get-all`, `replies`, `like`, `remove-like`, ... ngay trong cùng file constants.
+- **Chuẩn endpoint động:** Dùng helper method trong `ApiHelper` cho route có tham số động (`{id}`, `{petId}`, `{speciesId}`, `{medicalRecordId}`, ...), ví dụ `userByIdEndpoint(...)`, `appointmentByIdEndpoint(...)`, `petByIdEndpoint(...)`.
+- **Chuẩn query params:** Dùng `ApiHelper.buildEndpoint(...)` + method theo ngữ cảnh (`clinicsEndpoint(...)`, `veterinariansEndpoint(...)`, `appointmentMyEndpoint(...)`, `postsEndpoint(...)`, `postCommentsListEndpoint(...)`) để tránh nối chuỗi query thủ công.
+- **Mục tiêu maintainability:** Khi backend đổi route, chỉ cần sửa tại `app_constants.dart` (endpoint cố định) và/hoặc `api_helper.dart` (route động/query), không phải chỉnh hàng loạt repository/service.
+- **Các module đã migrate sang chuẩn mới:**
+    - `features/appointment/data/appointment_service.dart`
+    - `features/booking/data/booking_repository.dart`
+    - `features/community/data/community_repository.dart`
+    - `features/pet/data/pet_repository.dart`
+    - `features/auth/presentation/providers/auth_provider.dart` (route `user/{id}`)
+
 ## 📁 Trạng thái các tính năng
 
 ### 1. Hệ thống đa ngôn ngữ (i18n)

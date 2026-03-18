@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-import '../constants/app_constants.dart';
+import '../constants/app_config.dart';
 import '../utils/logger.dart'; // Import mới
 
 class ApiClient {
@@ -26,57 +26,70 @@ class ApiClient {
   }
 
   Future<http.Response> get(String endpoint) async {
-    final url = Uri.parse('${AppConstants.baseUrl}$endpoint');
+    final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
     final headers = await _getHeaders();
     AppLogger.logRequest('GET', url.toString(), headers);
 
-    final response = await http.get(url, headers: headers).timeout(_requestTimeout);
+    final response = await http
+        .get(url, headers: headers)
+        .timeout(_requestTimeout);
     AppLogger.logResponse(response);
     return response;
   }
 
-  Future<http.Response> patch(String endpoint, Map<String, dynamic> body) async {
-    final url = Uri.parse('${AppConstants.baseUrl}$endpoint');
+  Future<http.Response> patch(
+    String endpoint,
+    Map<String, dynamic> body,
+  ) async {
+    final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
     final headers = await _getHeaders();
     AppLogger.logRequest('PATCH', url.toString(), headers, body);
 
-    final response = await http.patch(url, headers: headers, body: jsonEncode(body)).timeout(_requestTimeout);
+    final response = await http
+        .patch(url, headers: headers, body: jsonEncode(body))
+        .timeout(_requestTimeout);
     AppLogger.logResponse(response);
     return response;
   }
 
   Future<http.Response> post(String endpoint, Map<String, dynamic> body) async {
-    final url = Uri.parse('${AppConstants.baseUrl}$endpoint');
+    final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
     final headers = await _getHeaders();
     AppLogger.logRequest('POST', url.toString(), headers, body);
 
-    final response = await http.post(url, headers: headers, body: jsonEncode(body)).timeout(_requestTimeout);
+    final response = await http
+        .post(url, headers: headers, body: jsonEncode(body))
+        .timeout(_requestTimeout);
     AppLogger.logResponse(response);
     return response;
   }
 
   Future<http.Response> put(String endpoint, Map<String, dynamic> body) async {
-    final url = Uri.parse('${AppConstants.baseUrl}$endpoint');
+    final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
     final headers = await _getHeaders();
     AppLogger.logRequest('PUT', url.toString(), headers, body);
 
-    final response = await http.put(url, headers: headers, body: jsonEncode(body)).timeout(_requestTimeout);
+    final response = await http
+        .put(url, headers: headers, body: jsonEncode(body))
+        .timeout(_requestTimeout);
     AppLogger.logResponse(response);
     return response;
   }
 
   Future<http.Response> delete(String endpoint) async {
-    final url = Uri.parse('${AppConstants.baseUrl}$endpoint');
+    final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
     final headers = await _getHeaders();
     AppLogger.logRequest('DELETE', url.toString(), headers);
 
-    final response = await http.delete(url, headers: headers).timeout(_requestTimeout);
+    final response = await http
+        .delete(url, headers: headers)
+        .timeout(_requestTimeout);
     AppLogger.logResponse(response);
     return response;
   }
 
   Future<http.Response> postMultipart(String endpoint, String filePath) async {
-    final url = Uri.parse('${AppConstants.baseUrl}$endpoint');
+    final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
     final headers = await _getHeaders();
     headers.remove('Content-Type');
 

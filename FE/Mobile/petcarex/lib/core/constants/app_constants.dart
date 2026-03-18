@@ -1,43 +1,69 @@
+﻿import 'app_config.dart';
+
+// ignore_for_file: constant_identifier_names
+
 class AppConstants {
-  static const String appName = 'PetCareX';
-  
-  static const String baseUrl = String.fromEnvironment(
-    'BASE_URL',
-    defaultValue: 'http://localhost:3000',
-  );
-  
-  static const String apiPrefix = '/api';
+  // Root Endpoints
+  static const String END_POINT_AUTH = '${AppConfig.apiPrefix}/auth';
+  static const String END_POINT_USER = '${AppConfig.apiPrefix}/user';
+  static const String END_POINT_PET = '${AppConfig.apiPrefix}/pet';
+  static const String END_POINT_CLINIC = '${AppConfig.apiPrefix}/clinic';
+  static const String END_POINT_VETERINARIAN =
+      '${AppConfig.apiPrefix}/veterinarian';
+  static const String END_POINT_APPOINTMENT =
+      '${AppConfig.apiPrefix}/appointment';
+  static const String END_POINT_MEDICAL = '${AppConfig.apiPrefix}/medical';
+  static const String END_POINT_MEDICAL_ORDER =
+      '${AppConfig.apiPrefix}/medical-order';
+  static const String END_POINT_MEDICINE = '${AppConfig.apiPrefix}/medicine';
+  static const String END_POINT_POST = '${AppConfig.apiPrefix}/post';
+  static const String END_POINT_COMMENT = '${AppConfig.apiPrefix}/comment';
+  static const String END_POINT_TOPIC = '${AppConfig.apiPrefix}/topic';
+  static const String END_POINT_INVOICE = '${AppConfig.apiPrefix}/invoice';
 
   // Auth Endpoints
-  static const String loginEndpoint = '$apiPrefix/auth/login';
-  static const String loginGoogleEndpoint = '$apiPrefix/auth/login-google';
-  static const String registerEndpoint = '$apiPrefix/auth/register';
-  static const String forgotPasswordEndpoint = '$apiPrefix/auth/forgot-password';
-  static const String resetPasswordEndpoint = '$apiPrefix/auth/reset-password';
-  static const String changePasswordEndpoint = '$apiPrefix/auth/change-password';
+  static const String END_POINT_AUTH_LOGIN = '$END_POINT_AUTH/login';
+  static const String END_POINT_AUTH_LOGIN_GOOGLE =
+      '$END_POINT_AUTH/login-google';
+  static const String END_POINT_AUTH_REGISTER = '$END_POINT_AUTH/register';
+  static const String END_POINT_AUTH_FORGOT_PASSWORD =
+      '$END_POINT_AUTH/forgot-password';
+  static const String END_POINT_AUTH_RESET_PASSWORD =
+      '$END_POINT_AUTH/reset-password';
+  static const String END_POINT_AUTH_CHANGE_PASSWORD =
+      '$END_POINT_AUTH/change-password';
 
-  // User Endpoint
-  static const String userEndpoint = '$apiPrefix/user';
-  static const String userProfileEndpoint = '$apiPrefix/user/profile';
-  static const String userUploadEndpoint = '$apiPrefix/user/upload';
+  // User Endpoints
+  static const String END_POINT_USER_PROFILE = '$END_POINT_USER/profile';
+  static const String END_POINT_USER_UPLOAD = '$END_POINT_USER/upload';
 
   // Pet Endpoints
-  static const String petEndpoint = '$apiPrefix/pet';
-  static const String petSpeciesEndpoint = '$apiPrefix/pet/species';
-  static const String petUploadEndpoint = '$apiPrefix/pet/upload';
-  static String petBreedsEndpoint(String speciesId) => '$apiPrefix/pet/species/$speciesId/breed';
+  static const String END_POINT_PET_SPECIES = '$END_POINT_PET/species';
+  static const String END_POINT_PET_UPLOAD = '$END_POINT_PET/upload';
+  static const String END_POINT_PET_BREED_SUFFIX = 'breed';
+
+  // Clinic Endpoints
+  static const String END_POINT_CLINIC_UPLOAD = '$END_POINT_CLINIC/upload';
+
+  // Appointment Endpoints
+  static const String END_POINT_APPOINTMENT_MY = '$END_POINT_APPOINTMENT/my';
+
+  // Medical Endpoints
+  static const String END_POINT_MEDICAL_CLINIC = '$END_POINT_MEDICAL/clinic';
+  static const String END_POINT_MEDICAL_PET = '$END_POINT_MEDICAL/pet';
+  static const String END_POINT_MEDICAL_MEDICAL_ORDER =
+      '$END_POINT_MEDICAL/medical-order';
+  static const String END_POINT_MEDICAL_MEDICINE =
+      '$END_POINT_MEDICAL/medicine';
 
   // Forum (Post) Endpoints
-  static const String postEndpoint = '$apiPrefix/post';
-  static String postLikeEndpoint(String id) => '$apiPrefix/post/$id/like';
-  static String postUnlikeEndpoint(String id) => '$apiPrefix/post/$id/remove-like';
-  static String postCommentsEndpoint(String postId) => '$apiPrefix/post/$postId/comments';
+  static const String END_POINT_POST_COMMENTS_SUFFIX = 'comments';
+  static const String END_POINT_POST_LIKE_SUFFIX = 'like';
+  static const String END_POINT_POST_REMOVE_LIKE_SUFFIX = 'remove-like';
 
   // Comment Endpoints
-  static const String commentEndpoint = '$apiPrefix/comment';
-  static const String commentRepliesEndpoint = '$apiPrefix/comment/replies';
+  static const String END_POINT_COMMENT_REPLIES = '$END_POINT_COMMENT/replies';
 
   // Topic Endpoints
-  static const String topicEndpoint = '$apiPrefix/topic';
-  static const String topicGetAllEndpoint = '$apiPrefix/topic/get-all';
+  static const String END_POINT_TOPIC_GET_ALL = '$END_POINT_TOPIC/get-all';
 }

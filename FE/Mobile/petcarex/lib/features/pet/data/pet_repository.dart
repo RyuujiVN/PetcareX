@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_helper.dart';
 import '../data/models/pet_models.dart';
 
 class PetRepository {
@@ -28,7 +29,7 @@ class PetRepository {
   }
 
   Future<List<Pet>> getMyPets() async {
-    final response = await _apiClient.get(AppConstants.petEndpoint);
+    final response = await _apiClient.get(AppConstants.END_POINT_PET);
     if (response.statusCode == 200) {
       try {
         final List<dynamic> data = jsonDecode(response.body);
@@ -41,7 +42,7 @@ class PetRepository {
   }
 
   Future<List<PetSpecies>> getSpecies() async {
-    final response = await _apiClient.get(AppConstants.petSpeciesEndpoint);
+    final response = await _apiClient.get(AppConstants.END_POINT_PET_SPECIES);
     if (response.statusCode == 200) {
       try {
         final List<dynamic> data = jsonDecode(response.body);
@@ -54,7 +55,9 @@ class PetRepository {
   }
 
   Future<List<PetBreed>> getBreeds(String speciesId) async {
-    final response = await _apiClient.get(AppConstants.petBreedsEndpoint(speciesId));
+    final response = await _apiClient.get(
+      ApiHelper.petBreedsEndpoint(speciesId),
+    );
     if (response.statusCode == 200) {
       try {
         final List<dynamic> data = jsonDecode(response.body);
@@ -67,7 +70,10 @@ class PetRepository {
   }
 
   Future<String> uploadAvatar(String filePath) async {
-    final response = await _apiClient.postMultipart(AppConstants.petUploadEndpoint, filePath);
+    final response = await _apiClient.postMultipart(
+      AppConstants.END_POINT_PET_UPLOAD,
+      filePath,
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
       try {
         final data = jsonDecode(response.body);
@@ -79,12 +85,18 @@ class PetRepository {
       throw Exception('Phản hồi từ máy chủ không hợp lệ');
     }
     throw Exception(
-      _parseErrorMessage(response.body, 'Lỗi khi tải lên avatar (Status: ${response.statusCode})'),
+      _parseErrorMessage(
+        response.body,
+        'Lỗi khi tải lên avatar (Status: ${response.statusCode})',
+      ),
     );
   }
 
   Future<bool> createPet(PetFormDto petDto) async {
-    final response = await _apiClient.post(AppConstants.petEndpoint, petDto.toJson());
+    final response = await _apiClient.post(
+      AppConstants.END_POINT_PET,
+      petDto.toJson(),
+    );
     if (response.statusCode == 200 || response.statusCode == 201) {
       return true;
     }
@@ -92,15 +104,22 @@ class PetRepository {
   }
 
   Future<bool> updatePet(String id, PetFormDto petDto) async {
-    final response = await _apiClient.put('${AppConstants.petEndpoint}/$id', petDto.toJson());
-    if (response.statusCode == 200 || response.statusCode == 201 || response.statusCode == 204) {
+    final response = await _apiClient.put(
+      ApiHelper.petByIdEndpoint(id),
+      petDto.toJson(),
+    );
+    if (response.statusCode == 200 ||
+        response.statusCode == 201 ||
+        response.statusCode == 204) {
       return true;
     }
-    throw Exception(_parseErrorMessage(response.body, 'Lỗi khi cập nhật vật nuôi'));
+    throw Exception(
+      _parseErrorMessage(response.body, 'Lỗi khi cập nhật vật nuôi'),
+    );
   }
 
   Future<bool> deletePet(String id) async {
-    final response = await _apiClient.delete('${AppConstants.petEndpoint}/$id');
+    final response = await _apiClient.delete(ApiHelper.petByIdEndpoint(id));
     if (response.statusCode == 200 || response.statusCode == 204) {
       return true;
     }
