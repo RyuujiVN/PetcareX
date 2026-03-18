@@ -153,4 +153,17 @@ class ApiHelper {
       'createdAt': lastCreatedAt,
     },
   );
+
+  static String commentRepliesEndpoint({
+    required String parentId,
+    int limit = 10,
+    String? lastCreatedAt,
+  }) => buildEndpoint(
+    AppConstants.END_POINT_COMMENT_REPLIES,
+    queryParameters: <String, Object?>{
+      'parentId': parentId,
+      'limit': limit,
+      'createdAt': lastCreatedAt,
+    },
+  );
 }
