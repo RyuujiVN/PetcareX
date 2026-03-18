@@ -30,9 +30,20 @@ export class RoomService {
     if (!room) throw new NotFoundException('Không tìm thấy đoạn chat');
 
     if (room.userId !== userId)
-      throw new ForbiddenException('Không có quyền xoá đoạn chat này');
+      throw new ForbiddenException('Không có quyền chỉnh sửa đoạn chat này');
 
     Object.assign(room, updateDTO);
     await this.roomRepository.save(room);
+  }
+
+  async deleteRoom(roomId: string, userId: string) {
+    const room = await this.roomRepository.findOne({ where: { id: roomId } });
+
+    if (!room) throw new NotFoundException('Không tìm thấy đoạn chat');
+
+    if (room.userId !== userId)
+      throw new ForbiddenException('Không có quyền xoá đoạn chat này');
+
+    await this.roomRepository.delete({ id: room.id });
   }
 }

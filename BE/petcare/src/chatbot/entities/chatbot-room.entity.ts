@@ -5,8 +5,10 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { ChatbotMessage } from './chatbot-message.entity';
 
 @Entity('chatbot_room')
 export class ChatbotRoom {
@@ -27,4 +29,7 @@ export class ChatbotRoom {
   })
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToMany(() => ChatbotMessage, (message) => message.room)
+  messages: ChatbotMessage[];
 }
