@@ -1,5 +1,9 @@
 import { CreateMedicalRecordDTO } from './dtos/create-medical-record.dto';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MedicalRecord } from './entities/medical-record.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -18,6 +22,8 @@ import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-med
 import { UserService } from 'src/user/user.service';
 import bcrypt from 'bcryptjs';
 import { MailService } from 'src/mail/mail.service';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
 
 @Injectable()
 export class MedicalService {
@@ -28,10 +34,26 @@ export class MedicalService {
     private readonly medicalRecordOrderRepo: Repository<MedicalRecordOrder>,
     @InjectRepository(MedicalRecordMedicine)
     private readonly medicalRecordMedicineRepo: Repository<MedicalRecordMedicine>,
+    @InjectRepository(Invoice)
+    private readonly invoiceRepository: Repository<Invoice>,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
   ) {}
+
+  // Kiếm tra xem phiếu thuốc đã có hoá đơn thanh toán chưa
+  private async checkMedicalRecordInvoice(medicalRecordId: string) {
+    const invoice = await this.invoiceRepository.findOne({
+      where: { medicalRecordId },
+      select: ['status'],
+    });
+
+    if (invoice?.status === InvoiceStatusEnum.PAID) {
+      throw new ForbiddenException(
+        'Không thể thao tác trên phiếu khám đã có hoá đơn thanh toán',
+      );
+    }
+  }
 
   // ------------------------ Phiếu chỉ định ---------------------------
   // Lấy tất cả phiếu chỉ định của phiếu khám
@@ -48,6 +70,8 @@ export class MedicalService {
 
   // Thêm mới phiếu chỉ định vào phiếu khám
   async createMedicalRecordOrder(createDTO: CreateMedicalRecordOrderDTO) {
+    await this.checkMedicalRecordInvoice(createDTO.medicalRecordId);
+
     const saved = await this.medicalRecordOrderRepo.save(createDTO);
 
     return this.medicalRecordOrderRepo.findOne({
@@ -73,6 +97,8 @@ export class MedicalService {
 
     if (!record) throw new NotFoundException('Không tìm thấy phiếu chỉ định');
 
+    await this.checkMedicalRecordInvoice(record.medicalRecordId);
+
     Object.assign(record, updateDTO);
 
     await this.medicalRecordOrderRepo.save(record);
@@ -80,10 +106,16 @@ export class MedicalService {
 
   // Xoá phiếu chỉ định của phòng khám
   async deleteMedicalRecordOrder(id: string) {
-    const result = await this.medicalRecordOrderRepo.delete({ id: id });
+    const record = await this.medicalRecordOrderRepo.findOne({
+      where: { id },
+      select: ['id', 'medicalRecordId'],
+    });
 
-    if (result.affected === 0)
-      throw new NotFoundException('Không tìm thấy phiếu chỉ định');
+    if (!record) throw new NotFoundException('Không tìm thấy phiếu chỉ định');
+
+    await this.checkMedicalRecordInvoice(record.medicalRecordId);
+
+    await this.medicalRecordOrderRepo.delete({ id: id });
   }
 
   // ------------------------ Thuốc ---------------------------
@@ -101,6 +133,8 @@ export class MedicalService {
 
   // Thêm thuốc vào phiếu khám
   async createMedicalRecordMedicine(createDTO: CreateMedicalRecordMedicineDTO) {
+    await this.checkMedicalRecordInvoice(createDTO.medicalRecordId);
+
     const saved = await this.medicalRecordMedicineRepo.save(createDTO);
 
     return await this.medicalRecordMedicineRepo.findOne({
@@ -125,91 +159,81 @@ export class MedicalService {
     if (!record)
       throw new NotFoundException('Không tìm thấy thuốc trong phiếu khám này');
 
+    await this.checkMedicalRecordInvoice(record.medicalRecordId);
+
     Object.assign(record, updateDTO);
     await this.medicalRecordMedicineRepo.save(record);
   }
 
   // Xoá thuốc của phiếu khám
   async deleteMedicalRecordMedicine(id: string) {
-    const result = await this.medicalRecordMedicineRepo.delete({ id: id });
+    const medicine = await this.medicalRecordMedicineRepo.findOne({
+      where: { id: id },
+      select: ['id', 'medicalRecordId'],
+    });
 
-    if (result.affected === 0)
+    if (!medicine)
       throw new NotFoundException('Không tìm thấy thuốc trong phiếu khám này');
+
+    await this.checkMedicalRecordInvoice(medicine.medicalRecordId);
+
+    await this.medicalRecordMedicineRepo.delete({ id: id });
   }
 
   // ------------------------ Phiếu khám -----------------------------
   // Lấy thông tin chi tiết phiếu khám
   async findOneById(id: string) {
-    const record = await this.medicalRecordRepository
-      .createQueryBuilder('medical_record')
-      .leftJoin('medical_record.pet', 'pet')
-      .leftJoin('pet.breed', 'breed')
-      .leftJoin('pet.owner', 'owner')
-      .leftJoin('medical_record.clinic', 'clinic')
-      .leftJoin('medical_record.veterinarian', 'veterinarian')
-      .leftJoin('veterinarian.user', 'user')
-
-      .where('medical_record.id = :id', { id })
-
-      .select([
-        'medical_record.id',
-        'medical_record.name',
-        'medical_record.name',
-        'medical_record.temperature',
-        'medical_record.heartRate',
-        'medical_record.systolic',
-        'medical_record.diastolic',
-        'medical_record.weight',
-        'medical_record.diagnosis',
-        'medical_record.symptoms',
-        'medical_record.conclusion',
-        'medical_record.note',
-        'medical_record.createdAt',
-        'medical_record.followUpDate',
-
-        'clinic.id',
-        'clinic.name',
-
-        'pet.id',
-        'pet.name',
-        'pet.avatar',
-
-        'breed.id',
-        'breed.name',
-
-        'owner.id',
-        'owner.fullName',
-
-        'veterinarian.specialty',
-
-        'user.id',
-        'user.fullName',
-      ])
-
-      .getOne();
+    const record = await this.medicalRecordRepository.findOne({
+      where: { id },
+      relations: [
+        'pet',
+        'pet.breed',
+        'pet.owner',
+        'clinic',
+        'veterinarian',
+        'veterinarian.user',
+      ],
+    });
 
     if (!record) {
       throw new NotFoundException('Không tìm thấy phiếu khám');
     }
 
     return {
-      ...record,
+      id: record.id,
+      name: record.name,
+      temperature: record.temperature,
+      heartRate: record.heartRate,
+      systolic: record.systolic,
+      diastolic: record.diastolic,
+      weight: record.weight,
+      diagnosis: record.diagnosis,
+      symptoms: record.symptoms,
+      conclusion: record.conclusion,
+      note: record.note,
+      createdAt: record.createdAt,
+      followUpDate: record.followUpDate,
 
-      pet: {
-        id: record.pet?.id,
-        name: record.pet?.name,
-        avatar: record.pet?.avatar,
-        breedName: record.pet?.breed?.name,
-        owner: {
-          id: record.pet?.owner?.id,
-          fullName: record.pet?.owner?.fullName,
+      clinic: record.clinic && {
+        id: record.clinic.id,
+        name: record.clinic.name,
+      },
+
+      pet: record.pet && {
+        id: record.pet.id,
+        name: record.pet.name,
+        avatar: record.pet.avatar,
+        breedName: record.pet.breed?.name,
+        owner: record.pet.owner && {
+          id: record.pet.owner.id,
+          fullName: record.pet.owner.fullName,
         },
       },
 
-      veterinarian: {
-        id: record.veterinarian?.user?.id,
-        fullName: record.veterinarian?.user?.fullName,
-        specialty: record.veterinarian?.specialty,
+      veterinarian: record.veterinarian && {
+        id: record.veterinarian.user?.id,
+        fullName: record.veterinarian.user?.fullName,
+        specialty: record.veterinarian.specialty,
       },
     };
   }
@@ -403,6 +427,7 @@ export class MedicalService {
 
             <p>Trân trọng,<br/>PetcareX</p>
           </div>`;
+
         await this.mailService.sendMail(createDTO.email, subject, html);
       }
 

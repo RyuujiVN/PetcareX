@@ -20,6 +20,7 @@ import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
 import { LoginDTO } from './dtos/login.dto';
 import { ResetPasswordDTO } from './dtos/reset-password.dto';
 import { LoginTicket, OAuth2Client } from 'google-auth-library';
+import { LoginGoogleDTO } from './dtos/login-google.dto';
 
 @Injectable()
 export class AuthService {
@@ -100,9 +101,12 @@ export class AuthService {
     }
   }
 
-  async googleLogin(googleIdToken: string) {
+  async googleLogin(loginGoogleDTO: LoginGoogleDTO) {
     // Validate token
-    const email = await this.validateGoogleIdToken(googleIdToken);
+    const email = await this.validateGoogleIdToken(
+      loginGoogleDTO.googleIdToken,
+    );
+
     if (!email) throw new BadRequestException('In valid token');
 
     // Kiểm tra xem user đã tồn tại hay chưa
@@ -111,15 +115,12 @@ export class AuthService {
 
     // Nếu chưa thì tạo mới
     if (!existedUser) {
-      const fullName = email?.split('@')[0];
-
-      if (!fullName) throw new BadRequestException();
-
       const password = this.userService.generatePassword();
 
       const newUser = new User();
       newUser.email = email;
-      newUser.fullName = fullName;
+      newUser.fullName = loginGoogleDTO.fullName;
+      newUser.avatarUrl = loginGoogleDTO.avatarUrl;
       newUser.role = RoleEnum.CUSTOMER;
       newUser.password = await bcrypt.hash(password, 10);
 

@@ -102,7 +102,7 @@ export class MedicalRecord {
     () => MedicalRecordOrder,
     (medicalRecordOrder) => medicalRecordOrder.medicalRecord,
   )
-  medicalOrders: MedicalRecordMedicine[];
+  medicalOrders: MedicalRecordOrder[];
 
   @OneToOne(() => Invoice, (invoice) => invoice.medicalRecord, {
     onDelete: 'CASCADE',
