@@ -286,7 +286,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to cancel this appointment?';
 
   @override
-  String get statusUpcoming => 'Confirmed';
+  String get statusUpcoming => 'Booked';
+
+  @override
+  String get statusInProgress => 'In progress';
 
   @override
   String get statusCompleted => 'Completed';

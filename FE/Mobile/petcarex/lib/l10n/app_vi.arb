@@ -92,6 +92,7 @@
   "confirmCancel": "Xác nhận hủy lịch",
   "cancelMessage": "Bạn có chắc chắn muốn hủy lịch hẹn này không?",
   "statusUpcoming": "Hẹn thành công",
+  "statusInProgress": "Đang khám",
   "statusCompleted": "Đã khám xong",
   "statusCancelled": "Đã huỷ",
   "success": "Thành công!",

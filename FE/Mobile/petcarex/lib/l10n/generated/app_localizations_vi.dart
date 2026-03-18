@@ -288,6 +288,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get statusUpcoming => 'Hẹn thành công';
 
   @override
+  String get statusInProgress => 'Đang khám';
+
+  @override
   String get statusCompleted => 'Đã khám xong';
 
   @override

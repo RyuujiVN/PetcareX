@@ -650,6 +650,12 @@ abstract class AppLocalizations {
   /// **'Hẹn thành công'**
   String get statusUpcoming;
 
+  /// No description provided for @statusInProgress.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang khám'**
+  String get statusInProgress;
+
   /// No description provided for @statusCompleted.
   ///
   /// In vi, this message translates to:

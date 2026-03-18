@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/enums/appointment_status_enum.dart';
 import '../../data/appointment_model.dart';
 import '../../data/appointment_service.dart';
 
@@ -14,25 +15,20 @@ class AppointmentProvider with ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
 
-  // Hỗ trợ cả tiếng Việt và Key của Server (đề phòng)
   List<Appointment> get upcomingAppointments {
-    return _appointments.where((a) => 
-      a.status == 'Hẹn thành công' || 
-      a.status == 'Đang khám' || 
-      a.status == 'SUCCESS' || 
-      a.status == 'PENDING'
-    ).toList()
-      ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
+    return _appointments.where((a) {
+      final status = AppointmentStatusEnum.fromValue(a.status);
+      return status == AppointmentStatusEnum.BOOKED ||
+          status == AppointmentStatusEnum.IN_PROGRESS;
+    }).toList()..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
   }
 
   List<Appointment> get historicalAppointments {
-    return _appointments.where((a) => 
-      a.status == 'Đã khám xong' || 
-      a.status == 'Đã huỷ' || 
-      a.status == 'COMPLETED' || 
-      a.status == 'CANCELLED'
-    ).toList()
-      ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
+    return _appointments.where((a) {
+      final status = AppointmentStatusEnum.fromValue(a.status);
+      return status == AppointmentStatusEnum.COMPLETED ||
+          status == AppointmentStatusEnum.CANCELLED;
+    }).toList()..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
   }
 
   Future<void> fetchAppointments() async {
@@ -41,7 +37,10 @@ class AppointmentProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _appointments = await _appointmentService.getMyAppointments(page: 1, limit: 100);
+      _appointments = await _appointmentService.getMyAppointments(
+        page: 1,
+        limit: 100,
+      );
     } catch (e) {
       // Để null để UI có thể dùng l10n.failed
       _errorMessage = 'failed';
@@ -55,7 +54,7 @@ class AppointmentProvider with ChangeNotifier {
   Future<bool> cancelAppointment(String id) async {
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       final success = await _appointmentService.cancelAppointment(id);
       if (success) {
