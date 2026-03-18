@@ -36,6 +36,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   Timer? _timer;
   int _start = 60;
   bool _canResend = true;
+  AutovalidateMode _autoValidateMode = AutovalidateMode.disabled;
 
   @override
   void initState() {
@@ -116,11 +117,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
       return;
     }
 
-    if (!(_formKey.currentState?.validate() ?? false)) return;
-
-    if (passwordController.text != confirmPasswordController.text) {
-      _showQuickSnackBar(l10n.passwordsNotMatch, isError: true);
-      _confirmPasswordFocus.requestFocus();
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      setState(() => _autoValidateMode = AutovalidateMode.onUserInteraction);
       return;
     }
 
@@ -209,6 +207,8 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   }
 
   Widget _buildResetCard(bool isLoading, AppLocalizations l10n) {
+    final canResend = !isLoading && !_isResending && _canResend;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
       decoration: BoxDecoration(
@@ -247,11 +247,19 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             _buildOTPSection(isLoading, l10n),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: (isLoading || _isResending || !_canResend) ? null : _resendOTP,
-                child: Text(
-                  _canResend ? l10n.resendOTP : '${l10n.resendAfter} ${_start}s',
-                  style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600, fontSize: 13),
+              child: InkWell(
+                onTap: canResend ? _resendOTP : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                  child: Text(
+                    _canResend ? l10n.resendOTP : '${l10n.resendAfter} ${_start}s',
+                    style: TextStyle(
+                      color: canResend ? AppColors.primary : AppColors.textGrey,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -260,16 +268,38 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
               controller: passwordController, 
               label: l10n.enterNewPassword,
               focusNode: _passwordFocus,
+              autovalidateMode: _autoValidateMode,
               textInputAction: TextInputAction.next,
               onSubmitted: (_) => FocusScope.of(context).requestFocus(_confirmPasswordFocus),
+              validator: (value) {
+                final text = value?.trim() ?? '';
+                if (text.isEmpty) {
+                  return l10n.enterPassword;
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             PasswordTextField(
               controller: confirmPasswordController, 
               label: l10n.reEnterPassword,
               focusNode: _confirmPasswordFocus,
+              autovalidateMode: _autoValidateMode,
               textInputAction: TextInputAction.done,
               onSubmitted: (_) => _resetPassword(),
+              validator: (value) {
+                final confirmPassword = value?.trim() ?? '';
+                if (confirmPassword.isEmpty) {
+                  return l10n.enterConfirmPassword;
+                }
+
+                final newPassword = passwordController.text.trim();
+                if (confirmPassword != newPassword) {
+                  return l10n.passwordsNotMatch;
+                }
+
+                return null;
+              },
             ),
             const SizedBox(height: 32),
             _buildSubmitButton(isLoading, l10n),

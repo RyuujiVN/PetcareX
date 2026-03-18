@@ -48,6 +48,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get enterPassword => 'Vui lòng nhập mật khẩu';
 
   @override
+  String get enterConfirmPassword => 'Vui lòng nhập xác nhận mật khẩu';
+
+  @override
   String get loginFailed => 'Đăng nhập thất bại';
 
   @override
@@ -496,7 +499,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get invalidEmail => 'Email không hợp lệ';
 
   @override
+  String get passwordComplexityError =>
+      'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số';
+
+  @override
   String get otpSent => 'Mã OTP đã được gửi thành công';
+
+  @override
+  String get invalidOtp => 'Mã OTP không đúng';
+
+  @override
+  String get otpExpired => 'Mã OTP đã hết hạn';
 
   @override
   String get connectionError => 'Lỗi kết nối tới máy chủ';

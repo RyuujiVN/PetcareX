@@ -117,23 +117,45 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  String? _extractFirstMessage(dynamic rawMessage) {
+    if (rawMessage == null) return null;
+
+    if (rawMessage is List) {
+      for (final item in rawMessage) {
+        final message = item?.toString().trim();
+        if (message != null && message.isNotEmpty) {
+          return message;
+        }
+      }
+      return null;
+    }
+
+    final message = rawMessage.toString().trim();
+    if (message.isEmpty) return null;
+    return message;
+  }
+
   String _parseErrorMessage(dynamic body) {
     if (body == null) return 'errorUnknown';
 
-    if (body['error'] != null && body['error']['message'] != null) {
-      final message = body['error']['message'];
-      if (message is List) {
-        return message.join(', ');
+    if (body is Map) {
+      final error = body['error'];
+      if (error is Map) {
+        final nestedMessage = _extractFirstMessage(error['message']);
+        if (nestedMessage != null) {
+          return nestedMessage;
+        }
       }
-      return message.toString();
+
+      final topMessage = _extractFirstMessage(body['message']);
+      if (topMessage != null) {
+        return topMessage;
+      }
     }
 
-    if (body['message'] != null) {
-      final message = body['message'];
-      if (message is List) {
-        return message.join(', ');
-      }
-      return message.toString();
+    final fallbackMessage = _extractFirstMessage(body);
+    if (fallbackMessage != null) {
+      return fallbackMessage;
     }
 
     return 'errorUnknown';
@@ -374,11 +396,12 @@ class AuthProvider extends ChangeNotifier {
         {'email': email},
       );
       _isLoading = false;
+      final body = jsonDecode(response.body);
       if (response.statusCode == 200 || response.statusCode == 201) {
         notifyListeners();
         return true;
       }
-      _errorMessage = jsonDecode(response.body)['message'] ?? 'errorUnknown';
+      _errorMessage = _parseErrorMessage(body);
       notifyListeners();
       return false;
     } catch (e) {

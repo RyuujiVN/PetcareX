@@ -10,6 +10,8 @@ class PasswordTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final FormFieldValidator<String>? validator;
+  final AutovalidateMode? autovalidateMode;
 
   const PasswordTextField({
     super.key,
@@ -20,6 +22,8 @@ class PasswordTextField extends StatefulWidget {
     this.focusNode,
     this.textInputAction,
     this.onSubmitted,
+    this.validator,
+    this.autovalidateMode,
   });
 
   @override
@@ -39,12 +43,14 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark),
         ),
         const SizedBox(height: 8),
-        TextField(
+        TextFormField(
           controller: widget.controller,
           obscureText: _isObscure,
           focusNode: widget.focusNode,
           textInputAction: widget.textInputAction,
-          onSubmitted: widget.onSubmitted,
+          onFieldSubmitted: widget.onSubmitted,
+          validator: widget.validator,
+          autovalidateMode: widget.autovalidateMode,
           obscuringCharacter: '●',
           style: const TextStyle(letterSpacing: 2.0, fontSize: 16, color: AppColors.textDark),
           decoration: InputDecoration(

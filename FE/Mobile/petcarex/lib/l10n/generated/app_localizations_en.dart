@@ -48,6 +48,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get enterPassword => 'Please enter your password';
 
   @override
+  String get enterConfirmPassword => 'Please enter password confirmation';
+
+  @override
   String get loginFailed => 'Login failed';
 
   @override
@@ -516,7 +519,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get invalidEmail => 'Invalid email address';
 
   @override
+  String get passwordComplexityError =>
+      'Password must contain at least one uppercase letter, one lowercase letter, and one number';
+
+  @override
   String get otpSent => 'OTP code has been sent successfully';
+
+  @override
+  String get invalidOtp => 'Invalid OTP code';
+
+  @override
+  String get otpExpired => 'OTP code has expired';
 
   @override
   String get connectionError => 'Server connection error';

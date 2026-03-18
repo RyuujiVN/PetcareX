@@ -1,14 +1,21 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Otp } from './entities/otp.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { Otp } from './entities/otp.entity';
 
 @Injectable()
 export class OtpService {
+  private static readonly OTP_EXPIRE_MINUTES = 5;
+
   constructor(
     @InjectRepository(Otp)
     private readonly otpRepository: Repository<Otp>,
   ) {}
+
+  getOtpExpireMinutes(): number {
+    return OtpService.OTP_EXPIRE_MINUTES;
+  }
+
   generateCode(length: number): string {
     let code = '';
 
@@ -35,7 +42,9 @@ export class OtpService {
 
   async createOtp(email: string) {
     const code = this.generateCode(6);
-    const expired = new Date(Date.now() + 3 * 60 * 1000); // Hết hạn trong 3 phút
+    const expired = new Date(
+      Date.now() + OtpService.OTP_EXPIRE_MINUTES * 60 * 1000,
+    );
     const otp = new Otp();
     otp.email = email;
     otp.code = code;

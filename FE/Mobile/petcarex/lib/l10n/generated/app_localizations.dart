@@ -176,6 +176,12 @@ abstract class AppLocalizations {
   /// **'Vui lòng nhập mật khẩu'**
   String get enterPassword;
 
+  /// No description provided for @enterConfirmPassword.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng nhập xác nhận mật khẩu'**
+  String get enterConfirmPassword;
+
   /// No description provided for @loginFailed.
   ///
   /// In vi, this message translates to:
@@ -1040,11 +1046,29 @@ abstract class AppLocalizations {
   /// **'Email không hợp lệ'**
   String get invalidEmail;
 
+  /// No description provided for @passwordComplexityError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số'**
+  String get passwordComplexityError;
+
   /// No description provided for @otpSent.
   ///
   /// In vi, this message translates to:
   /// **'Mã OTP đã được gửi thành công'**
   String get otpSent;
+
+  /// No description provided for @invalidOtp.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã OTP không đúng'**
+  String get invalidOtp;
+
+  /// No description provided for @otpExpired.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã OTP đã hết hạn'**
+  String get otpExpired;
 
   /// No description provided for @connectionError.
   ///

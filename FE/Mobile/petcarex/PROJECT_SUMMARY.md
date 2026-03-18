@@ -72,6 +72,28 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 ### 2. Module Auth & Account
 - **Giao diện:** Đã đồng bộ 100% với hệ thống `AppColors` mới. Không còn màu fix cứng.
 - **Bảo mật:** Sử dụng `flutter_secure_storage` và tích hợp sẵn trong `ApiClient`.
+- **Login UX (scroll behavior):** Nút đổi ngôn ngữ ở `LoginPage` đã được đưa vào luồng nội dung cuộn (`SingleChildScrollView`) thay vì `Positioned` cố định. Khi người dùng cuộn màn hình, nút sẽ cuộn theo đúng ngữ cảnh giao diện.
+- **Register UX Validation:** Bổ sung validate trực tiếp tại UI cho hai trường mật khẩu:
+        - Thiếu mật khẩu: hiển thị `enterPassword`.
+        - Thiếu xác nhận mật khẩu: hiển thị `enterConfirmPassword`.
+        - Sai khớp mật khẩu/xác nhận mật khẩu: hiển thị `passwordsNotMatch`.
+    Các thông báo đã đồng bộ đầy đủ VI/EN trong `app_vi.arb` và `app_en.arb`.
+- **Chuẩn hóa parse lỗi Auth từ NestJS:**
+        - FE ưu tiên đọc lỗi theo thứ tự: `error.message` (nested) -> `message` (top-level) -> fallback.
+        - Nếu backend trả mảng lỗi validate, FE chỉ lấy **lỗi đầu tiên** để hiển thị cho người dùng (tránh nhồi nhiều lỗi một lúc).
+        - Tránh hiển thị chung chung `Bad Request Exception` khi có thông điệp chi tiết.
+- **Map lỗi backend sang i18n:** `ErrorHandler` đã bổ sung mapping các thông điệp validate phổ biến (ví dụ `Email không hợp lệ`, rule độ mạnh mật khẩu) sang key localization để hiển thị đúng theo ngôn ngữ hiện tại.
+- **Reset Password UX đồng bộ Register:**
+    - Trường `Nhập mật khẩu mới` và `Nhập lại mật khẩu` đã dùng inline validation theo `Form` (không chỉ báo Snackbar cho lỗi sai khớp như trước).
+    - Rule hiển thị lỗi thống nhất: `enterPassword`, `enterConfirmPassword`, `passwordsNotMatch`.
+- **Countdown resend OTP (UI):** Khi chưa được phép gửi lại mã (`resendAfter`), text countdown được làm mờ (`AppColors.textGrey`) để phân biệt rõ trạng thái disabled/active.
+- **Chuẩn hóa lỗi OTP đa ngôn ngữ:**
+    - Bổ sung key i18n `invalidOtp`, `otpExpired` cho cả VI/EN.
+    - `ErrorHandler` chỉ map theo key nội bộ + thông điệp backend cụ thể (exact match), không dùng contains/pattern đoán mơ hồ.
+    - Nếu message không nằm trong danh sách map tường minh, FE giữ nguyên message backend để tránh biến đổi sai ngữ nghĩa.
+- **Đồng bộ OTP expiry FE-BE:**
+    - Đã xác định nguyên nhân lệch thời gian: backend `OtpService.createOtp(...)` trước đó set TTL = 3 phút trong khi email ghi 5 phút.
+    - Sửa backend về TTL 5 phút bằng hằng số chung trong `OtpService` và dùng chính hằng số này để render nội dung email, tránh lệch cấu hình trong tương lai.
 
 ### 3. Module Appointment & Booking
 - **Logic Đa Ngôn Ngữ & API:** Đồng bộ Enum (`ServiceEnum`...) giữa hệ thống giao diện và API. Frontend gọi chuỗi tiếng Việt như `Khám bệnh` cho API Payload thông qua `enum.value`, nhưng tự động sử dụng `enum.getTranslatedName(BuildContext)` để dịch trực tiếp qua `app_vi.arb` & `app_en.arb` trước khi hiển thị.

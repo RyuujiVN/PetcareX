@@ -30,6 +30,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   bool _agreeToTerms = false;
   bool _isLoading = false;
+  AutovalidateMode _autoValidateMode = AutovalidateMode.disabled;
 
   final ApiClient _apiClient = ApiClient();
 
@@ -42,9 +43,48 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
+  String? _extractFirstMessage(dynamic rawMessage) {
+    if (rawMessage == null) return null;
+
+    if (rawMessage is List) {
+      for (final item in rawMessage) {
+        final value = item?.toString().trim();
+        if (value != null && value.isNotEmpty) {
+          return value;
+        }
+      }
+      return null;
+    }
+
+    final value = rawMessage.toString().trim();
+    if (value.isEmpty) return null;
+    return value;
+  }
+
+  String _extractFirstApiError(dynamic body, AppLocalizations l10n) {
+    if (body is Map) {
+      final error = body['error'];
+      if (error is Map) {
+        final nestedMessage = _extractFirstMessage(error['message']);
+        if (nestedMessage != null) return nestedMessage;
+      }
+
+      final topMessage = _extractFirstMessage(body['message']);
+      if (topMessage != null) return topMessage;
+    }
+
+    final fallbackMessage = _extractFirstMessage(body);
+    if (fallbackMessage != null) return fallbackMessage;
+
+    return l10n.failed;
+  }
+
   Future<void> _register() async {
     final l10n = AppLocalizations.of(context)!;
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      setState(() => _autoValidateMode = AutovalidateMode.onUserInteraction);
+      return;
+    }
     if (!_agreeToTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -60,8 +100,8 @@ class _RegisterPageState extends State<RegisterPage> {
     try {
       final response = await _apiClient
           .post(AppConstants.END_POINT_AUTH_REGISTER, {
-            'fullName': nameController.text,
-            'email': emailController.text,
+            'fullName': nameController.text.trim(),
+            'email': emailController.text.trim(),
             'password': passwordController.text,
             'role': 'CUSTOMER',
           });
@@ -82,12 +122,12 @@ class _RegisterPageState extends State<RegisterPage> {
         } catch (_) {
           errorData = <String, dynamic>{};
         }
+        final apiError = _extractFirstApiError(errorData, l10n);
+
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              (errorData is Map ? errorData['message'] : null) ?? l10n.failed,
-            ),
+            content: Text(ErrorHandler.getLocalizedError(apiError, context)),
             backgroundColor: AppColors.error,
           ),
         );
@@ -260,11 +300,30 @@ class _RegisterPageState extends State<RegisterPage> {
             PasswordTextField(
               controller: passwordController,
               label: l10n.password,
+              autovalidateMode: _autoValidateMode,
+              validator: (value) {
+                final text = value?.trim() ?? '';
+                if (text.isEmpty) {
+                  return l10n.enterPassword;
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 10),
             PasswordTextField(
               controller: confirmPasswordController,
               label: l10n.confirmPassword,
+              autovalidateMode: _autoValidateMode,
+              validator: (value) {
+                final text = value?.trim() ?? '';
+                if (text.isEmpty) {
+                  return l10n.enterConfirmPassword;
+                }
+                if (text != passwordController.text.trim()) {
+                  return l10n.passwordsNotMatch;
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             _buildTermsCheckbox(l10n),
@@ -302,6 +361,7 @@ class _RegisterPageState extends State<RegisterPage> {
         const SizedBox(height: 4),
         TextFormField(
           controller: controller,
+          autovalidateMode: _autoValidateMode,
           style: const TextStyle(color: AppColors.textDark),
           keyboardType: keyboardType,
           decoration: InputDecoration(

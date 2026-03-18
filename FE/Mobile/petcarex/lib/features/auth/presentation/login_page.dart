@@ -160,26 +160,22 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: Stack(
-          children: [
-            Center(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    _buildHeader(l10n),
-                    const SizedBox(height: 32),
-                    _buildLoginCard(isLoading, l10n),
-                  ],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _buildLanguageSelector(),
                 ),
-              ),
+                const SizedBox(height: 12),
+                _buildHeader(l10n),
+                const SizedBox(height: 32),
+                _buildLoginCard(isLoading, l10n),
+              ],
             ),
-            Positioned(
-              top: 16,
-              right: 16,
-              child: _buildLanguageSelector(),
-            ),
-          ],
+          ),
         ),
       ),
     );
