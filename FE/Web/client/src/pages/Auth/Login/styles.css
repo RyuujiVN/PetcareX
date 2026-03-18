@@ -1,10 +1,4 @@
-﻿* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-:root {
+﻿:root {
   --primary: #13ECDA;
   --text-primary: #333;
   --text-secondary: #666;

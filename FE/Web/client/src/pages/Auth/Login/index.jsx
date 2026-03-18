@@ -105,6 +105,7 @@ export default function Login() {
         >
 
           <Form.Item
+            style={{width: '100%', height: '50%'}}
             label="Email"
             name="email"
             rules={[
@@ -113,7 +114,7 @@ export default function Login() {
             ]}
           >
             <Input
-              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)'}} />}
               placeholder="Nhập email của bạn"
             />
           </Form.Item>

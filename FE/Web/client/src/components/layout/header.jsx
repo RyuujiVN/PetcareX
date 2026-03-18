@@ -99,10 +99,10 @@ function Header() {
                         </div>
                     ) : (
                         <div className="auth-buttons">
-                            <Link to="/register" className="btn register-btn">
+                            <Link to="/register" className="btns register-btn">
                                 Đăng ký
                             </Link>
-                            <Link to="/login" className="btn login-btn">
+                            <Link to="/login" className="btns login-btn">
                                 Đăng nhập
                             </Link>
                         </div>
