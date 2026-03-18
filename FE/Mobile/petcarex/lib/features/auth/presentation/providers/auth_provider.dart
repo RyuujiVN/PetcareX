@@ -74,7 +74,7 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 2. Đổi mật khẩu (Cập nhật theo Swagger)
+  // 2. Đổi mật khẩu
   Future<bool> changePassword({
     required String oldPassword,
     required String newPassword,
@@ -139,14 +139,13 @@ class AuthProvider extends ChangeNotifier {
     return 'errorUnknown';
   }
 
-  // 3. Đăng nhập bằng Google
-  Future<bool> loginWithGoogle() async {
+  // 3. Đăng nhập bằng Google (Tuân thủ trạng thái rememberMe từ UI)
+  Future<bool> loginWithGoogle({bool rememberMe = false}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Đăng nhập Google để lấy thông tin xác thực
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         _isLoading = false;
@@ -158,7 +157,6 @@ class AuthProvider extends ChangeNotifier {
           await googleUser.authentication;
       final idToken = googleAuth.idToken;
 
-      // Đảm bảo tokenid không null
       if (idToken == null) {
         _errorMessage = 'errorGoogleAuth';
         _isLoading = false;
@@ -166,7 +164,6 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      // Lấy tokenid từ google
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -188,7 +185,7 @@ class AuthProvider extends ChangeNotifier {
         if (token != null) {
           await _storage.write(key: 'accessToken', value: token);
         }
-
+        
         _isLoading = false;
         notifyListeners();
         return true;
@@ -220,7 +217,7 @@ class AuthProvider extends ChangeNotifier {
     await _storage.delete(key: 'accessToken');
     await _storage.delete(key: 'rememberMe');
     await _googleSignIn.signOut();
-    await FirebaseAuth.instance.signOut(); // Đăng xuất khỏi Firebase
+    await FirebaseAuth.instance.signOut();
     notifyListeners();
   }
 
@@ -235,7 +232,7 @@ class AuthProvider extends ChangeNotifier {
     return value == 'true';
   }
 
-  // 7. Kiểm tra trạng thái đăng nhập và Lấy thông tin Profile
+  // 7. Kiểm tra trạng thái đăng nhập
   Future<void> checkAuthStatus() async {
     final token = await _storage.read(key: 'accessToken');
     if (token == null) {
@@ -265,7 +262,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 7.1 Lấy thông tin Profile
   Future<bool> fetchProfile() async {
     try {
       final response = await _apiClient.get(
@@ -284,7 +280,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 7.2 Cập nhật Profile
   Future<bool> updateProfile({
     required String fullName,
     required String email,
@@ -313,7 +308,6 @@ class AuthProvider extends ChangeNotifier {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Cập nhật thành công, gọi lại api Profile để lấy dữ liệu mới nhất
         await fetchProfile();
         _isLoading = false;
         notifyListeners();
@@ -333,7 +327,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 7.3 Tải ảnh Avatar
   Future<String?> uploadAvatar(String filePath) async {
     _isLoading = true;
     _errorMessage = null;
@@ -370,7 +363,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 8. Quên mật khẩu
   Future<bool> forgotPassword(String email) async {
     _isLoading = true;
     _errorMessage = null;
@@ -397,7 +389,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 9. Đặt lại mật khẩu
   Future<bool> resetPassword({
     required String email,
     required String otp,

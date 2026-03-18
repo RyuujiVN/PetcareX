@@ -9,6 +9,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import 'provider/community_provider.dart';
 import '../data/models/community_models.dart';
+import 'create_post_page.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -43,6 +44,7 @@ class _CommunityPageState extends State<CommunityPage> {
   void _showCommentSheet(Post post, CommunityProvider provider, AppLocalizations l10n) {
     final TextEditingController commentController = TextEditingController();
     provider.fetchComments(post.id);
+    provider.setReplyTarget(null); 
     
     showModalBottomSheet(
       context: context,
@@ -52,63 +54,33 @@ class _CommunityPageState extends State<CommunityPage> {
         builder: (context, provider, _) {
           final comments = provider.getCommentsForPost(post.id);
           final isLoading = provider.isCommentsLoading(post.id);
+          final replyTarget = provider.activeReplyTarget;
 
-          return Container(
-            height: MediaQuery.of(context).size.height * 0.8,
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            ),
-            child: Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.symmetric(vertical: 12),
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
-                ),
-                Text(l10n.petCareForum, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                const Divider(height: 24),
-                Expanded(
-                  child: isLoading 
-                    ? const Center(child: CircularProgressIndicator())
-                    : comments.isEmpty 
-                      ? const Center(child: Text('Chưa có bình luận nào.', style: TextStyle(color: AppColors.textGrey)))
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: comments.length,
-                          itemBuilder: (context, index) => _buildCommentItem(comments[index]),
-                        ),
-                ),
-                Container(
-                  padding: EdgeInsets.fromLTRB(16, 8, 16, MediaQuery.of(context).viewInsets.bottom + 16),
-                  decoration: const BoxDecoration(color: AppColors.surface, border: Border(top: BorderSide(color: AppColors.divider))),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: commentController,
-                          decoration: InputDecoration(
-                            hintText: 'Viết bình luận...',
-                            filled: true,
-                            fillColor: AppColors.background,
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          return Padding(
+            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.7,
+              decoration: const BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              child: Column(
+                children: [
+                  _buildSheetHeader(l10n),
+                  Expanded(
+                    child: isLoading 
+                      ? const Center(child: CircularProgressIndicator())
+                      : comments.isEmpty 
+                        ? const Center(child: Text('Chưa có bình luận nào.', style: TextStyle(color: AppColors.textGrey)))
+                        : ListView.builder(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: comments.length,
+                            itemBuilder: (context, index) => _buildCommentItem(comments[index], provider, l10n, post.id),
                           ),
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.send, color: AppColors.primary),
-                        onPressed: () async {
-                          if (commentController.text.trim().isNotEmpty) {
-                            final success = await provider.sendComment(post.id, commentController.text.trim());
-                            if (success) commentController.clear();
-                          }
-                        },
-                      ),
-                    ],
                   ),
-                ),
-              ],
+                  _buildCommentInputSection(commentController, post, provider, replyTarget, l10n),
+                ],
+              ),
             ),
           );
         },
@@ -116,41 +88,164 @@ class _CommunityPageState extends State<CommunityPage> {
     );
   }
 
-  Widget _buildCommentItem(Comment comment) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildSheetHeader(AppLocalizations l10n) {
+    return Column(
+      children: [
+        Container(
+          margin: const EdgeInsets.symmetric(vertical: 12),
+          width: 40, height: 4,
+          decoration: BoxDecoration(color: AppColors.divider, borderRadius: BorderRadius.circular(2)),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(l10n.petCareForum, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+        ),
+        const Divider(height: 1),
+      ],
+    );
+  }
+
+  Widget _buildCommentInputSection(TextEditingController controller, Post post, CommunityProvider provider, Comment? replyTarget, AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: const Border(top: BorderSide(color: AppColors.divider)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          CircleAvatar(
-            radius: 16,
-            backgroundImage: (comment.user.avatarUrl != null) ? NetworkImage(comment.user.avatarUrl!) : null,
-            child: (comment.user.avatarUrl == null) ? const Icon(Icons.person, size: 16) : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(16)),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(comment.user.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                      const SizedBox(height: 4),
-                      Text(comment.content, style: const TextStyle(fontSize: 14)),
-                    ],
+          if (replyTarget != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(8)),
+              child: Row(
+                children: [
+                  Expanded(child: Text('Đang trả lời ${replyTarget.author.fullName}', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600))),
+                  GestureDetector(onTap: () => provider.setReplyTarget(null), child: const Icon(Icons.close, size: 16, color: AppColors.primary)),
+                ],
+              ),
+            ),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  decoration: InputDecoration(
+                    hintText: replyTarget == null ? 'Viết bình luận...' : 'Viết câu trả lời...',
+                    filled: true,
+                    fillColor: AppColors.background,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 8, top: 4),
-                  child: Text(DateFormat('dd/MM HH:mm').format(comment.createdAt), style: const TextStyle(color: AppColors.textGrey, fontSize: 11)),
+              ),
+              const SizedBox(width: 8),
+              CircleAvatar(
+                backgroundColor: AppColors.primary,
+                child: IconButton(
+                  icon: const Icon(Icons.send, color: AppColors.onPrimary, size: 20),
+                  onPressed: () async {
+                    if (controller.text.trim().isNotEmpty) {
+                      final success = await provider.sendComment(post.id, controller.text.trim());
+                      if (success) controller.clear();
+                    }
+                  },
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCommentItem(Comment comment, CommunityProvider provider, AppLocalizations l10n, String postId, {bool isReply = false}) {
+    final replies = provider.getRepliesForComment(comment.id);
+    final isRepliesLoading = provider.isRepliesLoading(comment.id);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: 16, left: isReply ? 40 : 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.divider, width: 1),
+                ),
+                child: CircleAvatar(
+                  radius: isReply ? 14 : 18,
+                  backgroundColor: AppColors.background,
+                  backgroundImage: (comment.author.avatarUrl != null && comment.author.avatarUrl!.isNotEmpty) 
+                      ? CachedNetworkImageProvider(ImageHelper.getThumbnailUrl(comment.author.avatarUrl!)) 
+                      : null,
+                  child: (comment.author.avatarUrl == null || comment.author.avatarUrl!.isEmpty) 
+                      ? Icon(Icons.person, size: isReply ? 14 : 18, color: AppColors.iconGrey) : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isReply ? AppColors.white : AppColors.background,
+                        borderRadius: BorderRadius.circular(16),
+                        border: isReply ? Border.all(color: AppColors.divider) : null,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(comment.author.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textDark)),
+                          const SizedBox(height: 4),
+                          Text(comment.content, style: const TextStyle(fontSize: 14, color: AppColors.textDark)),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8, top: 6),
+                      child: Row(
+                        children: [
+                          Text(DateFormat('dd/MM HH:mm').format(comment.createdAt), style: const TextStyle(color: AppColors.textGrey, fontSize: 11)),
+                          if (!isReply) ...[
+                            const SizedBox(width: 16),
+                            GestureDetector(
+                              onTap: () => provider.setReplyTarget(comment),
+                              child: const Text('Trả lời', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (!isReply) ...[
+            if (replies.isNotEmpty)
+              ...replies.map((reply) => _buildCommentItem(reply, provider, l10n, postId, isReply: true))
+            else if (!isRepliesLoading && comment.replies != null && comment.replies!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(left: 50, top: 8),
+                child: GestureDetector(
+                  onTap: () => provider.fetchReplies(comment.id),
+                  child: const Text('Xem câu trả lời', style: TextStyle(color: AppColors.textGrey, fontSize: 12, fontWeight: FontWeight.w500)),
+                ),
+              )
+            else if (isRepliesLoading)
+              const Padding(
+                padding: EdgeInsets.only(left: 50, top: 8),
+                child: SizedBox(width: 12, height: 12, child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+          ],
         ],
       ),
     );
@@ -187,6 +282,14 @@ class _CommunityPageState extends State<CommunityPage> {
             ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const CreatePostPage()));
+          if (result == true) provider.fetchInitialData();
+        },
+        backgroundColor: AppColors.primary,
+        child: const Icon(Icons.add, color: AppColors.onPrimary),
       ),
     );
   }
@@ -235,13 +338,14 @@ class _CommunityPageState extends State<CommunityPage> {
             backgroundImage: (user?.avatarUrl != null && user!.avatarUrl!.isNotEmpty) 
                 ? CachedNetworkImageProvider(ImageHelper.getThumbnailUrl(user.avatarUrl!)) 
                 : null,
-            child: (user?.avatarUrl == null) ? const Icon(Icons.person, color: AppColors.iconGrey) : null,
+            child: (user?.avatarUrl?.isEmpty ?? true) ? const Icon(Icons.person, color: AppColors.iconGrey) : null,
           ),
           const SizedBox(width: 12),
           Expanded(
             child: GestureDetector(
-              onTap: () {
-                // Logic mở trang tạo bài viết
+              onTap: () async {
+                final result = await Navigator.push(context, MaterialPageRoute(builder: (context) => const CreatePostPage()));
+                if (result == true) context.read<CommunityProvider>().fetchInitialData();
               },
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -293,16 +397,16 @@ class _CommunityPageState extends State<CommunityPage> {
               CircleAvatar(
                 radius: 20, 
                 backgroundColor: AppColors.background,
-                backgroundImage: (post.user.avatarUrl != null && post.user.avatarUrl!.isNotEmpty) 
-                    ? CachedNetworkImageProvider(ImageHelper.getThumbnailUrl(post.user.avatarUrl!)) 
+                backgroundImage: (post.author.avatarUrl != null && post.author.avatarUrl!.isNotEmpty) 
+                    ? CachedNetworkImageProvider(ImageHelper.getThumbnailUrl(post.author.avatarUrl!)) 
                     : null,
-                child: (post.user.avatarUrl == null) ? const Icon(Icons.person, color: AppColors.iconGrey) : null,
+                child: (post.author.avatarUrl?.isEmpty ?? true) ? const Icon(Icons.person, color: AppColors.iconGrey) : null,
               ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start, 
                 children: [
-                  Text(post.user.fullName, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                  Text(post.author.fullName, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
                   Text('${DateFormat('dd/MM HH:mm').format(post.createdAt)} ${post.topic != null ? "• ${post.topic!.name}" : ""}', style: const TextStyle(color: AppColors.textGrey, fontSize: 12))
                 ]
               ),
@@ -324,15 +428,15 @@ class _CommunityPageState extends State<CommunityPage> {
           Row(
             children: [
               _buildInteractionItem(
-                icon: post.isLiked ? Icons.favorite : Icons.favorite_border,
-                label: '${post.likesCount}',
-                color: post.isLiked ? Colors.red : AppColors.textGrey,
+                icon: post.liked ? Icons.favorite : Icons.favorite_border,
+                label: '${post.likeCount}',
+                color: post.liked ? Colors.red : AppColors.textGrey,
                 onTap: () => provider.toggleLike(post.id),
               ),
               const SizedBox(width: 24),
               _buildInteractionItem(
                 icon: Icons.chat_bubble_outline,
-                label: '${post.commentsCount}',
+                label: '${post.commentCount}',
                 color: AppColors.textGrey,
                 onTap: () => _showCommentSheet(post, provider, l10n),
               ),
