@@ -8,12 +8,16 @@ class CommunityProvider with ChangeNotifier {
   List<Post> _posts = [];
   List<Topic> _topics = [];
   Map<String, List<Comment>> _postComments = {};
+  Map<String, List<Comment>> _commentReplies = {}; 
   Map<String, bool> _isCommentsLoading = {};
+  Map<String, bool> _isRepliesLoading = {};
   
   bool _isLoading = false;
   bool _isMoreLoading = false;
   String? _errorMessage;
   String? _selectedTopicId;
+
+  Comment? _activeReplyTarget;
 
   List<Post> get posts => _posts;
   List<Topic> get topics => _topics;
@@ -21,9 +25,19 @@ class CommunityProvider with ChangeNotifier {
   bool get isMoreLoading => _isMoreLoading;
   String? get errorMessage => _errorMessage;
   String? get selectedTopicId => _selectedTopicId;
+  Comment? get activeReplyTarget => _activeReplyTarget;
 
   List<Comment> getCommentsForPost(String postId) => _postComments[postId] ?? [];
+  
+  List<Comment> getRepliesForComment(String commentId) => _commentReplies[commentId] ?? [];
+  
   bool isCommentsLoading(String postId) => _isCommentsLoading[postId] ?? false;
+  bool isRepliesLoading(String commentId) => _isRepliesLoading[commentId] ?? false;
+
+  void setReplyTarget(Comment? comment) {
+    _activeReplyTarget = comment;
+    notifyListeners();
+  }
 
   Future<void> fetchInitialData() async {
     _isLoading = true;
@@ -88,25 +102,30 @@ class CommunityProvider with ChangeNotifier {
     if (postIndex == -1) return;
 
     final post = _posts[postIndex];
-    final originalIsLiked = post.isLiked;
+    final originalLiked = post.liked;
+    final originalLikeCount = post.likeCount;
     
-    post.isLiked = !post.isLiked;
+    // Optimistic UI Update
+    post.liked = !post.liked;
+    post.likeCount = post.liked ? post.likeCount + 1 : post.likeCount - 1;
     notifyListeners();
 
     try {
       bool success;
-      if (originalIsLiked) {
+      if (originalLiked) {
         success = await _repository.unlikePost(postId);
       } else {
         success = await _repository.likePost(postId);
       }
 
       if (!success) {
-        post.isLiked = originalIsLiked;
+        post.liked = originalLiked;
+        post.likeCount = originalLikeCount;
         notifyListeners();
       }
     } catch (e) {
-      post.isLiked = originalIsLiked;
+      post.liked = originalLiked;
+      post.likeCount = originalLikeCount;
       notifyListeners();
     }
   }
@@ -125,14 +144,44 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
+  Future<void> fetchReplies(String commentId) async {
+    _isRepliesLoading[commentId] = true;
+    notifyListeners();
+    try {
+      final replies = await _repository.getReplies(commentId);
+      _commentReplies[commentId] = replies;
+    } catch (e) {
+      // Log error
+    } finally {
+      _isRepliesLoading[commentId] = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> sendComment(String postId, String content) async {
     try {
-      final newComment = await _repository.createComment(postId, content);
+      final parentId = _activeReplyTarget?.id;
+      final newComment = await _repository.createComment(
+        postId, 
+        content, 
+        parentId: parentId
+      );
+
       if (newComment != null) {
-        if (!_postComments.containsKey(postId)) {
-          _postComments[postId] = [];
+        if (parentId == null) {
+          if (!_postComments.containsKey(postId)) _postComments[postId] = [];
+          _postComments[postId]!.insert(0, newComment);
+          
+          final postIndex = _posts.indexWhere((p) => p.id == postId);
+          if (postIndex != -1) {
+            _posts[postIndex].commentCount++;
+          }
+        } else {
+          if (!_commentReplies.containsKey(parentId)) _commentReplies[parentId] = [];
+          _commentReplies[parentId]!.insert(0, newComment);
         }
-        _postComments[postId]!.insert(0, newComment);
+        
+        _activeReplyTarget = null;
         notifyListeners();
         return true;
       }
@@ -142,21 +191,20 @@ class CommunityProvider with ChangeNotifier {
     return false;
   }
 
-  Future<bool> createNewPost(String content) async {
-    if (_selectedTopicId == null && _topics.isNotEmpty) {
-      _selectedTopicId = _topics.first.id;
-    }
-    if (_selectedTopicId == null) return false;
-
+  Future<bool> createNewPost({required String content, required String topicId}) async {
+    _isLoading = true;
+    notifyListeners();
     try {
-      final newPost = await _repository.createPost(content, _selectedTopicId!);
+      final newPost = await _repository.createPost(content, topicId);
       if (newPost != null) {
         _posts.insert(0, newPost);
-        notifyListeners();
         return true;
       }
     } catch (e) {
       _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
     return false;
   }

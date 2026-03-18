@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/logger.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import 'provider/community_provider.dart';
@@ -21,9 +22,23 @@ class _CreatePostPageState extends State<CreatePostPage> {
   @override
   void initState() {
     super.initState();
-    final topics = context.read<CommunityProvider>().topics;
-    if (topics.isNotEmpty) {
-      _selectedTopicId = topics.first.id;
+    _initializeDefaultTopic();
+  }
+
+  void _initializeDefaultTopic() {
+    final provider = context.read<CommunityProvider>();
+    if (provider.topics.isNotEmpty) {
+      setState(() {
+        _selectedTopicId = provider.topics.first.id;
+      });
+    } else {
+      provider.fetchInitialData().then((_) {
+        if (mounted && provider.topics.isNotEmpty) {
+          setState(() {
+            _selectedTopicId = provider.topics.first.id;
+          });
+        }
+      });
     }
   }
 
@@ -35,36 +50,53 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   Future<void> _handlePost() async {
     final l10n = AppLocalizations.of(context)!;
-    if (_contentController.text.trim().isEmpty || _selectedTopicId == null) return;
+    final content = _contentController.text.trim();
+
+    if (content.isEmpty) {
+      _showQuickSnackBar(l10n.shareSomething);
+      return;
+    }
+
+    if (_selectedTopicId == null) {
+      _showQuickSnackBar("Vui lòng chọn một chủ đề");
+      return;
+    }
 
     setState(() => _isLoading = true);
     
-    final success = await context.read<CommunityProvider>().createNewPost(
-      content: _contentController.text.trim(),
-      topicId: _selectedTopicId!,
-    );
+    try {
+      final success = await context.read<CommunityProvider>().createNewPost(
+        content: content,
+        topicId: _selectedTopicId!,
+      );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
-      if (success) {
-        Navigator.pop(context, true);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.success),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.failed),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+      if (mounted) {
+        setState(() => _isLoading = false);
+        if (success) {
+          Navigator.pop(context, true);
+          _showQuickSnackBar(l10n.success, isError: false);
+        } else {
+          final error = context.read<CommunityProvider>().errorMessage;
+          _showQuickSnackBar(error ?? l10n.failed);
+        }
+      }
+    } catch (e) {
+      AppLogger.logError("Error creating post", e); // Đã sửa tên hàm từ .error sang .logError
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showQuickSnackBar(l10n.failed);
       }
     }
+  }
+
+  void _showQuickSnackBar(String message, {bool isError = true}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? AppColors.error : AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
   }
 
   @override
@@ -95,7 +127,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 backgroundColor: AppColors.primary,
                 foregroundColor: AppColors.onPrimary,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               ),
               child: _isLoading 
@@ -130,7 +161,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                     ),
                     const SizedBox(height: 4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
                       decoration: BoxDecoration(
                         color: AppColors.background,
                         borderRadius: BorderRadius.circular(12),
@@ -139,6 +170,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedTopicId,
+                          hint: const Text("Chọn chủ đề", style: TextStyle(fontSize: 12)),
                           isDense: true,
                           icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.primary),
                           style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold),
