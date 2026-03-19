@@ -192,6 +192,17 @@ class AppLocalizationsVi extends AppLocalizations {
   String get aboutAppName => 'Về PetCareX';
 
   @override
+  String get aboutProjectHeadline =>
+      'Đồ án Capstone 2 - Hệ thống chăm sóc thú cưng toàn diện.';
+
+  @override
+  String get aboutDevelopedBy => 'Phát triển bởi: Nhóm PetCareX';
+
+  @override
+  String get aboutProjectDescription =>
+      'Ứng dụng này giúp bạn quản lý sức khỏe thú cưng, lịch hẹn và kết nối nhanh chóng với các bác sĩ thú y uy tín.';
+
+  @override
   String get personalInfoSubtitle => 'Xem và chỉnh sửa thông tin cá nhân';
 
   @override
@@ -352,6 +363,18 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get choosePetSub => 'Chọn thú cưng cần được thăm khám hôm nay';
+
+  @override
+  String get bookingClinicSub => 'Chọn phòng khám phù hợp cho thú cưng';
+
+  @override
+  String get bookingServiceSub => 'Chọn dịch vụ và nhập triệu chứng bắt buộc';
+
+  @override
+  String get bookingDoctorSub => 'Chọn bác sĩ thú y phù hợp';
+
+  @override
+  String get bookingTimeSub => 'Chọn ngày và khung giờ khám';
 
   @override
   String get stepPet => 'Thú cưng';
@@ -666,6 +689,10 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get bookingPetSymptomsLabel => 'Triệu chứng của thú cưng ';
+
+  @override
+  String get bookingSymptomsRequiredHelper =>
+      'Bắt buộc nhập để bác sĩ nắm tình trạng trước khi khám.';
 
   @override
   String get bookingSymptomsHint =>

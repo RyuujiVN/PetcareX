@@ -138,7 +138,7 @@ class _BookingPageState extends State<BookingPage> {
       l10n.stepPet,
       l10n.stepClinic,
       l10n.stepService,
-      l10n.doctor,
+      l10n.stepDoctor,
       l10n.stepTime,
     ];
 
@@ -338,15 +338,15 @@ class _BookingPageState extends State<BookingPage> {
       l10n.choosePet,
       l10n.stepClinic,
       l10n.stepService,
-      l10n.doctor,
+      l10n.stepDoctor,
       l10n.stepTime,
     ];
     final subs = [
       l10n.choosePetSub,
-      l10n.stepClinic,
-      l10n.stepService,
-      l10n.doctor,
-      l10n.stepTime,
+      l10n.bookingClinicSub,
+      l10n.bookingServiceSub,
+      l10n.bookingDoctorSub,
+      l10n.bookingTimeSub,
     ];
 
     return SliverPadding(

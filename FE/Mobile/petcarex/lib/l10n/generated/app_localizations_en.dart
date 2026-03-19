@@ -191,6 +191,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutAppName => 'About PetCareX';
 
   @override
+  String get aboutProjectHeadline =>
+      'Capstone 2 Project - Comprehensive Pet Care System.';
+
+  @override
+  String get aboutDevelopedBy => 'Developed by: PetCareX Team';
+
+  @override
+  String get aboutProjectDescription =>
+      'This application helps you manage pet health, appointments, and quickly connect with reputable veterinarians.';
+
+  @override
   String get personalInfoSubtitle => 'View and edit personal information';
 
   @override
@@ -353,6 +364,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get choosePetSub => 'Choose the pet that needs examination today';
+
+  @override
+  String get bookingClinicSub => 'Select a clinic suitable for your pet';
+
+  @override
+  String get bookingServiceSub =>
+      'Select a service and enter required symptoms';
+
+  @override
+  String get bookingDoctorSub => 'Select a suitable veterinarian';
+
+  @override
+  String get bookingTimeSub => 'Select examination date and time';
 
   @override
   String get stepPet => 'Pet';
@@ -701,6 +725,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookingPetSymptomsLabel => 'Pet symptoms ';
+
+  @override
+  String get bookingSymptomsRequiredHelper =>
+      'Required: describe symptoms so the doctor can prepare in advance.';
 
   @override
   String get bookingSymptomsHint => 'Describe symptoms or current condition...';

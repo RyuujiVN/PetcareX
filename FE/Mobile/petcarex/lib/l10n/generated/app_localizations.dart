@@ -458,6 +458,24 @@ abstract class AppLocalizations {
   /// **'Về PetCareX'**
   String get aboutAppName;
 
+  /// No description provided for @aboutProjectHeadline.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đồ án Capstone 2 - Hệ thống chăm sóc thú cưng toàn diện.'**
+  String get aboutProjectHeadline;
+
+  /// No description provided for @aboutDevelopedBy.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phát triển bởi: Nhóm PetCareX'**
+  String get aboutDevelopedBy;
+
+  /// No description provided for @aboutProjectDescription.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ứng dụng này giúp bạn quản lý sức khỏe thú cưng, lịch hẹn và kết nối nhanh chóng với các bác sĩ thú y uy tín.'**
+  String get aboutProjectDescription;
+
   /// No description provided for @personalInfoSubtitle.
   ///
   /// In vi, this message translates to:
@@ -781,6 +799,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chọn thú cưng cần được thăm khám hôm nay'**
   String get choosePetSub;
+
+  /// No description provided for @bookingClinicSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn phòng khám phù hợp cho thú cưng'**
+  String get bookingClinicSub;
+
+  /// No description provided for @bookingServiceSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn dịch vụ và nhập triệu chứng bắt buộc'**
+  String get bookingServiceSub;
+
+  /// No description provided for @bookingDoctorSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn bác sĩ thú y phù hợp'**
+  String get bookingDoctorSub;
+
+  /// No description provided for @bookingTimeSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ngày và khung giờ khám'**
+  String get bookingTimeSub;
 
   /// No description provided for @stepPet.
   ///
@@ -1351,6 +1393,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Triệu chứng của thú cưng '**
   String get bookingPetSymptomsLabel;
+
+  /// No description provided for @bookingSymptomsRequiredHelper.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bắt buộc nhập để bác sĩ nắm tình trạng trước khi khám.'**
+  String get bookingSymptomsRequiredHelper;
 
   /// No description provided for @bookingSymptomsHint.
   ///
