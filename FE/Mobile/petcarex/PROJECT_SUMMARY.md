@@ -10,6 +10,11 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
+## 📂 Workspace chuẩn khi thao tác
+- **Mobile root path chuẩn:** `F:\capstone 2\code\PetcareX\FE\Mobile\petcarex`.
+- **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
+- **Quy ước i18n:** Nguồn chân lý là `lib/l10n/app_vi.arb` và `lib/l10n/app_en.arb`; file trong `lib/l10n/generated/` chỉ là kết quả sinh tự động.
+
 ## ✅ Nhật ký thay đổi (Refactoring & Clean Code)
 
 Dưới đây là chi tiết các thành phần đã được xóa bỏ và thêm mới để đảm bảo dự án sạch và dễ quản lý:
@@ -100,17 +105,18 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Sửa backend về TTL 5 phút bằng hằng số chung trong `OtpService` và dùng chính hằng số này để render nội dung email, tránh lệch cấu hình trong tương lai.
 
 ### 3. Module Appointment & Booking
-- **Logic Đa Ngôn Ngữ & API:** Đồng bộ Enum (`ServiceEnum`...) giữa hệ thống giao diện và API. Frontend gọi chuỗi tiếng Việt như `Khám bệnh` cho API Payload thông qua `enum.value`, nhưng tự động sử dụng `enum.getTranslatedName(BuildContext)` để dịch trực tiếp qua `app_vi.arb` & `app_en.arb` trước khi hiển thị.
-- **Tiêu chuẩn Enum:** Tất cả các Enums được lưu trữ duy nhất trong `lib/core/enums/` và loại bỏ thư mục `common/` thừa của Typescript.
+- **Logic Đa Ngôn Ngữ & API:** Đồng bộ Enum (`ServiceEnum`, `AppointmentStatusEnum`, `VeterinarySpecialtyEnum`...) giữa giao diện và API. Frontend gửi **backend enum key** (ví dụ `BOOKED`, `SURGERY`, `GENERAL_EXAMINATION`) qua `enum.value`; UI chỉ hiển thị qua `enum.getTranslatedName(BuildContext)` để tự động dịch theo locale.
+- **Tiêu chuẩn Enum:** Enum runtime của Flutter được đặt tập trung trong `lib/core/enums/`; mọi màn hình/business logic chỉ dùng enum Dart thay vì chuỗi cứng.
 - **Chuẩn hóa Booking UI theo i18n:** Đã loại bỏ chuỗi cứng còn sót trong các bước `Service`, `Doctor`, `Time`, `Summary`, `Success`.
 - **Booking Step Header UX (2026-03):** Loại bỏ pattern trùng lặp title/subtitle (ví dụ `Dịch vụ`/`Dịch vụ`) ở các bước đặt lịch. Subtitle từng bước được đổi thành câu hướng dẫn có ngữ nghĩa rõ ràng (`bookingClinicSub`, `bookingServiceSub`, `bookingDoctorSub`, `bookingTimeSub`) để người dùng hiểu cần làm gì ở mỗi bước.
 - **Booking Symptoms Input UX (2026-03):** Ở bước `Dịch vụ`, ô nhập `Triệu chứng` (bắt buộc) được đưa lên đầu màn và kèm helper text để người dùng nhận biết ngay từ đầu, không cần cuộn xuống cuối danh sách dịch vụ mới thấy. Đồng thời tối ưu controller nhập liệu để tránh reset con trỏ khi Provider rebuild.
-- **Chuẩn hóa Enum Chuyên môn bác sĩ:** `VeterinarySpecialtyEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)` để vừa lọc theo giá trị API (tiếng Việt) vừa hiển thị theo locale.
+- **Chuẩn hóa Enum Chuyên môn bác sĩ:** `VeterinarySpecialtyEnum` dùng `getTranslatedName(context)` + `fromValue(...)` để parse ổn định theo enum key backend và hiển thị theo locale.
 - **Chuẩn hóa Enum trạng thái lịch hẹn:** `AppointmentStatusEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)`; luồng `AppointmentProvider` và `AppointmentPage` bắt buộc map status qua enum, không hardcode chuỗi tại UI/Provider.
+- **Mở rộng coverage i18n cho enum (2026-03):** Bổ sung key VI/EN + `getTranslatedName(context)` cho các nhóm: `InvoiceStatusEnum`, `RoleEnum`, `MedicineUnitEnum`, `PetSpeciesEnum`, `PetBreedEnum`; đồng bộ quy tắc parse qua `fromValue(...)` theo chuẩn hóa chữ hoa.
 - **Type-safe Appointment Status (2026-03):** `Appointment.status` được nâng cấp sang kiểu `AppointmentStatusEnum` (không còn giữ `String` ở model). Các luồng lọc `upcoming/historical` và hiển thị badge trạng thái dùng so sánh enum trực tiếp, giữ nguyên logic nghiệp vụ nhưng an toàn kiểu dữ liệu hơn.
 - **Loại bỏ hardcoded status payload (2026-03):** `AppointmentService.cancelAppointment(...)` và `updateAppointmentStatus(...)` gửi trạng thái bằng `AppointmentStatusEnum.value` thay vì chuỗi cứng (`Đã huỷ`, ...), giúp đồng bộ contract FE-BE và giảm rủi ro sai chính tả trạng thái.
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
-- **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo 2 nguồn chuẩn của enum (`enum.name` từ API key: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED` và `enum.value` tiếng Việt từ backend). Đã loại bỏ alias legacy dư thừa như `SUCCESS`, `PENDING`, `CONFIRMED` để giữ code gọn và dễ bảo trì.
+- **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo contract chuẩn enum key (`enum.name` và `enum.value` đều là key backend như `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`); không duy trì alias legacy để tránh logic mơ hồ.
 - **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).
 - **Nâng cấp Empty State cho Appointment:**
     - Tab **Sắp tới**: hiển thị tiêu đề + mô tả rõ nghĩa + CTA `Đặt lịch ngay` để dẫn người dùng qua luồng tạo lịch mới.
@@ -179,7 +185,8 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Chẩn đoán nhanh:** Dùng `adb reverse --list`; nếu không thấy `tcp:3000` thì nguy cơ cao app lỗi kết nối server trên Android thật.
 
 ## 📝 Hướng dẫn chạy dự án
-1. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.
-2. **Android USB (mặc định):** Chạy `flutter run` (debug) để kích hoạt auto reverse qua Gradle.
-3. **Nếu cần set reverse thủ công:** `adb reverse tcp:3000 tcp:3000` rồi `flutter run`.
-4. **Quy ước ghi file bằng PowerShell (tránh lỗi tiếng Việt):** Khi dùng `Set-Content` hoặc `Out-File`, luôn bắt buộc chỉ định `-Encoding UTF8`.
+1. **Vào đúng root mobile trước khi chạy lệnh:** `Set-Location "F:\capstone 2\code\PetcareX\FE\Mobile\petcarex"`.
+2. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.
+3. **Android USB (mặc định):** Chạy `flutter run` (debug) để kích hoạt auto reverse qua Gradle.
+4. **Nếu cần set reverse thủ công:** `adb reverse tcp:3000 tcp:3000` rồi `flutter run`.
+5. **Quy ước ghi file bằng PowerShell (tránh lỗi tiếng Việt):** Khi dùng `Set-Content` hoặc `Out-File`, luôn bắt buộc chỉ định `-Encoding UTF8`.

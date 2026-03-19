@@ -765,4 +765,112 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get specialtyVaccinationAndPrevention => 'Tiêm phòng & phòng ngừa';
+
+  @override
+  String get invoiceStatusPaid => 'Đã thanh toán';
+
+  @override
+  String get invoiceStatusUnpaid => 'Chưa thanh toán';
+
+  @override
+  String get roleAdmin => 'Quản trị viên';
+
+  @override
+  String get roleAdminClinic => 'Quản trị phòng khám';
+
+  @override
+  String get roleVeterinarian => 'Bác sĩ thú y';
+
+  @override
+  String get roleCustomer => 'Khách hàng';
+
+  @override
+  String get medicineUnitPill => 'Viên nén';
+
+  @override
+  String get medicineUnitBlister => 'Vỉ';
+
+  @override
+  String get medicineUnitCapsule => 'Viên nang';
+
+  @override
+  String get medicineUnitSachet => 'Gói';
+
+  @override
+  String get medicineUnitBottle => 'Chai';
+
+  @override
+  String get medicineUnitVial => 'Lọ';
+
+  @override
+  String get medicineUnitAmpoule => 'Ống';
+
+  @override
+  String get medicineUnitMl => 'ml';
+
+  @override
+  String get medicineUnitMg => 'mg';
+
+  @override
+  String get petSpeciesDog => 'Chó';
+
+  @override
+  String get petSpeciesCat => 'Mèo';
+
+  @override
+  String get petSpeciesBird => 'Chim';
+
+  @override
+  String get petSpeciesRabbit => 'Thỏ';
+
+  @override
+  String get petBreedDogGoldenRetriever => 'Golden Retriever';
+
+  @override
+  String get petBreedDogPoodle => 'Poodle';
+
+  @override
+  String get petBreedDogPomeranian => 'Pomeranian';
+
+  @override
+  String get petBreedDogCorgi => 'Corgi';
+
+  @override
+  String get petBreedDogHusky => 'Husky';
+
+  @override
+  String get petBreedDogLabrador => 'Labrador';
+
+  @override
+  String get petBreedDogShibaInu => 'Shiba Inu';
+
+  @override
+  String get petBreedCatBritishShorthair => 'Mèo Anh lông ngắn';
+
+  @override
+  String get petBreedCatBritishLonghair => 'Mèo Anh lông dài';
+
+  @override
+  String get petBreedCatPersian => 'Mèo Ba Tư';
+
+  @override
+  String get petBreedCatSiamese => 'Mèo Xiêm';
+
+  @override
+  String get petBreedCatBengal => 'Mèo Bengal';
+
+  @override
+  String get petBreedBirdRedWhiskeredBulbul => 'Chào mào';
+
+  @override
+  String get petBreedBirdParrot => 'Vẹt';
+
+  @override
+  String get petBreedBirdBudgerigar => 'Yến phụng';
+
+  @override
+  String get petBreedRabbitDutch => 'Thỏ Dutch';
+
+  @override
+  String get petBreedRabbitLionhead => 'Thỏ Lionhead';
 }

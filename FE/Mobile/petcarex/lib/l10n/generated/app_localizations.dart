@@ -1531,6 +1531,222 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Tiêm phòng & phòng ngừa'**
   String get specialtyVaccinationAndPrevention;
+
+  /// No description provided for @invoiceStatusPaid.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thanh toán'**
+  String get invoiceStatusPaid;
+
+  /// No description provided for @invoiceStatusUnpaid.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa thanh toán'**
+  String get invoiceStatusUnpaid;
+
+  /// No description provided for @roleAdmin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quản trị viên'**
+  String get roleAdmin;
+
+  /// No description provided for @roleAdminClinic.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quản trị phòng khám'**
+  String get roleAdminClinic;
+
+  /// No description provided for @roleVeterinarian.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bác sĩ thú y'**
+  String get roleVeterinarian;
+
+  /// No description provided for @roleCustomer.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khách hàng'**
+  String get roleCustomer;
+
+  /// No description provided for @medicineUnitPill.
+  ///
+  /// In vi, this message translates to:
+  /// **'Viên nén'**
+  String get medicineUnitPill;
+
+  /// No description provided for @medicineUnitBlister.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vỉ'**
+  String get medicineUnitBlister;
+
+  /// No description provided for @medicineUnitCapsule.
+  ///
+  /// In vi, this message translates to:
+  /// **'Viên nang'**
+  String get medicineUnitCapsule;
+
+  /// No description provided for @medicineUnitSachet.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gói'**
+  String get medicineUnitSachet;
+
+  /// No description provided for @medicineUnitBottle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chai'**
+  String get medicineUnitBottle;
+
+  /// No description provided for @medicineUnitVial.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lọ'**
+  String get medicineUnitVial;
+
+  /// No description provided for @medicineUnitAmpoule.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ống'**
+  String get medicineUnitAmpoule;
+
+  /// No description provided for @medicineUnitMl.
+  ///
+  /// In vi, this message translates to:
+  /// **'ml'**
+  String get medicineUnitMl;
+
+  /// No description provided for @medicineUnitMg.
+  ///
+  /// In vi, this message translates to:
+  /// **'mg'**
+  String get medicineUnitMg;
+
+  /// No description provided for @petSpeciesDog.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó'**
+  String get petSpeciesDog;
+
+  /// No description provided for @petSpeciesCat.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo'**
+  String get petSpeciesCat;
+
+  /// No description provided for @petSpeciesBird.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chim'**
+  String get petSpeciesBird;
+
+  /// No description provided for @petSpeciesRabbit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thỏ'**
+  String get petSpeciesRabbit;
+
+  /// No description provided for @petBreedDogGoldenRetriever.
+  ///
+  /// In vi, this message translates to:
+  /// **'Golden Retriever'**
+  String get petBreedDogGoldenRetriever;
+
+  /// No description provided for @petBreedDogPoodle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Poodle'**
+  String get petBreedDogPoodle;
+
+  /// No description provided for @petBreedDogPomeranian.
+  ///
+  /// In vi, this message translates to:
+  /// **'Pomeranian'**
+  String get petBreedDogPomeranian;
+
+  /// No description provided for @petBreedDogCorgi.
+  ///
+  /// In vi, this message translates to:
+  /// **'Corgi'**
+  String get petBreedDogCorgi;
+
+  /// No description provided for @petBreedDogHusky.
+  ///
+  /// In vi, this message translates to:
+  /// **'Husky'**
+  String get petBreedDogHusky;
+
+  /// No description provided for @petBreedDogLabrador.
+  ///
+  /// In vi, this message translates to:
+  /// **'Labrador'**
+  String get petBreedDogLabrador;
+
+  /// No description provided for @petBreedDogShibaInu.
+  ///
+  /// In vi, this message translates to:
+  /// **'Shiba Inu'**
+  String get petBreedDogShibaInu;
+
+  /// No description provided for @petBreedCatBritishShorthair.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Anh lông ngắn'**
+  String get petBreedCatBritishShorthair;
+
+  /// No description provided for @petBreedCatBritishLonghair.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Anh lông dài'**
+  String get petBreedCatBritishLonghair;
+
+  /// No description provided for @petBreedCatPersian.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Ba Tư'**
+  String get petBreedCatPersian;
+
+  /// No description provided for @petBreedCatSiamese.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Xiêm'**
+  String get petBreedCatSiamese;
+
+  /// No description provided for @petBreedCatBengal.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Bengal'**
+  String get petBreedCatBengal;
+
+  /// No description provided for @petBreedBirdRedWhiskeredBulbul.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chào mào'**
+  String get petBreedBirdRedWhiskeredBulbul;
+
+  /// No description provided for @petBreedBirdParrot.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vẹt'**
+  String get petBreedBirdParrot;
+
+  /// No description provided for @petBreedBirdBudgerigar.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yến phụng'**
+  String get petBreedBirdBudgerigar;
+
+  /// No description provided for @petBreedRabbitDutch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thỏ Dutch'**
+  String get petBreedRabbitDutch;
+
+  /// No description provided for @petBreedRabbitLionhead.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thỏ Lionhead'**
+  String get petBreedRabbitLionhead;
 }
 
 class _AppLocalizationsDelegate

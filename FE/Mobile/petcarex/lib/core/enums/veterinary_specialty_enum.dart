@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 enum VeterinarySpecialtyEnum {
-  GENERAL_EXAMINATION('Khám tổng quát'),
-  INTERNAL_MEDICINE('Nội khoa'),
-  SURGERY('Phẫu thuật'),
-  ULTRASOUND('Siêu âm'),
-  VACCINATION_AND_PREVENTION('Tiêm phòng & phòng ngừa');
+  GENERAL_EXAMINATION('GENERAL_EXAMINATION'),
+  INTERNAL_MEDICINE('INTERNAL_MEDICINE'),
+  SURGERY('SURGERY'),
+  ULTRASOUND('ULTRASOUND'),
+  VACCINATION_AND_PREVENTION('VACCINATION_AND_PREVENTION');
 
   final String value;
   const VeterinarySpecialtyEnum(this.value);
@@ -29,10 +29,15 @@ enum VeterinarySpecialtyEnum {
   }
 
   static VeterinarySpecialtyEnum? fromValue(String value) {
-    try {
-      return VeterinarySpecialtyEnum.values.firstWhere((e) => e.value == value);
-    } catch (_) {
-      return null;
+    final normalized = value.trim().toUpperCase();
+
+    for (final specialty in VeterinarySpecialtyEnum.values) {
+      if (specialty.name.toUpperCase() == normalized ||
+          specialty.value.toUpperCase() == normalized) {
+        return specialty;
+      }
     }
+
+    return null;
   }
 }

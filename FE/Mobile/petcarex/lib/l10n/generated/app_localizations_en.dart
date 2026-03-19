@@ -800,4 +800,112 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get specialtyVaccinationAndPrevention => 'Vaccination & Prevention';
+
+  @override
+  String get invoiceStatusPaid => 'Paid';
+
+  @override
+  String get invoiceStatusUnpaid => 'Unpaid';
+
+  @override
+  String get roleAdmin => 'Admin';
+
+  @override
+  String get roleAdminClinic => 'Clinic Admin';
+
+  @override
+  String get roleVeterinarian => 'Veterinarian';
+
+  @override
+  String get roleCustomer => 'Customer';
+
+  @override
+  String get medicineUnitPill => 'Pill';
+
+  @override
+  String get medicineUnitBlister => 'Blister';
+
+  @override
+  String get medicineUnitCapsule => 'Capsule';
+
+  @override
+  String get medicineUnitSachet => 'Sachet';
+
+  @override
+  String get medicineUnitBottle => 'Bottle';
+
+  @override
+  String get medicineUnitVial => 'Vial';
+
+  @override
+  String get medicineUnitAmpoule => 'Ampoule';
+
+  @override
+  String get medicineUnitMl => 'ml';
+
+  @override
+  String get medicineUnitMg => 'mg';
+
+  @override
+  String get petSpeciesDog => 'Dog';
+
+  @override
+  String get petSpeciesCat => 'Cat';
+
+  @override
+  String get petSpeciesBird => 'Bird';
+
+  @override
+  String get petSpeciesRabbit => 'Rabbit';
+
+  @override
+  String get petBreedDogGoldenRetriever => 'Golden Retriever';
+
+  @override
+  String get petBreedDogPoodle => 'Poodle';
+
+  @override
+  String get petBreedDogPomeranian => 'Pomeranian';
+
+  @override
+  String get petBreedDogCorgi => 'Corgi';
+
+  @override
+  String get petBreedDogHusky => 'Husky';
+
+  @override
+  String get petBreedDogLabrador => 'Labrador';
+
+  @override
+  String get petBreedDogShibaInu => 'Shiba Inu';
+
+  @override
+  String get petBreedCatBritishShorthair => 'British Shorthair';
+
+  @override
+  String get petBreedCatBritishLonghair => 'British Longhair';
+
+  @override
+  String get petBreedCatPersian => 'Persian';
+
+  @override
+  String get petBreedCatSiamese => 'Siamese';
+
+  @override
+  String get petBreedCatBengal => 'Bengal';
+
+  @override
+  String get petBreedBirdRedWhiskeredBulbul => 'Red-whiskered Bulbul';
+
+  @override
+  String get petBreedBirdParrot => 'Parrot';
+
+  @override
+  String get petBreedBirdBudgerigar => 'Budgerigar';
+
+  @override
+  String get petBreedRabbitDutch => 'Dutch Rabbit';
+
+  @override
+  String get petBreedRabbitLionhead => 'Lionhead Rabbit';
 }
