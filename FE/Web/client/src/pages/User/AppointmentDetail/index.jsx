@@ -44,20 +44,6 @@ const AppointmentDetail = () => {
       setLoading(false);
     }
   };
-useEffect(() => {
-  if (isModalVisible) {
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-  } else {
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
-  }
-
-  return () => {
-    document.body.style.overflow = '';
-    document.documentElement.style.overflow = '';
-  };
-}, [isModalVisible]);
   useEffect(() => {
     fetchAppointments();
   }, []);
@@ -129,12 +115,13 @@ useEffect(() => {
       },
     });
   };
+const handleViewDetails = (appointment) => {
+  const img = new Image();
+  img.src = appointment.avatar;
 
-  const handleViewDetails = (appointment) => {
-    setSelectedAppointment(appointment);
-    setIsModalVisible(true);
-  };
-
+  setSelectedAppointment(appointment);
+  setIsModalVisible(true);
+};
   const handleBookingNew = () => {
     navigate('/booking');
   };
@@ -289,7 +276,6 @@ useEffect(() => {
           onCancel={() => setIsModalVisible(false)}
           centered
           maskClosable={false}
-          destroyOnClose
           footer={[
             <antd.Button key="back" onClick={() => setIsModalVisible(false)}>
               Đóng
@@ -308,6 +294,9 @@ useEffect(() => {
           ]}
           width={700}
           className="custom-modal-fixed"
+          forceRender
+            modalRender={(node) => <div style={{ willChange: 'transform' }}>{node}</div>}
+
         >
           {selectedAppointment && (
        <div className="modal-contents">
