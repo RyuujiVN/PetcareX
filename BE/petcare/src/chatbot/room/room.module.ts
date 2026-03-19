@@ -3,10 +3,9 @@ import { RoomService } from './room.service';
 import { RoomController } from './room.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ChatbotRoom } from '../entities/chatbot-room.entity';
-import { ChatbotMessage } from '../entities/chatbot-message.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ChatbotRoom, ChatbotMessage])],
+  imports: [TypeOrmModule.forFeature([ChatbotRoom])],
   providers: [RoomService],
   controllers: [RoomController],
 })

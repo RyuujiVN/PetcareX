@@ -17,7 +17,7 @@ export class Invoice {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid', name: 'pet_owner_id', nullable: true })
+  @Column({ type: 'uuid', name: 'pet_owner_id' })
   petOwnerId: string;
 
   @Column({ type: 'uuid', name: 'medical_record_id' })

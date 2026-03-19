@@ -187,7 +187,6 @@ export class MedicalService {
       where: { id },
       relations: [
         'pet',
-        'pet.breed',
         'pet.owner',
         'clinic',
         'veterinarian',
@@ -223,7 +222,8 @@ export class MedicalService {
         id: record.pet.id,
         name: record.pet.name,
         avatar: record.pet.avatar,
-        breedName: record.pet.breed?.name,
+        species: record.pet.species,
+        breed: record.pet.breed,
         owner: record.pet.owner && {
           id: record.pet.owner.id,
           fullName: record.pet.owner.fullName,
@@ -245,7 +245,6 @@ export class MedicalService {
     const queryBuilder = this.medicalRecordRepository
       .createQueryBuilder('medical_record')
       .leftJoin('medical_record.pet', 'pet')
-      .leftJoin('pet.breed', 'breed')
       .leftJoin('pet.owner', 'owner')
       .where('medical_record.clinicId = :clinicId', {
         clinicId: options.clinicId,
@@ -259,8 +258,8 @@ export class MedicalService {
         'pet.id',
         'pet.name',
         'pet.avatar',
-
-        'breed.name',
+        'pet.species',
+        'pet.breed',
 
         'owner.id',
         'owner.fullName',
@@ -278,7 +277,6 @@ export class MedicalService {
       .leftJoin('medical_record.clinic', 'clinic')
       .leftJoin('medical_record.veterinarian', 'veterinarian')
       .leftJoin('veterinarian.user', 'user')
-      .leftJoin('pet.breed', 'breed')
       .where('pet.id = :petId', {
         petId: options.petId,
       })
@@ -298,8 +296,8 @@ export class MedicalService {
         'pet.id',
         'pet.name',
         'pet.avatar',
-
-        'breed.name',
+        'pet.species',
+        'pet.breed',
 
         'veterinarian.specialty',
 
@@ -316,7 +314,8 @@ export class MedicalService {
         id: record.pet?.id,
         name: record.pet?.name,
         avatar: record.pet?.avatar,
-        breedName: record.pet?.breed?.name,
+        species: record.pet?.species,
+        breed: record.pet?.breed,
       },
       veterinarian: {
         id: record.veterinarian?.user?.id,
@@ -365,7 +364,8 @@ export class MedicalService {
         // 3. Tạo pet cho user
         const petPayload = {
           name: createDTO.petName,
-          breedId: createDTO.breedId,
+          species: createDTO.species,
+          breed: createDTO.breed,
           weight: createDTO.weight,
           ownerId: savedUser.id,
         };

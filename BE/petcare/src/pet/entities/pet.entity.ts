@@ -2,15 +2,16 @@ import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   Entity,
-  ManyToOne,
   PrimaryGeneratedColumn,
   JoinColumn,
   CreateDateColumn,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
-import { Breed } from './breed.entity';
 import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
+import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
+import { PetBreedEnum } from 'src/common/enums/pet-breed.enum';
 
 @Entity('pet')
 export class Pet {
@@ -23,8 +24,11 @@ export class Pet {
   @Column({ length: 50 })
   name: string;
 
-  @Column({ name: 'breed_id', nullable: true })
-  breedId: string;
+  @Column({ type: 'enum', enum: PetSpeciesEnum })
+  species: PetSpeciesEnum;
+
+  @Column({ type: 'enum', enum: PetBreedEnum })
+  breed: PetBreedEnum;
 
   @Column({ type: 'boolean', nullable: true })
   gender: boolean;
@@ -49,13 +53,6 @@ export class Pet {
   })
   @JoinColumn({ name: 'owner_id' })
   owner: User;
-
-  @ManyToOne(() => Breed, (breed) => breed.pets, {
-    onDelete: 'SET NULL',
-    nullable: true,
-  })
-  @JoinColumn({ name: 'breed_id' })
-  breed: Breed;
 
   @OneToMany(() => Appointment, (appointment) => appointment.pet)
   appointments: Appointment[];
