@@ -1,0 +1,34 @@
+{
+  "total_items": 516,
+  "total_sources": 3,
+  "by_source_type": {
+    "blog": 516
+  },
+  "by_pet_type": {
+    "dog": 482,
+    "cat": 184,
+    "fish": 499,
+    "general": 1,
+    "bird": 102,
+    "rabbit": 25,
+    "reptile": 142,
+    "hamster": 1
+  },
+  "by_category": {
+    "health": 324,
+    "nutrition": 489,
+    "care": 333,
+    "breed_info": 407,
+    "other": 5,
+    "emergency": 28,
+    "training": 229
+  },
+  "by_language": {
+    "vi": 516
+  },
+  "quality_distribution": {
+    "high": 0,
+    "medium": 492,
+    "low": 24
+  }
+}
