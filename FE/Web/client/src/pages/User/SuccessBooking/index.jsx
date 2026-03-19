@@ -97,30 +97,6 @@ const SuccessBooking = () => {
           </div>
 
           <Divider style={{ margin: '24px 0' }} />
-
-          <div className="qr-section">
-            <h3 className="qr-title">MÃ QR CHECK-IN</h3>
-            <p className="qr-instruction">
-              Vui lòng xuất trình mã QR này tại lễ tân bên dưới để làm thủ tục check-in nhân chứng
-            </p>
-
-            <div className="qr-code-container">
-              <QRCode
-                value={qrValue}
-                size={200}
-                level="H"
-                includeMargin={true}
-                errorLevel="H"
-              />
-            </div>
-
-            <button 
-              className="qr-download-btn" 
-              onClick={handleDownloadQR}
-            >
-              📥 Tải QR Code
-            </button>
-          </div>
         </Card>
 
         <div className="action-buttons">
@@ -135,16 +111,6 @@ const SuccessBooking = () => {
           >
             Đến Lịch hẹn của tôi
           </Button>
-
-          {/* <Button
-            type="default"
-            size="large"
-            block
-            onClick={() => navigate('/')}
-            style={{ marginTop: '12px' }}
-          >
-            Quay về Trang chủ
-          </Button> */}
         </div>
       </div>
 
