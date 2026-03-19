@@ -116,6 +116,16 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Tab **Sắp tới**: hiển thị tiêu đề + mô tả rõ nghĩa + CTA `Đặt lịch ngay` để dẫn người dùng qua luồng tạo lịch mới.
     - Tab **Lịch sử**: hiển thị thông điệp định hướng rằng dữ liệu hoàn thành/đã hủy sẽ xuất hiện tại đây (tránh trạng thái chỉ còn mỗi chữ tên tab).
     - Vẫn giữ `RefreshIndicator` để người dùng kéo xuống tải lại dữ liệu.
+- **Đồng bộ Home ↔ Appointment (2026-03):**
+    - Mục **Lịch hẹn của tôi** tại Home không còn dùng dữ liệu demo/hardcode; đã đọc trực tiếp từ `AppointmentProvider` cùng nguồn với màn **Lịch hẹn**.
+    - Home chỉ hiển thị **2 lịch sắp tới gần nhất** (lọc theo trạng thái upcoming và sắp xếp theo **ngày + giờ khám**), đảm bảo nhất quán khi so với tab **Sắp tới**.
+    - UI card lịch hẹn ở Home được đồng bộ theo visual của Appointment: thumbnail thú cưng + badge trạng thái + các dòng thông tin icon (ngày giờ, bác sĩ, địa chỉ) + action bar tách riêng ở chân card.
+    - Với lịch **Sắp tới**, cả Home và Appointment đều dùng chung pattern **2 nút**: `Xem chi tiết` + `Hủy`; nút `Hủy` chỉ cho phép khi trạng thái là `BOOKED` (trạng thái khác bị disable để đúng nghiệp vụ).
+- **Chuẩn hóa CTA "Khám phá" trong module Appointment (2026-03):**
+    - Đổi text footer card lịch sử từ `Khám phá/Explore` thành `Xem chi tiết/View details` để đúng ngữ nghĩa hành động.
+    - Bổ sung key i18n mới: `viewDetail`, `retry`, `yes`, `no` và áp dụng ở trang Appointment/Home.
+- **Chuẩn hóa dialog hủy lịch (2026-03):**
+    - Form xác nhận hủy ở cả Home và Appointment dùng lựa chọn `Có/Không` (`Yes/No`) để rõ ràng quyết định người dùng, thay cho nhãn xác nhận gây nhiễu ngữ cảnh.
 - **Chuẩn hóa lỗi nghiệp vụ Booking:** `BookingProvider` trả về error key (`bookingErrorCompleteAllSteps`) thay vì chuỗi tiếng Việt cứng; UI map key sang `AppLocalizations` trước khi hiển thị.
 - **Logic:** Tự động dịch trạng thái từ Server sang ngôn ngữ người dùng.
 - **UI:** Badge trạng thái sử dụng hệ thống màu nhẹ (Light Colors) chuyên nghiệp.

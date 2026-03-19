@@ -27,14 +27,55 @@ class AppointmentProvider with ChangeNotifier {
     return _appointments
         .where((a) => _upcomingStatuses.contains(a.status))
         .toList()
-      ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate)); 
+      ..sort(_compareByScheduleAscending);
   }
 
   List<Appointment> get historicalAppointments {
     return _appointments
         .where((a) => _historicalStatuses.contains(a.status))
         .toList()
-      ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
+      ..sort(_compareByScheduleDescending);
+  }
+
+  int _compareByScheduleAscending(Appointment a, Appointment b) {
+    return _appointmentDateTime(a).compareTo(_appointmentDateTime(b));
+  }
+
+  int _compareByScheduleDescending(Appointment a, Appointment b) {
+    return _appointmentDateTime(b).compareTo(_appointmentDateTime(a));
+  }
+
+  DateTime _appointmentDateTime(Appointment appointment) {
+    final date = appointment.appointmentDate;
+    final rawTime = appointment.appointmentTime.trim();
+    final upperTime = rawTime.toUpperCase();
+
+    final amPmMatch = RegExp(
+      r'^(\d{1,2}):(\d{2})\s*(AM|PM)$',
+    ).firstMatch(upperTime);
+    if (amPmMatch != null) {
+      final hour12 = int.tryParse(amPmMatch.group(1) ?? '0') ?? 0;
+      final minute = int.tryParse(amPmMatch.group(2) ?? '0') ?? 0;
+      final period = amPmMatch.group(3);
+
+      var hour24 = hour12 % 12;
+      if (period == 'PM') {
+        hour24 += 12;
+      }
+
+      return DateTime(date.year, date.month, date.day, hour24, minute);
+    }
+
+    final parts = rawTime.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0].trim()) ?? 0;
+      final minute = int.tryParse(parts[1].trim()) ?? 0;
+      final second = parts.length >= 3 ? int.tryParse(parts[2].trim()) ?? 0 : 0;
+
+      return DateTime(date.year, date.month, date.day, hour, minute, second);
+    }
+
+    return DateTime(date.year, date.month, date.day);
   }
 
   Future<void> fetchAppointments() async {

@@ -275,6 +275,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get viewAll => 'Xem tất cả';
 
   @override
+  String get viewDetail => 'Xem chi tiết';
+
+  @override
+  String get retry => 'Thử lại';
+
+  @override
   String get petCareForum => 'Diễn đàn PetCareX';
 
   @override
@@ -303,6 +309,12 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get cancelMessage => 'Bạn có chắc chắn muốn hủy lịch hẹn này không?';
+
+  @override
+  String get yes => 'Có';
+
+  @override
+  String get no => 'Không';
 
   @override
   String get statusUpcoming => 'Hẹn thành công';

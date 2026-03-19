@@ -91,7 +91,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                       backgroundColor: AppColors.primary,
                     ),
                     child: Text(
-                      l10n.explore,
+                      l10n.retry,
                       style: const TextStyle(color: AppColors.onPrimary),
                     ),
                   ),
@@ -352,33 +352,38 @@ class _AppointmentPageState extends State<AppointmentPage>
                 ],
               ),
             ),
-            if (isUpcoming &&
-                appointmentStatus == AppointmentStatusEnum.BOOKED) ...[
+            if (isUpcoming) ...[
               const Divider(
                 height: 1,
                 indent: 16,
                 endIndent: 16,
                 color: AppColors.divider,
               ),
-              InkWell(
-                onTap: () => _confirmCancel(item.id, l10n),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Center(
-                    child: Text(
-                      l10n.cancelAppointment,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildAppointmentActionButton(
+                        label: l10n.viewDetail,
+                        icon: Icons.visibility_outlined,
+                        onPressed: () =>
+                            _showAppointmentDetails(context, item, l10n),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildAppointmentActionButton(
+                        label: l10n.cancelAppointment,
+                        icon: Icons.close_rounded,
+                        isDestructive: true,
+                        onPressed:
+                            appointmentStatus == AppointmentStatusEnum.BOOKED
+                            ? () => _confirmCancel(item.id, l10n)
+                            : null,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ] else if (!isUpcoming) ...[
@@ -391,7 +396,7 @@ class _AppointmentPageState extends State<AppointmentPage>
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(
-                  l10n.explore,
+                  l10n.viewDetail,
                   style: const TextStyle(
                     color: AppColors.textGrey,
                     fontSize: 13,
@@ -613,8 +618,8 @@ class _AppointmentPageState extends State<AppointmentPage>
     );
   }
 
-  void _confirmCancel(String id, AppLocalizations l10n) {
-    showDialog(
+  Future<void> _confirmCancel(String id, AppLocalizations l10n) async {
+    final shouldCancel = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -622,29 +627,16 @@ class _AppointmentPageState extends State<AppointmentPage>
         content: Text(l10n.cancelMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: Text(
-              l10n.cancel,
+              l10n.no,
               style: const TextStyle(color: AppColors.textGrey),
             ),
           ),
           TextButton(
-            onPressed: () async {
-              final provider = context.read<AppointmentProvider>();
-              Navigator.pop(context);
-              final success = await provider.cancelAppointment(id);
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(success ? l10n.success : l10n.failed),
-                  backgroundColor: success
-                      ? AppColors.success
-                      : AppColors.error,
-                ),
-              );
-            },
+            onPressed: () => Navigator.pop(context, true),
             child: Text(
-              l10n.confirmAppointment,
+              l10n.yes,
               style: const TextStyle(
                 color: AppColors.error,
                 fontWeight: FontWeight.bold,
@@ -652,6 +644,49 @@ class _AppointmentPageState extends State<AppointmentPage>
             ),
           ),
         ],
+      ),
+    );
+
+    if (shouldCancel != true || !mounted) return;
+
+    final provider = context.read<AppointmentProvider>();
+    final success = await provider.cancelAppointment(id);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success ? l10n.success : l10n.failed),
+        backgroundColor: success ? AppColors.success : AppColors.error,
+      ),
+    );
+  }
+
+  Widget _buildAppointmentActionButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool isDestructive = false,
+  }) {
+    final backgroundColor = isDestructive
+        ? AppColors.errorLight
+        : AppColors.primaryLight;
+    final foregroundColor = isDestructive ? AppColors.error : AppColors.primary;
+
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 17),
+      label: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        disabledBackgroundColor: AppColors.formFill,
+        disabledForegroundColor: AppColors.textGrey,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

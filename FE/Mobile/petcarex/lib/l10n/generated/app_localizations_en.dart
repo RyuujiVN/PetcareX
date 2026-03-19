@@ -274,6 +274,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewAll => 'View All';
 
   @override
+  String get viewDetail => 'View details';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
   String get petCareForum => 'PetCareX Forum';
 
   @override
@@ -304,6 +310,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cancelMessage =>
       'Are you sure you want to cancel this appointment?';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
 
   @override
   String get statusUpcoming => 'Booked';

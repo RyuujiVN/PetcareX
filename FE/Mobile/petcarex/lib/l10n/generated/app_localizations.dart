@@ -620,6 +620,18 @@ abstract class AppLocalizations {
   /// **'Xem tất cả'**
   String get viewAll;
 
+  /// No description provided for @viewDetail.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem chi tiết'**
+  String get viewDetail;
+
+  /// No description provided for @retry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get retry;
+
   /// No description provided for @petCareForum.
   ///
   /// In vi, this message translates to:
@@ -679,6 +691,18 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Bạn có chắc chắn muốn hủy lịch hẹn này không?'**
   String get cancelMessage;
+
+  /// No description provided for @yes.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không'**
+  String get no;
 
   /// No description provided for @statusUpcoming.
   ///
