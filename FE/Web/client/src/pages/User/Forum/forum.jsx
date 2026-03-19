@@ -7,109 +7,143 @@ import {
 	FaShareNodes,
 } from 'react-icons/fa6'
 import { IoAt } from 'react-icons/io5'
-import { useEffect, useMemo, useRef } from 'react'
+import { message } from 'antd'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { createComment } from '../../../data/api/commentApi'
+import {
+	createPost,
+	getCommentsByPostId,
+	getPosts,
+	likePost,
+	unlikePost,
+} from '../../../data/api/postApi'
+import { getAllTopics } from '../../../data/api/topicApi'
 import Footer from '../../../components/layout/footer'
 import Header from '../../../components/layout/header'
 import styles from './forum.module.css'
 
-const categoryTabs = [
+const DEFAULT_CATEGORY_TABS = [
 	{ id: 'all', label: 'Tất cả' },
-	{ id: 'kinh-nghiem-nuoi', label: 'Kinh nghiệm nuôi' },
-	{ id: 'hoi-dap-bac-si', label: 'Hỏi đáp bác sĩ' },
-	{ id: 'canh-bao-dich-benh', label: 'Cảnh báo dịch bệnh' },
 ]
 
-const feedPosts = [
-	{
-		id: '1',
-		author: 'Minh Anh',
-		time: '2 giờ trước',
-		tag: 'KINH NGHIỆM NUÔI',
-		tagType: 'kinh-nghiem-nuoi',
-		content:
-			'Mọi người ơi, bé Corgi nhà mình dạo này kén ăn quá. Mình có thử đổi hạt sang loại này (hình bên dưới) thấy bé ăn ngon lành hẳn luôn. Có ai gặp tình trạng này chưa?',
-		image: '/forum1.png',
-		likes: 128,
-		comments: 42,
-		avatar: '/thanhThuy.png',
-	},
-	{
-		id: '2',
-		author: 'Dr. Thanh (Thú y)',
-		time: '5 giờ trước',
-		tag: 'CẢNH BÁO DỊCH BỆNH',
-		tagType: 'canh-bao-dich-benh',
-		content:
-			'CẢNH BÁO: Đang có dấu hiệu bùng phát dịch Parvo tại khu vực Quận 7. Các chủ nuôi lưu ý kiểm tra lịch tiêm phòng của bé và hạn chế cho bé tiếp xúc với chó lạ tại công viên trong thời gian này.',
-		likes: 352,
-		comments: 15,
-		avatarText: 'DR',
-	},
-	{
-		id: '3',
-		author: 'Trần Hoàng',
-		time: '8 giờ trước',
-		tag: 'HỎI ĐÁP BÁC SĨ',
-		tagType: 'hoi-dap-bac-si',
-		avatar: '/avatarMain.png',
-	},
-]
+const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
 
-const topContributors = [
-	{
-		id: 'c1',
-		name: 'Dr. Nguyễn Văn Chương',
-		score: '1.2K Câu trả lời hữu ích',
-		rank: '#1',
-		avatar: '/bs1.png',
-	},
-	{
-		id: 'c2',
-		name: 'BS. Đỗ Hoàng Mạnh',
-		score: '850 Bài viết',
-		rank: '#2',
-		avatar: '/bs2.png',
-	},
-	{
-		id: 'c3',
-		name: 'ThS. Lê Quang Đại',
-		score: '620 Bài viết',
-		rank: '#3',
-		avatar: '/bs3.png',
-	},
-]
+const formatTimeAgo = (dateValue) => {
+	if (!dateValue) return 'Vừa xong'
 
-const featuredPosts = [
-	{
-		id: 'f1',
-		heading: 'Thịnh hành trong Dinh dưỡng',
-		title: 'Poodle nên ăn gì để bổ sung lợi khuẩn?',
-		meta: '2.4k bài viết tuần này',
-	},
-	{
-		id: 'f2',
-		heading: 'Thịnh hành trong Huấn luyện',
-		title: 'Corgi nên chơi thể thao nào?',
-		meta: '1.8k bài viết tuần này',
-	},
-	{
-		id: 'f3',
-		heading: 'Thịnh hành trong Sức khỏe',
-		title: 'Các loại vaccin cho Poodle?',
-		meta: '950 bài viết tuần này',
-	},
-]
+	const created = new Date(dateValue).getTime()
+	if (Number.isNaN(created)) return 'Vừa xong'
+
+	const diff = Date.now() - created
+	const minute = 60 * 1000
+	const hour = 60 * minute
+	const day = 24 * hour
+
+	if (diff < minute) return 'Vừa xong'
+	if (diff < hour) return `${Math.floor(diff / minute)} phút trước`
+	if (diff < day) return `${Math.floor(diff / hour)} giờ trước`
+	return `${Math.floor(diff / day)} ngày trước`
+}
+
+const normalizeTagType = (topicName = '') => {
+	const normalized = topicName.toLowerCase()
+	if (normalized.includes('kinh nghiệm') || normalized.includes('kinh nghiem')) return 'kinh-nghiem-nuoi'
+	if (normalized.includes('bác sĩ') || normalized.includes('bac si') || normalized.includes('hỏi đáp') || normalized.includes('hoi dap')) {
+		return 'hoi-dap-bac-si'
+	}
+	if (normalized.includes('cảnh báo') || normalized.includes('canh bao') || normalized.includes('dịch bệnh') || normalized.includes('dich benh')) {
+		return 'canh-bao-dich-benh'
+	}
+	return 'kinh-nghiem-nuoi'
+}
+
+const mapPostToUi = (post) => ({
+	id: post.id,
+	author: post.author?.fullName || 'Người dùng',
+	time: formatTimeAgo(post.createdAt),
+	tag: (post.topic?.name || 'Bài viết').toUpperCase(),
+	tagType: normalizeTagType(post.topic?.name),
+	content: post.content,
+	image: null,
+	likes: Number(post.likeCount || 0),
+	comments: Number(post.commentCount || 0),
+	avatar: post.author?.avatarUrl || '/avatarMain.png',
+	liked: Boolean(post.liked),
+	rawTopicId: post.topic?.id,
+})
 
 function Forum() {
 	const navigate = useNavigate()
-	const [searchParams, setSearchParams] = useSearchParams()
+	const [searchParams] = useSearchParams()
 	const composerRef = useRef(null)
+	const [apiPosts, setApiPosts] = useState([])
+	const [apiTopics, setApiTopics] = useState([])
+	const [loadingPosts, setLoadingPosts] = useState(false)
+	const [loadingTopics, setLoadingTopics] = useState(false)
+	const [processingLikeId, setProcessingLikeId] = useState(null)
+	const [composerAvatar, setComposerAvatar] = useState(DEFAULT_COMPOSER_AVATAR)
+
+	const forumTabs = useMemo(() => {
+		const mapped = apiTopics
+			.map((topic) => ({
+				id: normalizeTagType(topic.name),
+				label: topic.name,
+			}))
+			.filter((item) => item.id)
+
+		const unique = mapped.filter((item, index, arr) => arr.findIndex((value) => value.id === item.id) === index)
+
+		if (!unique.length) {
+			return DEFAULT_CATEGORY_TABS
+		}
+
+		return [DEFAULT_CATEGORY_TABS[0], ...unique]
+	}, [apiTopics])
 
 	const activeTab = useMemo(() => {
 		const tab = searchParams.get('tab') || 'all'
-		return categoryTabs.some((item) => item.id === tab) ? tab : 'all'
-	}, [searchParams])
+		return forumTabs.some((item) => item.id === tab) ? tab : 'all'
+	}, [forumTabs, searchParams])
+
+	const topContributors = useMemo(() => {
+		const stats = new Map()
+
+		apiPosts.forEach((post) => {
+			const key = `${post.author}-${post.avatar}`
+			const current = stats.get(key) || {
+				name: post.author,
+				avatar: post.avatar,
+				count: 0,
+			}
+
+			current.count += 1
+			stats.set(key, current)
+		})
+
+		return Array.from(stats.values())
+			.sort((a, b) => b.count - a.count)
+			.slice(0, 3)
+			.map((item, index) => ({
+				id: `${item.name}-${index}`,
+				name: item.name,
+				score: `${item.count} Bài viết`,
+				rank: `#${index + 1}`,
+				avatar: item.avatar || DEFAULT_COMPOSER_AVATAR,
+			}))
+	}, [apiPosts])
+
+	const featuredPosts = useMemo(() => {
+		return [...apiPosts]
+			.sort((a, b) => b.likes + b.comments - (a.likes + a.comments))
+			.slice(0, 3)
+			.map((post) => ({
+				id: post.id,
+				heading: `Thịnh hành trong ${post.tag}`,
+				title: post.content || 'Bài viết mới trong cộng đồng',
+				meta: `${post.likes} lượt thích • ${post.comments} bình luận`,
+			}))
+	}, [apiPosts])
 
 	const selectedPost = searchParams.get('post')
 	const isComposerOpen = searchParams.get('composer') === 'open'
@@ -119,6 +153,50 @@ function Forum() {
 			composerRef.current.focus()
 		}
 	}, [isComposerOpen])
+
+	useEffect(() => {
+		try {
+			const raw = localStorage.getItem('userInfo')
+			if (!raw) return
+
+			const userInfo = JSON.parse(raw)
+			if (userInfo?.avatarUrl) {
+				setComposerAvatar(userInfo.avatarUrl)
+			}
+		} catch {
+			setComposerAvatar(DEFAULT_COMPOSER_AVATAR)
+		}
+	}, [])
+
+	const loadPosts = async () => {
+		setLoadingPosts(true)
+		try {
+			const data = await getPosts({ limit: 20 })
+			setApiPosts(Array.isArray(data) ? data.map(mapPostToUi) : [])
+		} catch (error) {
+			message.error(error.message || 'Không thể tải danh sách bài viết')
+		} finally {
+			setLoadingPosts(false)
+		}
+	}
+
+	useEffect(() => {
+		const loadInitialData = async () => {
+			setLoadingTopics(true)
+			try {
+				const topics = await getAllTopics()
+				setApiTopics(Array.isArray(topics) ? topics : [])
+			} catch (error) {
+				message.error(error.message || 'Không thể tải chủ đề')
+			} finally {
+				setLoadingTopics(false)
+			}
+
+			await loadPosts()
+		}
+
+		loadInitialData()
+	}, [])
 
 	const updateParams = (nextValues) => {
 		const next = new URLSearchParams(searchParams)
@@ -132,7 +210,90 @@ function Forum() {
 		navigate(`/forum?${next.toString()}`)
 	}
 
-	const visiblePosts = feedPosts.filter((post) => {
+	const handleCreatePost = async () => {
+		const content = window.prompt('Nhập nội dung bài viết')
+		if (!content || !content.trim()) return
+
+		const topicId = apiTopics[0]?.id
+		if (!topicId) {
+			message.warning('Chưa có chủ đề để đăng bài')
+			return
+		}
+
+		try {
+			await createPost({
+				topicId,
+				content: content.trim(),
+			})
+			message.success('Đăng bài thành công')
+			await loadPosts()
+		} catch (error) {
+			message.error(error.message || 'Đăng bài thất bại')
+		}
+	}
+
+	const handleToggleLike = async (post) => {
+		setProcessingLikeId(post.id)
+		try {
+			const response = post.liked ? await unlikePost(post.id) : await likePost(post.id)
+			setApiPosts((prev) =>
+				prev.map((item) =>
+					item.id === post.id
+						? {
+								...item,
+								likes: response?.likeCount ?? item.likes,
+								liked: response?.liked ?? !item.liked,
+						  }
+						: item,
+				),
+			)
+		} catch (error) {
+			message.error(error.message || 'Không thể cập nhật lượt thích')
+		} finally {
+			setProcessingLikeId(null)
+		}
+	}
+
+	const handleOpenComments = async (post) => {
+		updateParams({ post: post.id })
+		try {
+			const comments = await getCommentsByPostId(post.id, { limit: 10 })
+			const count = Array.isArray(comments) ? comments.length : 0
+			message.info(`Bài viết có ${count} bình luận gần nhất`)
+		} catch (error) {
+			message.error(error.message || 'Không thể tải bình luận')
+		}
+	}
+
+	const handleCreateComment = async (post) => {
+		const content = window.prompt('Nhập bình luận của bạn')
+		if (!content || !content.trim()) return
+
+		try {
+			await createComment({
+				postId: post.id,
+				parentId: null,
+				content: content.trim(),
+			})
+			message.success('Bình luận thành công')
+			setApiPosts((prev) =>
+				prev.map((item) =>
+					item.id === post.id
+						? {
+								...item,
+								comments: item.comments + 1,
+						  }
+						: item,
+				),
+			)
+		} catch (error) {
+			message.error(error.message || 'Không thể tạo bình luận')
+		}
+	}
+
+	const sourcePosts = apiPosts
+
+	const visiblePosts = sourcePosts.filter((post) => {
 		if (activeTab === 'all') return true
 		return post.tagType === activeTab
 	})
@@ -145,7 +306,7 @@ function Forum() {
 				<section className={styles.leftColumn}>
 					<div className={styles.composeCard}>
 						<div className={styles.composeTop}>
-							<img src="/bs4.png" alt="avatar" className={styles.composeAvatar} />
+							<img src={composerAvatar} alt="avatar" className={styles.composeAvatar} />
 							<textarea
 								ref={composerRef}
 								className={styles.composeInput}
@@ -170,7 +331,8 @@ function Forum() {
 							<button
 								type="button"
 								className={styles.postButton}
-								onClick={() => updateParams({ composer: 'open' })}
+								onClick={handleCreatePost}
+								disabled={loadingPosts || loadingTopics}
 							>
 								Đăng bài
 							</button>
@@ -178,7 +340,7 @@ function Forum() {
 					</div>
 
 					<div className={styles.tabRow}>
-						{categoryTabs.map((tab) => (
+						{forumTabs.map((tab) => (
 							<button
 								key={tab.id}
 								type="button"
@@ -191,7 +353,7 @@ function Forum() {
 					</div>
 
 					<div className={styles.feedList}>
-						{visiblePosts.map((post) => (
+						{visiblePosts.map((post, index) => (
 							<article
 								key={post.id}
 								className={`${styles.postCard} ${selectedPost === post.id ? styles.selectedPost : ''}`}
@@ -210,7 +372,7 @@ function Forum() {
 										</div>
 									</div>
 
-									{post.id === '1' ? (
+									{index === 0 ? (
 										<button type="button" className={styles.moreButton}>
 											<FaEllipsis />
 										</button>
@@ -226,19 +388,19 @@ function Forum() {
 										src={post.image}
 										alt="Bài viết"
 										className={styles.postImage}
-										onClick={() => updateParams({ post: post.id })}
+										onClick={() => handleOpenComments(post)}
 									/>
 								) : null}
 
 								{typeof post.likes === 'number' && typeof post.comments === 'number' ? (
 									<footer className={styles.postFooter}>
-										<button type="button" onClick={() => updateParams({ post: post.id })}>
+										<button type="button" onClick={() => handleToggleLike(post)} disabled={processingLikeId === post.id}>
 											<FaRegThumbsUp /> {post.likes}
 										</button>
-										<button type="button" onClick={() => updateParams({ post: post.id })}>
+										<button type="button" onClick={() => handleCreateComment(post)} disabled={loadingPosts}>
 											<FaRegComment /> {post.comments}
 										</button>
-										<button type="button" className={styles.shareBtn} onClick={() => updateParams({ post: post.id })}>
+										<button type="button" className={styles.shareBtn} onClick={() => handleOpenComments(post)}>
 											<FaShareNodes />
 										</button>
 									</footer>
@@ -288,7 +450,7 @@ function Forum() {
 									key={item.id}
 									type="button"
 									className={styles.featureItem}
-									onClick={() => updateParams({ post: String(index + 1) })}
+									onClick={() => updateParams({ post: item.id || String(index + 1) })}
 								>
 									<p>{item.heading}</p>
 									<strong>{item.title}</strong>
