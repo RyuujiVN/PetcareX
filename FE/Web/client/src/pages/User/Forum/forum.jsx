@@ -740,10 +740,9 @@ const featuredPosts = useMemo(() => {
 	return (
 		<div className={styles.pageRoot}>
 			<Header />
-
 			<main className={styles.pageWrap}>
 				<section className={styles.leftColumn}>
-					{/* <div className={styles.composeCard}>
+					<div className={styles.composeCard}>
 						<div className={styles.composeTop}>
 							<img src={composerAvatar} alt="avatar" className={styles.composeAvatar} />
 							<textarea
@@ -759,35 +758,6 @@ const featuredPosts = useMemo(() => {
 						</div>
 					</div>
 
-					<div className={styles.tabRow}>
-						{forumTabs.map((tab) => (
-							<button
-								key={tab.id}
-								type="button"
-								className={`${styles.tabButton} ${activeTab === tab.id ? styles.activeTab : ''}`}
-								onClick={() => updateParams({ tab: tab.id, post: '', composer: '' })}
-							>
-								{tab.label}
-							</button>
-						))}
-					</div> */}
-					<div className={styles.headerPage}>
-						<div className={styles.composeCard}>
-						<div className={styles.composeTop}>
-							<img src={composerAvatar} alt="avatar" className={styles.composeAvatar} />
-							<textarea
-								ref={composerRef}
-								className={styles.composeInput}
-								placeholder="Bạn muốn chia sẻ điều gì về thú cưng hôm nay?"
-								readOnly
-								onClick={() => {
-									setIsComposerModalOpen(true)
-									updateParams({ composer: 'open' })
-								}}
-							/>
-						</div>
-					</div>
-</div>
 					<div className={styles.tabRow}>
 						{forumTabs.map((tab) => (
 							<button
@@ -1146,9 +1116,7 @@ const featuredPosts = useMemo(() => {
 								{topContributors.map((item) => (
 									<button
 										key={item.id}
-										type="button"
 										className={styles.rankItem}
-										onClick={() => navigate('/profile')}
 									>
 										<img src={item.avatar} alt={item.name} />
 										<span>
