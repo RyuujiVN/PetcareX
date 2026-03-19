@@ -141,7 +141,7 @@ class _HomePageState extends State<HomePage> {
             Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: const Color(0xFFE0F7F4),
+                color: AppColors.primaryAlpha(0.12),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Image.asset(
@@ -156,7 +156,7 @@ class _HomePageState extends State<HomePage> {
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1A1C1E),
+                color: AppColors.text,
               ),
             ),
           ],
@@ -165,7 +165,10 @@ class _HomePageState extends State<HomePage> {
           children: [
             IconButton(
               onPressed: () => _openQRScanner(l10n),
-              icon: const Icon(Icons.qr_code_scanner, color: Color(0xFF5F6368)),
+              icon: Icon(
+                Icons.qr_code_scanner,
+                color: AppColors.textAlpha(0.6),
+              ),
             ),
             Stack(
               children: [
@@ -181,7 +184,7 @@ class _HomePageState extends State<HomePage> {
                   },
                   icon: const Icon(
                     Icons.notifications_none_outlined,
-                    color: Color(0xFF5F6368),
+                    color: AppColors.text,
                   ),
                 ),
                 if (_hasUnreadNotifications)
@@ -192,7 +195,7 @@ class _HomePageState extends State<HomePage> {
                       width: 8,
                       height: 8,
                       decoration: const BoxDecoration(
-                        color: Colors.red,
+                        color: AppColors.error,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -221,7 +224,10 @@ class _HomePageState extends State<HomePage> {
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, Color(0xFF80EEDF)],
+                  colors: [
+                    AppColors.primary,
+                    AppColors.secondary,
+                  ],
                 ),
               ),
               child: ClipOval(
@@ -258,7 +264,7 @@ class _HomePageState extends State<HomePage> {
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1C1E),
+                      color: AppColors.text,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -266,7 +272,7 @@ class _HomePageState extends State<HomePage> {
                     l10n.howIsPetToday,
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Colors.grey,
+                      color: AppColors.text,
                       height: 1.4,
                     ),
                   ),
@@ -363,20 +369,20 @@ class _HomePageState extends State<HomePage> {
             height: 60,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white,
+              color: AppColors.secondary,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: AppColors.textAlpha(0.05),
                   blurRadius: 10,
                 ),
               ],
             ),
-            child: const Icon(Icons.add, color: Colors.grey),
+            child: Icon(Icons.add, color: AppColors.textAlpha(0.55)),
           ),
           const SizedBox(height: 8),
           Text(
             l10n.addNew,
-            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: AppColors.textAlpha(0.55)),
           ),
         ],
       ),
@@ -391,7 +397,7 @@ class _HomePageState extends State<HomePage> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: isActive ? AppColors.primary : Colors.transparent,
+              color: isActive ? AppColors.primary : AppColors.transparent,
               width: 2,
             ),
           ),
@@ -399,13 +405,17 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               width: 56,
               height: 56,
-              color: Colors.grey[200],
+              color: AppColors.border,
               child: (imageUrl != null && imageUrl.startsWith('http'))
                   ? CachedNetworkImage(
                       imageUrl: ImageHelper.getThumbnailUrl(imageUrl),
                       fit: BoxFit.cover,
-                      errorWidget: (context, url, error) => const Center(
-                        child: Icon(Icons.pets, color: Colors.grey, size: 28),
+                      errorWidget: (context, url, error) => Center(
+                        child: Icon(
+                          Icons.pets,
+                          color: AppColors.textAlpha(0.5),
+                          size: 28,
+                        ),
                       ),
                       placeholder: (context, url) => const Center(
                         child: SizedBox(
@@ -415,8 +425,12 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     )
-                  : const Center(
-                      child: Icon(Icons.pets, color: Colors.grey, size: 28),
+                  : Center(
+                      child: Icon(
+                        Icons.pets,
+                        color: AppColors.textAlpha(0.5),
+                        size: 28,
+                      ),
                     ),
             ),
           ),
@@ -440,7 +454,7 @@ class _HomePageState extends State<HomePage> {
           Icons.calendar_month,
           l10n.quickBooking,
           l10n.quickBookingSub,
-          const Color(0xFFE8F9F7),
+          AppColors.primaryAlpha(0.1),
           AppColors.primary,
           onTap: () {
             MainNavigationWrapper.of(context)?.setSelectedIndex(1);
@@ -451,8 +465,8 @@ class _HomePageState extends State<HomePage> {
           Icons.smart_toy_outlined,
           l10n.aiChatbot,
           l10n.aiChatbotSub,
-          const Color(0xFFEEF3FF),
-          const Color(0xFF4285F4),
+          AppColors.textAlpha(0.06),
+          AppColors.text,
           onTap: () {
             Navigator.push(
               context,
@@ -465,8 +479,8 @@ class _HomePageState extends State<HomePage> {
           Icons.location_on_outlined,
           l10n.findClinic,
           l10n.findClinicSub,
-          const Color(0xFFFFF4E8),
-          const Color(0xFFFF9800),
+          AppColors.successAlpha(0.12),
+          AppColors.success,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -501,7 +515,7 @@ class _HomePageState extends State<HomePage> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.secondary,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor),
@@ -521,12 +535,15 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 2),
                   Text(
                     sub,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textAlpha(0.6),
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            Icon(Icons.chevron_right, color: AppColors.textAlpha(0.5)),
           ],
         ),
       ),
@@ -570,11 +587,11 @@ class _HomePageState extends State<HomePage> {
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 28),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.secondary,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: AppColors.textAlpha(0.03),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -591,11 +608,11 @@ class _HomePageState extends State<HomePage> {
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.secondary,
               borderRadius: BorderRadius.circular(24),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
+                  color: AppColors.textAlpha(0.03),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -655,11 +672,11 @@ class _HomePageState extends State<HomePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.secondary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.textAlpha(0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -730,7 +747,7 @@ class _HomePageState extends State<HomePage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withValues(alpha: 0.03),
+            color: AppColors.textAlpha(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -875,19 +892,19 @@ class _HomePageState extends State<HomePage> {
 
     switch (status) {
       case AppointmentStatusEnum.BOOKED:
-        bgColor = AppColors.primaryLight;
+        bgColor = AppColors.primaryAlpha(0.12);
         textColor = AppColors.primary;
         break;
       case AppointmentStatusEnum.IN_PROGRESS:
-        bgColor = AppColors.warning.withValues(alpha: 0.12);
-        textColor = AppColors.warning;
+        bgColor = AppColors.textAlpha(0.12);
+        textColor = AppColors.text;
         break;
       case AppointmentStatusEnum.COMPLETED:
-        bgColor = AppColors.successLight;
+        bgColor = AppColors.successAlpha(0.12);
         textColor = AppColors.success;
         break;
       case AppointmentStatusEnum.CANCELLED:
-        bgColor = AppColors.errorLight;
+        bgColor = AppColors.errorAlpha(0.12);
         textColor = AppColors.error;
     }
 
@@ -915,8 +932,8 @@ class _HomePageState extends State<HomePage> {
     bool isDestructive = false,
   }) {
     final backgroundColor = isDestructive
-        ? AppColors.errorLight
-        : AppColors.primaryLight;
+        ? AppColors.errorAlpha(0.12)
+        : AppColors.primaryAlpha(0.12);
     final foregroundColor = isDestructive ? AppColors.error : AppColors.primary;
 
     return ElevatedButton.icon(
@@ -931,8 +948,8 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.symmetric(vertical: 11),
         backgroundColor: backgroundColor,
         foregroundColor: foregroundColor,
-        disabledBackgroundColor: AppColors.formFill,
-        disabledForegroundColor: AppColors.textGrey,
+        disabledBackgroundColor: AppColors.background,
+        disabledForegroundColor: AppColors.textAlpha(0.45),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -1014,11 +1031,11 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.secondary,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.textAlpha(0.03),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -1047,7 +1064,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1060,7 +1077,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Text(
                       "2h ago • Cat Experience",
-                      style: TextStyle(fontSize: 11, color: Colors.grey),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: AppColors.textAlpha(0.55),
+                      ),
                     ),
                   ],
                 ),
@@ -1146,7 +1166,11 @@ class _QRScannerScreenState extends State<QRScannerScreen>
             top: 40,
             left: 10,
             child: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.white, size: 30),
+              icon: const Icon(
+                Icons.arrow_back,
+                color: AppColors.secondary,
+                size: 30,
+              ),
               onPressed: () => Navigator.pop(context),
             ),
           ),
@@ -1154,7 +1178,7 @@ class _QRScannerScreenState extends State<QRScannerScreen>
             top: 40,
             right: 10,
             child: IconButton(
-              icon: const Icon(Icons.flash_on, color: Colors.white),
+              icon: const Icon(Icons.flash_on, color: AppColors.secondary),
               onPressed: () => controller.toggleTorch(),
             ),
           ),
@@ -1178,7 +1202,7 @@ class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final backgroundPaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.5);
+      ..color = AppColors.textAlpha(0.5);
     final center = Offset(size.width / 2, size.height / 2 + offset);
     final scanRect = Rect.fromCenter(
       center: center,
@@ -1198,7 +1222,7 @@ class ScannerOverlayPainter extends CustomPainter {
     );
 
     final borderPaint = Paint()
-      ..color = Colors.white
+      ..color = AppColors.secondary
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4;
     final path = Path();
@@ -1226,9 +1250,9 @@ class ScannerOverlayPainter extends CustomPainter {
       ..shader =
           LinearGradient(
             colors: [
-              Colors.white.withValues(alpha: 0),
-              Colors.white,
-              Colors.white.withValues(alpha: 0),
+              AppColors.secondary.withValues(alpha: 0),
+              AppColors.secondary,
+              AppColors.secondary.withValues(alpha: 0),
             ],
           ).createShader(
             Rect.fromLTWH(

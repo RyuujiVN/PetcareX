@@ -23,7 +23,7 @@ class _EditPetPageState extends State<EditPetPage> {
   static const TextStyle _fieldLabelStyle = TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 13,
-    color: AppColors.formLabel,
+    color: AppColors.text,
   );
 
   final _formKey = GlobalKey<FormState>();
@@ -220,16 +220,16 @@ class _EditPetPageState extends State<EditPetPage> {
         title: Text(
           l10n.petInformation,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppColors.text,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.appBarBackground,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: const Icon(Icons.arrow_back, color: AppColors.text),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -289,7 +289,7 @@ class _EditPetPageState extends State<EditPetPage> {
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.textDark,
+                                      color: AppColors.text,
                                     ),
                                   ),
                                 ],
@@ -331,10 +331,10 @@ class _EditPetPageState extends State<EditPetPage> {
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.secondary,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: AppColors.textAlpha(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -4),
                     ),
@@ -385,7 +385,7 @@ class _EditPetPageState extends State<EditPetPage> {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: AppColors.text,
           ),
         ),
         const SizedBox(height: 4),
@@ -526,7 +526,7 @@ class _EditPetPageState extends State<EditPetPage> {
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.buttonSecondary,
+                backgroundColor: AppColors.background,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -535,7 +535,7 @@ class _EditPetPageState extends State<EditPetPage> {
               child: Text(
                 l10n.cancel,
                 style: const TextStyle(
-                  color: AppColors.buttonSecondaryText,
+                  color: AppColors.text,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -565,14 +565,14 @@ class _EditPetPageState extends State<EditPetPage> {
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: AppColors.onPrimary,
                         strokeWidth: 2,
                       ),
                     )
                   : Text(
                       l10n.saveChanges,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

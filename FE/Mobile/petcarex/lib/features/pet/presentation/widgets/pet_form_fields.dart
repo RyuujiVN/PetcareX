@@ -23,17 +23,17 @@ InputDecoration petInputDecoration(
 }) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: AppColors.iconGrey, fontSize: 14),
+    hintStyle: TextStyle(color: AppColors.textAlpha(0.45), fontSize: 14),
     filled: true,
-    fillColor: AppColors.formFill,
+    fillColor: AppColors.secondary,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: AppColors.formBorder),
+      borderSide: const BorderSide(color: AppColors.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: AppColors.formBorder),
+      borderSide: const BorderSide(color: AppColors.border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
@@ -196,7 +196,7 @@ class PetAvatarPicker extends StatelessWidget {
         ElevatedButton(
           onPressed: isUploading ? null : onPickImage,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEAF9F7),
+            backgroundColor: AppColors.primaryAlpha(0.12),
             foregroundColor: AppColors.primary,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
@@ -210,7 +210,9 @@ class PetAvatarPicker extends StatelessWidget {
               Icon(
                 Icons.camera_alt_outlined,
                 size: 16,
-                color: isUploading ? Colors.grey : AppColors.primary,
+                color: isUploading
+                    ? AppColors.textAlpha(0.5)
+                    : AppColors.primary,
               ),
               const SizedBox(width: 6),
               Text(uploadLabel),
@@ -230,7 +232,7 @@ class PetAvatarPicker extends StatelessWidget {
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.grey[200],
+            color: AppColors.border,
             border: Border.all(color: AppColors.primary, width: 3),
           ),
           child: ClipOval(child: _buildAvatarContent()),
@@ -240,10 +242,10 @@ class PetAvatarPicker extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black.withValues(alpha: 0.4),
+                color: AppColors.textAlpha(0.4),
               ),
               child: const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+                child: CircularProgressIndicator(color: AppColors.secondary),
               ),
             ),
           ),
@@ -260,7 +262,7 @@ class PetAvatarPicker extends StatelessWidget {
               ),
               child: const Icon(
                 Icons.camera_alt,
-                color: Colors.white,
+                color: AppColors.secondary,
                 size: 16,
               ),
             ),
@@ -279,7 +281,7 @@ class PetAvatarPicker extends StatelessWidget {
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.grey[200],
+            color: AppColors.border,
           ),
           child: ClipOval(child: _buildAvatarContent()),
         ),
@@ -289,10 +291,10 @@ class PetAvatarPicker extends StatelessWidget {
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.black.withValues(alpha: 0.4),
+              color: AppColors.textAlpha(0.4),
             ),
             child: const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+              child: CircularProgressIndicator(color: AppColors.secondary),
             ),
           ),
       ],
@@ -318,13 +320,16 @@ class PetAvatarPicker extends StatelessWidget {
         fit: BoxFit.cover,
         width: 100,
         height: 100,
-        errorWidget: (context, url, error) =>
-            Icon(Icons.broken_image, color: Colors.grey[400], size: 40),
+        errorWidget: (context, url, error) => Icon(
+          Icons.broken_image,
+          color: AppColors.textAlpha(0.4),
+          size: 40,
+        ),
         placeholder: (context, url) =>
             const Center(child: CircularProgressIndicator()),
       );
     }
-    return Icon(Icons.camera_alt, color: Colors.grey[400], size: 40);
+    return Icon(Icons.camera_alt, color: AppColors.textAlpha(0.4), size: 40);
   }
 }
 
@@ -352,7 +357,7 @@ class PetGenderSelector extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,
-            color: AppColors.formLabel,
+            color: AppColors.text,
           ),
         ),
         const SizedBox(height: 12),
@@ -375,12 +380,12 @@ class PetGenderSelector extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected && !showIcons
-              ? const Color(0xFFEAF9F7)
-              : Colors.white,
+              ? AppColors.primaryAlpha(0.12)
+              : AppColors.secondary,
           border: Border.all(
             color: isSelected
                 ? AppColors.primary
-                : (Colors.grey[200] ?? Colors.grey),
+                : AppColors.border,
             width: 1.5,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -392,7 +397,9 @@ class PetGenderSelector extends StatelessWidget {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? AppColors.primary : Colors.grey[600],
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.textAlpha(0.6),
               ),
               const SizedBox(width: 8),
             ],
@@ -400,7 +407,7 @@ class PetGenderSelector extends StatelessWidget {
               label,
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: isSelected ? AppColors.primary : Colors.black,
+                color: isSelected ? AppColors.primary : AppColors.text,
               ),
             ),
           ],
@@ -462,7 +469,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,
-            color: AppColors.formLabel,
+            color: AppColors.text,
           ),
         ),
         const SizedBox(height: 8),
@@ -503,7 +510,9 @@ class PetSpeciesBreedFields extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 13,
-              color: isBreedEnabled ? AppColors.formLabel : AppColors.textGrey,
+              color: isBreedEnabled
+                  ? AppColors.text
+                  : AppColors.textAlpha(0.55),
             ),
           ),
           const SizedBox(height: 8),
@@ -517,8 +526,8 @@ class PetSpeciesBreedFields extends StatelessWidget {
                     isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
                   ).copyWith(
                     fillColor: isBreedEnabled
-                        ? AppColors.formFill
-                        : AppColors.formFillDisabled,
+                    ? AppColors.secondary
+                    : AppColors.background,
                   ),
               hint: Text(
                 isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
@@ -559,7 +568,7 @@ class PetBirthdateAgeFields extends StatelessWidget {
   static const TextStyle _labelStyle = TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 13,
-    color: AppColors.formLabel,
+    color: AppColors.text,
   );
 
   final AppLocalizations l10n;
@@ -652,7 +661,7 @@ class PetBirthdateAgeFields extends StatelessWidget {
             style: TextStyle(
               fontSize: 14,
               fontWeight: hasAge ? FontWeight.w600 : FontWeight.w400,
-              color: hasAge ? AppColors.textDark : AppColors.iconGrey,
+              color: hasAge ? AppColors.text : AppColors.textAlpha(0.45),
             ),
           ),
         ),
@@ -676,8 +685,8 @@ Future<void> pickPetBirthdate(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
             primary: AppColors.primary,
-            onPrimary: Colors.white,
-            onSurface: AppColors.textDark,
+            onPrimary: AppColors.onPrimary,
+            onSurface: AppColors.text,
           ),
         ),
         child: child!,
@@ -706,12 +715,12 @@ Future<bool> showDeletePetDialog(BuildContext context, String petName) async {
           onPressed: () => Navigator.pop(context, false),
           child: Text(
             l10n.cancel,
-            style: const TextStyle(color: AppColors.textGrey),
+            style: TextStyle(color: AppColors.textAlpha(0.65)),
           ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
+          style: TextButton.styleFrom(foregroundColor: AppColors.error),
           child: Text(
             l10n.delete,
             style: const TextStyle(fontWeight: FontWeight.bold),

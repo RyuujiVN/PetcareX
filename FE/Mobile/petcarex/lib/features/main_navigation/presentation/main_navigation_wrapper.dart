@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/account/presentation/account_page.dart';
@@ -7,18 +6,19 @@ import '../../../../features/appointment/presentation/appointment_page.dart';
 import '../../../../features/booking/presentation/booking_page.dart';
 import '../../../../features/community/presentation/community_page.dart';
 import '../../../../features/home/presentation/home_page.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({super.key});
 
-  static _MainNavigationWrapperState? of(BuildContext context) =>
-      context.findAncestorStateOfType<_MainNavigationWrapperState>();
+  static MainNavigationWrapperState? of(BuildContext context) =>
+      context.findAncestorStateOfType<MainNavigationWrapperState>();
 
   @override
-  State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
+  State<MainNavigationWrapper> createState() => MainNavigationWrapperState();
 }
 
-class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
+class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _selectedIndex = 0;
 
   final Set<int> _initializedPages = {0}; 
@@ -108,7 +108,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         children: [
           Icon(
             isSelected ? activeIcon : icon,
-            color: isSelected ? AppColors.primary : Colors.grey[400],
+            color: isSelected
+                ? AppColors.primary
+                : AppColors.navInactive,
             size: 24,
           ),
           const SizedBox(height: 4),
@@ -117,7 +119,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.bold,
-              color: isSelected ? AppColors.primary : Colors.grey[400],
+              color: isSelected
+                  ? AppColors.primary
+                  : AppColors.navInactive,
             ),
           ),
         ],

@@ -21,7 +21,7 @@ class _AddPetPageState extends State<AddPetPage> {
   static const TextStyle _fieldLabelStyle = TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 13,
-    color: AppColors.formLabel,
+    color: AppColors.text,
   );
 
   final _formKey = GlobalKey<FormState>();
@@ -170,17 +170,17 @@ class _AddPetPageState extends State<AddPetPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: const Icon(Icons.arrow_back, color: AppColors.text),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           l10n.addPet,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppColors.text,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -258,10 +258,10 @@ class _AddPetPageState extends State<AddPetPage> {
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.secondary,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: AppColors.textAlpha(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -4),
                     ),
@@ -292,7 +292,7 @@ class _AddPetPageState extends State<AddPetPage> {
                                   height: 22,
                                   width: 22,
                                   child: CircularProgressIndicator(
-                                    color: Colors.white,
+                                    color: AppColors.onPrimary,
                                     strokeWidth: 2,
                                   ),
                                 )
