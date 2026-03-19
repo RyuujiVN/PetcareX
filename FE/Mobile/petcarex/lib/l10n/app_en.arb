@@ -20,6 +20,7 @@
   "breed": "Breed",
   "gender": "Gender",
   "birthDate": "Birth Date",
+  "age": "Age",
   "weight": "Weight (kg)",
   "furColor": "Fur Color",
   "save": "Save Info",
@@ -150,6 +151,38 @@
   "ageYears": "{count, plural, =1{1 year old} other{{count} years old}}",
   "ageMonths": "{count, plural, =1{1 month old} other{{count} months old}}",
   "ageDays": "{count, plural, =1{1 day old} other{{count} days old}}",
+  "ageYearsMonths": "{years}y {months}mo",
+  "@ageYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayMinimumOneMonth": "1 month old",
+  "ageDisplayYearsMonths": "{years, plural, =1{1 year} other{{years} years}} {months, plural, =1{1 month} other{{months} months}}",
+  "@ageDisplayYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayYearsOnly": "{count, plural, =1{1 year} other{{count} years}}",
+  "@ageDisplayYearsOnly": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageUnavailable": "N/A",
   "forgotPasswordSubtitle": "Enter your email and we will send you an OTP code to reset your password.",
   "sendOTP": "Send OTP",
   "otpLabel": "OTP Code",

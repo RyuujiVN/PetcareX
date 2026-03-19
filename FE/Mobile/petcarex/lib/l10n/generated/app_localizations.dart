@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Ngày sinh'**
   String get birthDate;
 
+  /// No description provided for @age.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tuổi'**
+  String get age;
+
   /// No description provided for @weight.
   ///
   /// In vi, this message translates to:
@@ -997,6 +1003,36 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'{count} ngày'**
   String ageDays(int count);
+
+  /// No description provided for @ageYearsMonths.
+  ///
+  /// In vi, this message translates to:
+  /// **'{years} tuổi {months} tháng'**
+  String ageYearsMonths(int years, int months);
+
+  /// No description provided for @ageDisplayMinimumOneMonth.
+  ///
+  /// In vi, this message translates to:
+  /// **'1 tháng tuổi'**
+  String get ageDisplayMinimumOneMonth;
+
+  /// No description provided for @ageDisplayYearsMonths.
+  ///
+  /// In vi, this message translates to:
+  /// **'{years} năm {months} tháng'**
+  String ageDisplayYearsMonths(int years, int months);
+
+  /// No description provided for @ageDisplayYearsOnly.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} năm'**
+  String ageDisplayYearsOnly(int count);
+
+  /// No description provided for @ageUnavailable.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có'**
+  String get ageUnavailable;
 
   /// No description provided for @forgotPasswordSubtitle.
   ///

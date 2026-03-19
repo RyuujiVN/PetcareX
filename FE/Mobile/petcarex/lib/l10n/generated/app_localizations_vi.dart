@@ -69,6 +69,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get birthDate => 'Ngày sinh';
 
   @override
+  String get age => 'Tuổi';
+
+  @override
   String get weight => 'Cân nặng (kg)';
 
   @override
@@ -470,6 +473,27 @@ class AppLocalizationsVi extends AppLocalizations {
   String ageDays(int count) {
     return '$count ngày';
   }
+
+  @override
+  String ageYearsMonths(int years, int months) {
+    return '$years tuổi $months tháng';
+  }
+
+  @override
+  String get ageDisplayMinimumOneMonth => '1 tháng tuổi';
+
+  @override
+  String ageDisplayYearsMonths(int years, int months) {
+    return '$years năm $months tháng';
+  }
+
+  @override
+  String ageDisplayYearsOnly(int count) {
+    return '$count năm';
+  }
+
+  @override
+  String get ageUnavailable => 'Chưa có';
 
   @override
   String get forgotPasswordSubtitle =>

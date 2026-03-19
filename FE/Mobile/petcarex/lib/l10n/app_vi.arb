@@ -20,6 +20,7 @@
   "breed": "Giống",
   "gender": "Giới tính",
   "birthDate": "Ngày sinh",
+  "age": "Tuổi",
   "weight": "Cân nặng (kg)",
   "furColor": "Màu lông",
   "save": "Lưu thông tin",
@@ -178,6 +179,38 @@
       }
     }
   },
+  "ageYearsMonths": "{years} tuổi {months} tháng",
+  "@ageYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayMinimumOneMonth": "1 tháng tuổi",
+  "ageDisplayYearsMonths": "{years} năm {months} tháng",
+  "@ageDisplayYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayYearsOnly": "{count} năm",
+  "@ageDisplayYearsOnly": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageUnavailable": "Chưa có",
   "forgotPasswordSubtitle": "Nhập email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.",
   "sendOTP": "Gửi mã OTP",
   "otpLabel": "Mã OTP",

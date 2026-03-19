@@ -46,7 +46,9 @@ class _EditPetPageState extends State<EditPetPage> {
   void initState() {
     super.initState();
     petNameController = TextEditingController(text: widget.pet.name);
-    weightController = TextEditingController(text: widget.pet.weight.toString());
+    weightController = TextEditingController(
+      text: widget.pet.weight.toString(),
+    );
     birthdateController = TextEditingController(
       text: _formatDate(widget.pet.dateOfBirth),
     );
@@ -99,38 +101,6 @@ class _EditPetPageState extends State<EditPetPage> {
     );
   }
 
-  String _calculateAge(String dateOfBirthStr, AppLocalizations l10n) {
-    try {
-      final dob = DateTime.parse(dateOfBirthStr);
-      final now = DateTime.now();
-
-      int years = now.year - dob.year;
-      int months = now.month - dob.month;
-      int days = now.day - dob.day;
-
-      if (months < 0 || (months == 0 && days < 0)) {
-        years--;
-        months += 12;
-      }
-
-      if (days < 0) {
-        final previousMonth = DateTime(now.year, now.month, 0);
-        days += previousMonth.day;
-        months--;
-      }
-
-      if (years > 0) {
-        return l10n.ageYears(years);
-      }
-      if (months > 0) {
-        return l10n.ageMonths(months);
-      }
-      return l10n.ageDays(days <= 0 ? 1 : days);
-    } catch (_) {
-      return l10n.failed;
-    }
-  }
-
   Future<void> _pickImage() async {
     final l10n = AppLocalizations.of(context)!;
     final File? image = await _cameraService.pickImageFromGallery();
@@ -143,7 +113,9 @@ class _EditPetPageState extends State<EditPetPage> {
       });
 
       try {
-        final avatarUrl = await context.read<PetProvider>().uploadAvatar(image.path);
+        final avatarUrl = await context.read<PetProvider>().uploadAvatar(
+          image.path,
+        );
         if (!mounted) return;
         setState(() {
           _uploadedAvatarUrl = avatarUrl;
@@ -206,8 +178,10 @@ class _EditPetPageState extends State<EditPetPage> {
       note: noteController.text.trim(),
     );
 
-    final success =
-        await context.read<PetProvider>().updatePet(widget.pet.id, petDto);
+    final success = await context.read<PetProvider>().updatePet(
+      widget.pet.id,
+      petDto,
+    );
 
     if (!mounted) return;
 
@@ -331,7 +305,16 @@ class _EditPetPageState extends State<EditPetPage> {
                               const SizedBox(height: 12),
                               _buildGenderSelector(l10n),
                               const SizedBox(height: 12),
-                              _buildBirthdateField(l10n),
+                              PetBirthdateAgeFields(
+                                l10n: l10n,
+                                birthdateController: birthdateController,
+                                vertical: shouldStackFields,
+                                onBirthdateChanged: () {
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                              ),
                               const SizedBox(height: 12),
                               _buildWeightAndFurColorSection(
                                 l10n,
@@ -409,17 +392,17 @@ class _EditPetPageState extends State<EditPetPage> {
         if (widget.pet.breed != null)
           Text(
             widget.pet.breed!.name,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textGrey,
-            ),
+            style: const TextStyle(fontSize: 14, color: AppColors.textGrey),
           ),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              _calculateAge(widget.pet.dateOfBirth, l10n),
+              formatPetAgeFromBirthdate(
+                birthdateRaw: birthdateController.text,
+                l10n: l10n,
+              ),
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.primary,
@@ -480,36 +463,6 @@ class _EditPetPageState extends State<EditPetPage> {
     );
   }
 
-  Widget _buildBirthdateField(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.birthDate, style: _fieldLabelStyle),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: birthdateController,
-          readOnly: true,
-          onTap: () async {
-            await pickPetBirthdate(context, birthdateController, initialDate: DateTime.tryParse(birthdateController.text));
-            if (mounted) setState(() {});
-          },
-          decoration: petInputDecoration('yyyy-mm-dd').copyWith(
-            suffixIcon: const Icon(
-              Icons.calendar_today,
-              size: 18,
-              color: AppColors.iconGrey,
-            ),
-          ),
-          validator: (value) => validateRequiredField(
-            value: value,
-            l10n: l10n,
-            fieldLabel: l10n.birthDate,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildWeightAndFurColorSection(
     AppLocalizations l10n,
     bool shouldStackFields,
@@ -550,11 +503,7 @@ class _EditPetPageState extends State<EditPetPage> {
 
     if (shouldStackFields) {
       return Column(
-        children: [
-          weightField,
-          const SizedBox(height: 12),
-          furColorField,
-        ],
+        children: [weightField, const SizedBox(height: 12), furColorField],
       );
     }
 
@@ -603,8 +552,9 @@ class _EditPetPageState extends State<EditPetPage> {
               onPressed: isSaveDisabled ? null : _savePetInfo,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                disabledBackgroundColor:
-                    AppColors.primary.withValues(alpha: 0.5),
+                disabledBackgroundColor: AppColors.primary.withValues(
+                  alpha: 0.5,
+                ),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

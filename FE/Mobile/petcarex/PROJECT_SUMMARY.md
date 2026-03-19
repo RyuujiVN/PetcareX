@@ -126,6 +126,18 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Chuẩn hóa `InputDecoration` và chừa khoảng helper cố định để khi có lỗi không làm nhảy lệch hàng input.
     - Ở màn hình hẹp, hàng 2 cột (Loài/Giống, Cân nặng/Màu lông) tự chuyển sang dạng dọc để tránh chèn ép giao diện.
     - Trường **Giống** được làm mờ + khóa tương tác khi người dùng chưa chọn **Loài**; chỉ mở khi đã có loài để tránh thao tác sai luồng.
+- **Tối ưu ngày sinh + tuổi readonly (Add/Edit):**
+    - Trường **Ngày sinh** được tách 2 cột cùng hàng với trường **Tuổi** để người dùng vừa chọn ngày vừa xem tuổi ngay lập tức.
+    - Trường **Tuổi** là view-only (không cho nhập/chỉnh sửa), chỉ hiển thị giá trị tính tự động từ ngày sinh.
+    - Dùng chung widget `PetBirthdateAgeFields` trong `pet_form_fields.dart` cho cả AddPet và EditPet để tránh lệch logic giữa 2 màn.
+    - Chuẩn hóa helper dùng chung `formatPetAgeFromBirthdate(...)` + `calculatePetAgeTotalMonths(...)` cho **toàn bộ pet flow** (list/add/edit).
+    - Công thức chuẩn tuổi theo tháng tròn: `totalMonths = (year(today) - year(dob)) * 12 + (month(today) - month(dob))`; nếu `day(today) < day(dob)` thì trừ 1 tháng (không làm tròn lên).
+    - Quy tắc hiển thị mới:
+        - `totalMonths < 1` -> `1 tháng tuổi`.
+        - `1 <= totalMonths < 24` -> nếu chưa đủ 1 năm thì `{months} tháng`, nếu đã có năm thì `{years} năm {months} tháng`.
+        - `totalMonths >= 24` -> chỉ hiển thị `{years} năm`.
+    - Dữ liệu ngày sinh không hợp lệ hoặc nằm trong tương lai sẽ hiển thị trạng thái chưa có (`ageUnavailable`).
+    - Vẫn giữ quy tắc responsive: màn hình hẹp thì 2 cột ngày sinh/tuổi tự xếp dọc để không vỡ bố cục.
 - **Thông báo validate có ngữ nghĩa (i18n):**
     - Bỏ kiểu trả về đúng tên trường (ví dụ chỉ hiện `Giống`, `Cân nặng (kg)`).
     - Dùng message rõ nghĩa qua localization:
@@ -135,7 +147,8 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
         - `invalidWeightMax` (giới hạn tối đa 99.9 kg, chuẩn hóa VI/EN)
 - **Đồng bộ đa ngôn ngữ trong pet flow:**
     - Bổ sung key i18n mới trong `app_vi.arb` và `app_en.arb`: `pleaseSelect`, `selectSpeciesFirst`, `invalidWeight`, `invalidWeightMax`, `uploadPhoto`, `uploadingImage`, `uploadImageSuccess`, `uploadImageFailed`.
-    - EditPet loại bỏ logic thủ công `if (locale == 'vi')` để tính tuổi; chuyển về `l10n.ageYears/ageMonths/ageDays`.
+    - View list pet tại `features/account/presentation/my_pets_page.dart` đã bỏ hàm tính tuổi cục bộ và dùng chung helper với Add/Edit để đảm bảo output thống nhất.
+    - Bổ sung key i18n cho age field + display rule mới: `age`, `ageUnavailable`, `ageDisplayMinimumOneMonth`, `ageDisplayYearsMonths`, `ageDisplayYearsOnly`.
 - **Ràng buộc dữ liệu Pet (đồng bộ FE-BE):**
     - **Cân nặng:** chặn ngay từ UI nếu > `99.9 kg` để tránh đẩy lỗi thô từ backend.
     - **Avatar:** người dùng có thể không upload ảnh tại thời điểm tạo/sửa; FE cho phép để trống và serialize về chuỗi rỗng khi gửi API để tương thích rule backend hiện tại (`avatar` phải là string).

@@ -87,7 +87,9 @@ class _AddPetPageState extends State<AddPetPage> {
       });
 
       try {
-        final avatarUrl = await context.read<PetProvider>().uploadAvatar(image.path);
+        final avatarUrl = await context.read<PetProvider>().uploadAvatar(
+          image.path,
+        );
         if (!mounted) return;
         setState(() {
           _uploadedAvatarUrl = avatarUrl;
@@ -230,7 +232,16 @@ class _AddPetPageState extends State<AddPetPage> {
                               const SizedBox(height: 12),
                               _buildGenderSection(l10n),
                               const SizedBox(height: 12),
-                              _buildBirthdateField(l10n),
+                              PetBirthdateAgeFields(
+                                l10n: l10n,
+                                birthdateController: birthdateController,
+                                vertical: shouldStackFields,
+                                onBirthdateChanged: () {
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                              ),
                               const SizedBox(height: 12),
                               _buildWeightAndFurColorSection(
                                 l10n,
@@ -268,8 +279,8 @@ class _AddPetPageState extends State<AddPetPage> {
                           onPressed: isSaving ? null : _savePetInfo,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            disabledBackgroundColor:
-                                AppColors.primary.withValues(alpha: 0.5),
+                            disabledBackgroundColor: AppColors.primary
+                                .withValues(alpha: 0.5),
                             foregroundColor: AppColors.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -360,42 +371,6 @@ class _AddPetPageState extends State<AddPetPage> {
     );
   }
 
-  Widget _buildBirthdateField(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.birthDate, style: _fieldLabelStyle),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: birthdateController,
-          readOnly: true,
-          onTap: () async {
-            await pickPetBirthdate(
-              context,
-              birthdateController,
-              initialDate: DateTime.tryParse(birthdateController.text),
-            );
-            if (mounted) {
-              setState(() {});
-            }
-          },
-          decoration: petInputDecoration('yyyy-mm-dd').copyWith(
-            suffixIcon: const Icon(
-              Icons.calendar_today,
-              size: 18,
-              color: AppColors.iconGrey,
-            ),
-          ),
-          validator: (value) => validateRequiredField(
-            value: value,
-            l10n: l10n,
-            fieldLabel: l10n.birthDate,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildWeightAndFurColorSection(
     AppLocalizations l10n,
     bool shouldStackFields,
@@ -436,11 +411,7 @@ class _AddPetPageState extends State<AddPetPage> {
 
     if (shouldStackFields) {
       return Column(
-        children: [
-          weightField,
-          const SizedBox(height: 12),
-          furColorField,
-        ],
+        children: [weightField, const SizedBox(height: 12), furColorField],
       );
     }
 

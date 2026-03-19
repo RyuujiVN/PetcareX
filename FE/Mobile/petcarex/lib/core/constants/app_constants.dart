@@ -56,7 +56,7 @@ class AppConstants {
   static const String END_POINT_MEDICAL_MEDICINE =
       '$END_POINT_MEDICAL/medicine';
 
-  // Forum (Post) Endpoints
+  // Forum Endpoints
   static const String END_POINT_POST_COMMENTS_SUFFIX = 'comments';
   static const String END_POINT_POST_LIKE_SUFFIX = 'like';
   static const String END_POINT_POST_REMOVE_LIKE_SUFFIX = 'remove-like';
