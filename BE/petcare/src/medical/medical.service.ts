@@ -61,7 +61,11 @@ export class MedicalService {
     return await this.medicalRecordOrderRepo
       .createQueryBuilder('medical_record_order')
       .leftJoin('medical_record_order.medicalOrder', 'medical_order')
-      .addSelect(['medical_order.name', 'medical_order.price'])
+      .addSelect([
+        'medical_order.nameVn',
+        'medical_order.nameEng',
+        'medical_order.price',
+      ])
       .where('medical_record_order.medicalRecordId = :id', {
         id: id,
       })

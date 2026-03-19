@@ -24,10 +24,10 @@ export class Pet {
   @Column({ length: 50 })
   name: string;
 
-  @Column({ type: 'enum', enum: PetSpeciesEnum })
+  @Column({ type: 'enum', enum: PetSpeciesEnum, nullable: true })
   species: PetSpeciesEnum;
 
-  @Column({ type: 'enum', enum: PetBreedEnum })
+  @Column({ type: 'enum', enum: PetBreedEnum, nullable: true })
   breed: PetBreedEnum;
 
   @Column({ type: 'boolean', nullable: true })
