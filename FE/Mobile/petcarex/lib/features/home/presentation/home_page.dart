@@ -1021,7 +1021,7 @@ class _HomePageState extends State<HomePage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success ? l10n.success : l10n.failed),
+        content: Text(success ? l10n.appointmentCancelSuccess : l10n.failed),
         backgroundColor: success ? AppColors.success : AppColors.error,
       ),
     );
