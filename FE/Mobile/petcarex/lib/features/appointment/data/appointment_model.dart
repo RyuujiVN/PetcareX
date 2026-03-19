@@ -1,10 +1,12 @@
+import '../../../core/enums/appointment_status_enum.dart';
+
 class Appointment {
   final String id;
   final DateTime appointmentDate;
   final String appointmentTime;
   final String service;
   final String note;
-  final String status;
+  final AppointmentStatusEnum status;
   final AppointmentPet pet;
   final AppointmentClinic clinic;
   final AppointmentVeterinarian veterinarian;
@@ -22,13 +24,19 @@ class Appointment {
   });
 
   factory Appointment.fromJson(Map<String, dynamic> json) {
+    final rawStatus = json['status']?.toString() ?? '';
+    final parsedStatus = AppointmentStatusEnum.fromValue(rawStatus);
+    if (parsedStatus == null) {
+      throw FormatException('Unknown appointment status: $rawStatus');
+    }
+
     return Appointment(
       id: json['id'],
       appointmentDate: DateTime.parse(json['appointmentDate']),
       appointmentTime: json['appointmentTime'],
       service: json['service'],
       note: json['note'] ?? '',
-      status: json['status'],
+      status: parsedStatus,
       pet: AppointmentPet.fromJson(json['pet']),
       clinic: AppointmentClinic.fromJson(json['clinic']),
       veterinarian: AppointmentVeterinarian.fromJson(json['veterinarian']),

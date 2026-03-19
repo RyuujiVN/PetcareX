@@ -138,10 +138,7 @@ class _AppointmentPageState extends State<AppointmentPage>
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _buildEmptyState(
-                    isUpcoming: isUpcoming,
-                    l10n: l10n,
-                  ),
+                  child: _buildEmptyState(isUpcoming: isUpcoming, l10n: l10n),
                 ),
               ),
             ),
@@ -186,9 +183,7 @@ class _AppointmentPageState extends State<AppointmentPage>
           decoration: BoxDecoration(
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
           ),
           child: Icon(icon, size: 42, color: AppColors.primary),
         ),
@@ -245,7 +240,7 @@ class _AppointmentPageState extends State<AppointmentPage>
     bool isUpcoming,
     AppLocalizations l10n,
   ) {
-    final appointmentStatus = AppointmentStatusEnum.fromValue(item.status);
+    final appointmentStatus = item.status;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -661,37 +656,31 @@ class _AppointmentPageState extends State<AppointmentPage>
     );
   }
 
-  Widget _buildStatusBadge(String status) {
+  Widget _buildStatusBadge(AppointmentStatusEnum status) {
     Color bgColor;
     Color textColor;
     String label;
-    final parsedStatus = AppointmentStatusEnum.fromValue(status);
 
-    switch (parsedStatus) {
+    switch (status) {
       case AppointmentStatusEnum.BOOKED:
         bgColor = AppColors.primaryLight;
         textColor = AppColors.primary;
-        label = AppointmentStatusEnum.BOOKED.getTranslatedName(context);
+        label = status.getTranslatedName(context);
         break;
       case AppointmentStatusEnum.IN_PROGRESS:
         bgColor = AppColors.warning.withValues(alpha: 0.12);
         textColor = AppColors.warning;
-        label = AppointmentStatusEnum.IN_PROGRESS.getTranslatedName(context);
+        label = status.getTranslatedName(context);
         break;
       case AppointmentStatusEnum.COMPLETED:
         bgColor = AppColors.successLight;
         textColor = AppColors.success;
-        label = AppointmentStatusEnum.COMPLETED.getTranslatedName(context);
+        label = status.getTranslatedName(context);
         break;
       case AppointmentStatusEnum.CANCELLED:
         bgColor = AppColors.errorLight;
         textColor = AppColors.error;
-        label = AppointmentStatusEnum.CANCELLED.getTranslatedName(context);
-        break;
-      default:
-        bgColor = AppColors.background;
-        textColor = AppColors.textGrey;
-        label = status;
+        label = status.getTranslatedName(context);
     }
 
     return Container(

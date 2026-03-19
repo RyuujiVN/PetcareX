@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
+import '../../../core/enums/appointment_status_enum.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_helper.dart';
 import 'appointment_model.dart';
@@ -35,7 +36,7 @@ class AppointmentService {
     try {
       final response = await _apiClient.patch(
         ApiHelper.appointmentByIdEndpoint(id),
-        {'status': 'Đã huỷ'},
+        {'status': AppointmentStatusEnum.CANCELLED.value},
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
@@ -44,11 +45,14 @@ class AppointmentService {
     }
   }
 
-  Future<bool> updateAppointmentStatus(String id, String status) async {
+  Future<bool> updateAppointmentStatus(
+    String id,
+    AppointmentStatusEnum status,
+  ) async {
     try {
       final response = await _apiClient.patch(
         ApiHelper.appointmentByIdEndpoint(id),
-        {'status': status},
+        {'status': status.value},
       );
       return response.statusCode == 200;
     } catch (e) {

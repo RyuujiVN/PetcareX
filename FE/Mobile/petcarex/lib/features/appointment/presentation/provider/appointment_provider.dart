@@ -6,6 +6,14 @@ import '../../data/appointment_service.dart';
 
 class AppointmentProvider with ChangeNotifier {
   final AppointmentService _appointmentService = AppointmentService();
+  static const Set<AppointmentStatusEnum> _upcomingStatuses = {
+    AppointmentStatusEnum.BOOKED,
+    AppointmentStatusEnum.IN_PROGRESS,
+  };
+  static const Set<AppointmentStatusEnum> _historicalStatuses = {
+    AppointmentStatusEnum.COMPLETED,
+    AppointmentStatusEnum.CANCELLED,
+  };
 
   List<Appointment> _appointments = [];
   bool _isLoading = false;
@@ -16,19 +24,17 @@ class AppointmentProvider with ChangeNotifier {
   String? get errorMessage => _errorMessage;
 
   List<Appointment> get upcomingAppointments {
-    return _appointments.where((a) {
-      final status = AppointmentStatusEnum.fromValue(a.status);
-      return status == AppointmentStatusEnum.BOOKED ||
-          status == AppointmentStatusEnum.IN_PROGRESS;
-    }).toList()..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
+    return _appointments
+        .where((a) => _upcomingStatuses.contains(a.status))
+        .toList()
+      ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate)); 
   }
 
   List<Appointment> get historicalAppointments {
-    return _appointments.where((a) {
-      final status = AppointmentStatusEnum.fromValue(a.status);
-      return status == AppointmentStatusEnum.COMPLETED ||
-          status == AppointmentStatusEnum.CANCELLED;
-    }).toList()..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
+    return _appointments
+        .where((a) => _historicalStatuses.contains(a.status))
+        .toList()
+      ..sort((a, b) => b.appointmentDate.compareTo(a.appointmentDate));
   }
 
   Future<void> fetchAppointments() async {
