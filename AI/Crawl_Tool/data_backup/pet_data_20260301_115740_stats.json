@@ -1,0 +1,35 @@
+{
+  "total_items": 239,
+  "total_sources": 31,
+  "by_source_type": {
+    "vet_clinic": 74,
+    "blog": 165
+  },
+  "by_pet_type": {
+    "cat": 173,
+    "fish": 230,
+    "dog": 195,
+    "bird": 65,
+    "reptile": 38,
+    "rabbit": 34,
+    "hamster": 15,
+    "turtle": 4
+  },
+  "by_category": {
+    "health": 197,
+    "nutrition": 222,
+    "care": 177,
+    "breed_info": 163,
+    "training": 90,
+    "emergency": 33,
+    "other": 3
+  },
+  "by_language": {
+    "vi": 239
+  },
+  "quality_distribution": {
+    "high": 74,
+    "medium": 155,
+    "low": 10
+  }
+}
