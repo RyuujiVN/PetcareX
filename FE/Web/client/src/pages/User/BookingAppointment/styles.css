@@ -69,9 +69,21 @@
 .pet-list {
   display: flex;
   gap: 16px;
-  flex-wrap: nowrap; 
-  overflow-x: auto;       
-  padding-bottom: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  cursor: grab;
+  scroll-behavior: smooth;
+  will-change: transform;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pet-list:active {
+  cursor: grabbing;
+}
+
+.pet-list,
+.pet-card {
+  user-select: none;
 }
 
 .pet-list::-webkit-scrollbar {

@@ -311,63 +311,62 @@ useEffect(() => {
         >
           {selectedAppointment && (
        <div className="modal-contents">
+      <antd.Row gutter={16} align="middle">
+        <antd.Col span={5}>
+          <img
+            src={selectedAppointment.avatar}
+            alt={selectedAppointment.petName}
+            className="modal-avatar"
+          />
+        </antd.Col>
 
-  <antd.Row gutter={16} align="middle">
-    <antd.Col span={5}>
-      <img
-        src={selectedAppointment.avatar}
-        alt={selectedAppointment.petName}
-        className="modal-avatar"
-      />
-    </antd.Col>
+        <antd.Col span={16}>
+          <div className="info-header">
+            <h3 style={{fontSize: 17, fontWeight: 'bold'}}>Thông tin thú cưng</h3>
+            <p style={{marginBottom: 0, margin: 0}}><strong>Tên:</strong> {selectedAppointment.petName}</p>
+            <p style={{marginBottom: 0}}><strong>Giống loại:</strong> {selectedAppointment.breed}</p>
+          </div>
+        </antd.Col>
+      </antd.Row>
 
-    <antd.Col span={16}>
-      <div className="info-header">
-        <h3>Thông tin thú cưng</h3>
-        <p><strong>Tên:</strong> {selectedAppointment.petName}</p>
-        <p><strong>Giống loại:</strong> {selectedAppointment.breed}</p>
-      </div>
-    </antd.Col>
-  </antd.Row>
-
-  <antd.Divider />
-
-  <div className="appointment-detail-info">
-    <h3>Thông tin lịch khám</h3>
-
-    <p>
-      <icons.CalendarOutlined /> <strong>Ngày:</strong> {selectedAppointment.date}
-    </p>
-
-    <p>
-      <icons.ClockCircleOutlined /> <strong>Giờ:</strong> {selectedAppointment.time}
-    </p>
-
-    <p>
-      <icons.EnvironmentOutlined /> <strong>Phòng khám:</strong> {selectedAppointment.clinic}
-    </p>
-
-    <p>
-      <icons.UserOutlined /> <strong>Bác sĩ:</strong> {selectedAppointment.veterinarian}
-    </p>
-
-    <p>
-      <icons.MedicineBoxOutlined /> <strong>Dịch vụ:</strong> {selectedAppointment.service}
-    </p>
-  </div>
-
-  {selectedAppointment.notes && (
-    <>
       <antd.Divider />
-      <div className="appointment-notes">
-        <strong>Ghi chú:</strong>
-      <div className="notes-content modal-notes">
-      {selectedAppointment.notes}
-        </div>
+
+      <div className="appointment-detail-info">
+        <h3>Thông tin lịch khám</h3>
+
+        <p>
+          <icons.CalendarOutlined /> <strong>Ngày:</strong> {selectedAppointment.date}
+        </p>
+
+        <p>
+          <icons.ClockCircleOutlined /> <strong>Giờ:</strong> {selectedAppointment.time}
+        </p>
+
+        <p>
+          <icons.EnvironmentOutlined /> <strong>Phòng khám:</strong> {selectedAppointment.clinic}
+        </p>
+
+        <p>
+          <icons.UserOutlined /> <strong>Bác sĩ:</strong> {selectedAppointment.veterinarian}
+        </p>
+
+        <p>
+          <icons.MedicineBoxOutlined /> <strong>Dịch vụ:</strong> {selectedAppointment.service}
+        </p>
       </div>
-    </>
-  )}
-</div>
+
+      {selectedAppointment.notes && (
+        <>
+          <antd.Divider />
+          <div className="appointment-notes">
+            <strong>Ghi chú:</strong>
+          <div className="notes-content modal-notes">
+          {selectedAppointment.notes}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
           )}
         </antd.Modal>
       </div>

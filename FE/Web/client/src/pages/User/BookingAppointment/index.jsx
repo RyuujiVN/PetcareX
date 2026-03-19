@@ -426,7 +426,39 @@ export default function BookingAppointment() {
           <div className="form-column">
             <section className="step">
               <h2><span className="step-number">1</span> Chọn thú cưng của bạn</h2>
-              <div className="pet-list">
+              <div className="pet-list"
+               onMouseDown={(e) => {
+                  const slider = e.currentTarget;
+                  slider.isDown = true;
+                  slider.startX = e.pageX;
+                  slider.scrollLeftStart = slider.scrollLeft;
+                  slider.style.cursor = 'grabbing';
+                }}
+
+                onMouseLeave={(e) => {
+                  const slider = e.currentTarget;
+                  slider.isDown = false;
+                  slider.style.cursor = 'grab';
+                }}
+
+                onMouseUp={(e) => {
+                  const slider = e.currentTarget;
+                  slider.isDown = false;
+                  slider.style.cursor = 'grab';
+                }}
+
+                onMouseMove={(e) => {
+                  const slider = e.currentTarget;
+                  if (!slider.isDown) return;
+
+                  e.preventDefault();
+
+                  const dx = e.pageX - slider.startX;
+
+                  slider.scrollLeft = slider.scrollLeftStart - dx * 1.5;
+                }} 
+            >
+
                  <article
                   className="pet-card add-new"
                   onClick={() => handleAddPet()}
