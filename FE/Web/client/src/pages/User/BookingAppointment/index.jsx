@@ -418,7 +418,7 @@ export default function BookingAppointment() {
     <div className="booking-page">
       <Header />
       <header className="dashboard-header">
-        <h1 style={{marginRight: '30%'}}>Chào mừng, {userProfile?.fullName || 'bạn'}!</h1>
+        <h1 style={{marginRight: '29%'}}>Chào mừng, {userProfile?.fullName || 'bạn'}!</h1>
         <p style={{marginRight: '48%'}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
       </header>
       <Spin spinning={loading || submitting}>
@@ -427,6 +427,13 @@ export default function BookingAppointment() {
             <section className="step">
               <h2><span className="step-number">1</span> Chọn thú cưng của bạn</h2>
               <div className="pet-list">
+                 <article
+                  className="pet-card add-new"
+                  onClick={() => handleAddPet()}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <span className="add-text">Thêm thú cưng mới</span>
+                </article>
                 {pets.map((p) => (
                   <div
                     key={p.id}
@@ -434,20 +441,14 @@ export default function BookingAppointment() {
                     onClick={() => handlePetClick(p)}
                   >
                     {selectedPet?.id === p.id && <span className="check">✓</span>}
-                    <img src={p.avatar || '/gaugau.png'} alt={p.name} />
+                    <img src={p.avatar} alt={p.name} />
                     <div className="info">
                       <span className="name">{p.name}</span>
                       <span className="sub">{p.breed?.name || 'Chưa có giống'}</span>
                     </div>
                   </div>
                 ))}
-                <article
-                  className="pet-card add-new"
-                  onClick={() => handleAddPet()}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <span className="add-text">Thêm thú cưng mới</span>
-                </article>
+               
               </div>
             </section>
 
