@@ -36,6 +36,17 @@ export const uploadAvatarApi = (formData) => {
   });
 };
 
+export const uploadUserImageApi = (file) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  return instance.post('/user/upload', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }).then((response) => response.data);
+};
+
 export const deleteAccountApi = (userId) => {
   return instance.delete(`/user/${userId}`);
 };

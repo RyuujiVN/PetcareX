@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { message, Spin } from 'antd';
-import { Select, Card, Avatar, Row, Col, Input } from 'antd';
+import { Select, Card, Avatar, Row, Col, Input, Form } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './styles.css';
 import Header from '../../../components/layout/header';
@@ -34,6 +34,7 @@ const getAppointmentDateLabel = (dateValue) => {
 
 export default function BookingAppointment() {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [showSummary, setShowSummary] = useState(false);
   const location = useLocation();
   const { userProfile } = useAuth();
@@ -59,12 +60,6 @@ export default function BookingAppointment() {
   }, [location.state]);
 
   const [selectedPet, setSelectedPet] = useState(null);
-  const [service, setService] = useState(serviceOptions[0] || '');
-  const [clinicId, setClinicId] = useState('');
-  const [doctorId, setDoctorId] = useState('');
-  const [symptoms, setSymptoms] = useState('');
-  const [selectedDate, setSelectedDate] = useState(formatDate(today));
-  const [selectedTime, setSelectedTime] = useState('');
   const [calendarYear, setCalendarYear] = useState(today.getFullYear());
   const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
   const [loading, setLoading] = useState(false);
@@ -76,13 +71,19 @@ export default function BookingAppointment() {
   const [doctors, setDoctors] = useState([]);
   const [myAppointments, setMyAppointments] = useState([]);
 
+  const service = Form.useWatch('service', form);
+  const clinicId = Form.useWatch('clinicId', form);
+  const doctorId = Form.useWatch('doctorId', form);
+  const selectedDate = Form.useWatch('selectedDate', form);
+  const selectedTime = Form.useWatch('selectedTime', form);
+
   const selectedClinic = useMemo(
-    () => clinicDetail || clinics.find((item) => item.id === clinicId) || null,
+    () => clinicDetail || clinics.find((item) => String(item.id) === String(clinicId)) || null,
     [clinicDetail, clinicId, clinics],
   );
 
   const selectedDoctor = useMemo(
-    () => doctors.find((item) => item.userId === doctorId) || null,
+    () => doctors.find((item) => String(item.userId) === String(doctorId)) || null,
     [doctorId, doctors],
   );
 
@@ -121,11 +122,14 @@ export default function BookingAppointment() {
         : false;
 
       if (hasPreselectedClinic) {
-        setClinicId(String(preselectedClinicId));
+        form.setFieldValue('clinicId', String(preselectedClinicId));
         return;
       }
 
-      setClinicId((prev) => prev || clinicList[0].id);
+      const currentClinicId = form.getFieldValue('clinicId');
+      if (!currentClinicId) {
+        form.setFieldValue('clinicId', clinicList[0].id);
+      }
     }
   };
 
@@ -137,17 +141,23 @@ export default function BookingAppointment() {
   const fetchDoctorsByClinic = async (nextClinicId) => {
     if (!nextClinicId) {
       setDoctors([]);
-      setDoctorId('');
+      form.setFieldValue('doctorId', '');
       return;
     }
 
     const res = await getVeterinarianByClinicApi(nextClinicId, 1, 50);
     const doctorList = Array.isArray(res?.items) ? res.items : [];
     setDoctors(doctorList);
+
+    const currentDoctorId = form.getFieldValue('doctorId');
+    const currentDoctorExists = doctorList.some(
+      (item) => String(item.userId) === String(currentDoctorId),
+    );
+
     if (doctorList.length > 0) {
-      setDoctorId(doctorList[0].userId);
+      form.setFieldValue('doctorId', currentDoctorExists ? currentDoctorId : doctorList[0].userId);
     } else {
-      setDoctorId('');
+      form.setFieldValue('doctorId', '');
     }
   };
 
@@ -178,11 +188,15 @@ export default function BookingAppointment() {
 
   useEffect(() => {
     if (preselectedClinicId) {
-      setClinicId(String(preselectedClinicId));
+      form.setFieldValue('clinicId', String(preselectedClinicId));
     }
-  }, [preselectedClinicId]);
+  }, [form, preselectedClinicId]);
 
   useEffect(() => {
+    if (!clinicId) {
+      return;
+    }
+
     Promise.all([fetchDoctorsByClinic(clinicId), fetchClinicById(clinicId)]).catch((error) => {
       message.error(error.message || 'Không thể tải dữ liệu phòng khám và bác sĩ');
     });
@@ -196,9 +210,9 @@ export default function BookingAppointment() {
     const selectedDateTime = toDateTimeValue(selectedDate, selectedTime);
     const isPast = selectedDateTime < new Date();
     if (isPast || unavailableTimes.has(selectedTime)) {
-      setSelectedTime('');
+      form.setFieldValue('selectedTime', '');
     }
-  }, [selectedDate, selectedTime, unavailableTimes]);
+  }, [form, selectedDate, selectedTime, unavailableTimes]);
 
   const getWeeks = (year, month) => {
     const lastDay = new Date(year, month + 1, 0);
@@ -281,46 +295,101 @@ export default function BookingAppointment() {
     }
   };
 
+  const validateSymptoms = (_, value) => {
+    if (!value || !String(value).trim()) {
+      return Promise.reject(new Error('Vui lòng nhập triệu chứng'));
+    }
+    return Promise.resolve();
+  };
+
+  const validateDateNotPast = (_, value) => {
+    if (!value) {
+      return Promise.reject(new Error('Vui lòng chọn ngày hẹn'));
+    }
+
+    const pickedDate = new Date(`${value}T00:00:00`);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+    if (pickedDate < todayStart) {
+      return Promise.reject(new Error('Không thể đặt lịch trong quá khứ'));
+    }
+
+    return Promise.resolve();
+  };
+
+  const validateSelectedTime = (_, value) => {
+    if (!value) {
+      return Promise.reject(new Error('Vui lòng chọn giờ hẹn'));
+    }
+
+    if (!selectedDate) {
+      return Promise.reject(new Error('Vui lòng chọn ngày hẹn trước'));
+    }
+
+    const selectedDateTime = toDateTimeValue(selectedDate, value);
+    if (selectedDateTime < new Date()) {
+      return Promise.reject(new Error('Không thể đặt lịch trong quá khứ'));
+    }
+
+    if (unavailableTimes.has(value)) {
+      return Promise.reject(new Error('Khung giờ này đã có lịch, vui lòng chọn giờ khác'));
+    }
+
+    return Promise.resolve();
+  };
+
+  const handleOpenSummary = async () => {
+    if (!selectedPet?.id) {
+      message.warning('Vui lòng chọn thú cưng');
+      return;
+    }
+
+    let values;
+    try {
+      values = await form.validateFields([
+        'service',
+        'clinicId',
+        'doctorId',
+        'symptoms',
+        'selectedDate',
+        'selectedTime',
+      ]);
+    } catch {
+      return;
+    }
+
+    setShowSummary(true);
+  };
+
   const handleConfirm = async () => {
     if (!selectedPet?.id) {
       message.warning('Vui lòng chọn thú cưng');
       return;
     }
 
-    if (!clinicId || !doctorId) {
-      message.warning('Vui lòng chọn phòng khám và bác sĩ');
-      return;
-    }
-
-    if (!selectedDate || !selectedTime) {
-      message.warning('Vui lòng chọn ngày và giờ hẹn');
-      return;
-    }
-
-    if (!symptoms.trim()) {
-      message.warning('Vui lòng nhập ghi chú triệu chứng');
-      return;
-    }
-
-    const chosenDateTime = toDateTimeValue(selectedDate, selectedTime);
-    if (chosenDateTime < new Date()) {
-      message.warning('Không thể đặt lịch trong quá khứ');
-      return;
-    }
-
-    if (unavailableTimes.has(selectedTime)) {
-      message.warning('Khung giờ này đã có lịch, vui lòng chọn giờ khác');
+    let values;
+    try {
+      values = await form.validateFields([
+        'service',
+        'clinicId',
+        'doctorId',
+        'symptoms',
+        'selectedDate',
+        'selectedTime',
+      ]);
+    } catch {
       return;
     }
 
     const payload = {
       petId: selectedPet.id,
-      veterinarianId: doctorId,
-      clinicId,
-      appointmentDate: selectedDate,
-      appointmentTime: selectedTime,
-      service,
-      note: symptoms.trim(),
+      veterinarianId: values.doctorId,
+      clinicId: values.clinicId,
+      appointmentDate: values.selectedDate,
+      appointmentTime: values.selectedTime,
+      service: values.service,
+      note: values.symptoms.trim(),
     };
 
     try {
@@ -331,8 +400,8 @@ export default function BookingAppointment() {
       const appointmentData = {
         petName: created?.pet?.name || selectedPet.name,
         doctorName: created?.veterinarian?.user?.fullName || selectedDoctorName,
-        time: `${selectedTime} ${new Date(selectedDate).toLocaleDateString('vi-VN')}`,
-        service,
+        time: `${values.selectedTime} ${new Date(values.selectedDate).toLocaleDateString('vi-VN')}`,
+        service: values.service,
         clinic: created?.clinic?.name || selectedClinic?.name || '',
         appointmentId: created?.id,
       };
@@ -382,36 +451,55 @@ export default function BookingAppointment() {
               </div>
             </section>
 
+            <Form
+              form={form}
+              layout="vertical"
+              initialValues={{
+                service: serviceOptions[0] || undefined,
+                clinicId: preselectedClinicId || undefined,
+                doctorId: undefined,
+                symptoms: '',
+                selectedDate: formatDate(today),
+                selectedTime: '',
+              }}
+            >
+
             <section className="step">
               <h2>
                 <span className="step-number">2</span> Dịch vụ & Phòng khám
               </h2>
               <Row gutter={16}>
                 <Col span={12}>
-                  <label style={{color:'#333', padding: 2, fontSize: 16}}>Chọn dịch vụ</label>
-                  <Select
-                    style={{ width: '100%', height: '70%' }}
-                    value={service}
-                    onChange={(value) => setService(value)}
-                    options={serviceOptions.map((item) => ({
-                      label: item,
-                      value: item,
-                    }))}
-                  />
+                  <Form.Item
+                    label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Chọn dịch vụ</span>}
+                    name="service"
+                    rules={[{ required: true, message: 'Vui lòng chọn dịch vụ' }]}
+                  >
+                    <Select
+                      style={{ width: '100%', height: '70%' }}
+                      options={serviceOptions.map((item) => ({
+                        label: item,
+                        value: item,
+                      }))}
+                    />
+                  </Form.Item>
                 </Col>
 
                 <Col span={12}>
-                  <label style={{color:'#333', padding: 2, fontSize: 16}}>Phòng khám gần bạn</label>
-                  <Select
-                    style={{ width: '100%', height: '70%' }}
-                    value={clinicId}
-                    onChange={(value) => setClinicId(value)}
-                    disabled={Boolean(preselectedClinicId)}
-                    options={clinics.map((item) => ({
-                      label: item.name,
-                      value: item.id,
-                    }))}
-                  />
+                  <Form.Item
+                    label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Phòng khám gần bạn</span>}
+                    name="clinicId"
+                    rules={[{ required: true, message: 'Vui lòng chọn phòng khám' }]}
+                  >
+                    <Select
+                      style={{ width: '100%', height: '70%' }}
+                      disabled={Boolean(preselectedClinicId)}
+                      options={clinics.map((item) => ({
+                        label: item.name,
+                        value: item.id,
+                      }))}
+                    />
+                  </Form.Item>
                 </Col>
               </Row>
             </section>
@@ -423,16 +511,19 @@ export default function BookingAppointment() {
 
               <Row gutter={16} align="middle">
                 <Col span={12}>
-                  <label style={{color:'#333', padding: 2, fontSize: 16}}>Bác sĩ</label>
-                  <Select
-                    style={{ width: '100%',  marginBottom: 60 }}
-                    value={doctorId}
-                    onChange={(value) => setDoctorId(value)}
-                    options={doctors.map((item) => ({
-                      label: item.user?.fullName,
-                      value: item.userId,
-                    }))}
-                  />
+                  <Form.Item
+                    label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Bác sĩ</span>}
+                    name="doctorId"
+                    rules={[{ required: true, message: 'Vui lòng chọn bác sĩ' }]}
+                  >
+                    <Select
+                      style={{ width: '100%', marginBottom: 60 }}
+                      options={doctors.map((item) => ({
+                        label: item.user?.fullName,
+                        value: item.userId,
+                      }))}
+                    />
+                  </Form.Item>
                 </Col>
                 <Col span={12}>
                   <Card
@@ -457,13 +548,16 @@ export default function BookingAppointment() {
                 </Col>
               </Row>
               <div style={{ marginTop: 16 }}>
-                <label style={{color:'#333', padding: 2, fontSize: 16}}>Triệu chứng</label>
-                <Input.TextArea
-                  placeholder="Ghi triệu chứng của thú cưng"
-                  value={symptoms}
-                  onChange={(e) => setSymptoms(e.target.value)}
-                  rows={4}
-                />
+                <Form.Item
+                  label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Triệu chứng</span>}
+                  name="symptoms"
+                  rules={[{ validator: validateSymptoms }]}
+                >
+                  <Input.TextArea
+                    placeholder="Ghi triệu chứng của thú cưng"
+                    rows={4}
+                  />
+                </Form.Item>
               </div>
             </section>
 
@@ -504,7 +598,7 @@ export default function BookingAppointment() {
                                 className={`${isSelected ? 'selected-day' : ''} ${disabled ? 'disabled-day' : ''}`}
                                 onClick={() => {
                                   if (day && !disabled) {
-                                    setSelectedDate(currentDate);
+                                    form.setFieldValue('selectedDate', currentDate);
                                   }
                                 }}
                               >
@@ -529,7 +623,7 @@ export default function BookingAppointment() {
                         className={`slot ${selectedTime === timeValue ? 'selected' : ''} ${disabled ? 'disabled-slot' : ''}`}
                         onClick={() => {
                           if (!disabled) {
-                            setSelectedTime(timeValue);
+                            form.setFieldValue('selectedTime', timeValue);
                           }
                         }}
                       >
@@ -539,16 +633,32 @@ export default function BookingAppointment() {
                   })}
                 </div>
               </div>
+              <Form.Item
+                name="selectedDate"
+                rules={[{ validator: validateDateNotPast }]}
+                hidden
+              >
+                <Input />
+              </Form.Item>
+              <Form.Item
+                name="selectedTime"
+                dependencies={["selectedDate", "doctorId"]}
+                rules={[{ validator: validateSelectedTime }]}
+                hidden
+              >
+                <Input />
+              </Form.Item>
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
           <button
             className="btn-confirm"
-            onClick={() => setShowSummary(true)}
+            onClick={handleOpenSummary}
             style={{ width: '200px', border: '1px solid #ccc' , padding: '10px', borderRadius:'10px', backgroundColor: '#6d6d6d', color: '#ffffff' }}
           >
             Xác nhận
           </button>
         </div>
             </section>
+            </Form>
           </div>
         </div>
       </Spin>
