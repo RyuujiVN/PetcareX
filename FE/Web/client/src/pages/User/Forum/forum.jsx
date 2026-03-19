@@ -154,6 +154,7 @@ function Forum() {
 	const composerRef = useRef(null)
 	const postImageInputRef = useRef(null)
 	const commentImageInputRef = useRef(null)
+	const [visibleFeatured, setVisibleFeatured] = useState(5)
 	const replyImageInputRef = useRef(null)
 	const [apiPosts, setApiPosts] = useState([])
 	const [apiTopics, setApiTopics] = useState([])
@@ -242,7 +243,7 @@ const featuredPosts = useMemo(() => {
 			const scoreB = (b.likes || 0) + (b.comments || 0)
 			return scoreB - scoreA
 		})
-		.slice(0, 5)
+		.slice(0, 3)
 		.map((post) => ({
 			id: post.id,
 			heading: `Thịnh hành trong ${post.tag}`,
@@ -522,8 +523,6 @@ const featuredPosts = useMemo(() => {
 			if (isLiking) {
 				if (post.authorId && post.authorId !== currentUserId) {
 					message.success(`Đã thích bài viết của ${post.author}`)
-				} else {
-					message.success('Đã thích bài viết')
 				}
 			}
 		} catch (error) {
@@ -634,8 +633,6 @@ const featuredPosts = useMemo(() => {
 				parentId: null,
 				content: attachCommentToContent(commentText, imageUrl),
 			})
-
-			message.success('Bình luận thành công')
 			const mappedComment = mapCommentToUi(createdComment)
 			setCommentsByPost((prev) => ({
 				...prev,
@@ -713,7 +710,6 @@ const featuredPosts = useMemo(() => {
 						: item,
 				),
 			)
-			message.success('Reply thành công')
 		} catch (error) {
 			message.error(error.message || 'Không thể reply bình luận')
 		} finally {
@@ -1137,7 +1133,6 @@ const featuredPosts = useMemo(() => {
 							<header className={styles.sideTitle}>
 								<h2 style={{fontSize: 16}}>Bài viết nổi bật</h2>
 							</header>
-
 							<div className={styles.featureList}>
 								{featuredPosts.map((item, index) => (
 									<button
