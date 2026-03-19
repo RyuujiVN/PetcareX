@@ -5,7 +5,12 @@ export class CreateTopicDTO {
   @ApiProperty()
   @IsString()
   @IsNotEmpty({ message: 'Tên chủ đề không được để trống' })
-  name: string;
+  nameVn: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  nameEng?: string;
 
   @ApiProperty()
   @IsString()

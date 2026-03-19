@@ -1,0 +1,35 @@
+{
+  "total_items": 1589,
+  "total_sources": 4,
+  "by_source_type": {
+    "organization": 590,
+    "vet_clinic": 999
+  },
+  "by_pet_type": {
+    "dog": 1264,
+    "cat": 1325,
+    "rabbit": 59,
+    "fish": 91,
+    "hamster": 5,
+    "general": 46,
+    "bird": 26,
+    "reptile": 7
+  },
+  "by_category": {
+    "health": 1465,
+    "nutrition": 1437,
+    "care": 833,
+    "emergency": 1128,
+    "breed_info": 982,
+    "training": 510,
+    "other": 9
+  },
+  "by_language": {
+    "en": 1589
+  },
+  "quality_distribution": {
+    "high": 868,
+    "medium": 695,
+    "low": 26
+  }
+}

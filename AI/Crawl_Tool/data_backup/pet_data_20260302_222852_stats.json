@@ -1,0 +1,33 @@
+{
+  "total_items": 440,
+  "total_sources": 26,
+  "by_source_type": {
+    "official": 440
+  },
+  "by_pet_type": {
+    "dog": 320,
+    "cat": 413,
+    "bird": 22,
+    "reptile": 12,
+    "turtle": 6,
+    "fish": 44,
+    "rabbit": 24,
+    "hamster": 1
+  },
+  "by_category": {
+    "nutrition": 433,
+    "breed_info": 312,
+    "health": 433,
+    "emergency": 429,
+    "training": 250,
+    "care": 322
+  },
+  "by_language": {
+    "en": 440
+  },
+  "quality_distribution": {
+    "high": 417,
+    "medium": 23,
+    "low": 0
+  }
+}

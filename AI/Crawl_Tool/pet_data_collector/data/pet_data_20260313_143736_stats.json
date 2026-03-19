@@ -1,0 +1,35 @@
+{
+  "total_items": 985,
+  "total_sources": 5,
+  "by_source_type": {
+    "news": 985
+  },
+  "by_pet_type": {
+    "dog": 259,
+    "cat": 682,
+    "general": 213,
+    "bird": 42,
+    "rabbit": 16,
+    "reptile": 9,
+    "turtle": 6,
+    "fish": 14,
+    "hamster": 2
+  },
+  "by_category": {
+    "health": 944,
+    "nutrition": 730,
+    "breed_info": 184,
+    "emergency": 532,
+    "care": 489,
+    "training": 203,
+    "other": 2
+  },
+  "by_language": {
+    "en": 985
+  },
+  "quality_distribution": {
+    "high": 0,
+    "medium": 537,
+    "low": 448
+  }
+}
