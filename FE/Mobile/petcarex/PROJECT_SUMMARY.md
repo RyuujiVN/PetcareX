@@ -176,6 +176,17 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Tối ưu loading và phản hồi:**
     - Không chặn trắng toàn màn hình khi đang tải species/breeds; dùng chỉ báo mảnh (linear progress) để giữ ngữ cảnh form.
     - Toast/SnackBar upload ảnh và lưu dữ liệu được chuẩn hóa thông điệp theo locale.
+- **Đồng bộ contract Pet API mới (2026-03):**
+    - Backend Pet đã chuyển sang cấu trúc enum string:
+        - `GET /api/pet/species` trả về mảng `string[]` (ví dụ: `DOG`, `CAT`, ...), không còn object `{id, name}`.
+        - `GET /api/pet/species/{species}/breed` trả về mảng `string[]` (ví dụ: `DOG_GOLDEN_RETRIEVER`, ...), không còn object giống có `speciesId`.
+        - `GET /api/pet` trả về thú cưng với field `species` + `breed` (enum key), không còn `breedId` + object `breed`.
+    - FE `PetFormDto` đã đổi payload tạo/sửa sang `{ species, breed }` để match `CreatePetDTO/UpdatePetDTO` của BE (không gửi `breedId` nữa).
+    - FE vẫn giữ endpoint upload avatar `POST /api/pet/upload` như cũ (contract này vẫn còn trên backend).
+    - Dropdown Species/Breed trong Add/Edit nhận value là enum key backend, nhưng render label qua `PetSpeciesEnum.getTranslatedName(...)` và `PetBreedEnum.getTranslatedName(...)` để UI vẫn thân thiện VI/EN.
+    - Các màn hình hiển thị pet (`MyPets`, `Home`, `Booking`) đã bỏ phụ thuộc `pet.breed?.name` kiểu cũ và chuyển sang map từ `pet.breed` enum key để hiển thị tên giống theo locale.
+    - Khi mở EditPet từ Home/MyPets, flow preload breed list đã đổi từ `pet.breed.speciesId` sang `pet.species`.
+    - `flutter analyze` cho các file pet liên quan đã sạch issue sau khi sync contract.
 
 ### 5. Dev Connectivity (Android USB)
 - **Nguyên nhân cốt lõi:** Mobile đang dùng `AppConstants.baseUrl` mặc định `http://localhost:3000`; với thiết bị Android thật, `localhost` là máy điện thoại nên cần tunnel `adb reverse` về máy dev.

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/camera_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -56,14 +57,14 @@ class _EditPetPageState extends State<EditPetPage> {
 
     _uploadedAvatarUrl = widget.pet.avatar;
     _selectedGender = widget.pet.gender ? 'male' : 'female';
-    _selectedBreedId = widget.pet.breedId;
-    _selectedSpeciesId = widget.pet.breed?.speciesId;
+    _selectedBreedId = widget.pet.breed;
+    _selectedSpeciesId = widget.pet.species;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<PetProvider>();
       provider.fetchSpecies();
 
-      if (_selectedSpeciesId != null) {
+      if (_selectedSpeciesId != null && _selectedSpeciesId!.isNotEmpty) {
         provider.fetchBreeds(_selectedSpeciesId!);
       }
     });
@@ -174,7 +175,8 @@ class _EditPetPageState extends State<EditPetPage> {
       dateOfBirth: parsedBirthDate.toUtc().toIso8601String(),
       weight: parsedWeight,
       avatar: _uploadedAvatarUrl,
-      breedId: _selectedBreedId!,
+      species: _selectedSpeciesId!,
+      breed: _selectedBreedId!,
       note: noteController.text.trim(),
     );
 
@@ -377,6 +379,10 @@ class _EditPetPageState extends State<EditPetPage> {
   }
 
   Widget _buildPetHeader(AppLocalizations l10n) {
+    final String breedLabel =
+        PetBreedEnum.fromValue(widget.pet.breed)?.getTranslatedName(context) ??
+        widget.pet.breed;
+
     return Column(
       children: [
         Text(
@@ -389,9 +395,9 @@ class _EditPetPageState extends State<EditPetPage> {
           ),
         ),
         const SizedBox(height: 4),
-        if (widget.pet.breed != null)
+        if (breedLabel.trim().isNotEmpty)
           Text(
-            widget.pet.breed!.name,
+            breedLabel,
             style: const TextStyle(fontSize: 14, color: AppColors.textGrey),
           ),
         const SizedBox(height: 8),

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -109,6 +110,10 @@ class _MyPetsPageState extends State<MyPetsPage> {
   }
 
   Widget _buildPetCard(Pet pet, AppLocalizations l10n) {
+    final breedLabel =
+        PetBreedEnum.fromValue(pet.breed)?.getTranslatedName(context) ??
+        pet.breed;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -139,8 +144,8 @@ class _MyPetsPageState extends State<MyPetsPage> {
             try {
               final provider = context.read<PetProvider>();
               await provider.fetchSpecies();
-              if (pet.breed?.speciesId != null) {
-                await provider.fetchBreeds(pet.breed!.speciesId);
+              if (pet.species.trim().isNotEmpty) {
+                await provider.fetchBreeds(pet.species);
               }
               if (!mounted) return;
               Navigator.pop(context);
@@ -220,7 +225,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
                             ),
                             const SizedBox(width: 4),
                             Text(
-                              pet.breed?.name ?? l10n.failed,
+                              breedLabel.isNotEmpty ? breedLabel : l10n.failed,
                               style: const TextStyle(
                                 color: AppColors.textGrey,
                                 fontSize: 13,

@@ -330,8 +330,8 @@ class _HomePageState extends State<HomePage> {
     try {
       final provider = context.read<PetProvider>();
       await provider.fetchSpecies();
-      if (pet.breed?.speciesId != null) {
-        await provider.fetchBreeds(pet.breed!.speciesId);
+      if (pet.species.trim().isNotEmpty) {
+        await provider.fetchBreeds(pet.species);
       }
 
       if (!mounted) return;

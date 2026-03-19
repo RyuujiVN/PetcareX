@@ -770,6 +770,12 @@ abstract class AppLocalizations {
   /// **'Lưu thay đổi'**
   String get saveChanges;
 
+  /// No description provided for @petCreateSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm thú cưng thành công!'**
+  String get petCreateSuccess;
+
   /// No description provided for @petUpdateSuccess.
   ///
   /// In vi, this message translates to:
@@ -1649,43 +1655,43 @@ abstract class AppLocalizations {
   /// No description provided for @petBreedDogGoldenRetriever.
   ///
   /// In vi, this message translates to:
-  /// **'Golden Retriever'**
+  /// **'Chó Golden Retriever'**
   String get petBreedDogGoldenRetriever;
 
   /// No description provided for @petBreedDogPoodle.
   ///
   /// In vi, this message translates to:
-  /// **'Poodle'**
+  /// **'Chó Poodle'**
   String get petBreedDogPoodle;
 
   /// No description provided for @petBreedDogPomeranian.
   ///
   /// In vi, this message translates to:
-  /// **'Pomeranian'**
+  /// **'Chó Pomeranian'**
   String get petBreedDogPomeranian;
 
   /// No description provided for @petBreedDogCorgi.
   ///
   /// In vi, this message translates to:
-  /// **'Corgi'**
+  /// **'Chó Corgi'**
   String get petBreedDogCorgi;
 
   /// No description provided for @petBreedDogHusky.
   ///
   /// In vi, this message translates to:
-  /// **'Husky'**
+  /// **'Chó Husky'**
   String get petBreedDogHusky;
 
   /// No description provided for @petBreedDogLabrador.
   ///
   /// In vi, this message translates to:
-  /// **'Labrador'**
+  /// **'Chó Labrador'**
   String get petBreedDogLabrador;
 
   /// No description provided for @petBreedDogShibaInu.
   ///
   /// In vi, this message translates to:
-  /// **'Shiba Inu'**
+  /// **'Chó Shiba Inu'**
   String get petBreedDogShibaInu;
 
   /// No description provided for @petBreedCatBritishShorthair.

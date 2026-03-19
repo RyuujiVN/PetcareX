@@ -350,6 +350,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get saveChanges => 'Lưu thay đổi';
 
   @override
+  String get petCreateSuccess => 'Thêm thú cưng thành công!';
+
+  @override
   String get petUpdateSuccess => 'Chỉnh sửa thú cưng thành công!';
 
   @override
@@ -824,25 +827,25 @@ class AppLocalizationsVi extends AppLocalizations {
   String get petSpeciesRabbit => 'Thỏ';
 
   @override
-  String get petBreedDogGoldenRetriever => 'Golden Retriever';
+  String get petBreedDogGoldenRetriever => 'Chó Golden Retriever';
 
   @override
-  String get petBreedDogPoodle => 'Poodle';
+  String get petBreedDogPoodle => 'Chó Poodle';
 
   @override
-  String get petBreedDogPomeranian => 'Pomeranian';
+  String get petBreedDogPomeranian => 'Chó Pomeranian';
 
   @override
-  String get petBreedDogCorgi => 'Corgi';
+  String get petBreedDogCorgi => 'Chó Corgi';
 
   @override
-  String get petBreedDogHusky => 'Husky';
+  String get petBreedDogHusky => 'Chó Husky';
 
   @override
-  String get petBreedDogLabrador => 'Labrador';
+  String get petBreedDogLabrador => 'Chó Labrador';
 
   @override
-  String get petBreedDogShibaInu => 'Shiba Inu';
+  String get petBreedDogShibaInu => 'Chó Shiba Inu';
 
   @override
   String get petBreedCatBritishShorthair => 'Mèo Anh lông ngắn';

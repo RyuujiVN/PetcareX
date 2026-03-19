@@ -112,6 +112,7 @@
   "male": "Male",
   "female": "Female",
   "saveChanges": "Save Changes",
+  "petCreateSuccess": "Pet added successfully!",
   "petUpdateSuccess": "Pet updated successfully!",
   "petDeleteSuccess": "Pet deleted successfully!",
   "profile": "Personal Profile",

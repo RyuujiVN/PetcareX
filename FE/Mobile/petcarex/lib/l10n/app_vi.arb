@@ -112,6 +112,7 @@
   "male": "Đực",
   "female": "Cái",
   "saveChanges": "Lưu thay đổi",
+  "petCreateSuccess": "Thêm thú cưng thành công!",
   "petUpdateSuccess": "Chỉnh sửa thú cưng thành công!",
   "petDeleteSuccess": "Xóa thú cưng thành công!",
   "profile": "Hồ sơ cá nhân",

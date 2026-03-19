@@ -146,7 +146,8 @@ class _AddPetPageState extends State<AddPetPage> {
       dateOfBirth: parsedBirthDate.toUtc().toIso8601String(),
       weight: parsedWeight,
       avatar: _uploadedAvatarUrl,
-      breedId: _selectedBreedId!,
+      species: _selectedSpeciesId!,
+      breed: _selectedBreedId!,
       note: furColorController.text.trim(),
     );
 
@@ -155,7 +156,7 @@ class _AddPetPageState extends State<AddPetPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar(l10n.success, isError: false);
+      _showQuickSnackBar(l10n.petCreateSuccess, isError: false);
       Navigator.pop(context, true);
       return;
     }

@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/enums/pet_breed_enum.dart';
+import '../../../../core/enums/pet_species_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -441,8 +443,8 @@ class PetSpeciesBreedFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final speciesWidget = _buildSpeciesDropdown();
-    final breedWidget = _buildBreedDropdown();
+    final speciesWidget = _buildSpeciesDropdown(context);
+    final breedWidget = _buildBreedDropdown(context);
 
     if (vertical) {
       return Column(
@@ -459,7 +461,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
     );
   }
 
-  Widget _buildSpeciesDropdown() {
+  Widget _buildSpeciesDropdown(BuildContext context) {
     final bool hasValue = speciesList.any((s) => s.id == selectedSpeciesId);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -479,9 +481,18 @@ class PetSpeciesBreedFields extends StatelessWidget {
           decoration: petInputDecoration(l10n.species),
           hint: Text(l10n.species, style: const TextStyle(fontSize: 14)),
           items: speciesList.map<DropdownMenuItem<String>>((species) {
+            final translatedLabel =
+                PetSpeciesEnum.fromValue(species.id)?.getTranslatedName(
+                  context,
+                ) ??
+                species.name;
+
             return DropdownMenuItem<String>(
               value: species.id,
-              child: Text(species.name, style: const TextStyle(fontSize: 14)),
+              child: Text(
+                translatedLabel,
+                style: const TextStyle(fontSize: 14),
+              ),
             );
           }).toList(),
           onChanged: onSpeciesChanged,
@@ -495,7 +506,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
     );
   }
 
-  Widget _buildBreedDropdown() {
+  Widget _buildBreedDropdown(BuildContext context) {
     final bool isBreedEnabled =
         selectedSpeciesId != null && selectedSpeciesId!.isNotEmpty;
     final bool hasValue = breedList.any((b) => b.id == selectedBreedId);
@@ -535,10 +546,16 @@ class PetSpeciesBreedFields extends StatelessWidget {
               ),
               items: isBreedEnabled
                   ? breedList.map<DropdownMenuItem<String>>((breed) {
+                      final translatedLabel =
+                          PetBreedEnum.fromValue(breed.id)?.getTranslatedName(
+                            context,
+                          ) ??
+                          breed.name;
+
                       return DropdownMenuItem<String>(
                         value: breed.id,
                         child: Text(
-                          breed.name,
+                          translatedLabel,
                           style: const TextStyle(fontSize: 14),
                           overflow: TextOverflow.ellipsis,
                         ),

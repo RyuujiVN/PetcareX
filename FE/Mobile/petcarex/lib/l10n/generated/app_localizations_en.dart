@@ -351,6 +351,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveChanges => 'Save Changes';
 
   @override
+  String get petCreateSuccess => 'Pet added successfully!';
+
+  @override
   String get petUpdateSuccess => 'Pet updated successfully!';
 
   @override
