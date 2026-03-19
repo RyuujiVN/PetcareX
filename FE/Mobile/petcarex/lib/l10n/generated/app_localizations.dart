@@ -692,6 +692,12 @@ abstract class AppLocalizations {
   /// **'Bạn có chắc chắn muốn hủy lịch hẹn này không?'**
   String get cancelMessage;
 
+  /// No description provided for @appointmentCancelSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy lịch thành công!'**
+  String get appointmentCancelSuccess;
+
   /// No description provided for @yes.
   ///
   /// In vi, this message translates to:
@@ -769,6 +775,12 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Lưu thay đổi'**
   String get saveChanges;
+
+  /// No description provided for @profileUpdateSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cập nhật thông tin thành công!'**
+  String get profileUpdateSuccess;
 
   /// No description provided for @petCreateSuccess.
   ///

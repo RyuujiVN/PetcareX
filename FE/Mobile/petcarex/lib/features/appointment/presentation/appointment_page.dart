@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/enums/appointment_status_enum.dart';
+import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/enums/service_enum.dart';
 import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -81,7 +82,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    provider.errorMessage ?? l10n.failed,
+                    _resolveErrorMessage(provider.errorMessage, l10n),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -334,7 +335,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                         const SizedBox(height: 12),
                         _buildInfoRow(
                           Icons.calendar_today_outlined,
-                          '${DateFormat('dd/MM/yyyy').format(item.appointmentDate)} • ${item.appointmentTime}',
+                          '${DateFormat('dd/MM/yyyy').format(item.appointmentDate)} • ${_formatDisplayTime(item.appointmentTime)}',
                         ),
                         const SizedBox(height: 6),
                         _buildInfoRow(
@@ -416,6 +417,10 @@ class _AppointmentPageState extends State<AppointmentPage>
     Appointment item,
     AppLocalizations l10n,
   ) {
+    final breedLabel =
+        PetBreedEnum.fromValue(item.pet.breedName)?.getTranslatedName(context) ??
+        item.pet.breedName;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -499,7 +504,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${l10n.breed}: ${item.pet.breedName}',
+                        '${l10n.breed}: $breedLabel',
                         style: const TextStyle(
                           color: AppColors.textGrey,
                           fontSize: 12,
@@ -532,7 +537,7 @@ class _AppointmentPageState extends State<AppointmentPage>
               _buildDetailRow(
                 Icons.calendar_month_outlined,
                 '${l10n.time}:',
-                '${item.appointmentTime} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}',
+                '${_formatDisplayTime(item.appointmentTime)} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}',
               ),
               if (item.note.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -655,10 +660,54 @@ class _AppointmentPageState extends State<AppointmentPage>
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(success ? l10n.success : l10n.failed),
+        content: Text(success ? l10n.appointmentCancelSuccess : l10n.failed),
         backgroundColor: success ? AppColors.success : AppColors.error,
       ),
     );
+  }
+
+  String _formatDisplayTime(String rawTime) {
+    final normalized = rawTime.trim();
+    if (normalized.isEmpty) {
+      return '';
+    }
+
+    final upperTime = normalized.toUpperCase();
+    final amPmMatch = RegExp(
+      r'^(\d{1,2}):(\d{2})\s*(AM|PM)$',
+    ).firstMatch(upperTime);
+    if (amPmMatch != null) {
+      final hour12 = int.tryParse(amPmMatch.group(1) ?? '0') ?? 0;
+      final minute = int.tryParse(amPmMatch.group(2) ?? '0') ?? 0;
+      var hour24 = hour12 % 12;
+
+      if (amPmMatch.group(3) == 'PM') {
+        hour24 += 12;
+      }
+
+      return '${hour24.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    }
+
+    final parts = normalized.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0].trim());
+      final minute = int.tryParse(parts[1].trim());
+
+      if (hour != null && minute != null) {
+        return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return normalized;
+  }
+
+  String _resolveErrorMessage(String? errorMessage, AppLocalizations l10n) {
+    final normalized = errorMessage?.trim() ?? '';
+    if (normalized.isEmpty || normalized.toLowerCase() == 'failed') {
+      return l10n.failed;
+    }
+
+    return normalized;
   }
 
   Widget _buildAppointmentActionButton({

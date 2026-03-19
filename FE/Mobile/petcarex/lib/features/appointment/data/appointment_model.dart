@@ -48,21 +48,40 @@ class AppointmentPet {
   final String id;
   final String name;
   final String? avatar;
-  final String breedName;
+  final String species;
+  final String breed;
+
+  // Backward-compatible alias for existing UI code.
+  String get breedName => breed;
 
   AppointmentPet({
     required this.id,
     required this.name,
     this.avatar,
-    required this.breedName,
+    required this.species,
+    required this.breed,
   });
 
   factory AppointmentPet.fromJson(Map<String, dynamic> json) {
+    final rawBreed = json['breed'];
+
+    var normalizedBreed = '';
+    if (rawBreed is String) {
+      normalizedBreed = rawBreed;
+    } else if (rawBreed is Map<String, dynamic>) {
+      // Legacy payload compatibility: breed object with name/id.
+      normalizedBreed =
+          rawBreed['name']?.toString() ?? rawBreed['id']?.toString() ?? '';
+    } else if (rawBreed != null) {
+      normalizedBreed = rawBreed.toString();
+    }
+
     return AppointmentPet(
-      id: json['id'],
-      name: json['name'],
-      avatar: json['avatar'],
-      breedName: json['breed']['name'],
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString() ?? '',
+      avatar: json['avatar']?.toString(),
+      species: json['species']?.toString() ?? '',
+      breed: normalizedBreed,
     );
   }
 }

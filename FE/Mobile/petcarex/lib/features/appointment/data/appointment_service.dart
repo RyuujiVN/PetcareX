@@ -21,8 +21,19 @@ class AppointmentService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = jsonDecode(response.body);
-        final List<dynamic> items = data['items'];
-        return items.map((json) => Appointment.fromJson(json)).toList();
+        final rawItems = data['items'];
+        if (rawItems is! List) {
+          throw const FormatException('Invalid appointment list response');
+        }
+
+        return rawItems
+            .whereType<Map>()
+            .map(
+              (json) => Appointment.fromJson(
+                Map<String, dynamic>.from(json),
+              ),
+            )
+            .toList();
       } else {
         throw Exception('Failed to load appointments: ${response.statusCode}');
       }

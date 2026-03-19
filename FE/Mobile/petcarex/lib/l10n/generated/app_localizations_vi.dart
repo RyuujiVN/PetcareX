@@ -311,6 +311,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cancelMessage => 'Bạn có chắc chắn muốn hủy lịch hẹn này không?';
 
   @override
+  String get appointmentCancelSuccess => 'Hủy lịch thành công!';
+
+  @override
   String get yes => 'Có';
 
   @override
@@ -348,6 +351,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get saveChanges => 'Lưu thay đổi';
+
+  @override
+  String get profileUpdateSuccess => 'Cập nhật thông tin thành công!';
 
   @override
   String get petCreateSuccess => 'Thêm thú cưng thành công!';

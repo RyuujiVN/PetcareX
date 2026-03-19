@@ -132,6 +132,12 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Bổ sung key i18n mới: `viewDetail`, `retry`, `yes`, `no` và áp dụng ở trang Appointment/Home.
 - **Chuẩn hóa dialog hủy lịch (2026-03):**
     - Form xác nhận hủy ở cả Home và Appointment dùng lựa chọn `Có/Không` (`Yes/No`) để rõ ràng quyết định người dùng, thay cho nhãn xác nhận gây nhiễu ngữ cảnh.
+- **Đồng bộ contract Appointment API mới (2026-03-19):**
+    - Backend `GET /api/appointment/my` trả `pet.breed` theo dạng enum string (ví dụ `DOG_GOLDEN_RETRIEVER`), không còn object `breed.name` như contract cũ.
+    - Đã sửa `AppointmentPet.fromJson(...)` để parse tương thích cả 2 dạng dữ liệu (mới: string, cũ: object) nhằm tránh crash parse làm tab lịch hẹn rơi vào trạng thái lỗi.
+    - UI chi tiết lịch hẹn map `pet.breed` qua `PetBreedEnum.fromValue(...).getTranslatedName(context)` để hiển thị đúng theo locale, không lộ enum key thô ra người dùng.
+    - Chuẩn hóa hiển thị lỗi tải lịch: key nội bộ `failed` được resolve qua `AppLocalizations`, tránh hiện chữ `failed` trực tiếp trên giao diện.
+    - Chuẩn hóa hiển thị giờ hẹn theo `HH:mm` và loại bỏ `substring(0, 5)` cứng ở step success của Booking để tránh `RangeError` khi backend đổi format giờ.
 - **Chuẩn hóa lỗi nghiệp vụ Booking:** `BookingProvider` trả về error key (`bookingErrorCompleteAllSteps`) thay vì chuỗi tiếng Việt cứng; UI map key sang `AppLocalizations` trước khi hiển thị.
 - **Logic:** Tự động dịch trạng thái từ Server sang ngôn ngữ người dùng.
 - **UI:** Badge trạng thái sử dụng hệ thống màu nhẹ (Light Colors) chuyên nghiệp.

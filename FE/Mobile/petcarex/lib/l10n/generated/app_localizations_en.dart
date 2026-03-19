@@ -312,6 +312,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Are you sure you want to cancel this appointment?';
 
   @override
+  String get appointmentCancelSuccess => 'Appointment cancelled successfully!';
+
+  @override
   String get yes => 'Yes';
 
   @override
@@ -349,6 +352,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get saveChanges => 'Save Changes';
+
+  @override
+  String get profileUpdateSuccess => 'Profile updated successfully!';
 
   @override
   String get petCreateSuccess => 'Pet added successfully!';
