@@ -425,6 +425,32 @@ class AppLocalizationsVi extends AppLocalizations {
   String get shareSomething => 'Bạn muốn chia sẻ điều gì về thú cưng hôm nay?';
 
   @override
+  String get chooseTopic => 'Chọn chủ đề';
+
+  @override
+  String get pleaseChooseTopic => 'Vui lòng chọn một chủ đề';
+
+  @override
+  String get noCommentsYet => 'Chưa có bình luận nào';
+
+  @override
+  String replyingTo(Object name) {
+    return 'Đang trả lời $name';
+  }
+
+  @override
+  String get commentHint => 'Viết bình luận...';
+
+  @override
+  String get replyHint => 'Viết câu trả lời...';
+
+  @override
+  String get reply => 'Trả lời';
+
+  @override
+  String get viewReplies => 'Xem câu trả lời';
+
+  @override
   String get post => 'Đăng bài';
 
   @override
@@ -438,6 +464,19 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get featuredPosts => 'Bài viết nổi bật';
+
+  @override
+  String get editPost => 'Chỉnh sửa bài viết';
+
+  @override
+  String get update => 'Cập nhật';
+
+  @override
+  String get deletePostConfirm =>
+      'Bạn có chắc chắn muốn xóa bài viết này không?';
+
+  @override
+  String get deletePostSuccess => 'Xóa bài viết thành công';
 
   @override
   String get handbook => 'CẨM NANG';

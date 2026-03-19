@@ -23,14 +23,19 @@ class Post {
 
   factory Post.fromJson(Map<String, dynamic> json) {
     // Post dùng 'author' theo JSON trước đó bạn gửi
-    final userData = json['author'] ?? json['user'] ?? {};
+    final userDataRaw = json['author'] ?? json['user'] ?? {};
+    final topicDataRaw = json['topic'];
+
+    final userData = userDataRaw is Map ? Map<String, dynamic>.from(userDataRaw) : <String, dynamic>{};
+    final topicData = topicDataRaw is Map ? Map<String, dynamic>.from(topicDataRaw) : null;
+
     return Post(
       id: json['id'] ?? '',
       content: json['content'] ?? '',
       images: json['images'] != null ? List<String>.from(json['images']) : [],
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
-      author: PostUser.fromJson(userData), 
-      topic: json['topic'] != null ? Topic.fromJson(json['topic']) : null,
+      author: PostUser.fromJson(userData),
+      topic: topicData != null ? Topic.fromJson(topicData) : null,
       likeCount: json['likeCount'] ?? 0,
       commentCount: json['commentCount'] ?? 0,
       liked: json['liked'] ?? false,
@@ -46,10 +51,11 @@ class PostUser {
   PostUser({required this.id, required this.fullName, this.avatarUrl});
 
   factory PostUser.fromJson(Map<String, dynamic> json) {
+    final userMap = Map<String, dynamic>.from(json);
     return PostUser(
-      id: json['id'] ?? '',
-      fullName: json['fullName'] ?? 'User',
-      avatarUrl: json['avatarUrl'],
+      id: userMap['id'] ?? '',
+      fullName: userMap['fullName'] ?? 'User',
+      avatarUrl: userMap['avatarUrl'],
     );
   }
 }
@@ -62,10 +68,11 @@ class Topic {
   Topic({required this.id, required this.name, this.description});
 
   factory Topic.fromJson(Map<String, dynamic> json) {
+    final topicMap = Map<String, dynamic>.from(json);
     return Topic(
-      id: json['id'] ?? '',
-      name: json['name'] ?? '',
-      description: json['description'],
+      id: topicMap['id'] ?? '',
+      name: topicMap['name'] ?? '',
+      description: topicMap['description'],
     );
   }
 }
@@ -87,14 +94,18 @@ class Comment {
 
   factory Comment.fromJson(Map<String, dynamic> json) {
     // Swagger mới nhất cho thấy Comment dùng 'user'
-    final userData = json['user'] ?? json['author'] ?? {};
+    final userDataRaw = json['user'] ?? json['author'] ?? {};
+    final userData = userDataRaw is Map ? Map<String, dynamic>.from(userDataRaw) : <String, dynamic>{};
+
     return Comment(
       id: json['id'] ?? '',
       content: json['content'] ?? '',
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       author: PostUser.fromJson(userData),
-      replies: json['replies'] != null 
-          ? (json['replies'] as List).map((e) => Comment.fromJson(e)).toList() 
+      replies: json['replies'] != null
+          ? (json['replies'] as List)
+              .map((e) => Comment.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList()
           : null,
     );
   }

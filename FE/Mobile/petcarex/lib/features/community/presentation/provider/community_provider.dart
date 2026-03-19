@@ -191,6 +191,57 @@ class CommunityProvider with ChangeNotifier {
     return false;
   }
 
+  Future<bool> updatePost(String postId, String content, String topicId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final success = await _repository.updatePost(postId, content, topicId);
+      if (success) {
+        final index = _posts.indexWhere((post) => post.id == postId);
+        if (index != -1) {
+          _posts[index] = Post(
+            id: _posts[index].id,
+            content: content,
+            images: _posts[index].images,
+            createdAt: _posts[index].createdAt,
+            author: _posts[index].author,
+            topic: _posts[index].topic,
+            likeCount: _posts[index].likeCount,
+            commentCount: _posts[index].commentCount,
+            liked: _posts[index].liked,
+          );
+        }
+        notifyListeners();
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> deletePost(String postId) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final success = await _repository.deletePost(postId);
+      if (success) {
+        _posts.removeWhere((post) => post.id == postId);
+        notifyListeners();
+      }
+      return success;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
   Future<bool> createNewPost({required String content, required String topicId}) async {
     _isLoading = true;
     notifyListeners();
