@@ -51,6 +51,22 @@ class CommunityRepository {
     return response.statusCode == 200;
   }
 
+  Future<bool> updatePost(String postId, String content, String topicId) async {
+    final response = await _apiClient.put(
+      ApiHelper.postByIdEndpoint(postId),
+      {
+        'content': content,
+        'topicId': topicId,
+      },
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deletePost(String postId) async {
+    final response = await _apiClient.delete(ApiHelper.postByIdEndpoint(postId));
+    return response.statusCode == 200;
+  }
+
   Future<Post?> createPost(String content, String topicId) async {
     final response = await _apiClient.post(AppConstants.END_POINT_POST, {
       'content': content,

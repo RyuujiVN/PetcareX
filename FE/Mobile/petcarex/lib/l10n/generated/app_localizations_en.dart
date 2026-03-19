@@ -430,6 +430,32 @@ class AppLocalizationsEn extends AppLocalizations {
       'What do you want to share about your pet today?';
 
   @override
+  String get chooseTopic => 'Choose topic';
+
+  @override
+  String get pleaseChooseTopic => 'Please choose a topic';
+
+  @override
+  String get noCommentsYet => 'No comments yet';
+
+  @override
+  String replyingTo(Object name) {
+    return 'Replying to $name';
+  }
+
+  @override
+  String get commentHint => 'Write a comment...';
+
+  @override
+  String get replyHint => 'Write a reply...';
+
+  @override
+  String get reply => 'Reply';
+
+  @override
+  String get viewReplies => 'View replies';
+
+  @override
   String get post => 'Post';
 
   @override
@@ -443,6 +469,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get featuredPosts => 'Featured Posts';
+
+  @override
+  String get editPost => 'Edit post';
+
+  @override
+  String get update => 'Update';
+
+  @override
+  String get deletePostConfirm => 'Are you sure you want to delete this post?';
+
+  @override
+  String get deletePostSuccess => 'Post deleted successfully';
 
   @override
   String get handbook => 'HANDBOOK';

@@ -71,7 +71,7 @@ class _CommunityPageState extends State<CommunityPage> {
                     child: isLoading 
                       ? const Center(child: CircularProgressIndicator())
                       : comments.isEmpty 
-                        ? const Center(child: Text('Chưa có bình luận nào.', style: TextStyle(color: AppColors.textGrey)))
+                        ? Center(child: Text(l10n.noCommentsYet, style: const TextStyle(color: AppColors.textGrey)))
                         : ListView.builder(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: comments.length,
@@ -86,6 +86,86 @@ class _CommunityPageState extends State<CommunityPage> {
         },
       ),
     );
+  }
+
+  Future<void> _showEditPostDialog(Post post, CommunityProvider provider, AppLocalizations l10n) async {
+    final controller = TextEditingController(text: post.content);
+    final updated = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.editPost, style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: TextField(
+            controller: controller,
+            maxLines: null,
+            decoration: InputDecoration(hintText: l10n.commentHint),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: Text(l10n.update),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (updated == true && controller.text.trim().isNotEmpty) {
+      final success = await provider.updatePost(post.id, controller.text.trim(), post.topic?.id ?? '');
+      if (success) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.success), backgroundColor: AppColors.success),
+        );
+      } else {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(provider.errorMessage ?? l10n.failed), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  Future<void> _showDeletePostConfirm(Post post, CommunityProvider provider, AppLocalizations l10n) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (adapterContext) {
+        return AlertDialog(
+          title: Text(l10n.confirmDelete, style: const TextStyle(fontWeight: FontWeight.bold)),
+          content: Text(l10n.deletePostConfirm),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(adapterContext, false),
+              child: Text(l10n.cancel),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.pop(adapterContext, true),
+              child: Text(l10n.delete),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (confirmed == true) {
+      final success = await provider.deletePost(post.id);
+      if (!context.mounted) return;
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.deletePostSuccess), backgroundColor: AppColors.success),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(provider.errorMessage ?? l10n.failed), backgroundColor: AppColors.error),
+        );
+      }
+    }
   }
 
   Widget _buildSheetHeader(AppLocalizations l10n) {
@@ -122,7 +202,7 @@ class _CommunityPageState extends State<CommunityPage> {
               decoration: BoxDecoration(color: AppColors.primaryLight, borderRadius: BorderRadius.circular(8)),
               child: Row(
                 children: [
-                  Expanded(child: Text('Đang trả lời ${replyTarget.author.fullName}', style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600))),
+                  Expanded(child: Text(l10n.replyingTo(replyTarget.author.fullName), style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.w600))),
                   GestureDetector(onTap: () => provider.setReplyTarget(null), child: const Icon(Icons.close, size: 16, color: AppColors.primary)),
                 ],
               ),
@@ -133,7 +213,7 @@ class _CommunityPageState extends State<CommunityPage> {
                 child: TextField(
                   controller: controller,
                   decoration: InputDecoration(
-                    hintText: replyTarget == null ? 'Viết bình luận...' : 'Viết câu trả lời...',
+                    hintText: replyTarget == null ? l10n.commentHint : l10n.replyHint,
                     filled: true,
                     fillColor: AppColors.background,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
@@ -218,7 +298,7 @@ class _CommunityPageState extends State<CommunityPage> {
                             const SizedBox(width: 16),
                             GestureDetector(
                               onTap: () => provider.setReplyTarget(comment),
-                              child: const Text('Trả lời', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
+                              child: Text(l10n.reply, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12)),
                             ),
                           ],
                         ],
@@ -237,7 +317,7 @@ class _CommunityPageState extends State<CommunityPage> {
                 padding: const EdgeInsets.only(left: 50, top: 8),
                 child: GestureDetector(
                   onTap: () => provider.fetchReplies(comment.id),
-                  child: const Text('Xem câu trả lời', style: TextStyle(color: AppColors.textGrey, fontSize: 12, fontWeight: FontWeight.w500)),
+                  child: Text(l10n.viewReplies, style: const TextStyle(color: AppColors.textGrey, fontSize: 12, fontWeight: FontWeight.w500)),
                 ),
               )
             else if (isRepliesLoading)
@@ -255,6 +335,7 @@ class _CommunityPageState extends State<CommunityPage> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final provider = context.watch<CommunityProvider>();
+    final currentUser = context.watch<AuthProvider>().user;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -275,7 +356,7 @@ class _CommunityPageState extends State<CommunityPage> {
                         itemCount: provider.posts.length + 1,
                         itemBuilder: (context, index) {
                           if (index == 0) return _buildPostInput(l10n);
-                          return _buildPostCard(provider.posts[index - 1], provider, l10n);
+                          return _buildPostCard(provider.posts[index - 1], provider, l10n, currentUser?.id);
                         },
                       ),
               ),
@@ -384,7 +465,7 @@ class _CommunityPageState extends State<CommunityPage> {
     );
   }
 
-  Widget _buildPostCard(Post post, CommunityProvider provider, AppLocalizations l10n) {
+  Widget _buildPostCard(Post post, CommunityProvider provider, AppLocalizations l10n, String? currentUserId) {
     return Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(20),
@@ -411,7 +492,23 @@ class _CommunityPageState extends State<CommunityPage> {
                 ]
               ),
               const Spacer(),
-              const Icon(Icons.more_horiz, color: AppColors.iconGrey),
+              if (currentUserId != null && currentUserId == post.author.id)
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_horiz, color: AppColors.iconGrey),
+                  onSelected: (value) {
+                    if (value == 'edit') {
+                      _showEditPostDialog(post, provider, l10n);
+                    } else if (value == 'delete') {
+                      _showDeletePostConfirm(post, provider, l10n);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(value: 'edit', child: Text(l10n.editPost)),
+                    PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
+                  ],
+                )
+              else
+                const Icon(Icons.more_horiz, color: AppColors.iconGrey),
             ]
           ),
           const SizedBox(height: 16),

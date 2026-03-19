@@ -58,7 +58,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     }
 
     if (_selectedTopicId == null) {
-      _showQuickSnackBar("Vui lòng chọn một chủ đề");
+      _showQuickSnackBar(l10n.pleaseChooseTopic);
       return;
     }
 
@@ -156,7 +156,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user?.fullName ?? 'User', 
+                      user?.fullName ?? l10n.user, 
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.textDark)
                     ),
                     const SizedBox(height: 4),
@@ -170,7 +170,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
                           value: _selectedTopicId,
-                          hint: const Text("Chọn chủ đề", style: TextStyle(fontSize: 12)),
+                          hint: Text(l10n.chooseTopic, style: const TextStyle(fontSize: 12)),
                           isDense: true,
                           icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.primary),
                           style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold),

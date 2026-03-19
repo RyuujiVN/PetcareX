@@ -926,6 +926,54 @@ abstract class AppLocalizations {
   /// **'Bạn muốn chia sẻ điều gì về thú cưng hôm nay?'**
   String get shareSomething;
 
+  /// No description provided for @chooseTopic.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn chủ đề'**
+  String get chooseTopic;
+
+  /// No description provided for @pleaseChooseTopic.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng chọn một chủ đề'**
+  String get pleaseChooseTopic;
+
+  /// No description provided for @noCommentsYet.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có bình luận nào'**
+  String get noCommentsYet;
+
+  /// No description provided for @replyingTo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang trả lời {name}'**
+  String replyingTo(Object name);
+
+  /// No description provided for @commentHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Viết bình luận...'**
+  String get commentHint;
+
+  /// No description provided for @replyHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Viết câu trả lời...'**
+  String get replyHint;
+
+  /// No description provided for @reply.
+  ///
+  /// In vi, this message translates to:
+  /// **'Trả lời'**
+  String get reply;
+
+  /// No description provided for @viewReplies.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem câu trả lời'**
+  String get viewReplies;
+
   /// No description provided for @post.
   ///
   /// In vi, this message translates to:
@@ -955,6 +1003,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Bài viết nổi bật'**
   String get featuredPosts;
+
+  /// No description provided for @editPost.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chỉnh sửa bài viết'**
+  String get editPost;
+
+  /// No description provided for @update.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cập nhật'**
+  String get update;
+
+  /// No description provided for @deletePostConfirm.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có chắc chắn muốn xóa bài viết này không?'**
+  String get deletePostConfirm;
+
+  /// No description provided for @deletePostSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa bài viết thành công'**
+  String get deletePostSuccess;
 
   /// No description provided for @handbook.
   ///
