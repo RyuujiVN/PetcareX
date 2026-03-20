@@ -418,7 +418,7 @@ export default function BookingAppointment() {
     <div className="booking-page">
       <Header />
       <header className="dashboard-header">
-        <h1 style={{marginRight: '29%'}}>Chào mừng, {userProfile?.fullName || 'bạn'}!</h1>
+        <h1 style={{marginRight: '42%'}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
         <p style={{marginRight: '48%'}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
       </header>
       <Spin spinning={loading || submitting}>
@@ -464,7 +464,9 @@ export default function BookingAppointment() {
                   onClick={() => handleAddPet()}
                   style={{ cursor: 'pointer' }}
                 >
-                  <span className="add-text">Thêm thú cưng mới</span>
+                  <span className="add-text" style={{ color: '#4672b4' }}>
+                    Thêm thú cưng mới
+                  </span>
                 </article>
                 {pets.map((p) => (
                   <div
@@ -685,7 +687,7 @@ export default function BookingAppointment() {
           <button
             className="btn-confirm"
             onClick={handleOpenSummary}
-            style={{ width: '200px', border: '1px solid #ccc' , padding: '10px', borderRadius:'10px', backgroundColor: '#6d6d6d', color: '#ffffff' }}
+            style={{ width: '200px', border: '1px solid #4672b4' , padding: '10px', borderRadius:'10px', backgroundColor: '#4672b4', color: '#ffffff' }}
           >
             Xác nhận
           </button>

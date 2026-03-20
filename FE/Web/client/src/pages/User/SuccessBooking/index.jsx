@@ -101,7 +101,7 @@ const SuccessBooking = () => {
 
         <div className="action-buttons">
           <Button
-            style={{ backgroundColor: '#13ECDA'}}
+            style={{ backgroundColor: 'var(--page-success-primary)' }}
             type="primary"
             size="large"
             block

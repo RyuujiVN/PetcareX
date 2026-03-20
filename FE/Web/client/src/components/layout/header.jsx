@@ -17,7 +17,7 @@ function Header() {
         <header className="petcare-header">
             <div className="header-container">
                 <Link to="/" className="logo-section">
-                    <div className="logo-icon"> <FaPaw size={28} color="#13ECDA" /></div>
+                    <div className="logo-icon"> <FaPaw size={28} color="var(--page-header-primary)" /></div>
                     <span className="logo-text">PetCareX</span>
                 </Link>
 

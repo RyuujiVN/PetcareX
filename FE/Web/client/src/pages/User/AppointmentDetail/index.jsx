@@ -141,23 +141,23 @@ const handleViewDetails = (appointment) => {
                 {appointment.petName} - {appointment.breed}
               </h3>
               {isHistory && <antd.Tag color="blue">{appointment.daysAgo}</antd.Tag>}
-              {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: '#1890ff' }} />}
+              {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: 'var(--color-info)' }} />}
             </div>
 
             <div className="appointment-info">
               <p style={{ marginBottom: '8px' }}>
-                <icons.MedicineBoxOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
+                <icons.MedicineBoxOutlined style={{ marginRight: '8px', color: 'var(--color-info)' }} />
                 {appointment.service}
               </p>
               <p style={{ marginBottom: '8px' }}>
-                <icons.EnvironmentOutlined style={{ marginRight: '8px', color: '#52c41a' }} />
+                <icons.EnvironmentOutlined style={{ marginRight: '8px', color: 'var(--color-success)' }} />
                 {appointment.clinic}
               </p>
               <p style={{ marginBottom: '8px' }}>
-                <span style={{ fontSize: '12px', color: '#999' }}>{appointment.clinicAddress}</span>
+                <span style={{ fontSize: '12px', color: 'var(--color-text-disabled)' }}>{appointment.clinicAddress}</span>
               </p>
               <p style={{ marginBottom: '0' }}>
-                <icons.CalendarOutlined style={{ marginRight: '8px', color: '#faad14' }} />
+                <icons.CalendarOutlined style={{ marginRight: '8px', color: 'var(--color-warning)' }} />
                 {appointment.date} <icons.ClockCircleOutlined style={{ marginLeft: '16px', marginRight: '8px' }} />
                 {appointment.time}
               </p>
@@ -167,7 +167,7 @@ const handleViewDetails = (appointment) => {
         <antd.Col xs={24} sm={6}>
           <antd.Space direction="vertical" style={{ width: '100%' }}>
             <antd.Button
-              style={{ backgroundColor: '#13ECDA' }}
+              style={{ backgroundColor: 'var(--page-appointment-primary)', borderColor: 'var(--page-appointment-primary)' }}
               type="primary"
               block
               icon={<icons.EyeOutlined />}
@@ -196,19 +196,20 @@ const handleViewDetails = (appointment) => {
       <Header />
       <div className="appointment-detail-container">
         <div className="appointment-header-section">
-          <h1>Lịch sử khám</h1>
+          <h1>Lịch khám</h1>
           <p>Quản lý các cuộc khám sức khỏe cho các bạn cưng của bạn</p>
           <antd.Button
             type="primary"
             size="large"
             onClick={handleBookingNew}
-            style={{ marginTop: '16px', backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
+            style={{ marginTop: '16px', backgroundColor: 'var(--page-appointment-primary)', borderColor: 'var(--page-appointment-primary)' }}
           >
             + Đặt lịch khám mới
           </antd.Button>
         </div>
 
         <antd.Tabs
+        style={{ color: 'var(--page-appointment-primary)' }}
           activeKey={activeTab}
           onChange={setActiveTab}
           className="appointment-tabs"
@@ -216,9 +217,9 @@ const handleViewDetails = (appointment) => {
             {
               key: 'upcoming',
               label: (
-                <span>
-                  <icons.CalendarOutlined />
-                  Lịch sắp tới ({upcomingAppointments.length})
+                <span style={{ color: 'var(--page-appointment-primary)' }}>
+                  <icons.CalendarOutlined style={{ color: 'var(--page-appointment-primary)', margin: '0 8px 0 0' }}/>
+                  Lịch sắp tới ({upcomingAppointments.length })
                 </span>
               ),
               children: (
@@ -245,8 +246,8 @@ const handleViewDetails = (appointment) => {
             {
               key: 'history',
               label: (
-                <span>
-                  <icons.MedicineBoxOutlined />
+                <span style={{ color: 'var(--page-appointment-primary)' }}>
+                  <icons.MedicineBoxOutlined style={{ color: 'var(--page-appointment-primary)', margin: '0 8px 0 0' }} />
                   Lịch sử khám ({medicalHistory.length})
                 </span>
               ),
@@ -281,7 +282,7 @@ const handleViewDetails = (appointment) => {
               Đóng
             </antd.Button>,
             <antd.Button
-              style={{ backgroundColor: '#13ECDA', borderColor: '#13ECDA' }}
+              style={{ backgroundColor: 'var(--page-appointment-primary)', borderColor: 'var(--page-appointment-primary)' }}
               key="submit"
               type="primary"
               onClick={() => {

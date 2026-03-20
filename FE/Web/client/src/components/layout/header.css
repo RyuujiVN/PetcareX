@@ -1,5 +1,5 @@
 .petcare-header {
-    background-color: #ffffff;
+    background-color: var(--color-surface-card);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     position: fixed;
     top: 0;
@@ -44,7 +44,7 @@ body {
 .logo-text {
     font-size: 24px;
     font-weight: 700;
-    color: #1abc9c;
+    color: var(--color-brand-muted);
     letter-spacing: 0.5px;
 }
 
@@ -60,7 +60,7 @@ body {
 
 .nav-item {
     text-decoration: none;
-    color: #333333;
+    color: var(--color-text-primary);
     font-size: 15px;
     font-weight: 500;
     position: relative;
@@ -70,7 +70,7 @@ body {
 
 .nav-item:hover,
 .nav-item.active {
-    color: #1abc9c;
+    color: var(--color-brand-muted);
 }
 
 .nav-item.active::after {
@@ -80,7 +80,7 @@ body {
     left: 0;
     right: 0;
     height: 3px;
-    background-color: #1abc9c;
+    background-color: var(--color-brand-muted);
     border-radius: 2px;
 }
 
@@ -106,23 +106,23 @@ body {
 }
 
 .register-btn {
-    background-color: #13ECDA;
-    color: #ffffff;
+    background-color: var(--page-header-primary);
+    color: var(--page-header-contrast);
 }
 
 .register-btn:hover {
-    background-color: #11cbb0;
+    background-color: var(--page-header-primary-hover);
 }
 
 .login-btn {
     background-color: transparent;
-    color: #13ECDA;
-    border: 2px solid #13ECDA;
+    color: var(--page-header-primary);
+    border: 2px solid var(--page-header-primary);
 }
 
 .login-btn:hover {
-    background-color: #13ECDA;
-    color: #ffffff;
+    background-color: var(--page-header-primary);
+    color: var(--page-header-contrast);
 }
 
 .user-profile {
@@ -130,7 +130,7 @@ body {
     align-items: center;
     gap: 12px;
     padding: 8px 12px;
-    background-color: #f5f5f5;
+    background-color: var(--color-surface-page);
     border-radius: 25px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -146,7 +146,7 @@ body {
     height: 36px;
     border-radius: 50%;
     overflow: hidden;
-    background-color: #1abc9c;
+    background-color: var(--color-brand-muted);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -161,13 +161,13 @@ body {
 .user-name {
     font-size: 14px;
     font-weight: 600;
-    color: #333333;
+    color: var(--color-text-primary);
     white-space: nowrap;
 }
 
 .dropdown-arrow {
     font-size: 11px;
-    color: #999;
+    color: var(--color-text-disabled);
     transition: transform 0.3s ease;
 }
 
@@ -180,7 +180,7 @@ body {
     top: 100%;
     right: 0;
     margin-top: 12px;
-    background-color: #ffffff;
+    background-color: var(--color-surface-card);
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
     min-width: 220px;
@@ -206,7 +206,7 @@ body {
     gap: 12px;
     padding: 12px 16px;
     text-decoration: none;
-    color: #333333;
+    color: var(--color-text-primary);
     font-size: 14px;
     font-weight: 500;
     transition: all 0.3s ease;
@@ -218,8 +218,8 @@ body {
 }
 
 .dropdown-item:hover {
-    background-color: #f5f5f5;
-    color: #1abc9c;
+    background-color: var(--color-surface-page);
+    color: var(--color-brand-muted);
     padding-left: 20px;
 }
 
@@ -232,7 +232,7 @@ body {
 .dropdown-divider {
     margin: 8px 0;
     border: none;
-    border-top: 1px solid #e8e8e8;
+    border-top: 1px solid var(--color-border-soft);
 }
 
 .dropdown-item.logout:hover {
