@@ -15,18 +15,18 @@ class _AppointmentNotificationPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Thông báo & Nhắc lịch',
           style: TextStyle(
-            color: Colors.black,
+            color: AppColors.textDark,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -52,13 +52,13 @@ class _AppointmentNotificationPageState
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFF1F1),
+                    color: AppColors.errorLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Text(
                     '2 nhắc nhở mới',
                     style: TextStyle(
-                      color: Colors.red,
+                      color: AppColors.error,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -115,7 +115,7 @@ class _AppointmentNotificationPageState
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF1A1C1E),
+        color: AppColors.textDark,
       ),
     );
   }
@@ -124,11 +124,11 @@ class _AppointmentNotificationPageState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: AppColors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -146,7 +146,7 @@ class _AppointmentNotificationPageState
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFE0F7F4),
+                    color: AppColors.primaryLight,
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: const Text(
@@ -169,12 +169,12 @@ class _AppointmentNotificationPageState
                     Icon(
                       Icons.calendar_today_outlined,
                       size: 14,
-                      color: Colors.grey,
+                      color: AppColors.textGrey,
                     ),
                     SizedBox(width: 4),
                     Text(
                       '14:30 - 25/10/2023',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(color: AppColors.textGrey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -184,12 +184,12 @@ class _AppointmentNotificationPageState
                     Icon(
                       Icons.location_on_outlined,
                       size: 14,
-                      color: Colors.grey,
+                      color: AppColors.textGrey,
                     ),
                     SizedBox(width: 4),
                     Text(
                       'Phòng khám PetJoy',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                      style: TextStyle(color: AppColors.textGrey, fontSize: 12),
                     ),
                   ],
                 ),
@@ -223,11 +223,11 @@ class _AppointmentNotificationPageState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: AppColors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -246,7 +246,7 @@ class _AppointmentNotificationPageState
                     RichText(
                       text: TextSpan(
                         style: const TextStyle(
-                          color: Colors.black,
+                          color: AppColors.textDark,
                           fontSize: 14,
                         ),
                         children: [
@@ -269,7 +269,7 @@ class _AppointmentNotificationPageState
                 const SizedBox(height: 4),
                 Text(
                   subTitle,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: const TextStyle(color: AppColors.textGrey, fontSize: 12),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -305,7 +305,7 @@ class _AppointmentNotificationPageState
               Text(
                 status,
                 style: TextStyle(
-                  color: isExpired ? Colors.red : Colors.grey[400],
+                  color: isExpired ? AppColors.error : AppColors.iconGrey,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                 ),
@@ -313,7 +313,7 @@ class _AppointmentNotificationPageState
               Text(
                 timeRange,
                 style: TextStyle(
-                  color: isExpired ? Colors.red : Colors.black,
+                  color: isExpired ? AppColors.error : AppColors.textDark,
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -339,10 +339,10 @@ class _AppointmentNotificationPageState
           Container(
             padding: const EdgeInsets.all(12),
             decoration: const BoxDecoration(
-              color: Color(0xFFF1F4F9),
+              color: AppColors.formFillDisabled,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Colors.grey[400], size: 24),
+            child: Icon(icon, color: AppColors.iconGrey, size: 24),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -354,14 +354,14 @@ class _AppointmentNotificationPageState
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Color(0xFF1E2124),
+                    color: AppColors.textDark,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   description,
                   style: const TextStyle(
-                    color: Color(0xFF7D848D),
+                    color: AppColors.textGrey,
                     fontSize: 14,
                   ),
                 ),
@@ -369,7 +369,7 @@ class _AppointmentNotificationPageState
                 Text(
                   time,
                   style: const TextStyle(
-                    color: Color(0xFFADB5BD),
+                    color: AppColors.iconGrey,
                     fontSize: 12,
                   ),
                 ),
@@ -385,7 +385,7 @@ class _AppointmentNotificationPageState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1FDFB),
+        color: AppColors.primaryLight,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
       ),
@@ -394,7 +394,7 @@ class _AppointmentNotificationPageState
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.secondary,
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -412,17 +412,17 @@ class _AppointmentNotificationPageState
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
-                    color: Color(0xFF1E2124),
+                    color: AppColors.textDark,
                   ),
                 ),
                 Text(
                   'Quản lý cách bạn nhận thông báo',
-                  style: TextStyle(color: Color(0xFF7D848D), fontSize: 13),
+                  style: TextStyle(color: AppColors.textGrey, fontSize: 13),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.chevron_right, color: Color(0xFFADB5BD)),
+          const Icon(Icons.chevron_right, color: AppColors.iconGrey),
         ],
       ),
     );

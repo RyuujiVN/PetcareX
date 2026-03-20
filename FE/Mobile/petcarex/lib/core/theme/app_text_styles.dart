@@ -6,7 +6,7 @@ class AppTextStyles {
   static const title = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
-    color: AppColors.text,
+    color: AppColors.textDark,
   );
 
   static const heading = TextStyle(
@@ -16,7 +16,7 @@ class AppTextStyles {
 
   static const body = TextStyle(
     fontSize: 14,
-    color: AppColors.text,
+    color: AppColors.textGrey,
   );
 
   static const button = TextStyle(

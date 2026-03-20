@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'core/providers/language_provider.dart';
+import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'features/appointment/presentation/provider/appointment_provider.dart';
 import 'features/auth/presentation/login_page.dart';
@@ -23,7 +24,7 @@ void main () async {
 
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
+      statusBarColor: AppColors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );

@@ -15,6 +15,38 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
 - **Quy ước i18n:** Nguồn chân lý là `lib/l10n/app_vi.arb` và `lib/l10n/app_en.arb`; file trong `lib/l10n/generated/` chỉ là kết quả sinh tự động.
 
+## 🎨 Color System
+
+### Mục tiêu hệ màu
+- Giữ cảm giác **sáng, sạch, dễ nhìn** trên toàn app.
+- Ưu tiên semantic color để tách lớp rõ ràng: nền, bề mặt, chữ chính/phụ, trạng thái, accent.
+- Tránh tình trạng “muddy/flat UI” do map nhiều ngữ nghĩa về cùng một màu.
+
+### Nguồn màu tập trung (single source of truth)
+- `lib/core/theme/app_colors.dart`: định nghĩa toàn bộ semantic colors + alpha helper.
+- `lib/core/theme/app_theme.dart`: map semantic colors vào `ThemeData`/`ColorScheme`.
+- `lib/core/theme/app_text_styles.dart`: chuẩn text tone (title/body) dùng lại toàn app.
+
+### Quy tắc bắt buộc khi code UI
+1. **Không hardcode màu trong component** (`Colors.*`, `Color(0x...)`) cho các màn nghiệp vụ.
+2. Chỉ dùng màu từ `AppColors` (hoặc màu suy ra qua helper như `primaryAlpha(...)`, `textAlpha(...)`).
+3. Nếu thiếu màu mới:
+    - Thêm vào `app_colors.dart` theo tên semantic.
+    - Nếu ảnh hưởng global UI, map lại trong `app_theme.dart`.
+    - Sau đó mới dùng trong component.
+4. Không tạo biến màu cục bộ lặp lại ở từng screen khi đã có semantic color tương ứng.
+
+### Bộ semantic colors hiện hành (Bright refresh 2026-03)
+- Core: `primary`, `onPrimary`, `background`, `surface`, `cardBackground`, `appBarBackground`.
+- Text/neutral: `textDark`, `textGrey`, `iconGrey`, `border`, `divider`, `borderGrey`.
+- Form/action: `formFill`, `formFillDisabled`, `formBorder`, `buttonSecondary`, `buttonSecondaryText`.
+- State: `primaryLight`, `success/successLight`, `error/errorLight/errorBorder`, `warning`.
+- Domain accents: `male`, `female`, `infoAccent`, `petAccent`, `securityAccent`, `navInactive`.
+
+### Ghi chú hiệu chỉnh màu gần nhất
+- Sau commit `158988248a24ff9111574fd813a4b8337cb063fa`, một số màu semantic từng bị gom về cùng tông chữ/nền, làm UI tối và kém phân lớp.
+- Đã hiệu chỉnh lại theo hướng bright-clean, đồng thời chuẩn hóa các màn có hardcoded màu nổi bật (`notification`, `chat`, `main`) về `AppColors`.
+
 ## ✅ Nhật ký thay đổi (Refactoring & Clean Code)
 
 Dưới đây là chi tiết các thành phần đã được xóa bỏ và thêm mới để đảm bảo dự án sạch và dễ quản lý:

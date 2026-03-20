@@ -64,6 +64,9 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
         children: _pages.map((page) => page ?? const SizedBox()).toList(),
       ),
       bottomNavigationBar: BottomAppBar(
+        color: AppColors.secondary,
+        surfaceTintColor: AppColors.transparent,
+        elevation: 0,
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
         child: SizedBox(
