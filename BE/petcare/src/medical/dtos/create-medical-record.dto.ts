@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -10,6 +11,8 @@ import {
   Max,
 } from 'class-validator';
 import { regex } from 'src/common/constants/rexgex.constant';
+import { PetBreedEnum } from 'src/common/enums/pet-breed.enum';
+import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
 
 export class CreateMedicalRecordDTO {
   @ApiProperty()
@@ -18,9 +21,14 @@ export class CreateMedicalRecordDTO {
   petId?: string;
 
   @ApiProperty()
-  @IsUUID()
-  @IsNotEmpty({ message: 'Breed id không được để trống' })
-  breedId: string;
+  @IsEnum(PetSpeciesEnum)
+  @IsNotEmpty({ message: 'Loài không được để trống' })
+  species: PetSpeciesEnum;
+
+  @ApiProperty()
+  @IsEnum(PetBreedEnum)
+  @IsNotEmpty({ message: 'Giống không được để trống' })
+  breed: PetBreedEnum;
 
   @ApiProperty()
   @IsString()

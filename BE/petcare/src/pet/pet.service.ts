@@ -1,70 +1,58 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pet } from './entities/pet.entity';
 import { Repository } from 'typeorm';
 import { CreatePetDTO } from './dtos/create-pet.dto';
 import { UpdatePetDTO } from './dtos/update-pet.dto.';
-import { Species } from './entities/species.entity';
-import { Breed } from './entities/breed.entity';
+import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
+import {
+  PET_BREEDS_BY_SPECIES,
+  PetBreedEnum,
+} from 'src/common/enums/pet-breed.enum';
 
 @Injectable()
 export class PetService {
   constructor(
     @InjectRepository(Pet)
     private readonly petRepository: Repository<Pet>,
-    @InjectRepository(Species)
-    private readonly speciesRepository: Repository<Species>,
-    @InjectRepository(Breed)
-    private readonly breedRepository: Repository<Breed>,
   ) {}
 
   async findOneById(petId: string) {
-    const pet = await this.petRepository
-      .createQueryBuilder('pet')
-      .innerJoinAndSelect('pet.breed', 'breed')
-      .innerJoinAndSelect('breed.species', 'species')
-      .where('pet.id = :id', { id: petId })
-      .getOne();
+    const pet = await this.petRepository.findOne({ where: { id: petId } });
 
     if (!pet) throw new NotFoundException('Không tìm thấy thú cưng');
 
-    const petResponse = {
-      ...pet,
-      species: pet?.breed?.species,
-      breed: {
-        id: pet?.breed?.id,
-        name: pet?.breed?.name,
-      },
-    };
-
-    return petResponse;
+    return pet;
   }
 
   // Danh sách thú cưng của riêng mình
   async findPetsByOwnerId(ownerId: string) {
-    const queryBuilder = this.petRepository
-      .createQueryBuilder('pet')
-      .innerJoinAndSelect('pet.breed', 'breed')
-      .where('pet.ownerId = :ownerId', {
-        ownerId: ownerId,
-      })
-      .getMany();
-
-    return queryBuilder;
+    return await this.petRepository.find({
+      where: { ownerId },
+      order: { createdAt: 'DESC' },
+    });
   }
 
   // Danh sách loài
-  async findAllSpecies(): Promise<Species[]> {
-    return await this.speciesRepository.find();
+  async findAllSpecies(): Promise<PetSpeciesEnum[]> {
+    return Object.values(PetSpeciesEnum);
   }
 
   // Danh sách giống
-  async findAllBreed(speciesId: string): Promise<Breed[]> {
-    return await this.breedRepository.find({
-      where: {
-        speciesId: speciesId,
-      },
-    });
+  async findAllBreed(species: PetSpeciesEnum): Promise<PetBreedEnum[]> {
+    const speciesEnum = Object.values(PetSpeciesEnum).includes(species)
+      ? species
+      : undefined;
+
+    if (!speciesEnum) {
+      throw new BadRequestException('Loài không hợp lệ');
+    }
+
+    return PET_BREEDS_BY_SPECIES[speciesEnum];
   }
 
   // Tạo mới thú cưng

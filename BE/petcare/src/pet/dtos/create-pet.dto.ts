@@ -2,15 +2,17 @@ import { ApiProperty } from '@nestjs/swagger';
 import {
   IsBoolean,
   IsDateString,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsPositive,
   IsString,
-  IsUUID,
   Max,
   MaxLength,
 } from 'class-validator';
+import { PetBreedEnum } from 'src/common/enums/pet-breed.enum';
+import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
 
 export class CreatePetDTO {
   @ApiProperty()
@@ -43,8 +45,12 @@ export class CreatePetDTO {
   avatar: string;
 
   @ApiProperty()
-  @IsUUID()
-  breedId: string;
+  @IsEnum(PetSpeciesEnum)
+  species: PetSpeciesEnum;
+
+  @ApiProperty()
+  @IsEnum(PetBreedEnum)
+  breed: PetBreedEnum;
 
   @ApiProperty()
   @IsString()

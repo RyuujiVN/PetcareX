@@ -7,6 +7,7 @@ import { UserModule } from 'src/user/user.module';
 import { MedicalRecordOrder } from './entities/medical-record-order.entity';
 import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
 import { MailModule } from 'src/mail/mail.module';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { MailModule } from 'src/mail/mail.module';
       MedicalRecord,
       MedicalRecordOrder,
       MedicalRecordMedicine,
+      Invoice,
     ]),
     UserModule,
     MailModule,

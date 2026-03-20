@@ -20,7 +20,7 @@ export class ForumPost {
   @Column({ type: 'uuid', name: 'author_id' })
   authorId: string;
 
-  @Column({ type: 'uuid', name: 'topic_id' })
+  @Column({ type: 'uuid', name: 'topic_id', nullable: true })
   topicId: string;
 
   @Column({ type: 'text' })

@@ -47,7 +47,8 @@ export class PostService {
         'author.role',
 
         'topic.id',
-        'topic.name',
+        'topic.nameVn',
+        'topic.nameEng',
       ])
       .addSelect('like.postId IS NOT NULL', 'liked')
       .limit(options.limit)
@@ -74,7 +75,8 @@ export class PostService {
       },
       topic: {
         id: post.topic_id,
-        name: post.topic_name,
+        nameVn: post.topic_name_vn,
+        nameEng: post.topic_name_eng,
       },
       liked: post.liked,
     }));

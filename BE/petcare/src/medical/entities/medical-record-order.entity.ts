@@ -17,7 +17,7 @@ export class MedicalRecordOrder {
   @Column({ type: 'uuid', name: 'medical_record_id' })
   medicalRecordId: string;
 
-  @Column({ type: 'uuid', name: 'medical_order_id' })
+  @Column({ type: 'uuid', name: 'medical_order_id', nullable: true })
   medicalOrderId: string;
 
   @Column({ type: 'text', nullable: true })
