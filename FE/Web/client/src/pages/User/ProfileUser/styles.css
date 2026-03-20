@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 20px 16px;
   padding-top: 80px;
   background: var(--color-surface-soft);
 }
@@ -27,7 +27,7 @@
 
 .profile-wrapper {
   width: 100%;
-  max-width: 720px;
+  max-width: 480px;
   background: var(--bg-white);
   border-radius: 16px;
   box-shadow: var(--shadow-lg);
@@ -57,7 +57,7 @@
 
 .profile-header {
   background: linear-gradient( white);
-  padding: 40px 30px;
+  padding: 30px 20px;
   color: white;
   text-align: center;
 }
@@ -144,7 +144,7 @@
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  padding: 40px 30px !important;
+  padding: 30px 24px !important;
 }
 
 .profile-form-card .ant-card-body {
