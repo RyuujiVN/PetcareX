@@ -24,6 +24,8 @@ instance.interceptors.response.use(
 
   (error) => {
 
+    console.log(error?.response?.data || error)
+
     const responseData = error.response?.data;
     const normalizedMessage = Array.isArray(responseData?.message)
       ? responseData.message[0]

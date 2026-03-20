@@ -8,11 +8,11 @@ export const APPOINTMENT_STATUS = {
 };
 
 export const SERVICE_OPTIONS = {
-  GENERAL_CHECKUP: "Khám sức khoẻ định kỳ",
-  MEDICAL_EXAM: "Khám bệnh",
+  PERIODIC_HEALTH_CHECK: "Khám sức khoẻ định kỳ",
+  MEDICAL_EXAMINATION: "Khám bệnh",
   VACCINATION: "Tiêm chủng",
   DEWORMING: "Tẩy giun",
-  LAB_TEST: "Siêu âm xét nghiệm",
+  ULTRASOUND_AND_TEST: "Siêu âm xét nghiệm",
   SURGERY: "Phẫu thuật",
   EMERGENCY: "Cấp cứu",
 };

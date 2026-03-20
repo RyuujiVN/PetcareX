@@ -41,15 +41,28 @@ export default function BookingAppointment() {
   const today = useMemo(() => new Date(), []);
   const serviceOptions = useMemo(() => {
     if (Array.isArray(SERVICE_OPTIONS)) {
-      return SERVICE_OPTIONS;
+      return SERVICE_OPTIONS.map((item) => ({
+        label: item,
+        value: item,
+      }));
     }
 
     if (SERVICE_OPTIONS && typeof SERVICE_OPTIONS === 'object') {
-      return Object.values(SERVICE_OPTIONS);
+      return Object.entries(SERVICE_OPTIONS).map(([key, label]) => ({
+        label,
+        value: key,
+      }));
     }
 
     return [];
   }, []);
+
+  const serviceLabelByKey = useMemo(() => {
+    return serviceOptions.reduce((acc, item) => {
+      acc[item.value] = item.label;
+      return acc;
+    }, {});
+  }, [serviceOptions]);
 
   const preselectedClinicId = useMemo(() => {
     const clinicIdFromState =
@@ -401,7 +414,7 @@ export default function BookingAppointment() {
         petName: created?.pet?.name || selectedPet.name,
         doctorName: created?.veterinarian?.user?.fullName || selectedDoctorName,
         time: `${values.selectedTime} ${new Date(values.selectedDate).toLocaleDateString('vi-VN')}`,
-        service: values.service,
+        service: serviceLabelByKey[values.service] || values.service,
         clinic: created?.clinic?.name || selectedClinic?.name || '',
         appointmentId: created?.id,
       };
@@ -490,7 +503,7 @@ export default function BookingAppointment() {
               form={form}
               layout="vertical"
               initialValues={{
-                service: serviceOptions[0] || undefined,
+                service: serviceOptions[0]?.value || undefined,
                 clinicId: preselectedClinicId || undefined,
                 doctorId: undefined,
                 symptoms: '',
@@ -512,10 +525,7 @@ export default function BookingAppointment() {
                   >
                     <Select
                       style={{ width: '100%', height: '70%' }}
-                      options={serviceOptions.map((item) => ({
-                        label: item,
-                        value: item,
-                      }))}
+                      options={serviceOptions}
                     />
                   </Form.Item>
                 </Col>
@@ -718,7 +728,7 @@ export default function BookingAppointment() {
         <span className="icon">🩺</span>
         <div className="text">
           <div className="label">DỊCH VỤ</div>
-          <div className="value">{service}</div>
+          <div className="value">{serviceLabelByKey[service] || service}</div>
         </div>
       </div>
 

@@ -11,7 +11,6 @@ import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import Footer from '../../../components/layout/footer'
 import Header from '../../../components/layout/header'
 import {
 	getMedicalById,
@@ -37,15 +36,12 @@ const EMPTY_TIMELINE_HINT =
 	'Chưa có hồ sơ để hiển thị. Hãy chọn thú cưng từ danh sách để xem đúng hồ sơ riêng.'
 
 const formatGender = (gender) => {
+	if (typeof gender === 'boolean') return gender ? 'Đực' : 'Cái'
 	if (!gender) return 'Chưa cập nhật'
-	if (gender === 'male') return 'Đực'
-	if (gender === 'female') return 'Cái'
+	const normalizedGender = String(gender).trim().toLowerCase()
+	if (normalizedGender === 'male') return 'Đực'
+	if (normalizedGender === 'female') return 'Cái'
 	return String(gender)
-}
-
-const isInternalServerError = (error) => {
-	const messageText = error?.message?.toLowerCase?.() || ''
-	return messageText.includes('internal server error')
 }
 
 const getMarkerIcon = (markerType) => {
@@ -67,12 +63,6 @@ const formatDate = (value) => {
 	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
 
 	return date.toLocaleDateString('vi-VN')
-}
-
-const formatGender = (value) => {
-	if (typeof value === 'boolean') return value ? 'Đực' : 'Cái'
-	if (typeof value === 'string' && value.trim()) return value
-	return 'Chưa cập nhật'
 }
 
 const normalizeMedicalErrorMessage = (error) => {
@@ -181,7 +171,7 @@ function MedicalRecords() {
 			const petList = Array.isArray(myPets) ? myPets : []
 
 			const selectedPet = petId
-				? petList.find((item) => item?.id === petId)
+				? petList.find((item) => String(item?.id) === String(petId))
 				: petList[0]
 
 			const resolvedPetId = petId || selectedPet?.id
@@ -281,10 +271,6 @@ function MedicalRecords() {
 	useEffect(() => {
 		loadMedicalData()
 	}, [loadMedicalData])
-
-	useEffect(() => {
-		window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-	}, [])
 
 	const handleOpenAppointments = () => {
 		navigate('/appointments')

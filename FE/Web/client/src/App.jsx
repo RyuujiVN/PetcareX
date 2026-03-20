@@ -41,7 +41,7 @@ function App() {
         <Route path="/success-booking" element={<SuccessBooking />} />
         <Route path="/petProfile" element={<PetProfile />} />
         <Route path="/listPet" element={<ListPet />} />
-        <Route path="/medical-records/detail" element={<MedicalRecords />} />
+        <Route path="/medical-records" element={<MedicalRecords />} />
         <Route path="/forum" element={<Forum />} />
         <Route path="/listPetMedicalRecords" element={<ListPetMedicalRecords />} />
       </Routes>
