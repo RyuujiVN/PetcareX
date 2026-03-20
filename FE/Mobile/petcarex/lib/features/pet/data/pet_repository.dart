@@ -46,7 +46,10 @@ class PetRepository {
     if (response.statusCode == 200) {
       try {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => PetSpecies.fromJson(json)).toList();
+        return data
+            .map((json) => PetSpecies.fromJson(json))
+            .where((species) => species.id.isNotEmpty)
+            .toList();
       } catch (_) {
         throw Exception('Phản hồi từ máy chủ không hợp lệ');
       }
@@ -61,7 +64,10 @@ class PetRepository {
     if (response.statusCode == 200) {
       try {
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((json) => PetBreed.fromJson(json)).toList();
+        return data
+            .map((json) => PetBreed.fromJson(json, speciesId: speciesId))
+            .where((breed) => breed.id.isNotEmpty)
+            .toList();
       } catch (_) {
         throw Exception('Phản hồi từ máy chủ không hợp lệ');
       }

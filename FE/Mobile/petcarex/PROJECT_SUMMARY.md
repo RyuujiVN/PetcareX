@@ -10,6 +10,11 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
+## 📂 Workspace chuẩn khi thao tác
+- **Mobile root path chuẩn:** `F:\capstone 2\code\PetcareX\FE\Mobile\petcarex`.
+- **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
+- **Quy ước i18n:** Nguồn chân lý là `lib/l10n/app_vi.arb` và `lib/l10n/app_en.arb`; file trong `lib/l10n/generated/` chỉ là kết quả sinh tự động.
+
 ## ✅ Nhật ký thay đổi (Refactoring & Clean Code)
 
 Dưới đây là chi tiết các thành phần đã được xóa bỏ và thêm mới để đảm bảo dự án sạch và dễ quản lý:
@@ -100,18 +105,39 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Sửa backend về TTL 5 phút bằng hằng số chung trong `OtpService` và dùng chính hằng số này để render nội dung email, tránh lệch cấu hình trong tương lai.
 
 ### 3. Module Appointment & Booking
-- **Logic Đa Ngôn Ngữ & API:** Đồng bộ Enum (`ServiceEnum`...) giữa hệ thống giao diện và API. Frontend gọi chuỗi tiếng Việt như `Khám bệnh` cho API Payload thông qua `enum.value`, nhưng tự động sử dụng `enum.getTranslatedName(BuildContext)` để dịch trực tiếp qua `app_vi.arb` & `app_en.arb` trước khi hiển thị.
-- **Tiêu chuẩn Enum:** Tất cả các Enums được lưu trữ duy nhất trong `lib/core/enums/` và loại bỏ thư mục `common/` thừa của Typescript.
+- **Logic Đa Ngôn Ngữ & API:** Đồng bộ Enum (`ServiceEnum`, `AppointmentStatusEnum`, `VeterinarySpecialtyEnum`...) giữa giao diện và API. Frontend gửi **backend enum key** (ví dụ `BOOKED`, `SURGERY`, `GENERAL_EXAMINATION`) qua `enum.value`; UI chỉ hiển thị qua `enum.getTranslatedName(BuildContext)` để tự động dịch theo locale.
+- **Tiêu chuẩn Enum:** Enum runtime của Flutter được đặt tập trung trong `lib/core/enums/`; mọi màn hình/business logic chỉ dùng enum Dart thay vì chuỗi cứng.
 - **Chuẩn hóa Booking UI theo i18n:** Đã loại bỏ chuỗi cứng còn sót trong các bước `Service`, `Doctor`, `Time`, `Summary`, `Success`.
-- **Chuẩn hóa Enum Chuyên môn bác sĩ:** `VeterinarySpecialtyEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)` để vừa lọc theo giá trị API (tiếng Việt) vừa hiển thị theo locale.
+- **Booking Step Header UX (2026-03):** Loại bỏ pattern trùng lặp title/subtitle (ví dụ `Dịch vụ`/`Dịch vụ`) ở các bước đặt lịch. Subtitle từng bước được đổi thành câu hướng dẫn có ngữ nghĩa rõ ràng (`bookingClinicSub`, `bookingServiceSub`, `bookingDoctorSub`, `bookingTimeSub`) để người dùng hiểu cần làm gì ở mỗi bước.
+- **Booking Symptoms Input UX (2026-03):** Ở bước `Dịch vụ`, ô nhập `Triệu chứng` (bắt buộc) được đưa lên đầu màn và kèm helper text để người dùng nhận biết ngay từ đầu, không cần cuộn xuống cuối danh sách dịch vụ mới thấy. Đồng thời tối ưu controller nhập liệu để tránh reset con trỏ khi Provider rebuild.
+- **Chuẩn hóa Enum Chuyên môn bác sĩ:** `VeterinarySpecialtyEnum` dùng `getTranslatedName(context)` + `fromValue(...)` để parse ổn định theo enum key backend và hiển thị theo locale.
 - **Chuẩn hóa Enum trạng thái lịch hẹn:** `AppointmentStatusEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)`; luồng `AppointmentProvider` và `AppointmentPage` bắt buộc map status qua enum, không hardcode chuỗi tại UI/Provider.
+- **Mở rộng coverage i18n cho enum (2026-03):** Bổ sung key VI/EN + `getTranslatedName(context)` cho các nhóm: `InvoiceStatusEnum`, `RoleEnum`, `MedicineUnitEnum`, `PetSpeciesEnum`, `PetBreedEnum`; đồng bộ quy tắc parse qua `fromValue(...)` theo chuẩn hóa chữ hoa.
+- **Type-safe Appointment Status (2026-03):** `Appointment.status` được nâng cấp sang kiểu `AppointmentStatusEnum` (không còn giữ `String` ở model). Các luồng lọc `upcoming/historical` và hiển thị badge trạng thái dùng so sánh enum trực tiếp, giữ nguyên logic nghiệp vụ nhưng an toàn kiểu dữ liệu hơn.
+- **Loại bỏ hardcoded status payload (2026-03):** `AppointmentService.cancelAppointment(...)` và `updateAppointmentStatus(...)` gửi trạng thái bằng `AppointmentStatusEnum.value` thay vì chuỗi cứng (`Đã huỷ`, ...), giúp đồng bộ contract FE-BE và giảm rủi ro sai chính tả trạng thái.
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
-- **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo 2 nguồn chuẩn của enum (`enum.name` từ API key: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED` và `enum.value` tiếng Việt từ backend). Đã loại bỏ alias legacy dư thừa như `SUCCESS`, `PENDING`, `CONFIRMED` để giữ code gọn và dễ bảo trì.
+- **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo contract chuẩn enum key (`enum.name` và `enum.value` đều là key backend như `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`); không duy trì alias legacy để tránh logic mơ hồ.
 - **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).
 - **Nâng cấp Empty State cho Appointment:**
     - Tab **Sắp tới**: hiển thị tiêu đề + mô tả rõ nghĩa + CTA `Đặt lịch ngay` để dẫn người dùng qua luồng tạo lịch mới.
     - Tab **Lịch sử**: hiển thị thông điệp định hướng rằng dữ liệu hoàn thành/đã hủy sẽ xuất hiện tại đây (tránh trạng thái chỉ còn mỗi chữ tên tab).
     - Vẫn giữ `RefreshIndicator` để người dùng kéo xuống tải lại dữ liệu.
+- **Đồng bộ Home ↔ Appointment (2026-03):**
+    - Mục **Lịch hẹn của tôi** tại Home không còn dùng dữ liệu demo/hardcode; đã đọc trực tiếp từ `AppointmentProvider` cùng nguồn với màn **Lịch hẹn**.
+    - Home chỉ hiển thị **2 lịch sắp tới gần nhất** (lọc theo trạng thái upcoming và sắp xếp theo **ngày + giờ khám**), đảm bảo nhất quán khi so với tab **Sắp tới**.
+    - UI card lịch hẹn ở Home được đồng bộ theo visual của Appointment: thumbnail thú cưng + badge trạng thái + các dòng thông tin icon (ngày giờ, bác sĩ, địa chỉ) + action bar tách riêng ở chân card.
+    - Với lịch **Sắp tới**, cả Home và Appointment đều dùng chung pattern **2 nút**: `Xem chi tiết` + `Hủy`; nút `Hủy` chỉ cho phép khi trạng thái là `BOOKED` (trạng thái khác bị disable để đúng nghiệp vụ).
+- **Chuẩn hóa CTA "Khám phá" trong module Appointment (2026-03):**
+    - Đổi text footer card lịch sử từ `Khám phá/Explore` thành `Xem chi tiết/View details` để đúng ngữ nghĩa hành động.
+    - Bổ sung key i18n mới: `viewDetail`, `retry`, `yes`, `no` và áp dụng ở trang Appointment/Home.
+- **Chuẩn hóa dialog hủy lịch (2026-03):**
+    - Form xác nhận hủy ở cả Home và Appointment dùng lựa chọn `Có/Không` (`Yes/No`) để rõ ràng quyết định người dùng, thay cho nhãn xác nhận gây nhiễu ngữ cảnh.
+- **Đồng bộ contract Appointment API mới (2026-03-19):**
+    - Backend `GET /api/appointment/my` trả `pet.breed` theo dạng enum string (ví dụ `DOG_GOLDEN_RETRIEVER`), không còn object `breed.name` như contract cũ.
+    - Đã sửa `AppointmentPet.fromJson(...)` để parse tương thích cả 2 dạng dữ liệu (mới: string, cũ: object) nhằm tránh crash parse làm tab lịch hẹn rơi vào trạng thái lỗi.
+    - UI chi tiết lịch hẹn map `pet.breed` qua `PetBreedEnum.fromValue(...).getTranslatedName(context)` để hiển thị đúng theo locale, không lộ enum key thô ra người dùng.
+    - Chuẩn hóa hiển thị lỗi tải lịch: key nội bộ `failed` được resolve qua `AppLocalizations`, tránh hiện chữ `failed` trực tiếp trên giao diện.
+    - Chuẩn hóa hiển thị giờ hẹn theo `HH:mm` và loại bỏ `substring(0, 5)` cứng ở step success của Booking để tránh `RangeError` khi backend đổi format giờ.
 - **Chuẩn hóa lỗi nghiệp vụ Booking:** `BookingProvider` trả về error key (`bookingErrorCompleteAllSteps`) thay vì chuỗi tiếng Việt cứng; UI map key sang `AppLocalizations` trước khi hiển thị.
 - **Logic:** Tự động dịch trạng thái từ Server sang ngôn ngữ người dùng.
 - **UI:** Badge trạng thái sử dụng hệ thống màu nhẹ (Light Colors) chuyên nghiệp.
@@ -126,6 +152,18 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Chuẩn hóa `InputDecoration` và chừa khoảng helper cố định để khi có lỗi không làm nhảy lệch hàng input.
     - Ở màn hình hẹp, hàng 2 cột (Loài/Giống, Cân nặng/Màu lông) tự chuyển sang dạng dọc để tránh chèn ép giao diện.
     - Trường **Giống** được làm mờ + khóa tương tác khi người dùng chưa chọn **Loài**; chỉ mở khi đã có loài để tránh thao tác sai luồng.
+- **Tối ưu ngày sinh + tuổi readonly (Add/Edit):**
+    - Trường **Ngày sinh** được tách 2 cột cùng hàng với trường **Tuổi** để người dùng vừa chọn ngày vừa xem tuổi ngay lập tức.
+    - Trường **Tuổi** là view-only (không cho nhập/chỉnh sửa), chỉ hiển thị giá trị tính tự động từ ngày sinh.
+    - Dùng chung widget `PetBirthdateAgeFields` trong `pet_form_fields.dart` cho cả AddPet và EditPet để tránh lệch logic giữa 2 màn.
+    - Chuẩn hóa helper dùng chung `formatPetAgeFromBirthdate(...)` + `calculatePetAgeTotalMonths(...)` cho **toàn bộ pet flow** (list/add/edit).
+    - Công thức chuẩn tuổi theo tháng tròn: `totalMonths = (year(today) - year(dob)) * 12 + (month(today) - month(dob))`; nếu `day(today) < day(dob)` thì trừ 1 tháng (không làm tròn lên).
+    - Quy tắc hiển thị mới:
+        - `totalMonths < 1` -> `1 tháng tuổi`.
+        - `1 <= totalMonths < 24` -> nếu chưa đủ 1 năm thì `{months} tháng`, nếu đã có năm thì `{years} năm {months} tháng`.
+        - `totalMonths >= 24` -> chỉ hiển thị `{years} năm`.
+    - Dữ liệu ngày sinh không hợp lệ hoặc nằm trong tương lai sẽ hiển thị trạng thái chưa có (`ageUnavailable`).
+    - Vẫn giữ quy tắc responsive: màn hình hẹp thì 2 cột ngày sinh/tuổi tự xếp dọc để không vỡ bố cục.
 - **Thông báo validate có ngữ nghĩa (i18n):**
     - Bỏ kiểu trả về đúng tên trường (ví dụ chỉ hiện `Giống`, `Cân nặng (kg)`).
     - Dùng message rõ nghĩa qua localization:
@@ -135,7 +173,8 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
         - `invalidWeightMax` (giới hạn tối đa 99.9 kg, chuẩn hóa VI/EN)
 - **Đồng bộ đa ngôn ngữ trong pet flow:**
     - Bổ sung key i18n mới trong `app_vi.arb` và `app_en.arb`: `pleaseSelect`, `selectSpeciesFirst`, `invalidWeight`, `invalidWeightMax`, `uploadPhoto`, `uploadingImage`, `uploadImageSuccess`, `uploadImageFailed`.
-    - EditPet loại bỏ logic thủ công `if (locale == 'vi')` để tính tuổi; chuyển về `l10n.ageYears/ageMonths/ageDays`.
+    - View list pet tại `features/account/presentation/my_pets_page.dart` đã bỏ hàm tính tuổi cục bộ và dùng chung helper với Add/Edit để đảm bảo output thống nhất.
+    - Bổ sung key i18n cho age field + display rule mới: `age`, `ageUnavailable`, `ageDisplayMinimumOneMonth`, `ageDisplayYearsMonths`, `ageDisplayYearsOnly`.
 - **Ràng buộc dữ liệu Pet (đồng bộ FE-BE):**
     - **Cân nặng:** chặn ngay từ UI nếu > `99.9 kg` để tránh đẩy lỗi thô từ backend.
     - **Avatar:** người dùng có thể không upload ảnh tại thời điểm tạo/sửa; FE cho phép để trống và serialize về chuỗi rỗng khi gửi API để tương thích rule backend hiện tại (`avatar` phải là string).
@@ -143,6 +182,17 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Tối ưu loading và phản hồi:**
     - Không chặn trắng toàn màn hình khi đang tải species/breeds; dùng chỉ báo mảnh (linear progress) để giữ ngữ cảnh form.
     - Toast/SnackBar upload ảnh và lưu dữ liệu được chuẩn hóa thông điệp theo locale.
+- **Đồng bộ contract Pet API mới (2026-03):**
+    - Backend Pet đã chuyển sang cấu trúc enum string:
+        - `GET /api/pet/species` trả về mảng `string[]` (ví dụ: `DOG`, `CAT`, ...), không còn object `{id, name}`.
+        - `GET /api/pet/species/{species}/breed` trả về mảng `string[]` (ví dụ: `DOG_GOLDEN_RETRIEVER`, ...), không còn object giống có `speciesId`.
+        - `GET /api/pet` trả về thú cưng với field `species` + `breed` (enum key), không còn `breedId` + object `breed`.
+    - FE `PetFormDto` đã đổi payload tạo/sửa sang `{ species, breed }` để match `CreatePetDTO/UpdatePetDTO` của BE (không gửi `breedId` nữa).
+    - FE vẫn giữ endpoint upload avatar `POST /api/pet/upload` như cũ (contract này vẫn còn trên backend).
+    - Dropdown Species/Breed trong Add/Edit nhận value là enum key backend, nhưng render label qua `PetSpeciesEnum.getTranslatedName(...)` và `PetBreedEnum.getTranslatedName(...)` để UI vẫn thân thiện VI/EN.
+    - Các màn hình hiển thị pet (`MyPets`, `Home`, `Booking`) đã bỏ phụ thuộc `pet.breed?.name` kiểu cũ và chuyển sang map từ `pet.breed` enum key để hiển thị tên giống theo locale.
+    - Khi mở EditPet từ Home/MyPets, flow preload breed list đã đổi từ `pet.breed.speciesId` sang `pet.species`.
+    - `flutter analyze` cho các file pet liên quan đã sạch issue sau khi sync contract.
 
 ### 5. Dev Connectivity (Android USB)
 - **Nguyên nhân cốt lõi:** Mobile đang dùng `AppConstants.baseUrl` mặc định `http://localhost:3000`; với thiết bị Android thật, `localhost` là máy điện thoại nên cần tunnel `adb reverse` về máy dev.
@@ -152,7 +202,8 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Chẩn đoán nhanh:** Dùng `adb reverse --list`; nếu không thấy `tcp:3000` thì nguy cơ cao app lỗi kết nối server trên Android thật.
 
 ## 📝 Hướng dẫn chạy dự án
-1. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.
-2. **Android USB (mặc định):** Chạy `flutter run` (debug) để kích hoạt auto reverse qua Gradle.
-3. **Nếu cần set reverse thủ công:** `adb reverse tcp:3000 tcp:3000` rồi `flutter run`.
-4. **Quy ước ghi file bằng PowerShell (tránh lỗi tiếng Việt):** Khi dùng `Set-Content` hoặc `Out-File`, luôn bắt buộc chỉ định `-Encoding UTF8`.
+1. **Vào đúng root mobile trước khi chạy lệnh:** `Set-Location "F:\capstone 2\code\PetcareX\FE\Mobile\petcarex"`.
+2. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.
+3. **Android USB (mặc định):** Chạy `flutter run` (debug) để kích hoạt auto reverse qua Gradle.
+4. **Nếu cần set reverse thủ công:** `adb reverse tcp:3000 tcp:3000` rồi `flutter run`.
+5. **Quy ước ghi file bằng PowerShell (tránh lỗi tiếng Việt):** Khi dùng `Set-Content` hoặc `Out-File`, luôn bắt buộc chỉ định `-Encoding UTF8`.

@@ -218,6 +218,12 @@ abstract class AppLocalizations {
   /// **'Ngày sinh'**
   String get birthDate;
 
+  /// No description provided for @age.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tuổi'**
+  String get age;
+
   /// No description provided for @weight.
   ///
   /// In vi, this message translates to:
@@ -452,6 +458,24 @@ abstract class AppLocalizations {
   /// **'Về PetCareX'**
   String get aboutAppName;
 
+  /// No description provided for @aboutProjectHeadline.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đồ án Capstone 2 - Hệ thống chăm sóc thú cưng toàn diện.'**
+  String get aboutProjectHeadline;
+
+  /// No description provided for @aboutDevelopedBy.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phát triển bởi: Nhóm PetCareX'**
+  String get aboutDevelopedBy;
+
+  /// No description provided for @aboutProjectDescription.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ứng dụng này giúp bạn quản lý sức khỏe thú cưng, lịch hẹn và kết nối nhanh chóng với các bác sĩ thú y uy tín.'**
+  String get aboutProjectDescription;
+
   /// No description provided for @personalInfoSubtitle.
   ///
   /// In vi, this message translates to:
@@ -596,6 +620,18 @@ abstract class AppLocalizations {
   /// **'Xem tất cả'**
   String get viewAll;
 
+  /// No description provided for @viewDetail.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem chi tiết'**
+  String get viewDetail;
+
+  /// No description provided for @retry.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử lại'**
+  String get retry;
+
   /// No description provided for @petCareForum.
   ///
   /// In vi, this message translates to:
@@ -655,6 +691,24 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Bạn có chắc chắn muốn hủy lịch hẹn này không?'**
   String get cancelMessage;
+
+  /// No description provided for @appointmentCancelSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Hủy lịch thành công!'**
+  String get appointmentCancelSuccess;
+
+  /// No description provided for @yes.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có'**
+  String get yes;
+
+  /// No description provided for @no.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không'**
+  String get no;
 
   /// No description provided for @statusUpcoming.
   ///
@@ -722,6 +776,18 @@ abstract class AppLocalizations {
   /// **'Lưu thay đổi'**
   String get saveChanges;
 
+  /// No description provided for @profileUpdateSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cập nhật thông tin thành công!'**
+  String get profileUpdateSuccess;
+
+  /// No description provided for @petCreateSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thêm thú cưng thành công!'**
+  String get petCreateSuccess;
+
   /// No description provided for @petUpdateSuccess.
   ///
   /// In vi, this message translates to:
@@ -775,6 +841,30 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Chọn thú cưng cần được thăm khám hôm nay'**
   String get choosePetSub;
+
+  /// No description provided for @bookingClinicSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn phòng khám phù hợp cho thú cưng'**
+  String get bookingClinicSub;
+
+  /// No description provided for @bookingServiceSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn dịch vụ và nhập triệu chứng bắt buộc'**
+  String get bookingServiceSub;
+
+  /// No description provided for @bookingDoctorSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn bác sĩ thú y phù hợp'**
+  String get bookingDoctorSub;
+
+  /// No description provided for @bookingTimeSub.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ngày và khung giờ khám'**
+  String get bookingTimeSub;
 
   /// No description provided for @stepPet.
   ///
@@ -1070,6 +1160,36 @@ abstract class AppLocalizations {
   /// **'{count} ngày'**
   String ageDays(int count);
 
+  /// No description provided for @ageYearsMonths.
+  ///
+  /// In vi, this message translates to:
+  /// **'{years} tuổi {months} tháng'**
+  String ageYearsMonths(int years, int months);
+
+  /// No description provided for @ageDisplayMinimumOneMonth.
+  ///
+  /// In vi, this message translates to:
+  /// **'1 tháng tuổi'**
+  String get ageDisplayMinimumOneMonth;
+
+  /// No description provided for @ageDisplayYearsMonths.
+  ///
+  /// In vi, this message translates to:
+  /// **'{years} năm {months} tháng'**
+  String ageDisplayYearsMonths(int years, int months);
+
+  /// No description provided for @ageDisplayYearsOnly.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count} năm'**
+  String ageDisplayYearsOnly(int count);
+
+  /// No description provided for @ageUnavailable.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có'**
+  String get ageUnavailable;
+
   /// No description provided for @forgotPasswordSubtitle.
   ///
   /// In vi, this message translates to:
@@ -1316,6 +1436,12 @@ abstract class AppLocalizations {
   /// **'Triệu chứng của thú cưng '**
   String get bookingPetSymptomsLabel;
 
+  /// No description provided for @bookingSymptomsRequiredHelper.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bắt buộc nhập để bác sĩ nắm tình trạng trước khi khám.'**
+  String get bookingSymptomsRequiredHelper;
+
   /// No description provided for @bookingSymptomsHint.
   ///
   /// In vi, this message translates to:
@@ -1423,6 +1549,222 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Tiêm phòng & phòng ngừa'**
   String get specialtyVaccinationAndPrevention;
+
+  /// No description provided for @invoiceStatusPaid.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã thanh toán'**
+  String get invoiceStatusPaid;
+
+  /// No description provided for @invoiceStatusUnpaid.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa thanh toán'**
+  String get invoiceStatusUnpaid;
+
+  /// No description provided for @roleAdmin.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quản trị viên'**
+  String get roleAdmin;
+
+  /// No description provided for @roleAdminClinic.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quản trị phòng khám'**
+  String get roleAdminClinic;
+
+  /// No description provided for @roleVeterinarian.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bác sĩ thú y'**
+  String get roleVeterinarian;
+
+  /// No description provided for @roleCustomer.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khách hàng'**
+  String get roleCustomer;
+
+  /// No description provided for @medicineUnitPill.
+  ///
+  /// In vi, this message translates to:
+  /// **'Viên nén'**
+  String get medicineUnitPill;
+
+  /// No description provided for @medicineUnitBlister.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vỉ'**
+  String get medicineUnitBlister;
+
+  /// No description provided for @medicineUnitCapsule.
+  ///
+  /// In vi, this message translates to:
+  /// **'Viên nang'**
+  String get medicineUnitCapsule;
+
+  /// No description provided for @medicineUnitSachet.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gói'**
+  String get medicineUnitSachet;
+
+  /// No description provided for @medicineUnitBottle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chai'**
+  String get medicineUnitBottle;
+
+  /// No description provided for @medicineUnitVial.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lọ'**
+  String get medicineUnitVial;
+
+  /// No description provided for @medicineUnitAmpoule.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ống'**
+  String get medicineUnitAmpoule;
+
+  /// No description provided for @medicineUnitMl.
+  ///
+  /// In vi, this message translates to:
+  /// **'ml'**
+  String get medicineUnitMl;
+
+  /// No description provided for @medicineUnitMg.
+  ///
+  /// In vi, this message translates to:
+  /// **'mg'**
+  String get medicineUnitMg;
+
+  /// No description provided for @petSpeciesDog.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó'**
+  String get petSpeciesDog;
+
+  /// No description provided for @petSpeciesCat.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo'**
+  String get petSpeciesCat;
+
+  /// No description provided for @petSpeciesBird.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chim'**
+  String get petSpeciesBird;
+
+  /// No description provided for @petSpeciesRabbit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thỏ'**
+  String get petSpeciesRabbit;
+
+  /// No description provided for @petBreedDogGoldenRetriever.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó Golden Retriever'**
+  String get petBreedDogGoldenRetriever;
+
+  /// No description provided for @petBreedDogPoodle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó Poodle'**
+  String get petBreedDogPoodle;
+
+  /// No description provided for @petBreedDogPomeranian.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó Pomeranian'**
+  String get petBreedDogPomeranian;
+
+  /// No description provided for @petBreedDogCorgi.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó Corgi'**
+  String get petBreedDogCorgi;
+
+  /// No description provided for @petBreedDogHusky.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó Husky'**
+  String get petBreedDogHusky;
+
+  /// No description provided for @petBreedDogLabrador.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó Labrador'**
+  String get petBreedDogLabrador;
+
+  /// No description provided for @petBreedDogShibaInu.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chó Shiba Inu'**
+  String get petBreedDogShibaInu;
+
+  /// No description provided for @petBreedCatBritishShorthair.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Anh lông ngắn'**
+  String get petBreedCatBritishShorthair;
+
+  /// No description provided for @petBreedCatBritishLonghair.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Anh lông dài'**
+  String get petBreedCatBritishLonghair;
+
+  /// No description provided for @petBreedCatPersian.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Ba Tư'**
+  String get petBreedCatPersian;
+
+  /// No description provided for @petBreedCatSiamese.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Xiêm'**
+  String get petBreedCatSiamese;
+
+  /// No description provided for @petBreedCatBengal.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mèo Bengal'**
+  String get petBreedCatBengal;
+
+  /// No description provided for @petBreedBirdRedWhiskeredBulbul.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chào mào'**
+  String get petBreedBirdRedWhiskeredBulbul;
+
+  /// No description provided for @petBreedBirdParrot.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vẹt'**
+  String get petBreedBirdParrot;
+
+  /// No description provided for @petBreedBirdBudgerigar.
+  ///
+  /// In vi, this message translates to:
+  /// **'Yến phụng'**
+  String get petBreedBirdBudgerigar;
+
+  /// No description provided for @petBreedRabbitDutch.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thỏ Dutch'**
+  String get petBreedRabbitDutch;
+
+  /// No description provided for @petBreedRabbitLionhead.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thỏ Lionhead'**
+  String get petBreedRabbitLionhead;
 }
 
 class _AppLocalizationsDelegate

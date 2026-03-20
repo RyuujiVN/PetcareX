@@ -106,6 +106,7 @@ export class AuthService {
     const email = await this.validateGoogleIdToken(
       loginGoogleDTO.googleIdToken,
     );
+
     if (!email) throw new BadRequestException('In valid token');
 
     // Kiểm tra xem user đã tồn tại hay chưa

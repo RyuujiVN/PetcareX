@@ -69,6 +69,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get birthDate => 'Birth Date';
 
   @override
+  String get age => 'Age';
+
+  @override
   String get weight => 'Weight (kg)';
 
   @override
@@ -188,6 +191,17 @@ class AppLocalizationsEn extends AppLocalizations {
   String get aboutAppName => 'About PetCareX';
 
   @override
+  String get aboutProjectHeadline =>
+      'Capstone 2 Project - Comprehensive Pet Care System.';
+
+  @override
+  String get aboutDevelopedBy => 'Developed by: PetCareX Team';
+
+  @override
+  String get aboutProjectDescription =>
+      'This application helps you manage pet health, appointments, and quickly connect with reputable veterinarians.';
+
+  @override
   String get personalInfoSubtitle => 'View and edit personal information';
 
   @override
@@ -260,6 +274,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get viewAll => 'View All';
 
   @override
+  String get viewDetail => 'View details';
+
+  @override
+  String get retry => 'Retry';
+
+  @override
   String get petCareForum => 'PetCareX Forum';
 
   @override
@@ -290,6 +310,15 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get cancelMessage =>
       'Are you sure you want to cancel this appointment?';
+
+  @override
+  String get appointmentCancelSuccess => 'Appointment cancelled successfully!';
+
+  @override
+  String get yes => 'Yes';
+
+  @override
+  String get no => 'No';
 
   @override
   String get statusUpcoming => 'Booked';
@@ -325,6 +354,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveChanges => 'Save Changes';
 
   @override
+  String get profileUpdateSuccess => 'Profile updated successfully!';
+
+  @override
+  String get petCreateSuccess => 'Pet added successfully!';
+
+  @override
   String get petUpdateSuccess => 'Pet updated successfully!';
 
   @override
@@ -350,6 +385,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get choosePetSub => 'Choose the pet that needs examination today';
+
+  @override
+  String get bookingClinicSub => 'Select a clinic suitable for your pet';
+
+  @override
+  String get bookingServiceSub =>
+      'Select a service and enter required symptoms';
+
+  @override
+  String get bookingDoctorSub => 'Select a suitable veterinarian';
+
+  @override
+  String get bookingTimeSub => 'Select examination date and time';
 
   @override
   String get stepPet => 'Pet';
@@ -530,6 +578,45 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String ageYearsMonths(int years, int months) {
+    return '${years}y ${months}mo';
+  }
+
+  @override
+  String get ageDisplayMinimumOneMonth => '1 month old';
+
+  @override
+  String ageDisplayYearsMonths(int years, int months) {
+    String _temp0 = intl.Intl.pluralLogic(
+      years,
+      locale: localeName,
+      other: '$years years',
+      one: '1 year',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      months,
+      locale: localeName,
+      other: '$months months',
+      one: '1 month',
+    );
+    return '$_temp0 $_temp1';
+  }
+
+  @override
+  String ageDisplayYearsOnly(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count years',
+      one: '1 year',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get ageUnavailable => 'N/A';
+
+  @override
   String get forgotPasswordSubtitle =>
       'Enter your email and we will send you an OTP code to reset your password.';
 
@@ -661,6 +748,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingPetSymptomsLabel => 'Pet symptoms ';
 
   @override
+  String get bookingSymptomsRequiredHelper =>
+      'Required: describe symptoms so the doctor can prepare in advance.';
+
+  @override
   String get bookingSymptomsHint => 'Describe symptoms or current condition...';
 
   @override
@@ -718,4 +809,112 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get specialtyVaccinationAndPrevention => 'Vaccination & Prevention';
+
+  @override
+  String get invoiceStatusPaid => 'Paid';
+
+  @override
+  String get invoiceStatusUnpaid => 'Unpaid';
+
+  @override
+  String get roleAdmin => 'Admin';
+
+  @override
+  String get roleAdminClinic => 'Clinic Admin';
+
+  @override
+  String get roleVeterinarian => 'Veterinarian';
+
+  @override
+  String get roleCustomer => 'Customer';
+
+  @override
+  String get medicineUnitPill => 'Pill';
+
+  @override
+  String get medicineUnitBlister => 'Blister';
+
+  @override
+  String get medicineUnitCapsule => 'Capsule';
+
+  @override
+  String get medicineUnitSachet => 'Sachet';
+
+  @override
+  String get medicineUnitBottle => 'Bottle';
+
+  @override
+  String get medicineUnitVial => 'Vial';
+
+  @override
+  String get medicineUnitAmpoule => 'Ampoule';
+
+  @override
+  String get medicineUnitMl => 'ml';
+
+  @override
+  String get medicineUnitMg => 'mg';
+
+  @override
+  String get petSpeciesDog => 'Dog';
+
+  @override
+  String get petSpeciesCat => 'Cat';
+
+  @override
+  String get petSpeciesBird => 'Bird';
+
+  @override
+  String get petSpeciesRabbit => 'Rabbit';
+
+  @override
+  String get petBreedDogGoldenRetriever => 'Golden Retriever';
+
+  @override
+  String get petBreedDogPoodle => 'Poodle';
+
+  @override
+  String get petBreedDogPomeranian => 'Pomeranian';
+
+  @override
+  String get petBreedDogCorgi => 'Corgi';
+
+  @override
+  String get petBreedDogHusky => 'Husky';
+
+  @override
+  String get petBreedDogLabrador => 'Labrador';
+
+  @override
+  String get petBreedDogShibaInu => 'Shiba Inu';
+
+  @override
+  String get petBreedCatBritishShorthair => 'British Shorthair';
+
+  @override
+  String get petBreedCatBritishLonghair => 'British Longhair';
+
+  @override
+  String get petBreedCatPersian => 'Persian';
+
+  @override
+  String get petBreedCatSiamese => 'Siamese';
+
+  @override
+  String get petBreedCatBengal => 'Bengal';
+
+  @override
+  String get petBreedBirdRedWhiskeredBulbul => 'Red-whiskered Bulbul';
+
+  @override
+  String get petBreedBirdParrot => 'Parrot';
+
+  @override
+  String get petBreedBirdBudgerigar => 'Budgerigar';
+
+  @override
+  String get petBreedRabbitDutch => 'Dutch Rabbit';
+
+  @override
+  String get petBreedRabbitLionhead => 'Lionhead Rabbit';
 }

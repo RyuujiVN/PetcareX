@@ -12,8 +12,11 @@ export class ForumTopic {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
-  name: string;
+  @Column({ name: 'name_vn', unique: true })
+  nameVn: string;
+
+  @Column({ name: 'name_eng', unique: true })
+  nameEng: string;
 
   @Column({ type: 'text', nullable: true })
   description?: string;

@@ -20,6 +20,7 @@
   "breed": "Breed",
   "gender": "Gender",
   "birthDate": "Birth Date",
+  "age": "Age",
   "weight": "Weight (kg)",
   "furColor": "Fur Color",
   "save": "Save Info",
@@ -59,6 +60,9 @@
   "confirmNewPassword": "Confirm New Password",
   "exitAccount": "Log out of account",
   "aboutAppName": "About PetCareX",
+  "aboutProjectHeadline": "Capstone 2 Project - Comprehensive Pet Care System.",
+  "aboutDevelopedBy": "Developed by: PetCareX Team",
+  "aboutProjectDescription": "This application helps you manage pet health, appointments, and quickly connect with reputable veterinarians.",
   "personalInfoSubtitle": "View and edit personal information",
   "petInfoSubtitle": "View and edit pet information",
   "changePasswordSubtitle": "Update your password",
@@ -83,6 +87,8 @@
   "findClinicSub": "Search on map",
   "myAppointments": "My Appointments",
   "viewAll": "View All",
+  "viewDetail": "View details",
+  "retry": "Retry",
   "petCareForum": "PetCareX Forum",
   "explore": "Explore",
   "scanQR": "Scan QR Code",
@@ -93,6 +99,9 @@
   "cancelAppointment": "Cancel",
   "confirmCancel": "Confirm Cancellation",
   "cancelMessage": "Are you sure you want to cancel this appointment?",
+  "appointmentCancelSuccess": "Appointment cancelled successfully!",
+  "yes": "Yes",
+  "no": "No",
   "statusUpcoming": "Booked",
   "statusInProgress": "In progress",
   "statusCompleted": "Completed",
@@ -104,6 +113,8 @@
   "male": "Male",
   "female": "Female",
   "saveChanges": "Save Changes",
+  "profileUpdateSuccess": "Profile updated successfully!",
+  "petCreateSuccess": "Pet added successfully!",
   "petUpdateSuccess": "Pet updated successfully!",
   "petDeleteSuccess": "Pet deleted successfully!",
   "profile": "Personal Profile",
@@ -113,6 +124,10 @@
   "bookingTitle": "Book Appointment",
   "choosePet": "Choose Your Pet",
   "choosePetSub": "Choose the pet that needs examination today",
+  "bookingClinicSub": "Select a clinic suitable for your pet",
+  "bookingServiceSub": "Select a service and enter required symptoms",
+  "bookingDoctorSub": "Select a suitable veterinarian",
+  "bookingTimeSub": "Select examination date and time",
   "stepPet": "Pet",
   "stepClinic": "Clinic",
   "stepService": "Service",
@@ -162,6 +177,38 @@
   "ageYears": "{count, plural, =1{1 year old} other{{count} years old}}",
   "ageMonths": "{count, plural, =1{1 month old} other{{count} months old}}",
   "ageDays": "{count, plural, =1{1 day old} other{{count} days old}}",
+  "ageYearsMonths": "{years}y {months}mo",
+  "@ageYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayMinimumOneMonth": "1 month old",
+  "ageDisplayYearsMonths": "{years, plural, =1{1 year} other{{years} years}} {months, plural, =1{1 month} other{{months} months}}",
+  "@ageDisplayYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayYearsOnly": "{count, plural, =1{1 year} other{{count} years}}",
+  "@ageDisplayYearsOnly": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageUnavailable": "N/A",
   "forgotPasswordSubtitle": "Enter your email and we will send you an OTP code to reset your password.",
   "sendOTP": "Send OTP",
   "otpLabel": "OTP Code",
@@ -217,6 +264,7 @@
   "bookingErrorCompleteAllSteps": "Please complete all steps!",
   "bookingServiceQualityDescription": "High-quality care service",
   "bookingPetSymptomsLabel": "Pet symptoms ",
+  "bookingSymptomsRequiredHelper": "Required: describe symptoms so the doctor can prepare in advance.",
   "bookingSymptomsHint": "Describe symptoms or current condition...",
   "bookingDoctorNotFoundBySpecialty": "No doctors found for this specialty",
   "bookingInfo": "Info",
@@ -234,5 +282,41 @@
   "specialtyInternalMedicine": "Internal Medicine",
   "specialtySurgery": "Surgery",
   "specialtyUltrasound": "Ultrasound",
-  "specialtyVaccinationAndPrevention": "Vaccination & Prevention"
+  "specialtyVaccinationAndPrevention": "Vaccination & Prevention",
+  "invoiceStatusPaid": "Paid",
+  "invoiceStatusUnpaid": "Unpaid",
+  "roleAdmin": "Admin",
+  "roleAdminClinic": "Clinic Admin",
+  "roleVeterinarian": "Veterinarian",
+  "roleCustomer": "Customer",
+  "medicineUnitPill": "Pill",
+  "medicineUnitBlister": "Blister",
+  "medicineUnitCapsule": "Capsule",
+  "medicineUnitSachet": "Sachet",
+  "medicineUnitBottle": "Bottle",
+  "medicineUnitVial": "Vial",
+  "medicineUnitAmpoule": "Ampoule",
+  "medicineUnitMl": "ml",
+  "medicineUnitMg": "mg",
+  "petSpeciesDog": "Dog",
+  "petSpeciesCat": "Cat",
+  "petSpeciesBird": "Bird",
+  "petSpeciesRabbit": "Rabbit",
+  "petBreedDogGoldenRetriever": "Golden Retriever",
+  "petBreedDogPoodle": "Poodle",
+  "petBreedDogPomeranian": "Pomeranian",
+  "petBreedDogCorgi": "Corgi",
+  "petBreedDogHusky": "Husky",
+  "petBreedDogLabrador": "Labrador",
+  "petBreedDogShibaInu": "Shiba Inu",
+  "petBreedCatBritishShorthair": "British Shorthair",
+  "petBreedCatBritishLonghair": "British Longhair",
+  "petBreedCatPersian": "Persian",
+  "petBreedCatSiamese": "Siamese",
+  "petBreedCatBengal": "Bengal",
+  "petBreedBirdRedWhiskeredBulbul": "Red-whiskered Bulbul",
+  "petBreedBirdParrot": "Parrot",
+  "petBreedBirdBudgerigar": "Budgerigar",
+  "petBreedRabbitDutch": "Dutch Rabbit",
+  "petBreedRabbitLionhead": "Lionhead Rabbit"
 }

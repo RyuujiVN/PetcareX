@@ -20,6 +20,7 @@
   "breed": "Giống",
   "gender": "Giới tính",
   "birthDate": "Ngày sinh",
+  "age": "Tuổi",
   "weight": "Cân nặng (kg)",
   "furColor": "Màu lông",
   "save": "Lưu thông tin",
@@ -59,6 +60,9 @@
   "confirmNewPassword": "Xác nhận mật khẩu mới",
   "exitAccount": "Thoát khỏi tài khoản",
   "aboutAppName": "Về PetCareX",
+  "aboutProjectHeadline": "Đồ án Capstone 2 - Hệ thống chăm sóc thú cưng toàn diện.",
+  "aboutDevelopedBy": "Phát triển bởi: Nhóm PetCareX",
+  "aboutProjectDescription": "Ứng dụng này giúp bạn quản lý sức khỏe thú cưng, lịch hẹn và kết nối nhanh chóng với các bác sĩ thú y uy tín.",
   "personalInfoSubtitle": "Xem và chỉnh sửa thông tin cá nhân",
   "petInfoSubtitle": "Xem và chỉnh sửa thông tin thú cưng",
   "changePasswordSubtitle": "Cập nhật mật khẩu của bạn",
@@ -83,6 +87,8 @@
   "findClinicSub": "Tìm kiếm trên bản đồ",
   "myAppointments": "Lịch hẹn của tôi",
   "viewAll": "Xem tất cả",
+  "viewDetail": "Xem chi tiết",
+  "retry": "Thử lại",
   "petCareForum": "Diễn đàn PetCareX",
   "explore": "Khám phá",
   "scanQR": "Quét mã QR",
@@ -93,6 +99,9 @@
   "cancelAppointment": "Hủy",
   "confirmCancel": "Xác nhận hủy lịch",
   "cancelMessage": "Bạn có chắc chắn muốn hủy lịch hẹn này không?",
+  "appointmentCancelSuccess": "Hủy lịch thành công!",
+  "yes": "Có",
+  "no": "Không",
   "statusUpcoming": "Hẹn thành công",
   "statusInProgress": "Đang khám",
   "statusCompleted": "Đã khám xong",
@@ -104,6 +113,8 @@
   "male": "Đực",
   "female": "Cái",
   "saveChanges": "Lưu thay đổi",
+  "profileUpdateSuccess": "Cập nhật thông tin thành công!",
+  "petCreateSuccess": "Thêm thú cưng thành công!",
   "petUpdateSuccess": "Chỉnh sửa thú cưng thành công!",
   "petDeleteSuccess": "Xóa thú cưng thành công!",
   "profile": "Hồ sơ cá nhân",
@@ -113,6 +124,10 @@
   "bookingTitle": "Đặt lịch khám",
   "choosePet": "Chọn thú cưng của bạn",
   "choosePetSub": "Chọn thú cưng cần được thăm khám hôm nay",
+  "bookingClinicSub": "Chọn phòng khám phù hợp cho thú cưng",
+  "bookingServiceSub": "Chọn dịch vụ và nhập triệu chứng bắt buộc",
+  "bookingDoctorSub": "Chọn bác sĩ thú y phù hợp",
+  "bookingTimeSub": "Chọn ngày và khung giờ khám",
   "stepPet": "Thú cưng",
   "stepClinic": "Phòng khám",
   "stepService": "Dịch vụ",
@@ -190,6 +205,38 @@
       }
     }
   },
+  "ageYearsMonths": "{years} tuổi {months} tháng",
+  "@ageYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayMinimumOneMonth": "1 tháng tuổi",
+  "ageDisplayYearsMonths": "{years} năm {months} tháng",
+  "@ageDisplayYearsMonths": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      },
+      "months": {
+        "type": "int"
+      }
+    }
+  },
+  "ageDisplayYearsOnly": "{count} năm",
+  "@ageDisplayYearsOnly": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "ageUnavailable": "Chưa có",
   "forgotPasswordSubtitle": "Nhập email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.",
   "sendOTP": "Gửi mã OTP",
   "otpLabel": "Mã OTP",
@@ -245,6 +292,7 @@
   "bookingErrorCompleteAllSteps": "Vui lòng hoàn thành tất cả các bước!",
   "bookingServiceQualityDescription": "Dịch vụ chăm sóc chất lượng cao",
   "bookingPetSymptomsLabel": "Triệu chứng của thú cưng ",
+  "bookingSymptomsRequiredHelper": "Bắt buộc nhập để bác sĩ nắm tình trạng trước khi khám.",
   "bookingSymptomsHint": "Ghi rõ triệu chứng hoặc tình trạng bệnh...",
   "bookingDoctorNotFoundBySpecialty": "Không tìm thấy bác sĩ cho chuyên môn này",
   "bookingInfo": "Thông tin",
@@ -262,6 +310,42 @@
   "specialtyInternalMedicine": "Nội khoa",
   "specialtySurgery": "Phẫu thuật",
   "specialtyUltrasound": "Siêu âm",
-  "specialtyVaccinationAndPrevention": "Tiêm phòng & phòng ngừa"
+  "specialtyVaccinationAndPrevention": "Tiêm phòng & phòng ngừa",
+  "invoiceStatusPaid": "Đã thanh toán",
+  "invoiceStatusUnpaid": "Chưa thanh toán",
+  "roleAdmin": "Quản trị viên",
+  "roleAdminClinic": "Quản trị phòng khám",
+  "roleVeterinarian": "Bác sĩ thú y",
+  "roleCustomer": "Khách hàng",
+  "medicineUnitPill": "Viên nén",
+  "medicineUnitBlister": "Vỉ",
+  "medicineUnitCapsule": "Viên nang",
+  "medicineUnitSachet": "Gói",
+  "medicineUnitBottle": "Chai",
+  "medicineUnitVial": "Lọ",
+  "medicineUnitAmpoule": "Ống",
+  "medicineUnitMl": "ml",
+  "medicineUnitMg": "mg",
+  "petSpeciesDog": "Chó",
+  "petSpeciesCat": "Mèo",
+  "petSpeciesBird": "Chim",
+  "petSpeciesRabbit": "Thỏ",
+  "petBreedDogGoldenRetriever": "Chó Golden Retriever",
+  "petBreedDogPoodle": "Chó Poodle",
+  "petBreedDogPomeranian": "Chó Pomeranian",
+  "petBreedDogCorgi": "Chó Corgi",
+  "petBreedDogHusky": "Chó Husky",
+  "petBreedDogLabrador": "Chó Labrador",
+  "petBreedDogShibaInu": "Chó Shiba Inu",
+  "petBreedCatBritishShorthair": "Mèo Anh lông ngắn",
+  "petBreedCatBritishLonghair": "Mèo Anh lông dài",
+  "petBreedCatPersian": "Mèo Ba Tư",
+  "petBreedCatSiamese": "Mèo Xiêm",
+  "petBreedCatBengal": "Mèo Bengal",
+  "petBreedBirdRedWhiskeredBulbul": "Chào mào",
+  "petBreedBirdParrot": "Vẹt",
+  "petBreedBirdBudgerigar": "Yến phụng",
+  "petBreedRabbitDutch": "Thỏ Dutch",
+  "petBreedRabbitLionhead": "Thỏ Lionhead"
 }
 

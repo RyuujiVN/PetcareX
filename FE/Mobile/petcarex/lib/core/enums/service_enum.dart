@@ -1,14 +1,15 @@
 ﻿import 'package:flutter/material.dart';
+
 import '../../l10n/generated/app_localizations.dart';
 
 enum ServiceEnum {
-  PERIODIC_HEALTH_CHECK('Khám sức khoẻ định kỳ'),
-  MEDICAL_EXAMINATION('Khám bệnh'),
-  VACCINATION('Tiêm chủng'),
-  DEWORMING('Tẩy giun'),
-  ULTRASOUND_AND_TEST('Siêu âm xét nghiệm'),
-  SURGERY('Phẫu thuật'),
-  EMERGENCY('Cấp cứu');
+  PERIODIC_HEALTH_CHECK('PERIODIC_HEALTH_CHECK'),
+  MEDICAL_EXAMINATION('MEDICAL_EXAMINATION'),
+  VACCINATION('VACCINATION'),
+  DEWORMING('DEWORMING'),
+  ULTRASOUND_AND_TEST('ULTRASOUND_AND_TEST'),
+  SURGERY('SURGERY'),
+  EMERGENCY('EMERGENCY');
 
   final String value;
   const ServiceEnum(this.value);
@@ -33,11 +34,16 @@ enum ServiceEnum {
     }
   }
 
-  static ServiceEnum? fromValue(String val) {
-    try {
-      return ServiceEnum.values.firstWhere((e) => e.value == val);
-    } catch (_) {
-      return null;
+  static ServiceEnum? fromValue(String value) {
+    final normalized = value.trim().toUpperCase();
+
+    for (final service in ServiceEnum.values) {
+      if (service.name.toUpperCase() == normalized ||
+          service.value.toUpperCase() == normalized) {
+        return service;
+      }
     }
+
+    return null;
   }
 }

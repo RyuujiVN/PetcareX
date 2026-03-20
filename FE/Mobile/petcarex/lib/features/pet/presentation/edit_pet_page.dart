@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/camera_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -23,7 +24,7 @@ class _EditPetPageState extends State<EditPetPage> {
   static const TextStyle _fieldLabelStyle = TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 13,
-    color: AppColors.formLabel,
+    color: AppColors.text,
   );
 
   final _formKey = GlobalKey<FormState>();
@@ -46,7 +47,9 @@ class _EditPetPageState extends State<EditPetPage> {
   void initState() {
     super.initState();
     petNameController = TextEditingController(text: widget.pet.name);
-    weightController = TextEditingController(text: widget.pet.weight.toString());
+    weightController = TextEditingController(
+      text: widget.pet.weight.toString(),
+    );
     birthdateController = TextEditingController(
       text: _formatDate(widget.pet.dateOfBirth),
     );
@@ -54,14 +57,14 @@ class _EditPetPageState extends State<EditPetPage> {
 
     _uploadedAvatarUrl = widget.pet.avatar;
     _selectedGender = widget.pet.gender ? 'male' : 'female';
-    _selectedBreedId = widget.pet.breedId;
-    _selectedSpeciesId = widget.pet.breed?.speciesId;
+    _selectedBreedId = widget.pet.breed;
+    _selectedSpeciesId = widget.pet.species;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = context.read<PetProvider>();
       provider.fetchSpecies();
 
-      if (_selectedSpeciesId != null) {
+      if (_selectedSpeciesId != null && _selectedSpeciesId!.isNotEmpty) {
         provider.fetchBreeds(_selectedSpeciesId!);
       }
     });
@@ -99,38 +102,6 @@ class _EditPetPageState extends State<EditPetPage> {
     );
   }
 
-  String _calculateAge(String dateOfBirthStr, AppLocalizations l10n) {
-    try {
-      final dob = DateTime.parse(dateOfBirthStr);
-      final now = DateTime.now();
-
-      int years = now.year - dob.year;
-      int months = now.month - dob.month;
-      int days = now.day - dob.day;
-
-      if (months < 0 || (months == 0 && days < 0)) {
-        years--;
-        months += 12;
-      }
-
-      if (days < 0) {
-        final previousMonth = DateTime(now.year, now.month, 0);
-        days += previousMonth.day;
-        months--;
-      }
-
-      if (years > 0) {
-        return l10n.ageYears(years);
-      }
-      if (months > 0) {
-        return l10n.ageMonths(months);
-      }
-      return l10n.ageDays(days <= 0 ? 1 : days);
-    } catch (_) {
-      return l10n.failed;
-    }
-  }
-
   Future<void> _pickImage() async {
     final l10n = AppLocalizations.of(context)!;
     final File? image = await _cameraService.pickImageFromGallery();
@@ -143,7 +114,9 @@ class _EditPetPageState extends State<EditPetPage> {
       });
 
       try {
-        final avatarUrl = await context.read<PetProvider>().uploadAvatar(image.path);
+        final avatarUrl = await context.read<PetProvider>().uploadAvatar(
+          image.path,
+        );
         if (!mounted) return;
         setState(() {
           _uploadedAvatarUrl = avatarUrl;
@@ -202,12 +175,15 @@ class _EditPetPageState extends State<EditPetPage> {
       dateOfBirth: parsedBirthDate.toUtc().toIso8601String(),
       weight: parsedWeight,
       avatar: _uploadedAvatarUrl,
-      breedId: _selectedBreedId!,
+      species: _selectedSpeciesId!,
+      breed: _selectedBreedId!,
       note: noteController.text.trim(),
     );
 
-    final success =
-        await context.read<PetProvider>().updatePet(widget.pet.id, petDto);
+    final success = await context.read<PetProvider>().updatePet(
+      widget.pet.id,
+      petDto,
+    );
 
     if (!mounted) return;
 
@@ -246,16 +222,16 @@ class _EditPetPageState extends State<EditPetPage> {
         title: Text(
           l10n.petInformation,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppColors.text,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         centerTitle: true,
-        backgroundColor: AppColors.appBarBackground,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: const Icon(Icons.arrow_back, color: AppColors.text),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -315,7 +291,7 @@ class _EditPetPageState extends State<EditPetPage> {
                                     style: const TextStyle(
                                       fontSize: 16,
                                       fontWeight: FontWeight.bold,
-                                      color: AppColors.textDark,
+                                      color: AppColors.text,
                                     ),
                                   ),
                                 ],
@@ -331,7 +307,16 @@ class _EditPetPageState extends State<EditPetPage> {
                               const SizedBox(height: 12),
                               _buildGenderSelector(l10n),
                               const SizedBox(height: 12),
-                              _buildBirthdateField(l10n),
+                              PetBirthdateAgeFields(
+                                l10n: l10n,
+                                birthdateController: birthdateController,
+                                vertical: shouldStackFields,
+                                onBirthdateChanged: () {
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                              ),
                               const SizedBox(height: 12),
                               _buildWeightAndFurColorSection(
                                 l10n,
@@ -348,10 +333,10 @@ class _EditPetPageState extends State<EditPetPage> {
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.secondary,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: AppColors.textAlpha(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -4),
                     ),
@@ -394,6 +379,10 @@ class _EditPetPageState extends State<EditPetPage> {
   }
 
   Widget _buildPetHeader(AppLocalizations l10n) {
+    final String breedLabel =
+        PetBreedEnum.fromValue(widget.pet.breed)?.getTranslatedName(context) ??
+        widget.pet.breed;
+
     return Column(
       children: [
         Text(
@@ -402,24 +391,24 @@ class _EditPetPageState extends State<EditPetPage> {
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: AppColors.textDark,
+            color: AppColors.text,
           ),
         ),
         const SizedBox(height: 4),
-        if (widget.pet.breed != null)
+        if (breedLabel.trim().isNotEmpty)
           Text(
-            widget.pet.breed!.name,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.textGrey,
-            ),
+            breedLabel,
+            style: const TextStyle(fontSize: 14, color: AppColors.textGrey),
           ),
         const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              _calculateAge(widget.pet.dateOfBirth, l10n),
+              formatPetAgeFromBirthdate(
+                birthdateRaw: birthdateController.text,
+                l10n: l10n,
+              ),
               style: const TextStyle(
                 fontSize: 14,
                 color: AppColors.primary,
@@ -480,36 +469,6 @@ class _EditPetPageState extends State<EditPetPage> {
     );
   }
 
-  Widget _buildBirthdateField(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.birthDate, style: _fieldLabelStyle),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: birthdateController,
-          readOnly: true,
-          onTap: () async {
-            await pickPetBirthdate(context, birthdateController, initialDate: DateTime.tryParse(birthdateController.text));
-            if (mounted) setState(() {});
-          },
-          decoration: petInputDecoration('yyyy-mm-dd').copyWith(
-            suffixIcon: const Icon(
-              Icons.calendar_today,
-              size: 18,
-              color: AppColors.iconGrey,
-            ),
-          ),
-          validator: (value) => validateRequiredField(
-            value: value,
-            l10n: l10n,
-            fieldLabel: l10n.birthDate,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildWeightAndFurColorSection(
     AppLocalizations l10n,
     bool shouldStackFields,
@@ -550,11 +509,7 @@ class _EditPetPageState extends State<EditPetPage> {
 
     if (shouldStackFields) {
       return Column(
-        children: [
-          weightField,
-          const SizedBox(height: 12),
-          furColorField,
-        ],
+        children: [weightField, const SizedBox(height: 12), furColorField],
       );
     }
 
@@ -577,7 +532,7 @@ class _EditPetPageState extends State<EditPetPage> {
             child: ElevatedButton(
               onPressed: () => Navigator.pop(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.buttonSecondary,
+                backgroundColor: AppColors.background,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -586,7 +541,7 @@ class _EditPetPageState extends State<EditPetPage> {
               child: Text(
                 l10n.cancel,
                 style: const TextStyle(
-                  color: AppColors.buttonSecondaryText,
+                  color: AppColors.text,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -603,8 +558,9 @@ class _EditPetPageState extends State<EditPetPage> {
               onPressed: isSaveDisabled ? null : _savePetInfo,
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
-                disabledBackgroundColor:
-                    AppColors.primary.withValues(alpha: 0.5),
+                disabledBackgroundColor: AppColors.primary.withValues(
+                  alpha: 0.5,
+                ),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -615,14 +571,14 @@ class _EditPetPageState extends State<EditPetPage> {
                       width: 22,
                       height: 22,
                       child: CircularProgressIndicator(
-                        color: Colors.white,
+                        color: AppColors.onPrimary,
                         strokeWidth: 2,
                       ),
                     )
                   : Text(
                       l10n.saveChanges,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.onPrimary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),

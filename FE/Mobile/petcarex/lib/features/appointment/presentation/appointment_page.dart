@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/enums/appointment_status_enum.dart';
+import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/enums/service_enum.dart';
 import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -81,7 +82,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    provider.errorMessage ?? l10n.failed,
+                    _resolveErrorMessage(provider.errorMessage, l10n),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 16),
@@ -91,7 +92,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                       backgroundColor: AppColors.primary,
                     ),
                     child: Text(
-                      l10n.explore,
+                      l10n.retry,
                       style: const TextStyle(color: AppColors.onPrimary),
                     ),
                   ),
@@ -138,10 +139,7 @@ class _AppointmentPageState extends State<AppointmentPage>
               child: Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _buildEmptyState(
-                    isUpcoming: isUpcoming,
-                    l10n: l10n,
-                  ),
+                  child: _buildEmptyState(isUpcoming: isUpcoming, l10n: l10n),
                 ),
               ),
             ),
@@ -186,9 +184,7 @@ class _AppointmentPageState extends State<AppointmentPage>
           decoration: BoxDecoration(
             color: AppColors.primaryLight,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.2),
-            ),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
           ),
           child: Icon(icon, size: 42, color: AppColors.primary),
         ),
@@ -245,7 +241,7 @@ class _AppointmentPageState extends State<AppointmentPage>
     bool isUpcoming,
     AppLocalizations l10n,
   ) {
-    final appointmentStatus = AppointmentStatusEnum.fromValue(item.status);
+    final appointmentStatus = item.status;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -339,7 +335,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                         const SizedBox(height: 12),
                         _buildInfoRow(
                           Icons.calendar_today_outlined,
-                          '${DateFormat('dd/MM/yyyy').format(item.appointmentDate)} • ${item.appointmentTime}',
+                          '${DateFormat('dd/MM/yyyy').format(item.appointmentDate)} • ${_formatDisplayTime(item.appointmentTime)}',
                         ),
                         const SizedBox(height: 6),
                         _buildInfoRow(
@@ -357,33 +353,38 @@ class _AppointmentPageState extends State<AppointmentPage>
                 ],
               ),
             ),
-            if (isUpcoming &&
-                appointmentStatus == AppointmentStatusEnum.BOOKED) ...[
+            if (isUpcoming) ...[
               const Divider(
                 height: 1,
                 indent: 16,
                 endIndent: 16,
                 color: AppColors.divider,
               ),
-              InkWell(
-                onTap: () => _confirmCancel(item.id, l10n),
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(24),
-                  bottomRight: Radius.circular(24),
-                ),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Center(
-                    child: Text(
-                      l10n.cancelAppointment,
-                      style: const TextStyle(
-                        color: AppColors.error,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildAppointmentActionButton(
+                        label: l10n.viewDetail,
+                        icon: Icons.visibility_outlined,
+                        onPressed: () =>
+                            _showAppointmentDetails(context, item, l10n),
                       ),
                     ),
-                  ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildAppointmentActionButton(
+                        label: l10n.cancelAppointment,
+                        icon: Icons.close_rounded,
+                        isDestructive: true,
+                        onPressed:
+                            appointmentStatus == AppointmentStatusEnum.BOOKED
+                            ? () => _confirmCancel(item.id, l10n)
+                            : null,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ] else if (!isUpcoming) ...[
@@ -396,7 +397,7 @@ class _AppointmentPageState extends State<AppointmentPage>
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 child: Text(
-                  l10n.explore,
+                  l10n.viewDetail,
                   style: const TextStyle(
                     color: AppColors.textGrey,
                     fontSize: 13,
@@ -416,6 +417,10 @@ class _AppointmentPageState extends State<AppointmentPage>
     Appointment item,
     AppLocalizations l10n,
   ) {
+    final breedLabel =
+        PetBreedEnum.fromValue(item.pet.breedName)?.getTranslatedName(context) ??
+        item.pet.breedName;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -499,7 +504,7 @@ class _AppointmentPageState extends State<AppointmentPage>
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${l10n.breed}: ${item.pet.breedName}',
+                        '${l10n.breed}: $breedLabel',
                         style: const TextStyle(
                           color: AppColors.textGrey,
                           fontSize: 12,
@@ -532,7 +537,7 @@ class _AppointmentPageState extends State<AppointmentPage>
               _buildDetailRow(
                 Icons.calendar_month_outlined,
                 '${l10n.time}:',
-                '${item.appointmentTime} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}',
+                '${_formatDisplayTime(item.appointmentTime)} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}',
               ),
               if (item.note.isNotEmpty) ...[
                 const SizedBox(height: 8),
@@ -618,8 +623,8 @@ class _AppointmentPageState extends State<AppointmentPage>
     );
   }
 
-  void _confirmCancel(String id, AppLocalizations l10n) {
-    showDialog(
+  Future<void> _confirmCancel(String id, AppLocalizations l10n) async {
+    final shouldCancel = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -627,29 +632,16 @@ class _AppointmentPageState extends State<AppointmentPage>
         content: Text(l10n.cancelMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(context, false),
             child: Text(
-              l10n.cancel,
+              l10n.no,
               style: const TextStyle(color: AppColors.textGrey),
             ),
           ),
           TextButton(
-            onPressed: () async {
-              final provider = context.read<AppointmentProvider>();
-              Navigator.pop(context);
-              final success = await provider.cancelAppointment(id);
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(success ? l10n.success : l10n.failed),
-                  backgroundColor: success
-                      ? AppColors.success
-                      : AppColors.error,
-                ),
-              );
-            },
+            onPressed: () => Navigator.pop(context, true),
             child: Text(
-              l10n.confirmAppointment,
+              l10n.yes,
               style: const TextStyle(
                 color: AppColors.error,
                 fontWeight: FontWeight.bold,
@@ -659,39 +651,120 @@ class _AppointmentPageState extends State<AppointmentPage>
         ],
       ),
     );
+
+    if (shouldCancel != true || !mounted) return;
+
+    final provider = context.read<AppointmentProvider>();
+    final success = await provider.cancelAppointment(id);
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success ? l10n.appointmentCancelSuccess : l10n.failed),
+        backgroundColor: success ? AppColors.success : AppColors.error,
+      ),
+    );
   }
 
-  Widget _buildStatusBadge(String status) {
+  String _formatDisplayTime(String rawTime) {
+    final normalized = rawTime.trim();
+    if (normalized.isEmpty) {
+      return '';
+    }
+
+    final upperTime = normalized.toUpperCase();
+    final amPmMatch = RegExp(
+      r'^(\d{1,2}):(\d{2})\s*(AM|PM)$',
+    ).firstMatch(upperTime);
+    if (amPmMatch != null) {
+      final hour12 = int.tryParse(amPmMatch.group(1) ?? '0') ?? 0;
+      final minute = int.tryParse(amPmMatch.group(2) ?? '0') ?? 0;
+      var hour24 = hour12 % 12;
+
+      if (amPmMatch.group(3) == 'PM') {
+        hour24 += 12;
+      }
+
+      return '${hour24.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    }
+
+    final parts = normalized.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0].trim());
+      final minute = int.tryParse(parts[1].trim());
+
+      if (hour != null && minute != null) {
+        return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return normalized;
+  }
+
+  String _resolveErrorMessage(String? errorMessage, AppLocalizations l10n) {
+    final normalized = errorMessage?.trim() ?? '';
+    if (normalized.isEmpty || normalized.toLowerCase() == 'failed') {
+      return l10n.failed;
+    }
+
+    return normalized;
+  }
+
+  Widget _buildAppointmentActionButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool isDestructive = false,
+  }) {
+    final backgroundColor = isDestructive
+        ? AppColors.errorLight
+        : AppColors.primaryLight;
+    final foregroundColor = isDestructive ? AppColors.error : AppColors.primary;
+
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 17),
+      label: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        disabledBackgroundColor: AppColors.formFill,
+        disabledForegroundColor: AppColors.textGrey,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(AppointmentStatusEnum status) {
     Color bgColor;
     Color textColor;
     String label;
-    final parsedStatus = AppointmentStatusEnum.fromValue(status);
 
-    switch (parsedStatus) {
+    switch (status) {
       case AppointmentStatusEnum.BOOKED:
         bgColor = AppColors.primaryLight;
         textColor = AppColors.primary;
-        label = AppointmentStatusEnum.BOOKED.getTranslatedName(context);
+        label = status.getTranslatedName(context);
         break;
       case AppointmentStatusEnum.IN_PROGRESS:
         bgColor = AppColors.warning.withValues(alpha: 0.12);
         textColor = AppColors.warning;
-        label = AppointmentStatusEnum.IN_PROGRESS.getTranslatedName(context);
+        label = status.getTranslatedName(context);
         break;
       case AppointmentStatusEnum.COMPLETED:
         bgColor = AppColors.successLight;
         textColor = AppColors.success;
-        label = AppointmentStatusEnum.COMPLETED.getTranslatedName(context);
+        label = status.getTranslatedName(context);
         break;
       case AppointmentStatusEnum.CANCELLED:
         bgColor = AppColors.errorLight;
         textColor = AppColors.error;
-        label = AppointmentStatusEnum.CANCELLED.getTranslatedName(context);
-        break;
-      default:
-        bgColor = AppColors.background;
-        textColor = AppColors.textGrey;
-        label = status;
+        label = status.getTranslatedName(context);
     }
 
     return Container(

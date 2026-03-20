@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,6 +7,7 @@ import '../../../../core/enums/service_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../appointment/presentation/provider/appointment_provider.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
@@ -138,7 +141,7 @@ class _BookingPageState extends State<BookingPage> {
       l10n.stepPet,
       l10n.stepClinic,
       l10n.stepService,
-      l10n.doctor,
+      l10n.stepDoctor,
       l10n.stepTime,
     ];
 
@@ -200,6 +203,7 @@ class _BookingPageState extends State<BookingPage> {
       final translatedService =
           ServiceEnum.fromValue(rawService)?.getTranslatedName(context) ??
           rawService;
+      final rawAppointmentTime = (res?['appointmentTime'] ?? '').toString();
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSuccess(
@@ -207,7 +211,7 @@ class _BookingPageState extends State<BookingPage> {
           clinicName: res?['clinic']?['name'] ?? '',
           serviceName: translatedService,
           doctorName: res?['veterinarian']?['user']?['fullName'] ?? '',
-          time: (res?['appointmentTime'] ?? '').toString().substring(0, 5),
+          time: _formatAppointmentTime(rawAppointmentTime),
           date:
               DateTime.tryParse(res?['appointmentDate'] ?? '') ??
               DateTime.now(),
@@ -249,6 +253,38 @@ class _BookingPageState extends State<BookingPage> {
         const SliverToBoxAdapter(child: SizedBox(height: 20)),
       ],
     );
+  }
+
+  String _formatAppointmentTime(String rawTime) {
+    final normalized = rawTime.trim();
+    if (normalized.isEmpty) {
+      return '';
+    }
+
+    final parts = normalized.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0].trim());
+      final minute = int.tryParse(parts[1].trim());
+
+      if (hour != null && minute != null) {
+        return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return normalized;
+  }
+
+  void _closeSuccessAndGoToAppointments(BookingProvider bookingProvider) {
+    bookingProvider.reset();
+
+    final appointmentProvider = context.read<AppointmentProvider>();
+    unawaited(appointmentProvider.fetchAppointments());
+
+    if (mounted) {
+      setState(() => _currentStep = 0);
+    }
+
+    MainNavigationWrapper.of(context)?.setSelectedIndex(2);
   }
 
   Widget _buildStepContentSliver() {
@@ -338,15 +374,15 @@ class _BookingPageState extends State<BookingPage> {
       l10n.choosePet,
       l10n.stepClinic,
       l10n.stepService,
-      l10n.doctor,
+      l10n.stepDoctor,
       l10n.stepTime,
     ];
     final subs = [
       l10n.choosePetSub,
-      l10n.stepClinic,
-      l10n.stepService,
-      l10n.doctor,
-      l10n.stepTime,
+      l10n.bookingClinicSub,
+      l10n.bookingServiceSub,
+      l10n.bookingDoctorSub,
+      l10n.bookingTimeSub,
     ];
 
     return SliverPadding(
@@ -391,11 +427,7 @@ class _BookingPageState extends State<BookingPage> {
           onPressed: bookingProvider.isLoading
               ? null
               : (isSuccess
-                    ? () {
-                        bookingProvider.reset();
-                        setState(() => _currentStep = 0);
-                        MainNavigationWrapper.of(context)?.setSelectedIndex(2);
-                      }
+                    ? () => _closeSuccessAndGoToAppointments(bookingProvider)
                     : () => _nextStep(l10n)),
           style: ElevatedButton.styleFrom(
             backgroundColor: isSuccess ? AppColors.surface : AppColors.primary,

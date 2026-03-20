@@ -1,4 +1,5 @@
 import { MedicalRecordMedicine } from 'src/medical/entities/medical-record-medicine.entity';
+import { MedicineUnitEnum } from 'src/common/enums/medicine-unit.enum';
 import {
   Column,
   CreateDateColumn,
@@ -15,8 +16,8 @@ export class Medicine {
   @Column()
   name: string;
 
-  @Column()
-  unit: string;
+  @Column({ type: 'enum', enum: MedicineUnitEnum })
+  unit: MedicineUnitEnum;
 
   @Column({ type: 'int' })
   quantity: number;

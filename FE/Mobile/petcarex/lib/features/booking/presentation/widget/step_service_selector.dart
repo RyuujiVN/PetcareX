@@ -4,7 +4,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../../core/enums/service_enum.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
-class StepServiceSelector extends StatelessWidget {
+class StepServiceSelector extends StatefulWidget {
   final String? selectedServiceName;
   final Function(String) onSelected;
   final List<ServiceEnum> services;
@@ -21,68 +21,119 @@ class StepServiceSelector extends StatelessWidget {
   });
 
   @override
+  State<StepServiceSelector> createState() => _StepServiceSelectorState();
+}
+
+class _StepServiceSelectorState extends State<StepServiceSelector> {
+  late final TextEditingController _symptomsController;
+
+  @override
+  void initState() {
+    super.initState();
+    _symptomsController = TextEditingController(text: widget.symptoms ?? '');
+  }
+
+  @override
+  void didUpdateWidget(covariant StepServiceSelector oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final nextValue = widget.symptoms ?? '';
+    if (_symptomsController.text != nextValue) {
+      _symptomsController.value = TextEditingValue(
+        text: nextValue,
+        selection: TextSelection.collapsed(offset: nextValue.length),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _symptomsController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        _buildSymptomsSection(l10n),
+        const SizedBox(height: 16),
         ListView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          itemCount: services.length,
+          itemCount: widget.services.length,
           itemBuilder: (context, i) => _listTile(
-            services[i].value,
-            services[i].getTranslatedName(context),
+            widget.services[i].value,
+            widget.services[i].getTranslatedName(context),
             l10n.bookingServiceQualityDescription,
-            selectedServiceName,
-            onSelected,
+            widget.selectedServiceName,
+            widget.onSelected,
             Icons.medical_information_outlined,
           ),
         ),
-        const SizedBox(height: 16),
-        RichText(
-          text: TextSpan(
-            text: l10n.bookingPetSymptomsLabel,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: AppColors.textDark,
-            ),
-            children: [
-              const TextSpan(
-                text: '*',
-                style: TextStyle(color: AppColors.error),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextField(
-          maxLines: 4,
-          onChanged: onSymptomsChanged,
-          controller: TextEditingController(
-            text: symptoms,
-          )..selection = TextSelection.collapsed(offset: symptoms?.length ?? 0),
-          decoration: InputDecoration(
-            hintText: l10n.bookingSymptomsHint,
-            hintStyle: const TextStyle(color: AppColors.textGrey),
-            filled: true,
-            fillColor: AppColors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.divider),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.divider),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary),
-            ),
-          ),
-        ),
       ],
+    );
+  }
+
+  Widget _buildSymptomsSection(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.35)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          RichText(
+            text: TextSpan(
+              text: l10n.bookingPetSymptomsLabel,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
+              children: const [
+                TextSpan(
+                  text: '*',
+                  style: TextStyle(color: AppColors.error),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.bookingSymptomsRequiredHelper,
+            style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
+          ),
+          const SizedBox(height: 10),
+          TextField(
+            controller: _symptomsController,
+            maxLines: 4,
+            onChanged: widget.onSymptomsChanged,
+            decoration: InputDecoration(
+              hintText: l10n.bookingSymptomsHint,
+              hintStyle: const TextStyle(color: AppColors.textGrey),
+              filled: true,
+              fillColor: AppColors.formFill,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.divider),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.divider),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: AppColors.primary),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -101,10 +152,10 @@ class StepServiceSelector extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSel ? AppColors.primary : Colors.grey.shade200,
+            color: isSel ? AppColors.primary : AppColors.divider,
             width: 1.5,
           ),
         ),
@@ -113,7 +164,7 @@ class StepServiceSelector extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: const Color(0xFFE0F7F4),
+                color: AppColors.primaryLight,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: AppColors.primary),

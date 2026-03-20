@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
+import '../../../../core/enums/pet_breed_enum.dart';
+import '../../../../core/enums/pet_species_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -23,17 +25,17 @@ InputDecoration petInputDecoration(
 }) {
   return InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: AppColors.iconGrey, fontSize: 14),
+    hintStyle: TextStyle(color: AppColors.textAlpha(0.45), fontSize: 14),
     filled: true,
-    fillColor: AppColors.formFill,
+    fillColor: AppColors.secondary,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: AppColors.formBorder),
+      borderSide: const BorderSide(color: AppColors.border),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(color: AppColors.formBorder),
+      borderSide: const BorderSide(color: AppColors.border),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(12),
@@ -98,6 +100,71 @@ String? validatePetWeight({
   return null;
 }
 
+String formatPetAgeFromBirthdate({
+  required String? birthdateRaw,
+  required AppLocalizations l10n,
+}) {
+  final normalized = birthdateRaw?.trim();
+  if (normalized == null || normalized.isEmpty) {
+    return l10n.ageUnavailable;
+  }
+
+  final parsed = DateTime.tryParse(normalized);
+  if (parsed == null) {
+    return l10n.ageUnavailable;
+  }
+
+  final totalMonths = calculatePetAgeTotalMonths(
+    birthDate: parsed,
+    today: DateTime.now(),
+  );
+  if (totalMonths == null) {
+    return l10n.ageUnavailable;
+  }
+
+  if (totalMonths < 1) {
+    return l10n.ageDisplayMinimumOneMonth;
+  }
+
+  final years = totalMonths ~/ 12;
+  final months = totalMonths % 12;
+
+  if (totalMonths < 24) {
+    if (years == 0) {
+      return l10n.ageMonths(months);
+    }
+    return l10n.ageDisplayYearsMonths(years, months);
+  }
+
+  return l10n.ageDisplayYearsOnly(years);
+}
+
+int? calculatePetAgeTotalMonths({
+  required DateTime birthDate,
+  required DateTime today,
+}) {
+  final normalizedDob = DateTime(
+    birthDate.year,
+    birthDate.month,
+    birthDate.day,
+  );
+  final normalizedToday = DateTime(today.year, today.month, today.day);
+
+  if (normalizedDob.isAfter(normalizedToday)) {
+    return null;
+  }
+
+  int totalMonths =
+      (normalizedToday.year - normalizedDob.year) * 12 +
+      (normalizedToday.month - normalizedDob.month);
+
+  if (normalizedToday.day < normalizedDob.day) {
+    totalMonths -= 1;
+  }
+
+  return totalMonths < 0 ? 0 : totalMonths;
+}
+
 class PetAvatarPicker extends StatelessWidget {
   final File? selectedImage;
   final String? avatarUrl;
@@ -131,17 +198,24 @@ class PetAvatarPicker extends StatelessWidget {
         ElevatedButton(
           onPressed: isUploading ? null : onPickImage,
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEAF9F7),
+            backgroundColor: AppColors.primaryAlpha(0.12),
             foregroundColor: AppColors.primary,
             elevation: 0,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.camera_alt_outlined,
-                  size: 16, color: isUploading ? Colors.grey : AppColors.primary),
+              Icon(
+                Icons.camera_alt_outlined,
+                size: 16,
+                color: isUploading
+                    ? AppColors.textAlpha(0.5)
+                    : AppColors.primary,
+              ),
               const SizedBox(width: 6),
               Text(uploadLabel),
             ],
@@ -160,7 +234,7 @@ class PetAvatarPicker extends StatelessWidget {
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.grey[200],
+            color: AppColors.border,
             border: Border.all(color: AppColors.primary, width: 3),
           ),
           child: ClipOval(child: _buildAvatarContent()),
@@ -170,10 +244,10 @@ class PetAvatarPicker extends StatelessWidget {
             child: Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.black.withValues(alpha: 0.4),
+                color: AppColors.textAlpha(0.4),
               ),
               child: const Center(
-                child: CircularProgressIndicator(color: Colors.white),
+                child: CircularProgressIndicator(color: AppColors.secondary),
               ),
             ),
           ),
@@ -188,7 +262,11 @@ class PetAvatarPicker extends StatelessWidget {
                 color: AppColors.primary,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.camera_alt, color: Colors.white, size: 16),
+              child: const Icon(
+                Icons.camera_alt,
+                color: AppColors.secondary,
+                size: 16,
+              ),
             ),
           ),
         ),
@@ -205,7 +283,7 @@ class PetAvatarPicker extends StatelessWidget {
           height: 100,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.grey[200],
+            color: AppColors.border,
           ),
           child: ClipOval(child: _buildAvatarContent()),
         ),
@@ -215,10 +293,10 @@ class PetAvatarPicker extends StatelessWidget {
             height: 100,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.black.withValues(alpha: 0.4),
+              color: AppColors.textAlpha(0.4),
             ),
             child: const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+              child: CircularProgressIndicator(color: AppColors.secondary),
             ),
           ),
       ],
@@ -227,21 +305,33 @@ class PetAvatarPicker extends StatelessWidget {
 
   Widget _buildAvatarContent() {
     if (selectedImage != null) {
-      return Image.file(selectedImage!, fit: BoxFit.cover, width: 100, height: 100);
-    }
-    if (avatarUrl != null && avatarUrl!.startsWith('http')) {
-      return CachedNetworkImage(
-        imageUrl: ImageHelper.getThumbnailUrl(avatarUrl!, width: 300, height: 300),
+      return Image.file(
+        selectedImage!,
         fit: BoxFit.cover,
         width: 100,
         height: 100,
-        errorWidget: (context, url, error) =>
-            Icon(Icons.broken_image, color: Colors.grey[400], size: 40),
+      );
+    }
+    if (avatarUrl != null && avatarUrl!.startsWith('http')) {
+      return CachedNetworkImage(
+        imageUrl: ImageHelper.getThumbnailUrl(
+          avatarUrl!,
+          width: 300,
+          height: 300,
+        ),
+        fit: BoxFit.cover,
+        width: 100,
+        height: 100,
+        errorWidget: (context, url, error) => Icon(
+          Icons.broken_image,
+          color: AppColors.textAlpha(0.4),
+          size: 40,
+        ),
         placeholder: (context, url) =>
             const Center(child: CircularProgressIndicator()),
       );
     }
-    return Icon(Icons.camera_alt, color: Colors.grey[400], size: 40);
+    return Icon(Icons.camera_alt, color: AppColors.textAlpha(0.4), size: 40);
   }
 }
 
@@ -269,7 +359,7 @@ class PetGenderSelector extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,
-            color: AppColors.formLabel,
+            color: AppColors.text,
           ),
         ),
         const SizedBox(height: 12),
@@ -291,9 +381,13 @@ class PetGenderSelector extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected && !showIcons ? const Color(0xFFEAF9F7) : Colors.white,
+          color: isSelected && !showIcons
+              ? AppColors.primaryAlpha(0.12)
+              : AppColors.secondary,
           border: Border.all(
-            color: isSelected ? AppColors.primary : (Colors.grey[200] ?? Colors.grey),
+            color: isSelected
+                ? AppColors.primary
+                : AppColors.border,
             width: 1.5,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -302,14 +396,22 @@ class PetGenderSelector extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (showIcons) ...[
-              Icon(icon, size: 18, color: isSelected ? AppColors.primary : Colors.grey[600]),
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected
+                    ? AppColors.primary
+                    : AppColors.textAlpha(0.6),
+              ),
               const SizedBox(width: 8),
             ],
-            Text(label,
-                style: TextStyle(
-                  fontWeight: FontWeight.w600,
-                  color: isSelected ? AppColors.primary : Colors.black,
-                )),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isSelected ? AppColors.primary : AppColors.text,
+              ),
+            ),
           ],
         ),
       ),
@@ -341,16 +443,12 @@ class PetSpeciesBreedFields extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final speciesWidget = _buildSpeciesDropdown();
-    final breedWidget = _buildBreedDropdown();
+    final speciesWidget = _buildSpeciesDropdown(context);
+    final breedWidget = _buildBreedDropdown(context);
 
     if (vertical) {
       return Column(
-        children: [
-          speciesWidget,
-          const SizedBox(height: 16),
-          breedWidget,
-        ],
+        children: [speciesWidget, const SizedBox(height: 16), breedWidget],
       );
     }
 
@@ -363,7 +461,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
     );
   }
 
-  Widget _buildSpeciesDropdown() {
+  Widget _buildSpeciesDropdown(BuildContext context) {
     final bool hasValue = speciesList.any((s) => s.id == selectedSpeciesId);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -373,7 +471,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 13,
-            color: AppColors.formLabel,
+            color: AppColors.text,
           ),
         ),
         const SizedBox(height: 8),
@@ -383,9 +481,18 @@ class PetSpeciesBreedFields extends StatelessWidget {
           decoration: petInputDecoration(l10n.species),
           hint: Text(l10n.species, style: const TextStyle(fontSize: 14)),
           items: speciesList.map<DropdownMenuItem<String>>((species) {
+            final translatedLabel =
+                PetSpeciesEnum.fromValue(species.id)?.getTranslatedName(
+                  context,
+                ) ??
+                species.name;
+
             return DropdownMenuItem<String>(
               value: species.id,
-              child: Text(species.name, style: const TextStyle(fontSize: 14)),
+              child: Text(
+                translatedLabel,
+                style: const TextStyle(fontSize: 14),
+              ),
             );
           }).toList(),
           onChanged: onSpeciesChanged,
@@ -399,7 +506,7 @@ class PetSpeciesBreedFields extends StatelessWidget {
     );
   }
 
-  Widget _buildBreedDropdown() {
+  Widget _buildBreedDropdown(BuildContext context) {
     final bool isBreedEnabled =
         selectedSpeciesId != null && selectedSpeciesId!.isNotEmpty;
     final bool hasValue = breedList.any((b) => b.id == selectedBreedId);
@@ -414,7 +521,9 @@ class PetSpeciesBreedFields extends StatelessWidget {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 13,
-              color: isBreedEnabled ? AppColors.formLabel : AppColors.textGrey,
+              color: isBreedEnabled
+                  ? AppColors.text
+                  : AppColors.textAlpha(0.55),
             ),
           ),
           const SizedBox(height: 8),
@@ -423,23 +532,30 @@ class PetSpeciesBreedFields extends StatelessWidget {
             child: DropdownButtonFormField<String>(
               isExpanded: true,
               initialValue: isBreedEnabled && hasValue ? selectedBreedId : null,
-              decoration: petInputDecoration(
-                isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
-              ).copyWith(
-                fillColor: isBreedEnabled
-                    ? AppColors.formFill
-                    : AppColors.formFillDisabled,
-              ),
+              decoration:
+                  petInputDecoration(
+                    isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
+                  ).copyWith(
+                    fillColor: isBreedEnabled
+                    ? AppColors.secondary
+                    : AppColors.background,
+                  ),
               hint: Text(
                 isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
                 style: const TextStyle(fontSize: 14),
               ),
               items: isBreedEnabled
                   ? breedList.map<DropdownMenuItem<String>>((breed) {
+                      final translatedLabel =
+                          PetBreedEnum.fromValue(breed.id)?.getTranslatedName(
+                            context,
+                          ) ??
+                          breed.name;
+
                       return DropdownMenuItem<String>(
                         value: breed.id,
                         child: Text(
-                          breed.name,
+                          translatedLabel,
                           style: const TextStyle(fontSize: 14),
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -465,6 +581,112 @@ class PetSpeciesBreedFields extends StatelessWidget {
   }
 }
 
+class PetBirthdateAgeFields extends StatelessWidget {
+  static const TextStyle _labelStyle = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 13,
+    color: AppColors.text,
+  );
+
+  final AppLocalizations l10n;
+  final TextEditingController birthdateController;
+  final VoidCallback onBirthdateChanged;
+  final bool vertical;
+
+  const PetBirthdateAgeFields({
+    super.key,
+    required this.l10n,
+    required this.birthdateController,
+    required this.onBirthdateChanged,
+    this.vertical = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final birthdateField = _buildBirthdateField(context);
+    final ageField = _buildAgeField();
+
+    if (vertical) {
+      return Column(
+        children: [birthdateField, const SizedBox(height: 12), ageField],
+      );
+    }
+
+    return Row(
+      children: [
+        Expanded(child: birthdateField),
+        const SizedBox(width: 16),
+        Expanded(child: ageField),
+      ],
+    );
+  }
+
+  Widget _buildBirthdateField(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.birthDate, style: _labelStyle),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: birthdateController,
+          readOnly: true,
+          onTap: () async {
+            final previousBirthdate = birthdateController.text;
+            await pickPetBirthdate(
+              context,
+              birthdateController,
+              initialDate: DateTime.tryParse(birthdateController.text),
+            );
+            if (previousBirthdate != birthdateController.text) {
+              onBirthdateChanged();
+            }
+          },
+          decoration: petInputDecoration('yyyy-mm-dd').copyWith(
+            suffixIcon: const Icon(
+              Icons.calendar_today,
+              size: 18,
+              color: AppColors.iconGrey,
+            ),
+          ),
+          validator: (value) => validateRequiredField(
+            value: value,
+            l10n: l10n,
+            fieldLabel: l10n.birthDate,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAgeField() {
+    final ageLabel = formatPetAgeFromBirthdate(
+      birthdateRaw: birthdateController.text,
+      l10n: l10n,
+    );
+    final hasAge = ageLabel != l10n.ageUnavailable;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.age, style: _labelStyle),
+        const SizedBox(height: 8),
+        InputDecorator(
+          decoration: petInputDecoration(l10n.ageUnavailable),
+          isEmpty: !hasAge,
+          child: Text(
+            ageLabel,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: hasAge ? FontWeight.w600 : FontWeight.w400,
+              color: hasAge ? AppColors.text : AppColors.textAlpha(0.45),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 Future<void> pickPetBirthdate(
   BuildContext context,
   TextEditingController controller, {
@@ -480,8 +702,8 @@ Future<void> pickPetBirthdate(
         data: Theme.of(context).copyWith(
           colorScheme: const ColorScheme.light(
             primary: AppColors.primary,
-            onPrimary: Colors.white,
-            onSurface: AppColors.textDark,
+            onPrimary: AppColors.onPrimary,
+            onSurface: AppColors.text,
           ),
         ),
         child: child!,
@@ -508,12 +730,18 @@ Future<bool> showDeletePetDialog(BuildContext context, String petName) async {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: Text(l10n.cancel, style: const TextStyle(color: AppColors.textGrey)),
+          child: Text(
+            l10n.cancel,
+            style: TextStyle(color: AppColors.textAlpha(0.65)),
+          ),
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, true),
-          style: TextButton.styleFrom(foregroundColor: Colors.red),
-          child: Text(l10n.delete, style: const TextStyle(fontWeight: FontWeight.bold)),
+          style: TextButton.styleFrom(foregroundColor: AppColors.error),
+          child: Text(
+            l10n.delete,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     ),

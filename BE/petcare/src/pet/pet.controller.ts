@@ -24,6 +24,7 @@ import { UpdatePetDTO } from './dtos/update-pet.dto.';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FileValidationPipe } from 'src/common/pipes/file-validate.pipe';
 import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
+import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
 
 @Controller('pet')
 @ApiBearerAuth('JWT-auth')
@@ -46,10 +47,10 @@ export class PetController {
     return this.petService.findAllSpecies();
   }
 
-  @Get('species/:speciesId/breed')
+  @Get('species/:species/breed')
   @ApiOperation({ summary: 'Lấy danh sách giống theo loài' })
-  getAllBreed(@Param('speciesId') speciesId: string) {
-    return this.petService.findAllBreed(speciesId);
+  getAllBreed(@Param('species') species: PetSpeciesEnum) {
+    return this.petService.findAllBreed(species);
   }
 
   @Post('upload')

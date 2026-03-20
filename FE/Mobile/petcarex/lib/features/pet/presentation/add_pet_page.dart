@@ -21,7 +21,7 @@ class _AddPetPageState extends State<AddPetPage> {
   static const TextStyle _fieldLabelStyle = TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 13,
-    color: AppColors.formLabel,
+    color: AppColors.text,
   );
 
   final _formKey = GlobalKey<FormState>();
@@ -87,7 +87,9 @@ class _AddPetPageState extends State<AddPetPage> {
       });
 
       try {
-        final avatarUrl = await context.read<PetProvider>().uploadAvatar(image.path);
+        final avatarUrl = await context.read<PetProvider>().uploadAvatar(
+          image.path,
+        );
         if (!mounted) return;
         setState(() {
           _uploadedAvatarUrl = avatarUrl;
@@ -144,7 +146,8 @@ class _AddPetPageState extends State<AddPetPage> {
       dateOfBirth: parsedBirthDate.toUtc().toIso8601String(),
       weight: parsedWeight,
       avatar: _uploadedAvatarUrl,
-      breedId: _selectedBreedId!,
+      species: _selectedSpeciesId!,
+      breed: _selectedBreedId!,
       note: furColorController.text.trim(),
     );
 
@@ -153,7 +156,7 @@ class _AddPetPageState extends State<AddPetPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar(l10n.success, isError: false);
+      _showQuickSnackBar(l10n.petCreateSuccess, isError: false);
       Navigator.pop(context, true);
       return;
     }
@@ -168,17 +171,17 @@ class _AddPetPageState extends State<AddPetPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.appBarBackground,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: const Icon(Icons.arrow_back, color: AppColors.text),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           l10n.addPet,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppColors.text,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -230,7 +233,16 @@ class _AddPetPageState extends State<AddPetPage> {
                               const SizedBox(height: 12),
                               _buildGenderSection(l10n),
                               const SizedBox(height: 12),
-                              _buildBirthdateField(l10n),
+                              PetBirthdateAgeFields(
+                                l10n: l10n,
+                                birthdateController: birthdateController,
+                                vertical: shouldStackFields,
+                                onBirthdateChanged: () {
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                              ),
                               const SizedBox(height: 12),
                               _buildWeightAndFurColorSection(
                                 l10n,
@@ -247,10 +259,10 @@ class _AddPetPageState extends State<AddPetPage> {
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: AppColors.secondary,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: AppColors.textAlpha(0.05),
                       blurRadius: 10,
                       offset: const Offset(0, -4),
                     ),
@@ -268,8 +280,8 @@ class _AddPetPageState extends State<AddPetPage> {
                           onPressed: isSaving ? null : _savePetInfo,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
-                            disabledBackgroundColor:
-                                AppColors.primary.withValues(alpha: 0.5),
+                            disabledBackgroundColor: AppColors.primary
+                                .withValues(alpha: 0.5),
                             foregroundColor: AppColors.onPrimary,
                             elevation: 0,
                             shape: RoundedRectangleBorder(
@@ -281,7 +293,7 @@ class _AddPetPageState extends State<AddPetPage> {
                                   height: 22,
                                   width: 22,
                                   child: CircularProgressIndicator(
-                                    color: Colors.white,
+                                    color: AppColors.onPrimary,
                                     strokeWidth: 2,
                                   ),
                                 )
@@ -360,42 +372,6 @@ class _AddPetPageState extends State<AddPetPage> {
     );
   }
 
-  Widget _buildBirthdateField(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.birthDate, style: _fieldLabelStyle),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: birthdateController,
-          readOnly: true,
-          onTap: () async {
-            await pickPetBirthdate(
-              context,
-              birthdateController,
-              initialDate: DateTime.tryParse(birthdateController.text),
-            );
-            if (mounted) {
-              setState(() {});
-            }
-          },
-          decoration: petInputDecoration('yyyy-mm-dd').copyWith(
-            suffixIcon: const Icon(
-              Icons.calendar_today,
-              size: 18,
-              color: AppColors.iconGrey,
-            ),
-          ),
-          validator: (value) => validateRequiredField(
-            value: value,
-            l10n: l10n,
-            fieldLabel: l10n.birthDate,
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildWeightAndFurColorSection(
     AppLocalizations l10n,
     bool shouldStackFields,
@@ -436,11 +412,7 @@ class _AddPetPageState extends State<AddPetPage> {
 
     if (shouldStackFields) {
       return Column(
-        children: [
-          weightField,
-          const SizedBox(height: 12),
-          furColorField,
-        ],
+        children: [weightField, const SizedBox(height: 12), furColorField],
       );
     }
 

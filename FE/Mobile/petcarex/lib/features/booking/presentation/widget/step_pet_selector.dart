@@ -1,7 +1,10 @@
 import 'dart:ui';
+
 import 'package:flutter/material.dart';
+
+import '../../../../core/enums/pet_breed_enum.dart';
+import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../../../../core/theme/app_colors.dart';
 import '../../../pet/data/models/pet_models.dart';
 import '../../../pet/presentation/add_pet_page.dart';
 
@@ -34,7 +37,7 @@ class StepPetSelector extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         if (index < sortedPets.length) {
-          return _petItem(sortedPets[index], l10n);
+          return _petItem(context, sortedPets[index], l10n);
         } else {
           return _addNewItem(context, l10n);
         }
@@ -42,13 +45,19 @@ class StepPetSelector extends StatelessWidget {
     );
   }
 
-  Widget _petItem(Pet pet, AppLocalizations l10n) {
+  Widget _petItem(BuildContext context, Pet pet, AppLocalizations l10n) {
     final isSel = selectedPetId == pet.id;
+    final breedLabel =
+        PetBreedEnum.fromValue(pet.breed)?.getTranslatedName(context) ??
+        pet.breed;
+
     return GestureDetector(
       onTap: () => onSelected(pet),
       child: Container(
         decoration: BoxDecoration(
-          color: isSel ? AppColors.primary.withOpacity(0.08) : AppColors.white,
+          color: isSel
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSel ? AppColors.primary : AppColors.divider,
@@ -67,7 +76,7 @@ class StepPetSelector extends StatelessWidget {
             const SizedBox(height: 12),
             Text(pet.name, style: const TextStyle(fontWeight: FontWeight.bold)),
             Text(
-              pet.breed?.name ?? l10n.user, // Dùng từ khóa thay thế cho 'Không xác định'
+              breedLabel.isNotEmpty ? breedLabel : l10n.user,
               style: const TextStyle(fontSize: 11, color: AppColors.grey),
             ),
           ],

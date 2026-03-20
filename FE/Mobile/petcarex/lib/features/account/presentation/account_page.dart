@@ -128,16 +128,16 @@ class _AccountPageState extends State<AccountPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Capstone 2 Project - Comprehensive Pet Care System.',
+              Text(
+                l10n.aboutProjectHeadline,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Text('${l10n.version}: 1.0.0'),
-              const Text('Developed by: PetCareX Team'),
+              Text(l10n.aboutDevelopedBy),
               const SizedBox(height: 12),
               Text(
-                'This application helps you manage health, appointments, and connect with reputable veterinarians quickly.',
+                l10n.aboutProjectDescription,
                 style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
               ),
             ],

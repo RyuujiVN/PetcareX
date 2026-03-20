@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 class AppTextStyles {
   static const title = TextStyle(
     fontSize: 24,
     fontWeight: FontWeight.bold,
-    color: AppColors.textDark,
+    color: AppColors.text,
   );
 
   static const heading = TextStyle(
@@ -15,7 +16,7 @@ class AppTextStyles {
 
   static const body = TextStyle(
     fontSize: 14,
-    color: AppColors.grey,
+    color: AppColors.text,
   );
 
   static const button = TextStyle(

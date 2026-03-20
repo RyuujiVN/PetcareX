@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../../l10n/generated/app_localizations.dart';
 
 enum AppointmentStatusEnum {
-  BOOKED('Hẹn thành công'),
-  IN_PROGRESS('Đang khám'),
-  COMPLETED('Đã khám xong'),
-  CANCELLED('Đã huỷ');
+  BOOKED('BOOKED'),
+  IN_PROGRESS('IN_PROGRESS'),
+  COMPLETED('COMPLETED'),
+  CANCELLED('CANCELLED');
 
   final String value;
   const AppointmentStatusEnum(this.value);

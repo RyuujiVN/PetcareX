@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'app_colors.dart';
 
 class AppTheme {
@@ -7,21 +8,20 @@ class AppTheme {
     colorScheme: ColorScheme.fromSeed(
       seedColor: AppColors.primary,
       primary: AppColors.primary,
-      background: AppColors.background,
-      surface: AppColors.white,
+      surface: AppColors.secondary,
       error: AppColors.error,
-      onPrimary: AppColors.white,
+      onPrimary: AppColors.onPrimary,
     ),
     scaffoldBackgroundColor: AppColors.background,
     
     // Tự động set màu cho toàn bộ AppBar trong App
     appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.secondary,
       elevation: 0,
       centerTitle: true,
-      iconTheme: IconThemeData(color: AppColors.textDark),
+      iconTheme: IconThemeData(color: AppColors.text),
       titleTextStyle: TextStyle(
-        color: AppColors.textDark,
+        color: AppColors.text,
         fontSize: 18,
         fontWeight: FontWeight.bold,
       ),
@@ -31,7 +31,7 @@ class AppTheme {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
-        foregroundColor: AppColors.white,
+        foregroundColor: AppColors.onPrimary,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -42,14 +42,14 @@ class AppTheme {
     // Tự động set kiểu dáng cho các ô nhập liệu
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: AppColors.white,
+      fillColor: AppColors.secondary,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.divider),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.divider),
+        borderSide: const BorderSide(color: AppColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -40,7 +40,8 @@ export class InvoiceService {
         id: item.id,
         note: item.note,
         priceAtTime: item.priceAtTime,
-        name: item.medicalOrder.name,
+        nameVn: item.medicalOrder.nameVn,
+        nameEng: item.medicalOrder.nameEng,
       }),
     );
 
