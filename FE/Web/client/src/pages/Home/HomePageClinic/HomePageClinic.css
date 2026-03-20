@@ -17,7 +17,7 @@
   max-width: 900px;
 }
 
-.hero-section {
+.clinic-hero {
   position: relative;
   width: 100%;
   min-height: 600px;
@@ -145,7 +145,7 @@
 }
 .feature-icon-wrapper.blue-bg { background: var(--color-badge-blue-soft); }
 .feature-icon-wrapper.purple-bg { background: var(--color-badge-blue-soft); }
-.feature-icon-wrapper.yellow-bg { background: var(--color-surface-card)9e6; }
+.feature-icon-wrapper.yellow-bg { background: var(--color-badge-orange-soft); }
 .feature-icon-wrapper.green-bg { background: var(--color-badge-green-soft); }
 .feature-icon {
   font-size: 28px;
