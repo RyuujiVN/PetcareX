@@ -1,47 +1,55 @@
-import request from './forumFetchClient'
+import instance from './instance'
 
-export const getPosts = ({ limit = 20, lastPostTime } = {}) =>
-	request('/post', {
+export const getPosts = async ({ limit = 20, lastPostTime } = {}) => {
+	const response = await instance.get('/post', {
 		params: {
 			limit,
 			lastPostTime,
 		},
 	})
 
-export const createPost = (data) =>
-	request('/post', {
-		method: 'POST',
-		body: data,
-	})
+	return response.data
+}
 
-export const updatePost = (id, data) =>
-	request(`/post/${id}`, {
-		method: 'PUT',
-		body: data,
-	})
+export const createPost = async (payload) => {
+	const response = await instance.post('/post', payload)
+	return response.data
+}
 
-export const deletePost = (id) =>
-	request(`/post/${id}`, {
-		method: 'DELETE',
-	})
+export const updatePost = async (postId, payload) => {
+	const response = await instance.put(`/post/${postId}`, payload)
+	return response.data
+}
 
-export const likePost = (id) =>
-	request(`/post/${id}/like`, {
-		method: 'POST',
-	})
+export const deletePost = async (postId) => {
+	const response = await instance.delete(`/post/${postId}`)
+	return response.data
+}
 
-export const unlikePost = (id) =>
-	request(`/post/${id}/remove-like`, {
-		method: 'DELETE',
-	})
+export const likePost = async (postId) => {
+	const response = await instance.post(`/post/${postId}/like`)
+	return response.data
+}
 
-export const getCommentsByPostId = (postId, { limit = 10, createdAt } = {}) =>
-	request(`/post/${postId}/comments`, {
+export const removeLike = async (postId) => {
+	const response = await instance.delete(`/post/${postId}/remove-like`)
+	return response.data
+}
+
+export const unlikePost = removeLike
+
+export const getCommentsByPost = async (postId, { limit = 10, createdAt } = {}) => {
+	const response = await instance.get(`/post/${postId}/comments`, {
 		params: {
 			limit,
 			createdAt,
 		},
 	})
+
+	return response.data
+}
+
+export const getCommentsByPostId = getCommentsByPost
 
 export default {
 	getPosts,
@@ -49,6 +57,8 @@ export default {
 	updatePost,
 	deletePost,
 	likePost,
+	removeLike,
 	unlikePost,
+	getCommentsByPost,
 	getCommentsByPostId,
 }

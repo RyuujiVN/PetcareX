@@ -1,10 +1,11 @@
 import {
 	FaEllipsis,
+	FaFilter,
 	FaImage,
 	FaRegComment,
 	FaRegThumbsUp,
 } from 'react-icons/fa6'
-import { message, Modal } from 'antd'
+import { Dropdown, message, Modal, Select } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { createComment, getReplies } from '../../../data/api/commentApi'
@@ -21,10 +22,6 @@ import {
 import { getAllTopics } from '../../../data/api/topicApi'
 import Header from '../../../components/layout/header'
 import styles from './forum.module.css'
-
-const DEFAULT_CATEGORY_TABS = [
-	{ id: 'all', label: 'Tất cả' },
-]
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
 const IMAGE_TOKEN_REGEX = /\[\[img:(.*?)\]\]/g
@@ -57,6 +54,24 @@ const normalizeTagType = (topicName = '') => {
 		return 'canh-bao-dich-benh'
 	}
 	return 'kinh-nghiem-nuoi'
+}
+
+const getTopicDisplayName = (topic = {}) => topic?.nameVn || topic?.nameEng || topic?.name || ''
+
+const normalizeFilterText = (value = '') =>
+	value
+		.toLowerCase()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.trim()
+
+const isBlockedTabLabel = (label = '') => {
+	const normalized = normalizeFilterText(label)
+	return (
+		normalized === 'tat ca' ||
+		normalized === 'cham soc thu cung hang ngay' ||
+		normalized === 'tiem phong va phong benh'
+	)
 }
 
 const extractMediaFromContent = (rawContent = '') => {
@@ -129,6 +144,7 @@ const mapCommentToUi = (comment) => {
 
 const mapPostToUi = (post) => {
 	const media = extractMediaFromContent(post.content || '')
+	const topicName = getTopicDisplayName(post.topic)
 
 	return {
 		id: post.id,
@@ -138,8 +154,8 @@ const mapPostToUi = (post) => {
 		content: media.text,
 		image: media.image,
 		time: formatTimeAgo(post.createdAt),
-		tag: (post.topic?.name || 'Bài viết').toUpperCase(),
-		tagType: normalizeTagType(post.topic?.name),
+		tag: (topicName || 'Bài viết').toUpperCase(),
+		tagType: normalizeTagType(topicName),
 		likes: Number(post.likeCount || 0),
 		comments: Number(post.commentCount || 0),
 		avatar: post.author?.avatarUrl || '/avatarMain.png',
@@ -185,28 +201,42 @@ function Forum() {
 	const [replyImageFile, setReplyImageFile] = useState(null)
 	const [replyImagePreview, setReplyImagePreview] = useState('')
 	const [submittingReply, setSubmittingReply] = useState(false)
+	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
+	const [previewImageSrc, setPreviewImageSrc] = useState('')
+	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
 
-	const forumTabs = useMemo(() => {
+	const filteredTopics = useMemo(() => {
 		const mapped = apiTopics
 			.map((topic) => ({
-				id: normalizeTagType(topic.name),
-				label: topic.name,
+				id: topic.id,
+				label: getTopicDisplayName(topic),
 			}))
-			.filter((item) => item.id)
+			.filter((item) => item.id && item.label && !isBlockedTabLabel(item.label))
 
 		const unique = mapped.filter((item, index, arr) => arr.findIndex((value) => value.id === item.id) === index)
 
-		if (!unique.length) {
-			return DEFAULT_CATEGORY_TABS
-		}
-
-		return [DEFAULT_CATEGORY_TABS[0], ...unique]
+		return unique
 	}, [apiTopics])
 
-	const activeTab = useMemo(() => {
-		const tab = searchParams.get('tab') || 'all'
-		return forumTabs.some((item) => item.id === tab) ? tab : 'all'
-	}, [forumTabs, searchParams])
+	const topicFilterOptions = useMemo(
+		() => [
+			{ label: 'Tất cả chủ đề', value: 'all' },
+			...filteredTopics.map((topic) => ({
+				label: topic.label,
+				value: String(topic.id),
+			})),
+		],
+		[filteredTopics],
+	)
+
+	const topicDropdownItems = useMemo(
+		() =>
+			topicFilterOptions.map((item) => ({
+				key: String(item.value),
+				label: item.label,
+			})),
+		[topicFilterOptions],
+	)
 
 	const topContributors = useMemo(() => {
 	const stats = new Map()
@@ -254,14 +284,30 @@ const featuredPosts = useMemo(() => {
 
 
 	const selectedPost = searchParams.get('post')
-	const isComposerOpen = searchParams.get('composer') === 'open'
+	const isAnyOverlayOpen = Boolean(editingPost)
+
+	const closeComposerModal = () => {
+		setIsComposerModalOpen(false)
+	}
 
 	useEffect(() => {
-		if (isComposerOpen && composerRef.current) {
-			composerRef.current.focus()
-			setIsComposerModalOpen(true)
+		if (!isAnyOverlayOpen) return undefined
+
+		const { body, documentElement } = document
+		const previousOverflow = body.style.overflow
+		const previousPaddingRight = body.style.paddingRight
+		const scrollbarWidth = window.innerWidth - documentElement.clientWidth
+
+		body.style.overflow = 'hidden'
+		if (scrollbarWidth > 0) {
+			body.style.paddingRight = `${scrollbarWidth}px`
 		}
-	}, [isComposerOpen])
+
+		return () => {
+			body.style.overflow = previousOverflow
+			body.style.paddingRight = previousPaddingRight
+		}
+	}, [isAnyOverlayOpen])
 
 	useEffect(() => {
 		try {
@@ -327,7 +373,7 @@ const featuredPosts = useMemo(() => {
 		loadInitialData()
 	}, [])
 
-	const updateParams = (nextValues) => {
+	const updateParams = (nextValues, options = {}) => {
 		const next = new URLSearchParams(searchParams)
 		Object.entries(nextValues).forEach(([key, value]) => {
 			if (!value) {
@@ -336,7 +382,8 @@ const featuredPosts = useMemo(() => {
 				next.set(key, value)
 			}
 		})
-		navigate(`/forum?${next.toString()}`)
+		const query = next.toString()
+		navigate(query ? `/forum?${query}` : '/forum', { replace: Boolean(options.replace) })
 	}
 
 	const handleCreatePost = async () => {
@@ -367,7 +414,6 @@ const featuredPosts = useMemo(() => {
 			setComposerImageFile(null)
 			setComposerImagePreview('')
 			setIsComposerModalOpen(false)
-			updateParams({ composer: '' })
 			await loadPosts()
 		} catch (error) {
 			message.error(error.message || 'Đăng bài thất bại')
@@ -504,28 +550,53 @@ const featuredPosts = useMemo(() => {
 	}
 
 	const handleToggleLike = async (post) => {
+		const nextLiked = !post.liked
+		const nextLikes = Math.max(0, post.likes + (nextLiked ? 1 : -1))
+
+		setApiPosts((prev) =>
+			prev.map((item) =>
+				item.id === post.id
+					? {
+							...item,
+							likes: nextLikes,
+							liked: nextLiked,
+					  }
+					: item,
+			),
+		)
+
 		setProcessingLikeId(post.id)
 		try {
-			const isLiking = !post.liked
-			const response = post.liked ? await unlikePost(post.id) : await likePost(post.id)
+			const response = nextLiked ? await likePost(post.id) : await unlikePost(post.id)
 			setApiPosts((prev) =>
 				prev.map((item) =>
 					item.id === post.id
 						? {
 								...item,
 								likes: response?.likeCount ?? item.likes,
-								liked: response?.liked ?? !item.liked,
+								liked: response?.liked ?? item.liked,
 						  }
 						: item,
 				),
 			)
 
-			if (isLiking) {
+			if (nextLiked) {
 				if (post.authorId && post.authorId !== currentUserId) {
 					message.success(`Đã thích bài viết của ${post.author}`)
 				}
 			}
 		} catch (error) {
+			setApiPosts((prev) =>
+				prev.map((item) =>
+					item.id === post.id
+						? {
+								...item,
+								likes: post.likes,
+								liked: post.liked,
+						  }
+						: item,
+				),
+			)
 			message.error(error.message || 'Không thể cập nhật lượt thích')
 		} finally {
 			setProcessingLikeId(null)
@@ -578,17 +649,27 @@ const featuredPosts = useMemo(() => {
 		if (!isOpening) {
 			setExpandedPostId(null)
 			setReplyingComment(null)
-			updateParams({ post: '' })
+			setCommentText('')
+			setCommentImageFile(null)
+			setCommentImagePreview('')
 			return
 		}
 
 		setExpandedPostId(post.id)
 		setReplyingComment(null)
-		updateParams({ post: post.id })
+		setCommentText('')
+		setCommentImageFile(null)
+		setCommentImagePreview('')
 
 		if (!commentsByPost[post.id]) {
 			await loadCommentsForPost(post.id)
 		}
+	}
+
+	const handlePreviewPostImage = (imageSrc) => {
+		if (!imageSrc) return
+		setPreviewImageSrc(imageSrc)
+		setIsPreviewModalOpen(true)
 	}
 
 	const handlePickCommentImage = async (event) => {
@@ -729,8 +810,8 @@ const featuredPosts = useMemo(() => {
 	}, [menuPostId])
 
 	const visiblePosts = sourcePosts.filter((post) => {
-		if (activeTab === 'all') return true
-		return post.tagType === activeTab
+		if (selectedTopicFilter === 'all') return true
+		return String(post.rawTopicId) === selectedTopicFilter
 	})
 
 	return (
@@ -747,24 +828,31 @@ const featuredPosts = useMemo(() => {
 								placeholder="Bạn muốn chia sẻ điều gì về thú cưng hôm nay?"
 								readOnly
 								onClick={() => {
+									if (isComposerModalOpen) return
 									setIsComposerModalOpen(true)
-									updateParams({ composer: 'open' })
 								}}
 							/>
+							<div className={styles.composeActions}>
+								<Dropdown
+									trigger={['click']}
+									placement="bottomRight"
+									menu={{
+										items: topicDropdownItems,
+										selectable: true,
+										selectedKeys: [selectedTopicFilter],
+										onClick: ({ key }) => setSelectedTopicFilter(String(key)),
+									}}
+								>
+									<button
+										type="button"
+										className={styles.topicFilterIconBtn}
+										title="Chọn chủ đề"
+									>
+										<FaFilter />
+									</button>
+								</Dropdown>
+							</div>
 						</div>
-					</div>
-
-					<div className={styles.tabRow}>
-						{forumTabs.map((tab) => (
-							<button
-								key={tab.id}
-								type="button"
-								className={`${styles.tabButton} ${activeTab === tab.id ? styles.activeTab : ''}`}
-								onClick={() => updateParams({ tab: tab.id, post: '', composer: '' })}
-							>
-								{tab.label}
-							</button>
-						))}
 					</div>
 
 					<div className={styles.feedList}>
@@ -825,7 +913,13 @@ const featuredPosts = useMemo(() => {
 								{post.content ? <p className={styles.postContent}>{post.content}</p> : null}
 
 								{post.image ? (
-									<div className={styles.postImageFrame} onClick={() => handleOpenComments(post)}>
+									<div
+										className={styles.postImageFrame}
+										onClick={(event) => {
+											event.stopPropagation()
+											handlePreviewPostImage(post.image)
+										}}
+									>
 										<img
 											src={post.image}
 											alt="Bài viết"
@@ -1043,58 +1137,6 @@ const featuredPosts = useMemo(() => {
 										))}
 										</div>
 
-										{replyingComment?.postId === post.id ? (
-											<div className={styles.replyComposer}>
-												<p>Đang reply cho {replyingComment.toUser}</p>
-												<textarea
-													value={replyText}
-													onChange={(event) => setReplyText(event.target.value)}
-													placeholder="Viết reply..."
-													className={styles.commentInput}
-												/>
-												{replyImagePreview ? (
-													<div className={styles.previewImageWrap}>
-														<img src={replyImagePreview} alt="reply preview" className={styles.previewImage} />
-														<button
-															type="button"
-															onClick={() => {
-																setReplyImageFile(null)
-																setReplyImagePreview('')
-															}}
-															className={styles.removeImageBtn}
-														>
-															Gỡ ảnh
-														</button>
-													</div>
-												) : null}
-												<div className={styles.commentActionRow}>
-													<input
-														ref={replyImageInputRef}
-														type="file"
-														accept="image/*"
-														onChange={handlePickReplyImage}
-														hidden
-													/>
-													<button type="button" onClick={() => replyImageInputRef.current?.click()}>
-														<FaImage /> Ảnh
-													</button>
-													<button type="button" onClick={handleReplyComment} disabled={submittingReply}>
-														{submittingReply ? 'Đang gửi...' : 'Gửi reply'}
-													</button>
-													<button
-														type="button"
-														onClick={() => {
-															setReplyingComment(null)
-															setReplyText('')
-															setReplyImageFile(null)
-															setReplyImagePreview('')
-														}}
-													>
-														Hủy
-													</button>
-												</div>
-											</div>
-										) : null}
 									</section>
 								) : null}
 							</article>
@@ -1152,92 +1194,91 @@ const featuredPosts = useMemo(() => {
 				</aside>
 			</main>
 
-			{isComposerModalOpen ? (
-				<div className={styles.composerModalOverlay} onClick={() => setIsComposerModalOpen(false)}>
-					<div className={styles.composerModal} onClick={(event) => event.stopPropagation()}>
-						<h3>Tạo bài viết mới</h3>
-						<p style={{marginLeft: 3, fontWeight: 'bold'}}>Tiêu đề bài viết</p>
-						<select
-							value={composerTopicId}
-							onChange={(event) => setComposerTopicId(event.target.value)}
-							className={styles.topicSelect}
-						>
-							{apiTopics.map((topic) => (
-								<option key={topic.id} value={topic.id}>
-									{topic.name}
-								</option>
-							))}
-						</select>
+			<div
+				className={`${styles.composerModalOverlay} ${isComposerModalOpen ? styles.open : ''}`}
+				onClick={closeComposerModal}
+			>
+				<div
+					className={`${styles.composerModal} ${isComposerModalOpen ? styles.open : ''}`}
+					onClick={(e) => e.stopPropagation()}
+				>
+					<h3>Tạo bài viết mới</h3>
+					<p style={{marginLeft: 3, fontWeight: 'bold'}}>Tiêu đề bài viết</p>
+					<Select
+						value={composerTopicId || undefined}
+						onChange={(value) => setComposerTopicId(value)}
+						className={styles.topicSelectAntd}
+						placeholder="Chọn tiêu đề bài viết"
+						options={apiTopics.map((topic) => ({
+							value: topic.id,
+							label: getTopicDisplayName(topic),
+						}))}
+					/>
 
-						<textarea
-							value={composerText}
-							onChange={(event) => setComposerText(event.target.value)}
-							className={styles.composerModalInput}
-							placeholder="Bạn muốn chia sẻ điều gì về thú cưng hôm nay?"
-						/>
+					<textarea
+						value={composerText}
+						onChange={(event) => setComposerText(event.target.value)}
+						className={styles.composerModalInput}
+						placeholder="Bạn muốn chia sẻ điều gì về thú cưng hôm nay?"
+					/>
 
-						{composerImagePreview ? (
-							<div className={styles.previewImageWrap}>
-								<img src={composerImagePreview} alt="post preview" className={styles.previewImage} />
-								<button
-									type="button"
-									onClick={() => {
-										setComposerImageFile(null)
-										setComposerImagePreview('')
-									}}
-									className={styles.removeImageBtn}
-								>
-									Gỡ ảnh
-								</button>
-							</div>
-						) : null}
-
-						<div className={styles.modalActionRow}>
-							<input
-								ref={postImageInputRef}
-								type="file"
-								accept="image/*"
-								onChange={handlePickComposerImage}
-								hidden
-							/>
-							<button type="button" onClick={() => postImageInputRef.current?.click()}>
-								<FaImage /> Chọn ảnh
-							</button>
-							<button type="button" onClick={handleCreatePost} disabled={submittingPost || loadingTopics}>
-								{submittingPost ? 'Đang đăng...' : 'Đăng bài'}
-							</button>
+					{composerImagePreview ? (
+						<div className={styles.previewImageWrap}>
+							<img src={composerImagePreview} alt="post preview" className={styles.previewImage} />
 							<button
 								type="button"
 								onClick={() => {
-									setIsComposerModalOpen(false)
-									updateParams({ composer: '' })
+									setComposerImageFile(null)
+									setComposerImagePreview('')
 								}}
+								className={styles.removeImageBtn}
 							>
-								Hủy
+								Gỡ ảnh
 							</button>
 						</div>
+					) : null}
+
+					<div className={styles.modalActionRow}>
+						<input
+							ref={postImageInputRef}
+							type="file"
+							accept="image/*"
+							onChange={handlePickComposerImage}
+							hidden
+						/>
+						<button type="button" onClick={() => postImageInputRef.current?.click()}>
+							<FaImage /> Chọn ảnh
+						</button>
+						<button type="button" onClick={handleCreatePost} disabled={submittingPost || loadingTopics}>
+							{submittingPost ? 'Đang đăng...' : 'Đăng bài'}
+						</button>
+						<button
+							type="button"
+							onClick={closeComposerModal}
+						>
+							Hủy
+						</button>
 					</div>
 				</div>
-			) : null}
+			</div>
 
 			{editingPost ? (
 				<div className={styles.composerModalOverlay} onClick={closeEditModal}>
 					<div className={styles.composerModal} onClick={(event) => event.stopPropagation()}>
 						<h3>Chỉnh sửa bài viết</h3>
 						<p style={{marginLeft: 3, fontWeight: 'bold'}}>Chủ đề</p>
-						<select
-							value={editingPost.topicId}
-							onChange={(event) =>
-								setEditingPost((prev) => (prev ? { ...prev, topicId: event.target.value } : prev))
+						<Select
+							value={editingPost.topicId || undefined}
+							onChange={(value) =>
+								setEditingPost((prev) => (prev ? { ...prev, topicId: value } : prev))
 							}
-							className={styles.topicSelect}
-						>
-							{apiTopics.map((topic) => (
-								<option key={topic.id} value={topic.id}>
-									{topic.name}
-								</option>
-							))}
-						</select>
+							className={styles.topicSelectAntd}
+							placeholder="Chọn chủ đề"
+							options={apiTopics.map((topic) => ({
+								value: topic.id,
+								label: getTopicDisplayName(topic),
+							}))}
+						/>
 
 						<textarea
 							value={editingPost.text}
@@ -1293,6 +1334,19 @@ const featuredPosts = useMemo(() => {
 					</div>
 				</div>
 			) : null}
+
+			<Modal
+				open={isPreviewModalOpen}
+				onCancel={() => {
+					setIsPreviewModalOpen(false)
+					setPreviewImageSrc('')
+				}}
+				footer={null}
+				centered
+				width={900}
+			>
+				<img src={previewImageSrc} alt="preview" className={styles.previewModalImage} />
+			</Modal>
 		</div>
 	)
 }

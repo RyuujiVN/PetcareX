@@ -3,7 +3,6 @@
 	--forum-primary-hover: var(--user-primary-hover);
 	--forum-primary-soft: var(--user-primary-alpha-10);
 
-	/* min-height: 100vh; */
 	height: 100vh;
     overflow: hidden;
 	background: #fffdfd;
@@ -12,7 +11,7 @@
 }
 
 .pageWrap {
-	max-width: 1560px;
+	max-width: 1200px;
 	margin: 0 auto;
 	padding: 72px 28px 56px;
 	display: grid;
@@ -71,8 +70,9 @@
 
 .composeTop {
 	display: grid;
-	grid-template-columns: 44px 1fr;
+	grid-template-columns: 44px minmax(0, 1fr) auto;
 	gap: 12px;
+	align-items: center;
 }
 
 .composeAvatar {
@@ -86,11 +86,36 @@
 	border: none;
 	border-radius: 14px;
 	background: #f0f3f7;
-	min-height: 40px;
+	min-height: 36px;
 	padding: 14px;
 	resize: none;
 	color: #6e7f95;
 	font-size: 16px;
+}
+
+.composeActions {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+}
+
+.topicFilterIconBtn {
+	width: 38px;
+	height: 38px;
+	border-radius: 10px;
+	border: 1px solid #d5e0ec;
+	background: #ffffff;
+	color: #5f7289;
+	font-size: 16px;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.topicFilterIconBtn:hover {
+	background: #f2f7fb;
+	color: #3f5670;
 }
 
 .composeInput:focus {
@@ -577,8 +602,17 @@
 	justify-content: center;
 	padding: 16px;
 	z-index: 999;
+	opacity: 0;
+	visibility: hidden;
+	pointer-events: none;
+	transition: opacity 0.2s ease;
+	will-change: opacity;
 }
-
+.composerModalOverlay.open {
+	opacity: 1;
+	visibility: visible;
+	pointer-events: auto;
+}
 .composerModal {
 	width: min(680px, 100%);
 	border-radius: 16px;
@@ -588,8 +622,15 @@
 	flex-direction: column;
 	gap: 12px;
 	box-shadow: 0 10px 28px rgba(12, 21, 34, 0.25);
+	transform: translateY(20px) scale(0.96);
+	opacity: 0;
+	transition: transform 0.22s ease, opacity 0.22s ease;
+	will-change: transform, opacity;
 }
-
+.composerModal.open {
+	transform: translateY(0) scale(1);
+	opacity: 1;
+}
 .composerModal h3 {
 	margin: 0;
 	font-size: 22px;
@@ -605,6 +646,26 @@
 	font-weight: 600;
 	color: #445871;
 	background: #ffffff;
+}
+
+.topicSelectAntd {
+	width: 100%;
+}
+
+.topicSelectAntd :global(.ant-select-selector) {
+	border-radius: 10px !important;
+	border-color: #d6e1ee !important;
+	min-height: 40px;
+	padding-top: 4px !important;
+	padding-bottom: 4px !important;
+}
+
+.previewModalImage {
+	width: 100%;
+	height: auto;
+	max-height: 78vh;
+	object-fit: contain;
+	display: block;
 }
 
 .sideCard {
@@ -806,6 +867,16 @@
 
 	.composerModal {
 		padding: 14px;
+	}
+
+	.composeTop {
+		grid-template-columns: 40px minmax(0, 1fr) auto;
+		gap: 8px;
+	}
+
+	.composeActions {
+		grid-column: auto;
+		justify-content: flex-end;
 	}
 }
 button:focus,

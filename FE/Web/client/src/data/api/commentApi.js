@@ -1,7 +1,7 @@
-import request from './forumFetchClient'
+import instance from './instance'
 
-export const getReplies = ({ limit = 10, parentId, createdAt } = {}) =>
-	request('/comment/replies', {
+export const getReplies = async ({ limit = 10, parentId, createdAt } = {}) => {
+	const response = await instance.get('/comment/replies', {
 		params: {
 			limit,
 			parentId,
@@ -9,22 +9,23 @@ export const getReplies = ({ limit = 10, parentId, createdAt } = {}) =>
 		},
 	})
 
-export const createComment = (data) =>
-	request('/comment', {
-		method: 'POST',
-		body: data,
-	})
+	return response.data
+}
 
-export const updateComment = (id, data) =>
-	request(`/comment/${id}`, {
-		method: 'PUT',
-		body: data,
-	})
+export const createComment = async (payload) => {
+	const response = await instance.post('/comment', payload)
+	return response.data
+}
 
-export const deleteComment = (id) =>
-	request(`/comment/${id}`, {
-		method: 'DELETE',
-	})
+export const updateComment = async (commentId, payload) => {
+	const response = await instance.put(`/comment/${commentId}`, payload)
+	return response.data
+}
+
+export const deleteComment = async (commentId) => {
+	const response = await instance.delete(`/comment/${commentId}`)
+	return response.data
+}
 
 export default {
 	getReplies,
