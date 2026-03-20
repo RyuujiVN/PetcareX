@@ -1,8 +1,8 @@
-.success-booking-wrapper {
+﻿.success-booking-wrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background: linear-gradient(135deg, #f5f7fa 0%, #f7f9fc 10%);
+  background: var(--color-surface-page);
 }
 
 .success-booking-container {
@@ -46,7 +46,7 @@
 .appointment-summary-card {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px var(--auto-rgba-0-0-0-0-08);
   padding: 32px;
   margin-bottom: 24px;
   animation: slideUp 0.6s ease-out;
@@ -264,3 +264,5 @@
   color: var(--page-success-primary);
   border-color: var(--page-success-primary);
 }
+
+

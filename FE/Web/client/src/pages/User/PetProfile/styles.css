@@ -1,5 +1,5 @@
-body {
-  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+﻿body {
+  background: linear-gradient(135deg, var(--c-f5f7fa) 0%, var(--c-c3cfe2) 100%);
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -15,7 +15,7 @@ body {
   min-height: 100vh;
   padding: 40px 20px;
   padding-top: 80px;
-  background: #F8FAFC;
+  background: var(--color-surface-soft);
 }
 
 .profile-loading {
@@ -115,12 +115,12 @@ body {
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 8px;
-  color: rgb(8, 8, 8);
+  color: var(--color-text-primary);
 }
 
 .profile-subtitle {
   font-size: 14px;
-  color: #d64f26;
+  color: var(--color-danger);
   margin: 0;
 }
 
@@ -128,13 +128,13 @@ body {
     font-size: 25px;
     font-weight: 700;
     margin-right: 63%;
-    color: rgb(8, 8, 8);
+    color: var(--color-text-primary);
     padding-bottom: 20px;
 }
 
 .profile-description {
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.9);
+  color: var(--auto-rgba-0-0-0-0-9);
   margin-right: 40%;
   padding-bottom: 20px;
   font-weight: 500;
@@ -188,7 +188,7 @@ body {
 .form-input:focus,
 .form-input:focus-visible {
   border-color: var(--primary-color) !important;
-  box-shadow: 0 0 0 2px rgba(19, 236, 218, 0.1) !important;
+  box-shadow: 0 0 0 2px var(--color-brand-primary-alpha-10) !important;
 }
 
 .form-input .ant-input {
@@ -220,11 +220,11 @@ body {
 
 .form-input .ant-select-focused .ant-select-selector {
   border-color: var(--primary-color) !important;
-  box-shadow: 0 0 0 2px rgba(19, 236, 218, 0.1) !important;
+  box-shadow: 0 0 0 2px var(--color-brand-primary-alpha-10) !important;
 }
 
 .ant-select-item-option-selected {
-  background: rgba(19, 236, 218, 0.1) !important;
+  background: var(--color-brand-primary-alpha-10) !important;
   color: var(--primary-color) !important;
 }
 
@@ -274,25 +274,25 @@ body {
 .btn-submit:hover {
   background: var(--primary-hover) !important;
   color: white !important;
-  box-shadow: 0 4px 12px rgba(19, 236, 218, 0.4) !important;
+  box-shadow: 0 4px 12px var(--color-brand-primary-alpha-40) !important;
 }
 
 .btn-submit:active {
-  background: #0BB5A5 !important;
+  background: var(--color-brand-primary-hover) !important;
 }
 
 .ant-form-item-explain-error {
-  color: #ef4444 !important;
+  color: var(--color-danger) !important;
   font-size: 13px !important;
   margin-top: 6px !important;
 }
 
 .ant-form-item-has-error .form-input {
-  border-color: #ef4444 !important;
+  border-color: var(--color-danger) !important;
 }
 
 .ant-form-item-has-error .form-input:focus {
-  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1) !important;
+  box-shadow: 0 0 0 2px var(--color-danger-alpha-10) !important;
 }
 
 @media (max-width: 768px) {
@@ -387,3 +387,6 @@ body {
 .ant-spin {
   color: var(--primary-color) !important;
 }
+
+
+

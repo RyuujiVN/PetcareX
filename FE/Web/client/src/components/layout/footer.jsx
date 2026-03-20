@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { FaGlobe, FaEnvelope, FaPhone, FaMapMarkerAlt } from "react-icons/fa";
 import "./footer.css";
 
@@ -87,3 +87,4 @@ function Footer() {
 }
 
 export default Footer;
+

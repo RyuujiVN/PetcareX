@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Button, Card, Row, Col, Divider, Space, message, QRCode } from 'antd';
 import { CheckCircleOutlined, CalendarOutlined, UserOutlined, ClockCircleOutlined, MedicineBoxOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -120,3 +120,4 @@ const SuccessBooking = () => {
 };
 
 export default SuccessBooking;
+

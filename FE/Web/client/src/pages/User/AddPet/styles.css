@@ -1,4 +1,4 @@
-body {
+﻿body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -46,7 +46,7 @@ body::-webkit-scrollbar {
 
 .addPets-card {
   background: linear-gradient(white);
-  border: 1px solid #bec0c086;
+  border: 1px solid var(--c-bec0c086);
   border-radius: 12px;
   box-shadow: none;
   padding: 30px 50px;
@@ -56,7 +56,7 @@ body::-webkit-scrollbar {
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-top: 1px solid #FFFFFF;
+  border-top: 1px solid var(--c-ffffff);
 }
 
 .addPets-header {
@@ -94,7 +94,7 @@ body::-webkit-scrollbar {
   display: block;
   font-size: 13px;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--c-0f172a);
   margin-bottom: 8px;
 }
 
@@ -108,10 +108,10 @@ body::-webkit-scrollbar {
   width: 100%;
   height: 44px;
   padding: 10px 14px;
-  border: 1px solid #CBD5E1;
+  border: 1px solid var(--c-cbd5e1);
   border-radius: 6px;
   font-size: 14px;
-  color: #0F172A;
+  color: var(--c-0f172a);
   transition: all 0.3s ease;
   font-family: inherit;
 }
@@ -124,15 +124,15 @@ input.form-input[type="text"] {
 
 .form-input:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(131, 197, 206, 0.1);
+  box-shadow: 0 0 0 3px var(--auto-rgba-131-197-206-0-1);
 }
 
 .form-input::placeholder {
-  color: #CBD5E1;
+  color: var(--c-cbd5e1);
 }
 
 .basic-info-section {
-  background: #ffffff;
+  background: var(--color-surface-card);
   padding: 20px 25px;
   border-radius: 8px;
   margin-bottom: 20px;
@@ -172,11 +172,11 @@ input.form-input[type="text"] {
   border: none;
   background: transparent;
   cursor: pointer;
-  color: #475569;
+  color: var(--c-475569);
 }
 
 .age-display {
-  background: #f8fafc;
+  background: var(--c-f8fafc);
   cursor: not-allowed;
 }
 
@@ -208,9 +208,9 @@ input.form-input[type="text"] {
 .cancel-button {
   padding: 12px 20px;
   background: transparent;
-  border: 1px solid #475569;
+  border: 1px solid var(--c-475569);
   border-radius: 6px;
-  color: #475569;
+  color: var(--c-475569);
   font-size: 14px;
   cursor: pointer;
   margin-left: 60%;
@@ -227,7 +227,7 @@ input.form-input[type="text"] {
 }
 
 .upload-group .upload-box {
-  border: 2px dashed #CBD5E1;
+  border: 2px dashed var(--c-cbd5e1);
   border-radius: 6px;
   height: 180px;
   display: flex;
@@ -254,7 +254,7 @@ input.form-input[type="text"] {
   transform: translateY(-50%);
   border: none;
   background: transparent;
-  color: #475569;
+  color: var(--c-475569);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -270,7 +270,7 @@ input.form-input[type="text"] {
 }
 
 .upload-box:hover {
-  background: #f9f9f9;
+  background: var(--color-surface-soft);
 }
 
 .upload-text {
@@ -328,7 +328,7 @@ input.form-input[type="text"] {
 }
 
 .error-text {
-  color: #ff4d4f;
+  color: var(--color-danger);
   font-size: 13px;
   margin-top: 5px;
 }
@@ -360,3 +360,5 @@ input.form-input[type="text"] {
  .ant-select {
   width: 100% !important;
 }
+
+

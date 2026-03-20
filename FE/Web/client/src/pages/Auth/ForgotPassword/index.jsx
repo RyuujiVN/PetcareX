@@ -39,7 +39,7 @@ export default function ForgotPassword() {
     <div className="forgot-password-container">
       <div className="login-header-bar">
               <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaPaw size={28} color="#13ECDA" />
+                <FaPaw size={28} color="var(--auth-primary)" />
                 <h2 className="logo-name-small" style={{ margin: 0, color: 'white' }}>PetcareX</h2>
               </div>
             </div>
@@ -48,7 +48,7 @@ export default function ForgotPassword() {
           <div className="forgot-password-icon">
             <svg viewBox="0 0 80 80" className="lock-icon-svg">
               <defs>
-                <style>{`.lock-fill { fill: #13ECDA; }`}</style>
+                <style>{`.lock-fill { fill: var(--auth-primary); }`}</style>
               </defs>
               <circle cx="40" cy="40" r="40" className="lock-fill" opacity="0.15" />
               <path

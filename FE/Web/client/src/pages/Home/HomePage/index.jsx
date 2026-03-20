@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+﻿import { useNavigate } from "react-router-dom";
 import "./styles.css";
 import Header from "../../../components/layout/header";
 import Footer from "../../../components/layout/footer";
@@ -167,7 +167,7 @@ export default function HomePage() {
 
       <section className="stats-section">
         <div className="stats-containers">
-          <h2> <AiOutlineRise size={45} color="#eb524d"/> Cung cấp công cụ chăm sóc thú cưng toàn diện</h2>
+          <h2> <AiOutlineRise size={45} color="var(--c-eb524d)"/> Cung cấp công cụ chăm sóc thú cưng toàn diện</h2>
 
           <div className="stats-grid">
             {stats.map((stat) => (
@@ -217,7 +217,7 @@ export default function HomePage() {
                   <div key={solution.id} className="solution-item">
                     <div className="item-icon solution-icon"><TbCircleCheck /></div>
                     <div className="item-content">
-                      <h4>{solution.title}</h4>
+                      <h4 style={{color: '#333'}}>{solution.title}</h4>
                       <p>{solution.description}</p>
                     </div>
                   </div>
@@ -279,7 +279,7 @@ export default function HomePage() {
         <div className="section-container">
           <div className="security-content">
             <div className="security-icon">
-              <MdSecurity size={50} color="#2563EB"/>
+              <MdSecurity size={50} color="var(--color-info)"/>
             </div>
 
             <h2 className="security-title">Cam kết An toàn & Bảo mật</h2>
@@ -330,3 +330,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+

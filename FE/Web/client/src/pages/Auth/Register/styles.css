@@ -1,3 +1,5 @@
+@import '../authColorToken.css';
+
 * {
   margin: 0;
   padding: 0;
@@ -5,9 +7,9 @@
 }
 
 :root {
-  --primary: #13ECDA;
-  --text-primary: #333;
-  --text-secondary: #666;
+  --primary: var(--auth-primary);
+  --text-primary: var(--auth-text-primary);
+  --text-secondary: var(--auth-text-secondary);
 }
 
 body {

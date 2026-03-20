@@ -1,4 +1,8 @@
 .pageRoot {
+	--medical-primary: var(--user-primary);
+	--medical-primary-hover: var(--user-primary-hover);
+	--medical-primary-soft: var(--user-primary-alpha-10);
+
 	min-height: 100vh;
 	background: #f3f5f7;
 }
@@ -93,7 +97,7 @@
 }
 
 .panelTitle svg {
-	color: #1ba39a;
+	color: var(--medical-primary);
 }
 
 .timelineWrapper {
@@ -141,7 +145,7 @@
 }
 
 .timelineMarker.checkup {
-	background: #17a294;
+	background: var(--medical-primary);
 }
 
 .timelineMarker.skin {
@@ -236,7 +240,7 @@
 }
 
 .recordDetails p span {
-	color: #07a693;
+	color: var(--medical-primary);
 	font-weight: 900;
 }
 
@@ -307,9 +311,9 @@
 	width: 100%;
 	margin-top: 14px;
 	border-radius: 12px;
-	border: 2px solid #21c5b8;
+	border: 2px solid var(--medical-primary);
 	background: #ffffff;
-	color: #20b8ac;
+	color: var(--medical-primary);
 	font-size: 16px;
 	font-weight: 900;
 	padding: 10px 12px;
@@ -318,7 +322,7 @@
 }
 
 .bookNowButton:hover {
-	background: #1fc6b9;
+	background: var(--medical-primary-hover);
 	color: #ffffff;
 }
 

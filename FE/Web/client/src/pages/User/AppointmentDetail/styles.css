@@ -1,4 +1,4 @@
-.appointment-detail-wrapper {
+﻿.appointment-detail-wrapper {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -18,7 +18,7 @@
   padding: 32px;
   border-radius: 12px;
   margin-bottom: 32px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-06);
   padding-top: 60px;
 }
 
@@ -38,7 +38,7 @@
 .tabs-wrapper {
   background: var(--color-surface-card);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-06);
   padding: 20px;
 }
 
@@ -79,7 +79,7 @@
 }
 
 .appointment-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px var(--auto-rgba-0-0-0-0-1);
   border-color: var(--page-appointment-primary);
 }
 
@@ -409,7 +409,7 @@ body.modal-open {
 }
 
 .ant-modal-mask {
-  background: rgba(0, 0, 0, 0.45);
+  background: var(--auto-rgba-0-0-0-0-45);
 }
 
 .no-animate .appointment-card {

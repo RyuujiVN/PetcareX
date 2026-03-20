@@ -1,3 +1,5 @@
+﻿@import '../theme.css';
+
 .clinic-header {
   max-width: 1200px;
   margin: 40px auto 60px;
@@ -33,14 +35,14 @@
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: #888;
+  color: var(--color-text-secondary);
   font-size: 18px;
 }
 
 .clinic-search {
   padding: 10px 14px 10px 36px;
   font-size: 14px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--color-border-strong);
   border-radius: 8px;
   width: 96%;
 }
@@ -57,8 +59,9 @@
 
 .clinic-card {
   background: white;
+  border: 1px solid var(--color-border-soft);
   border-radius: 12px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px var(--auto-rgba-0-0-0-0-08);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -69,7 +72,7 @@
 
 .clinic-card:hover {
   transform: translateY(-6px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  box-shadow: 0 8px 24px var(--auto-rgba-0-0-0-0-12);
 }
 
 .clinic-img {
@@ -91,7 +94,7 @@
 
 .clinic-info p {
   font-size: 14px;
-  color: #555;
+  color: var(--color-text-muted);
   margin: 0;
 }
 
@@ -150,12 +153,12 @@
 
 .rating {
   font-size: 13px;
-  color: #888;
+  color: var(--color-text-secondary);
 }
 
 .btn-choose {
-  background: #1abc9c;
-  color: #fff;
+  background: var(--color-brand-muted);
+  color: var(--color-surface-card);
   border: none;
   padding: 12px;
   margin: 0 20px 20px;
@@ -165,7 +168,7 @@
 }
 
 .btn-choose:hover {
-  background: #16a085;
+  background: var(--color-brand-primary-hover);
 }
 
 @media (max-width: 768px) {
@@ -177,3 +180,4 @@
     width: 100%;
   }
 }
+

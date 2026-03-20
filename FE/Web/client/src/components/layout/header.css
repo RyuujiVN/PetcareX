@@ -1,6 +1,6 @@
-.petcare-header {
+﻿.petcare-header {
     background-color: var(--color-surface-card);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-08);
     position: fixed;
     top: 0;
     left: 0;
@@ -137,8 +137,8 @@ body {
 }
 
 .user-profile:hover {
-    background-color: #e8e8e8;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    background-color: var(--color-border-soft);
+    box-shadow: 0 2px 6px var(--auto-rgba-0-0-0-0-1);
 }
 
 .user-avatar {
@@ -182,7 +182,7 @@ body {
     margin-top: 12px;
     background-color: var(--color-surface-card);
     border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 20px var(--auto-rgba-0-0-0-0-12);
     min-width: 220px;
     overflow: hidden;
     animation: slideDown 0.3s ease;
@@ -236,8 +236,8 @@ body {
 }
 
 .dropdown-item.logout:hover {
-    color: #e74c3c;
-    background-color: #ffe8e8;
+    color: var(--color-danger);
+    background-color: var(--color-danger-soft);
 }
 
 
@@ -351,3 +351,5 @@ body {
         font-size: 13px;
     }
 }
+
+

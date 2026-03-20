@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { message, Spin } from 'antd';
 import { Select, Card, Avatar, Row, Col, Input, Form } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -418,8 +418,8 @@ export default function BookingAppointment() {
     <div className="booking-page">
       <Header />
       <header className="dashboard-header">
-        <h1 style={{marginRight: '42%'}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
-        <p style={{marginRight: '48%'}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
+        <h1 style={{marginRight: '46%'}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
+        <p style={{marginRight: '48%', paddingTop: 19}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
       </header>
       <Spin spinning={loading || submitting}>
         <div className="booking-content">
@@ -464,7 +464,7 @@ export default function BookingAppointment() {
                   onClick={() => handleAddPet()}
                   style={{ cursor: 'pointer' }}
                 >
-                  <span className="add-text" style={{ color: '#4672b4' }}>
+                  <span className="add-text" style={{ color: 'var(--color-brand-primary)' }}>
                     Thêm thú cưng mới
                   </span>
                 </article>
@@ -506,7 +506,7 @@ export default function BookingAppointment() {
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
-                    label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Chọn dịch vụ</span>}
+                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Chọn dịch vụ</span>}
                     name="service"
                     rules={[{ required: true, message: 'Vui lòng chọn dịch vụ' }]}
                   >
@@ -522,7 +522,7 @@ export default function BookingAppointment() {
 
                 <Col span={12}>
                   <Form.Item
-                    label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Phòng khám gần bạn</span>}
+                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Phòng khám gần bạn</span>}
                     name="clinicId"
                     rules={[{ required: true, message: 'Vui lòng chọn phòng khám' }]}
                   >
@@ -547,7 +547,7 @@ export default function BookingAppointment() {
               <Row gutter={16} align="middle">
                 <Col span={12}>
                   <Form.Item
-                    label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Bác sĩ</span>}
+                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Bác sĩ</span>}
                     name="doctorId"
                     rules={[{ required: true, message: 'Vui lòng chọn bác sĩ' }]}
                   >
@@ -575,7 +575,7 @@ export default function BookingAppointment() {
                         {selectedDoctorName || 'Chưa chọn bác sĩ'}
                       </div>
 
-                      <div style={{ color: '#888' }}>
+                      <div style={{ color: 'var(--color-text-secondary)' }}>
                         {selectedDoctor?.specialty || 'Chưa có chuyên môn'}
                       </div>
                     </div>
@@ -584,7 +584,7 @@ export default function BookingAppointment() {
               </Row>
               <div style={{ marginTop: 16 }}>
                 <Form.Item
-                  label={<span style={{ color: '#333', padding: 2, fontSize: 16 }}>Triệu chứng</span>}
+                  label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Triệu chứng</span>}
                   name="symptoms"
                   rules={[{ validator: validateSymptoms }]}
                 >
@@ -600,12 +600,12 @@ export default function BookingAppointment() {
               <h2><span className="step-number">4</span> Chọn ngày & Giờ hẹn</h2>
               <div className="date-time-selector">
                 <div className="calendar">
-                  <div className="month-header" style={{color: '#333'}}>
+                  <div className="month-header" style={{color: 'var(--color-text-primary)'}}>
                     <button onClick={prevMonth}>&lt;</button>
                     <span>Tháng {calendarMonth + 1}, {calendarYear}</span>
                     <button onClick={nextMonth}>&gt;</button>
                   </div>
-                  <table style={{color: '#333'}}>
+                  <table style={{color: 'var(--color-text-primary)'}}>
                     <thead>
                       <tr >
                         <th>CN</th>
@@ -646,7 +646,7 @@ export default function BookingAppointment() {
                     </tbody>
                   </table>
                 </div>
-                <div className="time-slots" style={{color: '#333'}}>
+                <div className="time-slots" style={{color: 'var(--color-text-primary)'}}>
                   {WORKING_SLOTS.map((timeValue) => {
                     const inPast = toDateTimeValue(selectedDate, timeValue) < new Date();
                     const isBooked = unavailableTimes.has(timeValue);
@@ -687,7 +687,7 @@ export default function BookingAppointment() {
           <button
             className="btn-confirm"
             onClick={handleOpenSummary}
-            style={{ width: '200px', border: '1px solid #4672b4' , padding: '10px', borderRadius:'10px', backgroundColor: '#4672b4', color: '#ffffff' }}
+            style={{ width: '200px', border: '1px solid var(--color-brand-primary)' , padding: '10px', borderRadius:'10px', backgroundColor: 'var(--color-brand-primary)', color: 'var(--color-surface-card)' }}
           >
             Xác nhận
           </button>
@@ -769,3 +769,5 @@ export default function BookingAppointment() {
     </div>
   );
 }
+
+

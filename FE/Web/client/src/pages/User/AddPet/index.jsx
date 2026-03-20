@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+﻿import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
@@ -178,7 +178,7 @@ export default function AddPet() {
       <div className="addPets-header-bar">
         <Header/>
         <div className="header-left">
-          <FaPaw size={28} color="#13ECDA" />
+          <FaPaw size={28} color="var(--c-13ecda)" />
           <h2 className="logo-name-small">PetcareX</h2>
         </div>
       </div>
@@ -203,7 +203,7 @@ export default function AddPet() {
                 <img src={avatar} className="avatar-preview" alt="preview" />
               ) : (
                 <>
-                  <FiCamera size={36} color="#13ECDA" />
+                  <FiCamera size={36} color="var(--c-13ecda)" />
                   <p className="upload-text">Tải lên hình ảnh thú cưng của bạn</p>
                   <button
                     type="button"
@@ -358,3 +358,4 @@ export default function AddPet() {
     </div>
   );
 }
+

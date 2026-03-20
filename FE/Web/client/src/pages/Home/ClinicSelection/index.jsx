@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { message, Spin } from "antd";
 import Header from "../../../components/layout/header";
 import Footer from "../../../components/layout/footer";
@@ -123,7 +123,7 @@ useEffect(() => {
                 className="clinic-img"
               />
 
-              <div className="clinic-info" style={{ color: "#333" }}>
+              <div className="clinic-info" style={{ color: "var(--color-text-primary)" }}>
                 <h3
                   className="clinic-name"
                   title={clinic.name}
@@ -164,3 +164,4 @@ useEffect(() => {
     </div>
   );
 }
+

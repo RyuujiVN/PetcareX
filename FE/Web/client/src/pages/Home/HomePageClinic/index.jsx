@@ -1,4 +1,4 @@
-import { FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
+﻿import { FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import Footer from "../../../components/layout/footer";
 import Header from "../../../components/layout/header";
@@ -106,8 +106,8 @@ export default function HomePageClinic() {
     { id: 4, image: './public/bs4.png', name: 'BS. Tuyết Mai' }
   ];
 
-  const goToMainUser = () => {
-    navigate("/main-user");
+  const goToChooseClinic = () => {
+    navigate("/choose-clinic");
   };
 
   const goToBookingAppointment = () => {
@@ -133,8 +133,8 @@ export default function HomePageClinic() {
           </p>
 
           <div className="hero-buttons">
-            <button className="btn btn-primary" onClick={goToMainUser}>
-              Dành cho chủ nuôi
+            <button className="btn btn-primary" onClick={goToChooseClinic}>
+              Quay lại phòng khám
             </button>
             <button className="btn btn-secondary-hero" onClick={goToBookingAppointment}>
               Đặt lịch khám ngay
@@ -258,3 +258,4 @@ export default function HomePageClinic() {
     </div>
   );
 }
+

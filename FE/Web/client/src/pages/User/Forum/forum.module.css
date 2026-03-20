@@ -1,4 +1,8 @@
 .pageRoot {
+	--forum-primary: var(--user-primary);
+	--forum-primary-hover: var(--user-primary-hover);
+	--forum-primary-soft: var(--user-primary-alpha-10);
+
 	/* min-height: 100vh; */
 	height: 100vh;
     overflow: hidden;
@@ -90,7 +94,7 @@
 }
 
 .composeInput:focus {
-	outline: 2px solid #bfe9e5;
+	outline: 2px solid var(--forum-primary-soft);
 }
 
 .tabRow {
@@ -114,7 +118,7 @@
 
 .activeTab {
 	color: #ffffff;
-	background: #23d5ca;
+	background: var(--forum-primary);
 	border-radius: 10px ;
 }
 
@@ -131,8 +135,8 @@
 }
 
 .selectedPost {
-	border-color: #bce5e0;
-	box-shadow: 0 0 0 2px rgba(35, 213, 202, 0.1);
+	border-color: var(--forum-primary);
+	box-shadow: 0 0 0 2px var(--forum-primary-soft);
 }
 
 .postHeader {
@@ -661,7 +665,7 @@
 }
 
 .rankItem em {
-	color: #18cdbf;
+	color: var(--forum-primary);
 	font-style: normal;
 	font-size: 17px;
 	font-weight: 800;
@@ -671,9 +675,9 @@
 	margin-top: 12px;
 	width: 100%;
 	border-radius: 12px;
-	border: 1px solid #d4ebe8;
+	border: 1px solid var(--forum-primary-soft);
 	background: #ffffff;
-	color: #22c2b6;
+	color: var(--forum-primary);
 	padding: 12px;
 	font-size: 15px;
 	font-weight: 800;
@@ -681,7 +685,7 @@
 }
 
 .sideAction:hover {
-	background: #f3fdfa;
+	background: var(--forum-primary-soft);
 }
 
 .featureList {

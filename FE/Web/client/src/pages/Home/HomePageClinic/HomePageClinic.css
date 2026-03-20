@@ -1,8 +1,10 @@
+﻿@import '../theme.css';
+
 .clinic-hero {
   position: relative;
   width: 100%;
   min-height: 500px;
-  background: linear-gradient(135deg,#00bfa5 0%,#009688 100%);
+  background: linear-gradient(135deg,var(--page-home-primary) 0%,var(--page-home-primary-hover) 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,11 +45,11 @@
 
 .about-section {
   padding: 80px 20px;
-  background: #f9f9f9;
+  background: var(--color-surface-soft);
 }
 
 .about-section .section-title {
-  color: #1a1a1a;
+  color: var(--color-text-primary);
 }
 
 .about-grid {
@@ -58,13 +60,13 @@
   position: relative;
 }
 .about-split .about-left {
-  border-right: 1px solid #ccc;
+  border-right: 1px solid var(--color-border-strong);
   padding-right: 20px;
   min-width: 200px;
 }
 .about-left .about-label {
   font-size: 14px;
-  color: #333;
+  color: var(--color-text-primary);
   display: block;
   margin-bottom: 8px;
 }
@@ -80,7 +82,7 @@
 .about-right .about-text {
   font-size: 16px;
   line-height: 1.6;
-  color: #444;
+  color: var(--color-text-muted);
   margin-bottom: 20px;
 }
 .about-right .btn-secondary {
@@ -93,18 +95,18 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  border-left: 4px solid #00d6c2;
+  border-left: 4px solid var(--page-home-primary);
   padding-left: 16px;
 }
 .about-highlight .highlight-number {
   font-size: 48px;
   font-weight: 900;
-  color: #00d6c2;
+  color: var(--page-home-primary);
   line-height: 1;
 }
 .about-highlight .highlight-label {
   font-size: 12px;
-  color: #666;
+  color: var(--color-text-muted);
   margin-top: 4px;
 }
 
@@ -114,13 +116,13 @@
   gap: 24px;
 }
 .feature-card.compact {
-  background: #ffffff;
+  background: var(--color-surface-card);
   padding: 24px 20px;
   border-radius: 20px;
   text-align: center;
   min-height: 0;
   height: auto;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.04);
+  box-shadow: 0 6px 16px var(--auto-rgba-0-0-0-0-04);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -130,7 +132,7 @@
 }
 .feature-card.compact:hover {
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 24px var(--auto-rgba-0-0-0-0-08);
 }
 .feature-icon-wrapper {
   width: 60px;
@@ -141,32 +143,32 @@
   border-radius: 50%;
   margin: 0 auto 12px;
 }
-.feature-icon-wrapper.blue-bg { background: #e0f2ff; }
-.feature-icon-wrapper.purple-bg { background: #f3e8ff; }
-.feature-icon-wrapper.yellow-bg { background: #fff9e6; }
-.feature-icon-wrapper.green-bg { background: #e6ffed; }
+.feature-icon-wrapper.blue-bg { background: var(--color-badge-blue-soft); }
+.feature-icon-wrapper.purple-bg { background: var(--color-badge-blue-soft); }
+.feature-icon-wrapper.yellow-bg { background: var(--color-surface-card)9e6; }
+.feature-icon-wrapper.green-bg { background: var(--color-badge-green-soft); }
 .feature-icon {
   font-size: 28px;
-  color: #00637d;
+  color: var(--c-00637d);
 }
 .feature-title {
   font-size: 18px;
   font-weight: 700;
   margin: 0 0 8px;
-  color: #0d0d0d;
+  color: var(--color-text-primary);
 }
 .feature-content {
   width: 100%;
 }
 .feature-desc {
   font-size: 14px;
-  color: #333;
+  color: var(--color-text-primary);
   margin: 0;
   line-height: 1.45;
 }
 
 .about-section .section-title {
-  color: #1a1a1a;
+  color: var(--color-text-primary);
 }
 
 .clinic-features {
@@ -180,7 +182,7 @@
 }
 .clinic-features .section-subtitle {
   font-size: 16px;
-  color: #555;
+  color: var(--color-text-muted);
   max-width: 600px;
   margin: 8px auto 24px;
   line-height: 1.5;
@@ -191,7 +193,7 @@
   padding: 30px 20px;
   border-radius: 15px;
   text-align: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px var(--auto-rgba-0-0-0-0-08);
   transition: transform .25s ease;
 }
 
@@ -202,7 +204,7 @@
 .feature-icon {
   font-size: 50px;
   margin-bottom: 12px;
-  color: #00bfa5;
+  color: var(--page-home-primary);
 }
 
 .team-section {
@@ -225,17 +227,17 @@
 .doctor-name {
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
   text-align: center;
 }
 .doctor-cards {
   text-align: center;
   padding: 10px;
-  border: 1px solid #d8d3d3;
+  border: 1px solid var(--color-border-strong);
 }
 .services-section {
   padding: 80px 20px;
-  background: #fafafa;
+  background: var(--color-surface-soft);
 }
 .services-layout {
   display: grid;
@@ -256,12 +258,12 @@
   font-size: 20px;
   font-weight: 700;
   margin-bottom: 8px;
-  color: #0a0a0a;
+  color: var(--color-text-primary);
 }
 .service-item .service-desc {
   font-size: 14px;
   line-height: 1.6;
-  color: #444;
+  color: var(--color-text-muted);
 }
 .services-center-image img {
   max-width: 400px;
@@ -287,7 +289,7 @@
 }
 .community-subtitle {
   font-size: 12px;
-  color: #009688;
+  color: var(--page-home-primary-hover);
   letter-spacing: 1.5px;
   font-weight: 600;
   display: block;
@@ -296,7 +298,7 @@
 .community-hot {
   display: inline-flex;
   align-items: center;
-  color: #e65100;
+  color: var(--color-badge-orange);
   font-size: 14px;
   margin-top: 8px;
 }
@@ -313,10 +315,10 @@
 .community-card {
   flex: 0 0 300px;
   width: 300px;
-  background: #fff;
+  background: var(--color-surface-card);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 16px var(--auto-rgba-0-0-0-0-08);
   transition: transform 0.25s ease;
 }
 .community-card:hover {
@@ -331,12 +333,12 @@
 .community-card p {
   padding: 12px;
   font-size: 14px;
-  color: #333;
+  color: var(--color-text-primary);
   line-height: 1.4;
 }
 
 .community-doctors {
-  background: #e6ffed;
+  background: var(--color-badge-green-soft);
   padding: 40px 20px;
   margin-top: 40px;
   border-radius: 12px;
@@ -363,15 +365,18 @@
   object-fit: cover;
   display: block;
   margin: 0 auto 8px;
-  border: 2px solid #00d6c2;
+  border: 2px solid var(--page-home-primary);
 }
 .avatar-name {
   font-size: 14px;
   font-weight: 600;
   display: block;
-  color: #0a0a0a;
+  color: var(--color-text-primary);
 }
 .avatar-subtitle {
   font-size: 12px;
-  color: #666;
+  color: var(--color-text-muted);
 }
+
+
+

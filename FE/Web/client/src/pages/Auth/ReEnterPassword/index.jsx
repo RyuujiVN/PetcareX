@@ -99,14 +99,14 @@ export default function ReEnterPassword() {
     <div className="reset-password-container">
       <div className="reset-password-header-bar">
         <div className="header-left">
-          <FaPaw size={28} color="#13ECDA" />
+          <FaPaw size={28} color="var(--auth-primary)" />
           <h2 className="logo-name-small">PetcareX</h2>
         </div>
       </div>
 
       <div className="reset-password-card">
         <div className="lock-icon-section">
-          <MdLockReset size={70} color="#13ECDA" />
+          <MdLockReset size={70} color="var(--auth-primary)" />
         </div>
 
         <div className="reset-password-header">
@@ -148,7 +148,7 @@ export default function ReEnterPassword() {
                 loading={resendLoading}
                 disabled={resendLoading || resendCooldown > 0}
                 style={{
-                  color: resendCooldown > 0 ? '#999' : '#13ECDA',
+                  color: resendCooldown > 0 ? '#999' : 'var(--auth-primary)',
                   padding: '0 4px',
                   height: 'auto',
                   fontSize: '14px',

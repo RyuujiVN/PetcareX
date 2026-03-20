@@ -6,7 +6,6 @@ import Register from './pages/Auth/Register'
 import ForgotPassword from './pages/Auth/ForgotPassword'
 import ReEnterPassword from './pages/Auth/ReEnterPassword'
 import ClinicSelection from './pages/Home/ClinicSelection'
-import PageMainUser from './pages/Home/PageMainUser'
 import BookingAppointment from './pages/User/BookingAppointment'
 import AddPet from './pages/User/AddPet'
 import ChatBotAI from './pages/Home/ChatBotAI'
@@ -30,7 +29,6 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reEnterPassword" element={<ReEnterPassword />} />
       <Route path="/choose-clinic" element={<ClinicSelection />} />
-      <Route path="/main-user" element={<PageMainUser />} />
       <Route path="/booking" element={<BookingAppointment />} />
       <Route path="/add-pet" element={<AddPet />} />
       <Route path="/chatbot" element={<ChatBotAI />} />

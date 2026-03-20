@@ -1,9 +1,11 @@
+@import '../authColorToken.css';
+
 :root {
-  --primary-color: #13ECDA;
-  --text-color: #333;
-  --text-light: #999;
-  --border-color: #d9d9d9;
-  --white: #fff;
+  --primary-color: var(--auth-primary);
+  --text-color: var(--auth-text-primary);
+  --text-light: var(--auth-text-light);
+  --border-color: var(--auth-border);
+  --white: var(--auth-white);
 }
 
 * {
@@ -147,13 +149,13 @@ body::-webkit-scrollbar {
 .form-input:focus,
 .form-input:hover {
   border-color: var(--primary-color) !important;
-  box-shadow: 0 0 0 2px rgba(19, 236, 218, 0.1) !important;
+  box-shadow: 0 0 0 2px var(--auth-primary-focus-shadow) !important;
 }
 
 .forgot-password-button {
   width: 100% !important;
   height: 48px !important;
-  background-color: #13ECDA!important;
+  background-color: var(--primary-color) !important;
   border-color: var(--primary-color) !important;
   font-size: 16px !important;
   font-weight: 600 !important;
@@ -165,8 +167,8 @@ body::-webkit-scrollbar {
 
 .forgot-password-button:hover,
 .forgot-password-button:focus {
-  background-color: #0dbfad !important;
-  border-color: #0dbfad !important;
+  background-color: var(--auth-primary-hover) !important;
+  border-color: var(--auth-primary-hover) !important;
 }
 
 /* Back to login */
@@ -175,7 +177,7 @@ body::-webkit-scrollbar {
 }
 
 .back-login-link span{
-  color: #13ECDA;
+  color: var(--primary-color);
 }
 
 .back-login-link {
@@ -189,7 +191,7 @@ body::-webkit-scrollbar {
 }
 
 .back-login-link:hover {
-  color: #0dbfad !important;
+  color: var(--auth-primary-hover) !important;
 }
 
 /* Support link */
@@ -199,7 +201,7 @@ body::-webkit-scrollbar {
 }
 
 .contact-support-link a {
-  color: #13ECDA;
+  color: var(--primary-color);
   text-decoration: none;
   font-weight: 500;
   margin-left: 5px;

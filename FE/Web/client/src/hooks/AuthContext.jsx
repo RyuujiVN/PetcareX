@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+﻿import { createContext, useContext, useEffect, useState } from "react";
 import { getUserProfileApi } from "../data/api/user";
 
 const AuthContext = createContext();
@@ -16,7 +16,6 @@ export const AuthProvider = ({ children }) => {
           localStorage.setItem("userInfo", JSON.stringify(res.data));
         })
         .catch(() => {
-          // Token invalid – interceptor will redirect to /login
         });
     } else {
       setUserProfile(null);

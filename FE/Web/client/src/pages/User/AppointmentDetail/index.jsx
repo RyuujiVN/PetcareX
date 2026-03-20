@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import * as antd from 'antd';
 import * as icons from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -366,3 +366,4 @@ const handleViewDetails = (appointment) => {
 };
 
 export default AppointmentDetail;
+
