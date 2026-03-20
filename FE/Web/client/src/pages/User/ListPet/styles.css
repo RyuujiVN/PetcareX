@@ -8,8 +8,9 @@
 
 .list-pet-container {
   width: 100%;
-  max-width: 1000px;
+  max-width: 1400px;
   padding-right: 250px;
+  padding-left: 100px;
   margin: 30px 150px;
 }
 
