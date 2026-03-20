@@ -25,12 +25,27 @@ import styles from './medicalRecords.module.css'
 const EMPTY_TIMELINE = []
 const EMPTY_REMINDERS = []
 const DEFAULT_PET_SUMMARY = {
-	name: 'Thú cưng',
-	avatar: '/lulu.png',
+	name: 'Chưa chọn thú cưng',
+	avatar: '',
 	breedName: 'Chưa cập nhật giống',
 	birthday: 'Chưa cập nhật',
 	gender: 'Chưa cập nhật',
 	weight: 'Chưa cập nhật',
+}
+
+const EMPTY_TIMELINE_HINT =
+	'Chưa có hồ sơ để hiển thị. Hãy chọn thú cưng từ danh sách để xem đúng hồ sơ riêng.'
+
+const formatGender = (gender) => {
+	if (!gender) return 'Chưa cập nhật'
+	if (gender === 'male') return 'Đực'
+	if (gender === 'female') return 'Cái'
+	return String(gender)
+}
+
+const isInternalServerError = (error) => {
+	const messageText = error?.message?.toLowerCase?.() || ''
+	return messageText.includes('internal server error')
 }
 
 const getMarkerIcon = (markerType) => {
@@ -260,6 +275,10 @@ function MedicalRecords() {
 	}, [searchParams])
 
 	useEffect(() => {
+		window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+	}, [])
+
+	useEffect(() => {
 		loadMedicalData()
 	}, [loadMedicalData])
 
@@ -281,7 +300,13 @@ function MedicalRecords() {
 
 			<main className={styles.pageContent}>
 				<section className={styles.petCard}>
-					<img src={petSummary.avatar} alt={petSummary.name} className={styles.petAvatar} />
+					{petSummary.avatar ? (
+						<img src={petSummary.avatar} alt={petSummary.name} className={styles.petAvatar} />
+					) : (
+						<div className={styles.petAvatarFallback} aria-hidden="true">
+							<FaDog />
+						</div>
+					)}
 
 					<div className={styles.petInfo}>
 						<h1>{petSummary.name}</h1>
@@ -304,7 +329,10 @@ function MedicalRecords() {
 						</h2>
 
 						<div className={styles.timelineWrapper}>
-							{timelineRecords.map((record) => (
+							{timelineRecords.length === 0 ? (
+								<p className={styles.emptyStateText}>{EMPTY_TIMELINE_HINT}</p>
+							) : (
+								timelineRecords.map((record) => (
 								<div key={record.id} className={styles.timelineItem}>
 									<div className={`${styles.timelineMarker} ${styles[record.markerType]}`}>
 										{getMarkerIcon(record.markerType)}
@@ -352,7 +380,8 @@ function MedicalRecords() {
 										</div>
 									</button>
 								</div>
-							))}
+							))
+							)}
 						</div>
 					</article>
 
@@ -362,7 +391,10 @@ function MedicalRecords() {
 						</h2>
 
 						<div className={styles.reminderList}>
-							{reminders.map((reminder) => (
+							{reminders.length === 0 ? (
+								<p className={styles.emptyStateText}>Chưa có nhắc nhở quan trọng.</p>
+							) : (
+								reminders.map((reminder) => (
 								<button
 									key={reminder.id}
 									type="button"
@@ -376,7 +408,8 @@ function MedicalRecords() {
 										<small>{reminder.subtitle}</small>
 									</span>
 								</button>
-							))}
+							))
+							)}
 						</div>
 
 						<button
@@ -390,8 +423,6 @@ function MedicalRecords() {
 					</aside>
 				</section>
 			</main>
-
-			<Footer />
 		</div>
 	)
 }

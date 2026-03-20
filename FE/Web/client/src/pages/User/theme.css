@@ -1,11 +1,9 @@
 :root {
-  /* Single source of truth for User pages primary color */
   --user-primary: #4672b4;
   --user-primary-hover: #3b639e;
   --user-primary-alpha-10: rgba(70, 114, 180, 0.1);
   --user-primary-alpha-20: rgba(70, 114, 180, 0.2);
 
-  /* Backward-compatible aliases used across User pages */
   --primary: var(--user-primary);
   --primary-color: var(--user-primary);
   --primary-hover: var(--user-primary-hover);
@@ -16,7 +14,6 @@
   --bg-light: var(--color-surface-soft);
   --bg-white: var(--color-surface-card);
 
-  /* Legacy generated token aliases currently referenced in JSX/CSS */
   --c-13ecda: var(--user-primary);
   --c-0dd9c7: var(--user-primary-hover);
 }

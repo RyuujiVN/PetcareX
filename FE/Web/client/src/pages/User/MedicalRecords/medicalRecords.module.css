@@ -1,7 +1,7 @@
 .pageRoot {
 	--medical-primary: var(--user-primary);
 	--medical-primary-hover: var(--user-primary-hover);
-	--medical-primary-soft: var(--user-primary-alpha-10);
+	--medical-primary-soft: white;
 
 	min-height: 100vh;
 	background: #f3f5f7;
@@ -10,7 +10,8 @@
 .pageContent {
 	max-width: 1240px;
 	margin: 0 auto;
-	padding: 26px 16px 40px;
+	padding: 70px 16px 40px;
+	background: white;
 }
 
 .petCard {
@@ -30,6 +31,19 @@
 	object-fit: cover;
 	border-radius: 16px;
 	border: 2px solid #f7dac9;
+}
+
+.petAvatarFallback {
+	width: 74px;
+	height: 74px;
+	border-radius: 16px;
+	border: 2px solid #f7dac9;
+	background: #fff4ed;
+	color: #f16f33;
+	font-size: 30px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .petInfo h1 {
@@ -103,6 +117,18 @@
 .timelineWrapper {
 	position: relative;
 	padding-left: 34px;
+}
+
+.emptyStateText {
+	margin: 0;
+	padding: 12px;
+	border: 1px dashed #d8e0e9;
+	border-radius: 10px;
+	background: #f9fbfd;
+	color: #62748a;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.5;
 }
 
 .timelineWrapper::before {
@@ -352,6 +378,12 @@
 	.petAvatar {
 		width: 66px;
 		height: 66px;
+	}
+
+	.petAvatarFallback {
+		width: 66px;
+		height: 66px;
+		font-size: 26px;
 	}
 
 	.petInfo h1 {

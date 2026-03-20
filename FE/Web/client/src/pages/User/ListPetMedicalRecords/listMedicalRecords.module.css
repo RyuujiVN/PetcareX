@@ -1,4 +1,4 @@
-﻿.list-pet-wrapper {
+.list-pet-wrapper {
   display: flex;
   flex-direction: column;
   min-height: calc(100vh - 64px);
@@ -379,8 +379,4 @@
   gap: 8px;
 }
 
-.delete-btn {
-  border-radius: 8px;
-  height: 40px;
-}
 
