@@ -35,7 +35,7 @@ function Header() {
                         Lịch hẹn
                     </NavLink>
                     <NavLink 
-                        to="/medical-records" 
+                        to="/listPetMedicalRecords" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
                         Hồ sơ y tế

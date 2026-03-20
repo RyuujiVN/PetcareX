@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 40px 20px;
+  padding: 40px 40px;
   padding-top: 80px;
   background: var(--color-surface-soft);
 }
@@ -27,7 +27,7 @@
 
 .profile-wrapper {
   width: 100%;
-  max-width: 720px;
+  max-width: 1000px;
   background: var(--bg-white);
   border-radius: 16px;
   box-shadow: var(--shadow-lg);
@@ -145,7 +145,7 @@
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  padding: 40px 30px !important;
+  padding: 40px 90px !important;
 }
 
 .profile-form-card .ant-card-body {
