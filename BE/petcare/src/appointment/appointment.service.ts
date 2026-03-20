@@ -27,7 +27,6 @@ export class AppointmentService {
       .innerJoin('appointment.pet', 'pet')
       .innerJoin('appointment.clinic', 'clinic')
       .innerJoin('appointment.veterinarian', 'veterinarian')
-      .innerJoin('pet.breed', 'breed')
       .innerJoin('pet.owner', 'owner')
       .innerJoin('veterinarian.user', 'user')
       .select([
@@ -37,17 +36,22 @@ export class AppointmentService {
         'appointment.service',
         'appointment.note',
         'appointment.status',
+
         'pet.id',
         'pet.name',
         'pet.avatar',
+        'pet.species',
+        'pet.breed',
+
         'clinic.id',
         'clinic.name',
         'clinic.address',
-        'breed.id',
-        'breed.name',
+
         'owner.id',
         'owner.fullName',
+
         'veterinarian.specialty',
+
         'user.id',
         'user.fullName',
         'user.avatarUrl',
@@ -62,7 +66,6 @@ export class AppointmentService {
       .innerJoin('appointment.pet', 'pet')
       .innerJoin('appointment.clinic', 'clinic')
       .innerJoin('appointment.veterinarian', 'veterinarian')
-      .innerJoin('pet.breed', 'breed')
       .innerJoin('pet.owner', 'owner')
       .innerJoin('veterinarian.user', 'user')
       .where('owner.id = :userId', { userId: userId })
@@ -73,17 +76,22 @@ export class AppointmentService {
         'appointment.service',
         'appointment.note',
         'appointment.status',
+
         'pet.id',
         'pet.name',
         'pet.avatar',
+        'pet.species',
+        'pet.breed',
+
         'clinic.id',
         'clinic.name',
         'clinic.address',
-        'breed.id',
-        'breed.name',
+
         'owner.id',
         'owner.fullName',
+
         'veterinarian.specialty',
+        
         'user.id',
         'user.fullName',
         'user.avatarUrl',
@@ -96,7 +104,7 @@ export class AppointmentService {
   // Tạo mới lịch hẹn
   async createAppointment(createDTO: CreateAppointmentDTO) {
     const appointment = this.appointmentRepository.create(createDTO);
-    appointment.status = AppointmentStatusEnum.HEN_THANH_CONG;
+    appointment.status = AppointmentStatusEnum.BOOKED;
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
 

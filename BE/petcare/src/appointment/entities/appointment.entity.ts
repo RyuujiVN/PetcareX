@@ -17,10 +17,10 @@ export class Appointment {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ name: 'pet_id' })
+  @Column({ name: 'pet_id', nullable: true })
   petId: string;
 
-  @Column({ name: 'veterinarian_id' })
+  @Column({ name: 'veterinarian_id', nullable: true })
   veterinarianId: string;
 
   @Column({ name: 'clinic_id' })

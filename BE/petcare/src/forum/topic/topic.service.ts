@@ -22,9 +22,12 @@ export class TopicService {
       .orderBy('topic.createdAt', 'DESC');
 
     if (options.search)
-      queryBuilder.andWhere('topic.name ILIKE :name', {
-        name: `%${options.search}%`,
-      });
+      queryBuilder.andWhere(
+        '(topic.nameVn ILIKE :name OR topic.nameEng ILIKE :name)',
+        {
+          name: `%${options.search}%`,
+        },
+      );
 
     return paginate<ForumTopic>(queryBuilder, options);
   }

@@ -6,11 +6,10 @@ from typing import List
 
 from data_schema import PetDataItem, ScrapingResult, export_to_jsonl, export_to_json
 from scrapers.reddit_scraper import RedditScraper
-from scrapers.quora_scraper import QuoraScraper
 from scrapers.web_scraper import WebScraper, SiteConfig, VIETNAMESE_PET_SITES, ENGLISH_PET_SITES, get_site_config_for_url
 from config import (
     REDDIT_SUBREDDITS, VIETNAMESE_WEBSITES, ENGLISH_WEBSITES,
-    SCRAPING_CONFIG, get_reddit_subreddits, get_websites, get_quora_topics
+    SCRAPING_CONFIG, get_reddit_subreddits, get_websites
 )
 
 logger = logging.getLogger('pet_collector')
@@ -47,10 +46,7 @@ class PetDataCollector:
             max_retries=self.config.get('reddit_max_retries', 5),
             praw_config=praw_config,
         )
-        self.quora_scraper = QuoraScraper(
-            delay_range=tuple(self.config.get('quora_delay_range', (2, 5))),
-            max_retries=self.config.get('quora_max_retries', 3),
-        )
+
         self.web_scraper = WebScraper(
             delay_range=tuple(self.config.get('delay_range', (1, 3))),
             max_rate_limit_per_site=self.config.get('max_rate_limit_per_site', 3),
@@ -197,59 +193,6 @@ class PetDataCollector:
         logger.info(f"WEBSITES HOÀN TẤT: {len(items)} items")
         return items
 
-    def collect_from_quora(self,
-                           topics: List[dict] = None,
-                           questions_per_topic: int = None,
-                           pet_types: List[str] = None) -> List[PetDataItem]:
-        logger.info("=" * 50)
-        logger.info("BẮT ĐẦU THU THẬP TỪ QUORA")
-        logger.info("=" * 50)
-
-        if topics is None:
-            priority_levels = self.config.get('priority_levels_to_scrape', [1])
-            topics = get_quora_topics(priority_levels, pet_types)
-
-        if questions_per_topic is None:
-            questions_per_topic = self.config.get('quora_limit_per_topic', 30)
-
-        logger.info(f"Sẽ thu thập từ {len(topics)} topics, mỗi topic {questions_per_topic} items")
-
-        items = []
-        for i, topic in enumerate(topics):
-            try:
-                logger.info(f"Progress: {i+1}/{len(topics)} - Quora/{topic.get('name')}")
-
-                result = self.quora_scraper.scrape_topic(
-                    topic_slug=topic.get('slug', topic.get('name', 'Pet-Care')),
-                    topic_name=topic.get('name', topic.get('slug', 'Pet-Care')),
-                    pet_type=topic.get('pet_type', 'general'),
-                    language=topic.get('lang', 'en'),
-                    limit=questions_per_topic,
-                )
-
-                items.extend(result.items)
-                self.results.append(result)
-                self.all_items.extend(result.items)
-
-                logger.info(f"  ✓ Quora/{topic.get('name')}: {result.successful} items")
-                if result.errors:
-                    logger.warning(f"    {result.errors[0]}")
-
-                self._auto_save()
-
-                if i < len(topics) - 1:
-                    import time, random
-                    d_min, d_max = self.config.get('delay_between_sources', (5, 10))
-                    delay = random.uniform(d_min, d_max)
-                    logger.info(f"Waiting {delay:.1f}s...")
-                    time.sleep(delay)
-
-            except Exception as e:
-                logger.error(f"Lỗi Quora/{topic.get('name')}: {e}")
-                continue
-
-        logger.info(f"QUORA HOÀN TẤT: {len(items)} items")
-        return items
     
     def collect_from_url(self, url: str, name: str = None) -> List[PetDataItem]:
         logger.info("=" * 50)
@@ -286,8 +229,7 @@ class PetDataCollector:
     
     def collect_all(self,
                    include_reddit: bool = True,
-                   include_web: bool = True,
-                   include_quora: bool = True) -> List[PetDataItem]:
+                   include_web: bool = True) -> List[PetDataItem]:
         logger.info("=" * 60)
         logger.info("BẮT ĐẦU THU THẬP DỮ LIỆU THÚ CƯNG TỰ ĐỘNG")
         logger.info(f"Thời gian: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -298,9 +240,6 @@ class PetDataCollector:
         
         if include_web:
             self.collect_from_websites()
-
-        if include_quora and self.config.get('quora_enabled', True):
-            self.collect_from_quora()
         
         logger.info("=" * 60)
         logger.info(f"HOÀN TẤT TOÀN BỘ: {len(self.all_items)} items")
@@ -416,8 +355,6 @@ def main():
     
     try:
         collector.collect_from_websites(language='both')
-        if collector.config.get('quora_enabled', True):
-            collector.collect_from_quora()
         collector.collect_from_reddit()
 
         if collector.all_items:
