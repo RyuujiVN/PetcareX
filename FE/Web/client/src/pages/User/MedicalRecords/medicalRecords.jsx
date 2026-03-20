@@ -14,12 +14,12 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import Footer from '../../../components/layout/footer'
 import Header from '../../../components/layout/header'
 import {
-	getMedicalByClinic,
 	getMedicalById,
 	getMedicalByPetId,
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../data/api/medicalApi'
+import { getMyPetsApi } from '../../../data/api/petApi'
 import styles from './medicalRecords.module.css'
 
 const EMPTY_TIMELINE = []
@@ -52,6 +52,23 @@ const formatDate = (value) => {
 	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
 
 	return date.toLocaleDateString('vi-VN')
+}
+
+const formatGender = (value) => {
+	if (typeof value === 'boolean') return value ? 'Đực' : 'Cái'
+	if (typeof value === 'string' && value.trim()) return value
+	return 'Chưa cập nhật'
+}
+
+const normalizeMedicalErrorMessage = (error) => {
+	const rawMessage = error?.message || 'Không thể tải hồ sơ khám bệnh'
+	const normalized = rawMessage.trim().toLowerCase()
+
+	if (normalized === 'internal server error') {
+		return 'Không thể tải hồ sơ khám bệnh. Vui lòng thử lại hoặc kiểm tra dữ liệu thú cưng.'
+	}
+
+	return rawMessage
 }
 
 const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) => {
@@ -145,27 +162,47 @@ function MedicalRecords() {
 
 			const medicalId = searchParams.get('medicalId')
 			const petId = searchParams.get('petId')
+			const myPets = await getMyPetsApi().catch(() => [])
+			const petList = Array.isArray(myPets) ? myPets : []
+
+			const selectedPet = petId
+				? petList.find((item) => item?.id === petId)
+				: petList[0]
+
+			const resolvedPetId = petId || selectedPet?.id
 
 			let records = []
 			if (medicalId) {
 				const detail = await getMedicalById(medicalId)
 				records = detail ? [detail] : []
-			} else if (petId) {
-				const byPet = await getMedicalByPetId(petId)
-				records = Array.isArray(byPet?.items) ? byPet.items : []
-			} else {
-				const byClinic = await getMedicalByClinic(1, 10)
-				records = Array.isArray(byClinic?.items)
-					? byClinic.items
-					: Array.isArray(byClinic)
-						? byClinic
-						: []
+			} else if (resolvedPetId) {
+				const byPet = await getMedicalByPetId(resolvedPetId)
+				records = Array.isArray(byPet?.items)
+					? byPet.items
+					: Array.isArray(byPet?.data)
+						? byPet.data
+						: Array.isArray(byPet)
+							? byPet
+							: []
+			}
+
+			if (records.length === 0 && selectedPet) {
+				setPetSummary({
+					name: selectedPet?.name || DEFAULT_PET_SUMMARY.name,
+					avatar: selectedPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
+					breedName: selectedPet?.breed?.name || DEFAULT_PET_SUMMARY.breedName,
+					birthday: formatDate(selectedPet?.dateOfBirth),
+					gender: formatGender(selectedPet?.gender),
+					weight: selectedPet?.weight ? `${selectedPet.weight} kg` : DEFAULT_PET_SUMMARY.weight,
+				})
 			}
 
 			if (records.length === 0) {
 				setTimelineRecords(EMPTY_TIMELINE)
 				setReminders(EMPTY_REMINDERS)
-				setPetSummary(DEFAULT_PET_SUMMARY)
+				if (!selectedPet) {
+					setPetSummary(DEFAULT_PET_SUMMARY)
+				}
 				return
 			}
 
@@ -194,15 +231,26 @@ function MedicalRecords() {
 
 			const firstRecord = enrichedRecords[0]?.record
 			setPetSummary({
-				name: firstRecord?.pet?.name || firstRecord?.petName || DEFAULT_PET_SUMMARY.name,
-				avatar: firstRecord?.pet?.avatar || DEFAULT_PET_SUMMARY.avatar,
-				breedName: firstRecord?.pet?.breedName || DEFAULT_PET_SUMMARY.breedName,
-				birthday: DEFAULT_PET_SUMMARY.birthday,
-				gender: DEFAULT_PET_SUMMARY.gender,
-				weight: firstRecord?.weight ? `${firstRecord.weight} kg` : DEFAULT_PET_SUMMARY.weight,
+				name:
+					firstRecord?.pet?.name ||
+					firstRecord?.petName ||
+					selectedPet?.name ||
+					DEFAULT_PET_SUMMARY.name,
+				avatar: firstRecord?.pet?.avatar || selectedPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
+				breedName:
+					firstRecord?.pet?.breed?.name ||
+					firstRecord?.pet?.breedName ||
+					selectedPet?.breed?.name ||
+					DEFAULT_PET_SUMMARY.breedName,
+				birthday: formatDate(firstRecord?.pet?.dateOfBirth || selectedPet?.dateOfBirth),
+				gender: formatGender(firstRecord?.pet?.gender ?? selectedPet?.gender),
+				weight:
+					firstRecord?.pet?.weight || firstRecord?.weight || selectedPet?.weight
+						? `${firstRecord?.pet?.weight || firstRecord?.weight || selectedPet?.weight} kg`
+						: DEFAULT_PET_SUMMARY.weight,
 			})
 		} catch (error) {
-			message.error(error.message || 'Không thể tải hồ sơ khám bệnh')
+			message.error(normalizeMedicalErrorMessage(error))
 			setTimelineRecords(EMPTY_TIMELINE)
 			setReminders(EMPTY_REMINDERS)
 			setPetSummary(DEFAULT_PET_SUMMARY)
@@ -214,6 +262,10 @@ function MedicalRecords() {
 	useEffect(() => {
 		loadMedicalData()
 	}, [loadMedicalData])
+
+	useEffect(() => {
+		window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+	}, [])
 
 	const handleOpenAppointments = () => {
 		navigate('/appointments')
@@ -315,7 +367,7 @@ function MedicalRecords() {
 									key={reminder.id}
 									type="button"
 									className={`${styles.reminderCard} ${styles[reminder.type]}`}
-										disabled={loading}
+									disabled={loading}
 									onClick={() => handleBookNow(reminder.title)}
 								>
 									<span className={styles.reminderIcon}>{getReminderIcon(reminder.type)}</span>
