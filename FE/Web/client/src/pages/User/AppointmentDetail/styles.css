@@ -92,9 +92,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 140px;
-  height: 140px;
-    margin: 0 auto;
+  width: 150px;
+  height: 150px;
+  margin: 0 auto;
 }
 
 .appointment-pet-image img {

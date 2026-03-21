@@ -132,7 +132,12 @@ const handleViewDetails = (appointment) => {
       <antd.Row gutter={[16, 16]}>
         <antd.Col xs={24} sm={6}>
           <div className="appointment-pet-image">
-            <img src={appointment.avatar} alt={appointment.petName} />
+            <antd.Image
+              style={{width: 150, height: 170, objectFit: 'cover', margin: '0 auto', borderRadius: 12}}
+              src={appointment.avatar}
+              alt={appointment.petName}
+              >
+              </antd.Image>
           </div>
         </antd.Col>
         <antd.Col xs={24} sm={12}>
