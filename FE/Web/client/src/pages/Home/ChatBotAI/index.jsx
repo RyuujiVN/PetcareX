@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import './styles.css';
 import { MessageCircle, Plus, Send, Loader } from 'lucide-react';
 import Header from "../../../components/layout/header";
-import Footer from "../../../components/layout/footer";
-
+import { CloseOutlined } from '@ant-design/icons';
 export default function ChatBotAI() {
   const [conversations, setConversations] = useState([
     { id: 1, title: 'LuLu bị biếng ăn', icon: '🐱', unread: 0 },
@@ -83,20 +82,41 @@ useEffect(() => {
       setIsLoading(false);
     }, 1000);
   };
+const handleDeleteConversation = (id) => {
+  const updated = conversations.filter((c) => c.id !== id);
+  setConversations(updated);
 
-  const handleCreateNewConversation = () => {
-    const newId = Math.max(...conversations.map((c) => c.id)) + 1;
+  setMessagesMap((prev) => {
+    const newMap = { ...prev };
+    delete newMap[id];
+    return newMap;
+  });
+
+  if (id === activeConversation) {
+    if (updated.length > 0) {
+      setActiveConversation(updated[0].id);
+    } else {
+      setActiveConversation(null);
+    }
+  }
+};
+
+const handleCreateNewConversation = () => {
+  scrollToBottom();
+   const newId =
+  conversations.length > 0
+    ? Math.max(...conversations.map((c) => c.id)) + 1
+    : 1;
 
     setConversations([
-      ...conversations,
       {
         id: newId,
         title: 'Cuộc trò chuyện mới',
         icon: '💬',
         unread: 0,
       },
+      ...conversations
     ]);
-
     setActiveConversation(newId);
   };
 
@@ -116,16 +136,25 @@ useEffect(() => {
           <div className="conversations-list">
             {conversations.map((conv) => (
               <div
-                key={conv.id}
-                className={`conversation-item ${activeConversation === conv.id ? 'active' : ''}`}
-                onClick={() => setActiveConversation(conv.id)}
-              >
-                <span className="conversation-icon">{conv.icon}</span>
-                <div className="conversation-info">
-                  <p className="conversation-title">{conv.title}</p>
-                  <p className="conversation-meta">2 phút trước</p>
-                </div>
+              key={conv.id}
+              className={`conversation-item ${activeConversation === conv.id ? 'active' : ''}`}
+              onClick={() => setActiveConversation(conv.id)}
+            >
+              <span className="conversation-icon">{conv.icon}</span>
+
+              <div className="conversation-info">
+                <p className="conversation-title">{conv.title}</p>
+                <p className="conversation-meta">2 phút trước</p>
               </div>
+
+              <CloseOutlined
+                className="delete-icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteConversation(conv.id);
+                }}
+              />
+            </div>
             ))}
           </div>
         </aside>
@@ -195,7 +224,6 @@ useEffect(() => {
           </footer>
         </div>
       </div>
-      <Footer />
     </div>
   );
 }
