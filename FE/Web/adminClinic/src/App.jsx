@@ -5,6 +5,7 @@ import ForgotPassword from './pages/Auth/ForgotPassword'
 import ReEnterPassword from './pages/Auth/ReEnterPassword'
 import AppointmentManagement from './pages/VeterinaryClinic/AppointmentManagement/appointmentManagement'
 import ViewPetAppointment from './pages/VeterinaryClinic/ViewPetAppointment/viewPetAppointment'
+import ListPetMedicalRecords from './pages/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
 import './App.css'
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
       <Route path="/home" element={<AppointmentManagement />} />
       <Route path="/clinic/appointments" element={<AppointmentManagement />} />
       <Route path="/clinic/view-pet-appointment" element={<ViewPetAppointment />} />
-      <Route path="/clinic/medical-records" element={<AppointmentManagement />} />
+      <Route path="/clinic/medical-records" element={<ListPetMedicalRecords />} />
       <Route path="/clinic/revenue" element={<AppointmentManagement />} />
       <Route path="/clinic/doctors" element={<AppointmentManagement />} />
       <Route path="/clinic/exam-slips" element={<AppointmentManagement />} />
