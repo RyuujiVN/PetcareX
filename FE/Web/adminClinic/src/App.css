@@ -1,0 +1,23 @@
+#root {
+  width: 100%;
+  min-height: 100%;
+  display: block;
+}
+
+.route-transition {
+  width: 100%;
+  min-height: 100%;
+}
+
+@keyframes routeEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+

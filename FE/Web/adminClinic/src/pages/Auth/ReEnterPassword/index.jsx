@@ -4,12 +4,12 @@ import { FaPaw } from 'react-icons/fa';
 import { MdLockReset } from 'react-icons/md';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { forgotPasswordApi, resetPasswordApi } from '../../../data/api/auth';
-import './confirmPassword.module.css';
+import './styles.css';
 
 const OTP_EXPIRY_SECONDS = 300; // 5 phút theo backend
 const RESEND_COOLDOWN_SECONDS = 60;
 
-export default function ConfirmPassword() {
+export default function ReEnterPassword() {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);

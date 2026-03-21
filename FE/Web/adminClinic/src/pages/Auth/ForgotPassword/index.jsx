@@ -3,7 +3,7 @@ import React from 'react';
 import { FaPaw } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { forgotPasswordApi } from '../../../data/api/auth';
-import './forgotPassword.module.css';
+import './styles.css';
 
 export default function ForgotPassword() {
   const [form] = Form.useForm();

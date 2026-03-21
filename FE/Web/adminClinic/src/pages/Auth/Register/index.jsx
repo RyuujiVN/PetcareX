@@ -9,7 +9,7 @@ import {
   Typography,
 } from "antd";
 import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
-import "./register.module.css";
+import "./styles.css";
 import { registerApi } from "../../../data/api/auth";
 import { FaPaw } from "react-icons/fa";
 

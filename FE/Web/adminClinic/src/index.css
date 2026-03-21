@@ -1,5 +1,100 @@
 @import "tailwindcss";
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+.appointment-card-slide {
+  animation: slideIn 0.3s ease;
+}
+
+.appointment-tabs .ant-tabs-nav {
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 0;
+  margin-bottom: 24px;
+}
+
+.appointment-tabs .ant-tabs-tab {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  padding: 12px 16px;
+}
+
+.appointment-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: var(--color-brand-primary) !important;
+}
+
+.appointment-tabs .ant-tabs-ink-bar {
+  background: var(--color-brand-primary);
+  height: 3px;
+}
+
+@media (max-width: 576px) {
+  .appointment-tabs .ant-tabs-tab {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}
+.action-col .ant-btn {
+  padding: 4px 12px;
+  font-size: 12px;
+}
+
+.action-col .ant-btn-primary {
+  background: var(--color-brand-primary);
+  border-color: var(--color-brand-primary);
+  color: white;
+  font-weight: 500;
+}
+
+.action-col .ant-btn-primary:hover {
+  background: var(--color-brand-primary-hover) !important;
+  border-color: var(--color-brand-primary-hover) !important;
+}
+
+.action-col .ant-btn-text {
+  color: var(--color-text-disabled) !important;
+}
+
+@media (max-width: 576px) {
+  .action-col .ant-btn {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+}
+
+
+.ant-empty {
+  padding: 48px 0;
+}
+
+.ant-badge-count {
+  background-color: var(--color-danger);
+  font-size: 11px;
+  padding: 0 6px;
+  margin-left: 8px;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -7,31 +102,78 @@
 }
 
 :root {
+  --pc-primary: #4672b4;
+  --pc-primary-hover: #3b5f97;
+  --pc-primary-rgb: 70, 114, 180;
+
+  --auth-primary: var(--pc-primary);
+  --auth-primary-hover: #3b6197;
+  --auth-primary-focus-shadow: rgba(var(--pc-primary-rgb), 0.2);
+  --auth-text-primary: #333;
+  --auth-text-secondary: #666;
+  --auth-text-light: #999;
+  --auth-border: #d9d9d9;
+  --auth-white: #fff;
+
+  --user-primary: var(--pc-primary);
+  --user-primary-hover: #3b639e;
+  --user-primary-alpha-10: rgba(var(--pc-primary-rgb), 0.1);
+  --user-primary-alpha-20: rgba(var(--pc-primary-rgb), 0.2);
+  --primary: var(--user-primary);
+  --primary-color: var(--user-primary);
+  --primary-hover: var(--user-primary-hover);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --border-color: var(--color-border-soft);
+  --bg-light: var(--color-surface-soft);
+  --bg-white: var(--color-surface-card);
+  --c-13ecda: var(--user-primary);
+  --c-0dd9c7: var(--user-primary-hover);
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
-html,
+.home-page,
+.clinic-page,
+.chatbot-container,
+.user-dashboard {
+  --page-home-primary: var(--pc-primary);
+  --page-home-primary-hover: var(--pc-primary-hover);
+  --page-home-primary-soft: rgba(var(--pc-primary-rgb), 0.18);
+  --page-home-on-primary: #ffffff;
+
+  --home-chatbot-primary: var(--page-home-primary);
+  --home-chatbot-primary-hover: var(--page-home-primary-hover);
+  --home-chatbot-primary-soft: rgba(var(--pc-primary-rgb), 0.1);
+  --home-chatbot-primary-strong: rgba(var(--pc-primary-rgb), 0.35);
+
+  --color-brand-primary: var(--page-home-primary);
+  --color-brand-primary-hover: var(--page-home-primary-hover);
+  --color-brand-muted: var(--page-home-primary);
+}
+
+html {
+  width: 100%;
+  height: auto;
+}
+
 body {
   width: 100%;
-  height: 100%;
+  height: auto;
   margin: 0;
   padding: 0;
-  background-color: #f5f5f5;
-  color: #1a1a1a;
+  background-color: var(--color-surface-page);
+  color: var(--color-text-primary);
+  overflow-x: hidden;
+  overflow-y: scroll;
+  scrollbar-width: auto;
 }
 
 #root {
   width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: block;
 }
 
 h1 {
@@ -39,19 +181,19 @@ h1 {
   line-height: 1.1;
 }
 
-button {
+buttons {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: var(--color-text-primary);
   cursor: pointer;
   transition: border-color 0.25s;
 }
 button:hover {
-  border-color: #646cff;
+  border-color: var(--color-brand-strong);
 }
 button:focus,
 button:focus-visible {
@@ -60,13 +202,13 @@ button:focus-visible {
 
 @media (prefers-color-scheme: light) {
   :root {
-    color: #213547;
-    background-color: #ffffff;
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-card);
   }
   a:hover {
-    color: #747bff;
+    color: var(--color-brand-strong);
   }
   button {
-    background-color: #f9f9f9;
+    background-color: var(--color-surface-soft);
   }
 }

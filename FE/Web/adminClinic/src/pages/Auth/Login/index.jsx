@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { FaPaw } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
-import './login.module.css';
+import './styles.css';
 
 import { loginApi } from '../../../data/api/auth';
 import { useAuth } from '../../../hooks/AuthContext';
