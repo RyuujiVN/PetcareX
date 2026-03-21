@@ -24,6 +24,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { getUserProfileApi } from "../../../data/api/user";
 import {
   getBreedLabel,
+  getPetByIdApi,
   getBreedsBySpeciesApi,
   getMyPetsApi,
   getPetSpeciesApi,
@@ -52,6 +53,20 @@ export default function PetProfile() {
   const [currentPetId, setCurrentPetId] = useState("");
 
   const navigate = useNavigate();
+
+  const normalizeGenderValue = (gender) => {
+    if (typeof gender === "string") {
+      const normalized = gender.trim().toLowerCase();
+      if (["male", "duc", "đực", "true", "1"].includes(normalized)) {
+        return "Đực";
+      }
+      if (["female", "cai", "cái", "false", "0"].includes(normalized)) {
+        return "Cái";
+      }
+    }
+
+    return gender ? "Đực" : "Cái";
+  };
 
   useEffect(() => {
     fetchUser();
@@ -112,12 +127,23 @@ export default function PetProfile() {
       setLoading(true);
 
       const petIdFromQuery = searchParams.get("id");
-      const pets = await getMyPetsApi();
-      const petList = Array.isArray(pets) ? pets : [];
+      let petInfo = null;
 
-      const petInfo = petIdFromQuery
-        ? petList.find((item) => item.id === petIdFromQuery)
-        : petList[0];
+      if (petIdFromQuery) {
+        try {
+          petInfo = await getPetByIdApi(petIdFromQuery);
+        } catch (error) {
+          petInfo = null;
+        }
+      }
+
+      if (!petInfo) {
+        const pets = await getMyPetsApi();
+        const petList = Array.isArray(pets) ? pets : [];
+        petInfo = petIdFromQuery
+          ? petList.find((item) => item.id === petIdFromQuery)
+          : petList[0];
+      }
 
       if (!petInfo) {
         message.warning("Chưa có thú cưng");
@@ -133,7 +159,7 @@ export default function PetProfile() {
         petName: petInfo.name || "",
         species: speciesValue,
         breed: petInfo.breed || "",
-        gender: petInfo.gender ? "Đực" : "Cái",
+        gender: normalizeGenderValue(petInfo.gender),
         birthDate: petInfo.dateOfBirth || null,
         weight: petInfo.weight ? Number(petInfo.weight) : "",
         features: petInfo.note || "",
@@ -362,19 +388,22 @@ export default function PetProfile() {
                 className="form-col"
                 rules={[{ required: true, message: "Chọn giống" }]}
               >
-                <Input
+                <Select
                   size="large"
-                  list="profile-breed-suggestion-list"
+                  showSearch
+                  placeholder="Chọn giống"
+                  className="pet-breed-select"
+                  options={breedList.map((item) => ({
+                    label: getBreedLabel(item, selectedSpeciesId),
+                    value: item,
+                  }))}
+                  filterOption={(input, option) =>
+                    String(option?.label || "")
+                      .toLowerCase()
+                      .includes(input.toLowerCase())
+                  }
                 />
               </Form.Item>
-
-              <datalist id="profile-breed-suggestion-list">
-                {breedList.map((item) => (
-                  <option key={item} value={item}>
-                    {getBreedLabel(item, selectedSpeciesId)}
-                  </option>
-                ))}
-              </datalist>
 
               <Form.Item
                 label="Giới tính"
@@ -382,9 +411,13 @@ export default function PetProfile() {
                 className="form-col"
                 rules={[{ required: true }]}
               >
-                <Radio.Group>
-                  <Radio value="Đực">Đực</Radio>
-                  <Radio value="Cái">Cái</Radio>
+                <Radio.Group className="pet-gender-group">
+                  <Radio.Button value="Đực" className="pet-gender-btn">
+                    Đực
+                  </Radio.Button>
+                  <Radio.Button value="Cái" className="pet-gender-btn ">
+                    Cái
+                  </Radio.Button>
                 </Radio.Group>
               </Form.Item>
 

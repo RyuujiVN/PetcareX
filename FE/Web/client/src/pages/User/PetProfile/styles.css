@@ -27,7 +27,7 @@
 
 .profile-wrapper {
   width: 100%;
-  max-width: 1000px;
+  max-width: 800px;
   background: var(--bg-white);
   border-radius: 16px;
   box-shadow: var(--shadow-lg);
@@ -145,7 +145,7 @@
   border: none !important;
   box-shadow: none !important;
   background: transparent !important;
-  padding: 40px 90px !important;
+  padding: 30px 40px !important;
 }
 
 .profile-form-card .ant-card-body {
@@ -155,8 +155,8 @@
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 24px;
-  margin-bottom: 24px;
+  gap: 16px;
+  margin-bottom: 16px;
 }
 
 .form-row.single {
@@ -232,6 +232,50 @@
   width: 100% !important;
 }
 
+.pet-breed-select .ant-select-selector {
+  height: 48px !important;
+  border-radius: 12px !important;
+  border: 1px solid var(--border-color) !important;
+  box-shadow: none !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 0 14px !important;
+}
+
+.pet-breed-select.ant-select-focused .ant-select-selector,
+.pet-breed-select .ant-select-selector:hover {
+  border-color: var(--primary-color) !important;
+}
+
+.pet-gender-group {
+  width: 100%;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.pet-gender-btn {
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 14px !important;
+  border: 1px solid var(--border-color) !important;
+  color: var(--text-primary) !important;
+  background: var(--bg-white) !important;
+  font-weight: 500;
+}
+
+.pet-gender-group .ant-radio-button-wrapper::before {
+  display: none !important;
+}
+
+.pet-gender-group .ant-radio-button-wrapper-checked {
+  border-color: var(--primary-color) !important;
+  color: var(--primary-color) !important;
+  background: var(--color-brand-primary-alpha-10) !important;
+}
+
 
 
 .form-buttons {
@@ -242,7 +286,7 @@
 .form-buttons .ant-space {
   display: flex !important;
   gap: 12px !important;
-  margin-left: 73.2%
+  margin-left: 73.2%;
 }
 
 .btn-cancel,
@@ -349,9 +393,6 @@
     gap: 12px;
   }
 
-  .form-buttons .ant-space {
-    flex-direction: column;
-  }
 
   .btn-cancel,
   .btn-submit {
