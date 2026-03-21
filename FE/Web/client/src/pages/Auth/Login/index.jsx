@@ -105,7 +105,7 @@ export default function Login() {
         >
 
           <Form.Item
-            style={{width: '100%', height: '50%'}}
+            style={{width: '100%'}}
             label="Email"
             name="email"
             rules={[

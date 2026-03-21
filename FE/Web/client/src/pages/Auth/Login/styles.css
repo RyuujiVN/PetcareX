@@ -15,7 +15,16 @@ body {
 body::-webkit-scrollbar {
   display: none;
 }
+.ant-input,
+.ant-input-affix-wrapper {
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
 
+.ant-input-affix-wrapper input {
+  height: 100%;
+}
 .login-container {
   display: flex;
   flex-direction: column;
