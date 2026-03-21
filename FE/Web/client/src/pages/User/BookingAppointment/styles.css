@@ -18,14 +18,15 @@
 }
 
 .dashboard-header{
-  text-align:center;
-  position:relative;
-  background:url('./public/avatarMain.png') center/cover no-repeat;
-  color:white;
-  padding:4rem 1rem 5rem;
-  border-bottom-left-radius:2rem;
-  border-bottom-right-radius:2rem;
-  margin-bottom:2rem;
+  position: relative;
+  background: url('./public/avatarMain.png') center/cover no-repeat;
+  color: white;
+  padding: 4rem 1rem 5rem;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto 2rem;
+  border-bottom-left-radius: 2rem;
+  border-bottom-right-radius: 2rem;
 }
 
 
