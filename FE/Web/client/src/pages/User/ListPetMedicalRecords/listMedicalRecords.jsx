@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Spin, Empty, message } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
+import { createSearchParams, useNavigate } from 'react-router-dom';
 import { getMyPetsApi, getBreedLabel } from '../../../data/api/petApi';
 import styles from './listMedicalRecords.module.css';
 import Header from '../../../components/layout/header';
@@ -30,7 +30,10 @@ const ListPetMedicalRecords = () => {
   }, []);
 
   const handleViewDetails = (petId) => {
-    navigate(`/medical-records/detail?petId=${petId}`);
+    navigate({
+      pathname: '/medical-records',
+      search: createSearchParams({ petId: String(petId) }).toString(),
+    });
   };
 
 

@@ -8,6 +8,7 @@ import {
 	FaSyringe,
 } from 'react-icons/fa6'
 import { message } from 'antd'
+import { ReloadOutlined } from '@ant-design/icons'
 import { useCallback, useEffect, useState } from 'react'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -40,10 +41,9 @@ const formatGender = (gender) => {
 	if (!gender) return 'Chưa cập nhật'
 	const normalizedGender = String(gender).trim().toLowerCase()
 	if (normalizedGender === 'male') return 'Đực'
-	if (normalizedGender === 'female') return 'Cái'
+	if (normalizedGender === 'female') return '	Cái'
 	return String(gender)
 }
-
 const getMarkerIcon = (markerType) => {
 	if (markerType === 'vaccine') return <FaSyringe />
 	if (markerType === 'checkup') return <MdHealthAndSafety />
@@ -160,19 +160,29 @@ function MedicalRecords() {
 	const [timelineRecords, setTimelineRecords] = useState(EMPTY_TIMELINE)
 	const [reminders, setReminders] = useState(EMPTY_REMINDERS)
 	const [petSummary, setPetSummary] = useState(DEFAULT_PET_SUMMARY)
-
+	const medicalId = searchParams.get('medicalId')
+	const petId = searchParams.get('petId')
+	const handleChangePet = () => {
+			navigate('/listPetMedicalRecords')
+		}
 	const loadMedicalData = useCallback(async () => {
 		try {
 			setLoading(true)
 
-			const medicalId = searchParams.get('medicalId')
-			const petId = searchParams.get('petId')
 			const myPets = await getMyPetsApi().catch(() => [])
 			const petList = Array.isArray(myPets) ? myPets : []
 
 			const selectedPet = petId
 				? petList.find((item) => String(item?.id) === String(petId))
 				: petList[0]
+
+			if (petId && !selectedPet) {
+				message.warning('Khong tim thay thu cung duoc chon. Vui long thu lai tu danh sach thu cung.')
+				setTimelineRecords(EMPTY_TIMELINE)
+				setReminders(EMPTY_REMINDERS)
+				setPetSummary(DEFAULT_PET_SUMMARY)
+				return
+			}
 
 			const resolvedPetId = petId || selectedPet?.id
 
@@ -261,7 +271,7 @@ function MedicalRecords() {
 		} finally {
 			setLoading(false)
 		}
-	}, [searchParams])
+	}, [medicalId, petId])
 
 	useEffect(() => {
 		window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -271,9 +281,6 @@ function MedicalRecords() {
 		loadMedicalData()
 	}, [loadMedicalData])
 
-	const handleOpenAppointments = () => {
-		navigate('/appointments')
-	}
 
 	const handleBookNow = (service) => {
 		navigate('/booking', { state: { service } })
@@ -294,7 +301,17 @@ function MedicalRecords() {
 					)}
 
 					<div className={styles.petInfo}>
-						<h1>{petSummary.name}</h1>
+						<div className={styles.petNameRow}>
+							<h1>{petSummary.name}</h1>
+							<button
+								type="button"
+								className={styles.switchPetBtn}
+								onClick={handleChangePet}
+								title="Đổi thú cưng"
+							>
+								<ReloadOutlined />
+							</button>
+						</div>
 						<p className={styles.petMeta}>{`${petSummary.breedName} • ${petSummary.weight}`}</p>
 						<div className={styles.petSubMeta}>
 							<span>
@@ -323,47 +340,42 @@ function MedicalRecords() {
 										{getMarkerIcon(record.markerType)}
 									</div>
 
-									<button
-										type="button"
-										className={styles.recordCard}
-										disabled={loading}
-										onClick={handleOpenAppointments}
-									>
-										<div className={styles.recordHeader}>
-											<h3>{record.title}</h3>
-											<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
-												{record.status}
-											</span>
-										</div>
+									<div className={styles.recordCard}>
+									<div className={styles.recordHeader}>
+										<h3>{record.title}</h3>
+										<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
+											{record.status}
+										</span>
+									</div>
 
-										<div className={styles.recordMetaGrid}>
-											<div>
-												{record.leftInfo.map((line) => (
-													<p key={`${record.id}-${line.label}-left`}>
-														<strong>{line.label}:</strong> {line.value}
-													</p>
-												))}
-											</div>
-
-											<div>
-												{record.rightInfo.map((line) => (
-													<p key={`${record.id}-${line.label}-right`}>
-														<strong>{line.label}:</strong> {line.value}
-													</p>
-												))}
-											</div>
-										</div>
-
-										<div className={styles.recordDivider} />
-
-										<div className={styles.recordDetails}>
-											{record.detailRows.map((line) => (
-												<p key={`${record.id}-${line.label}`}>
-													<span>{line.label}:</span> {line.value}
+									<div className={styles.recordMetaGrid}>
+										<div>
+											{record.leftInfo.map((line) => (
+												<p key={`${record.id}-${line.label}-left`}>
+													<strong>{line.label}:</strong> {line.value}
 												</p>
 											))}
 										</div>
-									</button>
+
+										<div>
+											{record.rightInfo.map((line) => (
+												<p key={`${record.id}-${line.label}-right`}>
+													<strong>{line.label}:</strong> {line.value}
+												</p>
+											))}
+										</div>
+									</div>
+
+									<div className={styles.recordDivider} />
+
+									<div className={styles.recordDetails}>
+										{record.detailRows.map((line) => (
+											<p key={`${record.id}-${line.label}`}>
+												<span>{line.label}:</span> {line.value}
+											</p>
+										))}
+									</div>
+								</div>
 								</div>
 							))
 							)}
@@ -380,19 +392,16 @@ function MedicalRecords() {
 								<p className={styles.emptyStateText}>Chưa có nhắc nhở quan trọng.</p>
 							) : (
 								reminders.map((reminder) => (
-								<button
+								<div
 									key={reminder.id}
-									type="button"
 									className={`${styles.reminderCard} ${styles[reminder.type]}`}
-									disabled={loading}
-									onClick={() => handleBookNow(reminder.title)}
 								>
 									<span className={styles.reminderIcon}>{getReminderIcon(reminder.type)}</span>
 									<span>
 										<strong>{reminder.title}</strong>
 										<small>{reminder.subtitle}</small>
 									</span>
-								</button>
+								</div>
 							))
 							)}
 						</div>

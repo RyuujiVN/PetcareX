@@ -13,7 +13,35 @@
 	padding: 70px 16px 40px;
 	background: white;
 }
+.petNameRow {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
 
+.switchPetBtn {
+	border: none;
+	background: #f1f5f9;
+	color: var(--medical-primary);
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.25s ease;
+}
+
+.switchPetBtn:hover {
+	background: var(--medical-primary);
+	color: #fff;
+	transform: rotate(180deg);
+}
+
+.switchPetBtn .anticon {
+	font-size: 16px;
+}
 .petCard {
 	display: flex;
 	align-items: center;
@@ -49,7 +77,7 @@
 .petInfo h1 {
 	margin: 0;
 	color: #243247;
-	font-size: 36px;
+	font-size: 26px;
 	font-weight: 800;
 	line-height: 1.1;
 }
@@ -185,15 +213,10 @@
 	border-radius: 12px;
 	background: #f9fbfd;
 	padding: 14px;
-	cursor: pointer;
+	cursor: default;
 	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
-.recordCard:hover {
-	transform: translateY(-1px);
-	border-color: #b5c3d2;
-	box-shadow: 0 8px 18px rgba(31, 48, 70, 0.08);
-}
 
 .recordHeader {
 	display: flex;
@@ -282,12 +305,12 @@
 	border-radius: 12px;
 	text-align: left;
 	padding: 12px;
-	cursor: pointer;
 	display: grid;
 	grid-template-columns: 30px 1fr;
 	gap: 10px;
 	align-items: center;
 	transition: transform 0.2s ease, filter 0.2s ease;
+	cursor: default;
 }
 
 .reminderCard:hover {
