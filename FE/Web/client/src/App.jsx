@@ -18,12 +18,13 @@ import MedicalRecords from './pages/User/MedicalRecords/medicalRecords'
 import Forum from './pages/User/Forum/forum'
 import ListPetMedicalRecords from './pages/User/ListPetMedicalRecords/listMedicalRecords'
 import './App.css'
-
+import ScrollToTop from './ScrollToTop'
 function App() {
   const location = useLocation()
 
   return (
     <div className="route-transition" key={`${location.pathname}${location.search}`}>
+      <ScrollToTop />
       <Routes location={location}>
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />

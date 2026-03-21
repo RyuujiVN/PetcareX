@@ -29,10 +29,6 @@ const SuccessBooking = () => {
     navigate('/appointments');
   };
 
-  const handleDownloadQR = () => {
-    message.success('QR code đã được tải xuống');
-  };
-
   if (!appointmentData) {
     return <div>Đang tải...</div>;
   }
