@@ -1,6 +1,4 @@
-﻿@import '../authColorToken.css';
-
-:root {
+﻿:root {
   --primary: var(--auth-primary);
   --text-primary: var(--auth-text-primary);
   --text-secondary: var(--auth-text-secondary);

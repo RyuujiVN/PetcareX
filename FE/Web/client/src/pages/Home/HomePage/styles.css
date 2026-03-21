@@ -1,6 +1,4 @@
-﻿@import '../theme.css';
-
-html, body {
+﻿html, body {
   height: auto !important;
   overflow-y: auto;
 }

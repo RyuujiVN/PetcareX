@@ -102,9 +102,56 @@
 }
 
 :root {
+  --pc-primary: #4672b4;
+  --pc-primary-hover: #3b5f97;
+  --pc-primary-rgb: 70, 114, 180;
+
+  --auth-primary: var(--pc-primary);
+  --auth-primary-hover: #3b6197;
+  --auth-primary-focus-shadow: rgba(var(--pc-primary-rgb), 0.2);
+  --auth-text-primary: #333;
+  --auth-text-secondary: #666;
+  --auth-text-light: #999;
+  --auth-border: #d9d9d9;
+  --auth-white: #fff;
+
+  --user-primary: var(--pc-primary);
+  --user-primary-hover: #3b639e;
+  --user-primary-alpha-10: rgba(var(--pc-primary-rgb), 0.1);
+  --user-primary-alpha-20: rgba(var(--pc-primary-rgb), 0.2);
+  --primary: var(--user-primary);
+  --primary-color: var(--user-primary);
+  --primary-hover: var(--user-primary-hover);
+  --text-primary: var(--color-text-primary);
+  --text-secondary: var(--color-text-secondary);
+  --border-color: var(--color-border-soft);
+  --bg-light: var(--color-surface-soft);
+  --bg-white: var(--color-surface-card);
+  --c-13ecda: var(--user-primary);
+  --c-0dd9c7: var(--user-primary-hover);
+
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+}
+
+.home-page,
+.clinic-page,
+.chatbot-container,
+.user-dashboard {
+  --page-home-primary: var(--pc-primary);
+  --page-home-primary-hover: var(--pc-primary-hover);
+  --page-home-primary-soft: rgba(var(--pc-primary-rgb), 0.18);
+  --page-home-on-primary: #ffffff;
+
+  --home-chatbot-primary: var(--page-home-primary);
+  --home-chatbot-primary-hover: var(--page-home-primary-hover);
+  --home-chatbot-primary-soft: rgba(var(--pc-primary-rgb), 0.1);
+  --home-chatbot-primary-strong: rgba(var(--pc-primary-rgb), 0.35);
+
+  --color-brand-primary: var(--page-home-primary);
+  --color-brand-primary-hover: var(--page-home-primary-hover);
+  --color-brand-muted: var(--page-home-primary);
 }
 
 html {
