@@ -182,7 +182,7 @@ export default function AddPet() {
         <form className="addPets-form" onSubmit={handleSubmit}>
 
           <div className="form-groups upload-group">
-            <label className="form-labels">Ảnh đại diện thú cưng</label>
+            <label className="form-labels" style={{fontWeight: 'bold'}}>Ảnh đại diện thú cưng</label>
             <div
               className="upload-box"
               onClick={() => fileInputRef.current && fileInputRef.current.click()}

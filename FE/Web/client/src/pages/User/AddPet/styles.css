@@ -46,7 +46,7 @@ body::-webkit-scrollbar {
 
 .addPets-card {
   background: linear-gradient(white);
-  border: 1px solid var(--c-bec0c086);
+  border: 1px solid  var(--border-color);
   border-radius: 12px;
   box-shadow: none;
   padding: 30px 50px;
@@ -140,7 +140,7 @@ input.form-input[type="text"] {
 
 .section-title-small {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: bold;
   color: var(--text-primary);
   margin-bottom: 15px;
 }
@@ -228,6 +228,7 @@ input.form-input[type="text"] {
 
 .upload-group .upload-box {
   border: 2px dashed var(--c-cbd5e1);
+  background-color: aliceblue;
   border-radius: 6px;
   height: 180px;
   display: flex;
