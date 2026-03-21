@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Row, Col, Button, Spin, Empty, message } from 'antd';
 import { EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { getMyPetsApi } from '../../../data/api/petApi';
+import { getMyPetsApi, getBreedLabel } from '../../../data/api/petApi';
 import styles from './listMedicalRecords.module.css';
 import Header from '../../../components/layout/header';
 
@@ -65,7 +65,7 @@ const ListPetMedicalRecords = () => {
                       <div className={styles['pet-info']}>
                         <h3 className={styles['pet-name']}>
                           {pet.name} <br />
-                          {pet.breed?.name || 'Chưa cập nhật giống'}
+                          {getBreedLabel(pet.breed, pet.species)}
                         </h3>
                       </div>
                     </Col>

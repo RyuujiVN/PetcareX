@@ -9,6 +9,7 @@ import {
   getMyAppointmentsApi,
   updateAppointmentStatusApi,
 } from '../../../data/api/appointmentApi';
+import { getBreedLabel } from '../../../data/api/petApi';
 import './styles.css';
 
 const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
@@ -58,7 +59,7 @@ const AppointmentDetail = () => {
         id: item.id,
         petId: item.pet?.id,
         petName: item.pet?.name || 'Không rõ',
-        breed: item.pet?.breed?.name || 'Không rõ',
+        breed: getBreedLabel(item.pet?.breed, item.pet?.species),
         avatar: item.pet?.avatar || '/gaugau.png',
         clinic: item.clinic?.name || 'Không rõ',
         clinicAddress: item.clinic?.address || 'Không rõ',

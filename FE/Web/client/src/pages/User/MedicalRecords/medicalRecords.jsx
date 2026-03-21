@@ -18,7 +18,7 @@ import {
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../data/api/medicalApi'
-import { getMyPetsApi } from '../../../data/api/petApi'
+import { getMyPetsApi, getBreedLabel } from '../../../data/api/petApi'
 import styles from './medicalRecords.module.css'
 
 const EMPTY_TIMELINE = []
@@ -195,7 +195,7 @@ function MedicalRecords() {
 				setPetSummary({
 					name: selectedPet?.name || DEFAULT_PET_SUMMARY.name,
 					avatar: selectedPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
-					breedName: selectedPet?.breed?.name || DEFAULT_PET_SUMMARY.breedName,
+					breedName: getBreedLabel(selectedPet?.breed, selectedPet?.species),
 					birthday: formatDate(selectedPet?.dateOfBirth),
 					gender: formatGender(selectedPet?.gender),
 					weight: selectedPet?.weight ? `${selectedPet.weight} kg` : DEFAULT_PET_SUMMARY.weight,
@@ -242,11 +242,10 @@ function MedicalRecords() {
 					selectedPet?.name ||
 					DEFAULT_PET_SUMMARY.name,
 				avatar: firstRecord?.pet?.avatar || selectedPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
-				breedName:
-					firstRecord?.pet?.breed?.name ||
-					firstRecord?.pet?.breedName ||
-					selectedPet?.breed?.name ||
-					DEFAULT_PET_SUMMARY.breedName,
+				breedName: getBreedLabel(
+					firstRecord?.pet?.breed || firstRecord?.pet?.breedName || selectedPet?.breed,
+					firstRecord?.pet?.species || selectedPet?.species,
+				),
 				birthday: formatDate(firstRecord?.pet?.dateOfBirth || selectedPet?.dateOfBirth),
 				gender: formatGender(firstRecord?.pet?.gender ?? selectedPet?.gender),
 				weight:

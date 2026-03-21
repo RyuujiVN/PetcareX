@@ -2,7 +2,7 @@
 import { Row, Col, Button, Spin, Empty, message, Modal } from 'antd';
 import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { getMyPetsApi, deletePetApi } from '../../../data/api/petApi';
+import { getMyPetsApi, deletePetApi, getBreedLabel } from '../../../data/api/petApi';
 import './styles.css';
 import Header from '../../../components/layout/header';
 
@@ -90,7 +90,7 @@ const ListPet = () => {
                       <div className="pet-info">
                         <h3 className="pet-name">
                           {pet.name} <br />
-                          {pet.breed?.name || 'Chưa cập nhật giống'}
+                          {getBreedLabel(pet.breed, pet.species)}
                         </h3>
                       </div>
                     </Col>

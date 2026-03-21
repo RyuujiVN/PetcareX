@@ -9,7 +9,9 @@ import { message, Radio, Select } from 'antd';
 import {
   createPetApi,
   getBreedsBySpeciesApi,
+  getBreedLabel,
   getPetSpeciesApi,
+  getSpeciesLabel,
   uploadPetAvatarApi,
 } from '../../../data/api/petApi';
 
@@ -30,7 +32,6 @@ export default function AddPet() {
   const [loadingMeta, setLoadingMeta] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const fileInputRef = useRef();
-  const dateInputRef = useRef();
 
   const calculateAgeFromDate = (dateValue) => {
     if (!dateValue) {
@@ -58,18 +59,7 @@ export default function AddPet() {
     }
   };
 
-  const handlePickBirthday = () => {
-    if (!dateInputRef.current) {
-      return;
-    }
 
-    if (typeof dateInputRef.current.showPicker === 'function') {
-      dateInputRef.current.showPicker();
-      return;
-    }
-
-    dateInputRef.current.click();
-  };
   useEffect(() => {
     const fetchSpecies = async () => {
       try {
@@ -101,7 +91,7 @@ export default function AddPet() {
         setBreedList(nextBreeds);
 
         if (nextBreeds.length > 0) {
-          setBreed(nextBreeds[0].name || '');
+          setBreed(nextBreeds[0] || '');
         }
       } catch (error) {
         message.error(error.message || 'Không thể tải danh sách giống');
@@ -121,12 +111,9 @@ export default function AddPet() {
       return;
     }
 
-    const matchedBreed =
-      breedList.find(
-        (item) => (item.name || '').toLowerCase() === breed.trim().toLowerCase(),
-      ) || breedList[0];
+    const matchedBreed = breedList.find((item) => item === breed) || '';
 
-    if (!matchedBreed?.id) {
+    if (!matchedBreed) {
       message.warning('Vui lòng chọn giống hợp lệ theo loài đã chọn');
       return;
     }
@@ -152,7 +139,8 @@ export default function AddPet() {
 
     const payload = {
       name: name.trim(),
-      breedId: matchedBreed.id,
+      species,
+      breed: matchedBreed,
       gender: gender === 'male',
       dateOfBirth: birthday,
       weight: Number(weight),
@@ -247,8 +235,8 @@ export default function AddPet() {
                 loading={loadingMeta}
                 className="form-input"
                 options={speciesList.map(item => ({
-                  label: item.name,
-                  value: item.id
+                  label: getSpeciesLabel(item),
+                  value: item
                 }))}
               />
             </div>
@@ -263,8 +251,8 @@ export default function AddPet() {
                 loading={loadingMeta}
                 disabled={!species}
                 options={breedList.map(item => ({
-                  label: item.name,
-                  value: item.id
+                  label: getBreedLabel(item, species),
+                  value: item
                 }))}
               />
             </div>

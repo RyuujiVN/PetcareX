@@ -15,6 +15,7 @@ import {
   getMyAppointmentsApi,
   SERVICE_OPTIONS,
 } from '../../../data/api/appointmentApi';
+import { getBreedLabel } from '../../../data/api/petApi';
 
 const WORKING_SLOTS = ['08:00', '09:00', '10:30', '13:30', '15:00', '16:30'];
 
@@ -491,7 +492,7 @@ export default function BookingAppointment() {
                     <img src={p.avatar} alt={p.name} />
                     <div className="info">
                       <span className="name">{p.name}</span>
-                      <span className="sub">{p.breed?.name || 'Chưa có giống'}</span>
+                      <span className="sub">{getBreedLabel(p.breed, p.species)}</span>
                     </div>
                   </div>
                 ))}
@@ -718,7 +719,7 @@ export default function BookingAppointment() {
           <div className="text">
             <div className="label">THÚ CƯNG</div>
             <div className="value">
-              {selectedPet.name} ({selectedPet.breed?.name || 'Chưa có giống'})
+              {selectedPet.name} ({getBreedLabel(selectedPet.breed, selectedPet.species)})
             </div>
           </div>
         </div>

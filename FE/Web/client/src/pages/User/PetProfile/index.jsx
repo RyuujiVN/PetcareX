@@ -23,9 +23,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getUserProfileApi } from "../../../data/api/user";
 import {
+  getBreedLabel,
   getBreedsBySpeciesApi,
   getMyPetsApi,
   getPetSpeciesApi,
+  getSpeciesLabel,
+  uploadPetAvatarApi,
   updatePetApi,
 } from "../../../data/api/petApi";
 
@@ -40,6 +43,7 @@ export default function PetProfile() {
 
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
+  const [avatarFile, setAvatarFile] = useState(null);
   const [petData, setPetData] = useState(null);
   const [ownerName, setOwnerName] = useState("");
   const [speciesList, setSpeciesList] = useState([]);
@@ -120,15 +124,15 @@ export default function PetProfile() {
         return;
       }
 
-      const speciesId = petInfo.breed?.speciesId || "";
+      const speciesValue = petInfo.species || "";
       setCurrentPetId(petInfo.id || "");
-      setSelectedSpeciesId(speciesId);
+      setSelectedSpeciesId(speciesValue);
 
       const mappedPetData = {
         id: petInfo.id,
         petName: petInfo.name || "",
-        species: speciesId,
-        breed: petInfo.breed?.name || "",
+        species: speciesValue,
+        breed: petInfo.breed || "",
         gender: petInfo.gender ? "Đực" : "Cái",
         birthDate: petInfo.dateOfBirth || null,
         weight: petInfo.weight ? Number(petInfo.weight) : "",
@@ -151,6 +155,7 @@ export default function PetProfile() {
       });
 
       setImagePreview(mappedPetData.avatar);
+      setAvatarFile(null);
     } catch (error) {
       message.error(error.message || "Không thể tải thông tin thú cưng!");
     } finally {
@@ -161,6 +166,8 @@ export default function PetProfile() {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    setAvatarFile(file);
 
     const reader = new FileReader();
 
@@ -178,11 +185,11 @@ export default function PetProfile() {
     }
 
     const matchedBreed =
-      breedList.find(
-        (item) => (item.name || "").toLowerCase() === (values.breed || "").trim().toLowerCase(),
-      ) || breedList[0];
+      breedList.find((item) => item === values.breed) ||
+      breedList.find((item) => String(item).toLowerCase() === String(values.breed || "").trim().toLowerCase()) ||
+      "";
 
-    if (!matchedBreed?.id) {
+    if (!matchedBreed) {
       message.warning("Vui lòng chọn giống hợp lệ");
       return;
     }
@@ -190,18 +197,22 @@ export default function PetProfile() {
     try {
       setLoading(true);
 
+      let avatarUrl = petData?.avatar || "";
+      if (avatarFile) {
+        const uploadResult = await uploadPetAvatarApi(avatarFile);
+        avatarUrl = uploadResult?.file || avatarUrl;
+      }
+
       const updatePayload = {
         name: values.petName,
-        breedId: matchedBreed.id,
+        species: values.species,
+        breed: matchedBreed,
         gender: values.gender === "Đực",
         dateOfBirth: values.birthDate ? values.birthDate.format("YYYY-MM-DD") : null,
         weight: Number(values.weight),
         note: values.features,
+        avatar: avatarUrl,
       };
-
-      if (imagePreview && imagePreview.startsWith("http")) {
-        updatePayload.avatar = imagePreview;
-      }
 
       await updatePetApi(currentPetId, updatePayload);
 
@@ -215,8 +226,10 @@ export default function PetProfile() {
         weight: Number(values.weight),
         features: values.features,
         owner: values.owner,
-        avatar: imagePreview,
+        avatar: avatarUrl,
       }));
+
+      setAvatarFile(null);
 
       message.success("Cập nhật thông tin thú cưng thành công!");
       navigate(-1);
@@ -332,8 +345,8 @@ export default function PetProfile() {
                 <Select
                   size="large"
                   options={speciesList.map((item) => ({
-                    label: item.name,
-                    value: item.id,
+                    label: getSpeciesLabel(item),
+                    value: item,
                   }))}
                   onChange={(value) => setSelectedSpeciesId(value)}
                 />
@@ -347,6 +360,7 @@ export default function PetProfile() {
                 label="Giống"
                 name="breed"
                 className="form-col"
+                rules={[{ required: true, message: "Chọn giống" }]}
               >
                 <Input
                   size="large"
@@ -356,7 +370,9 @@ export default function PetProfile() {
 
               <datalist id="profile-breed-suggestion-list">
                 {breedList.map((item) => (
-                  <option key={item.id} value={item.name} />
+                  <option key={item} value={item}>
+                    {getBreedLabel(item, selectedSpeciesId)}
+                  </option>
                 ))}
               </datalist>
 
