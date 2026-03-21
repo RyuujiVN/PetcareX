@@ -848,7 +848,7 @@ const featuredPosts = useMemo(() => {
 										className={styles.topicFilterIconBtn}
 										title="Chọn chủ đề"
 									>
-										<FaFilter />
+										Chủ đề <FaFilter style={{ marginLeft: 6 }} />
 									</button>
 								</Dropdown>
 							</div>
@@ -1148,7 +1148,7 @@ const featuredPosts = useMemo(() => {
 					<div className={styles.rightColumnSticky}>
 						<section className={styles.sideCard}>
 							<header className={styles.sideTitle}>
-								<h2 style={{fontSize: 16}}>Người đóng góp hàng đầu</h2>
+								<h2 style={{fontSize: 16, fontWeight: 'bold'}}>Người đóng góp hàng đầu</h2>
 							</header>
 							<div className={styles.rankList}>
 								{topContributors.map((item) => (
@@ -1173,7 +1173,7 @@ const featuredPosts = useMemo(() => {
 
 						<section className={styles.sideCard}>
 							<header className={styles.sideTitle}>
-								<h2 style={{fontSize: 16}}>Bài viết nổi bật</h2>
+								<h2 style={{fontSize: 16, fontWeight: 'bold'}}>Bài viết nổi bật</h2>
 							</header>
 							<div className={styles.featureList}>
 								{featuredPosts.map((item, index) => (
@@ -1203,12 +1203,12 @@ const featuredPosts = useMemo(() => {
 					onClick={(e) => e.stopPropagation()}
 				>
 					<h3>Tạo bài viết mới</h3>
-					<p style={{marginLeft: 3, fontWeight: 'bold'}}>Tiêu đề bài viết</p>
+					<p style={{marginLeft: 3, fontWeight: 'bold'}}>Chủ đề bài viết</p>
 					<Select
 						value={composerTopicId || undefined}
 						onChange={(value) => setComposerTopicId(value)}
 						className={styles.topicSelectAntd}
-						placeholder="Chọn tiêu đề bài viết"
+						placeholder="Chọn chủ đề bài viết"
 						options={apiTopics.map((topic) => ({
 							value: topic.id,
 							label: getTopicDisplayName(topic),

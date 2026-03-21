@@ -100,12 +100,12 @@
 }
 
 .topicFilterIconBtn {
-	width: 38px;
+	width: 100px;
 	height: 38px;
 	border-radius: 10px;
 	border: 1px solid #d5e0ec;
 	background: #ffffff;
-	color: #5f7289;
+	color: #262729;
 	font-size: 16px;
 	cursor: pointer;
 	display: inline-flex;
@@ -175,6 +175,8 @@
 	display: flex;
 	align-items: center;
 	gap: 12px;
+	font-family: 'Times New Roman', serif;
+	font-weight: bold;
 }
 
 .postAvatar {
