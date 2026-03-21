@@ -9,8 +9,8 @@ import {
   Typography,
 } from "antd";
 import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
-import "./styles.css";
-import { registerApi } from "../../api/auth";
+import "./register.module.css";
+import { registerApi } from "../../../data/api/auth";
 import { FaPaw } from "react-icons/fa";
 
 const { Title, Text } = Typography;
@@ -84,14 +84,14 @@ export default function Register() {
     <div className="register-container">
       <div className="login-header-bar">
         <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FaPaw size={28} color="#13ECDA" />
+          <FaPaw size={28} color="var(--auth-primary)" />
           <h2 className="logo-name-small" style={{ margin: 0, color: '#333' }}>PetcareX</h2>
         </div>
       </div>
 
       <div style={{ padding: '40px 25px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <UserOutlined style={{ fontSize: '48px', color: '#13ECDA' }} />
+          <UserOutlined style={{ fontSize: '48px', color: 'var(--auth-primary)' }} />
           <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng ký tài khoản</Title>
         </div>
 
@@ -178,11 +178,11 @@ export default function Register() {
           >
             <Checkbox>
               Tôi đồng ý với{" "}
-              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "#13ECDA" }}>
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--auth-primary)' }}>
                 Điều khoản dịch vụ
               </a>{" "}
               và{" "}
-              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "#13ECDA" }}>
+              <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--auth-primary)' }}>
                 Chính sách bảo mật
               </a>{" "}
               của PetcareX
@@ -195,7 +195,7 @@ export default function Register() {
               htmlType="submit"
               block
               loading={loading}
-              style={{ backgroundColor: '#13ECDA', color: 'white', fontWeight: 'bold', borderColor: '#13ECDA' }}
+              style={{ backgroundColor: 'var(--auth-primary)', color: 'white', fontWeight: 'bold', borderColor: 'var(--auth-primary)' }}
             >
               Tạo tài khoản
             </Button>
@@ -204,7 +204,7 @@ export default function Register() {
 
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
           <Text type="secondary">
-            Bạn đã có tài khoản? <a style={{ color: '#13ECDA', fontWeight: 'bold' }} onClick={() => navigate("/login")}>Đăng nhập ngay</a>
+            Bạn đã có tài khoản? <a style={{ color: 'var(--auth-primary)', fontWeight: 'bold' }} onClick={() => navigate("/login")}>Đăng nhập ngay</a>
           </Text>
         </div>
 

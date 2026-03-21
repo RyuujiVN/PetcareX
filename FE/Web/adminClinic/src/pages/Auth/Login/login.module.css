@@ -1,13 +1,7 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 :root {
-  --primary: #13ECDA;
-  --text-primary: #333;
-  --text-secondary: #666;
+  --primary: var(--auth-primary);
+  --text-primary: var(--auth-text-primary);
+  --text-secondary: var(--auth-text-secondary);
 }
 
 body {
@@ -19,7 +13,16 @@ body {
 body::-webkit-scrollbar {
   display: none;
 }
+.ant-input,
+.ant-input-affix-wrapper {
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
 
+.ant-input-affix-wrapper input {
+  height: 100%;
+}
 .login-container {
   display: flex;
   flex-direction: column;
@@ -28,6 +31,7 @@ body::-webkit-scrollbar {
   background: white;
   min-height: 100vh;
   position: relative;
+  padding-top: 35px;
 }
 
 .login-header-bar {

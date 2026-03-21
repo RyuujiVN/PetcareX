@@ -1,9 +1,9 @@
+import { Button, Form, Input, message, Spin } from 'antd';
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Form, Input, Button, message, Spin } from 'antd';
-import { LockOutlined } from '@ant-design/icons';
-import './styles.css';
 import { FaPaw } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { forgotPasswordApi } from '../../../data/api/auth';
+import './forgotPassword.module.css';
 
 export default function ForgotPassword() {
   const [form] = Form.useForm();
@@ -12,34 +12,18 @@ export default function ForgotPassword() {
 
   const handleSubmit = async (values) => {
     setLoading(true);
-
     try {
-      const response = await fetch('http://localhost:3000/api/auth/forgot-password', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: values.email }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Không tìm thấy tài khoản với email này');
-      }
-
+      await forgotPasswordApi(values.email);
       message.success({
         content: 'Mã OTP đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư đến hoặc thư mục spam.',
         duration: 3,
       });
-      
       setTimeout(() => {
         navigate('/reEnterPassword', { state: { email: values.email } });
       }, 1500);
     } catch (err) {
-      console.error('Error:', err);
       message.error({
-        content: err.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
+        content: err.response?.data?.message || err.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
         duration: 3,
       });
     } finally {
@@ -55,7 +39,7 @@ export default function ForgotPassword() {
     <div className="forgot-password-container">
       <div className="login-header-bar">
               <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaPaw size={28} color="#13ECDA" />
+                <FaPaw size={28} color="var(--auth-primary)" />
                 <h2 className="logo-name-small" style={{ margin: 0, color: 'white' }}>PetcareX</h2>
               </div>
             </div>
@@ -64,7 +48,7 @@ export default function ForgotPassword() {
           <div className="forgot-password-icon">
             <svg viewBox="0 0 80 80" className="lock-icon-svg">
               <defs>
-                <style>{`.lock-fill { fill: #13ECDA; }`}</style>
+                <style>{`.lock-fill { fill: var(--auth-primary); }`}</style>
               </defs>
               <circle cx="40" cy="40" r="40" className="lock-fill" opacity="0.15" />
               <path

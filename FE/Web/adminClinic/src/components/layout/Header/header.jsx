@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { FaPaw } from "react-icons/fa";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import "./header.css";
+import { useAuth } from "../../hooks/AuthContext";
+import "./header.module.css";
 
 function Header() {
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
@@ -17,7 +17,7 @@ function Header() {
         <header className="petcare-header">
             <div className="header-container">
                 <Link to="/" className="logo-section">
-                    <div className="logo-icon"> <FaPaw size={28} color="#13ECDA" /></div>
+                    <div className="logo-icon"> <FaPaw size={28} color="var(--page-header-primary)" /></div>
                     <span className="logo-text">PetCareX</span>
                 </Link>
 
@@ -35,22 +35,22 @@ function Header() {
                         Lịch hẹn
                     </NavLink>
                     <NavLink 
-                        to="/choose-clinic" 
+                        to="/listPetMedicalRecords" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Phòng khám
+                        Hồ sơ y tế
                     </NavLink>
                     <NavLink 
-                        to="/dien-dan" 
+                        to="/forum" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
                         Diễn đàn
                     </NavLink>
                     <NavLink 
-                        to="/hoi-dap" 
+                        to="/chatbot" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Hỏi đáp
+                        Chat Bot AI
                     </NavLink>
                 </nav>
 
@@ -99,10 +99,10 @@ function Header() {
                         </div>
                     ) : (
                         <div className="auth-buttons">
-                            <Link to="/register" className="btn register-btn">
+                            <Link to="/register" className="btns register-btn">
                                 Đăng ký
                             </Link>
-                            <Link to="/login" className="btn login-btn">
+                            <Link to="/login" className="btns login-btn">
                                 Đăng nhập
                             </Link>
                         </div>
@@ -114,3 +114,4 @@ function Header() {
 }
 
 export default Header;
+
