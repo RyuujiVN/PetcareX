@@ -479,18 +479,7 @@ export default function PetProfile() {
             >
               <Input.TextArea rows={4} />
             </Form.Item>
-
-            <Form.Item
-              label="Tên chủ thú cưng"
-              name="owner"
-              rules={[{ required: true }]}
-            >
-              <Input
-                prefix={<UserOutlined />}
-                size="large"
-              />
-            </Form.Item>
-
+            
             <Form.Item className="form-buttons">
 
               <Space style={{ width: "100%", gap: "12px" }}>
