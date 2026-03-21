@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getUserProfileApi, updateUserProfileApi, uploadAvatarApi } from '../../../data/api/user';
 import { useAuth } from '../../../hooks/AuthContext';
-import Header from '../../../components/layout/header';
 import './styles.css';
 
 export default function ProfileUser() {
@@ -103,7 +102,6 @@ export default function ProfileUser() {
 
   return (
     <div className="profile-container">
-        <Header/>
       <div className="profile-wrapper">
         <div className="profile-header">
         <h2 className="profile-titles">Thông tin cá nhân</h2>

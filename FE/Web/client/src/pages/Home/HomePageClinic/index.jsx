@@ -1,7 +1,5 @@
 ﻿import { FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
-import Footer from "../../../components/layout/footer";
-import Header from "../../../components/layout/header";
 import "../HomePage/styles.css"; 
 import "./HomePageClinic.css";
 
@@ -120,8 +118,6 @@ export default function HomePageClinic() {
 
   return (
     <div className="home-page clinic-page">
-      <Header />
-
       <section className="hero-section clinic-hero">
         <div className="hero-content">
           <h1 className="hero-title">
@@ -253,8 +249,6 @@ export default function HomePageClinic() {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 }

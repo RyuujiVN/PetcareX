@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './styles.css';
 import { MessageCircle, Plus, Send, Loader } from 'lucide-react';
-import Header from "../../../components/layout/header";
 import { CloseOutlined } from '@ant-design/icons';
 export default function ChatBotAI() {
   const [conversations, setConversations] = useState([
@@ -122,8 +121,6 @@ const handleCreateNewConversation = () => {
 
   return (
     <div>
-      <Header />
-
       <div className="chatbot-container">
         <aside className="chatbot-sidebar">
           <button className="new-conversation-btn" onClick={handleCreateNewConversation}>

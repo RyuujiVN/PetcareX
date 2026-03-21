@@ -4,7 +4,6 @@ import { EyeOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { getMyPetsApi, deletePetApi, getBreedLabel } from '../../../data/api/petApi';
 import './styles.css';
-import Header from '../../../components/layout/header';
 
 const ListPet = () => {
   const navigate = useNavigate();
@@ -61,8 +60,6 @@ const ListPet = () => {
 
   return (
     <div className="list-pet-wrapper">
-      <Header />
-
       <div className="list-pet-container">
         <div className="list-pet-header-section">
           <h1 className="list-pet-title">Danh sách thú cưng của bạn</h1>

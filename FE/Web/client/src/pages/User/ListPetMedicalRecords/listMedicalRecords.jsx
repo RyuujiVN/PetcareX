@@ -4,7 +4,6 @@ import { EyeOutlined } from '@ant-design/icons';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 import { getMyPetsApi, getBreedLabel } from '../../../data/api/petApi';
 import styles from './listMedicalRecords.module.css';
-import Header from '../../../components/layout/header';
 
 const ListPetMedicalRecords = () => {
   const navigate = useNavigate();
@@ -40,8 +39,6 @@ const ListPetMedicalRecords = () => {
 
   return (
     <div className={styles['list-pet-wrapper']}>
-      <Header />
-
       <div className={styles['list-pet-container']}>
         <div className={styles['list-pet-header-section']}>
           <h1 className={styles['list-pet-title']}>Danh sách thú cưng của bạn</h1>

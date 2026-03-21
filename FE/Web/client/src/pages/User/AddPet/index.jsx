@@ -4,7 +4,6 @@ import './styles.css';
 
 import { FaPaw } from "react-icons/fa";
 import { FiCamera } from "react-icons/fi";
-import Header from '../../../components/layout/header';
 import { message, Radio, Select } from 'antd';
 import {
   createPetApi,
@@ -164,7 +163,6 @@ export default function AddPet() {
     
     <div className="addPets-container">
       <div className="addPets-header-bar">
-        <Header/>
         <div className="header-left">
           <FaPaw size={28} color="var(--c-13ecda)" />
           <h2 className="logo-name-small">PetcareX</h2>

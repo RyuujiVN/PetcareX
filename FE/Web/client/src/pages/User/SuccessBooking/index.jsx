@@ -2,8 +2,6 @@
 import { Button, Card, Row, Col, Divider, Space, message, QRCode } from 'antd';
 import { CheckCircleOutlined, CalendarOutlined, UserOutlined, ClockCircleOutlined, MedicineBoxOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
-import Header from '../../../components/layout/header';
-import Footer from '../../../components/layout/footer';
 import './styles.css';
 
 const SuccessBooking = () => {
@@ -35,8 +33,6 @@ const SuccessBooking = () => {
 
   return (
     <div className="success-booking-wrapper">
-      <Header />
-
       <div className="success-booking-container">
         <div className="success-header">
           <CheckCircleOutlined className="success-icon" />
@@ -109,8 +105,6 @@ const SuccessBooking = () => {
           </Button>
         </div>
       </div>
-
-      <Footer />
     </div>
   );
 };

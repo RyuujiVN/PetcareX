@@ -2,8 +2,6 @@
 import * as antd from 'antd';
 import * as icons from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import Header from '../../../components/layout/header';
-import Footer from '../../../components/layout/footer';
 import {
   APPOINTMENT_STATUS,
   getMyAppointmentsApi,
@@ -199,7 +197,6 @@ const handleViewDetails = (appointment) => {
 
   return (
     <div className="appointment-detail-wrapper">
-      <Header />
       <div className="appointment-detail-container">
         <div className="appointment-header-section">
           <h1>Lịch khám</h1>
@@ -366,7 +363,6 @@ const handleViewDetails = (appointment) => {
           )}
         </antd.Modal>
       </div>
-      <Footer />
     </div>
   );
 };

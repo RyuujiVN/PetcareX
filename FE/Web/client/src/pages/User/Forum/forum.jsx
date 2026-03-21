@@ -20,7 +20,6 @@ import {
 	updatePost,
 } from '../../../data/api/postApi'
 import { getAllTopics } from '../../../data/api/topicApi'
-import Header from '../../../components/layout/header'
 import styles from './forum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
@@ -816,7 +815,6 @@ const featuredPosts = useMemo(() => {
 
 	return (
 		<div className={styles.pageRoot}>
-			<Header />
 			<main className={styles.pageWrap}>
 				<section className={styles.leftColumn}>
 					<div className={styles.composeCard}>

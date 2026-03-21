@@ -3,8 +3,6 @@ import { message, Spin } from 'antd';
 import { Select, Card, Avatar, Row, Col, Input, Form } from 'antd';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './styles.css';
-import Header from '../../../components/layout/header';
-import Footer from '../../../components/layout/footer';
 import { useAuth } from '../../../hooks/AuthContext';
 import { getMyPetsApi } from '../../../data/api/petApi';
 import { getClinicByIdApi, getClinicListApi } from '../../../data/api/clinicApi';
@@ -430,7 +428,6 @@ export default function BookingAppointment() {
 
   return (
     <div className="booking-page">
-      <Header />
       <header className="dashboard-header">
         <h1 style={{marginRight: '46%'}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
         <p style={{marginRight: '48%', paddingTop: 19}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
@@ -708,7 +705,6 @@ export default function BookingAppointment() {
           </div>
         </div>
       </Spin>
-      <Footer />
       {showSummary && (
   <div className="summary-overlay">
     <div className="summary-modal">

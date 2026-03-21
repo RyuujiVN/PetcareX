@@ -12,7 +12,6 @@ import { ReloadOutlined } from '@ant-design/icons'
 import { useCallback, useEffect, useState } from 'react'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import Header from '../../../components/layout/header'
 import {
 	getMedicalById,
 	getMedicalByPetId,
@@ -288,8 +287,6 @@ function MedicalRecords() {
 
 	return (
 		<div className={styles.pageRoot}>
-			<Header />
-
 			<main className={styles.pageContent}>
 				<section className={styles.petCard}>
 					{petSummary.avatar ? (

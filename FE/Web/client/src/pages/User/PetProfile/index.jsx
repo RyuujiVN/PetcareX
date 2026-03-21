@@ -36,7 +36,6 @@ import {
 import dayjs from "dayjs";
 
 import "./styles.css";
-import Header from "../../../components/layout/header";
 
 export default function PetProfile() {
   const [form] = Form.useForm();
@@ -287,8 +286,6 @@ export default function PetProfile() {
   return (
 
     <div className="profile-container">
-
-      <Header />
 
       <div className="profile-wrapper">
 

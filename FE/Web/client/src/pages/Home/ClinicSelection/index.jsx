@@ -1,7 +1,5 @@
 ﻿import { useEffect, useRef, useState } from "react";
 import { message, Spin } from "antd";
-import Header from "../../../components/layout/header";
-import Footer from "../../../components/layout/footer";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClinicByIdApi, getClinicListApi } from "../../../data/api/clinicApi";
@@ -93,8 +91,6 @@ useEffect(() => {
 
   return (
     <div className="clinic-page">
-      <Header />
-
       <div className="clinic-header">
         <h2>Danh sách phòng khám đối tác</h2>
 
@@ -159,8 +155,6 @@ useEffect(() => {
           ))}
         </div>
       </Spin>
-
-      <Footer />
     </div>
   );
 }
