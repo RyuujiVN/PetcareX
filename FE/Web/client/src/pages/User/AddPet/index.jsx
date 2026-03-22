@@ -162,13 +162,6 @@ export default function AddPet() {
   return (
     
     <div className="addPets-container">
-      <div className="addPets-header-bar">
-        <div className="header-left">
-          <FaPaw size={28} color="var(--c-13ecda)" />
-          <h2 className="logo-name-small">PetcareX</h2>
-        </div>
-      </div>
-
       <div className="addPets-card">
         <div className="addPets-header">
           <h1 className="addPets-title">Thêm thú cưng mới</h1>

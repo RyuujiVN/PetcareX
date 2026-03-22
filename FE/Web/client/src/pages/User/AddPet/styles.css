@@ -14,22 +14,10 @@ body::-webkit-scrollbar {
   justify-content: flex-start;
   background: white;
   position: relative;
-  padding-top: 60px;
+  min-height: 100vh;
+  overflow: hidden;
 }
 
-.addPets-header-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: white;
-  display: flex;
-  align-items: center;
-  padding: 0 50px;
-  border-bottom: 1px solid var(--border-color);
-  z-index: 1000;
-}
 
 .header-left {
   display: flex;
@@ -208,12 +196,16 @@ input.form-input[type="text"] {
 .cancel-button {
   padding: 12px 20px;
   background: transparent;
-  border: 1px solid var(--c-475569);
+  border: 1px solid var(--primary);
   border-radius: 6px;
   color: var(--c-475569);
   font-size: 14px;
   cursor: pointer;
   margin-left: 60%;
+}
+.cancel-button:hover {
+  background: var(--color-surface-soft);
+  color: var(--primary);
 }
 
 .submit-button {
@@ -317,10 +309,6 @@ input.form-input[type="text"] {
   .addPets-card {
     padding: 60px 40px;
     max-width: 100%;
-  }
-
-  .addPets-header-bar {
-    padding: 0 30px;
   }
 
   .grid-two-column {
