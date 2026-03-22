@@ -27,7 +27,7 @@ body::-webkit-scrollbar {
   align-items: center;
   justify-content: center;
   background: white;
-  min-height: 100vh;
+  max-height: 100vh;
   position: relative;
 }
 
