@@ -7,25 +7,18 @@ import {
   Get,
   Param,
   ParseIntPipe,
-  Post,
   Put,
   Query,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import {
   ApiBearerAuth,
   ApiBody,
-  ApiConsumes,
   ApiOperation,
   ApiQuery,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { FileValidationPipe } from 'src/common/pipes/file-validate.pipe';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UpdateUserDTO } from './dtos/update-user.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { User } from './entities/user.entity';
@@ -34,10 +27,7 @@ import { User } from './entities/user.entity';
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  constructor(private readonly userService: UserService) {}
 
   @Get()
   @ApiOperation({ summary: 'Phân trang người dùng' })
@@ -71,32 +61,6 @@ export class UserController {
   @ApiOperation({ summary: 'Lấy thông tin tài khoản người dùng' })
   getUser(@Param('id') id: string) {
     return this.userService.findOneByid(id);
-  }
-
-  @Post('upload')
-  @ApiOperation({ summary: 'Tải ảnh avatar người dùng' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadImage(
-    @UploadedFile(new FileValidationPipe())
-    file: Express.Multer.File,
-  ) {
-    const fileUrl = await this.cloudinaryService.uploadFile(file);
-
-    return {
-      file: fileUrl.secure_url,
-    };
   }
 
   @Put(':id')

@@ -14,26 +14,18 @@ import {
   Post,
   Put,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { CreatePetDTO } from './dtos/create-pet.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePetDTO } from './dtos/update-pet.dto.';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { FileValidationPipe } from 'src/common/pipes/file-validate.pipe';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
 
 @Controller('pet')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard)
 export class PetController {
-  constructor(
-    private readonly petService: PetService,
-    private readonly cloudinaryService: CloudinaryService,
-  ) {}
+  constructor(private readonly petService: PetService) {}
 
   @Get()
   @ApiOperation({ summary: 'Lấy danh sách thú cưng của riêng mình' })
@@ -51,32 +43,6 @@ export class PetController {
   @ApiOperation({ summary: 'Lấy danh sách giống theo loài' })
   getAllBreed(@Param('species') species: PetSpeciesEnum) {
     return this.petService.findAllBreed(species);
-  }
-
-  @Post('upload')
-  @ApiOperation({ summary: 'Tải ảnh avatar thú cưng' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        file: {
-          type: 'string',
-          format: 'binary',
-        },
-      },
-    },
-  })
-  @UseInterceptors(FileInterceptor('file'))
-  async uploadImage(
-    @UploadedFile(new FileValidationPipe())
-    file: Express.Multer.File,
-  ) {
-    const fileUrl = await this.cloudinaryService.uploadFile(file);
-
-    return {
-      file: fileUrl.secure_url,
-    };
   }
 
   @Post()

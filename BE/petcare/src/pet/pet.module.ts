@@ -3,10 +3,9 @@ import { PetService } from './pet.service';
 import { PetController } from './pet.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Pet } from './entities/pet.entity';
-import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Pet]), CloudinaryModule],
+  imports: [TypeOrmModule.forFeature([Pet])],
   providers: [PetService],
   controllers: [PetController],
 })
