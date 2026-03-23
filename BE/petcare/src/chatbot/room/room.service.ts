@@ -8,14 +8,57 @@ import { Repository } from 'typeorm';
 import { ChatbotRoom } from '../entities/chatbot-room.entity';
 import { CreateRoomDTO } from './dtos/create-room.dto';
 import { UpdateRoomDTO } from './dtos/update-room.dto';
+import { ChatbotMessage } from '../entities/chatbot-message.entity';
+import { MessagePagination } from '../message/types/message-pagination.type';
+import { RoomPagination } from './types/room-pagination.type';
 
 @Injectable()
 export class RoomService {
   constructor(
     @InjectRepository(ChatbotRoom)
     private readonly roomRepository: Repository<ChatbotRoom>,
+    @InjectRepository(ChatbotMessage)
+    private readonly messageRepository: Repository<ChatbotMessage>,
   ) {}
+  // Lấy danh sách đoạn chat
+  async findAllRoomPagination(options: RoomPagination, userId: string) {
+    const queryBuilder = this.roomRepository
+      .createQueryBuilder('room')
+      .where('room.userId = :id', { id: userId })
+      .orderBy('room.createdAt', 'DESC')
+      .limit(options.limit);
 
+    if (options.createdAt)
+      queryBuilder.andWhere('room.createdAt < :time', {
+        time: new Date(options.createdAt),
+      });
+
+    return await queryBuilder.getMany();
+  }
+
+  // Lấy danh sách message trong đoạn chat
+  async findAllMessagePagination(options: MessagePagination, userId: string) {
+    const room = await this.roomRepository.findOne({
+      where: { id: options.roomId, userId: userId },
+    });
+
+    if (!room) return [];
+
+    const queryBuilder = this.messageRepository
+      .createQueryBuilder('message')
+      .where('message.roomId = :id', { id: options.roomId })
+      .orderBy('message.createdAt', 'DESC')
+      .limit(options.limit);
+
+    if (options.createdAt)
+      queryBuilder.andWhere('message.createdAt < :time', {
+        time: new Date(options.createdAt),
+      });
+
+    return await queryBuilder.getMany();
+  }
+
+  // Tạo mới đoạn chat
   async createRoom(createDTO: CreateRoomDTO, userId: string) {
     const room = new ChatbotRoom();
     room.name = createDTO.name;
