@@ -5,15 +5,16 @@
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-y: auto;
 }
 
 .profile-container {
   display: flex;
   width: 100%;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  max-height: 100vh;
-  padding: 40px 40px;
+  min-height: 100vh; 
+  padding: 40px 20px;
   padding-top: 80px;
   background: var(--color-surface-soft);
 }
@@ -31,7 +32,7 @@
   background: var(--bg-white);
   border-radius: 16px;
   box-shadow: var(--shadow-lg);
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
@@ -286,7 +287,7 @@
 .form-buttons .ant-space {
   display: flex !important;
   gap: 12px !important;
-  margin-left: 73.2%;
+  /* margin-left: 73.2%; */
 }
 
 .btn-cancel,
