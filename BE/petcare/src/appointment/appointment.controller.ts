@@ -49,6 +49,24 @@ export class AppointmentController {
     );
   }
 
+  @Get('clinic/my')
+  @ApiOperation({ summary: 'Danh sách lịch hẹn theo phòng khám của tài khoản đăng nhập' })
+  @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  getMyClinicAppointment(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Req() req,
+  ) {
+    return this.appointmentService.findAllMyClinicAppointments(
+      {
+        page,
+        limit,
+      },
+      req?.user?.id,
+    );
+  }
+
   @Post('')
   @ApiOperation({ summary: 'Tạo mới lịch hẹn' })
   @ApiBody({
