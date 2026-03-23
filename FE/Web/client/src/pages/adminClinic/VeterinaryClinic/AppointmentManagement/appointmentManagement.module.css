@@ -257,33 +257,121 @@
 .modalBody {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 .petHeader {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 4px 0;
+  gap: 16px;
+  padding: 2px 0 8px;
+  border-bottom: 1px solid #e7edf6;
 }
 
 .petTitle {
   margin-bottom: 0 !important;
 }
 
+.petSubMeta {
+  font-size: 18px;
+  color: #27303f;
+}
+
 .petMetaLine {
-  margin-top: 8px;
+  margin-top: 6px;
   display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #4c5b70;
+  font-size: 14px;
+}
+
+.metaDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #2f88ff;
+}
+
+.infoSection {
+  background: #ffffff;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.sectionTitle::after {
+  content: '';
+  display: block;
+  height: 1px;
+  flex: 1;
+}
+
+.petSectionTitle {
+  color: #2f6599;
+}
+
+.petSectionTitle::after {
+  background: #b8ccdf;
+}
+
+.appointmentSectionTitle {
+  color: #2c9a70;
+}
+
+.appointmentSectionTitle::after {
+  background: #b7decf;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
-.detailSection :global(.ant-descriptions-title) {
-  margin-bottom: 10px;
+.infoRow {
+  border-radius: 8px;
+  background: #f1f4f8;
+  padding: 7px 10px;
+  color: #1d2430;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+
+.infoRow span {
+  color: #3e4e63;
+}
+
+.infoRow strong {
+  font-weight: 700;
+  color: #121821;
+}
+
+.fullWidthRow {
+  grid-column: 1 / -1;
 }
 
 @media (max-width: 1200px) {
   .groupSection {
     grid-template-columns: repeat(2, minmax(250px, 1fr));
+  }
+
+  .sectionTitle {
+    font-size: 15px;
+  }
+
+  .infoRow {
+    font-size: 14px;
   }
 }
 
@@ -302,5 +390,27 @@
 
   .searchBox {
     width: calc(100% - 48px);
+  }
+
+  .petSubMeta {
+    font-size: 18px;
+  }
+
+  .petMetaLine {
+    font-size: 14px;
+  }
+
+  .sectionTitle {
+    font-size: 14px;
+  }
+
+  .infoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .infoRow,
+  .fullWidthRow {
+    grid-column: auto;
+    font-size: 14px;
   }
 }

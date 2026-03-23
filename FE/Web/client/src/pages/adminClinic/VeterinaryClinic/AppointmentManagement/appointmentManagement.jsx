@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import dayjs from 'dayjs'
 import {
 	Avatar,
 	Badge,
@@ -6,7 +7,6 @@ import {
 	Card,
 	Col,
 	DatePicker,
-	Descriptions,
 	Empty,
 	Input,
 	Modal,
@@ -25,7 +25,6 @@ import {
 	MedicineBoxOutlined,
 	NotificationOutlined,
 	SearchOutlined,
-	UserOutlined,
 } from '@ant-design/icons'
 import styles from './appointmentManagement.module.css'
 import {
@@ -62,19 +61,17 @@ const STATUS_COLUMNS = [
 ]
 
 const LEGACY_TEXT_MAP = {
-	'Ch? khám': 'Chờ khám',
-	'�ang khám': 'Đang khám',
-	'�� thanh toán': 'Đã thanh toán',
+	'Chờ khám': 'Chờ khám',
+	'Đang khám': 'Đang khám',
 	'Đã thanh toán': 'Đã thanh toán',
-	'�� h?y': 'Đã hủy',
-	'Khám s?c kh?e d?nh k?': 'Khám sức khỏe định kỳ',
-	'Khám b?nh': 'Khám bệnh',
-	'Tiêm ch?ng': 'Tiêm chủng',
-	'T?y giun': 'Tẩy giun',
-	'Siêu âm xét nghi?m': 'Siêu âm xét nghiệm',
-	'Siêu âm x?t nghi?m': 'Siêu âm xét nghiệm',
-	'Ph?u thu?t': 'Phẫu thuật',
-	'C?p c?u': 'Cấp cứu',
+	'Đã hủy': 'Đã hủy',
+	'Khám sức khỏe định kỳ': 'Khám sức khỏe định kỳ',
+	'Khám bệnh': 'Khám bệnh',
+	'Tiêm chủng': 'Tiêm chủng',
+	'Tẩy giun': 'Tẩy giun',
+	'Siêu âm xét nghiệm': 'Siêu âm xét nghiệm',
+	'Phẫu thuật': 'Phẫu thuật',
+	'Cấp cứu': 'Cấp cứu',
 }
 
 const normalizeClinicText = (value) => {
@@ -193,7 +190,7 @@ function AppointmentCard({ item, onOpenDetails, onDragStart }) {
 export default function AppointmentManagement() {
 	const [loading, setLoading] = useState(false)
 	const [updatingId, setUpdatingId] = useState('')
-	const [selectedDate, setSelectedDate] = useState(null)
+	const [selectedDate, setSelectedDate] = useState(dayjs())
 	const [selectedTime, setSelectedTime] = useState(undefined)
 	const [searchValue, setSearchValue] = useState('')
 	const [appointments, setAppointments] = useState([])
@@ -224,80 +221,73 @@ export default function AppointmentManagement() {
 		fetchAppointments()
 	}, [fetchAppointments])
 
-	const mappedAppointments = useMemo(() => {
-		return appointments
-			.filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
-			.map((item) => {
-				const badgeByStatus = {
-					[APPOINTMENT_STATUS.BOOKED]: 'default',
-					[APPOINTMENT_STATUS.IN_PROGRESS]: 'processing',
-					[APPOINTMENT_STATUS.COMPLETED]: 'success',
-				}
+	const mappedAppointments = appointments
+		.filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
+		.map((item) => {
+			const badgeByStatus = {
+				[APPOINTMENT_STATUS.BOOKED]: 'default',
+				[APPOINTMENT_STATUS.IN_PROGRESS]: 'processing',
+				[APPOINTMENT_STATUS.COMPLETED]: 'success',
+			}
 
-				return {
-					id: item.id,
-					status: item.status,
-					statusLabel: normalizeClinicText(APPOINTMENT_STATUS_LABEL[item.status] || item.status),
-					badgeStatus: badgeByStatus[item.status] || 'default',
-					date: formatDisplayDate(item.appointmentDate),
-					time: getTimeValue(item.appointmentTime),
-					service: item.service,
-					serviceLabel: normalizeClinicText(SERVICE_OPTIONS[item.service] || item.service),
-					petName: item.pet?.name || 'Không rõ',
-					petAvatar: item.pet?.avatar || '',
-					avatarText: (item.pet?.name || 'P').charAt(0).toUpperCase(),
-					ownerName: item.pet?.owner?.fullName || 'Không rõ',
-					ownerPhone: item.pet?.owner?.phone || 'Chưa cập nhật',
-					speciesLabel: getEnumLabel(item.pet?.species),
-					breedLabel: getBreedLabel(item.pet?.breed, item.pet?.species),
-					genderLabel:
-						typeof item.pet?.gender === 'boolean'
-							? item.pet.gender
-								? 'Đực'
-								: 'Cái'
-							: 'Chưa cập nhật',
-					ageLabel: getAgeLabel(item.pet?.dateOfBirth),
-					dateOfBirthLabel: item.pet?.dateOfBirth
-						? new Date(item.pet.dateOfBirth).toLocaleDateString('vi-VN')
+			return {
+				id: item.id,
+				status: item.status,
+				statusLabel: normalizeClinicText(APPOINTMENT_STATUS_LABEL[item.status] || item.status),
+				badgeStatus: badgeByStatus[item.status] || 'default',
+				date: formatDisplayDate(item.appointmentDate),
+				time: getTimeValue(item.appointmentTime),
+				appointmentDateRaw: item.appointmentDate,
+				service: item.service,
+				serviceLabel: normalizeClinicText(SERVICE_OPTIONS[item.service] || item.service),
+				petName: item.pet?.name || 'Không rõ',
+				petAvatar: item.pet?.avatar || '',
+				avatarText: (item.pet?.name || 'P').charAt(0).toUpperCase(),
+				ownerName: item.pet?.owner?.fullName || 'Không rõ',
+				ownerPhone: item.pet?.owner?.phone || 'Chưa cập nhật',
+				speciesLabel: getEnumLabel(item.pet?.species),
+				breedLabel: getBreedLabel(item.pet?.breed, item.pet?.species),
+				genderLabel:
+					typeof item.pet?.gender === 'boolean'
+						? item.pet.gender
+							? 'Đực'
+							: 'Cái'
 						: 'Chưa cập nhật',
-					weightLabel: item.pet?.weight ? `${item.pet.weight} kg` : 'Chưa cập nhật',
-					featureNote: item.pet?.note || 'Chưa cập nhật',
-					appointmentNote: item.note || 'Không có ghi chú',
-					clinicName: item.clinic?.name || 'Không rõ',
-					clinicAddress: item.clinic?.address || 'Không rõ',
-					veterinarianName: item.veterinarian?.user?.fullName || 'Chưa phân công',
-				}
-			})
-	}, [appointments])
-
-	const filteredAppointments = useMemo(() => {
-		const keyword = searchValue.trim().toLowerCase()
-		if (!keyword) return mappedAppointments
-
-		return mappedAppointments.filter((item) => {
-			const normalized = [item.petName, item.ownerName, item.serviceLabel, item.veterinarianName]
-				.join(' ')
-				.toLowerCase()
-
-			return normalized.includes(keyword)
-		})
-	}, [mappedAppointments, searchValue])
-
-	const groupedAppointments = useMemo(() => {
-		const grouped = {
-			[APPOINTMENT_STATUS.BOOKED]: [],
-			[APPOINTMENT_STATUS.IN_PROGRESS]: [],
-			[APPOINTMENT_STATUS.COMPLETED]: [],
-		}
-
-		filteredAppointments.forEach((item) => {
-			if (grouped[item.status]) {
-				grouped[item.status].push(item)
+				ageLabel: getAgeLabel(item.pet?.dateOfBirth),
+				dateOfBirthLabel: item.pet?.dateOfBirth
+					? new Date(item.pet.dateOfBirth).toLocaleDateString('vi-VN')
+					: 'Chưa cập nhật',
+				weightLabel: item.pet?.weight ? `${item.pet.weight} kg` : 'Chưa cập nhật',
+				featureNote: item.pet?.note || 'Chưa cập nhật',
+				appointmentNote: item.note || 'Không có ghi chú',
+				clinicName: item.clinic?.name || 'Không rõ',
+				clinicAddress: item.clinic?.address || 'Không rõ',
+				veterinarianName: item.veterinarian?.user?.fullName || 'Chưa phân công',
 			}
 		})
 
-		return grouped
-	}, [filteredAppointments])
+	const keyword = searchValue.trim().toLowerCase()
+	const filteredAppointments = !keyword
+		? mappedAppointments
+		: mappedAppointments.filter((item) => {
+				const normalized = [item.petName, item.ownerName, item.serviceLabel, item.veterinarianName]
+					.join(' ')
+					.toLowerCase()
+
+				return normalized.includes(keyword)
+		  })
+
+	const groupedAppointments = {
+		[APPOINTMENT_STATUS.BOOKED]: [],
+		[APPOINTMENT_STATUS.IN_PROGRESS]: [],
+		[APPOINTMENT_STATUS.COMPLETED]: [],
+	}
+
+	filteredAppointments.forEach((item) => {
+		if (groupedAppointments[item.status]) {
+			groupedAppointments[item.status].push(item)
+		}
+	})
 
 	const handleDragStart = (event, appointmentId) => {
 		event.dataTransfer.setData('text/plain', appointmentId)
@@ -335,6 +325,80 @@ export default function AppointmentManagement() {
 		setIsModalOpen(true)
 	}
 
+	const isPastAppointment = (appointment) => {
+		if (!appointment?.appointmentDateRaw) return false
+
+		const now = new Date()
+		const appointmentDate = new Date(appointment.appointmentDateRaw)
+		if (Number.isNaN(appointmentDate.getTime())) return false
+
+		const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate())
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+		if (appointmentDay < today) return true
+
+		if (appointmentDay > today || !appointment?.time) return false
+
+		const appointmentDateTime = new Date(`${dayjs(appointmentDate).format('YYYY-MM-DD')}T${appointment.time}:00`)
+		if (Number.isNaN(appointmentDateTime.getTime())) return false
+
+		return appointmentDateTime < now
+	}
+
+	const isFutureAppointmentDate = (appointment) => {
+		if (!appointment?.appointmentDateRaw) return false
+
+		const appointmentDate = new Date(appointment.appointmentDateRaw)
+		if (Number.isNaN(appointmentDate.getTime())) return false
+
+		const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate())
+		const now = new Date()
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+
+		return appointmentDay > today
+	}
+
+	const hasUserCancellationRequest = (appointment) => {
+		const note = (appointment?.appointmentNote || '').toLowerCase()
+		return /huy|hủy|cancel/.test(note)
+	}
+
+	const canClinicCancelAppointment =
+		selectedAppointment &&
+		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED &&
+		(
+			isPastAppointment(selectedAppointment) ||
+			hasUserCancellationRequest(selectedAppointment) ||
+			isFutureAppointmentDate(selectedAppointment)
+		)
+
+	const handleClinicCancelAppointment = () => {
+		if (!selectedAppointment) return
+
+		Modal.confirm({
+			title: 'Xóa lịch đặt',
+			content: 'Xác nhận hủy lịch đặt này?',
+			okText: 'Xóa lịch',
+			cancelText: 'Đóng',
+			okButtonProps: { danger: true },
+			centered: true,
+			async onOk() {
+				try {
+					setUpdatingId(selectedAppointment.id)
+					await updateAppointmentStatusApi(selectedAppointment.id, APPOINTMENT_STATUS.CANCELLED)
+					message.success('Đã hủy lịch đặt khám')
+					setIsModalOpen(false)
+					setSelectedAppointment(null)
+					await fetchAppointments()
+				} catch (error) {
+					message.error(error.message || 'Không thể hủy lịch đặt')
+				} finally {
+					setUpdatingId('')
+				}
+			},
+		})
+	}
+
 	const totalAppointments = filteredAppointments.length
 	const timeOptions = TIME_SLOTS.map((slot) => ({ value: slot, label: slot }))
 
@@ -363,7 +427,7 @@ export default function AppointmentManagement() {
 
 					<Card className={styles.filterCard}>
 						<Row gutter={[12, 12]} align="middle">
-							<Col xs={24} md={9}>
+							<Col xs={24} md={12}>
 								<Text strong>Ngày khám</Text>
 								<DatePicker
 									className={styles.filterInput}
@@ -374,7 +438,7 @@ export default function AppointmentManagement() {
 								/>
 							</Col>
 
-							<Col xs={24} md={9}>
+							<Col xs={24} md={12}>
 								<Text strong>Giờ khám</Text>
 								<Select
 									className={styles.filterInput}
@@ -386,12 +450,6 @@ export default function AppointmentManagement() {
 								/>
 							</Col>
 
-							<Col xs={24} md={6}>
-								<Text strong>&nbsp;</Text>
-								<Button type="primary" block onClick={fetchAppointments}>
-									Lọc lịch khám
-								</Button>
-							</Col>
 						</Row>
 					</Card>
 
@@ -439,10 +497,15 @@ export default function AppointmentManagement() {
 				</div>
 
 				<Modal
-					title="Thông tin thú cưng"
+					title="THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM"
 					open={isModalOpen}
 					onCancel={() => setIsModalOpen(false)}
 					footer={[
+						canClinicCancelAppointment ? (
+							<Button key="cancel-appointment" danger onClick={handleClinicCancelAppointment}>
+								Xóa lịch đặt
+							</Button>
+						) : null,
 						<Button key="close" onClick={() => setIsModalOpen(false)}>
 							Đóng
 						</Button>,
@@ -462,55 +525,44 @@ export default function AppointmentManagement() {
 								</Avatar>
 								<div>
 									<Title level={3} className={styles.petTitle}>{selectedAppointment.petName}</Title>
-									<Text>
+									<Text className={styles.petSubMeta}>
 										{`${selectedAppointment.breedLabel} · ${selectedAppointment.ageLabel} · ${selectedAppointment.weightLabel}`}
 									</Text>
 									<div className={styles.petMetaLine}>
-										<Tag icon={<CalendarOutlined />}>{selectedAppointment.dateOfBirthLabel}</Tag>
-										<Tag icon={<UserOutlined />}>{selectedAppointment.genderLabel}</Tag>
+										<span className={styles.metaDot} />
+										<span>{selectedAppointment.genderLabel}</span>
+										<span>Ngày sinh: {selectedAppointment.dateOfBirthLabel}</span>
 									</div>
 								</div>
 							</div>
 
-							<Descriptions
-								title="Thông tin thú cưng"
-								column={2}
-								className={styles.detailSection}
-								items={[
-									{ key: 'petName', label: 'Tên thú cưng', children: selectedAppointment.petName },
-									{ key: 'species', label: 'Loài', children: selectedAppointment.speciesLabel },
-									{ key: 'breed', label: 'Giống', children: selectedAppointment.breedLabel },
-									{ key: 'gender', label: 'Giới tính', children: selectedAppointment.genderLabel },
-									{ key: 'age', label: 'Ngày sinh / Tuổi', children: `${selectedAppointment.dateOfBirthLabel} / ${selectedAppointment.ageLabel}` },
-									{ key: 'weight', label: 'Cân nặng', children: selectedAppointment.weightLabel },
-									{ key: 'feature', label: 'Màu lông / Đặc điểm nhận dạng', children: selectedAppointment.featureNote, span: 2 },
-									{ key: 'owner', label: 'Tên chủ thú cưng', children: selectedAppointment.ownerName },
-									{ key: 'phone', label: 'Số điện thoại', children: selectedAppointment.ownerPhone },
-								]}
-							/>
+							<div className={styles.infoSection}>
+								<div className={`${styles.sectionTitle} ${styles.petSectionTitle}`}>Thông tin Thú cưng</div>
+								<div className={styles.infoGrid}>
+									<div className={styles.infoRow}><span>Tên thú cưng:</span><strong>{selectedAppointment.petName}</strong></div>
+									<div className={styles.infoRow}><span>Ngày sinh / Tuổi:</span><strong>{`${selectedAppointment.dateOfBirthLabel} / ${selectedAppointment.ageLabel}`}</strong></div>
+									<div className={styles.infoRow}><span>Loài:</span><strong>{selectedAppointment.speciesLabel}</strong></div>
+									<div className={styles.infoRow}><span>Giới tính:</span><strong>{selectedAppointment.genderLabel}</strong></div>
+									<div className={styles.infoRow}><span>Giống:</span><strong>{selectedAppointment.breedLabel}</strong></div>
+									<div className={styles.infoRow}><span>Tên chủ thú cưng:</span><strong>{selectedAppointment.ownerName}</strong></div>
+									<div className={styles.infoRow}><span>Cân nặng:</span><strong>{selectedAppointment.weightLabel}</strong></div>
+									<div className={styles.infoRow}><span>Số điện thoại:</span><strong>{selectedAppointment.ownerPhone}</strong></div>
+									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>Màu lông / Đặc điểm nhận dạng:</span><strong>{selectedAppointment.featureNote}</strong></div>
+								</div>
+							</div>
 
-							<Descriptions
-								title="Thông tin lịch khám"
-								column={2}
-								className={styles.detailSection}
-								items={[
-									{ key: 'clinic', label: 'Phòng khám', children: selectedAppointment.clinicName },
-									{ key: 'address', label: 'Địa chỉ', children: selectedAppointment.clinicAddress },
-									{ key: 'time', label: 'Ngày & giờ', children: `${selectedAppointment.date} - ${selectedAppointment.time}` },
-									{ key: 'service', label: 'Dịch vụ', children: selectedAppointment.serviceLabel },
-									{ key: 'vet', label: 'Bác sĩ', children: selectedAppointment.veterinarianName },
-									{
-										key: 'status',
-										label: 'Trạng thái',
-										children: (
-											<Tag icon={selectedAppointment.status === APPOINTMENT_STATUS.COMPLETED ? <DollarCircleOutlined /> : <CheckCircleOutlined />}>
-												{selectedAppointment.statusLabel}
-											</Tag>
-										),
-									},
-									{ key: 'note', label: 'Ghi chú', children: selectedAppointment.appointmentNote, span: 2 },
-								]}
-							/>
+							<div className={styles.infoSection}>
+								<div className={`${styles.sectionTitle} ${styles.appointmentSectionTitle}`}>Thông tin Lịch Khám</div>
+								<div className={styles.infoGrid}>
+									<div className={styles.infoRow}><span>Phòng khám:</span><strong>{selectedAppointment.clinicName}</strong></div>
+									<div className={styles.infoRow}><span>Ngày & giờ:</span><strong>{`${selectedAppointment.date} - ${selectedAppointment.time}`}</strong></div>
+									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>Địa chỉ:</span><strong>{selectedAppointment.clinicAddress}</strong></div>
+									<div className={styles.infoRow}><span>Dịch vụ:</span><strong>{selectedAppointment.serviceLabel}</strong></div>
+									<div className={styles.infoRow}><span>Bác sĩ:</span><strong>{selectedAppointment.veterinarianName}</strong></div>
+									<div className={styles.infoRow}><span>Trạng thái:</span><Tag icon={selectedAppointment.status === APPOINTMENT_STATUS.COMPLETED ? <DollarCircleOutlined /> : <CheckCircleOutlined />}>{selectedAppointment.statusLabel}</Tag></div>
+									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>Ghi chú:</span><strong>{selectedAppointment.appointmentNote}</strong></div>
+								</div>
+							</div>
 						</div>
 					) : null}
 				</Modal>
