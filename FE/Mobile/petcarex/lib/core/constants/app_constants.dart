@@ -1,4 +1,4 @@
-﻿import 'app_config.dart';
+﻿import '../configs/app_config.dart';
 // bỏ qua lỗi về tên 
 // ignore_for_file: constant_identifier_names
 

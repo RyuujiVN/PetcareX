@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-import '../constants/app_config.dart';
+import '../configs/app_config.dart';
 import '../utils/logger.dart'; // Import mới
 
 class ApiClient {
