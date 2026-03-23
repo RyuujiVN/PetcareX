@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   // Core semantic colors
-  static const primary = Color(0xFF13ECDA);
+  static const primary = Color(0xFF4672B4);
   static const onPrimary = Color(0xFFFFFFFF);
   static const secondary = Color(0xFFFFFFFF);
   static const background = Color(0xFFF8F9FA);
