@@ -112,13 +112,6 @@ export default function Login() {
 
   return (
     <div className="login-container">
-      <div className="login-header-bar">
-        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FaPaw size={28} color="var(--auth-primary)" />
-          <h2 className="logo-name-small" style={{ margin: 0, color: 'white' }}>PetcareX</h2>
-        </div>
-      </div>
-
       <div className="login-card" style={{ padding: '40px 30px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <LockOutlined style={{ fontSize: '48px', color: 'var(--auth-primary)' }} />

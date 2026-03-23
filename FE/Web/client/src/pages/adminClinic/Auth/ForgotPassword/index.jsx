@@ -37,12 +37,6 @@ export default function ForgotPassword() {
 
   return (
     <div className="forgot-password-container">
-      <div className="login-header-bar">
-              <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <FaPaw size={28} color="var(--auth-primary)" />
-                <h2 className="logo-name-small" style={{ margin: 0, color: 'white' }}>PetcareX</h2>
-              </div>
-            </div>
       <div className="forgot-password-content">
         <div className="forgot-password-card">
           <div className="forgot-password-icon">

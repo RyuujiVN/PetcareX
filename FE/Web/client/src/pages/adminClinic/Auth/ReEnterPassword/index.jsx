@@ -95,13 +95,6 @@ export default function ReEnterPassword() {
 
   return (
     <div className="reset-password-container">
-      <div className="reset-password-header-bar">
-        <div className="header-left">
-          <FaPaw size={28} color="var(--auth-primary)" />
-          <h2 className="logo-name-small">PetcareX</h2>
-        </div>
-      </div>
-
       <div className="reset-password-card">
         <div className="lock-icon-section">
           <MdLockReset size={70} color="var(--auth-primary)" />

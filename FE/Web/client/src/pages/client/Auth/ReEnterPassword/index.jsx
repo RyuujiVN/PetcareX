@@ -26,14 +26,12 @@ export default function ReEnterPassword() {
     }
   }, [email, navigate]);
 
-  // Đếm ngược cooldown nút gửi lại (60s)
   useEffect(() => {
     if (resendCooldown <= 0) return;
     const id = setTimeout(() => setResendCooldown(c => c - 1), 1000);
     return () => clearTimeout(id);
   }, [resendCooldown]);
 
-  // Đếm ngược hiệu lực OTP (5 phút)
   useEffect(() => {
     if (otpExpiryLeft === 0) {
       message.warning({
@@ -97,13 +95,6 @@ export default function ReEnterPassword() {
 
   return (
     <div className="reset-password-container">
-      <div className="reset-password-header-bar">
-        <div className="header-left">
-          <FaPaw size={28} color="var(--auth-primary)" />
-          <h2 className="logo-name-small">PetcareX</h2>
-        </div>
-      </div>
-
       <div className="reset-password-card">
         <div className="lock-icon-section">
           <MdLockReset size={70} color="var(--auth-primary)" />

@@ -82,13 +82,6 @@ export default function Register() {
 
   return (
     <div className="register-container">
-      <div className="login-header-bar">
-        <div className="header-left" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <FaPaw size={28} color="var(--auth-primary)" />
-          <h2 className="logo-name-small" style={{ margin: 0, color: '#333' }}>PetcareX</h2>
-        </div>
-      </div>
-
       <div style={{ padding: '40px 25px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <UserOutlined style={{ fontSize: '48px', color: 'var(--auth-primary)' }} />

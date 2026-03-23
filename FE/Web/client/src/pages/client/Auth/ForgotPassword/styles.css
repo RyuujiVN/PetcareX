@@ -47,7 +47,7 @@ body::-webkit-scrollbar {
   position: relative;
 }
 
-.forgot-password-container .login-header-bar {
+.forgot-password-container{
   position: fixed;
   top: 0;
   left: 0;

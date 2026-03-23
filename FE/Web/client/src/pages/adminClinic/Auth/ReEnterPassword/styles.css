@@ -30,19 +30,6 @@ body::-webkit-scrollbar {
   position: relative;
 }
 
-.reset-password-header-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 60px;
-  background: white;
-  display: flex;
-  align-items: center;
-  padding: 0 50px;
-  z-index: 1000;
-}
-
 .header-left {
   display: flex;
   align-items: center;
@@ -394,9 +381,7 @@ body::-webkit-scrollbar {
     max-width: 100%;
   }
 
-  .reset-password-header-bar {
-    padding: 0 30px;
-  }
+
 }
 
 @media (max-width: 600px) {
@@ -405,10 +390,6 @@ body::-webkit-scrollbar {
     max-width: 100%;
   }
 
-  .reset-password-header-bar {
-    height: 60px;
-    padding: 0 20px;
-  }
 
   .logo-name-small {
     font-size: 14px;
