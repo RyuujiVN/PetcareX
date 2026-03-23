@@ -113,6 +113,8 @@
   "male": "Male",
   "female": "Female",
   "saveChanges": "Save Changes",
+  "viewMedicalProfile": "View Medical Profile",
+  "medicalProfileComingSoon": "Medical profile feature will be available soon.",
   "profileUpdateSuccess": "Profile updated successfully!",
   "petCreateSuccess": "Pet added successfully!",
   "petUpdateSuccess": "Pet updated successfully!",

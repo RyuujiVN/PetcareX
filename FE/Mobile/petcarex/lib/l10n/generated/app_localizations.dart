@@ -776,6 +776,18 @@ abstract class AppLocalizations {
   /// **'Lưu thay đổi'**
   String get saveChanges;
 
+  /// No description provided for @viewMedicalProfile.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem hồ sơ y tế'**
+  String get viewMedicalProfile;
+
+  /// No description provided for @medicalProfileComingSoon.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tính năng hồ sơ y tế sẽ sớm được cập nhật.'**
+  String get medicalProfileComingSoon;
+
   /// No description provided for @profileUpdateSuccess.
   ///
   /// In vi, this message translates to:

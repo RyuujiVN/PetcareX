@@ -353,6 +353,13 @@ class AppLocalizationsVi extends AppLocalizations {
   String get saveChanges => 'Lưu thay đổi';
 
   @override
+  String get viewMedicalProfile => 'Xem hồ sơ y tế';
+
+  @override
+  String get medicalProfileComingSoon =>
+      'Tính năng hồ sơ y tế sẽ sớm được cập nhật.';
+
+  @override
   String get profileUpdateSuccess => 'Cập nhật thông tin thành công!';
 
   @override

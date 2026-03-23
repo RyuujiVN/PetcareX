@@ -354,6 +354,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get saveChanges => 'Save Changes';
 
   @override
+  String get viewMedicalProfile => 'View Medical Profile';
+
+  @override
+  String get medicalProfileComingSoon =>
+      'Medical profile feature will be available soon.';
+
+  @override
   String get profileUpdateSuccess => 'Profile updated successfully!';
 
   @override

@@ -240,6 +240,17 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Các màn hình hiển thị pet (`MyPets`, `Home`, `Booking`) đã bỏ phụ thuộc `pet.breed?.name` kiểu cũ và chuyển sang map từ `pet.breed` enum key để hiển thị tên giống theo locale.
     - Khi mở EditPet từ Home/MyPets, flow preload breed list đã đổi từ `pet.breed.speciesId` sang `pet.species`.
     - `flutter analyze` cho các file pet liên quan đã sạch issue sau khi sync contract.
+- **Chuẩn UX mới cho màn xem/chỉnh sửa thú cưng (2026-03-23):**
+    - `EditPetPage` mặc định ở **chế độ xem** (read-only), không còn hiển thị ngay 2 nút `Hủy` + `Lưu thay đổi` khi vừa mở màn.
+    - Icon action góc phải AppBar đổi từ **thùng rác (xóa)** sang **cây bút (chỉnh sửa)**.
+    - Khi người dùng bấm icon cây bút, màn hình chuyển sang **chế độ chỉnh sửa**:
+        - Mở tương tác cho toàn bộ form (avatar, dropdown, text field, ngày sinh...).
+        - Hiển thị lại cặp nút `Hủy` + `Lưu thay đổi` ở action bar đáy màn.
+    - Nút `Hủy` trong chế độ chỉnh sửa sẽ **discard thay đổi cục bộ** và quay lại chế độ xem (không pop màn hình).
+    - Ở chế độ xem, action bar đáy màn hiển thị 1 CTA duy nhất: **`Xem hồ sơ y tế`** (placeholder), hiện tại dùng để mở rộng chức năng ở phase tiếp theo.
+    - Đã bổ sung key i18n mới cho cả VI/EN:
+        - `viewMedicalProfile`
+        - `medicalProfileComingSoon`
 
 ### 5. Dev Connectivity (Android USB)
 - **Nguyên nhân cốt lõi:** Mobile đang dùng `AppConstants.baseUrl` mặc định `http://localhost:3000`; với thiết bị Android thật, `localhost` là máy điện thoại nên cần tunnel `adb reverse` về máy dev.
