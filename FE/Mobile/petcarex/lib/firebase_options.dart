@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -46,32 +47,42 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCn2oMSKVxJua4kgf0FgMS8nQQ9JAEtV7k',
-    appId: '1:482330049700:android:25c0efa2d291181ae37a31',
-    messagingSenderId: '482330049700',
-    projectId: 'petcarex-490104',
-    storageBucket: 'petcarex-490104.firebasestorage.app',
+  static String _requiredEnv(String key) {
+    final value = dotenv.env[key];
+    if (value == null || value.trim().isEmpty) {
+      throw UnsupportedError(
+        'Missing required Firebase env var: $key. Please set it in .env before starting the app.',
+      );
+    }
+    return value;
+  }
+
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_ANDROID_API_KEY'),
+    appId: _requiredEnv('FIREBASE_ANDROID_APP_ID'),
+    messagingSenderId: _requiredEnv('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: _requiredEnv('FIREBASE_PROJECT_ID'),
+    storageBucket: _requiredEnv('FIREBASE_STORAGE_BUCKET'),
   );
 
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCbcIPuHqT4xwi89kLHs_4aJ9OXU2RB5gQ',
-    appId: '1:482330049700:ios:edfab3cf273eea9de37a31',
-    messagingSenderId: '482330049700',
-    projectId: 'petcarex-490104',
-    storageBucket: 'petcarex-490104.firebasestorage.app',
-    iosClientId: '482330049700-lv4dv3t6u1hnlmcbkiteqv9nfo7k3th2.apps.googleusercontent.com',
-    iosBundleId: 'com.example.petcarex',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_IOS_API_KEY'),
+    appId: _requiredEnv('FIREBASE_IOS_APP_ID'),
+    messagingSenderId: _requiredEnv('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: _requiredEnv('FIREBASE_PROJECT_ID'),
+    storageBucket: _requiredEnv('FIREBASE_STORAGE_BUCKET'),
+    iosClientId: _requiredEnv('FIREBASE_IOS_CLIENT_ID'),
+    iosBundleId: _requiredEnv('FIREBASE_IOS_BUNDLE_ID'),
   );
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyBQxckwXFdSIEcTxliHJ44dmHjIZo6eU84',
-    appId: '1:482330049700:web:5f01d5bd31b8ef6ae37a31',
-    messagingSenderId: '482330049700',
-    projectId: 'petcarex-490104',
-    authDomain: 'petcarex-490104.firebaseapp.com',
-    storageBucket: 'petcarex-490104.firebasestorage.app',
-    measurementId: 'G-3KQ7ZZ25P2',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_WEB_API_KEY'),
+    appId: _requiredEnv('FIREBASE_WEB_APP_ID'),
+    messagingSenderId: _requiredEnv('FIREBASE_MESSAGING_SENDER_ID'),
+    projectId: _requiredEnv('FIREBASE_PROJECT_ID'),
+    authDomain: _requiredEnv('FIREBASE_AUTH_DOMAIN'),
+    storageBucket: _requiredEnv('FIREBASE_STORAGE_BUCKET'),
+    measurementId: _requiredEnv('FIREBASE_WEB_MEASUREMENT_ID'),
   );
 
 }

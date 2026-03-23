@@ -15,6 +15,24 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
 - **Quy ước i18n:** Nguồn chân lý là `lib/l10n/app_vi.arb` và `lib/l10n/app_en.arb`; file trong `lib/l10n/generated/` chỉ là kết quả sinh tự động.
 
+## 🔐 Cấu hình Firebase qua .env (Refactor 2026-03-23)
+- **Trạng thái:** Đã chuyển Firebase config từ hardcode trong `lib/firebase_options.dart` sang đọc từ `.env` qua `flutter_dotenv`.
+- **File liên quan:**
+    - `.env`: chứa giá trị thật cho local dev (đã thêm đầy đủ key theo Android/iOS/Web).
+    - `.env.example`: template rỗng để chia sẻ cấu trúc biến cho team.
+    - `.gitignore`: đã thêm rule ignore `.env`, `.env.*` và chỉ whitelist `.env.example`.
+    - `lib/main.dart`: nạp env sớm bằng `await dotenv.load(fileName: '.env');` trước `Firebase.initializeApp(...)`.
+    - `lib/firebase_options.dart`: đổi từ `static const FirebaseOptions` sang getter đọc env + fail-fast khi thiếu biến.
+    - `pubspec.yaml`: thêm dependency `flutter_dotenv` và khai báo asset `.env`.
+- **Danh sách env bắt buộc:**
+    - `FIREBASE_PROJECT_ID`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_AUTH_DOMAIN`
+    - `FIREBASE_ANDROID_API_KEY`, `FIREBASE_ANDROID_APP_ID`
+    - `FIREBASE_IOS_API_KEY`, `FIREBASE_IOS_APP_ID`, `FIREBASE_IOS_CLIENT_ID`, `FIREBASE_IOS_BUNDLE_ID`
+    - `FIREBASE_WEB_API_KEY`, `FIREBASE_WEB_APP_ID`, `FIREBASE_WEB_MEASUREMENT_ID`
+- **Phản biện bảo mật quan trọng:**
+    - Với Flutter mobile/web, đưa key vào `.env` giúp **không hardcode trực tiếp trong source tracked bởi git**, nhưng **không phải cơ chế bảo mật tuyệt đối** vì key vẫn được đóng gói vào app build.
+    - Cách tối ưu thực tế: kết hợp `.env` + giới hạn key phía Firebase Console (App restrictions, SHA/package/bundle/domain, API allowlist) + đưa secret thực sự nhạy cảm về backend.
+
 ## 🎨 Color System
 
 ### Mục tiêu hệ màu
