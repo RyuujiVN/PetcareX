@@ -361,6 +361,45 @@ class AppLocalizationsEn extends AppLocalizations {
       'Medical profile feature will be available soon.';
 
   @override
+  String get medicalRecordEmptyTitle => 'No medical records for this pet yet';
+
+  @override
+  String get medicalRecordCode => 'Record Code';
+
+  @override
+  String get medicalRecordClinicName => 'Clinic';
+
+  @override
+  String get medicalRecordVeterinarianName => 'Veterinarian';
+
+  @override
+  String get medicalRecordExamDate => 'Exam Date';
+
+  @override
+  String get medicalRecordWeightAtExam => 'Weight at Exam';
+
+  @override
+  String get medicalRecordDiagnosis => 'Diagnosis';
+
+  @override
+  String get medicalRecordSymptoms => 'Symptoms';
+
+  @override
+  String get medicalRecordConclusion => 'Conclusion';
+
+  @override
+  String get medicalRecordOrders => 'Medical Orders';
+
+  @override
+  String get medicalRecordMedicines => 'Medicines';
+
+  @override
+  String get medicalRecordNoOrders => 'No medical orders';
+
+  @override
+  String get medicalRecordNoMedicines => 'No medicines';
+
+  @override
   String get profileUpdateSuccess => 'Profile updated successfully!';
 
   @override

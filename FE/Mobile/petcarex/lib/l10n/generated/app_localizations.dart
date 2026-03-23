@@ -788,6 +788,84 @@ abstract class AppLocalizations {
   /// **'Tính năng hồ sơ y tế sẽ sớm được cập nhật.'**
   String get medicalProfileComingSoon;
 
+  /// No description provided for @medicalRecordEmptyTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có hồ sơ y tế cho thú cưng này'**
+  String get medicalRecordEmptyTitle;
+
+  /// No description provided for @medicalRecordCode.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mã hồ sơ'**
+  String get medicalRecordCode;
+
+  /// No description provided for @medicalRecordClinicName.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên phòng khám'**
+  String get medicalRecordClinicName;
+
+  /// No description provided for @medicalRecordVeterinarianName.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên bác sĩ'**
+  String get medicalRecordVeterinarianName;
+
+  /// No description provided for @medicalRecordExamDate.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngày khám'**
+  String get medicalRecordExamDate;
+
+  /// No description provided for @medicalRecordWeightAtExam.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cân nặng lúc khám'**
+  String get medicalRecordWeightAtExam;
+
+  /// No description provided for @medicalRecordDiagnosis.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chẩn đoán'**
+  String get medicalRecordDiagnosis;
+
+  /// No description provided for @medicalRecordSymptoms.
+  ///
+  /// In vi, this message translates to:
+  /// **'Triệu chứng'**
+  String get medicalRecordSymptoms;
+
+  /// No description provided for @medicalRecordConclusion.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kết luận'**
+  String get medicalRecordConclusion;
+
+  /// No description provided for @medicalRecordOrders.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phiếu chỉ định'**
+  String get medicalRecordOrders;
+
+  /// No description provided for @medicalRecordMedicines.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thuốc'**
+  String get medicalRecordMedicines;
+
+  /// No description provided for @medicalRecordNoOrders.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có phiếu chỉ định'**
+  String get medicalRecordNoOrders;
+
+  /// No description provided for @medicalRecordNoMedicines.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có thuốc'**
+  String get medicalRecordNoMedicines;
+
   /// No description provided for @profileUpdateSuccess.
   ///
   /// In vi, this message translates to:

@@ -251,6 +251,29 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Đã bổ sung key i18n mới cho cả VI/EN:
         - `viewMedicalProfile`
         - `medicalProfileComingSoon`
+- **Mở rộng hồ sơ y tế cho Pet (2026-03-23):**
+    - Nút `Xem hồ sơ y tế` trong `EditPetPage` đã chuyển từ placeholder sang điều hướng thực tế đến màn mới `PetMedicalRecordsPage`.
+    - UX mobile của hồ sơ y tế được thiết kế theo mô hình **summary-first**:
+        - Danh sách phiếu khám hiển thị dạng gọn: **Tên phiếu khám + Ngày khám**.
+        - Người dùng bấm mở rộng (expand/collapse) để xem chi tiết từng phiếu ngay trong danh sách (không đẩy qua quá nhiều màn).
+    - Màn chi tiết mở rộng hiển thị các trường nghiệp vụ chính:
+        - `Mã hồ sơ`
+        - `Tên phòng khám`
+        - `Tên bác sĩ`
+        - `Ngày khám`
+        - `Cân nặng lúc khám`
+        - `Chẩn đoán`, `Triệu chứng`, `Kết luận`, `Ghi chú`
+        - `Phiếu chỉ định`
+        - `Thuốc`
+    - Luồng API mobile đã đồng bộ theo helper endpoint hiện có:
+        - `GET /api/medical/pet/{petId}?page={page}&limit={limit}`: lấy danh sách phiếu khám theo pet.
+        - `GET /api/medical/{id}`: lấy chi tiết phiếu khám.
+        - `GET /api/medical/{id}/medical-order`: lấy danh sách phiếu chỉ định của phiếu khám.
+        - `GET /api/medical/{id}/medicine`: lấy danh sách thuốc của phiếu khám.
+    - Tối ưu hiệu năng UX:
+        - Danh sách chỉ tải dữ liệu summary ban đầu.
+        - Dữ liệu chi tiết + thuốc + phiếu chỉ định chỉ được gọi khi người dùng mở rộng đúng item tương ứng (lazy fetch + cache theo `recordId`).
+    - Bổ sung key i18n mới VI/EN cho module hồ sơ y tế: `medicalRecordEmptyTitle`, `medicalRecordCode`, `medicalRecordClinicName`, `medicalRecordVeterinarianName`, `medicalRecordExamDate`, `medicalRecordWeightAtExam`, `medicalRecordDiagnosis`, `medicalRecordSymptoms`, `medicalRecordConclusion`, `medicalRecordOrders`, `medicalRecordMedicines`, `medicalRecordNoOrders`, `medicalRecordNoMedicines`.
 
 ### 5. Dev Connectivity (Android USB)
 - **Nguyên nhân cốt lõi:** Mobile đang dùng `AppConstants.baseUrl` mặc định `http://localhost:3000`; với thiết bị Android thật, `localhost` là máy điện thoại nên cần tunnel `adb reverse` về máy dev.

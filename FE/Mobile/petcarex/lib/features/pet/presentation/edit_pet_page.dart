@@ -8,6 +8,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../core/services/camera_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../data/models/pet_models.dart';
+import 'pet_medical_records_page.dart';
 import 'provider/pet_provider.dart';
 import 'widgets/pet_form_fields.dart';
 
@@ -218,6 +219,15 @@ class _EditPetPageState extends State<EditPetPage> {
     setState(() {
       _isEditMode = false;
     });
+  }
+
+  Future<void> _openMedicalRecordsPage() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PetMedicalRecordsPage(pet: widget.pet),
+      ),
+    );
   }
 
   @override
@@ -546,10 +556,7 @@ class _EditPetPageState extends State<EditPetPage> {
       width: double.infinity,
       height: 54,
       child: ElevatedButton.icon(
-        onPressed: () => _showQuickSnackBar(
-          l10n.medicalProfileComingSoon,
-          isError: false,
-        ),
+        onPressed: _openMedicalRecordsPage,
         icon: const Icon(Icons.folder_shared_outlined, size: 20),
         label: Text(
           l10n.viewMedicalProfile,

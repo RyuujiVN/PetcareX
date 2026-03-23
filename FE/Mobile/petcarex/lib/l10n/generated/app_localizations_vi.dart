@@ -360,6 +360,45 @@ class AppLocalizationsVi extends AppLocalizations {
       'Tính năng hồ sơ y tế sẽ sớm được cập nhật.';
 
   @override
+  String get medicalRecordEmptyTitle => 'Chưa có hồ sơ y tế cho thú cưng này';
+
+  @override
+  String get medicalRecordCode => 'Mã hồ sơ';
+
+  @override
+  String get medicalRecordClinicName => 'Tên phòng khám';
+
+  @override
+  String get medicalRecordVeterinarianName => 'Tên bác sĩ';
+
+  @override
+  String get medicalRecordExamDate => 'Ngày khám';
+
+  @override
+  String get medicalRecordWeightAtExam => 'Cân nặng lúc khám';
+
+  @override
+  String get medicalRecordDiagnosis => 'Chẩn đoán';
+
+  @override
+  String get medicalRecordSymptoms => 'Triệu chứng';
+
+  @override
+  String get medicalRecordConclusion => 'Kết luận';
+
+  @override
+  String get medicalRecordOrders => 'Phiếu chỉ định';
+
+  @override
+  String get medicalRecordMedicines => 'Thuốc';
+
+  @override
+  String get medicalRecordNoOrders => 'Chưa có phiếu chỉ định';
+
+  @override
+  String get medicalRecordNoMedicines => 'Chưa có thuốc';
+
+  @override
   String get profileUpdateSuccess => 'Cập nhật thông tin thành công!';
 
   @override
