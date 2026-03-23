@@ -101,7 +101,7 @@ export default function ProfileUser() {
   }
 
   return (
-    <div className="profile-container">
+    <div className="profile-containers">
       <div className="profile-wrapper">
         <div className="profile-header">
         <h2 className="profile-titles">Thông tin cá nhân</h2>
