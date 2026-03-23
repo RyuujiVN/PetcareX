@@ -4,6 +4,7 @@
 
 class AppConstants {
   // Root Endpoints
+    static const String END_POINT_CLOUDINARY = '${AppConfig.apiPrefix}/cloudinary';
   static const String END_POINT_AUTH = '${AppConfig.apiPrefix}/auth';
   static const String END_POINT_USER = '${AppConfig.apiPrefix}/user';
   static const String END_POINT_PET = '${AppConfig.apiPrefix}/pet';
@@ -21,6 +22,12 @@ class AppConstants {
   static const String END_POINT_TOPIC = '${AppConfig.apiPrefix}/topic';
   static const String END_POINT_INVOICE = '${AppConfig.apiPrefix}/invoice';
 
+  // Cloudinary Endpoints
+  static const String END_POINT_CLOUDINARY_UPLOAD_ONE_FILE =
+      '$END_POINT_CLOUDINARY/upload/one-file';
+  static const String END_POINT_CLOUDINARY_UPLOAD_MULTI_FILE =
+      '$END_POINT_CLOUDINARY/upload/multi-file';
+
   // Auth Endpoints
   static const String END_POINT_AUTH_LOGIN = '$END_POINT_AUTH/login';
   static const String END_POINT_AUTH_LOGIN_GOOGLE =
@@ -35,15 +42,17 @@ class AppConstants {
 
   // User Endpoints
   static const String END_POINT_USER_PROFILE = '$END_POINT_USER/profile';
-  static const String END_POINT_USER_UPLOAD = '$END_POINT_USER/upload';
+    static const String END_POINT_USER_UPLOAD =
+            END_POINT_CLOUDINARY_UPLOAD_ONE_FILE;
 
   // Pet Endpoints
   static const String END_POINT_PET_SPECIES = '$END_POINT_PET/species';
-  static const String END_POINT_PET_UPLOAD = '$END_POINT_PET/upload';
+    static const String END_POINT_PET_UPLOAD = END_POINT_CLOUDINARY_UPLOAD_ONE_FILE;
   static const String END_POINT_PET_BREED_SUFFIX = 'breed';
 
   // Clinic Endpoints
-  static const String END_POINT_CLINIC_UPLOAD = '$END_POINT_CLINIC/upload';
+    static const String END_POINT_CLINIC_UPLOAD =
+            END_POINT_CLOUDINARY_UPLOAD_ONE_FILE;
 
   // Appointment Endpoints
   static const String END_POINT_APPOINTMENT_MY = '$END_POINT_APPOINTMENT/my';

@@ -76,7 +76,7 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 
 ### ➕ Chuẩn hóa API Endpoint Registry (Refactor 2026-03)
 - **Tách lớp cấu hình & endpoint rõ ràng:**
-    - `lib/core/constants/app_config.dart`: chứa `appName`, `baseUrl`, `apiPrefix`.
+    - `lib/core/configs/app_config.dart`: chứa `appName`, `baseUrl`, `apiPrefix`.
     - `lib/core/constants/app_constants.dart`: chỉ chứa endpoint cố định theo domain (không chứa logic build URL/query).
     - `lib/core/network/api_helper.dart`: chứa helper build endpoint động + query params.
 - **Chuẩn naming endpoint:** Bổ sung bộ hằng số gốc theo domain API (`END_POINT_USER`, `END_POINT_PET`, `END_POINT_CLINIC`, `END_POINT_VETERINARIAN`, `END_POINT_APPOINTMENT`, `END_POINT_MEDICAL`, `END_POINT_POST`, `END_POINT_COMMENT`, `END_POINT_TOPIC`, `END_POINT_INVOICE`, ...).
@@ -90,6 +90,21 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - `features/community/data/community_repository.dart`
     - `features/pet/data/pet_repository.dart`
     - `features/auth/presentation/providers/auth_provider.dart` (route `user/{id}`)
+
+### ➕ Chuẩn hóa API Upload ảnh qua Cloudinary (Refactor 2026-03)
+- **Backend upload endpoint dùng chung:**
+    - `POST /api/cloudinary/upload/one-file` cho upload 1 ảnh.
+    - `POST /api/cloudinary/upload/multi-file` cho upload nhiều ảnh (field `files`).
+- **Nguyên tắc mobile:**
+    - Không gọi endpoint upload theo module (`/user/upload`, `/pet/upload`, `/clinic/upload`) ở tầng feature nữa.
+    - Dùng endpoint Cloudinary dùng chung, mapping tập trung tại `lib/core/constants/app_constants.dart`.
+- **Trạng thái áp dụng hiện tại:**
+    - `AuthProvider.uploadAvatar(...)` (avatar user) đã đi qua endpoint Cloudinary one-file thông qua constants.
+    - `PetRepository.uploadAvatar(...)` (avatar pet) đã đi qua endpoint Cloudinary one-file thông qua constants.
+    - `CommunityRepository` đã bổ sung helper `uploadPostImages(...)` dùng endpoint Cloudinary multi-file, sẵn sàng cho luồng forum có ảnh.
+- **Lợi ích:**
+    - Tập trung hóa contract upload ảnh, giảm duplicate API giữa các module.
+    - Dễ thay đổi backend storage strategy mà không phải sửa hàng loạt feature.
 
 ## 📁 Trạng thái các tính năng
 
@@ -220,7 +235,7 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
         - `GET /api/pet/species/{species}/breed` trả về mảng `string[]` (ví dụ: `DOG_GOLDEN_RETRIEVER`, ...), không còn object giống có `speciesId`.
         - `GET /api/pet` trả về thú cưng với field `species` + `breed` (enum key), không còn `breedId` + object `breed`.
     - FE `PetFormDto` đã đổi payload tạo/sửa sang `{ species, breed }` để match `CreatePetDTO/UpdatePetDTO` của BE (không gửi `breedId` nữa).
-    - FE vẫn giữ endpoint upload avatar `POST /api/pet/upload` như cũ (contract này vẫn còn trên backend).
+    - Upload avatar pet ở mobile đã chuyển sang endpoint Cloudinary dùng chung `POST /api/cloudinary/upload/one-file` (mapping tại `app_constants.dart`).
     - Dropdown Species/Breed trong Add/Edit nhận value là enum key backend, nhưng render label qua `PetSpeciesEnum.getTranslatedName(...)` và `PetBreedEnum.getTranslatedName(...)` để UI vẫn thân thiện VI/EN.
     - Các màn hình hiển thị pet (`MyPets`, `Home`, `Booking`) đã bỏ phụ thuộc `pet.breed?.name` kiểu cũ và chuyển sang map từ `pet.breed` enum key để hiển thị tên giống theo locale.
     - Khi mở EditPet từ Home/MyPets, flow preload breed list đã đổi từ `pet.breed.speciesId` sang `pet.species`.

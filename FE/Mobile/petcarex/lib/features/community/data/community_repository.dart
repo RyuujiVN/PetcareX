@@ -78,6 +78,29 @@ class CommunityRepository {
     return null;
   }
 
+  Future<List<String>> uploadPostImages(List<String> filePaths) async {
+    if (filePaths.isEmpty) return [];
+
+    final response = await _apiClient.postMultipartFiles(
+      AppConstants.END_POINT_CLOUDINARY_UPLOAD_MULTI_FILE,
+      filePaths,
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final raw = jsonDecode(response.body);
+      if (raw is List) {
+        return raw
+            .whereType<Map>()
+            .map((item) => item['file'])
+            .whereType<String>()
+            .where((url) => url.isNotEmpty)
+            .toList();
+      }
+    }
+
+    return [];
+  }
+
   // --- Comment Methods ---
 
   Future<List<Comment>> getComments(

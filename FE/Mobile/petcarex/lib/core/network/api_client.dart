@@ -104,4 +104,29 @@ class ApiClient {
     AppLogger.logResponse(response);
     return response;
   }
+
+  Future<http.Response> postMultipartFiles(
+    String endpoint,
+    List<String> filePaths,
+  ) async {
+    final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
+    final headers = await _getHeaders();
+    headers.remove('Content-Type');
+
+    AppLogger.logRequest('POST MULTIPART FILES', url.toString(), headers, {
+      'totalFiles': filePaths.length,
+    });
+
+    final request = http.MultipartRequest('POST', url);
+    request.headers.addAll(headers);
+
+    for (final filePath in filePaths) {
+      request.files.add(await http.MultipartFile.fromPath('files', filePath));
+    }
+
+    final streamedResponse = await request.send().timeout(_requestTimeout);
+    final response = await http.Response.fromStream(streamedResponse);
+    AppLogger.logResponse(response);
+    return response;
+  }
 }
