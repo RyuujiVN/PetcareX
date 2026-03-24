@@ -4,10 +4,10 @@ import { MessageCircle, Plus, Send, Loader } from 'lucide-react';
 import { CloseOutlined } from '@ant-design/icons';
 export default function ChatBotAI() {
   const [conversations, setConversations] = useState([
-    { id: 1, title: 'LuLu bị biếng ăn', icon: '🐱', unread: 0 },
-    { id: 2, title: 'Lịch tiêm phòng cho mèo', icon: '💉', unread: 0 },
-    { id: 3, title: 'Dấu hiệu về rằng ở chó', icon: '🐶', unread: 0 },
-    { id: 4, title: 'Thức ăn tốt nhất cho Corgi', icon: '🍖', unread: 0 },
+    { id: 1, title: 'LuLu bị biếng ăn', unread: 0 },
+    { id: 2, title: 'Lịch tiêm phòng cho mèo', unread: 0 },
+    { id: 3, title: 'Dấu hiệu về rằng ở chó', unread: 0 },
+    { id: 4, title: 'Thức ăn tốt nhất cho Corgi', unread: 0 },
   ]);
 
   const [activeConversation, setActiveConversation] = useState(1);
@@ -111,7 +111,6 @@ const handleCreateNewConversation = () => {
       {
         id: newId,
         title: 'Cuộc trò chuyện mới',
-        icon: '💬',
         unread: 0,
       },
       ...conversations
@@ -163,39 +162,38 @@ const handleCreateNewConversation = () => {
               <h1>Trợ lý AI PetCareX</h1>
             </div>
           </header>
-<div className="messages-container">
-  {messages.length === 0 ? (
-    <div className="empty-state">
-      <h2>Hôm nay bạn cần gì?</h2>
-    </div>
-  ) : (
-    <>
-      {messages.map((message) => (
-        <div key={message.id} className={`message ${message.sender}`}>
-          <div className="message-content">
-            <div className="message-bubble">
-              {message.content}
-            </div>
+          <div className="messages-container">
+            {messages.length === 0 ? (
+              <div className="empty-state">
+                <h2>Hôm nay bạn cần gì?</h2>
+              </div>
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <div key={message.id} className={`message ${message.sender}`}>
+                    <div className="message-content">
+                      <div className="message-bubble">
+                        {message.content}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {isLoading && (
+                  <div className="message ai">
+                    <div className="message-content">
+                      <div className="message-bubble">
+                        Đang trả lời...
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div ref={messagesEndRef} />
+                
+              </>
+            )}
           </div>
-        </div>
-      ))}
-
-      {isLoading && (
-        <div className="message ai">
-          <div className="message-content">
-            <div className="message-bubble">
-              Đang trả lời...
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div ref={messagesEndRef} />
-      
-    </>
-  )}
-</div>
-
           <footer className="chatbot-footer">
             <div className="input-container">
               <input
