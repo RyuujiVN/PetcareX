@@ -120,7 +120,7 @@ const handleCreateNewConversation = () => {
   };
 
   return (
-    <div>
+    
       <div className="chatbot-container">
         <aside className="chatbot-sidebar">
           <button className="new-conversation-btn" onClick={handleCreateNewConversation}>
@@ -191,6 +191,7 @@ const handleCreateNewConversation = () => {
       )}
 
       <div ref={messagesEndRef} />
+      
     </>
   )}
 </div>
@@ -221,6 +222,5 @@ const handleCreateNewConversation = () => {
           </footer>
         </div>
       </div>
-    </div>
   );
 }
