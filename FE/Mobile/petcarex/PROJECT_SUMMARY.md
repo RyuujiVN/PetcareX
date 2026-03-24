@@ -192,6 +192,10 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Home chỉ hiển thị **2 lịch sắp tới gần nhất** (lọc theo trạng thái upcoming và sắp xếp theo **ngày + giờ khám**), đảm bảo nhất quán khi so với tab **Sắp tới**.
     - UI card lịch hẹn ở Home được đồng bộ theo visual của Appointment: thumbnail thú cưng + badge trạng thái + các dòng thông tin icon (ngày giờ, bác sĩ, địa chỉ) + action bar tách riêng ở chân card.
     - Với lịch **Sắp tới**, cả Home và Appointment đều dùng chung pattern **2 nút**: `Xem chi tiết` + `Hủy`; nút `Hủy` chỉ cho phép khi trạng thái là `BOOKED` (trạng thái khác bị disable để đúng nghiệp vụ).
+- **Home Header & Background UX (2026-03-24):**
+    - Home chuyển từ `SingleChildScrollView` sang `CustomScrollView` + `SliverPersistentHeader(pinned: true)` để ghim cứng cụm header gồm **logo PetCareX, icon QR và icon thông báo** khi người dùng cuộn xuống.
+    - Nền Home được đặt rõ ràng `AppColors.white` ở root container và phần pinned header để loại bỏ cảm giác xám/mờ, giữ trải nghiệm sáng và đồng nhất.
+    - Quy tắc maintain: nếu mở rộng thêm action trên header Home, cần giữ cùng cơ chế pinned (không quay lại header trôi theo nội dung).
 - **Chuẩn hóa CTA "Khám phá" trong module Appointment (2026-03):**
     - Đổi text footer card lịch sử từ `Khám phá/Explore` thành `Xem chi tiết/View details` để đúng ngữ nghĩa hành động.
     - Bổ sung key i18n mới: `viewDetail`, `retry`, `yes`, `no` và áp dụng ở trang Appointment/Home.

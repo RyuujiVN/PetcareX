@@ -91,44 +91,68 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            _buildHeader(l10n),
-            const SizedBox(height: 24),
-            _buildUserInfo(l10n),
-            const SizedBox(height: 24),
-            _buildPetList(l10n),
-            const SizedBox(height: 24),
-            _buildQuickActions(l10n),
-            const SizedBox(height: 32),
-            _buildSectionHeader(
-              l10n.myAppointments,
-              l10n.viewAll,
-              onTap: () {
-                MainNavigationWrapper.of(context)?.setSelectedIndex(2);
-              },
+    return Container(
+      color: AppColors.white,
+      child: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _HomeHeaderDelegate(
+                minHeight: 72,
+                maxHeight: 72,
+                child: Container(
+                  color: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: _buildHeader(l10n),
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            _buildAppointmentSection(l10n),
-            const SizedBox(height: 32),
-            _buildSectionHeader(
-              l10n.petCareForum,
-              l10n.explore,
-              onTap: () {
-                MainNavigationWrapper.of(context)?.setSelectedIndex(3);
-              },
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              sliver: SliverToBoxAdapter(child: _buildScrollableBody(l10n)),
             ),
-            const SizedBox(height: 16),
-            _buildForumPost(),
-            const SizedBox(height: 100),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildScrollableBody(AppLocalizations l10n) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        _buildUserInfo(l10n),
+        const SizedBox(height: 24),
+        _buildPetList(l10n),
+        const SizedBox(height: 24),
+        _buildQuickActions(l10n),
+        const SizedBox(height: 32),
+        _buildSectionHeader(
+          l10n.myAppointments,
+          l10n.viewAll,
+          onTap: () {
+            MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+          },
+        ),
+        const SizedBox(height: 16),
+        _buildAppointmentSection(l10n),
+        const SizedBox(height: 32),
+        _buildSectionHeader(
+          l10n.petCareForum,
+          l10n.explore,
+          onTap: () {
+            MainNavigationWrapper.of(context)?.setSelectedIndex(3);
+          },
+        ),
+        const SizedBox(height: 16),
+        _buildForumPost(),
+        const SizedBox(height: 100),
+      ],
     );
   }
 
@@ -1095,6 +1119,44 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
     );
+  }
+}
+
+class _HomeHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final double minHeight;
+  final double maxHeight;
+  final Widget child;
+
+  _HomeHeaderDelegate({
+    required this.minHeight,
+    required this.maxHeight,
+    required this.child,
+  });
+
+  @override
+  double get minExtent => minHeight;
+
+  @override
+  double get maxExtent => maxHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Material(
+      color: AppColors.white,
+      elevation: overlapsContent ? 1 : 0,
+      child: child,
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _HomeHeaderDelegate oldDelegate) {
+    return minHeight != oldDelegate.minHeight ||
+        maxHeight != oldDelegate.maxHeight ||
+        child != oldDelegate.child;
   }
 }
 
