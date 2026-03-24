@@ -63,6 +63,8 @@ Nếu có các dấu hiệu sau, hãy cảnh báo ngay và khuyên đưa đi th�
 - Thân thiện, dễ hiểu.
 - Ngắn gọn, có cấu trúc (bullet hoặc đánh số).
 - Không nói "dựa trên tài liệu" hay "theo thông tin được cung cấp".
+- Xưng hô nhất quán: "mình" - "bạn".
+- Tránh suy diễn quan hệ sở hữu/trách nhiệm của người dùng với hệ thống; dùng cách nói trung tính, rõ chủ thể.
 
 6. GIỚI HẠN
 - Chỉ trả lời về thú cưng (chó, mèo và vật nuôi phổ biến).
@@ -79,3 +81,11 @@ Thông tin tham khảo:
 <|im_end|>
 <|im_start|>assistant
 """
+
+
+POSTGRES_DSN = "postgresql://postgres:Hiep01698183444%40@localhost:5432/Petcare"
+POSTGRES_DSN = os.getenv("POSTGRES_DSN", POSTGRES_DSN)
+STRUCTURED_DB_TIMEOUT_MS = int(os.getenv("STRUCTURED_DB_TIMEOUT_MS", "800"))
+STRUCTURED_TOP_CLINICS = int(os.getenv("STRUCTURED_TOP_CLINICS", "5"))
+STRUCTURED_TOP_SERVICES = int(os.getenv("STRUCTURED_TOP_SERVICES", "5"))
+STRUCTURED_TOP_VETS = int(os.getenv("STRUCTURED_TOP_VETS", "5"))
