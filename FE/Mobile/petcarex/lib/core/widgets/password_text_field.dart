@@ -10,6 +10,7 @@ class PasswordTextField extends StatefulWidget {
   final FocusNode? focusNode;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onSubmitted;
+  final ValueChanged<String>? onChanged;
   final FormFieldValidator<String>? validator;
   final AutovalidateMode? autovalidateMode;
 
@@ -22,6 +23,7 @@ class PasswordTextField extends StatefulWidget {
     this.focusNode,
     this.textInputAction,
     this.onSubmitted,
+    this.onChanged,
     this.validator,
     this.autovalidateMode,
   });
@@ -35,6 +37,9 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final bool hasError =
+      widget.errorText != null && widget.errorText!.trim().isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -49,6 +54,7 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
           focusNode: widget.focusNode,
           textInputAction: widget.textInputAction,
           onFieldSubmitted: widget.onSubmitted,
+          onChanged: widget.onChanged,
           validator: widget.validator,
           autovalidateMode: widget.autovalidateMode,
           obscuringCharacter: '●',
@@ -66,20 +72,56 @@ class _PasswordTextFieldState extends State<PasswordTextField> {
               onPressed: () => setState(() => _isObscure = !_isObscure),
             ),
             filled: true,
-            fillColor: AppColors.formFill,
+            fillColor: hasError
+                ? AppColors.fieldErrorBackground
+                : AppColors.formFill,
+            errorText: widget.errorText,
+            errorStyle: const TextStyle(
+              color: AppColors.fieldErrorText,
+              fontSize: 12,
+              height: 1.4,
+            ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.formBorder),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: hasError
+                    ? AppColors.fieldErrorBorder
+                    : AppColors.formBorder,
+                width: hasError ? 1.5 : 1,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.formBorder),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: hasError
+                    ? AppColors.fieldErrorBorder
+                    : AppColors.formBorder,
+                width: hasError ? 1.5 : 1,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderRadius: BorderRadius.circular(10),
+              borderSide: BorderSide(
+                color: hasError
+                    ? AppColors.fieldErrorBorder
+                    : AppColors.primary,
+                width: 1.5,
+              ),
             ),
-            errorText: widget.errorText,
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: AppColors.fieldErrorBorder,
+                width: 1.5,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: AppColors.fieldErrorBorder,
+                width: 1.5,
+              ),
+            ),
           ),
         ),
       ],

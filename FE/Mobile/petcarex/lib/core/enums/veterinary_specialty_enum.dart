@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
-
+// bỏ qua lỗi về tên 
+// ignore_for_file: constant_identifier_names
 enum VeterinarySpecialtyEnum {
   GENERAL_EXAMINATION('GENERAL_EXAMINATION'),
   INTERNAL_MEDICINE('INTERNAL_MEDICINE'),

@@ -38,10 +38,44 @@ class AppColors {
   static const error = Color(0xFFEA5455);
   static const errorLight = Color(0xFFFFEAEA);
   static const errorBorder = Color(0xFFFFC1C1);
+  static const fieldErrorBorder = Color(0xFFE24B4A);
+  static const fieldErrorBackground = Color(0xFFFFF5F5);
+  static const fieldErrorText = Color(0xFFA32D2D);
   static const success = Color(0xFF43A047);
   static const successLight = Color(0xFFE8F5E9);
   static const warning = Color(0xFFFF9800);
   static const primaryLight = Color(0xFFE0F7F4);
+
+  // Toast palette
+  static const toastBackground = Color(0xFF1C1C1E);
+  static const toastText = Color(0xFFFFFFFF);
+  static const toastSubText = Color(0x99FFFFFF);
+  static const toastSuccess = Color(0xFF63D68D);
+  static const toastError = Color(0xFFF07070);
+  static const toastWarning = Color(0xFFF5B942);
+  static const toastErrorBackground = Color(0xFFA32D2D);
+  static const toastWarningBackground = Color(0xFF854F0B);
+
+  // In-app notice palette (top notifier)
+  static const noticeInfoIcon = Color(0xFF185FA5);
+  static const noticeInfoBackground = Color(0xFFE6F1FB);
+  static const noticeInfoBorder = Color(0xFF85B7EB);
+  static const noticeInfoText = Color(0xFF0C447C);
+
+  static const noticeSuccessIcon = Color(0xFF3B6D11);
+  static const noticeSuccessBackground = Color(0xFFEAF3DE);
+  static const noticeSuccessBorder = Color(0xFF97C459);
+  static const noticeSuccessText = Color(0xFF27500A);
+
+  static const noticeErrorIcon = fieldErrorText;
+  static const noticeErrorBackground = Color(0xFFFCEBEB);
+  static const noticeErrorBorder = Color(0xFFF09595);
+  static const noticeErrorText = Color(0xFF791F1F);
+
+  static const noticeWarningIcon = toastWarningBackground;
+  static const noticeWarningBackground = Color(0xFFFAEEDA);
+  static const noticeWarningBorder = Color(0xFFEF9F27);
+  static const noticeWarningText = Color(0xFF633806);
 
   // Domain accents
   static const male = Color(0xFF2196F3);

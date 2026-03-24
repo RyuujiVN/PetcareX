@@ -207,9 +207,23 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Đồng bộ theo luồng tab (2026-03-24): khi người dùng từ tab khác quay về Home, countdown 5 giây được reset qua `HomeChatbotHintController` do `MainNavigationWrapper` phát tín hiệu, đảm bảo hành vi nhất quán sau login và trong suốt phiên sử dụng.
 - **Global Notification Placement Rule (2026-03-24):**
     - Theo yêu cầu UX của mentor, thông báo lỗi/thông tin/success **không hiển thị dưới topbar** (không dùng `ScaffoldMessenger/SnackBar` trực tiếp) mà hiển thị ở vùng **phía trên topbar**.
-    - Đã chuẩn hóa cơ chế chung qua `lib/core/utils/app_notifier.dart` (Overlay top notification), hỗ trợ 3 loại: `showInfo`, `showSuccess`, `showError`, có auto-dismiss và chỉ hiển thị 1 thông báo tại một thời điểm.
+    - Đã chuẩn hóa cơ chế chung qua `lib/core/utils/app_notifier.dart` với **Fluttertoast thuần** (`Fluttertoast.showToast`) để tránh lỗi layout/animation từ custom overlay.
+    - `AppNotifier` giữ API ổn định `showInfo/showSuccess/showError/showWarning` để module gọi không phải đổi business flow.
+    - Toast global dùng `ToastGravity.TOP`, `toastLength` + `timeInSecForIosWeb` để auto-dismiss; màu nền toast dùng semantic colors trong `AppColors`.
     - Các module đã migrate khỏi SnackBar cũ: `auth` (login/register/forgot/reset/change password), `home`, `booking`, `appointment`, `pet` (add/edit), `community` (list/create post), `account` (profile/my pets).
     - Quy tắc maintain: mọi thông báo ngắn trong UI flow phải đi qua `AppNotifier`; tránh tạo lại cơ chế toast/snackbar cục bộ để giữ trải nghiệm nhất quán toàn app.
+
+### 2.1 Login Notification UX Pattern (2026-03-24)
+- **Phạm vi:** `LoginPage` (Flutter mobile). Dù mô tả nghiệp vụ có thể tham chiếu React Native, implementation chuẩn trong repo này là Flutter.
+- **Pattern 1 - Inline Field Error:**
+    - Bỏ kiểu báo lỗi dạng banner full-width trong login flow.
+    - Khi sai tài khoản/mật khẩu, hiển thị lỗi trực tiếp bằng `errorText` của `InputDecoration` trong field liên quan.
+    - Input lỗi dùng semantic colors từ theme (không hardcode): border đỏ + nền đỏ nhạt + errorStyle đỏ đậm.
+    - Khi người dùng nhập lại, lỗi field được clear ngay trong `onChanged`.
+- **Pattern 2 - Top Toast Notification:**
+    - Toast top dùng `AppNotifier` bọc `Fluttertoast.showToast` (`ToastGravity.TOP`) với style màu theo loại thông báo.
+    - Hỗ trợ `subMessage` optional (ghép thành message nhiều dòng), tự ẩn theo `toastLength/timeInSecForIosWeb`.
+    - Vẫn giữ nguyên logic API, response handling và navigation; chỉ thay đổi lớp hiển thị thông báo.
 - **Chuẩn hóa CTA "Khám phá" trong module Appointment (2026-03):**
     - Đổi text footer card lịch sử từ `Khám phá/Explore` thành `Xem chi tiết/View details` để đúng ngữ nghĩa hành động.
     - Bổ sung key i18n mới: `viewDetail`, `retry`, `yes`, `no` và áp dụng ở trang Appointment/Home.

@@ -104,10 +104,13 @@ class _LoginPageState extends State<LoginPage> {
       );
     } else {
       if (!mounted) return;
-      AppNotifier.showError(
-        context,
-        ErrorHandler.getLocalizedError(authProvider.errorMessage, context),
-      );
+      setState(() {
+        _passwordError = ErrorHandler.getLocalizedError(
+          authProvider.errorMessage,
+          context,
+        );
+      });
+      _passwordFocus.requestFocus();
     }
   }
 
@@ -127,10 +130,13 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       if (!mounted) return;
       if (authProvider.errorMessage != null) {
-        AppNotifier.showError(
-          context,
-          ErrorHandler.getLocalizedError(authProvider.errorMessage, context),
-        );
+        setState(() {
+          _passwordError = ErrorHandler.getLocalizedError(
+            authProvider.errorMessage,
+            context,
+          );
+        });
+        _passwordFocus.requestFocus();
       }
     }
   }
@@ -269,16 +275,67 @@ class _LoginPageState extends State<LoginPage> {
             focusNode: _emailFocus,
             autofocus: true,
             textInputAction: TextInputAction.next,
+            onChanged: (_) {
+              if (_emailError != null) {
+                setState(() => _emailError = null);
+              }
+            },
             onSubmitted: (_) => _passwordFocus.requestFocus(),
             style: const TextStyle(color: AppColors.textDark),
             decoration: InputDecoration(
               hintText: l10n.emailHint,
               prefixIcon: const Icon(Icons.email_outlined, color: AppColors.iconGrey),
               filled: true,
-              fillColor: AppColors.formFill,
+              fillColor: _emailError != null
+                  ? AppColors.fieldErrorBackground
+                  : AppColors.formFill,
               errorText: _emailError,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
+              errorStyle: const TextStyle(
+                color: AppColors.fieldErrorText,
+                fontSize: 12,
+                height: 1.4,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _emailError != null
+                      ? AppColors.fieldErrorBorder
+                      : AppColors.formBorder,
+                  width: _emailError != null ? 1.5 : 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _emailError != null
+                      ? AppColors.fieldErrorBorder
+                      : AppColors.formBorder,
+                  width: _emailError != null ? 1.5 : 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _emailError != null
+                      ? AppColors.fieldErrorBorder
+                      : AppColors.primary,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: AppColors.fieldErrorBorder,
+                  width: 1.5,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: AppColors.fieldErrorBorder,
+                  width: 1.5,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 16),
@@ -288,6 +345,11 @@ class _LoginPageState extends State<LoginPage> {
             label: l10n.password,
             errorText: _passwordError,
             textInputAction: TextInputAction.done,
+            onChanged: (_) {
+              if (_passwordError != null) {
+                setState(() => _passwordError = null);
+              }
+            },
             onSubmitted: (_) => _login(),
           ),
           const SizedBox(height: 8),

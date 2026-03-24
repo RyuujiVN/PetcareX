@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
 import 'pet_species_enum.dart';
-
+// bỏ qua lỗi về tên 
+// ignore_for_file: constant_identifier_names
 enum PetBreedEnum {
   DOG_GOLDEN_RETRIEVER('DOG_GOLDEN_RETRIEVER'),
   DOG_POODLE('DOG_POODLE'),
