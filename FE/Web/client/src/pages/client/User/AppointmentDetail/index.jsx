@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import * as antd from 'antd';
 import * as icons from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -32,7 +32,7 @@ const AppointmentDetail = () => {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
 
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       const res = await getMyAppointmentsApi(1, 200);
@@ -42,10 +42,30 @@ const AppointmentDetail = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
   useEffect(() => {
     fetchAppointments();
-  }, []);
+  }, [fetchAppointments]);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      fetchAppointments();
+    }, 20000);
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchAppointments();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [fetchAppointments]);
 
   const mappedAppointments = useMemo(() => {
     return appointments.map((item) => {

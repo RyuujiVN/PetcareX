@@ -27,6 +27,7 @@ import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
 import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
 import ViewPetAppointment from '../pages/adminClinic/VeterinaryClinic/ViewPetAppointment/viewPetAppointment'
 import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
+import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
 
 export default function AppRoutes({ location }) {
   return (
@@ -41,6 +42,7 @@ export default function AppRoutes({ location }) {
       <Route element={<AdminClinicLayout />}>
         <Route path="/admin/home" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
+        <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
         <Route path="/admin/clinic/view-pet-appointment" element={<ViewPetAppointment />} />
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
         <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
@@ -66,7 +68,8 @@ export default function AppRoutes({ location }) {
       <Route element={<HeaderLayout />}>
         <Route path="/add-pet" element={<AddPet />} />
         <Route path="/chatbot" element={<ChatBotAI />} />
-        <Route path="/profile" element={<ProfileUser />} />
+        <Route path="/user/profile" element={<ProfileUser />} />
+        <Route path="/profile" element={<Navigate to="/user/profile" replace />} />
         <Route path="/petProfile" element={<PetProfile />} />
         <Route path="/listPet" element={<ListPet />} />
         <Route path="/medical-records" element={<MedicalRecords />} />

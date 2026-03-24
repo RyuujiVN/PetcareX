@@ -56,7 +56,10 @@ export default function AdminClinicLayout() {
           </nav>
         </div>
 
-        <div className={styles.profileBox}>
+        <NavLink
+          to="/admin/clinic/profile"
+          className={`${styles.profileBox} ${isMenuActive(location.pathname, '/admin/clinic/profile') ? styles.profileBoxActive : ''}`}
+        >
           <div className={styles.profileInfo}>
             <Avatar size={42} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
             <div>
@@ -64,7 +67,7 @@ export default function AdminClinicLayout() {
               <p>{userProfile?.role || 'ADMIN_CLINIC'}</p>
             </div>
           </div>
-        </div>
+        </NavLink>
       </aside>
 
       <main className={styles.main}>

@@ -78,6 +78,16 @@
 .profileBox {
   border-top: 1px solid #e6ebf4;
   padding: 14px 4px 0;
+  text-decoration: none;
+  border-radius: 12px;
+}
+
+.profileBox:hover {
+  background: #eff4fb;
+}
+
+.profileBoxActive {
+  background: #d9e9fb;
 }
 
 .profileInfo {

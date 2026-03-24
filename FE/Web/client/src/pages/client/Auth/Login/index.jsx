@@ -7,41 +7,10 @@ import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 import { loginApi } from '../../../../data/client/api/auth';
+import { isAdminClinicAccount } from '../../../../constants/authRole';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 
 const { Title, Text, Link } = Typography;
-
-const isAdminClinicAccount = (userInfo) => {
-  const roleTokens = [];
-
-  if (typeof userInfo?.role === 'string') {
-    roleTokens.push(userInfo.role);
-  }
-
-  if (Array.isArray(userInfo?.roles)) {
-    userInfo.roles.forEach((roleItem) => {
-      if (typeof roleItem === 'string') {
-        roleTokens.push(roleItem);
-        return;
-      }
-
-      const value = roleItem?.name || roleItem?.code || roleItem?.role;
-      if (value) {
-        roleTokens.push(value);
-      }
-    });
-  }
-
-  const normalized = roleTokens.map((item) => String(item).toUpperCase());
-
-  return normalized.some(
-    (role) =>
-      role.includes('ADMIN') ||
-      role.includes('CLINIC') ||
-      role.includes('VETERINARIAN') ||
-      role.includes('DOCTOR'),
-  );
-};
 
 export default function Login() {
 
@@ -77,13 +46,19 @@ export default function Login() {
 
       const { accessToken, userInfo } = data;
 
-      login(accessToken, userInfo);
-
       const adminAccount = isAdminClinicAccount(userInfo);
+
+      if (adminAccount) {
+        message.warning('Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.');
+        navigate('/admin/login', { replace: true });
+        return;
+      }
+
+      login(accessToken, userInfo);
 
       message.success("Đăng nhập thành công!");
 
-      navigate(adminAccount ? "/admin/home" : "/home");
+      navigate('/home');
 
     } catch (err) {
       const errorMsg =

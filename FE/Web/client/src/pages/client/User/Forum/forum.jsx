@@ -1165,7 +1165,7 @@ const featuredPosts = useMemo(() => {
 								))}
 							</div>
 
-							<button type="button" className={styles.sideAction} onClick={() => navigate('/profile')}>
+							<button type="button" className={styles.sideAction} onClick={() => navigate('/user/profile')}>
 								Xem tất cả bảng xếp hạng
 							</button>
 						</section>

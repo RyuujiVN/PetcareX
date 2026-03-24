@@ -345,19 +345,6 @@ export default function AppointmentManagement() {
 		return appointmentDateTime < now
 	}
 
-	const isFutureAppointmentDate = (appointment) => {
-		if (!appointment?.appointmentDateRaw) return false
-
-		const appointmentDate = new Date(appointment.appointmentDateRaw)
-		if (Number.isNaN(appointmentDate.getTime())) return false
-
-		const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate())
-		const now = new Date()
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-		return appointmentDay > today
-	}
-
 	const hasUserCancellationRequest = (appointment) => {
 		const note = (appointment?.appointmentNote || '').toLowerCase()
 		return /huy|hủy|cancel/.test(note)
@@ -368,8 +355,7 @@ export default function AppointmentManagement() {
 		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED &&
 		(
 			isPastAppointment(selectedAppointment) ||
-			hasUserCancellationRequest(selectedAppointment) ||
-			isFutureAppointmentDate(selectedAppointment)
+			hasUserCancellationRequest(selectedAppointment)
 		)
 
 	const handleClinicCancelAppointment = () => {

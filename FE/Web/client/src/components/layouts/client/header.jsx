@@ -67,11 +67,11 @@ function Header() {
 
                             {isAccountDropdownOpen && (
                                 <div className="user-dropdown">
-                                    <Link to="/profile" className="dropdown-item">
+                                    <Link to="/user/profile" className="dropdown-item">
                                         <span className="icon">👤</span>
                                         <span>Trang cá nhân</span>
                                     </Link>
-                                    <Link to="/ListPet" className="dropdown-item">
+                                    <Link to="/listPet" className="dropdown-item">
                                         <span className="icon">🐶</span>
                                         <span>Thú cưng của tôi</span>
                                     </Link>
