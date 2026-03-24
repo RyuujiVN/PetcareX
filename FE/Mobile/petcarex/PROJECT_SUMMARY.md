@@ -300,6 +300,32 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Kết quả mong muốn:** Team pull code về và chạy `flutter run` là có reverse tự động, không cần gõ lại lệnh `adb reverse` thủ công mỗi lần.
 - **Chẩn đoán nhanh:** Dùng `adb reverse --list`; nếu không thấy `tcp:3000` thì nguy cơ cao app lỗi kết nối server trên Android thật.
 
+### 6. Community Topic API Contract Sync (2026-03-24)
+- **Vấn đề thực tế:** Màn `Đăng bài` không chọn được chủ đề vì mobile vẫn gọi endpoint cũ `/api/topic/get-all` và parse response dạng `List`, trong khi backend mới trả từ `GET /api/topic?page={page}&limit={limit}` với payload `{ items, meta }`.
+- **Root cause kỹ thuật:**
+    - Repository topic parse sai shape response nên danh sách topic rỗng.
+    - Model topic chỉ đọc field `name` trong khi backend trả `nameVn`, `nameEng`.
+- **Thay đổi đã áp dụng ở mobile:**
+    - `ApiHelper` bổ sung `topicsEndpoint(page, limit, search)`.
+    - `CommunityRepository.getTopics()` chuyển qua endpoint mới `/api/topic` và parse tương thích cả 2 dạng: `List` (legacy) và `{items, meta}` (current).
+    - `Topic.fromJson(...)` hỗ trợ fallback tên theo thứ tự `name` -> `nameVn` -> `nameEng`.
+    - `CreatePostPage` tải topic qua `fetchTopics()` (không gọi lại toàn bộ `fetchInitialData()`), đồng thời hiển thị tên chủ đề theo locale hiện tại (`vi` ưu tiên `nameVn`, `en` ưu tiên `nameEng`).
+    - Dropdown được guard value hợp lệ để tránh lỗi khi topic list reload/đổi dữ liệu.
+- **Chiến lược tương thích ngược:** Giữ parser linh hoạt để giảm rủi ro khi backend chuyển tiếp giữa contract cũ/mới.
+
+### 6. Community Topic API Contract Sync (EN)
+- **Observed issue:** The `Create Post` screen could not select a topic because mobile was still calling the old `/api/topic/get-all` endpoint and parsing a plain `List`, while backend now returns `GET /api/topic?page={page}&limit={limit}` with `{ items, meta }`.
+- **Technical root cause:**
+    - Topic repository expected the wrong response shape, resulting in an empty topic list.
+    - Topic model only read `name`, while backend now sends `nameVn` and `nameEng`.
+- **Applied mobile updates:**
+    - Added `topicsEndpoint(page, limit, search)` in `ApiHelper`.
+    - Updated `CommunityRepository.getTopics()` to call `/api/topic` and parse both formats: legacy `List` and current `{items, meta}`.
+    - Updated `Topic.fromJson(...)` with fallback order: `name` -> `nameVn` -> `nameEng`.
+    - Updated `CreatePostPage` to load topics via `fetchTopics()` (instead of full `fetchInitialData()`), and render localized topic names by current locale (`vi` prefers `nameVn`, `en` prefers `nameEng`).
+    - Added Dropdown selected-value guard to avoid invalid-value UI state after topic refresh.
+- **Backward-compatibility strategy:** Keep tolerant parsing to reduce risk during backend contract transition.
+
 ## 📝 Hướng dẫn chạy dự án
 1. **Vào đúng root mobile trước khi chạy lệnh:** `Set-Location "F:\capstone 2\code\PetcareX\FE\Mobile\petcarex"`.
 2. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.

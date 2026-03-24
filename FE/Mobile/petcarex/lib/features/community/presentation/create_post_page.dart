@@ -32,7 +32,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
         _selectedTopicId = provider.topics.first.id;
       });
     } else {
-      provider.fetchInitialData().then((_) {
+      provider.fetchTopics().then((_) {
         if (mounted && provider.topics.isNotEmpty) {
           setState(() {
             _selectedTopicId = provider.topics.first.id;
@@ -102,8 +102,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final languageCode = Localizations.localeOf(context).languageCode;
     final user = context.watch<AuthProvider>().user;
     final topics = context.watch<CommunityProvider>().topics;
+    final hasSelectedTopic =
+        _selectedTopicId != null && topics.any((t) => t.id == _selectedTopicId);
 
     return Scaffold(
       backgroundColor: AppColors.surface,
@@ -169,12 +172,19 @@ class _CreatePostPageState extends State<CreatePostPage> {
                       ),
                       child: DropdownButtonHideUnderline(
                         child: DropdownButton<String>(
-                          value: _selectedTopicId,
+                          value: hasSelectedTopic ? _selectedTopicId : null,
                           hint: Text(l10n.chooseTopic, style: const TextStyle(fontSize: 12)),
                           isDense: true,
                           icon: const Icon(Icons.keyboard_arrow_down, size: 16, color: AppColors.primary),
                           style: const TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold),
-                          items: topics.map((t) => DropdownMenuItem(value: t.id, child: Text(t.name))).toList(),
+                          items: topics
+                              .map(
+                                (t) => DropdownMenuItem(
+                                  value: t.id,
+                                  child: Text(t.displayName(languageCode)),
+                                ),
+                              )
+                              .toList(),
                           onChanged: (val) => setState(() => _selectedTopicId = val),
                         ),
                       ),

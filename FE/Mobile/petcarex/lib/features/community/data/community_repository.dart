@@ -28,11 +28,31 @@ class CommunityRepository {
   }
 
   Future<List<Topic>> getTopics() async {
-    final response = await _apiClient.get(AppConstants.END_POINT_TOPIC_GET_ALL);
+    final response = await _apiClient.get(
+      ApiHelper.topicsEndpoint(page: 1, limit: 50),
+    );
+
     if (response.statusCode == 200) {
-      final List data = jsonDecode(response.body);
-      return data.map((json) => Topic.fromJson(json)).toList();
+      final dynamic raw = jsonDecode(response.body);
+
+      if (raw is List) {
+        return raw
+            .whereType<Map>()
+            .map((json) => Topic.fromJson(Map<String, dynamic>.from(json)))
+            .toList();
+      }
+
+      if (raw is Map<String, dynamic>) {
+        final items = raw['items'];
+        if (items is List) {
+          return items
+              .whereType<Map>()
+              .map((json) => Topic.fromJson(Map<String, dynamic>.from(json)))
+              .toList();
+        }
+      }
     }
+
     return [];
   }
 

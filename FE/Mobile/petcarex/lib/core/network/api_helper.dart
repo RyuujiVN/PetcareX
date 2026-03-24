@@ -142,6 +142,19 @@ class ApiHelper {
     },
   );
 
+  static String topicsEndpoint({
+    int page = 1,
+    int limit = 20,
+    String? search,
+  }) => buildEndpoint(
+    AppConstants.END_POINT_TOPIC,
+    queryParameters: <String, Object?>{
+      'page': page,
+      'limit': limit,
+      'search': search,
+    },
+  );
+
   static String postCommentsListEndpoint(
     String postId, {
     int limit = 10,

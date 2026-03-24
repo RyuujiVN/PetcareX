@@ -63,15 +63,49 @@ class PostUser {
 class Topic {
   final String id;
   final String name;
+  final String? nameVn;
+  final String? nameEng;
   final String? description;
 
-  Topic({required this.id, required this.name, this.description});
+  Topic({
+    required this.id,
+    required this.name,
+    this.nameVn,
+    this.nameEng,
+    this.description,
+  });
+
+  String displayName(String languageCode) {
+    if (languageCode.toLowerCase() == 'vi') {
+      return (nameVn != null && nameVn!.trim().isNotEmpty) ? nameVn! : name;
+    }
+
+    if (nameEng != null && nameEng!.trim().isNotEmpty) {
+      return nameEng!;
+    }
+
+    if (nameVn != null && nameVn!.trim().isNotEmpty) {
+      return nameVn!;
+    }
+
+    return name;
+  }
 
   factory Topic.fromJson(Map<String, dynamic> json) {
     final topicMap = Map<String, dynamic>.from(json);
+    final parsedNameVn = (topicMap['nameVn'] as String?)?.trim();
+    final parsedNameEng = (topicMap['nameEng'] as String?)?.trim();
+    final parsedName =
+        (topicMap['name'] as String?)?.trim() ??
+        parsedNameVn ??
+        parsedNameEng ??
+        '';
+
     return Topic(
       id: topicMap['id'] ?? '',
-      name: topicMap['name'] ?? '',
+      name: parsedName,
+      nameVn: parsedNameVn,
+      nameEng: parsedNameEng,
       description: topicMap['description'],
     );
   }

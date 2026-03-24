@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../data/community_repository.dart';
 import '../../data/models/community_models.dart';
 
@@ -7,10 +8,10 @@ class CommunityProvider with ChangeNotifier {
 
   List<Post> _posts = [];
   List<Topic> _topics = [];
-  Map<String, List<Comment>> _postComments = {};
-  Map<String, List<Comment>> _commentReplies = {}; 
-  Map<String, bool> _isCommentsLoading = {};
-  Map<String, bool> _isRepliesLoading = {};
+  final Map<String, List<Comment>> _postComments = {};
+  final Map<String, List<Comment>> _commentReplies = {};
+  final Map<String, bool> _isCommentsLoading = {};
+  final Map<String, bool> _isRepliesLoading = {};
   
   bool _isLoading = false;
   bool _isMoreLoading = false;
@@ -37,6 +38,16 @@ class CommunityProvider with ChangeNotifier {
   void setReplyTarget(Comment? comment) {
     _activeReplyTarget = comment;
     notifyListeners();
+  }
+
+  Future<void> fetchTopics() async {
+    try {
+      _topics = await _repository.getTopics();
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+    }
   }
 
   Future<void> fetchInitialData() async {
