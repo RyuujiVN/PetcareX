@@ -1,8 +1,11 @@
 ﻿.booking-page {
+  min-width: 1400px;
   display: flex;
   flex-direction: column;
   min-height: 200vh;
   background-color: var(--color-surface-card);
+  justify-self: center;
+
 }
 .booking-content {
   display: flex;
@@ -19,20 +22,18 @@
   position: relative;
   background: url('/avatarMain.png') center/cover no-repeat;
   color: white;
-  padding: 4rem 1rem 5rem;
-  max-width: 1200px;
+  padding: 5rem 1rem 3rem;
+  max-width: 1400px;
   width: 100%;
-  margin: 0 auto 2rem;
   border-bottom-left-radius: 2rem;
   border-bottom-right-radius: 2rem;
 }
 
 
 .form-column {
- flex: 0 0 900px;
-   border: 1px solid var(--color-border-strong);
-  width: 900px; 
-  max-width: 900px;
+  flex: 1;
+  border: 1px solid var(--color-border-strong);
+  width: 100%; 
   margin: 0 auto;
   background: var(--color-surface-card);
   padding: 32px;
@@ -205,13 +206,17 @@
 }
 
 .date-time-selector {
-  display: flex;
-  gap: 16px;
+  display: grid;
+  grid-template-columns: minmax(500px, 1.05fr) minmax(420px, 1fr);
+  gap: 18px;
   align-items: flex-start;
 }
 
 .calendar {
-  flex: 1;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 10px;
+  background: var(--color-surface-card);
+  padding: 12px;
 }
 
 .calendar table {
@@ -221,7 +226,7 @@
 }
 .calendar th,
 .calendar td {
-  padding: 8px;
+  padding: 10px 8px;
   border: 1px solid var(--color-border-soft);
   width: 14.28%;
 }
@@ -229,13 +234,26 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  color: var(--color-text-primary);
+  font-weight: 600;
 }
 .calendar .month-header button {
-  background: none;
-  border: none;
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border-soft);
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
   font-size: 16px;
   cursor: pointer;
+}
+.calendar td {
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.calendar td:hover:not(.disabled-day):not(.selected-day) {
+  background: #f2f7ff;
 }
 
 .doctor-card {
@@ -311,7 +329,12 @@
   font-size: 26px;
   margin-right: 12px;
   line-height: 1;
-  margin-top: 2px;
+  margin-top: 8px;
+  width: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-brand-primary);
 }
 .summary-line .text {
   display: flex;
@@ -344,42 +367,81 @@
 }
 
 .selected-day {
-  background: var(--page-booking-primary);
+  background: var(--color-brand-primary);
   color: white;
+  font-weight: 600;
 }
 
 .disabled-day {
   color: var(--color-text-disabled);
-  background: var(--c-f7f7f7);
+  background: var(--color-surface-page);
   cursor: not-allowed;
 }
 
 .time-slots {
-  flex: 1;
   display: flex;
   flex-direction: column;
+  gap: 16px;
+}
+
+.time-slot-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.time-slot-group-title {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  color: var(--color-brand-primary);
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.time-slot-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(110px, 1fr));
+  gap: 10px;
 }
 .slot {
   padding: 12px 10px;
   border: 1px solid var(--color-border-strong);
-  border-radius: 4px;
+  border-radius: 10px;
   text-align: center;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
   font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  background: var(--color-surface-card);
+}
+
+.slot:hover:not(.disabled-slot):not(.selected) {
+  background: #f2f7ff;
 }
 .slot.selected {
-  background: var(--page-booking-primary);
+  background: var(--color-brand-primary);
   color: white;
-  border-color: var(--page-booking-primary);
+  border-color: var(--color-brand-primary);
 }
 
 .slot.disabled-slot {
   color: var(--color-text-disabled);
-  background: var(--color-surface-page);
-  border-color: var(--color-border-soft);
+  background: #f4f5f7;
+  border-color: #dfe3eb;
   cursor: not-allowed;
+}
+
+@media (max-width: 1200px) {
+  .date-time-selector {
+    grid-template-columns: 1fr;
+  }
 }
 .summary-card {
   background: var(--color-surface-card);
