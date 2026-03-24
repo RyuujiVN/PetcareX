@@ -26,6 +26,9 @@ import styles from './forum.module.css'
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
 const IMAGE_TOKEN_REGEX = /\[\[img:(.*?)\]\]/g
 const TITLE_TOKEN_REGEX = /^\s*\[\[title:(.*?)\]\]\s*/i
+const NO_TOPIC_VALUE = 'no-topic'
+const NO_TOPIC_FILTER_VALUE = 'none'
+const FEATURED_POST_LIMIT = 3
 
 const formatTimeAgo = (dateValue) => {
 	if (!dateValue) return 'Vừa xong'
@@ -58,21 +61,7 @@ const normalizeTagType = (topicName = '') => {
 
 const getTopicDisplayName = (topic = {}) => topic?.nameVn || topic?.nameEng || topic?.name || ''
 
-const normalizeFilterText = (value = '') =>
-	value
-		.toLowerCase()
-		.normalize('NFD')
-		.replace(/[\u0300-\u036f]/g, '')
-		.trim()
-
-const isBlockedTabLabel = (label = '') => {
-	const normalized = normalizeFilterText(label)
-	return (
-		normalized === 'tat ca' ||
-		normalized === 'cham soc thu cung hang ngay' ||
-		normalized === 'tiem phong va phong benh'
-	)
-}
+const getPostEngagementScore = (post = {}) => Number(post.likes || 0) + Number(post.comments || 0)
 
 const extractMediaFromContent = (rawContent = '') => {
 	const matches = [...rawContent.matchAll(IMAGE_TOKEN_REGEX)]
@@ -158,7 +147,8 @@ const mapPostToUi = (post) => {
 		tagType: normalizeTagType(topicName),
 		likes: Number(post.likeCount || 0),
 		comments: Number(post.commentCount || 0),
-		avatar: post.author?.avatarUrl || '/avatarMain.png',
+		createdAt: post.createdAt,
+		avatar: post.author?.avatarUrl || DEFAULT_COMPOSER_AVATAR,
 		liked: Boolean(post.liked),
 		rawTopicId: post.topic?.id,
 	}
@@ -170,7 +160,6 @@ function Forum() {
 	const composerRef = useRef(null)
 	const postImageInputRef = useRef(null)
 	const commentImageInputRef = useRef(null)
-	const [visibleFeatured, setVisibleFeatured] = useState(5)
 	const replyImageInputRef = useRef(null)
 	const [apiPosts, setApiPosts] = useState([])
 	const [apiTopics, setApiTopics] = useState([])
@@ -182,7 +171,7 @@ function Forum() {
 	const [isComposerModalOpen, setIsComposerModalOpen] = useState(false)
 	const [composerText, setComposerText] = useState('')
 	const [composerTitle, setComposerTitle] = useState('')
-	const [composerTopicId, setComposerTopicId] = useState('')
+	const [composerTopicId, setComposerTopicId] = useState(NO_TOPIC_VALUE)
 	const [composerImageFile, setComposerImageFile] = useState(null)
 	const [composerImagePreview, setComposerImagePreview] = useState('')
 	const [submittingPost, setSubmittingPost] = useState(false)
@@ -208,10 +197,10 @@ function Forum() {
 	const filteredTopics = useMemo(() => {
 		const mapped = apiTopics
 			.map((topic) => ({
-				id: topic.id,
+				id: String(topic.id),
 				label: getTopicDisplayName(topic),
 			}))
-			.filter((item) => item.id && item.label && !isBlockedTabLabel(item.label))
+			.filter((item) => item.id && item.label)
 
 		const unique = mapped.filter((item, index, arr) => arr.findIndex((value) => value.id === item.id) === index)
 
@@ -221,12 +210,26 @@ function Forum() {
 	const topicFilterOptions = useMemo(
 		() => [
 			{ label: 'Tất cả chủ đề', value: 'all' },
+			{ label: 'Không chủ đề', value: NO_TOPIC_FILTER_VALUE },
 			...filteredTopics.map((topic) => ({
 				label: topic.label,
-				value: String(topic.id),
+				value: topic.id,
 			})),
 		],
 		[filteredTopics],
+	)
+
+	const topicSelectOptions = useMemo(
+		() => [
+			{ value: NO_TOPIC_VALUE, label: 'Không chọn chủ đề' },
+			...apiTopics
+				.filter((topic) => topic.id && getTopicDisplayName(topic))
+				.map((topic) => ({
+					value: String(topic.id),
+					label: getTopicDisplayName(topic),
+				})),
+		],
+		[apiTopics],
 	)
 
 	const topicDropdownItems = useMemo(
@@ -258,7 +261,7 @@ function Forum() {
 
 	return Array.from(stats.values())
 		.sort((a, b) => b.count - a.count)
-		.slice(0, 5)
+		.slice(0, 3)
 		.map((item, index) => ({
 			...item,
 			score: `${item.count} Bài viết`,
@@ -266,21 +269,22 @@ function Forum() {
 		}))
 }, [apiPosts])
 
-const featuredPosts = useMemo(() => {
-	return [...apiPosts]
-		.sort((a, b) => {
-			const scoreA = (a.likes || 0) + (a.comments || 0)
-			const scoreB = (b.likes || 0) + (b.comments || 0)
-			return scoreB - scoreA
-		})
-		.slice(0, 3)
-		.map((post) => ({
-			id: post.id,
-			heading: `Thịnh hành trong ${post.tag}`,
-			title: post.title || post.content || 'Bài viết mới',
-			meta: `${post.likes || 0} lượt thích • ${post.comments || 0} bình luận`,
-		}))
-}, [apiPosts])
+	const featuredPostIds = useMemo(() => {
+		return new Set(
+			[...apiPosts]
+				.sort((a, b) => {
+					const scoreDiff = getPostEngagementScore(b) - getPostEngagementScore(a)
+					if (scoreDiff !== 0) return scoreDiff
+
+					const dateDiff = new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+					if (!Number.isNaN(dateDiff) && dateDiff !== 0) return dateDiff
+
+					return Number(b.id || 0) - Number(a.id || 0)
+				})
+				.slice(0, FEATURED_POST_LIMIT)
+				.map((post) => post.id),
+		)
+	}, [apiPosts])
 
 
 	const selectedPost = searchParams.get('post')
@@ -325,12 +329,6 @@ const featuredPosts = useMemo(() => {
 			setComposerAvatar(DEFAULT_COMPOSER_AVATAR)
 		}
 	}, [])
-
-	useEffect(() => {
-		if (!composerTopicId && apiTopics.length > 0) {
-			setComposerTopicId(apiTopics[0].id)
-		}
-	}, [apiTopics, composerTopicId])
 
 	const uploadImage = async (file) => {
 		const payload = await uploadUserImageApi(file)
@@ -392,16 +390,11 @@ const featuredPosts = useMemo(() => {
 			return
 		}
 
-		if (!composerTopicId) {
-			message.warning('Chưa có chủ đề để đăng bài')
-			return
-		}
-
 		try {
 			setSubmittingPost(true)
 			const imageUrl = composerImageFile ? await uploadImage(composerImageFile) : null
 			await createPost({
-				topicId: composerTopicId,
+				topicId: composerTopicId === NO_TOPIC_VALUE ? null : composerTopicId,
 				content: attachPostToContent({
 					title: composerTitle,
 					text: composerText,
@@ -411,6 +404,7 @@ const featuredPosts = useMemo(() => {
 			message.success('Đăng bài thành công')
 			setComposerText('')
 			setComposerTitle('')
+			setComposerTopicId(NO_TOPIC_VALUE)
 			setComposerImageFile(null)
 			setComposerImagePreview('')
 			setIsComposerModalOpen(false)
@@ -437,7 +431,7 @@ const featuredPosts = useMemo(() => {
 			id: post.id,
 			title: post.title || '',
 			text: post.content || '',
-			topicId: post.rawTopicId || composerTopicId || '',
+			topicId: post.rawTopicId ? String(post.rawTopicId) : NO_TOPIC_VALUE,
 			imageFile: null,
 			imagePreview: post.image || '',
 			existingImageUrl: post.image || '',
@@ -474,11 +468,6 @@ const featuredPosts = useMemo(() => {
 			return
 		}
 
-		if (!editingPost.topicId) {
-			message.warning('Vui lòng chọn chủ đề cho bài viết')
-			return
-		}
-
 		try {
 			setSubmittingEditPost(true)
 			const imageUrl = editingPost.imageFile
@@ -486,7 +475,7 @@ const featuredPosts = useMemo(() => {
 				: editingPost.existingImageUrl || null
 
 			await updatePost(editingPost.id, {
-				topicId: editingPost.topicId,
+				topicId: editingPost.topicId === NO_TOPIC_VALUE ? null : editingPost.topicId,
 				content: attachPostToContent({
 					title: editingPost.title,
 					text: editingPost.text,
@@ -809,10 +798,39 @@ const featuredPosts = useMemo(() => {
 		return () => window.removeEventListener('click', closeMenu)
 	}, [menuPostId])
 
-	const visiblePosts = sourcePosts.filter((post) => {
-		if (selectedTopicFilter === 'all') return true
-		return String(post.rawTopicId) === selectedTopicFilter
-	})
+	const visiblePosts = useMemo(() => {
+		const filtered = sourcePosts.filter((post) => {
+			if (selectedTopicFilter === 'all') return true
+			if (selectedTopicFilter === NO_TOPIC_FILTER_VALUE) return !post.rawTopicId
+			return String(post.rawTopicId) === selectedTopicFilter
+		})
+
+		const prioritizedFeatured = [...filtered]
+			.filter((post) => featuredPostIds.has(post.id))
+			.sort((a, b) => {
+				const scoreDiff = getPostEngagementScore(b) - getPostEngagementScore(a)
+				if (scoreDiff !== 0) return scoreDiff
+
+				const dateDiff = new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+				if (!Number.isNaN(dateDiff) && dateDiff !== 0) return dateDiff
+
+				return Number(b.id || 0) - Number(a.id || 0)
+			})
+
+		const normalPosts = [...filtered]
+			.filter((post) => !featuredPostIds.has(post.id))
+			.sort((a, b) => {
+				const dateDiff = new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+				if (!Number.isNaN(dateDiff) && dateDiff !== 0) return dateDiff
+
+				return Number(b.id || 0) - Number(a.id || 0)
+			})
+
+		return [...prioritizedFeatured, ...normalPosts].map((post, index) => ({
+			...post,
+			isFeatured: index < FEATURED_POST_LIMIT && featuredPostIds.has(post.id),
+		}))
+	}, [sourcePosts, selectedTopicFilter, featuredPostIds])
 
 	return (
 		<div className={styles.pageRoot}>
@@ -876,7 +894,10 @@ const featuredPosts = useMemo(() => {
 												{post.title ? <span className={styles.postTitleInline}>{post.title}</span> : null}
 												<p>{post.time}</p>
 											</div>
-												<span className={`${styles.postTag} ${styles[post.tagType]}`}>{post.tag}</span>
+													<div className={styles.postTagRow}>
+														<span className={`${styles.postTag} ${styles[post.tagType]}`}>{post.tag}</span>
+														{post.isFeatured ? <span className={styles.featuredBadge}>Nổi bật</span> : null}
+													</div>
 										</div>
 									</div>
 
@@ -1170,25 +1191,6 @@ const featuredPosts = useMemo(() => {
 							</button>
 						</section>
 
-						<section className={styles.sideCard}>
-							<header className={styles.sideTitle}>
-								<h2 style={{fontSize: 16, fontWeight: 'bold'}}>Bài viết nổi bật</h2>
-							</header>
-							<div className={styles.featureList}>
-								{featuredPosts.map((item, index) => (
-									<button
-										key={item.id}
-										type="button"
-										className={styles.featureItem}
-										onClick={() => updateParams({ post: item.id || String(index + 1) })}
-									>
-										<p>{item.heading}</p>
-										<strong style={{fontSize: 15, fontWeight: 'bold'}}>{item.title}</strong>
-										<small>{item.meta}</small>
-									</button>
-								))}
-							</div>
-						</section>
 					</div>
 				</aside>
 			</main>
@@ -1201,17 +1203,14 @@ const featuredPosts = useMemo(() => {
 					className={`${styles.composerModal} ${isComposerModalOpen ? styles.open : ''}`}
 					onClick={(e) => e.stopPropagation()}
 				>
-					<h3>Tạo bài viết mới</h3>
+					<h3 style={{textAlign: 'center'}}>Tạo bài viết mới</h3>
 					<p style={{marginLeft: 3, fontWeight: 'bold'}}>Chủ đề bài viết</p>
 					<Select
-						value={composerTopicId || undefined}
+						value={composerTopicId || NO_TOPIC_VALUE}
 						onChange={(value) => setComposerTopicId(value)}
 						className={styles.topicSelectAntd}
 						placeholder="Chọn chủ đề bài viết"
-						options={apiTopics.map((topic) => ({
-							value: topic.id,
-							label: getTopicDisplayName(topic),
-						}))}
+						options={topicSelectOptions}
 					/>
 
 					<textarea
@@ -1267,16 +1266,13 @@ const featuredPosts = useMemo(() => {
 						<h3>Chỉnh sửa bài viết</h3>
 						<p style={{marginLeft: 3, fontWeight: 'bold'}}>Chủ đề</p>
 						<Select
-							value={editingPost.topicId || undefined}
+							value={editingPost.topicId || NO_TOPIC_VALUE}
 							onChange={(value) =>
 								setEditingPost((prev) => (prev ? { ...prev, topicId: value } : prev))
 							}
 							className={styles.topicSelectAntd}
 							placeholder="Chọn chủ đề"
-							options={apiTopics.map((topic) => ({
-								value: topic.id,
-								label: getTopicDisplayName(topic),
-							}))}
+							options={topicSelectOptions}
 						/>
 
 						<textarea
