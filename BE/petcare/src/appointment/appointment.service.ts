@@ -19,6 +19,10 @@ export class AppointmentService {
   constructor(
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
+    @InjectRepository(AdminClinic)
+    private readonly adminClinicRepository: Repository<AdminClinic>,
+    @InjectRepository(Veterinarian)
+    private readonly veterinarianRepository: Repository<Veterinarian>,
   ) {}
 
   async findOneById(appointmentId: string) {
@@ -90,6 +94,73 @@ export class AppointmentService {
 
         'owner.id',
         'owner.fullName',
+
+        'veterinarian.specialty',
+        
+        'user.id',
+        'user.fullName',
+        'user.avatarUrl',
+      ])
+      .orderBy('appointment.createdAt', 'DESC');
+
+    return paginate<Appointment>(queryBuilder, options);
+  }
+
+  // Danh sách lịch hẹn theo phòng khám của tài khoản đăng nhập
+  async findAllMyClinicAppointments(options: FilterPagination, userId: string) {
+    const adminClinic = await this.adminClinicRepository.findOne({
+      where: { userId },
+      select: {
+        clinicId: true,
+      },
+    });
+
+    const veterinarian = await this.veterinarianRepository.findOne({
+      where: { userId },
+      select: {
+        clinicId: true,
+      },
+    });
+
+    const clinicId = adminClinic?.clinicId || veterinarian?.clinicId;
+
+    if (!clinicId) {
+      throw new BadRequestException('Tài khoản chưa được liên kết với phòng khám');
+    }
+
+    const queryBuilder = this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .innerJoin('appointment.pet', 'pet')
+      .innerJoin('appointment.clinic', 'clinic')
+      .innerJoin('appointment.veterinarian', 'veterinarian')
+      .innerJoin('pet.owner', 'owner')
+      .innerJoin('veterinarian.user', 'user')
+      .where('appointment.clinicId = :clinicId', { clinicId })
+      .select([
+        'appointment.id',
+        'appointment.appointmentDate',
+        'appointment.appointmentTime',
+        'appointment.service',
+        'appointment.note',
+        'appointment.status',
+
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+        'pet.species',
+        'pet.breed',
+        'pet.gender',
+        'pet.dateOfBirth',
+        'pet.weight',
+        'pet.note',
+
+        'clinic.id',
+        'clinic.name',
+        'clinic.address',
+
+        'owner.id',
+        'owner.fullName',
+        'owner.phone',
 
         'veterinarian.specialty',
 
