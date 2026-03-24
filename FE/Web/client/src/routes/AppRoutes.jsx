@@ -28,6 +28,8 @@ import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/Appoint
 import ViewPetAppointment from '../pages/adminClinic/VeterinaryClinic/ViewPetAppointment/viewPetAppointment'
 import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
 import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
+import VeterinarianManagement from '../pages/adminClinic/VeterinaryClinic/VeterinarianManagement/veterinarianManagement'
+import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 
 export default function AppRoutes({ location }) {
   return (
@@ -46,8 +48,8 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/view-pet-appointment" element={<ViewPetAppointment />} />
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
         <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
-        <Route path="/admin/clinic/doctors" element={<AppointmentManagement />} />
-        <Route path="/admin/clinic/exam-slips" element={<AppointmentManagement />} />
+        <Route path="/admin/clinic/veterinarians" element={<VeterinarianManagement />} />
+        <Route path="/admin/clinic/exam-slips" element={<PetMedicalRecords />} />
       </Route>
 
       <Route path="/login" element={<Login />} />
