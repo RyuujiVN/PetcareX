@@ -8,7 +8,6 @@ import {
 	FaSyringe,
 } from 'react-icons/fa6'
 import { message } from 'antd'
-import { ReloadOutlined } from '@ant-design/icons'
 import { useCallback, useEffect, useState } from 'react'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -76,24 +75,27 @@ const normalizeMedicalErrorMessage = (error) => {
 }
 
 const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) => {
-	const orderSummary =
-		medicalOrders.length > 0
-			? medicalOrders
-					.map((order) => order.medicalOrder?.name)
-					.filter(Boolean)
-					.join(', ')
-			: 'Chưa có chỉ định'
+	// const orderSummary =
+	// 	medicalOrders.length > 0
+	// 		? medicalOrders
+	// 				.map((order) => order.medicalOrder?.name)
+	// 				.filter(Boolean)
+	// 				.join(', ')
+	// 		: 'Chưa có chỉ định'
 
 	const medicineSummary =
-		medicines.length > 0
-			? medicines
-					.map((medicine) => {
-						const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
-						const quantity = medicine.quantity ? ` (${medicine.quantity})` : ''
-						return `${medicineName}${quantity}`
-					})
-					.join(', ')
-			: 'Chưa kê thuốc'
+	medicines.length > 0
+		? medicines.map((medicine, index) => {
+				const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
+				const quantity = medicine.quantity ? ` (${medicine.quantity})` : ''
+
+				return (
+					<div key={index}>
+						{medicineName}{quantity}
+					</div>
+				)
+			})
+		: 'Chưa kê thuốc'
 
 	const hasConclusion = Boolean(record?.conclusion)
 	const status = hasConclusion ? 'ĐÃ HOÀN THÀNH' : 'CHƯA HOÀN THÀNH'
@@ -110,26 +112,24 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 		status,
 		statusType,
 		leftInfo: [
-			{ label: 'Mã hồ sơ', value: record?.id || 'Chưa cập nhật' },
-			{ label: 'Mã phòng khám', value: record?.clinic?.id || 'Chưa cập nhật' },
+			{ label: 'Tên phòng khám', value: record?.clinic?.name || 'Chưa cập nhật' },
 			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
 		],
 		rightInfo: [
-			{ label: 'Tên thú cưng', value: record?.pet?.name || record?.petName || 'Chưa cập nhật' },
 			{
 				label: 'Tên bác sĩ',
 				value: record?.veterinarian?.fullName || 'Chưa cập nhật',
 			},
-			{ label: 'Mã đơn thuốc', value: medicines[0]?.id || 'Chưa có đơn thuốc' },
+			{ label: 'Ngày tái khám', value: formatDate(record?.followUpDate) },
+
 		],
 		detailRows: [
-			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
 			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
+			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
 			{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
-			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
-			{ label: 'Phiếu chỉ định', value: orderSummary },
 			{ label: 'Thuốc', value: medicineSummary },
-			{ label: 'Ngày tái khám', value: formatDate(record?.followUpDate) },
+			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
+			// { label: 'Phiếu chỉ định', value: orderSummary },
 		],
 	}
 }
@@ -299,15 +299,7 @@ function MedicalRecords() {
 
 					<div className={styles.petInfo}>
 						<div className={styles.petNameRow}>
-							<h1>{petSummary.name}</h1>
-							<button
-								type="button"
-								className={styles.switchPetBtn}
-								onClick={handleChangePet}
-								title="Đổi thú cưng"
-							>
-								<ReloadOutlined />
-							</button>
+							<h1 style={{fontSize: 25}}>{petSummary.name}</h1>
 						</div>
 						<p className={styles.petMeta}>{`${petSummary.breedName} • ${petSummary.weight}`}</p>
 						<div className={styles.petSubMeta}>
@@ -326,7 +318,6 @@ function MedicalRecords() {
 						<h2 className={styles.panelTitle}>
 							<MdHealthAndSafety /> Dòng thời gian sức khỏe {loading ? '(đang tải...)' : ''}
 						</h2>
-
 						<div className={styles.timelineWrapper}>
 							{timelineRecords.length === 0 ? (
 								<p className={styles.emptyStateText}>{EMPTY_TIMELINE_HINT}</p>
@@ -339,7 +330,7 @@ function MedicalRecords() {
 
 									<div className={styles.recordCard}>
 									<div className={styles.recordHeader}>
-										<h3>{record.title}</h3>
+										<h3 style={{fontSize: 22}}>{record.title}</h3>
 										<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
 											{record.status}
 										</span>
