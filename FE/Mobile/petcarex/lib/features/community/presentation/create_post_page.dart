@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/logger.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
@@ -90,13 +91,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   void _showQuickSnackBar(String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AppColors.error : AppColors.success,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    if (isError) {
+      AppNotifier.showError(context, message);
+      return;
+    }
+    AppNotifier.showSuccess(context, message);
   }
 
   @override

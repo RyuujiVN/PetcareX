@@ -9,6 +9,7 @@ import '../../../core/enums/appointment_status_enum.dart';
 import '../../../core/enums/service_enum.dart';
 import '../../../core/services/camera_service.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/app_notifier.dart';
 import '../../../core/utils/image_helper.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../appointment/data/appointment_model.dart';
@@ -66,9 +67,7 @@ class _HomePageState extends State<HomePage> {
       );
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.cameraPermission)));
+      AppNotifier.showError(context, l10n.cameraPermission);
     }
   }
 
@@ -506,11 +505,10 @@ class _HomePageState extends State<HomePage> {
           AppColors.successAlpha(0.12),
           AppColors.success,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Developing...'),
-                duration: Duration(seconds: 2),
-              ),
+            AppNotifier.showInfo(
+              context,
+              'Developing...',
+              duration: const Duration(seconds: 2),
             );
           },
         ),
@@ -1043,12 +1041,11 @@ class _HomePageState extends State<HomePage> {
     );
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? l10n.appointmentCancelSuccess : l10n.failed),
-        backgroundColor: success ? AppColors.success : AppColors.error,
-      ),
-    );
+    if (success) {
+      AppNotifier.showSuccess(context, l10n.appointmentCancelSuccess);
+      return;
+    }
+    AppNotifier.showError(context, l10n.failed);
   }
 
   Widget _buildForumPost() {

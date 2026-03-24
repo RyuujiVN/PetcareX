@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/enums/service_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../appointment/presentation/provider/appointment_provider.dart';
@@ -112,14 +113,10 @@ class _BookingPageState extends State<BookingPage> {
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: AppColors.error,
-        duration: const Duration(milliseconds: 2500),
-        behavior: SnackBarBehavior.floating,
-      ),
+    AppNotifier.showError(
+      context,
+      msg,
+      duration: const Duration(milliseconds: 2500),
     );
   }
 

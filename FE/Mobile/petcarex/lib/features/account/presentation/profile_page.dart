@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/services/camera_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
@@ -90,8 +91,9 @@ class _ProfilePageState extends State<ProfilePage> {
             if (url != null) {
               _uploadedAvatarUrl = url;
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(authProvider.errorMessage ?? 'Upload failed')),
+              AppNotifier.showError(
+                context,
+                authProvider.errorMessage ?? 'Upload failed',
               );
             }
           });
@@ -99,9 +101,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        AppNotifier.showError(context, 'Error: $e');
       }
     }
   }
@@ -109,9 +109,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _handleSave() async {
     final l10n = AppLocalizations.of(context)!;
     if (_isUploadingAvatar) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Uploading...')),
-      );
+      AppNotifier.showInfo(context, 'Uploading...');
       return;
     }
 
@@ -131,20 +129,10 @@ class _ProfilePageState extends State<ProfilePage> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.profileUpdateSuccess),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppNotifier.showSuccess(context, l10n.profileUpdateSuccess);
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage ?? l10n.failed),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppNotifier.showError(context, authProvider.errorMessage ?? l10n.failed);
       }
     }
   }

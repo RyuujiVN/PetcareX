@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/providers/language_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -96,25 +97,16 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.loginSuccess),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppNotifier.showSuccess(context, l10n.loginSuccess);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
       );
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(ErrorHandler.getLocalizedError(authProvider.errorMessage, context)),
-          backgroundColor: AppColors.error,
-          behavior: SnackBarBehavior.floating,
-        ),
+      AppNotifier.showError(
+        context,
+        ErrorHandler.getLocalizedError(authProvider.errorMessage, context),
       );
     }
   }
@@ -127,13 +119,7 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.loginSuccess),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      AppNotifier.showSuccess(context, l10n.loginSuccess);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
@@ -141,12 +127,9 @@ class _LoginPageState extends State<LoginPage> {
     } else {
       if (!mounted) return;
       if (authProvider.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(ErrorHandler.getLocalizedError(authProvider.errorMessage, context)),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
+        AppNotifier.showError(
+          context,
+          ErrorHandler.getLocalizedError(authProvider.errorMessage, context),
         );
       }
     }

@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -143,15 +144,18 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   }
 
   void _showQuickSnackBar(String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AppColors.error : AppColors.success,
+    if (isError) {
+      AppNotifier.showError(
+        context,
+        message,
         duration: const Duration(milliseconds: 2000),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+      );
+      return;
+    }
+    AppNotifier.showSuccess(
+      context,
+      message,
+      duration: const Duration(milliseconds: 2000),
     );
   }
 

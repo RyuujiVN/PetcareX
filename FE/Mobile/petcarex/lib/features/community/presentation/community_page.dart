@@ -1,15 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
-import 'provider/community_provider.dart';
 import '../data/models/community_models.dart';
 import 'create_post_page.dart';
+import 'provider/community_provider.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -120,14 +121,10 @@ class _CommunityPageState extends State<CommunityPage> {
       final success = await provider.updatePost(post.id, controller.text.trim(), post.topic?.id ?? '');
       if (success) {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.success), backgroundColor: AppColors.success),
-        );
+        AppNotifier.showSuccess(context, l10n.success);
       } else {
         if (!context.mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(provider.errorMessage ?? l10n.failed), backgroundColor: AppColors.error),
-        );
+        AppNotifier.showError(context, provider.errorMessage ?? l10n.failed);
       }
     }
   }
@@ -157,13 +154,9 @@ class _CommunityPageState extends State<CommunityPage> {
       final success = await provider.deletePost(post.id);
       if (!context.mounted) return;
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.deletePostSuccess), backgroundColor: AppColors.success),
-        );
+        AppNotifier.showSuccess(context, l10n.deletePostSuccess);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(provider.errorMessage ?? l10n.failed), backgroundColor: AppColors.error),
-        );
+        AppNotifier.showError(context, provider.errorMessage ?? l10n.failed);
       }
     }
   }

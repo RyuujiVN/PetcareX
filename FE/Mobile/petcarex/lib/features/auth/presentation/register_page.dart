@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -86,12 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
     if (!_agreeToTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.agreeToTermsError),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      AppNotifier.showError(context, l10n.agreeToTermsError);
       return;
     }
 
@@ -108,12 +104,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.registerSuccess),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppNotifier.showSuccess(context, l10n.registerSuccess);
         Navigator.pop(context);
       } else {
         dynamic errorData;
@@ -125,22 +116,16 @@ class _RegisterPageState extends State<RegisterPage> {
         final apiError = _extractFirstApiError(errorData, l10n);
 
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(ErrorHandler.getLocalizedError(apiError, context)),
-            backgroundColor: AppColors.error,
-          ),
+        AppNotifier.showError(
+          context,
+          ErrorHandler.getLocalizedError(apiError, context),
         );
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            ErrorHandler.getLocalizedError('errorConnection', context),
-          ),
-          backgroundColor: AppColors.error,
-        ),
+      AppNotifier.showError(
+        context,
+        ErrorHandler.getLocalizedError('errorConnection', context),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -154,12 +139,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
     if (success) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.loginGoogleSuccess),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      AppNotifier.showSuccess(context, l10n.loginGoogleSuccess);
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
@@ -168,15 +148,11 @@ class _RegisterPageState extends State<RegisterPage> {
     } else {
       if (!mounted) return;
       if (authProvider.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              ErrorHandler.getLocalizedError(
-                authProvider.errorMessage,
-                context,
-              ),
-            ),
-            backgroundColor: AppColors.error,
+        AppNotifier.showError(
+          context,
+          ErrorHandler.getLocalizedError(
+            authProvider.errorMessage,
+            context,
           ),
         );
       }

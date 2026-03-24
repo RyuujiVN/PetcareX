@@ -7,6 +7,7 @@ import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/enums/service_enum.dart';
 import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../data/appointment_model.dart';
@@ -658,12 +659,11 @@ class _AppointmentPageState extends State<AppointmentPage>
     final success = await provider.cancelAppointment(id);
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(success ? l10n.appointmentCancelSuccess : l10n.failed),
-        backgroundColor: success ? AppColors.success : AppColors.error,
-      ),
-    );
+    if (success) {
+      AppNotifier.showSuccess(context, l10n.appointmentCancelSuccess);
+      return;
+    }
+    AppNotifier.showError(context, l10n.failed);
   }
 
   String _formatDisplayTime(String rawTime) {

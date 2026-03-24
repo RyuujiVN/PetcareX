@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/app_notifier.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 
 class StepTimeSelector extends StatelessWidget {
@@ -190,13 +191,10 @@ class StepTimeSelector extends StatelessWidget {
     return GestureDetector(
       onTap: isPast
           ? () {
-              ScaffoldMessenger.of(context).clearSnackBars();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(l10n.bookingTimeMinAdvanceNotice),
-                  duration: const Duration(milliseconds: 2500),
-                  behavior: SnackBarBehavior.floating,
-                ),
+              AppNotifier.showError(
+                context,
+                l10n.bookingTimeMinAdvanceNotice,
+                duration: const Duration(milliseconds: 2500),
               );
             }
           : () => onTimeSelected(time),

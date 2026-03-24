@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../pet/data/models/pet_models.dart';
@@ -75,18 +76,11 @@ class _MyPetsPageState extends State<MyPetsPage> {
                 Navigator.pop(context);
 
                 if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(l10n.petDeleteSuccess),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  AppNotifier.showSuccess(context, l10n.petDeleteSuccess);
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(provider.errorMessage ?? l10n.failed),
-                      backgroundColor: AppColors.error,
-                    ),
+                  AppNotifier.showError(
+                    context,
+                    provider.errorMessage ?? l10n.failed,
                   );
                 }
               },

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../core/services/camera_service.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../data/models/pet_models.dart';
@@ -96,16 +97,18 @@ class _EditPetPageState extends State<EditPetPage> {
 
   void _showQuickSnackBar(String message, {bool isError = true}) {
     if (!mounted) return;
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.clearSnackBars();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? AppColors.error : AppColors.success,
+    if (isError) {
+      AppNotifier.showError(
+        context,
+        message,
         duration: const Duration(milliseconds: 2200),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+      );
+      return;
+    }
+    AppNotifier.showSuccess(
+      context,
+      message,
+      duration: const Duration(milliseconds: 2200),
     );
   }
 

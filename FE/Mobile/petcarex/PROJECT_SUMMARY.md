@@ -196,6 +196,11 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Home chuyển từ `SingleChildScrollView` sang `CustomScrollView` + `SliverPersistentHeader(pinned: true)` để ghim cứng cụm header gồm **logo PetCareX, icon QR và icon thông báo** khi người dùng cuộn xuống.
     - Nền Home được đặt rõ ràng `AppColors.white` ở root container và phần pinned header để loại bỏ cảm giác xám/mờ, giữ trải nghiệm sáng và đồng nhất.
     - Quy tắc maintain: nếu mở rộng thêm action trên header Home, cần giữ cùng cơ chế pinned (không quay lại header trôi theo nội dung).
+- **Global Notification Placement Rule (2026-03-24):**
+    - Theo yêu cầu UX của mentor, thông báo lỗi/thông tin/success **không hiển thị dưới topbar** (không dùng `ScaffoldMessenger/SnackBar` trực tiếp) mà hiển thị ở vùng **phía trên topbar**.
+    - Đã chuẩn hóa cơ chế chung qua `lib/core/utils/app_notifier.dart` (Overlay top notification), hỗ trợ 3 loại: `showInfo`, `showSuccess`, `showError`, có auto-dismiss và chỉ hiển thị 1 thông báo tại một thời điểm.
+    - Các module đã migrate khỏi SnackBar cũ: `auth` (login/register/forgot/reset/change password), `home`, `booking`, `appointment`, `pet` (add/edit), `community` (list/create post), `account` (profile/my pets).
+    - Quy tắc maintain: mọi thông báo ngắn trong UI flow phải đi qua `AppNotifier`; tránh tạo lại cơ chế toast/snackbar cục bộ để giữ trải nghiệm nhất quán toàn app.
 - **Chuẩn hóa CTA "Khám phá" trong module Appointment (2026-03):**
     - Đổi text footer card lịch sử từ `Khám phá/Explore` thành `Xem chi tiết/View details` để đúng ngữ nghĩa hành động.
     - Bổ sung key i18n mới: `viewDetail`, `retry`, `yes`, `no` và áp dụng ở trang Appointment/Home.
