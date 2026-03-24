@@ -325,38 +325,9 @@ export default function AppointmentManagement() {
 		setIsModalOpen(true)
 	}
 
-	const isPastAppointment = (appointment) => {
-		if (!appointment?.appointmentDateRaw) return false
-
-		const now = new Date()
-		const appointmentDate = new Date(appointment.appointmentDateRaw)
-		if (Number.isNaN(appointmentDate.getTime())) return false
-
-		const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate())
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-		if (appointmentDay < today) return true
-
-		if (appointmentDay > today || !appointment?.time) return false
-
-		const appointmentDateTime = new Date(`${dayjs(appointmentDate).format('YYYY-MM-DD')}T${appointment.time}:00`)
-		if (Number.isNaN(appointmentDateTime.getTime())) return false
-
-		return appointmentDateTime < now
-	}
-
-	const hasUserCancellationRequest = (appointment) => {
-		const note = (appointment?.appointmentNote || '').toLowerCase()
-		return /huy|hủy|cancel/.test(note)
-	}
-
 	const canClinicCancelAppointment =
 		selectedAppointment &&
-		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED &&
-		(
-			isPastAppointment(selectedAppointment) ||
-			hasUserCancellationRequest(selectedAppointment)
-		)
+		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED
 
 	const handleClinicCancelAppointment = () => {
 		if (!selectedAppointment) return
