@@ -282,7 +282,7 @@ class _TopToastState extends State<_TopToast>
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: widget.textColor.withOpacity(0.75),
+                          color: widget.textColor.withValues(alpha: 0.75),
                           fontSize: 12,
                           height: 1.35,
                         ),
