@@ -104,10 +104,6 @@ export default function HomePageClinic() {
     { id: 4, image: '/bs4.png', name: 'BS. Tuyết Mai' }
   ];
 
-  const goToChooseClinic = () => {
-    navigate("/choose-clinic");
-  };
-
   const goToBookingAppointment = () => {
     navigate("/booking", {
       state: {
@@ -128,10 +124,7 @@ export default function HomePageClinic() {
             thú cưng và chủ nuôi lên hàng đầu.
           </p>
 
-          <div className="hero-buttons">
-            <button className="btn btn-primary" onClick={goToChooseClinic}>
-              Quay lại phòng khám
-            </button>
+          <div className="hero-button">
             <button className="btn btn-secondary-hero" onClick={goToBookingAppointment}>
               Đặt lịch khám ngay
             </button>
