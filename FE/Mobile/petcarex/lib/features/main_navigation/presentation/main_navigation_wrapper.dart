@@ -20,6 +20,8 @@ class MainNavigationWrapper extends StatefulWidget {
 
 class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _selectedIndex = 0;
+  final HomeChatbotHintController _homeChatbotHintController =
+      HomeChatbotHintController();
 
   final Set<int> _initializedPages = {0}; 
   final List<Widget?> _pages = List<Widget?>.filled(5, null);
@@ -29,11 +31,15 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
       _selectedIndex = index;
       _initializedPages.add(index);
     });
+
+    if (index == 0) {
+      _homeChatbotHintController.restartCountdown();
+    }
   }
 
   Widget _buildPage(int index) {
     return switch (index) {
-      0 => const HomePage(),
+      0 => HomePage(chatbotHintController: _homeChatbotHintController),
       1 => const BookingPage(),
       2 => const AppointmentPage(),
       3 => const CommunityPage(),
@@ -48,6 +54,10 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
       _selectedIndex = index;
       _initializedPages.add(index);
     });
+
+    if (index == 0) {
+      _homeChatbotHintController.restartCountdown();
+    }
   }
 
   @override

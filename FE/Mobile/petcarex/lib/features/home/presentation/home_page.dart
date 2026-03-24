@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -22,8 +24,16 @@ import '../../pet/presentation/add_pet_page.dart';
 import '../../pet/presentation/edit_pet_page.dart';
 import '../../pet/presentation/provider/pet_provider.dart';
 
+class HomeChatbotHintController extends ChangeNotifier {
+  void restartCountdown() {
+    notifyListeners();
+  }
+}
+
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final HomeChatbotHintController? chatbotHintController;
+
+  const HomePage({super.key, this.chatbotHintController});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -32,6 +42,9 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final CameraService _cameraService = CameraService();
   final bool _hasUnreadNotifications = true;
+  Timer? _chatbotHintRevealTimer;
+  Timer? _chatbotHintHideTimer;
+  bool _showChatbotHint = false;
 
   @override
   void initState() {
@@ -44,6 +57,46 @@ class _HomePageState extends State<HomePage> {
           appointmentProvider.appointments.isEmpty) {
         appointmentProvider.fetchAppointments();
       }
+    });
+
+    widget.chatbotHintController?.addListener(_handleChatbotHintRestart);
+    _startChatbotHintFlow();
+  }
+
+  @override
+  void dispose() {
+    widget.chatbotHintController?.removeListener(_handleChatbotHintRestart);
+    _chatbotHintRevealTimer?.cancel();
+    _chatbotHintHideTimer?.cancel();
+    super.dispose();
+  }
+
+  void _handleChatbotHintRestart() {
+    _startChatbotHintFlow();
+  }
+
+  void _startChatbotHintFlow() {
+    _chatbotHintRevealTimer?.cancel();
+    _chatbotHintHideTimer?.cancel();
+
+    if (mounted && _showChatbotHint) {
+      setState(() {
+        _showChatbotHint = false;
+      });
+    }
+
+    _chatbotHintRevealTimer = Timer(const Duration(seconds: 5), () {
+      if (!mounted) return;
+      setState(() {
+        _showChatbotHint = true;
+      });
+
+      _chatbotHintHideTimer = Timer(const Duration(seconds: 4), () {
+        if (!mounted) return;
+        setState(() {
+          _showChatbotHint = false;
+        });
+      });
     });
   }
 
@@ -93,29 +146,114 @@ class _HomePageState extends State<HomePage> {
     return Container(
       color: AppColors.white,
       child: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverPersistentHeader(
-              pinned: true,
-              delegate: _HomeHeaderDelegate(
-                minHeight: 72,
-                maxHeight: 72,
-                child: Container(
-                  color: AppColors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            CustomScrollView(
+              slivers: [
+                SliverPersistentHeader(
+                  pinned: true,
+                  delegate: _HomeHeaderDelegate(
+                    minHeight: 72,
+                    maxHeight: 72,
+                    child: Container(
+                      color: AppColors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      child: _buildHeader(l10n),
+                    ),
                   ),
-                  child: _buildHeader(l10n),
                 ),
-              ),
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverToBoxAdapter(child: _buildScrollableBody(l10n)),
+                ),
+              ],
             ),
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              sliver: SliverToBoxAdapter(child: _buildScrollableBody(l10n)),
-            ),
+            _buildFloatingChatbotButton(l10n),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingChatbotButton(AppLocalizations l10n) {
+    const double chatbotButtonSize = 77;
+    const double chatbotIconSize = 35;
+
+    return Positioned(
+      right: 14,
+      bottom: 8,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 220),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            child: _showChatbotHint
+                ? Container(
+                    key: const ValueKey('chatbot_hint_visible'),
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.textDark.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.black.withValues(alpha: 0.18),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      l10n.aiChatbot,
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  )
+                : const SizedBox.shrink(key: ValueKey('chatbot_hint_hidden')),
+          ),
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChatPage()),
+              );
+            },
+            child: Container(
+              width: chatbotButtonSize,
+              height: chatbotButtonSize,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.black.withValues(alpha: 0.16),
+                    blurRadius: 18,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.smart_toy_outlined,
+                color: AppColors.onPrimary,
+                size: chatbotIconSize,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

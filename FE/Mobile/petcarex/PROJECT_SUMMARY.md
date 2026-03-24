@@ -196,6 +196,15 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Home chuyển từ `SingleChildScrollView` sang `CustomScrollView` + `SliverPersistentHeader(pinned: true)` để ghim cứng cụm header gồm **logo PetCareX, icon QR và icon thông báo** khi người dùng cuộn xuống.
     - Nền Home được đặt rõ ràng `AppColors.white` ở root container và phần pinned header để loại bỏ cảm giác xám/mờ, giữ trải nghiệm sáng và đồng nhất.
     - Quy tắc maintain: nếu mở rộng thêm action trên header Home, cần giữ cùng cơ chế pinned (không quay lại header trôi theo nội dung).
+- **Home Floating Chatbot CTA (2026-03-24):**
+    - Đã bổ sung icon chatbot nổi ở **góc dưới bên phải** màn Home bằng `Stack + Positioned` trong `home_page.dart`.
+    - Nút nổi điều hướng trực tiếp tới `ChatPage` và dùng `Tooltip` với text localization `aiChatbot` để giữ chuẩn i18n.
+    - Vị trí đáy được tính theo `MediaQuery.padding.bottom + 84` để không đè lên thanh điều hướng dưới (bottom nav), ưu tiên thao tác một tay và không che CTA chính.
+    - Tinh chỉnh thẩm mỹ/độ rõ (2026-03-24): dùng shadow trung tính (`AppColors.black` alpha thấp) + viền trắng mảnh thay cho quầng xanh theo màu primary; giữ `Stack(clipBehavior: Clip.none)` để tránh cảm giác lệch/cắt bóng ở mép.
+    - Tinh chỉnh vị trí/size (2026-03-24): tăng nút lên `60x60`, icon `27`; đặt thấp ở góc phải với offset `right: 14`, `bottom: 8` để gần khu vực thao tác ngón tay cái và đúng layout mong muốn.
+    - Tinh chỉnh thời điểm hiển thị (2026-03-24): nút chatbot nổi được trì hoãn **5 giây** sau khi vào Home rồi mới hiện (`Timer` trong `HomePage`), giảm cảm giác xuất hiện quá gấp ngay khi màn vừa render.
+    - Tối ưu trợ giúp người dùng (2026-03-24): bỏ `Tooltip` dạng nhấn giữ; thay bằng label gợi ý tự động **nằm phía trên icon** (`aiChatbot`) với `AnimatedSwitcher`, tự hiện sau 5 giây và tự ẩn sau vài giây để không che nội dung.
+    - Đồng bộ theo luồng tab (2026-03-24): khi người dùng từ tab khác quay về Home, countdown 5 giây được reset qua `HomeChatbotHintController` do `MainNavigationWrapper` phát tín hiệu, đảm bảo hành vi nhất quán sau login và trong suốt phiên sử dụng.
 - **Global Notification Placement Rule (2026-03-24):**
     - Theo yêu cầu UX của mentor, thông báo lỗi/thông tin/success **không hiển thị dưới topbar** (không dùng `ScaffoldMessenger/SnackBar` trực tiếp) mà hiển thị ở vùng **phía trên topbar**.
     - Đã chuẩn hóa cơ chế chung qua `lib/core/utils/app_notifier.dart` (Overlay top notification), hỗ trợ 3 loại: `showInfo`, `showSuccess`, `showError`, có auto-dismiss và chỉ hiển thị 1 thông báo tại một thời điểm.
