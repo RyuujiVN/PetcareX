@@ -1,0 +1,302 @@
+.page {
+	min-height: 100%;
+	background: #f3f5f9;
+}
+
+.topBar {
+	height: 56px;
+	border-bottom: 1px solid #e6ebf2;
+	background: #f7f8fb;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 18px;
+}
+
+.searchBox {
+	width: min(560px, 100%);
+	height: 38px;
+}
+
+.searchBox :global(.ant-input-affix-wrapper) {
+	height: 100%;
+	border-radius: 10px;
+	border: 1px solid #e3e8f1;
+	background: #eceff5;
+	color: #8f9aab;
+	padding: 0 12px;
+	box-shadow: none;
+}
+
+.searchBox :global(.ant-input-affix-wrapper:hover),
+.searchBox :global(.ant-input-affix-wrapper-focused) {
+	border-color: #cfd9e8;
+	background: #eceff5;
+}
+
+.searchBox :global(.ant-input) {
+	background: transparent;
+	font-size: 13px;
+}
+
+.searchBox :global(.ant-input-prefix) {
+	margin-right: 8px;
+	color: #8f9aab;
+}
+
+.notificationBtn {
+	width: 34px;
+	height: 34px;
+	border-radius: 8px !important;
+	border: 1px solid #e3e8f1 !important;
+	background: #ffffff !important;
+	color: #818b9d !important;
+}
+
+.content {
+	padding: 26px 26px 22px;
+}
+
+.titleBlock h1 {
+	margin: 0;
+	font-size: 42px;
+	line-height: 1.15;
+	color: #161f2d;
+}
+
+.titleBlock p {
+	margin: 8px 0 0;
+	color: #8a95a8;
+	font-size: 21px;
+}
+
+.filtersRow {
+	margin-top: 20px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.speciesFilterWrap {
+	position: relative;
+}
+
+.speciesSelect {
+	min-width: 190px;
+}
+
+.speciesSelect :global(.ant-select-selector) {
+	border-radius: 10px !important;
+	border: 1px solid #dbe3ef !important;
+	height: 40px !important;
+	padding: 0 12px !important;
+	box-shadow: none !important;
+}
+
+.speciesSelect :global(.ant-select-selection-item) {
+	line-height: 38px !important;
+	color: #465166;
+	font-size: 14px;
+}
+
+.datePicker {
+	width: 180px;
+	height: 40px;
+}
+
+.datePicker :global(.ant-picker) {
+	width: 100%;
+	height: 100%;
+	border-radius: 10px;
+	border: 1px solid #dbe3ef;
+	box-shadow: none;
+}
+
+.cardsGrid {
+	margin-top: 20px;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 18px;
+}
+
+.petCard {
+	border: 1px solid #e8ecf3;
+	border-radius: 18px;
+	background: #ffffff;
+	overflow: hidden;
+	box-shadow: 0 3px 7px rgba(24, 38, 58, 0.04);
+}
+
+.petImageWrap {
+	height: 220px;
+	background: #f3f5fa;
+}
+
+.petImage {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.petImagePlaceholder {
+	width: 100%;
+	height: 100%;
+	display: grid;
+	place-items: center;
+	font-size: 42px;
+	font-weight: 700;
+	color: #98a3b4;
+	background: linear-gradient(145deg, #eef2f9, #dde4ef);
+}
+
+.cardBody {
+	padding: 14px;
+}
+
+.petHeaderRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.petHeaderRow h3 {
+	margin: 0;
+	font-size: 30px;
+	color: #162336;
+	line-height: 1.2;
+}
+
+.ageBadge {
+	font-size: 13px;
+	color: #19b987;
+	background: #e9f8f1;
+	border-radius: 999px;
+	padding: 3px 10px;
+	font-weight: 600;
+	white-space: nowrap;
+}
+
+.speciesText {
+	margin: 6px 0 0;
+	color: #26b274;
+	font-size: 18px;
+	font-weight: 500;
+}
+
+.ownerText {
+	margin: 6px 0 0;
+	color: #5e6d82;
+	font-size: 15px;
+}
+
+.viewButton {
+	margin-top: 12px;
+	width: 100% !important;
+	height: 46px !important;
+	border: 1px solid #ebeff5 !important;
+	border-radius: 13px !important;
+	background: #f7f8fb !important;
+	color: #2d394f !important;
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.loadingState,
+.emptyState {
+	min-height: 320px;
+	border: 1px solid #e8ecf3;
+	border-radius: 18px;
+	margin-top: 18px;
+	background: #ffffff;
+	display: grid;
+	place-items: center;
+}
+
+.emptyState {
+	text-align: center;
+	color: #637087;
+}
+
+.emptyTitle {
+	margin: 0;
+	font-size: 22px;
+	color: #1c2738;
+}
+
+.emptyDescription {
+	margin: 8px 0 0;
+	font-size: 15px;
+}
+
+@media (max-width: 1600px) {
+	.cardsGrid {
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 1200px) {
+	.content {
+		padding: 20px;
+	}
+
+	.titleBlock h1 {
+		font-size: 34px;
+	}
+
+	.titleBlock p {
+		font-size: 18px;
+	}
+
+	.cardsGrid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+}
+
+@media (max-width: 768px) {
+	.topBar {
+		padding: 0 12px;
+		gap: 10px;
+	}
+
+	.content {
+		padding: 14px;
+	}
+
+	.titleBlock h1 {
+		font-size: 28px;
+	}
+
+	.titleBlock p {
+		font-size: 15px;
+	}
+
+	.filtersRow {
+		flex-wrap: wrap;
+	}
+
+	.speciesSelect,
+	.datePicker {
+		width: 100%;
+	}
+
+	.cardsGrid {
+		grid-template-columns: 1fr;
+	}
+
+	.petImageWrap {
+		height: 200px;
+	}
+
+	.petHeaderRow h3 {
+		font-size: 24px;
+	}
+
+	.speciesText {
+		font-size: 16px;
+	}
+
+	.viewButton {
+		font-size: 15px;
+	}
+}
