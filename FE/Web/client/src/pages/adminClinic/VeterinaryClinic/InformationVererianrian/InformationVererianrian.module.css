@@ -126,7 +126,6 @@
 	gap: 10px;
 }
 
-.backButton,
 .editButton {
 	height: 40px;
 	border-radius: 999px;
@@ -138,12 +137,6 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
-}
-
-.backButton {
-	color: #3f526c;
-	background: #fff;
-	border: 1px solid #dce5ee;
 }
 
 .editButton {
@@ -204,6 +197,29 @@
 	font-weight: 600;
 }
 
+.modalAvatarWrap {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+.modalUploadButton {
+	border-radius: 10px;
+}
+
+.editForm :global(.ant-form-item-label > label) {
+	font-weight: 600;
+	color: #334863;
+}
+
+.editForm :global(.ant-input-affix-wrapper),
+.editForm :global(.ant-input),
+.editForm :global(.ant-select-selector) {
+	border-radius: 10px !important;
+	min-height: 42px !important;
+}
+
 @media (max-width: 1180px) {
 	.headInfo h1 {
 		font-size: 32px;
@@ -226,6 +242,7 @@
 
 	.actions {
 		width: 100%;
+		justify-content: flex-end;
 	}
 }
 
@@ -245,9 +262,9 @@
 
 	.actions {
 		flex-wrap: wrap;
+		justify-content: flex-start;
 	}
 
-	.backButton,
 	.editButton {
 		flex: 1 1 220px;
 		justify-content: center;
