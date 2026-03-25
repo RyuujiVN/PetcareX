@@ -12,6 +12,7 @@ class CommunityProvider with ChangeNotifier {
   final Map<String, List<Comment>> _commentReplies = {};
   final Map<String, bool> _isCommentsLoading = {};
   final Map<String, bool> _isRepliesLoading = {};
+  final Map<String, bool> _isLikeUpdating = {};
   
   bool _isLoading = false;
   bool _isMoreLoading = false;
@@ -34,10 +35,60 @@ class CommunityProvider with ChangeNotifier {
   
   bool isCommentsLoading(String postId) => _isCommentsLoading[postId] ?? false;
   bool isRepliesLoading(String commentId) => _isRepliesLoading[commentId] ?? false;
+  bool isLikeUpdating(String postId) => _isLikeUpdating[postId] ?? false;
 
   void setReplyTarget(Comment? comment) {
     _activeReplyTarget = comment;
     notifyListeners();
+  }
+
+  List<Post> _filterPostsBySelectedTopic(List<Post> source) {
+    if (_selectedTopicId == null || _selectedTopicId!.isEmpty) {
+      return source;
+    }
+
+    return source
+        .where((post) => post.topic?.id == _selectedTopicId)
+        .toList();
+  }
+
+  void _appendUniquePosts(List<Post> newPosts) {
+    if (newPosts.isEmpty) return;
+
+    final existingIds = _posts.map((p) => p.id).toSet();
+    for (final post in newPosts) {
+      if (!existingIds.contains(post.id)) {
+        _posts.add(post);
+      }
+    }
+  }
+
+  String _escapeHtml(String input) {
+    return input
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#39;');
+  }
+
+  String _buildHtmlContent({
+    required String text,
+    required List<String> imageUrls,
+  }) {
+    final trimmed = text.trim();
+    final parts = <String>[];
+
+    if (trimmed.isNotEmpty) {
+      parts.add('<p>${_escapeHtml(trimmed).replaceAll('\n', '<br/>')}</p>');
+    }
+
+    for (final url in imageUrls) {
+      if (url.trim().isEmpty) continue;
+      parts.add('<img src="${url.trim()}" />');
+    }
+
+    return parts.join('\n');
   }
 
   Future<void> fetchTopics() async {
@@ -62,7 +113,7 @@ class CommunityProvider with ChangeNotifier {
       ]);
 
       _topics = results[0] as List<Topic>;
-      _posts = results[1] as List<Post>;
+      _posts = _filterPostsBySelectedTopic(results[1] as List<Post>);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -74,11 +125,13 @@ class CommunityProvider with ChangeNotifier {
   Future<void> selectTopic(String? topicId) async {
     if (_selectedTopicId == topicId) return;
     _selectedTopicId = topicId;
+    _errorMessage = null;
     _isLoading = true;
     notifyListeners();
 
     try {
-      _posts = await _repository.getPosts(topicId: _selectedTopicId);
+      final fetchedPosts = await _repository.getPosts(topicId: _selectedTopicId);
+      _posts = _filterPostsBySelectedTopic(fetchedPosts);
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -99,7 +152,7 @@ class CommunityProvider with ChangeNotifier {
         lastPostTime: lastTime,
         topicId: _selectedTopicId,
       );
-      _posts.addAll(newPosts);
+      _appendUniquePosts(_filterPostsBySelectedTopic(newPosts));
     } catch (e) {
       // Log error
     } finally {
@@ -111,6 +164,9 @@ class CommunityProvider with ChangeNotifier {
   Future<void> toggleLike(String postId) async {
     final postIndex = _posts.indexWhere((p) => p.id == postId);
     if (postIndex == -1) return;
+    if (_isLikeUpdating[postId] == true) return;
+
+    _isLikeUpdating[postId] = true;
 
     final post = _posts[postIndex];
     final originalLiked = post.liked;
@@ -122,22 +178,28 @@ class CommunityProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      bool success;
+      PostReactionResult? reaction;
       if (originalLiked) {
-        success = await _repository.unlikePost(postId);
+        reaction = await _repository.unlikePost(postId);
       } else {
-        success = await _repository.likePost(postId);
+        reaction = await _repository.likePost(postId);
       }
 
-      if (!success) {
+      if (reaction == null) {
         post.liked = originalLiked;
         post.likeCount = originalLikeCount;
+        notifyListeners();
+      } else {
+        post.liked = reaction.liked;
+        post.likeCount = reaction.likeCount;
         notifyListeners();
       }
     } catch (e) {
       post.liked = originalLiked;
       post.likeCount = originalLikeCount;
       notifyListeners();
+    } finally {
+      _isLikeUpdating[postId] = false;
     }
   }
 
@@ -169,27 +231,51 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> sendComment(String postId, String content) async {
+  Future<bool> sendComment(
+    String postId,
+    String content, {
+    List<String> imagePaths = const [],
+  }) async {
     try {
+      final trimmed = content.trim();
+      if (trimmed.isEmpty && imagePaths.isEmpty) {
+        return false;
+      }
+
+      List<String> uploadedImageUrls = [];
+      if (imagePaths.isNotEmpty) {
+        uploadedImageUrls = await _repository.uploadPostImages(imagePaths);
+        if (uploadedImageUrls.isEmpty) {
+          _errorMessage = 'uploadImageFailed';
+          return false;
+        }
+      }
+
+      final htmlContent = _buildHtmlContent(
+        text: trimmed,
+        imageUrls: uploadedImageUrls,
+      );
+
       final parentId = _activeReplyTarget?.id;
       final newComment = await _repository.createComment(
         postId, 
-        content, 
+        htmlContent, 
         parentId: parentId
       );
 
       if (newComment != null) {
+        final postIndex = _posts.indexWhere((p) => p.id == postId);
+        if (postIndex != -1) {
+          _posts[postIndex].commentCount++;
+        }
+
         if (parentId == null) {
           if (!_postComments.containsKey(postId)) _postComments[postId] = [];
           _postComments[postId]!.insert(0, newComment);
-          
-          final postIndex = _posts.indexWhere((p) => p.id == postId);
-          if (postIndex != -1) {
-            _posts[postIndex].commentCount++;
-          }
         } else {
           if (!_commentReplies.containsKey(parentId)) _commentReplies[parentId] = [];
           _commentReplies[parentId]!.insert(0, newComment);
+          _incrementReplyCount(parentId);
         }
         
         _activeReplyTarget = null;
@@ -200,6 +286,16 @@ class CommunityProvider with ChangeNotifier {
       _errorMessage = e.toString();
     }
     return false;
+  }
+
+  void _incrementReplyCount(String parentId) {
+    for (final comments in _postComments.values) {
+      final parentIndex = comments.indexWhere((comment) => comment.id == parentId);
+      if (parentIndex != -1) {
+        comments[parentIndex].replyCount++;
+        return;
+      }
+    }
   }
 
   Future<bool> updatePost(String postId, String content, String topicId) async {
@@ -253,11 +349,35 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> createNewPost({required String content, required String topicId}) async {
+  Future<bool> createNewPost({
+    required String content,
+    required String topicId,
+    List<String> imagePaths = const [],
+  }) async {
     _isLoading = true;
     notifyListeners();
     try {
-      final newPost = await _repository.createPost(content, topicId);
+      final trimmed = content.trim();
+      if (trimmed.isEmpty && imagePaths.isEmpty) {
+        _errorMessage = 'shareSomething';
+        return false;
+      }
+
+      List<String> uploadedImageUrls = [];
+      if (imagePaths.isNotEmpty) {
+        uploadedImageUrls = await _repository.uploadPostImages(imagePaths);
+        if (uploadedImageUrls.isEmpty) {
+          _errorMessage = 'uploadImageFailed';
+          return false;
+        }
+      }
+
+      final htmlContent = _buildHtmlContent(
+        text: trimmed,
+        imageUrls: uploadedImageUrls,
+      );
+
+      final newPost = await _repository.createPost(htmlContent, topicId);
       if (newPost != null) {
         _posts.insert(0, newPost);
         return true;

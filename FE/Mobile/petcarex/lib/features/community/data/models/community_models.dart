@@ -36,9 +36,29 @@ class Post {
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       author: PostUser.fromJson(userData),
       topic: topicData != null ? Topic.fromJson(topicData) : null,
-      likeCount: json['likeCount'] ?? 0,
-      commentCount: json['commentCount'] ?? 0,
-      liked: json['liked'] ?? false,
+      likeCount: _parseInt(json['likeCount']),
+      commentCount: _parseInt(json['commentCount']),
+      liked: _parseBool(json['liked']),
+    );
+  }
+}
+
+class PostReactionResult {
+  final String postId;
+  final int likeCount;
+  final bool liked;
+
+  const PostReactionResult({
+    required this.postId,
+    required this.likeCount,
+    required this.liked,
+  });
+
+  factory PostReactionResult.fromJson(Map<String, dynamic> json) {
+    return PostReactionResult(
+      postId: (json['postId'] ?? '').toString(),
+      likeCount: _parseInt(json['likeCount']),
+      liked: _parseBool(json['liked']),
     );
   }
 }
@@ -116,6 +136,7 @@ class Comment {
   final String content;
   final DateTime createdAt;
   final PostUser author; // Dùng chung tên field cho tiện UI
+  int replyCount;
   final List<Comment>? replies;
 
   Comment({
@@ -123,6 +144,7 @@ class Comment {
     required this.content,
     required this.createdAt,
     required this.author,
+    this.replyCount = 0,
     this.replies,
   });
 
@@ -136,6 +158,7 @@ class Comment {
       content: json['content'] ?? '',
       createdAt: DateTime.parse(json['createdAt'] ?? DateTime.now().toIso8601String()),
       author: PostUser.fromJson(userData),
+      replyCount: _parseInt(json['replyCount']),
       replies: json['replies'] != null
           ? (json['replies'] as List)
               .map((e) => Comment.fromJson(Map<String, dynamic>.from(e as Map)))
@@ -143,4 +166,21 @@ class Comment {
           : null,
     );
   }
+}
+
+int _parseInt(dynamic value) {
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  if (value is String) return int.tryParse(value) ?? 0;
+  return 0;
+}
+
+bool _parseBool(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    return normalized == 'true' || normalized == '1';
+  }
+  return false;
 }

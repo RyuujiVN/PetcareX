@@ -25,6 +25,7 @@ class AppLogger {
       final safeBody = _getSafeBody(body);
       _log('│ Body  : ${jsonEncode(safeBody)}');
     }
+    
   }
 
   static void logResponse(http.Response response) {

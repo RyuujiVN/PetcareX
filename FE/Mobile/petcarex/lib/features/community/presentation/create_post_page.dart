@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/services/camera_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/logger.dart';
@@ -16,7 +19,9 @@ class CreatePostPage extends StatefulWidget {
 }
 
 class _CreatePostPageState extends State<CreatePostPage> {
+  final CameraService _cameraService = CameraService();
   final TextEditingController _contentController = TextEditingController();
+  final List<File> _selectedImages = [];
   String? _selectedTopicId;
   bool _isLoading = false;
 
@@ -24,6 +29,26 @@ class _CreatePostPageState extends State<CreatePostPage> {
   void initState() {
     super.initState();
     _initializeDefaultTopic();
+  }
+
+  Future<void> _pickImages() async {
+    final l10n = AppLocalizations.of(context)!;
+    final picked = await _cameraService.pickImagesFromGallery();
+    if (picked.isEmpty) return;
+
+    setState(() {
+      _selectedImages.addAll(picked);
+    });
+
+    if (!mounted) return;
+    _showQuickSnackBar(l10n.uploadImageSuccess, isError: false);
+  }
+
+  void _removeSelectedImage(int index) {
+    if (index < 0 || index >= _selectedImages.length) return;
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
   }
 
   void _initializeDefaultTopic() {
@@ -53,7 +78,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
     final l10n = AppLocalizations.of(context)!;
     final content = _contentController.text.trim();
 
-    if (content.isEmpty) {
+    if (content.isEmpty && _selectedImages.isEmpty) {
       _showQuickSnackBar(l10n.shareSomething);
       return;
     }
@@ -69,6 +94,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
       final success = await context.read<CommunityProvider>().createNewPost(
         content: content,
         topicId: _selectedTopicId!,
+        imagePaths: _selectedImages.map((e) => e.path).toList(),
       );
 
       if (mounted) {
@@ -78,7 +104,11 @@ class _CreatePostPageState extends State<CreatePostPage> {
           _showQuickSnackBar(l10n.success, isError: false);
         } else {
           final error = context.read<CommunityProvider>().errorMessage;
-          _showQuickSnackBar(error ?? l10n.failed);
+          if (error == 'uploadImageFailed') {
+            _showQuickSnackBar(l10n.uploadImageFailed);
+          } else {
+            _showQuickSnackBar(error ?? l10n.failed);
+          }
         }
       }
     } catch (e) {
@@ -204,6 +234,80 @@ class _CreatePostPageState extends State<CreatePostPage> {
                 hintStyle: const TextStyle(color: AppColors.textGrey),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+            ),
+          ),
+          if (_selectedImages.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: AppColors.divider)),
+              ),
+              child: SizedBox(
+                height: 88,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _selectedImages.length,
+                  separatorBuilder: (_, separatorIndex) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    return Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.file(
+                            _selectedImages[index],
+                            width: 88,
+                            height: 88,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        Positioned(
+                          top: 4,
+                          right: 4,
+                          child: GestureDetector(
+                            onTap: () => _removeSelectedImage(index),
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.black,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: AppColors.white,
+                                size: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Row(
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _pickImages,
+                    icon: const Icon(Icons.photo_library_outlined),
+                    label: Text(l10n.uploadPhoto),
+                  ),
+                  const SizedBox(width: 8),
+                  if (_selectedImages.isNotEmpty)
+                    Text(
+                      '${_selectedImages.length}',
+                      style: const TextStyle(
+                        color: AppColors.textGrey,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
