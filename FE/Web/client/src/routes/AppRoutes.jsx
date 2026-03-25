@@ -25,7 +25,6 @@ import AdminRegister from '../pages/adminClinic/Auth/Register'
 import AdminForgotPassword from '../pages/adminClinic/Auth/ForgotPassword'
 import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
 import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
-import ViewPetAppointment from '../pages/adminClinic/VeterinaryClinic/ViewPetAppointment/viewPetAppointment'
 import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
 import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
 import VeterinarianManagement from '../pages/adminClinic/VeterinaryClinic/VeterinarianManagement/veterinarianManagement'
@@ -45,7 +44,6 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/home" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
-        <Route path="/admin/clinic/view-pet-appointment" element={<ViewPetAppointment />} />
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
         <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/veterinarians" element={<VeterinarianManagement />} />

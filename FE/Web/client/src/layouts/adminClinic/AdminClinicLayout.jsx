@@ -8,7 +8,7 @@ const menuItems = [
   { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/admin/clinic/appointments' },
   { key: 'records', label: 'Sổ y tế điện tử', icon: MedicineBoxOutlined, path: '/admin/clinic/medical-records' },
   { key: 'revenue', label: 'Doanh thu', icon: LineChartOutlined, path: '/admin/clinic/revenue' },
-  { key: 'doctors', label: 'Bác sĩ', icon: TeamOutlined, path: '/admin/clinic/doctors' },
+  { key: 'doctors', label: 'Bác sĩ', icon: TeamOutlined, path: '/admin/clinic/veterinarians' },
   { key: 'forms', label: 'Xem phiếu khám', icon: FileSearchOutlined, path: '/admin/clinic/exam-slips' },
 ]
 
@@ -33,8 +33,8 @@ export default function AdminClinicLayout() {
               <MedicineBoxOutlined />
             </div>
             <div>
-              <h2>PetcareX</h2>
-              <p>Quản lý phòng khám</p>
+              <h2>Petcar</h2>
+              <p>PetcareX</p>
             </div>
           </div>
 
