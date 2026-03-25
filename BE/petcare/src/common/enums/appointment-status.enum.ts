@@ -1,6 +1,6 @@
 export enum AppointmentStatusEnum {
-  BOOKED = 'Hẹn thành công',
-  IN_PROGRESS = 'Đang khám',
-  COMPLETED = 'Đã khám xong',
-  CANCELLED = 'Đã huỷ',
+  BOOKED = 'BOOKED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED = 'CANCELLED',
 }

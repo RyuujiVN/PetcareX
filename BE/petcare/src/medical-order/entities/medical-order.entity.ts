@@ -12,8 +12,11 @@ export class MedicalOrder {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  name: string;
+  @Column({ name: 'name_vn' })
+  nameVn: string;
+
+  @Column({ name: 'name_eng' })
+  nameEng: string;
 
   @Column({ type: 'int' })
   price: number;

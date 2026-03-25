@@ -38,7 +38,7 @@ class SiteConfig:
     
     article_url_pattern: str = r".*" 
     exclude_url_patterns: List[str] = None  
-    min_url_path_segments: int = 2  
+    min_url_path_segments: int = 1  
     
 
     sitemap_url: str = None  
@@ -72,6 +72,40 @@ class SiteConfig:
             ]
 
 VIETNAMESE_PET_SITES = [
+    SiteConfig(
+        name="Hanoi PetCare",
+        base_url="https://hanoipetcare.vn/kien-thuc-cham-soc-thu-cung/",
+        source_type=SourceType.BLOG.value,
+        language=Language.VI.value,
+        article_url_pattern=r"/benh-vien-cho/",
+        min_url_path_segments=3,
+        title_selector="h1, .entry-title, .post-title, .news-title",
+        content_selector=".latest-news.latest-page, .entry-content, .post-content, .news-content, article, main",
+        max_articles=300,
+    ),
+    SiteConfig(
+        name="MelodyPet Tin tức",
+        base_url="https://melodypet.com.vn/tin-tuc",
+        source_type=SourceType.BLOG.value,
+        language=Language.VI.value,
+        article_url_pattern=r"/(top-|.*benh-vien-thu-y.*|.*pet-shop.*|.*pet-spa.*|.*khach-san-thu-cung.*|.*thu-y.*)",
+        min_url_path_segments=1,
+        title_selector="h1, .title-news, .news-title, .post-title, .entry-title",
+        content_selector="#toc-content, .content-main, .detail-content, .post-content, article, main",
+        exclude_url_patterns=[
+            r'/tag/', r'/author/', r'#', r'/feed',
+            r'\.pdf$', r'\.jpg$', r'\.png$', r'\.gif$', r'\.css$', r'\.js$',
+            r'/cart', r'/checkout', r'/login', r'/register', r'/account',
+            r'/search', r'/contact', r'/about-us', r'/gioi-thieu',
+            r'/lien-he', r'/chinh-sach', r'/policy',
+            r'/collections/', r'/products/', r'/san-pham/',
+            r'/gio-hang$', r'/dich-vu$', r'/pet-care$', r'/kham-dieu-tri$',
+            r'/sieu-am-xet-nghiem$', r'/phau-thuat$', r'/tiem-phong$', r'/tham-my$',
+            r'/pet-spa$', r'/spa-cun$', r'/spa-meow$',
+            r'^/$',
+        ],
+        max_articles=300,
+    ),
     SiteConfig(
         name="ThuCanh",
         base_url="https://thucanh.vn/",
@@ -217,7 +251,7 @@ ENGLISH_PET_SITES = [
         base_url="https://www.vettimes.com/",
         source_type=SourceType.NEWS.value,
         language=Language.EN.value,
-        article_url_pattern=r"/news/",
+        article_url_pattern=r"/news/[^/]+/[^/]+/[^/]+",
         title_selector="h1, .entry-title, .article-title, .post-title",
         content_selector="[class*='article'], [class*='content'], .entry-content, .article-content, .post-content, article, main",
         sitemap_url="https://www.vettimes.com/sitemap.xml",
@@ -254,8 +288,8 @@ ENGLISH_PET_SITES = [
         language=Language.EN.value,
         min_url_path_segments=1,
         article_url_pattern=r"[?&]id=\d+",
-        title_selector="h1, .vin-article-title, .article-title, .page-title",
-        content_selector=".vin-article-content, .article-content, .vin-content, main, .content",
+        title_selector="#ctl00_DocumentTitlePanel, .DocumentTitle, [id*='DocumentTitle'], h1, title, .vin-article-title, .article-title, .page-title",
+        content_selector="#ctl00_DocumentMainContentPanel, #DocumentPanel_PageContent, .DocumentMainContent, .DocumentPanel, .vin-article-content, .article-content, .vin-content, main, .content",
         use_sitemap=False,
         max_articles=300,
     ),
@@ -274,6 +308,7 @@ def get_site_config_for_url(url: str, name: str = None, source_type: str = None,
 
     base = _DOMAIN_CONFIG_MAP.get(domain)
     if base:
+        effective_max_articles = min(max_articles, base.max_articles) if base.max_articles else max_articles
         return SiteConfig(
             name=name or base.name,
             base_url=url,
@@ -288,7 +323,7 @@ def get_site_config_for_url(url: str, name: str = None, source_type: str = None,
             use_sitemap=base.use_sitemap,
             sitemap_url=base.sitemap_url,
             sitemap_min_words_in_slug=base.sitemap_min_words_in_slug,
-            max_articles=max_articles,
+            max_articles=effective_max_articles,
         )
 
     if language is None:
@@ -406,6 +441,22 @@ class WebScraper:
                 response = self.session.get(url, timeout=self.timeout)
                 
                 if response.status_code == 200:
+                    # If response appears to be XML (sitemap), parse as XML to avoid
+                    # BeautifulSoup XMLParsedAsHTMLWarning. Fall back to HTML parser
+                    # if XML parsing is not available or fails.
+                    content_type = response.headers.get('Content-Type', '').lower()
+                    text_start = response.text.lstrip()[:200].lower()
+                    is_xml = (
+                        'xml' in content_type or
+                        text_start.startswith('<?xml') or
+                        '<urlset' in text_start or
+                        '<sitemapindex' in text_start
+                    )
+                    if is_xml:
+                        try:
+                            return BeautifulSoup(response.content, features='xml')
+                        except Exception:
+                            pass
                     return BeautifulSoup(response.content, 'html.parser')
                 elif response.status_code == 429:
                     self.rate_limit_count += 1
@@ -448,7 +499,7 @@ class WebScraper:
                     return bool(re.search(config.article_url_pattern, url, re.IGNORECASE))
                 return True
 
-        if len(path) < 10:
+        if len(path) < 6:
             return False
         
         for pattern in config.exclude_url_patterns:
@@ -794,6 +845,7 @@ class WebScraper:
         errors = []
         
         self.rate_limit_count = 0
+        self.visited_urls.clear()
         
         logger.info(f"Starting scrape of {config.name}...")
         
@@ -834,6 +886,7 @@ class WebScraper:
         started_at = datetime.now().isoformat()
         items = []
         errors = []
+        self.visited_urls.clear()
         
         parsed = urlparse(url)
         config = SiteConfig(
