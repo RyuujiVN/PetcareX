@@ -10,6 +10,39 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
+## ⚡ Community Performance & UX Optimization (2026-03-25)
+
+### 1) Tối ưu tốc độ đăng bài có nhiều ảnh (Pre-upload)
+- **Vấn đề cũ:** Ảnh chỉ được upload khi bấm `Đăng`, nên thời gian chờ dài và cảm giác app bị “đơ”.
+- **Giải pháp mới:** Upload ảnh **ngay khi người dùng chọn ảnh** (pre-upload), đến lúc bấm `Đăng` chỉ gửi nội dung + danh sách URL đã upload.
+- **Triển khai chính:**
+    - `CommunityProvider` thêm `preUploadImages(...)`.
+    - `createNewPost(...)` hỗ trợ `uploadedImageUrls` để bỏ qua upload lại.
+    - `CreatePostPage` quản lý trạng thái từng ảnh: `isUploading`, `isUploadFailed`, `uploadedUrl`.
+- **Lợi ích:** Giảm đáng kể thời gian chờ tại thao tác `Đăng`, UX mượt hơn trên mạng chậm.
+
+### 2) Sửa lỗi Edit Post hiển thị raw HTML script
+- **Vấn đề cũ:** Dialog `Chỉnh sửa bài viết` bind trực tiếp `post.content` (HTML), khiến người dùng thấy full script `<p>`, `<img ...>`.
+- **Giải pháp mới:**
+    - Tách `text` và `imageUrls` từ HTML trước khi hiển thị.
+    - Text hiển thị trong `TextField` dạng plain text.
+    - Ảnh hiển thị preview riêng, có thể xóa từng ảnh trước khi `Cập nhật`.
+    - Cho phép thêm ảnh mới trong lúc edit, upload ngay (pre-upload), sau đó ghép lại HTML chuẩn khi submit.
+- **Lợi ích:** Trải nghiệm chỉnh sửa đúng kỳ vọng người dùng, không lộ định dạng kỹ thuật.
+
+### 3) Cải thiện UX chọn nhiều ảnh và xóa ảnh trước khi đăng
+- **Vấn đề cũ:** Người dùng khó kiểm soát danh sách ảnh đã chọn, dễ phải thoát màn để làm lại.
+- **Giải pháp mới:**
+    - Dải preview ảnh luôn hiển thị trong màn tạo bài.
+    - Mỗi ảnh có nút xóa trực tiếp.
+    - Overlay trạng thái upload/failed theo từng ảnh giúp người dùng biết ảnh nào đã sẵn sàng.
+- **Lợi ích:** Người dùng kiểm soát chính xác ảnh trước khi đăng, giảm thao tác lặp và khó chịu.
+
+### 4) Phản biện & trade-off đã cân nhắc
+- **Pre-upload** tăng số request sớm hơn trong phiên thao tác, nhưng đổi lại giảm độ trễ ở action quan trọng nhất (`Đăng/Cập nhật`) và cải thiện cảm nhận hiệu năng.
+- Chưa thêm cơ chế “hủy ảnh đã pre-upload trên cloud khi user xóa khỏi draft” do cần contract backend riêng; hiện tại ưu tiên tốc độ và UX phía mobile.
+- Thiết kế hiện tại ưu tiên ổn định và khả dụng ngay, có thể mở rộng retry ảnh lỗi theo từng item ở iteration tiếp theo.
+
 ## 📂 Workspace chuẩn khi thao tác
 - **Mobile root path chuẩn:** `F:\capstone 2\code\PetcareX\FE\Mobile\petcarex`.
 - **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
