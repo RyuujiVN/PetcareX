@@ -1,6 +1,6 @@
 import { FaBell, FaMapMarkerAlt, FaPlus } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import styles from './veterinarianManagement.module.css'
+import styles from './vererianrianManagement.module.css'
 
 const filterItems = ['Tất cả bác sĩ', 'Nội khoa', 'Ngoại khoa', 'Chẩn đoán hình ảnh', 'Tiêm chủng']
 

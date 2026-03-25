@@ -27,7 +27,7 @@ import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
 import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
 import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
 import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
-import VeterinarianManagement from '../pages/adminClinic/VeterinaryClinic/VeterinarianManagement/veterinarianManagement'
+import VererianrianManagement from '../pages/adminClinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
 import AddNewVererianrian from '../pages/adminClinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
 import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
@@ -49,7 +49,7 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
         <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
-        <Route path="/admin/clinic/veterinarians" element={<VeterinarianManagement />} />
+        <Route path="/admin/clinic/veterinarians" element={<VererianrianManagement />} />
         <Route path="/admin/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
         <Route path="/admin/clinic/veterinarians/information" element={<InformationVererianrian />} />
         <Route path="/admin/clinic/exam-slips" element={<ListPetExaminationRecords />} />
