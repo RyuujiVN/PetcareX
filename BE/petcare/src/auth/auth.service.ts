@@ -1,14 +1,15 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
+    BadRequestException,
+    Injectable,
+    NotFoundException,
+    UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcryptjs';
+import { LoginTicket, OAuth2Client } from 'google-auth-library';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from 'src/otp/otp.service';
@@ -17,10 +18,9 @@ import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { ChangePasswordDTO } from './dtos/change-password.dto';
 import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
+import { LoginGoogleDTO } from './dtos/login-google.dto';
 import { LoginDTO } from './dtos/login.dto';
 import { ResetPasswordDTO } from './dtos/reset-password.dto';
-import { LoginTicket, OAuth2Client } from 'google-auth-library';
-import { LoginGoogleDTO } from './dtos/login-google.dto';
 
 @Injectable()
 export class AuthService {
@@ -160,6 +160,7 @@ export class AuthService {
     if (!user) throw new NotFoundException('Không tồn tại tài khoản');
 
     // Gửi mail
+    const otpExpireMinutes = this.otpService.getOtpExpireMinutes();
     const code = await this.otpService.createOtp(forgot.email);
     const subject = 'Mã OTP xác thực đăng nhập';
     const html = `
@@ -180,7 +181,7 @@ export class AuthService {
             ${code}
           </div>
 
-          <p>Mã OTP có hiệu lực trong <b>5 phút</b>. Tuyệt đối không chia sẻ cho người khác.</p>
+          <p>Mã OTP có hiệu lực trong <b>${otpExpireMinutes} phút</b>. Tuyệt đối không chia sẻ cho người khác.</p>
           <hr/>
           <p style="font-size:12px; color:#888;">© 2025 TasteBite. All rights reserved.</p>
         </div>

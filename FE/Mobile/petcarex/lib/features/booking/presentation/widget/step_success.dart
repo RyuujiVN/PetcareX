@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class StepSuccess extends StatelessWidget {
   final String petName;
@@ -22,55 +24,69 @@ class StepSuccess extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final formattedDate = DateFormat(
+      'EEE, d MMM',
+      l10n.localeName,
+    ).format(date);
+
     return Column(
       children: [
-        const Icon(Icons.check_circle, color: Colors.green, size: 80),
+        const Icon(Icons.check_circle, color: AppColors.success, size: 80),
         const SizedBox(height: 16),
-        const Text(
-          "ĐẶT LỊCH THÀNH CÔNG",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          l10n.bookingSuccessTitle.toUpperCase(),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        const Text(
-          "Lịch hẹn của bạn đã được đặt! Vui lòng kiểm tra lại thông tin bên dưới",
+        Text(
+          l10n.bookingSuccessSubtitle,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
         ),
         const SizedBox(height: 32),
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFFF4F7F8),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: AppColors.divider),
           ),
           child: Column(
             children: [
-              const Text(
-                "TÓM TẮT LỊCH HẸN",
-                style: TextStyle(
-                  color: Colors.grey,
+              Text(
+                l10n.bookingSummaryTitle.toUpperCase(),
+                style: const TextStyle(
+                  color: AppColors.textGrey,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
                 ),
               ),
               const SizedBox(height: 24),
-              _row(Icons.pets, "Thú cưng", petName),
-              _row(Icons.local_hospital_outlined, "Phòng khám", clinicName),
-              _row(Icons.medical_services_outlined, "Dịch vụ", serviceName),
-              _row(Icons.person_outline, "Bác sĩ", doctorName),
+              _row(Icons.pets, l10n.stepPet, petName),
+              _row(Icons.local_hospital_outlined, l10n.stepClinic, clinicName),
+              _row(
+                Icons.medical_services_outlined,
+                l10n.stepService,
+                serviceName,
+              ),
+              _row(Icons.person_outline, l10n.stepDoctor, doctorName),
               _row(
                 Icons.calendar_today_outlined,
-                "Thời gian",
-                "$time - Thứ ${date.weekday == 7 ? "CN" : date.weekday + 1}, ${date.day} Tháng ${date.month}",
+                l10n.time,
+                '$time - $formattedDate',
               ),
             ],
           ),
         ),
         const SizedBox(height: 32),
-        const Text(
-          "MÃ QR CHECK-IN",
-          style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blueGrey, letterSpacing: 1.1),
+        Text(
+          l10n.bookingCheckinQrTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textGrey,
+            letterSpacing: 1.1,
+          ),
         ),
         const SizedBox(height: 16),
         Center(
@@ -81,17 +97,21 @@ class StepSuccess extends StatelessWidget {
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
-                BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
+                BoxShadow(
+                  color: AppColors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
               ],
             ),
             child: const Icon(Icons.qr_code_2, size: 120),
           ),
         ),
         const SizedBox(height: 24),
-        const Text(
-          "Vui lòng xuất trình mã QR này tại quầy lễ tân khi bạn đến\nđể làm thủ tục check-in nhanh chóng.",
+        Text(
+          l10n.bookingQrInstruction,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 12, color: Colors.grey),
+          style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
         ),
       ],
     );
@@ -106,7 +126,10 @@ class StepSuccess extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           flex: 4,
-          child: Text(t, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+          child: Text(
+            t,
+            style: const TextStyle(color: AppColors.textGrey, fontSize: 13),
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(

@@ -325,52 +325,9 @@ export default function AppointmentManagement() {
 		setIsModalOpen(true)
 	}
 
-	const isPastAppointment = (appointment) => {
-		if (!appointment?.appointmentDateRaw) return false
-
-		const now = new Date()
-		const appointmentDate = new Date(appointment.appointmentDateRaw)
-		if (Number.isNaN(appointmentDate.getTime())) return false
-
-		const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate())
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-		if (appointmentDay < today) return true
-
-		if (appointmentDay > today || !appointment?.time) return false
-
-		const appointmentDateTime = new Date(`${dayjs(appointmentDate).format('YYYY-MM-DD')}T${appointment.time}:00`)
-		if (Number.isNaN(appointmentDateTime.getTime())) return false
-
-		return appointmentDateTime < now
-	}
-
-	const isFutureAppointmentDate = (appointment) => {
-		if (!appointment?.appointmentDateRaw) return false
-
-		const appointmentDate = new Date(appointment.appointmentDateRaw)
-		if (Number.isNaN(appointmentDate.getTime())) return false
-
-		const appointmentDay = new Date(appointmentDate.getFullYear(), appointmentDate.getMonth(), appointmentDate.getDate())
-		const now = new Date()
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-
-		return appointmentDay > today
-	}
-
-	const hasUserCancellationRequest = (appointment) => {
-		const note = (appointment?.appointmentNote || '').toLowerCase()
-		return /huy|hủy|cancel/.test(note)
-	}
-
 	const canClinicCancelAppointment =
 		selectedAppointment &&
-		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED &&
-		(
-			isPastAppointment(selectedAppointment) ||
-			hasUserCancellationRequest(selectedAppointment) ||
-			isFutureAppointmentDate(selectedAppointment)
-		)
+		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED
 
 	const handleClinicCancelAppointment = () => {
 		if (!selectedAppointment) return
@@ -418,11 +375,11 @@ export default function AppointmentManagement() {
 				</div>
 
 				<div className={styles.mainBody}>
-					<Title level={2} className={styles.pageTitle}>
-						Bảng quản lý lịch khám
+					<Title level={3} className={styles.pageTitle}>
+						Quản lý lịch khám
 					</Title>
 					<Text className={styles.pageSubTitle}>
-						{`Tổng số ${totalAppointments} lịch hẹn phù hợp bộ lọc hiện tại.`}
+						{`Tổng ${totalAppointments} lịch hẹn của ngày hiện tại.`}
 					</Text>
 
 					<Card className={styles.filterCard}>
@@ -495,7 +452,7 @@ export default function AppointmentManagement() {
 						</div>
 					</Spin>
 				</div>
-
+				
 				<Modal
 					title="THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM"
 					open={isModalOpen}

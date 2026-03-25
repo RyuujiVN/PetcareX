@@ -32,15 +32,28 @@
   margin-bottom: 20px;
 }
 
-.clinic-hero .hero-buttons {
+.clinic-hero {
   margin-top: 30px;
+}
+
+.hero-button{
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
 
 .clinic-hero .btn {
   padding: 14px 28px;
   font-size: 16px;
+  background: #4672b4;
 }
 
+.clinic-hero .btn:hover
+{
+  background: white;
+}
 .about-section {
   padding: 80px 20px;
   background: var(--color-surface-soft);

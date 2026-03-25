@@ -13,17 +13,17 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AppointmentService } from './appointment.service';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiQuery,
 } from '@nestjs/swagger';
-import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
-import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
-import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { AppointmentService } from './appointment.service';
+import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
+import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
+import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 
 @Controller('appointment')
 @ApiBearerAuth('JWT-auth')

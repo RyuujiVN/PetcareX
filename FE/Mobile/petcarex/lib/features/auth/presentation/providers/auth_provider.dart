@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/api_helper.dart';
 import '../../data/models/user_model.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -24,23 +25,27 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
 
   // 1. Đăng nhập
-  Future<bool> login(String email, String password, {bool rememberMe = false}) async {
+  Future<bool> login(
+    String email,
+    String password, {
+    bool rememberMe = false,
+  }) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final response = await _apiClient.post(AppConstants.loginEndpoint, {
-        'email': email,
-        'password': password,
-      });
+      final response = await _apiClient.post(
+        AppConstants.END_POINT_AUTH_LOGIN,
+        {'email': email, 'password': password},
+      );
 
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         _user = UserModel.fromJson(body['userInfo']);
         final token = body['accessToken'];
-        
+
         if (token != null) {
           await _storage.write(key: 'accessToken', value: token);
         }
@@ -51,7 +56,7 @@ class AuthProvider extends ChangeNotifier {
         } else {
           await _storage.delete(key: 'rememberMe');
         }
-        
+
         _isLoading = false;
         notifyListeners();
         return true;
@@ -62,14 +67,14 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  // 2. Đổi mật khẩu (Cập nhật theo Swagger)
+  // 2. Đổi mật khẩu
   Future<bool> changePassword({
     required String oldPassword,
     required String newPassword,
@@ -80,11 +85,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.post(AppConstants.changePasswordEndpoint, {
-        'oldPassword': oldPassword,
-        'newPassword': newPassword,
-        'confirmPassword': confirmPassword,
-      });
+      final response = await _apiClient
+          .post(AppConstants.END_POINT_AUTH_CHANGE_PASSWORD, {
+            'oldPassword': oldPassword,
+            'newPassword': newPassword,
+            'confirmPassword': confirmPassword,
+          });
 
       final body = jsonDecode(response.body);
 
@@ -104,43 +110,64 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  String _parseErrorMessage(dynamic body) {
-    if (body == null) return 'Đã có lỗi xảy ra';
-    
-    if (body['error'] != null && body['error']['message'] != null) {
-      final message = body['error']['message'];
-      if (message is List) {
-        return message.join(', ');
+  String? _extractFirstMessage(dynamic rawMessage) {
+    if (rawMessage == null) return null;
+
+    if (rawMessage is List) {
+      for (final item in rawMessage) {
+        final message = item?.toString().trim();
+        if (message != null && message.isNotEmpty) {
+          return message;
+        }
       }
-      return message.toString();
+      return null;
     }
-    
-    if (body['message'] != null) {
-      final message = body['message'];
-      if (message is List) {
-        return message.join(', ');
-      }
-      return message.toString();
-    }
-    
-    return 'Lỗi không xác định';
+
+    final message = rawMessage.toString().trim();
+    if (message.isEmpty) return null;
+    return message;
   }
 
-  // 3. Đăng nhập bằng Google
-  Future<bool> loginWithGoogle() async {
+  String _parseErrorMessage(dynamic body) {
+    if (body == null) return 'errorUnknown';
+
+    if (body is Map) {
+      final error = body['error'];
+      if (error is Map) {
+        final nestedMessage = _extractFirstMessage(error['message']);
+        if (nestedMessage != null) {
+          return nestedMessage;
+        }
+      }
+
+      final topMessage = _extractFirstMessage(body['message']);
+      if (topMessage != null) {
+        return topMessage;
+      }
+    }
+
+    final fallbackMessage = _extractFirstMessage(body);
+    if (fallbackMessage != null) {
+      return fallbackMessage;
+    }
+
+    return 'errorUnknown';
+  }
+
+  // 3. Đăng nhập bằng Google (Tuân thủ trạng thái rememberMe từ UI)
+  Future<bool> loginWithGoogle({bool rememberMe = false}) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      // Đăng nhập Google để lấy thông tin xác thực
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
         _isLoading = false;
@@ -148,35 +175,49 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
       final idToken = googleAuth.idToken;
 
-      // Đảm bảo tokenid không null
       if (idToken == null) {
-        _errorMessage = 'Không thể lấy được token xác thực từ Google.';
+        _errorMessage = 'errorGoogleAuth';
         _isLoading = false;
         notifyListeners();
         return false;
       }
 
-      // Lấy tokenid từ google
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
       await FirebaseAuth.instance.signInWithCredential(credential);
 
+      final firebaseUser = FirebaseAuth.instance.currentUser;
+      String fullName =
+          (googleUser.displayName ?? firebaseUser?.displayName ?? '').trim();
+      if (fullName.isEmpty) {
+        fullName = googleUser.email.split('@').first;
+      }
+
+      final avatarUrl =
+          (googleUser.photoUrl ?? firebaseUser?.photoURL ?? '').trim();
+
       // Gửi tokenid xuống BE
-      final response = await _apiClient.post(AppConstants.loginGoogleEndpoint, {
-        'googleIdToken': idToken,
-      });
+      final response = await _apiClient.post(
+        AppConstants.END_POINT_AUTH_LOGIN_GOOGLE,
+        {
+          'googleIdToken': idToken,
+          'fullName': fullName,
+          'avatarUrl': avatarUrl,
+        },
+      );
 
       final body = jsonDecode(response.body);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         _user = UserModel.fromJson(body['userInfo']);
         final token = body['accessToken'];
-        
+
         if (token != null) {
           await _storage.write(key: 'accessToken', value: token);
         }
@@ -191,14 +232,15 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      if (e.toString().contains('ApiException: 7') || e.toString().contains('network_error')) {
-         _errorMessage = 'Lỗi mạng: Kiểm tra kết nối Internet của thiết bị. Nếu ở máy ảo, đảm bảo máy ảo có mạng.';
+      if (e.toString().contains('ApiException: 7') ||
+          e.toString().contains('network_error')) {
+        _errorMessage = 'errorNetwork';
       } else if (e.toString().contains('ApiException: 10')) {
-         _errorMessage = 'Lỗi cấu hình Cấu hình Firebase: Có thể SHA-1 chưa được khai báo ở Console của Firebase.';
+        _errorMessage = 'errorFirebase';
       } else {
-         _errorMessage = 'Lỗi đăng nhập Google hoặc Backend: $e';
+        _errorMessage = 'errorGoogleAuth';
       }
-      
+
       _isLoading = false;
       notifyListeners();
       return false;
@@ -211,7 +253,7 @@ class AuthProvider extends ChangeNotifier {
     await _storage.delete(key: 'accessToken');
     await _storage.delete(key: 'rememberMe');
     await _googleSignIn.signOut();
-    await FirebaseAuth.instance.signOut(); // Đăng xuất khỏi Firebase
+    await FirebaseAuth.instance.signOut();
     notifyListeners();
   }
 
@@ -226,7 +268,7 @@ class AuthProvider extends ChangeNotifier {
     return value == 'true';
   }
 
-  // 7. Kiểm tra trạng thái đăng nhập và Lấy thông tin Profile
+  // 7. Kiểm tra trạng thái đăng nhập
   Future<void> checkAuthStatus() async {
     final token = await _storage.read(key: 'accessToken');
     if (token == null) {
@@ -239,7 +281,9 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _apiClient.get(AppConstants.userProfileEndpoint);
+      final response = await _apiClient.get(
+        AppConstants.END_POINT_USER_PROFILE,
+      );
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         _user = UserModel.fromJson(body);
@@ -254,10 +298,11 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 7.1 Lấy thông tin Profile
   Future<bool> fetchProfile() async {
     try {
-      final response = await _apiClient.get(AppConstants.userProfileEndpoint);
+      final response = await _apiClient.get(
+        AppConstants.END_POINT_USER_PROFILE,
+      );
       if (response.statusCode == 200) {
         final body = jsonDecode(response.body);
         _user = UserModel.fromJson(body);
@@ -271,7 +316,6 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
-  // 7.2 Cập nhật Profile
   Future<bool> updateProfile({
     required String fullName,
     required String email,
@@ -280,7 +324,7 @@ class AuthProvider extends ChangeNotifier {
     String? avatarUrl,
   }) async {
     if (_user == null) return false;
-    
+
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -291,13 +335,15 @@ class AuthProvider extends ChangeNotifier {
         'email': email,
         'phone': phone,
         'address': address,
-        'avatarUrl': ?avatarUrl,
+        'avatarUrl': avatarUrl,
       };
 
-      final response = await _apiClient.put('${AppConstants.userEndpoint}/${_user!.id}', data);
-      
+      final response = await _apiClient.put(
+        ApiHelper.userByIdEndpoint(_user!.id),
+        data,
+      );
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Cập nhật thành công, gọi lại api Profile để lấy dữ liệu mới nhất
         await fetchProfile();
         _isLoading = false;
         notifyListeners();
@@ -310,27 +356,29 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  // 7.3 Tải ảnh Avatar
   Future<String?> uploadAvatar(String filePath) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final response = await _apiClient.postMultipart(AppConstants.userUploadEndpoint, filePath);
-      
+      final response = await _apiClient.postMultipart(
+        AppConstants.END_POINT_USER_UPLOAD,
+        filePath,
+      );
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         final body = jsonDecode(response.body);
         _isLoading = false;
         notifyListeners();
-        
+
         final fileUrl = body is Map ? body['file'] : null;
         if (fileUrl is String && fileUrl.isNotEmpty) {
           return fileUrl;
@@ -344,55 +392,23 @@ class AuthProvider extends ChangeNotifier {
         return null;
       }
     } catch (e) {
-      _errorMessage = 'Lỗi upload ảnh: $e';
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return null;
     }
   }
 
-  // 8. Quên mật khẩu
   Future<bool> forgotPassword(String email) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      final response = await _apiClient.post(AppConstants.forgotPasswordEndpoint, {'email': email});
-      _isLoading = false;
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        notifyListeners();
-        return true;
-      }
-      _errorMessage = jsonDecode(response.body)['message'] ?? 'Gửi yêu cầu thất bại';
-      notifyListeners();
-      return false;
-    } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
-  }
-
-  // 9. Đặt lại mật khẩu
-  Future<bool> resetPassword({
-    required String email, 
-    required String otp, 
-    required String newPassword,
-    required String confirmPassword,
-  }) async {
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final response = await _apiClient.post(AppConstants.resetPasswordEndpoint, {
-        'email': email,
-        'otp': otp,
-        'newPassword': newPassword,
-        'confirmPassword': confirmPassword, 
-      });
+      final response = await _apiClient.post(
+        AppConstants.END_POINT_AUTH_FORGOT_PASSWORD,
+        {'email': email},
+      );
       _isLoading = false;
       final body = jsonDecode(response.body);
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -403,7 +419,42 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       return false;
     } catch (e) {
-      _errorMessage = 'Lỗi kết nối: $e';
+      _errorMessage = 'errorConnection';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final response = await _apiClient
+          .post(AppConstants.END_POINT_AUTH_RESET_PASSWORD, {
+            'email': email,
+            'otp': otp,
+            'newPassword': newPassword,
+            'confirmPassword': confirmPassword,
+          });
+      _isLoading = false;
+      final body = jsonDecode(response.body);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        notifyListeners();
+        return true;
+      }
+      _errorMessage = _parseErrorMessage(body);
+      notifyListeners();
+      return false;
+    } catch (e) {
+      _errorMessage = 'errorConnection';
       _isLoading = false;
       notifyListeners();
       return false;

@@ -1,32 +1,37 @@
-import { Navigate, Route, Routes } from "react-router-dom";
-import HomePage from "../pages/client/Home/HomePage";
-import HomePageClinic from "../pages/client/Home/HomePageClinic";
-import Login from "../pages/client/Auth/Login";
-import Register from "../pages/client/Auth/Register";
-import ForgotPassword from "../pages/client/Auth/ForgotPassword";
-import ReEnterPassword from "../pages/client/Auth/ReEnterPassword";
-import ClinicSelection from "../pages/client/Home/ClinicSelection";
-import BookingAppointment from "../pages/client/User/BookingAppointment";
-import AddPet from "../pages/client/User/AddPet";
-import ChatBotAI from "../pages/client/Home/ChatBotAI";
-import ProfileUser from "../pages/client/User/ProfileUser";
-import AppointmentDetail from "../pages/client/User/AppointmentDetail";
-import SuccessBooking from "../pages/client/User/SuccessBooking";
-import PetProfile from "../pages/client/User/PetProfile";
-import ListPet from "../pages/client/User/ListPet";
-import MedicalRecords from "../pages/client/User/MedicalRecords/medicalRecords";
-import Forum from "../pages/client/User/Forum/forum";
-import ListPetMedicalRecords from "../pages/client/User/ListPetMedicalRecords/listMedicalRecords";
-import MainLayout from "../layouts/client/MainLayout";
-import HeaderLayout from "../layouts/client/HeaderLayout";
-import AdminClinicLayout from "../layouts/adminClinic/AdminClinicLayout";
-import AdminLogin from "../pages/adminClinic/Auth/Login";
-import AdminRegister from "../pages/adminClinic/Auth/Register";
-import AdminForgotPassword from "../pages/adminClinic/Auth/ForgotPassword";
-import AdminReEnterPassword from "../pages/adminClinic/Auth/ReEnterPassword";
-import AppointmentManagement from "../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement";
-import ViewPetAppointment from "../pages/adminClinic/VeterinaryClinic/ViewPetAppointment/viewPetAppointment";
-import AdminListPetMedicalRecords from "../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords";
+import { Navigate, Route, Routes } from 'react-router-dom'
+import HomePage from '../pages/client/Home/HomePage'
+import HomePageClinic from '../pages/client/Home/HomePageClinic'
+import Login from '../pages/client/Auth/Login'
+import Register from '../pages/client/Auth/Register'
+import ForgotPassword from '../pages/client/Auth/ForgotPassword'
+import ReEnterPassword from '../pages/client/Auth/ReEnterPassword'
+import ClinicSelection from '../pages/client/Home/ClinicSelection'
+import BookingAppointment from '../pages/client/User/BookingAppointment'
+import AddPet from '../pages/client/User/AddPet'
+import ChatBotAI from '../pages/client/Home/ChatBotAI'
+import ProfileUser from '../pages/client/User/ProfileUser'
+import AppointmentDetail from '../pages/client/User/AppointmentDetail'
+import SuccessBooking from '../pages/client/User/SuccessBooking'
+import PetProfile from '../pages/client/User/PetProfile'
+import ListPet from '../pages/client/User/ListPet'
+import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
+import Forum from '../pages/client/User/Forum/forum'
+import ListPetMedicalRecords from '../pages/client/User/ListPetMedicalRecords/listMedicalRecords'
+import MainLayout from '../layouts/client/MainLayout'
+import HeaderLayout from '../layouts/client/HeaderLayout'
+import AdminClinicLayout from '../layouts/adminClinic/AdminClinicLayout'
+import AdminLogin from '../pages/adminClinic/Auth/Login'
+import AdminRegister from '../pages/adminClinic/Auth/Register'
+import AdminForgotPassword from '../pages/adminClinic/Auth/ForgotPassword'
+import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
+import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
+import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
+import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
+import VererianrianManagement from '../pages/adminClinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
+import AddNewVererianrian from '../pages/adminClinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
+import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
+import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
+import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
 
 export default function AppRoutes({ location }) {
@@ -44,30 +49,15 @@ export default function AppRoutes({ location }) {
 
       <Route element={<AdminClinicLayout />}>
         <Route path="/admin/home" element={<AppointmentManagement />} />
-        <Route
-          path="/admin/clinic/appointments"
-          element={<AppointmentManagement />}
-        />
-        <Route
-          path="/admin/clinic/view-pet-appointment"
-          element={<ViewPetAppointment />}
-        />
-        <Route
-          path="/admin/clinic/medical-records"
-          element={<AdminListPetMedicalRecords />}
-        />
-        <Route
-          path="/admin/clinic/revenue"
-          element={<AppointmentManagement />}
-        />
-        <Route
-          path="/admin/clinic/doctors"
-          element={<AppointmentManagement />}
-        />
-        <Route
-          path="/admin/clinic/exam-slips"
-          element={<AppointmentManagement />}
-        />
+        <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
+        <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
+        <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
+        <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
+        <Route path="/admin/clinic/veterinarians" element={<VererianrianManagement />} />
+        <Route path="/admin/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
+        <Route path="/admin/clinic/veterinarians/information" element={<InformationVererianrian />} />
+        <Route path="/admin/clinic/exam-slips" element={<ListPetExaminationRecords />} />
+        <Route path="/admin/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
       </Route>
 
       <Route path="/login" element={<Login />} />

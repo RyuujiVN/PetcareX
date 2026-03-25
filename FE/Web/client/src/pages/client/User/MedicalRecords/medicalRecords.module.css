@@ -3,13 +3,14 @@
 	--medical-primary-hover: var(--user-primary-hover);
 	--medical-primary-soft: white;
 
+	
 	min-height: 100vh;
 	background: #f3f5f7;
 	padding-top: 70px;
 }
 
 .pageContent {
-	max-width: 1240px;
+	max-width: 1140px;
 	margin: 0 auto;
 	padding: 10px 16px 40px;
 	background: white;
@@ -236,7 +237,7 @@
 .statusTag {
 	border-radius: 999px;
 	padding: 4px 10px;
-	font-size: 14px;
+	font-size: 10px;
 	font-weight: 800;
 	white-space: nowrap;
 }
@@ -281,7 +282,7 @@
 .recordDetails p {
 	margin: 0 0 6px;
 	color: #51637a;
-	font-size: 20px;
+	font-size: 17px;
 	font-weight: 600;
 }
 

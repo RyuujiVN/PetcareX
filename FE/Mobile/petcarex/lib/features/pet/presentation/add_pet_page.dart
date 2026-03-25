@@ -1,13 +1,15 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../core/services/camera_service.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../data/models/pet_models.dart';
 import 'provider/pet_provider.dart';
+import 'widgets/pet_form_fields.dart';
 
 class AddPetPage extends StatefulWidget {
   const AddPetPage({super.key});
@@ -17,10 +19,17 @@ class AddPetPage extends StatefulWidget {
 }
 
 class _AddPetPageState extends State<AddPetPage> {
+  static const TextStyle _fieldLabelStyle = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 13,
+    color: AppColors.text,
+  );
+
   final _formKey = GlobalKey<FormState>();
   final TextEditingController petNameController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController birthdateController = TextEditingController();
+  final TextEditingController furColorController = TextEditingController();
 
   final CameraService _cameraService = CameraService();
 
@@ -31,14 +40,15 @@ class _AddPetPageState extends State<AddPetPage> {
   String? _selectedSpeciesId;
   String? _selectedBreedId;
   String _selectedGender = 'male';
-  String? _selectedFurColor;
-  DateTime? _selectedBirthDate;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PetProvider>().fetchSpecies();
+      if (!mounted) return;
+      final provider = context.read<PetProvider>();
+      provider.setPetAvatarUrl(null);
+      provider.fetchSpecies();
     });
   }
 
@@ -47,12 +57,32 @@ class _AddPetPageState extends State<AddPetPage> {
     petNameController.dispose();
     weightController.dispose();
     birthdateController.dispose();
+    furColorController.dispose();
     super.dispose();
   }
 
+  void _showQuickSnackBar(String message, {bool isError = true}) {
+    if (!mounted) return;
+    if (isError) {
+      AppNotifier.showError(
+        context,
+        message,
+        duration: const Duration(milliseconds: 2200),
+      );
+      return;
+    }
+    AppNotifier.showSuccess(
+      context,
+      message,
+      duration: const Duration(milliseconds: 2200),
+    );
+  }
+
   Future<void> _pickImage() async {
+    final l10n = AppLocalizations.of(context)!;
     final File? image = await _cameraService.pickImageFromGallery();
     if (!mounted) return;
+
     if (image != null) {
       setState(() {
         _selectedImage = image;
@@ -60,20 +90,16 @@ class _AddPetPageState extends State<AddPetPage> {
       });
 
       try {
-        final avatarUrl = await context.read<PetProvider>().uploadAvatar(image.path);
+        final avatarUrl = await context.read<PetProvider>().uploadAvatar(
+          image.path,
+        );
         if (!mounted) return;
         setState(() {
           _uploadedAvatarUrl = avatarUrl;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Tải ảnh thành công!')),
-        );
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Lỗi tải ảnh: ${e.toString()}')),
-          );
-        }
+        _showQuickSnackBar(l10n.uploadImageSuccess, isError: false);
+      } catch (_) {
+        _showQuickSnackBar(l10n.uploadImageFailed);
       } finally {
         if (mounted) {
           setState(() {
@@ -84,77 +110,62 @@ class _AddPetPageState extends State<AddPetPage> {
     }
   }
 
-  Future<void> _selectDate() async {
-    DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: _selectedBirthDate ?? DateTime.now(),
-      firstDate: DateTime(2000),
-      lastDate: DateTime.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              onSurface: AppColors.textDark,
-            ),
-          ),
-          child: child!,
-        );
-      },
-    );
-    if (picked != null && mounted) {
-      setState(() {
-        _selectedBirthDate = picked;
-        birthdateController.text =
-            "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
-      });
-    }
-  }
-
   Future<void> _savePetInfo() async {
     final l10n = AppLocalizations.of(context)!;
+
     if (_isUploadingAvatar) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đang tải ảnh lên, vui lòng đợi!')),
-      );
+      _showQuickSnackBar(l10n.uploadingImage);
       return;
     }
 
-    if (_formKey.currentState?.validate() ?? false) {
-      if (_selectedBreedId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.breed)),
-        );
-        return;
-      }
-
-      final String isoBirthDate = _selectedBirthDate?.toUtc().toIso8601String() ?? "";
-
-      final petDto = CreatePetDto(
-        name: petNameController.text.trim(),
-        gender: _selectedGender == 'male',
-        dateOfBirth: isoBirthDate,
-        weight: double.tryParse(weightController.text) ?? 0.0,
-        avatar: _uploadedAvatarUrl,
-        breedId: _selectedBreedId!,
-        note: _selectedFurColor ?? "",
-      );
-
-      final success = await context.read<PetProvider>().createPet(petDto);
-
-      if (success && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Thành công!')),
-        );
-        Navigator.pop(context, true);
-      } else if (mounted) {
-        final error = context.read<PetProvider>().errorMessage;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error ?? 'Thất bại')),
-        );
-      }
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      return;
     }
+
+    if (_selectedBreedId == null) {
+      _showQuickSnackBar(l10n.pleaseSelect(l10n.breed));
+      return;
+    }
+
+    final parsedWeight = parsePetWeight(weightController.text);
+    if (parsedWeight == null || parsedWeight <= 0) {
+      _showQuickSnackBar(l10n.invalidWeight);
+      return;
+    }
+    if (parsedWeight > petWeightMax) {
+      _showQuickSnackBar(l10n.invalidWeightMax);
+      return;
+    }
+
+    final parsedBirthDate = DateTime.tryParse(birthdateController.text.trim());
+    if (parsedBirthDate == null) {
+      _showQuickSnackBar(l10n.pleaseEnter(l10n.birthDate));
+      return;
+    }
+
+    final petDto = PetFormDto(
+      name: petNameController.text.trim(),
+      gender: _selectedGender == 'male',
+      dateOfBirth: parsedBirthDate.toUtc().toIso8601String(),
+      weight: parsedWeight,
+      avatar: _uploadedAvatarUrl,
+      species: _selectedSpeciesId!,
+      breed: _selectedBreedId!,
+      note: furColorController.text.trim(),
+    );
+
+    final success = await context.read<PetProvider>().createPet(petDto);
+
+    if (!mounted) return;
+
+    if (success) {
+      _showQuickSnackBar(l10n.petCreateSuccess, isError: false);
+      Navigator.pop(context, true);
+      return;
+    }
+
+    final error = context.read<PetProvider>().errorMessage;
+    _showQuickSnackBar(error ?? l10n.failed);
   }
 
   @override
@@ -163,17 +174,17 @@ class _AddPetPageState extends State<AddPetPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.secondary,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
+          icon: const Icon(Icons.arrow_back, color: AppColors.text),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           l10n.addPet,
           style: const TextStyle(
-            color: AppColors.textDark,
+            color: AppColors.text,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -181,98 +192,131 @@ class _AddPetPageState extends State<AddPetPage> {
       ),
       body: Consumer<PetProvider>(
         builder: (context, petProvider, child) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _buildAvatarSection(petProvider),
-                  const SizedBox(height: 32),
-                  _buildPetNameField(l10n),
-                  const SizedBox(height: 20),
-                  _buildTypeAndBreedRow(petProvider, l10n),
-                  const SizedBox(height: 20),
-                  _buildGenderSection(l10n),
-                  const SizedBox(height: 20),
-                  _buildBirthdateField(l10n),
-                  const SizedBox(height: 20),
-                  _buildWeightAndFurColorRow(l10n),
-                  const SizedBox(height: 32),
-                  _buildSaveButton(petProvider, l10n),
-                ],
+          final shouldStackFields = MediaQuery.sizeOf(context).width < 360;
+          final isSaving = petProvider.isSubmitting || _isUploadingAvatar;
+
+          return Column(
+            children: [
+              if (petProvider.isLoadingSpecies)
+                const LinearProgressIndicator(
+                  minHeight: 2,
+                  color: AppColors.primary,
+                ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Align(
+                                alignment: Alignment.center,
+                                child: PetAvatarPicker(
+                                  selectedImage: _selectedImage,
+                                  avatarUrl: _uploadedAvatarUrl,
+                                  isUploading: _isUploadingAvatar,
+                                  onPickImage: _pickImage,
+                                  uploadLabel: l10n.uploadPhoto,
+                                ),
+                              ),
+                              const SizedBox(height: 28),
+                              _buildPetNameField(l10n),
+                              const SizedBox(height: 12),
+                              _buildSpeciesBreedFields(
+                                petProvider,
+                                l10n,
+                                shouldStackFields,
+                              ),
+                              const SizedBox(height: 12),
+                              _buildGenderSection(l10n),
+                              const SizedBox(height: 12),
+                              PetBirthdateAgeFields(
+                                l10n: l10n,
+                                birthdateController: birthdateController,
+                                vertical: shouldStackFields,
+                                onBirthdateChanged: () {
+                                  if (mounted) {
+                                    setState(() {});
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              _buildWeightAndFurColorSection(
+                                l10n,
+                                shouldStackFields,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
+              Container(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 18),
+                decoration: BoxDecoration(
+                  color: AppColors.secondary,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.textAlpha(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 560),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: isSaving ? null : _savePetInfo,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            disabledBackgroundColor: AppColors.primary
+                                .withValues(alpha: 0.5),
+                            foregroundColor: AppColors.onPrimary,
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: isSaving
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.onPrimary,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  l10n.save,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           );
         },
       ),
-    );
-  }
-
-  Widget _buildAvatarSection(PetProvider provider) {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.grey[200],
-              ),
-              child: ClipOval(
-                child: _selectedImage != null
-                    ? Image.file(_selectedImage!, fit: BoxFit.cover, width: 100, height: 100)
-                    : (_uploadedAvatarUrl != null)
-                        ? Image.network(
-                            _uploadedAvatarUrl!,
-                            fit: BoxFit.cover,
-                            width: 100,
-                            height: 100,
-                            errorBuilder: (context, error, stackTrace) => 
-                                Icon(Icons.broken_image, color: Colors.grey[400], size: 40),
-                          )
-                        : Icon(Icons.camera_alt, color: Colors.grey[400], size: 40),
-              ),
-            ),
-            if (_isUploadingAvatar)
-              Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.black.withOpacity(0.4),
-                ),
-                child: const Center(
-                  child: CircularProgressIndicator(color: Colors.white),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton(
-          onPressed: _isUploadingAvatar ? null : _pickImage,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFEAF9F7),
-            foregroundColor: AppColors.primary,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(Icons.camera_alt_outlined,
-                  size: 16, color: _isUploadingAvatar ? Colors.grey : AppColors.primary),
-              const SizedBox(width: 6),
-              const Text('Upload'),
-            ],
-          ),
-        ),
-      ],
     );
   }
 
@@ -280,224 +324,107 @@ class _AddPetPageState extends State<AddPetPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.petName,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
+        Text(l10n.petName, style: _fieldLabelStyle),
         const SizedBox(height: 8),
         TextFormField(
           controller: petNameController,
-          decoration: _inputDecoration(l10n.petName),
-          validator: (value) =>
-              (value == null || value.isEmpty) ? l10n.petName : null,
+          decoration: petInputDecoration(l10n.petName),
+          validator: (value) => validateRequiredField(
+            value: value,
+            l10n: l10n,
+            fieldLabel: l10n.petName,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildTypeAndBreedRow(PetProvider provider, AppLocalizations l10n) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.species,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                value: _selectedSpeciesId,
-                decoration: _inputDecoration(l10n.species),
-                hint: Text(l10n.species, style: const TextStyle(fontSize: 14)),
-                items: provider.speciesList.map<DropdownMenuItem<String>>((species) {
-                  return DropdownMenuItem<String>(
-                    value: species.id,
-                    child: Text(species.name, style: const TextStyle(fontSize: 14)),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedSpeciesId = value;
-                    _selectedBreedId = null;
-                  });
-                  if (value != null) {
-                    provider.fetchBreeds(value);
-                  }
-                },
-                validator: (value) => value == null ? l10n.species : null,
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.breed,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                value: _selectedBreedId,
-                decoration: _inputDecoration(l10n.breed),
-                hint: Text(l10n.breed, style: const TextStyle(fontSize: 14)),
-                items: provider.breedList.map<DropdownMenuItem<String>>((breed) {
-                  return DropdownMenuItem<String>(
-                    value: breed.id,
-                    child: Text(breed.name,
-                        style: const TextStyle(fontSize: 14), overflow: TextOverflow.ellipsis),
-                  );
-                }).toList(),
-                onChanged: (value) => setState(() => _selectedBreedId = value),
-                validator: (value) => value == null ? l10n.breed : null,
-              ),
-            ],
-          ),
-        ),
-      ],
+  Widget _buildSpeciesBreedFields(
+    PetProvider provider,
+    AppLocalizations l10n,
+    bool shouldStackFields,
+  ) {
+    return PetSpeciesBreedFields(
+      l10n: l10n,
+      selectedSpeciesId: _selectedSpeciesId,
+      selectedBreedId: _selectedBreedId,
+      speciesList: provider.speciesList,
+      breedList: provider.breedList,
+      vertical: shouldStackFields,
+      onSpeciesChanged: (value) {
+        setState(() {
+          _selectedSpeciesId = value;
+          _selectedBreedId = null;
+        });
+        if (value != null) {
+          provider.fetchBreeds(value);
+        } else {
+          provider.clearBreeds();
+        }
+      },
+      onBreedChanged: (value) => setState(() => _selectedBreedId = value),
     );
   }
 
   Widget _buildGenderSection(AppLocalizations l10n) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(l10n.gender,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _buildGenderOption('Đực', 'male', Icons.male)),
-            const SizedBox(width: 16),
-            Expanded(child: _buildGenderOption('Cái', 'female', Icons.female)),
-          ],
-        ),
-      ],
+    return PetGenderSelector(
+      l10n: l10n,
+      selectedGender: _selectedGender,
+      onChanged: (value) => setState(() => _selectedGender = value),
+      showIcons: true,
     );
   }
 
-  Widget _buildGenderOption(String label, String value, IconData icon) {
-    final isSelected = _selectedGender == value;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedGender = value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          border: Border.all(color: isSelected ? AppColors.primary : (Colors.grey[200] ?? Colors.grey), width: 1.5),
-          borderRadius: BorderRadius.circular(12),
-          color: Colors.white,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 18, color: isSelected ? AppColors.primary : Colors.grey[600]),
-            const SizedBox(width: 8),
-            Text(label,
-                style: TextStyle(
-                    fontWeight: FontWeight.w600,
-                    color: isSelected ? AppColors.primary : Colors.black)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBirthdateField(AppLocalizations l10n) {
-    return Column(
+  Widget _buildWeightAndFurColorSection(
+    AppLocalizations l10n,
+    bool shouldStackFields,
+  ) {
+    final weightField = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.birthDate,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
+        Text(l10n.weight, style: _fieldLabelStyle),
         const SizedBox(height: 8),
         TextFormField(
-          controller: birthdateController,
-          readOnly: true,
-          onTap: _selectDate,
-          decoration: _inputDecoration(l10n.birthDate).copyWith(
-            suffixIcon: const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
-          ),
-          validator: (value) => (value == null || value.isEmpty) ? l10n.birthDate : null,
+          controller: weightController,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: petInputDecoration('0.0'),
+          validator: (value) => validatePetWeight(value: value, l10n: l10n),
         ),
       ],
     );
-  }
 
-  Widget _buildWeightAndFurColorRow(AppLocalizations l10n) {
+    final furColorField = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.furColor, style: _fieldLabelStyle),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: furColorController,
+          decoration: petInputDecoration(
+            l10n.furColor,
+            reserveErrorSpace: true,
+          ),
+          validator: (value) => validateRequiredField(
+            value: value,
+            l10n: l10n,
+            fieldLabel: l10n.furColor,
+          ),
+        ),
+      ],
+    );
+
+    if (shouldStackFields) {
+      return Column(
+        children: [weightField, const SizedBox(height: 12), furColorField],
+      );
+    }
+
     return Row(
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.weight,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: weightController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: _inputDecoration('0.0'),
-                validator: (value) => (value == null || value.isEmpty) ? l10n.weight : null,
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: weightField),
         const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(l10n.furColor,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
-              const SizedBox(height: 8),
-              TextFormField(
-                onChanged: (value) => setState(() => _selectedFurColor = value),
-                decoration: _inputDecoration(l10n.furColor),
-              ),
-            ],
-          ),
-        ),
+        Expanded(child: furColorField),
       ],
-    );
-  }
-
-  Widget _buildSaveButton(PetProvider provider, AppLocalizations l10n) {
-    return SizedBox(
-      width: double.infinity,
-      height: 54,
-      child: ElevatedButton(
-        onPressed: (_isUploadingAvatar || provider.isLoading) ? null : _savePetInfo,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          disabledBackgroundColor: AppColors.primary.withOpacity(0.5),
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: provider.isLoading
-            ? const SizedBox(
-                height: 24,
-                width: 24,
-                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-            : Text(l10n.save,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
-
-  InputDecoration _inputDecoration(String hint) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
-      enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey[200] ?? Colors.grey)),
-      focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 1.5)),
     );
   }
 }

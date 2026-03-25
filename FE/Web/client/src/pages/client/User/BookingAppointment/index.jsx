@@ -1,6 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { message, Spin } from 'antd';
 import { Select, Card, Avatar, Row, Col, Input, Form } from 'antd';
+import {
+  ClockCircleOutlined,
+  EnvironmentOutlined,
+  ExperimentOutlined,
+  MoonOutlined,
+  SmileOutlined,
+  SunOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { useLocation, useNavigate } from 'react-router-dom';
 import './styles.css';
 import { useAuth } from '../../../../hooks/client/AuthContext';
@@ -15,7 +24,22 @@ import {
 } from '../../../../data/client/api/appointmentApi';
 import { getBreedLabel } from '../../../../data/client/api/petApi';
 
-const WORKING_SLOTS = ['08:00', '09:00', '10:30', '13:30', '15:00', '16:30'];
+const TIME_SLOT_GROUPS = [
+  {
+    key: 'morning',
+    label: 'Buổi sáng',
+    icon: SunOutlined,
+    times: ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30'],
+  },
+  {
+    key: 'afternoon',
+    label: 'Buổi chiều',
+    icon: MoonOutlined,
+    times: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
+  },
+];
+
+const WORKING_SLOTS = TIME_SLOT_GROUPS.flatMap((group) => group.times);
 
 const formatDate = (date) => {
   const y = date.getFullYear();
@@ -295,18 +319,6 @@ export default function BookingAppointment() {
     navigate('/add-pet');
   }
 
-  const handleShowMyPets = async () => {
-    try {
-      setLoading(true);
-      await fetchPets();
-      message.success('Đã cập nhật danh sách thú cưng mới nhất');
-    } catch (error) {
-      message.error(error.message || 'Không thể cập nhật danh sách thú cưng');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const validateSymptoms = (_, value) => {
     if (!value || !String(value).trim()) {
       return Promise.reject(new Error('Vui lòng nhập triệu chứng'));
@@ -357,9 +369,8 @@ export default function BookingAppointment() {
       return;
     }
 
-    let values;
     try {
-      values = await form.validateFields([
+      await form.validateFields([
         'service',
         'clinicId',
         'doctorId',
@@ -429,8 +440,8 @@ export default function BookingAppointment() {
   return (
     <div className="booking-page">
       <header className="dashboard-header">
-        <h1 style={{marginRight: '46%'}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
-        <p style={{marginRight: '48%', paddingTop: 19}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
+        <h1 style={{marginRight: '46%', paddingTop: 30}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
+        <p style={{marginRight: '48%', paddingTop: 20}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
       </header>
       <Spin spinning={loading || submitting}>
         <div className="booking-content">
@@ -655,25 +666,36 @@ export default function BookingAppointment() {
                   </table>
                 </div>
                 <div className="time-slots" style={{color: 'var(--color-text-primary)'}}>
-                  {WORKING_SLOTS.map((timeValue) => {
-                    const inPast = toDateTimeValue(selectedDate, timeValue) < new Date();
-                    const isBooked = unavailableTimes.has(timeValue);
-                    const disabled = inPast || isBooked;
-
-                    return (
-                      <div
-                        key={timeValue}
-                        className={`slot ${selectedTime === timeValue ? 'selected' : ''} ${disabled ? 'disabled-slot' : ''}`}
-                        onClick={() => {
-                          if (!disabled) {
-                            form.setFieldValue('selectedTime', timeValue);
-                          }
-                        }}
-                      >
-                        {timeValue}
+                  {TIME_SLOT_GROUPS.map((group) => (
+                    <section key={group.key} className="time-slot-group">
+                      <div className="time-slot-group-title">
+                        <group.icon className="time-slot-icon" aria-hidden />
+                        <span >{group.label}</span>
                       </div>
-                    );
-                  })}
+
+                      <div className="slots-grid">
+                        {group.times.map((timeValue) => {
+                          const inPast = toDateTimeValue(selectedDate, timeValue) < new Date();
+                          const isBooked = unavailableTimes.has(timeValue);
+                          const disabled = inPast || isBooked;
+
+                          return (
+                            <div
+                              key={timeValue}
+                              className={`slot ${selectedTime === timeValue ? 'selected' : ''} ${disabled ? 'disabled-slot' : ''}`}
+                              onClick={() => {
+                                if (!disabled) {
+                                  form.setFieldValue('selectedTime', timeValue);
+                                }
+                              }}
+                            >
+                              {timeValue}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  ))}
                 </div>
               </div>
               <Form.Item
@@ -711,7 +733,9 @@ export default function BookingAppointment() {
       <h3>Tóm tắt lịch hẹn</h3>
       {selectedPet && (
         <div className="summary-line">
-          <span className="icon">🐾</span>
+          <span className="icon" aria-hidden>
+            <SmileOutlined />
+          </span>
           <div className="text">
             <div className="label">THÚ CƯNG</div>
             <div className="value">
@@ -722,7 +746,9 @@ export default function BookingAppointment() {
       )}
 
       <div className="summary-line">
-        <span className="icon">🩺</span>
+        <span className="icon" aria-hidden>
+          <ExperimentOutlined />
+        </span>
         <div className="text">
           <div className="label">DỊCH VỤ</div>
           <div className="value">{serviceLabelByKey[service] || service}</div>
@@ -730,7 +756,9 @@ export default function BookingAppointment() {
       </div>
 
       <div className="summary-line">
-        <span className="icon">👨‍⚕️</span>
+        <span className="icon" aria-hidden>
+          <UserOutlined />
+        </span>
         <div className="text">
           <div className="label">BÁC SĨ</div>
           <div className="value">{selectedDoctorName || 'Chưa chọn'}</div>
@@ -738,7 +766,9 @@ export default function BookingAppointment() {
       </div>
 
       <div className="summary-line">
-        <span className="icon">🏥</span>
+        <span className="icon" aria-hidden>
+          <EnvironmentOutlined />
+        </span>
         <div className="text">
           <div className="label">PHÒNG KHÁM</div>
           <div className="value">{selectedClinic?.name || 'Chưa chọn'}</div>
@@ -746,7 +776,9 @@ export default function BookingAppointment() {
       </div>
 
       <div className="summary-line">
-        <span className="icon">⏰</span>
+        <span className="icon" aria-hidden>
+          <ClockCircleOutlined />
+        </span>
         <div className="text">
           <div className="label">THỜI GIAN</div>
           <div className="value">

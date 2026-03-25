@@ -12,8 +12,8 @@
 }
 
 .pageWrap {
-	max-width: 1200px;
-	margin: 0 auto;
+	width: 95%;
+	justify-self: center;
 	padding: 10px 28px 56px;
 	display: grid;
 	grid-template-columns: minmax(0, 100%) 360px;
@@ -300,6 +300,25 @@
 	padding: 6px 10px;
 	font-size: 12px;
 	font-weight: 800;
+}
+
+.postTagRow {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.featuredBadge {
+	display: inline-flex;
+	align-items: center;
+	padding: 4px 8px;
+	border-radius: 999px;
+	background: #fff3de;
+	color: #9a5a0e;
+	font-size: 11px;
+	font-weight: 800;
+	line-height: 1;
 }
 
 .kinh-nghiem-nuoi {
