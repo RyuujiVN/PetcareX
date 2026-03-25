@@ -6,10 +6,12 @@ function App() {
   const location = useLocation()
 
   return (
-    <div className="route-transition" key={`${location.pathname}${location.search}`}>
+    // <div className="route-transition" key={`${location.pathname}${location.search}`}>
+      // {/* </div> */}
+      <>
       <ScrollToTop />
       <AppRoutes location={location} />
-    </div>
+      </>
   )
 }
 

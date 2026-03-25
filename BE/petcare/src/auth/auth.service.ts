@@ -36,6 +36,12 @@ export class AuthService {
     private readonly otpService: OtpService,
   ) {}
 
+  async verifyToken(token) {
+    return await this.jwtService.verify(token, {
+      secret: this.configService.get<string>('ACCESS_TOKEN'),
+    });
+  }
+
   async login(loginDTO: LoginDTO) {
     const user = await this.userService.findOneByEmail(loginDTO.email);
 
