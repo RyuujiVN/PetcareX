@@ -1,0 +1,286 @@
+.page {
+	min-height: 100%;
+	background: #eff2f6;
+}
+
+.topBar {
+	height: 64px;
+	border-bottom: 1px solid #dfe5ee;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 22px;
+}
+
+.searchBox {
+	width: min(520px, 100%);
+}
+
+.searchBox input {
+	width: 100%;
+	border: 1px solid #e1e7ef;
+	background: #f4f7fb;
+	border-radius: 10px;
+	height: 42px;
+	padding: 0 14px;
+	color: #6c7a8e;
+	font-size: 14px;
+}
+
+.notificationButton {
+	width: 32px;
+	height: 32px;
+	border: 0;
+	border-radius: 999px;
+	background: #fff;
+	color: #8ea0b6;
+	cursor: pointer;
+}
+
+.content {
+	max-width: 1150px;
+	margin: 0 auto;
+	padding: 30px 24px 34px;
+}
+
+.titleRow {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 16px;
+}
+
+.titleRow h1 {
+	margin: 0;
+	font-size: 48px;
+	line-height: 1.1;
+	color: #243246;
+}
+
+.titleRow p {
+	margin: 8px 0 0;
+	color: #7c8da4;
+	font-size: 20px;
+}
+
+.addButton {
+	border: 0;
+	background: #1ed4c7;
+	color: #fff;
+	border-radius: 12px;
+	padding: 12px 20px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 18px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.filterRow {
+	margin-top: 20px;
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.filterButton {
+	border: 1px solid #dde5ef;
+	background: #fff;
+	color: #607089;
+	border-radius: 999px;
+	padding: 7px 13px;
+	font-size: 12px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.filterButtonActive {
+	background: #1fd4c7;
+	border-color: #1fd4c7;
+	color: #fff;
+}
+
+.cardGrid {
+	margin-top: 18px;
+	display: grid;
+	grid-template-columns: repeat(3, minmax(250px, 1fr));
+	gap: 20px;
+}
+
+.stateText {
+	grid-column: 1 / -1;
+	background: #fff;
+	border: 1px solid #dce3eb;
+	border-radius: 12px;
+	padding: 16px;
+	text-align: center;
+	color: #607089;
+	font-weight: 600;
+}
+
+.card {
+	background: #fff;
+	border: 1px solid #dce3eb;
+	border-radius: 16px;
+	overflow: hidden;
+}
+
+.cardInteractive {
+	cursor: pointer;
+	transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.cardInteractive:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 14px 26px rgba(31, 61, 100, 0.1);
+}
+
+.cardInteractive:focus-visible {
+	outline: 2px solid #1fd4c7;
+	outline-offset: 2px;
+}
+
+.cardImage {
+	width: 100%;
+	height: 220px;
+	object-fit: cover;
+	display: block;
+}
+
+.cardBody {
+	padding: 14px 14px 16px;
+}
+
+.cardBody h3 {
+	margin: 0;
+	color: #2b3850;
+	font-size: 36px;
+}
+
+.specialty {
+	margin: 4px 0 12px;
+	color: #8190a5;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.infoLine {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+}
+
+.metaText,
+.phone {
+	margin: 0;
+	color: #7e8d9f;
+	font-size: 16px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.statusBadge {
+	border-radius: 999px;
+	padding: 5px 11px;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.ready {
+	color: #259a56;
+	background: #d9f5e4;
+}
+
+.busy {
+	color: #b26b16;
+	background: #fde8bf;
+}
+
+.leave {
+	color: #65758a;
+	background: #ecf1f7;
+}
+
+.phone {
+	margin-top: 10px;
+}
+
+.paginationRow {
+	margin-top: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+}
+
+.paginationText {
+	color: #607089;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+@media (max-width: 1320px) {
+	.titleRow h1 {
+		font-size: 40px;
+	}
+
+	.titleRow p {
+		font-size: 17px;
+	}
+
+	.addButton {
+		font-size: 16px;
+	}
+
+	.cardBody h3 {
+		font-size: 30px;
+	}
+
+	.specialty,
+	.metaText,
+	.phone {
+		font-size: 14px;
+	}
+}
+
+@media (max-width: 1024px) {
+	.topBar {
+		padding: 0 14px;
+	}
+
+	.titleRow {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.cardGrid {
+		grid-template-columns: repeat(2, minmax(240px, 1fr));
+	}
+}
+
+@media (max-width: 680px) {
+	.content {
+		padding: 18px 12px 24px;
+	}
+
+	.cardGrid {
+		grid-template-columns: 1fr;
+	}
+
+	.titleRow h1 {
+		font-size: 32px;
+	}
+
+	.titleRow p {
+		font-size: 15px;
+	}
+
+	.addButton {
+		width: 100%;
+		justify-content: center;
+	}
+}

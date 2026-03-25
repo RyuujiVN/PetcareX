@@ -55,7 +55,8 @@ export class RoomService {
         time: new Date(options.createdAt),
       });
 
-    return await queryBuilder.getMany();
+    const messages = await queryBuilder.getMany();
+    return messages.reverse();
   }
 
   // Tạo mới đoạn chat

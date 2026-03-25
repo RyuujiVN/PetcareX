@@ -17,7 +17,7 @@ class BookingProvider extends ChangeNotifier {
   // Data lists fetching
   List<Clinic> _clinics = [];
   List<Veterinarian> _doctors = [];
-  
+
   bool _isLoading = false;
   bool _isDoctorsLoading = false;
   String? _errorMessage;
@@ -122,8 +122,13 @@ class BookingProvider extends ChangeNotifier {
   }
 
   Future<bool> confirmAppointment() async {
-    if (_selectedPetId == null || _selectedClinic == null || _selectedDoctor == null || _selectedDate == null || _selectedTime == null || _selectedServiceName == null) {
-      _errorMessage = "Vui lòng hoàn thành tất cả các bước!";
+    if (_selectedPetId == null ||
+        _selectedClinic == null ||
+        _selectedDoctor == null ||
+        _selectedDate == null ||
+        _selectedTime == null ||
+        _selectedServiceName == null) {
+      _errorMessage = 'bookingErrorCompleteAllSteps';
       notifyListeners();
       return false;
     }
@@ -133,7 +138,8 @@ class BookingProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final dateStr = "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
+      final dateStr =
+          "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
       final dto = CreateAppointmentDto(
         petId: _selectedPetId!,
         clinicId: _selectedClinic!.id,
@@ -151,7 +157,7 @@ class BookingProvider extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-        _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorMessage = e.toString().replaceAll('Exception: ', '');
       notifyListeners();
       return false;
     }

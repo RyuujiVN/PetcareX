@@ -13,17 +13,17 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { AppointmentService } from './appointment.service';
 import {
   ApiBearerAuth,
   ApiBody,
   ApiOperation,
   ApiQuery,
 } from '@nestjs/swagger';
-import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
-import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
-import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { AppointmentService } from './appointment.service';
+import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
+import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
+import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 
 @Controller('appointment')
 @ApiBearerAuth('JWT-auth')
@@ -35,7 +35,7 @@ export class AppointmentController {
   @ApiOperation({ summary: 'Danh sách lịch hẹn của riêng người dùng' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
-  getMyAppointment(
+  getMyAppointments(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Req() req,
@@ -46,6 +46,41 @@ export class AppointmentController {
         limit,
       },
       req?.user?.id,
+    );
+  }
+
+  @Get('')
+  @ApiOperation({ summary: 'Danh sách lịch hẹn của riêng phòng khám' })
+  @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  @ApiQuery({
+    name: 'appointmentDate',
+    required: false,
+    type: Date,
+    description: 'Lọc theo ngày',
+  })
+  @ApiQuery({
+    name: 'appointmentTime',
+    required: false,
+    type: String,
+    description: 'Lọc theo giờ (HH:MM)',
+    example: '09:00',
+  })
+  getAppointments(
+    @Req() req,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query('appointmentDate') appointmentDate?: Date,
+    @Query('appointmentTime') appointmentTime?: string,
+  ) {
+    return this.appointmentService.findAllClinicAppointments(
+      {
+        page,
+        limit,
+        appointmentDate,
+        appointmentTime,
+      },
+      req?.user?.clinicId,
     );
   }
 

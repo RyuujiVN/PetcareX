@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class ChatPage extends StatefulWidget {
@@ -32,9 +33,9 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0.5,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
@@ -78,14 +79,14 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: const Border(bottom: BorderSide(color: Color(0xFFEEEEEE))),
+        color: AppColors.formFillDisabled,
+        border: const Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.history, size: 18, color: Colors.grey),
+          const Icon(Icons.history, size: 18, color: AppColors.textGrey),
           const SizedBox(width: 8),
-          const Text('Lịch sử gần đây', style: TextStyle(fontSize: 13, color: Colors.grey, fontWeight: FontWeight.w500)),
+          const Text('Lịch sử gần đây', style: TextStyle(fontSize: 13, color: AppColors.textGrey, fontWeight: FontWeight.w500)),
           const Spacer(),
           TextButton.icon(
             onPressed: () {},
@@ -112,13 +113,13 @@ class _ChatPageState extends State<ChatPage> {
                   margin: const EdgeInsets.only(right: 8),
                   padding: const EdgeInsets.all(6),
                   decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                  child: const Icon(Icons.smart_toy_outlined, color: Colors.white, size: 16),
+                  child: const Icon(Icons.smart_toy_outlined, color: AppColors.onPrimary, size: 16),
                 ),
               Flexible(
                 child: Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: isMe ? AppColors.primary : const Color(0xFFF8F9FA),
+                    color: isMe ? AppColors.primary : AppColors.background,
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(16),
                       topRight: const Radius.circular(16),
@@ -128,7 +129,7 @@ class _ChatPageState extends State<ChatPage> {
                   ),
                   child: Text(
                     text,
-                    style: TextStyle(color: isMe ? Colors.white : AppColors.textDark, fontSize: 14, height: 1.4),
+                    style: TextStyle(color: isMe ? AppColors.onPrimary : AppColors.textDark, fontSize: 14, height: 1.4),
                   ),
                 ),
               ),
@@ -138,16 +139,16 @@ class _ChatPageState extends State<ChatPage> {
                   width: 30,
                   height: 30,
                   decoration: BoxDecoration(
-                    color: Colors.orange[100],
+                    color: AppColors.petAccent.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.person, size: 20, color: Colors.orange),
+                  child: const Icon(Icons.person, size: 20, color: AppColors.petAccent),
                 ),
             ],
           ),
           Padding(
             padding: EdgeInsets.only(top: 4, left: isMe ? 0 : 40, right: isMe ? 40 : 0),
-            child: Text(time, style: TextStyle(fontSize: 10, color: Colors.grey[400])),
+            child: Text(time, style: const TextStyle(fontSize: 10, color: AppColors.iconGrey)),
           )
         ],
       ),
@@ -158,8 +159,8 @@ class _ChatPageState extends State<ChatPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFEEEEEE))),
+        color: AppColors.secondary,
+        border: Border(top: BorderSide(color: AppColors.divider)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -170,14 +171,14 @@ class _ChatPageState extends State<ChatPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8F9FA),
+                    color: AppColors.background,
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: TextField(
                     controller: _messageController,
                     decoration: const InputDecoration(
                       hintText: 'Nhập câu hỏi của bạn về sức khỏe thú cưng...',
-                      hintStyle: TextStyle(fontSize: 13, color: Colors.grey),
+                      hintStyle: TextStyle(fontSize: 13, color: AppColors.textGrey),
                       border: InputBorder.none,
                     ),
                   ),
@@ -188,7 +189,7 @@ class _ChatPageState extends State<ChatPage> {
                 decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
                 child: IconButton(
                   onPressed: () {},
-                  icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                  icon: const Icon(Icons.send, color: AppColors.onPrimary, size: 20),
                 ),
               ),
             ],
@@ -197,7 +198,7 @@ class _ChatPageState extends State<ChatPage> {
           Text(
             'PetCar AI chỉ hỗ trợ trao đổi các vấn đề mà thú cưng hay gặp phải. Hãy cân nhắc các thông tin sức khỏe trong app và tư vấn bác sĩ.',
             textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 10, color: Colors.grey[400]),
+            style: const TextStyle(fontSize: 10, color: AppColors.iconGrey),
           )
         ],
       ),

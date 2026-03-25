@@ -1,0 +1,41 @@
+import 'package:flutter/material.dart';
+
+import '../../l10n/generated/app_localizations.dart';
+// bỏ qua lỗi về tên 
+// ignore_for_file: constant_identifier_names
+enum AppointmentStatusEnum {
+  BOOKED('BOOKED'),
+  IN_PROGRESS('IN_PROGRESS'),
+  COMPLETED('COMPLETED'),
+  CANCELLED('CANCELLED');
+
+  final String value;
+  const AppointmentStatusEnum(this.value);
+
+  String getTranslatedName(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (this) {
+      case AppointmentStatusEnum.BOOKED:
+        return l10n.statusUpcoming;
+      case AppointmentStatusEnum.IN_PROGRESS:
+        return l10n.statusInProgress;
+      case AppointmentStatusEnum.COMPLETED:
+        return l10n.statusCompleted;
+      case AppointmentStatusEnum.CANCELLED:
+        return l10n.statusCancelled;
+    }
+  }
+
+  static AppointmentStatusEnum? fromValue(String value) {
+    final normalized = value.trim().toUpperCase();
+
+    for (final status in AppointmentStatusEnum.values) {
+      if (status.name.toUpperCase() == normalized ||
+          status.value.toUpperCase() == normalized) {
+        return status;
+      }
+    }
+
+    return null;
+  }
+}

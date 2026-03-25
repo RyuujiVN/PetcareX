@@ -4,14 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Appointment } from './entities/appointment.entity';
+import { paginate } from 'nestjs-typeorm-paginate';
+import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
 import { Repository } from 'typeorm';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
-import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
-import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
-import { paginate } from 'nestjs-typeorm-paginate';
-import { FilterPagination } from 'src/common/types/pagination.type';
+import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
+import { Appointment } from './entities/appointment.entity';
+import { AppointmentPagination } from './types/appointment-pagination.type';
 
 @Injectable()
 export class AppointmentService {
@@ -60,14 +60,14 @@ export class AppointmentService {
   }
 
   // Danh sách lịch hẹn của người dùng
-  async findAllMyAppointments(options: FilterPagination, userId: string) {
+  async findAllMyAppointments(options: AppointmentPagination, userId: string) {
     const queryBuilder = this.appointmentRepository
       .createQueryBuilder('appointment')
-      .innerJoin('appointment.pet', 'pet')
-      .innerJoin('appointment.clinic', 'clinic')
-      .innerJoin('appointment.veterinarian', 'veterinarian')
-      .innerJoin('pet.owner', 'owner')
-      .innerJoin('veterinarian.user', 'user')
+      .leftJoin('appointment.pet', 'pet')
+      .leftJoin('appointment.clinic', 'clinic')
+      .leftJoin('appointment.veterinarian', 'veterinarian')
+      .leftJoin('pet.owner', 'owner')
+      .leftJoin('veterinarian.user', 'user')
       .where('owner.id = :userId', { userId: userId })
       .select([
         'appointment.id',
@@ -91,12 +91,67 @@ export class AppointmentService {
         'owner.fullName',
 
         'veterinarian.specialty',
-        
+
         'user.id',
         'user.fullName',
         'user.avatarUrl',
       ])
       .orderBy('appointment.createdAt', 'DESC');
+
+    return paginate<Appointment>(queryBuilder, options);
+  }
+
+  // Danh sách lịch hẹn của phòng khám
+  async findAllClinicAppointments(
+    options: AppointmentPagination,
+    clinicId: string,
+  ) {
+    const queryBuilder = this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .leftJoin('appointment.pet', 'pet')
+      .leftJoin('appointment.clinic', 'clinic')
+      .leftJoin('appointment.veterinarian', 'veterinarian')
+      .leftJoin('pet.owner', 'owner')
+      .leftJoin('veterinarian.user', 'user')
+      .where('appointment.clinicId = :clinicId', { clinicId: clinicId })
+      .select([
+        'appointment.id',
+        'appointment.appointmentDate',
+        'appointment.appointmentTime',
+        'appointment.service',
+        'appointment.note',
+        'appointment.status',
+
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+        'pet.species',
+        'pet.breed',
+
+        'clinic.id',
+        'clinic.name',
+        'clinic.address',
+
+        'owner.id',
+        'owner.fullName',
+
+        'veterinarian.specialty',
+
+        'user.id',
+        'user.fullName',
+        'user.avatarUrl',
+      ])
+      .orderBy('appointment.createdAt', 'DESC');
+
+    if (options.appointmentDate)
+      queryBuilder.andWhere('appointment.appointmentDate = :date', {
+        date: new Date(options.appointmentDate),
+      });
+
+    if (options.appointmentTime)
+      queryBuilder.andWhere('appointment.appointmentTime = :time', {
+        time: options.appointmentTime,
+      });
 
     return paginate<Appointment>(queryBuilder, options);
   }

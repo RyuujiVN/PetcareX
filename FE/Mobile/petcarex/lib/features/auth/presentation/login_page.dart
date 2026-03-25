@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/providers/language_provider.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_notifier.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
@@ -20,19 +23,13 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  
+  final FocusNode _emailFocus = FocusNode();
+  final FocusNode _passwordFocus = FocusNode();
 
   bool _rememberMe = false;
-
   String? _emailError;
   String? _passwordError;
-
-  void _quickAdminLogin() {
-    setState(() {
-      _emailController.text = "admin";
-      _passwordController.text = "12345";
-    });
-    _login();
-  }
 
   @override
   void initState() {
@@ -69,6 +66,8 @@ class _LoginPageState extends State<LoginPage> {
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -84,10 +83,12 @@ class _LoginPageState extends State<LoginPage> {
 
     if (email.isEmpty) {
       setState(() => _emailError = l10n.enterEmail);
+      _emailFocus.requestFocus();
       return;
     }
     if (password.isEmpty) {
       setState(() => _passwordError = l10n.enterPassword);
+      _passwordFocus.requestFocus();
       return;
     }
 
@@ -96,48 +97,47 @@ class _LoginPageState extends State<LoginPage> {
 
     if (success) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập thành công!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      AppNotifier.showSuccess(context, l10n.loginSuccess);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
       );
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(authProvider.errorMessage ?? l10n.loginFailed),
-        ),
-      );
+      setState(() {
+        _passwordError = ErrorHandler.getLocalizedError(
+          authProvider.errorMessage,
+          context,
+        );
+      });
+      _passwordFocus.requestFocus();
     }
   }
 
   Future<void> _loginWithGoogle() async {
     final l10n = AppLocalizations.of(context)!;
     final authProvider = context.read<AuthProvider>();
+    
     final success = await authProvider.loginWithGoogle();
 
     if (success) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Đăng nhập Google thành công!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      AppNotifier.showSuccess(context, l10n.loginSuccess);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainNavigationWrapper()),
       );
     } else {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.errorMessage ?? l10n.loginFailed)),
-      );
+      if (authProvider.errorMessage != null) {
+        setState(() {
+          _passwordError = ErrorHandler.getLocalizedError(
+            authProvider.errorMessage,
+            context,
+          );
+        });
+        _passwordFocus.requestFocus();
+      }
     }
   }
 
@@ -149,37 +149,107 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            children: [
-              _buildHeader(l10n),
-              const SizedBox(height: 20),
-              _buildLoginCard(isLoading, l10n),
-            ],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: _buildLanguageSelector(),
+                ),
+                const SizedBox(height: 12),
+                _buildHeader(l10n),
+                const SizedBox(height: 32),
+                _buildLoginCard(isLoading, l10n),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader(AppLocalizations l10n) {
-    return Center(
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black, width: 1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Image.asset('assets/images/icon.png', width: 30, height: 30),
-          ),
-          const SizedBox(width: 12),
-          Text(l10n.appName, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold)),
-        ],
+  Widget _buildLanguageSelector() {
+    final currentLocale = context.watch<LanguageProvider>().locale.languageCode;
+    return PopupMenuButton<String>(
+      tooltip: '', // Tắt tooltip mặc định (Hiển thị menu)
+      onSelected: (String languageCode) {
+        context.read<LanguageProvider>().setLocale(Locale(languageCode));
+      },
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(color: AppColors.black.withValues(alpha: 0.05), blurRadius: 10),
+          ],
+        ),
+        child: const Icon(Icons.language, color: AppColors.primary, size: 24),
       ),
+      itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+        PopupMenuItem<String>(
+          value: 'vi',
+          child: Row(
+            children: [
+              const Text('🇻🇳', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
+              Text(
+                'Tiếng Việt', 
+                style: TextStyle(
+                  fontWeight: currentLocale == 'vi' ? FontWeight.bold : FontWeight.normal,
+                  color: currentLocale == 'vi' ? AppColors.primary : AppColors.textDark,
+                ),
+              ),
+              if (currentLocale == 'vi') ...[
+                const Spacer(),
+                const Icon(Icons.check, color: AppColors.primary, size: 18),
+              ]
+            ],
+          ),
+        ),
+        PopupMenuItem<String>(
+          value: 'en',
+          child: Row(
+            children: [
+              const Text('🇺🇸', style: TextStyle(fontSize: 20)),
+              const SizedBox(width: 12),
+              Text(
+                'English', 
+                style: TextStyle(
+                  fontWeight: currentLocale == 'en' ? FontWeight.bold : FontWeight.normal,
+                  color: currentLocale == 'en' ? AppColors.primary : AppColors.textDark,
+                ),
+              ),
+              if (currentLocale == 'en') ...[
+                const Spacer(),
+                const Icon(Icons.check, color: AppColors.primary, size: 18),
+              ]
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHeader(AppLocalizations l10n) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: 0.05), blurRadius: 10)],
+          ),
+          child: Image.asset('assets/images/icon.png', width: 50, height: 50),
+        ),
+        const SizedBox(height: 16),
+        Text(l10n.appName, style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textDark)),
+      ],
     );
   }
 
@@ -187,62 +257,110 @@ class _LoginPageState extends State<LoginPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 20),
+          BoxShadow(color: AppColors.black.withValues(alpha: 0.03), blurRadius: 20),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          GestureDetector(onLongPress: _quickAdminLogin, child: const Center(child: Icon(Icons.account_circle_outlined, size: 60))),
-          const SizedBox(height: 12),
           Center(child: Text(l10n.login, style: AppTextStyles.title)),
-          const SizedBox(height: 24),
-          Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 32),
+          Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
           const SizedBox(height: 8),
           TextField(
             controller: _emailController,
-            decoration: InputDecoration(hintText: l10n.emailHint, prefixIcon: const Icon(Icons.email_outlined), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)), errorText: _emailError),
+            focusNode: _emailFocus,
+            autofocus: true,
+            textInputAction: TextInputAction.next,
+            onChanged: (_) {
+              if (_emailError != null) {
+                setState(() => _emailError = null);
+              }
+            },
+            onSubmitted: (_) => _passwordFocus.requestFocus(),
+            style: const TextStyle(color: AppColors.textDark),
+            decoration: InputDecoration(
+              hintText: l10n.emailHint,
+              prefixIcon: const Icon(Icons.email_outlined, color: AppColors.iconGrey),
+              filled: true,
+              fillColor: _emailError != null
+                  ? AppColors.fieldErrorBackground
+                  : AppColors.formFill,
+              errorText: _emailError,
+              errorStyle: const TextStyle(
+                color: AppColors.fieldErrorText,
+                fontSize: 12,
+                height: 1.4,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _emailError != null
+                      ? AppColors.fieldErrorBorder
+                      : AppColors.formBorder,
+                  width: _emailError != null ? 1.5 : 1,
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _emailError != null
+                      ? AppColors.fieldErrorBorder
+                      : AppColors.formBorder,
+                  width: _emailError != null ? 1.5 : 1,
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: _emailError != null
+                      ? AppColors.fieldErrorBorder
+                      : AppColors.primary,
+                  width: 1.5,
+                ),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: AppColors.fieldErrorBorder,
+                  width: 1.5,
+                ),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(
+                  color: AppColors.fieldErrorBorder,
+                  width: 1.5,
+                ),
+              ),
+            ),
           ),
           const SizedBox(height: 16),
           PasswordTextField(
             controller: _passwordController,
+            focusNode: _passwordFocus,
             label: l10n.password,
             errorText: _passwordError,
+            textInputAction: TextInputAction.done,
+            onChanged: (_) {
+              if (_passwordError != null) {
+                setState(() => _passwordError = null);
+              }
+            },
+            onSubmitted: (_) => _login(),
           ),
           const SizedBox(height: 8),
           _buildRememberAndForgot(l10n),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           _buildLoginButton(isLoading, l10n),
           const SizedBox(height: 16),
           _buildGoogleLoginButton(isLoading, l10n),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           _buildRegisterText(l10n),
         ],
-      ),
-    );
-  }
-
-  Widget _buildGoogleLoginButton(bool isLoading, AppLocalizations l10n) {
-    return SizedBox(
-      width: double.infinity,
-      height: 50,
-      child: OutlinedButton(
-        onPressed: isLoading ? null : _loginWithGoogle,
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFE0E0E0)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/images/google.png', width: 24, height: 24),
-            const SizedBox(width: 12),
-            Text(l10n.loginWithGoogle, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-          ],
-        ),
       ),
     );
   }
@@ -252,12 +370,21 @@ class _LoginPageState extends State<LoginPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(children: [
-          Checkbox(value: _rememberMe, activeColor: AppColors.primary, onChanged: (val) => setState(() => _rememberMe = val ?? false)),
-          Text(l10n.rememberMe, style: const TextStyle(fontSize: 13)),
+          SizedBox(
+            width: 24,
+            height: 24,
+            child: Checkbox(
+              value: _rememberMe, 
+              activeColor: AppColors.primary, 
+              onChanged: (val) => setState(() => _rememberMe = val ?? false)
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(l10n.rememberMe, style: const TextStyle(fontSize: 13, color: AppColors.textDark)),
         ]),
         TextButton(
           onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ForgotPasswordPage())),
-          child: Text(l10n.forgotPassword, style: const TextStyle(color: AppColors.primary, fontSize: 13)),
+          child: Text(l10n.forgotPassword, style: const TextStyle(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
         ),
       ],
     );
@@ -266,11 +393,40 @@ class _LoginPageState extends State<LoginPage> {
   Widget _buildLoginButton(bool isLoading, AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 54,
       child: ElevatedButton(
         onPressed: isLoading ? null : _login,
-        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-        child: isLoading ? const CircularProgressIndicator(color: Colors.white) : Text(l10n.login, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary, 
+          foregroundColor: AppColors.onPrimary,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          elevation: 0,
+        ),
+        child: isLoading 
+          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2)) 
+          : Text(l10n.login, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      ),
+    );
+  }
+
+  Widget _buildGoogleLoginButton(bool isLoading, AppLocalizations l10n) {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: OutlinedButton(
+        onPressed: isLoading ? null : _loginWithGoogle,
+        style: OutlinedButton.styleFrom(
+          side: const BorderSide(color: AppColors.formBorder),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset('assets/images/google.png', width: 24, height: 24),
+            const SizedBox(width: 12),
+            Text(l10n.loginWithGoogle, style: const TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
@@ -282,8 +438,13 @@ class _LoginPageState extends State<LoginPage> {
         child: RichText(
           text: TextSpan(
             text: l10n.dontHaveAccount,
-            style: const TextStyle(color: Colors.grey),
-            children: [TextSpan(text: l10n.registerNow, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))],
+            style: const TextStyle(color: AppColors.textGrey),
+            children: [
+              TextSpan(
+                text: l10n.registerNow, 
+                style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)
+              )
+            ],
           ),
         ),
       ),

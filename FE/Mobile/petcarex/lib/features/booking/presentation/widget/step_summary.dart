@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class StepSummary extends StatelessWidget {
   final String petName;
@@ -22,40 +24,50 @@ class StepSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final formattedDate = DateFormat(
+      'EEE, d MMM',
+      l10n.localeName,
+    ).format(date);
+
     return Column(
       children: [
-        const Text(
-          "Vui lòng kiểm tra lại thông tin trước khi xác nhận đặt lịch",
+        Text(
+          l10n.bookingSummaryInstruction,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 32),
         Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFFF4F7F8),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey.shade200),
+            border: Border.all(color: AppColors.divider),
           ),
           child: Column(
             children: [
-              const Text(
-                "TÓM TẮT LỊCH HẸN",
-                style: TextStyle(
-                  color: Colors.grey,
+              Text(
+                l10n.bookingSummaryTitle.toUpperCase(),
+                style: const TextStyle(
+                  color: AppColors.textGrey,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
                 ),
               ),
               const SizedBox(height: 24),
-              _row(Icons.pets, "Thú cưng", petName),
-              _row(Icons.local_hospital_outlined, "Phòng khám", clinicName),
-              _row(Icons.medical_services_outlined, "Dịch vụ", serviceName),
-              _row(Icons.person_outline, "Bác sĩ", doctorName),
+              _row(Icons.pets, l10n.stepPet, petName),
+              _row(Icons.local_hospital_outlined, l10n.stepClinic, clinicName),
+              _row(
+                Icons.medical_services_outlined,
+                l10n.stepService,
+                serviceName,
+              ),
+              _row(Icons.person_outline, l10n.stepDoctor, doctorName),
               _row(
                 Icons.calendar_today_outlined,
-                "Thời gian",
-                "$time - Thứ ${date.weekday == 7 ? "CN" : date.weekday + 1}, ${date.day} Tháng ${date.month}",
+                l10n.time,
+                '$time - $formattedDate',
               ),
             ],
           ),
@@ -73,7 +85,10 @@ class StepSummary extends StatelessWidget {
         const SizedBox(width: 12),
         Expanded(
           flex: 4,
-          child: Text(t, style: const TextStyle(color: Colors.black54, fontSize: 13)),
+          child: Text(
+            t,
+            style: const TextStyle(color: AppColors.textGrey, fontSize: 13),
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(
