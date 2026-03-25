@@ -27,15 +27,10 @@ import {
 import { useNavigate } from 'react-router-dom'
 import useVeterinarians from '../../../../data/adminClinic/api/useVeterinarians'
 import { uploadUserImageApi } from '../../../../data/adminClinic/api/user'
+import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import styles from './addNewVererianrian.module.css'
 
-const specialtyOptions = [
-	{ value: 'GENERAL_EXAMINATION', label: 'Khám tổng quát' },
-	{ value: 'INTERNAL_MEDICINE', label: 'Nội khoa' },
-	{ value: 'SURGERY', label: 'Ngoại khoa' },
-	{ value: 'ULTRASOUND', label: 'Chẩn đoán hình ảnh' },
-	{ value: 'VACCINATION_AND_PREVENTION', label: 'Tiêm chủng' },
-]
+const specialtyOptions = getSpecialtyOptions('vi')
 
 const defaultFormValues = {
 	fullName: '',

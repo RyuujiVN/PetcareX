@@ -3,27 +3,18 @@ import { message } from 'antd'
 import { FaBell, FaMapMarkerAlt, FaPlus } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import useVeterinarians from '../../../../data/adminClinic/api/useVeterinarians'
+import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels'
 import styles from './vererianrianManagement.module.css'
 
 const PAGE_SIZE = 10
 
 const filterItems = [
 	{ label: 'Tất cả bác sĩ', specialty: '' },
-	{ label: 'Nội khoa', specialty: 'INTERNAL_MEDICINE' },
-	{ label: 'Ngoại khoa', specialty: 'SURGERY' },
-	{ label: 'Chẩn đoán hình ảnh', specialty: 'ULTRASOUND' },
-	{ label: 'Tiêm chủng', specialty: 'VACCINATION_AND_PREVENTION' },
+	{ label: getSpecialtyLabel('INTERNAL_MEDICINE', 'vi'), specialty: 'INTERNAL_MEDICINE' },
+	{ label: getSpecialtyLabel('SURGERY', 'vi'), specialty: 'SURGERY' },
+	{ label: getSpecialtyLabel('ULTRASOUND', 'vi'), specialty: 'ULTRASOUND' },
+	{ label: getSpecialtyLabel('VACCINATION_AND_PREVENTION', 'vi'), specialty: 'VACCINATION_AND_PREVENTION' },
 ]
-
-const formatSpecialtyLabel = (specialty) => {
-	if (!specialty) return 'Chưa cập nhật'
-
-	return specialty
-		.toString()
-		.replace(/_/g, ' ')
-		.toLowerCase()
-		.replace(/(^|\s)\S/g, (char) => char.toUpperCase())
-}
 
 const defaultDoctorImage =
 	'https://images.unsplash.com/photo-1612531386530-97286d97c2d2?auto=format&fit=crop&w=960&q=80'
@@ -71,7 +62,7 @@ export default function VeterinarianManagement() {
 		return veterinarians.map((item) => ({
 			userId: item?.userId,
 			name: item?.user?.fullName || 'Chưa cập nhật',
-			specialty: formatSpecialtyLabel(item?.specialty),
+			specialty: getSpecialtyLabel(item?.specialty, 'vi'),
 			phone: item?.user?.phone || 'Chưa cập nhật',
 			email: item?.user?.email || 'Chưa cập nhật',
 			status: item?.user?.deleted ? 'TẠM KHÓA' : 'SẴN SÀNG',
