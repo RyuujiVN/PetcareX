@@ -29,6 +29,7 @@ import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/Li
 import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
 import VeterinarianManagement from '../pages/adminClinic/VeterinaryClinic/VeterinarianManagement/veterinarianManagement'
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
+import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 
 export default function AppRoutes({ location }) {
   return (
@@ -47,7 +48,8 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
         <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/veterinarians" element={<VeterinarianManagement />} />
-        <Route path="/admin/clinic/exam-slips" element={<PetMedicalRecords />} />
+        <Route path="/admin/clinic/exam-slips" element={<ListPetExaminationRecords />} />
+        <Route path="/admin/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
       </Route>
 
       <Route path="/login" element={<Login />} />
