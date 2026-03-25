@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,7 +6,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_notifier.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../../appointment/presentation/provider/appointment_provider.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
@@ -57,12 +54,12 @@ class _BookingPageState extends State<BookingPage> {
   void _nextStep(AppLocalizations l10n) async {
     final bookingProvider = context.read<BookingProvider>();
 
-    if (_currentStep == 0 && bookingProvider.selectedPetId == null) {
-      _showError(l10n.validChoosePet);
+    if (_currentStep == 0 && bookingProvider.selectedClinic == null) {
+      _showError(l10n.validChooseClinic);
       return;
     }
-    if (_currentStep == 1 && bookingProvider.selectedClinic == null) {
-      _showError(l10n.validChooseClinic);
+    if (_currentStep == 1 && bookingProvider.selectedPetId == null) {
+      _showError(l10n.validChoosePet);
       return;
     }
     if (_currentStep == 2) {
@@ -135,8 +132,8 @@ class _BookingPageState extends State<BookingPage> {
     final l10n = AppLocalizations.of(context)!;
     final isSuccess = _currentStep == 6;
     final List<String> steps = [
-      l10n.stepPet,
       l10n.stepClinic,
+      l10n.stepPet,
       l10n.stepService,
       l10n.stepDoctor,
       l10n.stepTime,
@@ -274,9 +271,6 @@ class _BookingPageState extends State<BookingPage> {
   void _closeSuccessAndGoToAppointments(BookingProvider bookingProvider) {
     bookingProvider.reset();
 
-    final appointmentProvider = context.read<AppointmentProvider>();
-    unawaited(appointmentProvider.fetchAppointments());
-
     if (mounted) {
       setState(() => _currentStep = 0);
     }
@@ -291,19 +285,6 @@ class _BookingPageState extends State<BookingPage> {
     Widget content;
     switch (_currentStep) {
       case 0:
-        if (petProvider.isLoading) {
-          content = const Center(
-            child: CircularProgressIndicator(color: AppColors.primary),
-          );
-        } else {
-          content = StepPetSelector(
-            selectedPetId: bookingProvider.selectedPetId,
-            onSelected: (pet) => bookingProvider.selectPet(pet.id),
-            pets: petProvider.myPets,
-          );
-        }
-        break;
-      case 1:
         if (bookingProvider.isLoading && bookingProvider.clinics.isEmpty) {
           return const SliverFillRemaining(
             child: Center(
@@ -316,6 +297,19 @@ class _BookingPageState extends State<BookingPage> {
           onSelected: (clinic) => bookingProvider.selectClinic(clinic),
           clinics: bookingProvider.clinics,
         );
+        break;
+      case 1:
+        if (petProvider.isLoading) {
+          content = const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        } else {
+          content = StepPetSelector(
+            selectedPetId: bookingProvider.selectedPetId,
+            onSelected: (pet) => bookingProvider.selectPet(pet.id),
+            pets: petProvider.myPets,
+          );
+        }
         break;
       case 2:
         content = StepServiceSelector(
@@ -368,15 +362,15 @@ class _BookingPageState extends State<BookingPage> {
 
   Widget _buildStepHeaderSliver(AppLocalizations l10n) {
     final titles = [
-      l10n.choosePet,
       l10n.stepClinic,
+      l10n.choosePet,
       l10n.stepService,
       l10n.stepDoctor,
       l10n.stepTime,
     ];
     final subs = [
-      l10n.choosePetSub,
       l10n.bookingClinicSub,
+      l10n.choosePetSub,
       l10n.bookingServiceSub,
       l10n.bookingDoctorSub,
       l10n.bookingTimeSub,

@@ -207,6 +207,7 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Tiêu chuẩn Enum:** Enum runtime của Flutter được đặt tập trung trong `lib/core/enums/`; mọi màn hình/business logic chỉ dùng enum Dart thay vì chuỗi cứng.
 - **Chuẩn hóa Booking UI theo i18n:** Đã loại bỏ chuỗi cứng còn sót trong các bước `Service`, `Doctor`, `Time`, `Summary`, `Success`.
 - **Booking Step Header UX (2026-03):** Loại bỏ pattern trùng lặp title/subtitle (ví dụ `Dịch vụ`/`Dịch vụ`) ở các bước đặt lịch. Subtitle từng bước được đổi thành câu hướng dẫn có ngữ nghĩa rõ ràng (`bookingClinicSub`, `bookingServiceSub`, `bookingDoctorSub`, `bookingTimeSub`) để người dùng hiểu cần làm gì ở mỗi bước.
+- **Booking Step Order Update (2026-03-25):** Đổi thứ tự luồng đặt lịch thành **Clinic -> Pet -> Service -> Doctor -> Time**. Các bước còn lại giữ nguyên logic validate/nghiệp vụ; mục tiêu UX là chốt ngữ cảnh phòng khám trước rồi mới chọn thú cưng.
 - **Booking Symptoms Input UX (2026-03):** Ở bước `Dịch vụ`, ô nhập `Triệu chứng` (bắt buộc) được đưa lên đầu màn và kèm helper text để người dùng nhận biết ngay từ đầu, không cần cuộn xuống cuối danh sách dịch vụ mới thấy. Đồng thời tối ưu controller nhập liệu để tránh reset con trỏ khi Provider rebuild.
 - **Chuẩn hóa Enum Chuyên môn bác sĩ:** `VeterinarySpecialtyEnum` dùng `getTranslatedName(context)` + `fromValue(...)` để parse ổn định theo enum key backend và hiển thị theo locale.
 - **Chuẩn hóa Enum trạng thái lịch hẹn:** `AppointmentStatusEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)`; luồng `AppointmentProvider` và `AppointmentPage` bắt buộc map status qua enum, không hardcode chuỗi tại UI/Provider.
@@ -225,6 +226,8 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Home chỉ hiển thị **2 lịch sắp tới gần nhất** (lọc theo trạng thái upcoming và sắp xếp theo **ngày + giờ khám**), đảm bảo nhất quán khi so với tab **Sắp tới**.
     - UI card lịch hẹn ở Home được đồng bộ theo visual của Appointment: thumbnail thú cưng + badge trạng thái + các dòng thông tin icon (ngày giờ, bác sĩ, địa chỉ) + action bar tách riêng ở chân card.
     - Với lịch **Sắp tới**, cả Home và Appointment đều dùng chung pattern **2 nút**: `Xem chi tiết` + `Hủy`; nút `Hủy` chỉ cho phép khi trạng thái là `BOOKED` (trạng thái khác bị disable để đúng nghiệp vụ).
+- **Appointment Navigation Refresh Rule (2026-03-25):** Khi người dùng bấm tab **Lịch hẹn** ở bottom navigation, app chủ động tải lại dữ liệu để ưu tiên độ mới. Tối ưu chống gọi dư: lần mở tab đầu tiên dùng fetch khởi tạo của `AppointmentPage`; các lần bấm sau (kể cả bấm lại tab đang đứng) sẽ trigger refresh từ navigation.
+- **Trade-off hiệu năng đã chấp nhận (2026-03-25):** Refresh chủ động làm tăng tải mạng và thời gian chờ nhẹ ở một số thiết bị, nhưng đổi lại dữ liệu lịch hẹn nhất quán hơn sau các luồng tạo/hủy/chuyển màn; phù hợp ưu tiên reliability của sản phẩm hiện tại.
 - **Home Header & Background UX (2026-03-24):**
     - Home chuyển từ `SingleChildScrollView` sang `CustomScrollView` + `SliverPersistentHeader(pinned: true)` để ghim cứng cụm header gồm **logo PetCareX, icon QR và icon thông báo** khi người dùng cuộn xuống.
     - Nền Home được đặt rõ ràng `AppColors.white` ở root container và phần pinned header để loại bỏ cảm giác xám/mờ, giữ trải nghiệm sáng và đồng nhất.
