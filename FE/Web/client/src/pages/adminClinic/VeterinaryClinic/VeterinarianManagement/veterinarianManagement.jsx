@@ -1,4 +1,5 @@
 import { FaBell, FaMapMarkerAlt, FaPlus } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
 import styles from './veterinarianManagement.module.css'
 
 const filterItems = ['Tất cả bác sĩ', 'Nội khoa', 'Ngoại khoa', 'Chẩn đoán hình ảnh', 'Tiêm chủng']
@@ -67,6 +68,8 @@ const doctors = [
 ]
 
 export default function VeterinarianManagement() {
+	const navigate = useNavigate()
+
 	return (
 		<div className={styles.page}>
 			<header className={styles.topBar}>
@@ -85,7 +88,11 @@ export default function VeterinarianManagement() {
 						<p>Quản lý và theo dõi hiệu suất làm việc của các chuyên gia.</p>
 					</div>
 
-					<button type="button" className={styles.addButton}>
+					<button
+						type="button"
+						className={styles.addButton}
+						onClick={() => navigate('/admin/clinic/veterinarians/add-new')}
+					>
 						<FaPlus /> Thêm bác sĩ mới
 					</button>
 				</div>
@@ -104,7 +111,19 @@ export default function VeterinarianManagement() {
 
 				<div className={styles.cardGrid}>
 					{doctors.map((doctor) => (
-						<article key={doctor.name} className={styles.card}>
+						<article
+							key={doctor.name}
+							className={`${styles.card} ${styles.cardInteractive}`}
+							onClick={() => navigate('/admin/clinic/veterinarians/information')}
+							onKeyDown={(event) => {
+								if (event.key === 'Enter' || event.key === ' ') {
+									event.preventDefault()
+									navigate('/admin/clinic/veterinarians/information')
+								}
+							}}
+							role="button"
+							tabIndex={0}
+						>
 							<img src={doctor.image} alt={doctor.name} className={styles.cardImage} loading="lazy" />
 							<div className={styles.cardBody}>
 								<h3>{doctor.name}</h3>
