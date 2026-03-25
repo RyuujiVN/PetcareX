@@ -257,7 +257,7 @@
 .modalBody {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 14px;;
 }
 
 .petHeader {
@@ -338,7 +338,7 @@
 
 .infoRow {
   border-radius: 8px;
-  background: #f1f4f8;
+  background: #f9f9f9;
   padding: 7px 10px;
   color: #1d2430;
   display: flex;

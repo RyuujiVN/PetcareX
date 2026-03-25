@@ -40,7 +40,7 @@ const normalizeDate = (dateValue) => {
 };
 
 export const getClinicAppointmentsApi = async ({ page = 1, limit = 300, date, time, status } = {}) => {
-  const response = await instance.get('/appointment/clinic/my', {
+  const response = await instance.get('/appointment', {
     params: {
       page,
       limit,
