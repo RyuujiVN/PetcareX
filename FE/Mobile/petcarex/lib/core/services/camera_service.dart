@@ -1,6 +1,7 @@
+import 'dart:io';
+
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'dart:io';
 
 class CameraService {
   final ImagePicker _picker = ImagePicker();
@@ -60,6 +61,22 @@ class CameraService {
       return image != null ? File(image.path) : null;
     } catch (e) {
       return null;
+    }
+  }
+
+  /// Chọn nhiều ảnh từ thư viện
+  Future<List<File>> pickImagesFromGallery({int imageQuality = 80}) async {
+    try {
+      bool hasPermission = await requestGalleryPermission();
+      if (!hasPermission) return [];
+
+      final List<XFile> images = await _picker.pickMultiImage(
+        imageQuality: imageQuality,
+      );
+
+      return images.map((x) => File(x.path)).toList();
+    } catch (e) {
+      return [];
     }
   }
 }

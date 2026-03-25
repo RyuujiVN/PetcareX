@@ -2,7 +2,9 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-import '../../../../../core/theme/app_colors.dart';
+import '../../../../core/enums/pet_breed_enum.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../pet/data/models/pet_models.dart';
 import '../../../pet/presentation/add_pet_page.dart';
 
@@ -20,7 +22,9 @@ class StepPetSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final sortedPets = List<Pet>.from(pets)..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    
     return GridView.builder(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
@@ -33,25 +37,30 @@ class StepPetSelector extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       itemBuilder: (context, index) {
         if (index < sortedPets.length) {
-          final pet = sortedPets[index];
-          return _petItem(pet);
+          return _petItem(context, sortedPets[index], l10n);
         } else {
-          return _addNewItem(context);
+          return _addNewItem(context, l10n);
         }
       },
     );
   }
 
-  Widget _petItem(Pet pet) {
+  Widget _petItem(BuildContext context, Pet pet, AppLocalizations l10n) {
     final isSel = selectedPetId == pet.id;
+    final breedLabel =
+        PetBreedEnum.fromValue(pet.breed)?.getTranslatedName(context) ??
+        pet.breed;
+
     return GestureDetector(
       onTap: () => onSelected(pet),
       child: Container(
         decoration: BoxDecoration(
-          color: isSel ? AppColors.primary.withOpacity(0.08) : Colors.white,
+          color: isSel
+              ? AppColors.primary.withValues(alpha: 0.08)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSel ? AppColors.primary : Colors.grey.shade200,
+            color: isSel ? AppColors.primary : AppColors.divider,
             width: 1.5,
           ),
         ),
@@ -67,8 +76,8 @@ class StepPetSelector extends StatelessWidget {
             const SizedBox(height: 12),
             Text(pet.name, style: const TextStyle(fontWeight: FontWeight.bold)),
             Text(
-              pet.breed?.name ?? 'Không xác định',
-              style: const TextStyle(fontSize: 11, color: Colors.grey),
+              breedLabel.isNotEmpty ? breedLabel : l10n.user,
+              style: const TextStyle(fontSize: 11, color: AppColors.grey),
             ),
           ],
         ),
@@ -76,23 +85,17 @@ class StepPetSelector extends StatelessWidget {
     );
   }
 
-  Widget _addNewItem(BuildContext context) {
+  Widget _addNewItem(BuildContext context, AppLocalizations l10n) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const AddPetPage()),
-      ),
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddPetPage())),
       child: CustomPaint(
         painter: DashedBorderPainter(),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.add, color: Colors.grey),
-              Text(
-                'Thêm mới',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
+              const Icon(Icons.add, color: AppColors.grey),
+              Text(l10n.addNew, style: const TextStyle(color: AppColors.grey, fontSize: 12)),
             ],
           ),
         ),
@@ -104,17 +107,8 @@ class StepPetSelector extends StatelessWidget {
 class DashedBorderPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey.shade300
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke;
-    final path = Path()
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTWH(0, 0, size.width, size.height),
-          const Radius.circular(20),
-        ),
-      );
+    final paint = Paint()..color = AppColors.divider..strokeWidth = 1.5..style = PaintingStyle.stroke;
+    final path = Path()..addRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height), const Radius.circular(20)));
     for (PathMetric p in path.computeMetrics()) {
       double d = 0;
       while (d < p.length) {
@@ -123,7 +117,6 @@ class DashedBorderPainter extends CustomPainter {
       }
     }
   }
-
   @override
   bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

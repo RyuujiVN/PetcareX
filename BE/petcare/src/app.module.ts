@@ -21,6 +21,7 @@ import { MedicineModule } from './medicine/medicine.module';
 import { ForumModule } from './forum/forum.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { ChatGateway } from './gateway/chat.gateway';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
       provide: APP_FILTER,
       useClass: CatchEverythingFilter,
     },
+    ChatGateway,
   ],
 })
 export class AppModule {}

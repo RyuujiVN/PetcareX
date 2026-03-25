@@ -2,12 +2,13 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/services/camera_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/image_helper.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -90,8 +91,9 @@ class _ProfilePageState extends State<ProfilePage> {
             if (url != null) {
               _uploadedAvatarUrl = url;
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(authProvider.errorMessage ?? 'Upload failed')),
+              AppNotifier.showError(
+                context,
+                authProvider.errorMessage ?? 'Upload failed',
               );
             }
           });
@@ -99,9 +101,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        AppNotifier.showError(context, 'Error: $e');
       }
     }
   }
@@ -109,9 +109,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _handleSave() async {
     final l10n = AppLocalizations.of(context)!;
     if (_isUploadingAvatar) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Uploading...')),
-      );
+      AppNotifier.showInfo(context, 'Uploading...');
       return;
     }
 
@@ -131,20 +129,10 @@ class _ProfilePageState extends State<ProfilePage> {
     if (mounted) {
       setState(() => _isLoading = false);
       if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.success),
-            backgroundColor: Colors.green,
-          ),
-        );
+        AppNotifier.showSuccess(context, l10n.profileUpdateSuccess);
         Navigator.pop(context);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(authProvider.errorMessage ?? l10n.failed),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppNotifier.showError(context, authProvider.errorMessage ?? l10n.failed);
       }
     }
   }
@@ -168,9 +156,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -206,7 +194,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: AppColors.primary.withOpacity(0.2),
+                                    color: AppColors.primary.withValues(alpha: 0.2),
                                     width: 2,
                                   ),
                                 ),
@@ -215,7 +203,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                   children: [
                                     CircleAvatar(
                                       radius: 50,
-                                      backgroundColor: const Color(0xFFFDE8E1),
+                                      backgroundColor: AppColors.formFillDisabled,
                                       backgroundImage: _selectedImage != null
                                           ? FileImage(_selectedImage!) as ImageProvider
                                           : (_uploadedAvatarUrl != null
@@ -251,7 +239,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     ),
                                     child: const Icon(
                                       Icons.camera_alt,
-                                      color: Colors.white,
+                                      color: AppColors.onPrimary,
                                       size: 16,
                                     ),
                                   ),
@@ -341,8 +329,8 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: ElevatedButton(
                             onPressed: _isLoading ? null : () => Navigator.pop(context),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE9ECEF),
-                              foregroundColor: const Color(0xFF495057),
+                              backgroundColor: AppColors.buttonSecondary,
+                              foregroundColor: AppColors.buttonSecondaryText,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -361,7 +349,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             onPressed: (_isLoading || _isUploadingAvatar) ? null : _handleSave,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
+                              foregroundColor: AppColors.onPrimary,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 16),
                               shape: RoundedRectangleBorder(
@@ -373,7 +361,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                     height: 24,
                                     width: 24,
                                     child: CircularProgressIndicator(
-                                      color: Colors.white,
+                                      color: AppColors.onPrimary,
                                       strokeWidth: 2,
                                     ),
                                   )
@@ -412,7 +400,7 @@ class _ProfilePageState extends State<ProfilePage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF495057),
+            color: AppColors.formLabel,
           ),
         ),
         const SizedBox(height: 8),
@@ -424,24 +412,24 @@ class _ProfilePageState extends State<ProfilePage> {
           validator: validator,
           style: TextStyle(
             fontSize: 15,
-            color: enabled ? AppColors.textDark : Colors.grey,
+            color: enabled ? AppColors.textDark : AppColors.grey,
           ),
           decoration: InputDecoration(
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: const BorderSide(color: AppColors.formBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey.shade300),
+              borderSide: const BorderSide(color: AppColors.formBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
             ),
             filled: true,
-            fillColor: enabled ? Colors.white : Colors.grey.shade100,
+            fillColor: enabled ? AppColors.formFill : AppColors.formFillDisabled,
           ),
         ),
       ],

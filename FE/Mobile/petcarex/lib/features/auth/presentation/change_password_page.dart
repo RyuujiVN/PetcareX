@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_notifier.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../../../core/widgets/password_text_field.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'providers/auth_provider.dart';
 
 class ChangePasswordPage extends StatefulWidget {
@@ -42,22 +44,26 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar(l10n.save, isError: false);
+      _showQuickSnackBar(l10n.changePasswordSuccess, isError: false);
       Navigator.pop(context);
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? l10n.failed, isError: true);
+      _showQuickSnackBar(ErrorHandler.getLocalizedError(authProvider.errorMessage, context), isError: true);
     }
   }
 
   void _showQuickSnackBar(String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+    if (isError) {
+      AppNotifier.showError(
+        context,
+        message,
         duration: const Duration(milliseconds: 1500),
-        behavior: SnackBarBehavior.floating,
-      ),
+      );
+      return;
+    }
+    AppNotifier.showSuccess(
+      context,
+      message,
+      duration: const Duration(milliseconds: 1500),
     );
   }
 
@@ -69,8 +75,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
@@ -93,9 +100,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20)],
+        boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: 0.03), blurRadius: 20)],
       ),
       child: Form(
         key: _formKey,
@@ -105,14 +112,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: const Icon(Icons.lock_reset, size: 40, color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 24),
             Text(l10n.updatePassword, textAlign: TextAlign.center, style: AppTextStyles.title),
             const SizedBox(height: 12),
-            Text(l10n.changePasswordMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5)),
+            Text(l10n.changePasswordMessage, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textGrey, fontSize: 14, height: 1.5)),
             const SizedBox(height: 32),
             PasswordTextField(controller: oldPasswordController, label: l10n.oldPassword),
             const SizedBox(height: 16),
@@ -132,10 +139,15 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       height: 54,
       child: ElevatedButton(
         onPressed: isLoading ? null : _changePassword,
-        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary, 
+          foregroundColor: AppColors.onPrimary, 
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+        ),
         child: isLoading 
-            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-            : Text(l10n.updatePassword, style: AppTextStyles.button),
+            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2)) 
+            : Text(l10n.updatePassword, style: AppTextStyles.button.copyWith(color: AppColors.onPrimary)),
       ),
     );
   }

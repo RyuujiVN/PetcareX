@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/enums/appointment_status_enum.dart';
+import '../../../../core/enums/pet_breed_enum.dart';
+import '../../../../core/enums/service_enum.dart';
+import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
+import '../../../l10n/generated/app_localizations.dart';
+import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../data/appointment_model.dart';
 import 'provider/appointment_provider.dart';
 
@@ -14,7 +20,8 @@ class AppointmentPage extends StatefulWidget {
   State<AppointmentPage> createState() => _AppointmentPageState();
 }
 
-class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProviderStateMixin {
+class _AppointmentPageState extends State<AppointmentPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -36,15 +43,15 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.appBarBackground,
         elevation: 0,
         centerTitle: true,
         title: Text(
-          l10n.navAppointments,
+          l10n.appointmentsTitle,
           style: const TextStyle(
-            color: Color(0xFF1A1C1E),
+            color: AppColors.textDark,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -53,7 +60,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           controller: _tabController,
           indicatorColor: AppColors.primary,
           labelColor: AppColors.primary,
-          unselectedLabelColor: Colors.grey,
+          unselectedLabelColor: AppColors.textGrey,
           indicatorWeight: 3,
           labelStyle: const TextStyle(fontWeight: FontWeight.bold),
           tabs: [
@@ -65,7 +72,9 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
       body: Consumer<AppointmentProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            return const Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            );
           }
 
           if (provider.errorMessage != null) {
@@ -73,11 +82,20 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(provider.errorMessage!, textAlign: TextAlign.center),
+                  Text(
+                    _resolveErrorMessage(provider.errorMessage, l10n),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => provider.fetchAppointments(),
-                    child: const Text('Try Again'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                    ),
+                    child: Text(
+                      l10n.retry,
+                      style: const TextStyle(color: AppColors.onPrimary),
+                    ),
                   ),
                 ],
               ),
@@ -87,8 +105,16 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           return TabBarView(
             controller: _tabController,
             children: [
-              _buildAppointmentList(provider.upcomingAppointments, isUpcoming: true, l10n: l10n),
-              _buildAppointmentList(provider.historicalAppointments, isUpcoming: false, l10n: l10n),
+              _buildAppointmentList(
+                provider.upcomingAppointments,
+                isUpcoming: true,
+                l10n: l10n,
+              ),
+              _buildAppointmentList(
+                provider.historicalAppointments,
+                isUpcoming: false,
+                l10n: l10n,
+              ),
             ],
           );
         },
@@ -96,10 +122,15 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
     );
   }
 
-  Widget _buildAppointmentList(List<Appointment> appointments, {required bool isUpcoming, required AppLocalizations l10n}) {
+  Widget _buildAppointmentList(
+    List<Appointment> appointments, {
+    required bool isUpcoming,
+    required AppLocalizations l10n,
+  }) {
     if (appointments.isEmpty) {
       return RefreshIndicator(
-        onRefresh: () => context.read<AppointmentProvider>().fetchAppointments(),
+        onRefresh: () =>
+            context.read<AppointmentProvider>().fetchAppointments(),
         color: AppColors.primary,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -107,16 +138,9 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
             SliverFillRemaining(
               hasScrollBody: false,
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey[300]),
-                    const SizedBox(height: 16),
-                    Text(
-                      isUpcoming ? l10n.upcoming : l10n.history,
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _buildEmptyState(isUpcoming: isUpcoming, l10n: l10n),
                 ),
               ),
             ),
@@ -138,19 +162,102 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
     );
   }
 
-  Widget _buildAppointmentCard(Appointment item, bool isUpcoming, AppLocalizations l10n) {
+  Widget _buildEmptyState({
+    required bool isUpcoming,
+    required AppLocalizations l10n,
+  }) {
+    final title = isUpcoming
+        ? l10n.appointmentEmptyUpcomingTitle
+        : l10n.appointmentEmptyHistoryTitle;
+    final description = isUpcoming
+        ? l10n.appointmentEmptyUpcomingDescription
+        : l10n.appointmentEmptyHistoryDescription;
+    final icon = isUpcoming
+        ? Icons.event_available_outlined
+        : Icons.history_toggle_off_outlined;
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 88,
+          height: 88,
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+          ),
+          child: Icon(icon, size: 42, color: AppColors.primary),
+        ),
+        const SizedBox(height: 18),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textDark,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          description,
+          textAlign: TextAlign.center,
+          style: const TextStyle(
+            color: AppColors.textGrey,
+            fontSize: 14,
+            height: 1.4,
+          ),
+        ),
+        if (isUpcoming) ...[
+          const SizedBox(height: 22),
+          ElevatedButton.icon(
+            onPressed: _openBookingPage,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
+              elevation: 0,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            icon: const Icon(Icons.add_circle_outline, size: 18),
+            label: Text(
+              l10n.appointmentBookNow,
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+
+  void _openBookingPage() {
+    MainNavigationWrapper.of(context)?.setSelectedIndex(1);
+  }
+
+  Widget _buildAppointmentCard(
+    Appointment item,
+    bool isUpcoming,
+    AppLocalizations l10n,
+  ) {
+    final appointmentStatus = item.status;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isUpcoming ? AppColors.primary.withOpacity(0.3) : Colors.grey.shade200,
+          color: isUpcoming
+              ? AppColors.primary.withValues(alpha: 0.3)
+              : AppColors.divider,
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: AppColors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -162,112 +269,159 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
         child: Column(
           children: [
             Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: item.pet.avatar != null && item.pet.avatar!.isNotEmpty
-                      ? Image.network(
-                          item.pet.avatar!,
-                          width: 70,
-                          height: 70,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Container(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child:
+                        item.pet.avatar != null && item.pet.avatar!.isNotEmpty
+                        ? Image.network(
+                            item.pet.avatar!,
                             width: 70,
                             height: 70,
-                            color: Colors.grey[200],
-                            child: const Icon(Icons.pets, color: Colors.grey),
-                          ),
-                        )
-                      : Container(
-                          width: 70,
-                          height: 70,
-                          color: Colors.grey[200],
-                          child: const Icon(Icons.pets, color: Colors.grey),
-                        ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            item.pet.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Container(
+                                  width: 70,
+                                  height: 70,
+                                  color: AppColors.background,
+                                  child: const Icon(
+                                    Icons.pets,
+                                    color: AppColors.iconGrey,
+                                  ),
+                                ),
+                          )
+                        : Container(
+                            width: 70,
+                            height: 70,
+                            color: AppColors.background,
+                            child: const Icon(
+                              Icons.pets,
+                              color: AppColors.iconGrey,
                             ),
                           ),
-                          _buildStatusBadge(item.status),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        item.service,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildInfoRow(
-                        Icons.calendar_today_outlined,
-                        '${DateFormat('dd/MM/yyyy').format(item.appointmentDate)} • ${item.appointmentTime}',
-                      ),
-                      const SizedBox(height: 6),
-                      _buildInfoRow(Icons.medical_services_outlined, '${l10n.doctor}: ${item.veterinarian.fullName}'),
-                      const SizedBox(height: 6),
-                      _buildInfoRow(Icons.location_on_outlined, item.clinic.address),
-                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          if (isUpcoming && item.status == 'Hẹn thành công') ...[
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            InkWell(
-              onTap: () => _confirmCancel(item.id, l10n),
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(24),
-                bottomRight: Radius.circular(24),
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                child: Center(
-                  child: Text(
-                    l10n.cancelAppointment,
-                    style: TextStyle(
-                      color: Colors.red[400],
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              item.pet.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textDark,
+                              ),
+                            ),
+                            _buildStatusBadge(item.status),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          ServiceEnum.fromValue(
+                                item.service,
+                              )?.getTranslatedName(context) ??
+                              item.service,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: AppColors.textGrey,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildInfoRow(
+                          Icons.calendar_today_outlined,
+                          '${DateFormat('dd/MM/yyyy').format(item.appointmentDate)} • ${_formatDisplayTime(item.appointmentTime)}',
+                        ),
+                        const SizedBox(height: 6),
+                        _buildInfoRow(
+                          Icons.medical_services_outlined,
+                          '${l10n.doctor}: ${item.veterinarian.fullName}',
+                        ),
+                        const SizedBox(height: 6),
+                        _buildInfoRow(
+                          Icons.location_on_outlined,
+                          item.clinic.address,
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-          ] else if (!isUpcoming) ...[
-            const Divider(height: 1, indent: 16, endIndent: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              child: Text(
-                l10n.explore,
-                style: const TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.bold),
+            if (isUpcoming) ...[
+              const Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: AppColors.divider,
               ),
-            )
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildAppointmentActionButton(
+                        label: l10n.viewDetail,
+                        icon: Icons.visibility_outlined,
+                        onPressed: () =>
+                            _showAppointmentDetails(context, item, l10n),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: _buildAppointmentActionButton(
+                        label: l10n.cancelAppointment,
+                        icon: Icons.close_rounded,
+                        isDestructive: true,
+                        onPressed:
+                            appointmentStatus == AppointmentStatusEnum.BOOKED
+                            ? () => _confirmCancel(item.id, l10n)
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else if (!isUpcoming) ...[
+              const Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+                color: AppColors.divider,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Text(
+                  l10n.viewDetail,
+                  style: const TextStyle(
+                    color: AppColors.textGrey,
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-    ));
+    );
   }
 
-  void _showAppointmentDetails(BuildContext context, Appointment item, AppLocalizations l10n) {
+  void _showAppointmentDetails(
+    BuildContext context,
+    Appointment item,
+    AppLocalizations l10n,
+  ) {
+    final breedLabel =
+        PetBreedEnum.fromValue(item.pet.breedName)?.getTranslatedName(context) ??
+        item.pet.breedName;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -275,7 +429,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
       builder: (context) {
         return Container(
           decoration: const BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.only(
@@ -293,7 +447,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: AppColors.divider,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -307,76 +461,133 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
                     ),
                   ),
                   _buildStatusBadge(item.status),
                 ],
               ),
               const SizedBox(height: 20),
-              
+
               Text(
                 l10n.petInformation,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textGrey,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
                   CircleAvatar(
                     radius: 25,
-                    backgroundImage: (item.pet.avatar != null && item.pet.avatar!.isNotEmpty)
+                    backgroundImage:
+                        (item.pet.avatar != null && item.pet.avatar!.isNotEmpty)
                         ? NetworkImage(item.pet.avatar!)
                         : null,
-                    backgroundColor: Colors.grey.shade200,
+                    backgroundColor: AppColors.background,
                     child: (item.pet.avatar == null || item.pet.avatar!.isEmpty)
-                        ? const Icon(Icons.pets, color: Colors.grey)
+                        ? const Icon(Icons.pets, color: AppColors.iconGrey)
                         : null,
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.pet.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(
+                        item.pet.name,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: AppColors.textDark,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text('${l10n.breed}: ${item.pet.breedName}', style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                      Text(
+                        '${l10n.breed}: $breedLabel',
+                        style: const TextStyle(
+                          color: AppColors.textGrey,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
-                  )
+                  ),
                 ],
               ),
-              const Divider(height: 30),
+              const Divider(height: 30, color: AppColors.divider),
 
               Text(
                 l10n.serviceInfo,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textGrey,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.medical_information_outlined, '${l10n.service}:', item.service),
+              _buildDetailRow(
+                Icons.medical_information_outlined,
+                '${l10n.service}:',
+                ServiceEnum.fromValue(
+                      item.service,
+                    )?.getTranslatedName(context) ??
+                    item.service,
+              ),
               const SizedBox(height: 8),
               _buildDetailRow(
-                Icons.calendar_month_outlined, 
-                '${l10n.time}:', 
-                '${item.appointmentTime} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}'
+                Icons.calendar_month_outlined,
+                '${l10n.time}:',
+                '${_formatDisplayTime(item.appointmentTime)} - ${DateFormat('dd/MM/yyyy').format(item.appointmentDate)}',
               ),
               if (item.note.isNotEmpty) ...[
                 const SizedBox(height: 8),
-                _buildDetailRow(Icons.notes_outlined, '${l10n.note}:', item.note),
+                _buildDetailRow(
+                  Icons.notes_outlined,
+                  '${l10n.note}:',
+                  item.note,
+                ),
               ],
-              const Divider(height: 30),
+              const Divider(height: 30, color: AppColors.divider),
 
               Text(
                 l10n.doctorInfo,
-                style: TextStyle(fontSize: 14, color: Colors.grey.shade600, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textGrey,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.person_outline, '${l10n.doctor}:', item.veterinarian.fullName),
+              _buildDetailRow(
+                Icons.person_outline,
+                '${l10n.doctor}:',
+                item.veterinarian.fullName,
+              ),
               if (item.veterinarian.specialty.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: _buildDetailRow(Icons.star_border_outlined, '${l10n.specialty}:', item.veterinarian.specialty),
+                  child: _buildDetailRow(
+                    Icons.star_border_outlined,
+                    '${l10n.specialty}:',
+                    VeterinarySpecialtyEnum.fromValue(
+                          item.veterinarian.specialty,
+                        )?.getTranslatedName(context) ??
+                        item.veterinarian.specialty,
+                  ),
                 ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.store_outlined, '${l10n.clinic}:', item.clinic.name),
+              _buildDetailRow(
+                Icons.store_outlined,
+                '${l10n.clinic}:',
+                item.clinic.name,
+              ),
               const SizedBox(height: 8),
-              _buildDetailRow(Icons.location_on_outlined, '${l10n.address}:', item.clinic.address),
+              _buildDetailRow(
+                Icons.location_on_outlined,
+                '${l10n.address}:',
+                item.clinic.address,
+              ),
 
               const SizedBox(height: 20),
             ],
@@ -396,71 +607,164 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
           width: 90,
           child: Text(
             label,
-            style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+            style: const TextStyle(color: AppColors.textGrey, fontSize: 14),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            style: const TextStyle(
+              fontWeight: FontWeight.w500,
+              fontSize: 14,
+              color: AppColors.textDark,
+            ),
           ),
         ),
       ],
     );
   }
 
-  void _confirmCancel(String id, AppLocalizations l10n) {
-    showDialog(
+  Future<void> _confirmCancel(String id, AppLocalizations l10n) async {
+    final shouldCancel = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(l10n.confirmLogout),
-        content: Text(l10n.logoutMessage),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.confirmCancel),
+        content: Text(l10n.cancelMessage),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(l10n.cancel),
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              l10n.no,
+              style: const TextStyle(color: AppColors.textGrey),
+            ),
           ),
           TextButton(
-            onPressed: () async {
-              final provider = context.read<AppointmentProvider>();
-              Navigator.pop(context);
-              final success = await provider.cancelAppointment(id);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(success ? l10n.success : l10n.failed),
-                    backgroundColor: success ? Colors.green : Colors.red,
-                  ),
-                );
-              }
-            },
-            child: Text(l10n.confirmAppointment, style: const TextStyle(color: Colors.red)),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(
+              l10n.yes,
+              style: const TextStyle(
+                color: AppColors.error,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
         ],
       ),
     );
+
+    if (shouldCancel != true || !mounted) return;
+
+    final provider = context.read<AppointmentProvider>();
+    final success = await provider.cancelAppointment(id);
+    if (!mounted) return;
+
+    if (success) {
+      AppNotifier.showSuccess(context, l10n.appointmentCancelSuccess);
+      return;
+    }
+    AppNotifier.showError(context, l10n.failed);
   }
 
-  Widget _buildStatusBadge(String status) {
+  String _formatDisplayTime(String rawTime) {
+    final normalized = rawTime.trim();
+    if (normalized.isEmpty) {
+      return '';
+    }
+
+    final upperTime = normalized.toUpperCase();
+    final amPmMatch = RegExp(
+      r'^(\d{1,2}):(\d{2})\s*(AM|PM)$',
+    ).firstMatch(upperTime);
+    if (amPmMatch != null) {
+      final hour12 = int.tryParse(amPmMatch.group(1) ?? '0') ?? 0;
+      final minute = int.tryParse(amPmMatch.group(2) ?? '0') ?? 0;
+      var hour24 = hour12 % 12;
+
+      if (amPmMatch.group(3) == 'PM') {
+        hour24 += 12;
+      }
+
+      return '${hour24.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+    }
+
+    final parts = normalized.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0].trim());
+      final minute = int.tryParse(parts[1].trim());
+
+      if (hour != null && minute != null) {
+        return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return normalized;
+  }
+
+  String _resolveErrorMessage(String? errorMessage, AppLocalizations l10n) {
+    final normalized = errorMessage?.trim() ?? '';
+    if (normalized.isEmpty || normalized.toLowerCase() == 'failed') {
+      return l10n.failed;
+    }
+
+    return normalized;
+  }
+
+  Widget _buildAppointmentActionButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool isDestructive = false,
+  }) {
+    final backgroundColor = isDestructive
+        ? AppColors.errorLight
+        : AppColors.primaryLight;
+    final foregroundColor = isDestructive ? AppColors.error : AppColors.primary;
+
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 17),
+      label: Text(
+        label,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+      ),
+      style: ElevatedButton.styleFrom(
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        backgroundColor: backgroundColor,
+        foregroundColor: foregroundColor,
+        disabledBackgroundColor: AppColors.formFill,
+        disabledForegroundColor: AppColors.textGrey,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(AppointmentStatusEnum status) {
     Color bgColor;
     Color textColor;
+    String label;
 
     switch (status) {
-      case 'Hẹn thành công':
-        bgColor = const Color(0xFFE0F7F4);
+      case AppointmentStatusEnum.BOOKED:
+        bgColor = AppColors.primaryLight;
         textColor = AppColors.primary;
+        label = status.getTranslatedName(context);
         break;
-      case 'Đã khám xong':
-        bgColor = const Color(0xFFE8F5E9);
-        textColor = Colors.green;
+      case AppointmentStatusEnum.IN_PROGRESS:
+        bgColor = AppColors.warning.withValues(alpha: 0.12);
+        textColor = AppColors.warning;
+        label = status.getTranslatedName(context);
         break;
-      case 'Đã huỷ':
-        bgColor = const Color(0xFFFFEBEE);
-        textColor = Colors.red;
+      case AppointmentStatusEnum.COMPLETED:
+        bgColor = AppColors.successLight;
+        textColor = AppColors.success;
+        label = status.getTranslatedName(context);
         break;
-      default:
-        bgColor = Colors.grey.shade100;
-        textColor = Colors.grey;
+      case AppointmentStatusEnum.CANCELLED:
+        bgColor = AppColors.errorLight;
+        textColor = AppColors.error;
+        label = status.getTranslatedName(context);
     }
 
     return Container(
@@ -470,7 +774,7 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        status.toUpperCase(),
+        label.toUpperCase(),
         style: TextStyle(
           color: textColor,
           fontSize: 10,
@@ -483,17 +787,14 @@ class _AppointmentPageState extends State<AppointmentPage> with SingleTickerProv
   Widget _buildInfoRow(IconData icon, String text) {
     return Row(
       children: [
-        Icon(icon, size: 14, color: Colors.grey.shade600),
+        Icon(icon, size: 14, color: AppColors.iconGrey),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
             text,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade700,
-            ),
+            style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
           ),
         ),
       ],

@@ -4,13 +4,20 @@ import uuid
 import json
 import asyncio
 import threading
+import argparse
+import re
+import socketio
 from contextlib import asynccontextmanager
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Set
 import torch
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import TextIteratorStreamer
 from rag_pipeline import Retriever, LLMGenerator
+from structured_retriever import StructuredDBRetriever
+from database import engine, SessionLocal
+import models
+import crud
 from config import (
     MAX_HISTORY_TURNS,
     MAX_PROMPT_TOKENS,
@@ -18,25 +25,31 @@ from config import (
     LLM_DO_SAMPLE,
     SYSTEM_PROMPT,
     PROMPT_TEMPLATE,
+    POSTGRES_DSN,
 )
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     sys.stdout.reconfigure(encoding="utf-8")
     sys.stderr.reconfigure(encoding="utf-8")
 
-SESSION_TTL = 3600
-
 retriever: Retriever = None
 llm: LLMGenerator = None
+structured_retriever: StructuredDBRetriever = None
 llm_lock = threading.Lock()
-sessions: dict = {}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global retriever, llm
+    global retriever, llm, structured_retriever
     print("Loading models...")
     retriever = Retriever()
     llm = LLMGenerator()
+    structured_retriever = StructuredDBRetriever()
+    if POSTGRES_DSN and structured_retriever.enabled:
+        print("Structured DB retriever enabled.")
+    else:
+        reason = structured_retriever.init_error or "POSTGRES_DSN is empty or psycopg missing"
+        print(f"Structured DB retriever not active: {reason}")
     print("API ready.")
     yield
 
@@ -48,23 +61,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-def _cleanup_sessions(now: float):
-    expired = [sid for sid, s in sessions.items() if now - s["last_active"] > SESSION_TTL]
-    for sid in expired:
-        del sessions[sid]
-
-
-def get_or_create_session(session_id: Optional[str]) -> str:
-    now = time.time()
-    _cleanup_sessions(now)
-    if session_id and session_id in sessions:
-        sessions[session_id]["last_active"] = now
-        return session_id
-    new_id = str(uuid.uuid4())
-    sessions[new_id] = {"history": [], "last_active": now}
-    return new_id
+sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
+socket_app = socketio.ASGIApp(sio, app)
 
 
 def build_history_text(history: List[Tuple[str, str]]) -> str:
@@ -80,7 +78,8 @@ def build_history_text(history: List[Tuple[str, str]]) -> str:
 
 def build_search_query(question: str, history: List[Tuple[str, str]]) -> str:
     if history:
-        return f"{history[-1][0]} {question}"
+        prev = [h[0] for h in history[-3:]] 
+        return " ".join(prev + [question]) if prev else question
     return question
 
 
@@ -111,88 +110,171 @@ def _format_context(retrieved_docs) -> str:
     return "\n\n".join(parts)
 
 
+def _format_structured_context(snippets: List[str]) -> str:
+    if not snippets:
+        return ""
+    return "\n".join([f"- {s}" for s in snippets])
+
+
+def _should_query_structured_db(message: str) -> bool:
+    return bool(StructuredDBRetriever.detect_intents(message))
+
+
+def _has_medical_content(message: str) -> bool:
+    q = (message or "").lower()
+    markers = [
+        "triệu chứng",
+        "trieu chung",
+        "bệnh",
+        "benh",
+        "nôn",
+        "non",
+        "tiêu chảy",
+        "tieu chay",
+        "sốt",
+        "sot",
+        "ho",
+        "khó thở",
+        "kho tho",
+        "điều trị",
+        "dieu tri",
+        "thuốc",
+        "thuoc",
+        "chẩn đoán",
+        "chan doan",
+    ]
+    return any(m in q for m in markers)
+
+
+def _plan_retrieval(message: str) -> Tuple[bool, bool, Set[str]]:
+    intents = StructuredDBRetriever.detect_intents(message)
+    use_db = bool(intents)
+    if not use_db:
+        return True, False, intents
+    use_vector = _has_medical_content(message)
+    return use_vector, True, intents
+
+
 @app.get("/health")
 def health():
     return {
         "status": "ok",
-        "active_sessions": len(sessions),
         "model": llm is not None,
+        "structured_db_enabled": bool(structured_retriever and structured_retriever.enabled),
+        "structured_db_error": getattr(structured_retriever, "init_error", None),
     }
 
 
-@app.websocket("/ws/chat")
-async def ws_chat(ws: WebSocket):
-    await ws.accept()
+@sio.on('chat_event')
+async def handle_chat(sid, data):
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError:
+            print(f"Lỗi: Data gửi lên không phải JSON hợp lệ: {data}")
+            return
+    message = data.get("message", "").strip()
+    room_id = data.get("room_id", "")
+
+    if not message:
+        return
+
+    db = SessionLocal()
     try:
-        while True:
-            raw = await ws.receive_text()
-            data = json.loads(raw)
-            message = data.get("message", "").strip()
-            if not message:
-                await ws.send_json({"type": "error", "error": "Empty message"})
-                continue
+        await sio.emit('chat_response', {"type": "status", "status": "generating"}, to=sid)
 
-            session_id = get_or_create_session(data.get("session_id"))
-            await ws.send_json({"type": "session", "session_id": session_id})
+        history = crud.get_history(db, room_id) if room_id else []
+        use_vector, use_db, db_intents = _plan_retrieval(message)
 
-            history = sessions[session_id]["history"]
+        if use_db and (structured_retriever is None or not structured_retriever.enabled):
+            answer = "Hiện tại mình chưa kết nối được cơ sở dữ liệu nghiệp vụ nên chưa thể trả lời chính xác."
+            await sio.emit('chat_response', {"type": "done", "answer": answer}, to=sid)
+            return
+
+        vector_context = ""
+        if use_vector:
             search_query = build_search_query(message, history)
             retrieved = retriever.retrieve(search_query)
-            context = _format_context(retrieved)
-            history_text = build_history_text(history)
-            prompt = build_prompt(message, context, history_text)
+            vector_context = _format_context(retrieved)
 
-            await ws.send_json({"type": "status", "status": "generating"})
-
-            streamer = TextIteratorStreamer(
-                llm.tokenizer, skip_prompt=True, skip_special_tokens=True, timeout=120.0
-            )
-            inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
-            generate_kwargs = dict(
-                **inputs,
-                max_new_tokens=LLM_MAX_NEW_TOKENS,
-                do_sample=LLM_DO_SAMPLE,
-                pad_token_id=llm.tokenizer.pad_token_id,
-                repetition_penalty=1.1,
-                streamer=streamer,
+        structured_context = ""
+        if structured_retriever is not None and structured_retriever.enabled and use_db:
+            structured_context = _format_structured_context(
+                structured_retriever.retrieve(message, intents=db_intents)
             )
 
-            loop = asyncio.get_event_loop()
-            token_q: asyncio.Queue = asyncio.Queue()
+        if structured_context and vector_context:
+            context = (
+                f"{vector_context}\n\n"
+                f"Thông tin nghiệp vụ hệ thống (realtime):\n"
+                f"{structured_context}"
+            )
+        elif structured_context:
+            context = f"Thông tin nghiệp vụ hệ thống (realtime):\n{structured_context}"
+        else:
+            context = vector_context
 
-            def run_gen():
-                with llm_lock:
-                    with torch.no_grad():
-                        llm.model.generate(**generate_kwargs)
+        history_text = build_history_text(history)
+        prompt = build_prompt(message, context, history_text)
 
-            def read_tokens():
-                for tok in streamer:
-                    loop.call_soon_threadsafe(token_q.put_nowait, tok)
-                loop.call_soon_threadsafe(token_q.put_nowait, None)
+        streamer = TextIteratorStreamer(
+            llm.tokenizer, skip_prompt=True, skip_special_tokens=True, timeout=120.0
+        )
+        inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
+        generate_kwargs = dict(
+            **inputs,
+            max_new_tokens=LLM_MAX_NEW_TOKENS,
+            do_sample=LLM_DO_SAMPLE,
+            pad_token_id=llm.tokenizer.pad_token_id,
+            repetition_penalty=1.1,
+            streamer=streamer,
+        )
 
-            gen_thread = threading.Thread(target=run_gen, daemon=True)
-            gen_thread.start()
-            reader_thread = threading.Thread(target=read_tokens, daemon=True)
-            reader_thread.start()
+        loop = asyncio.get_running_loop()
+        token_q = asyncio.Queue()
 
-            full_answer = ""
-            while True:
-                token = await token_q.get()
-                if token is None:
-                    break
-                full_answer += token
-                await ws.send_json({"type": "token", "token": token})
+        def run_gen():
+            with llm_lock:
+                with torch.no_grad():
+                    llm.model.generate(**generate_kwargs)
 
-            gen_thread.join()
-            reader_thread.join()
-            answer = full_answer.strip()
-            history.append((message, answer))
-            sessions[session_id]["last_active"] = time.time()
-            await ws.send_json({"type": "done", "answer": answer})
-    except WebSocketDisconnect:
-        pass
+        def read_tokens():
+            for tok in streamer:
+                loop.call_soon_threadsafe(token_q.put_nowait, tok)
+            loop.call_soon_threadsafe(token_q.put_nowait, None)
 
+        threading.Thread(target=run_gen, daemon=True).start()
+        threading.Thread(target=read_tokens, daemon=True).start()
+
+        full_answer = ""
+        while True:
+            token = await token_q.get()
+            if token is None:
+                break
+            full_answer += token
+            await sio.emit('chat_response', {"type": "token", "token": token}, to=sid)
+
+        answer = full_answer.strip()
+        await sio.emit('chat_response', {"type": "done", "answer": answer}, to=sid)
+    except Exception as exc:
+        await sio.emit(
+            'chat_response',
+            {
+                "type": "error",
+                "message": "Server xử lý lỗi, vui lòng thử lại.",
+                "detail": str(exc),
+            },
+            to=sid,
+        )
+    finally:
+        db.close()
+
+
+@sio.on('message')
+async def handle_default_message_event(sid, data):
+    if isinstance(data, dict) and "message" in data:
+        await handle_chat(sid, data)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, workers=1)
+    uvicorn.run("api:socket_app", host="0.0.0.0", port=8000)

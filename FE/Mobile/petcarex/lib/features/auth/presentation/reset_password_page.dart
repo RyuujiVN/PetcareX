@@ -1,11 +1,15 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_notifier.dart';
+import '../../../../core/utils/error_handler.dart';
+import '../../../../core/widgets/password_text_field.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'providers/auth_provider.dart';
 
 class ResetPasswordPage extends StatefulWidget {
@@ -18,17 +22,28 @@ class ResetPasswordPage extends StatefulWidget {
 
 class _ResetPasswordPageState extends State<ResetPasswordPage> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController otpController = TextEditingController();
+  
+  // controllers cho 6 ô OTP
+  final List<TextEditingController> _otpControllers = List.generate(6, (_) => TextEditingController());
+  final List<FocusNode> _otpFocusNodes = List.generate(6, (_) => FocusNode());
+
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
 
-  bool _isResending = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  final FocusNode _passwordFocus = FocusNode();
+  final FocusNode _confirmPasswordFocus = FocusNode();
 
+  bool _isResending = false;
   Timer? _timer;
   int _start = 60;
   bool _canResend = true;
+  AutovalidateMode _autoValidateMode = AutovalidateMode.disabled;
+
+  @override
+  void initState() {
+    super.initState();
+    startTimer();
+  }
 
   void startTimer() {
     if (!mounted) return;
@@ -58,53 +73,60 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    startTimer();
-  }
-
-  @override
   void dispose() {
     _timer?.cancel();
-    otpController.dispose();
+    for (var controller in _otpControllers) {
+      controller.dispose();
+    }
+    for (var node in _otpFocusNodes) {
+      node.dispose();
+    }
     passwordController.dispose();
     confirmPasswordController.dispose();
+    _passwordFocus.dispose();
+    _confirmPasswordFocus.dispose();
     super.dispose();
   }
+
+  String get _fullOtp => _otpControllers.map((c) => c.text).join();
 
   Future<void> _resendOTP() async {
     final l10n = AppLocalizations.of(context)!;
     if (_isResending || !_canResend) return;
 
-    setState(() {
-      _isResending = true;
-    });
-
+    setState(() => _isResending = true);
     final authProvider = context.read<AuthProvider>();
     final success = await authProvider.forgotPassword(widget.email);
 
     if (!mounted) return;
-
-    setState(() {
-      _isResending = false;
-    });
+    setState(() => _isResending = false);
 
     if (success) {
-      _showQuickSnackBar('Success', isError: false);
+      _showQuickSnackBar(l10n.otpSent, isError: false);
       startTimer();
+      _otpFocusNodes[0].requestFocus(); 
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
+      _showQuickSnackBar(ErrorHandler.getLocalizedError(authProvider.errorMessage, context), isError: true);
     }
   }
 
   Future<void> _resetPassword() async {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final l10n = AppLocalizations.of(context)!;
+    
+    if (_fullOtp.length < 6) {
+      _showQuickSnackBar(l10n.pleaseEnter(l10n.otpLabel), isError: true);
+      return;
+    }
+
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      setState(() => _autoValidateMode = AutovalidateMode.onUserInteraction);
+      return;
+    }
 
     final authProvider = context.read<AuthProvider>();
-    
     final success = await authProvider.resetPassword(
       email: widget.email,
-      otp: otpController.text.trim(),
+      otp: _fullOtp,
       newPassword: passwordController.text,
       confirmPassword: confirmPasswordController.text,
     );
@@ -112,24 +134,28 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar('Success', isError: false);
-      await Future.delayed(const Duration(milliseconds: 1000));
+      _showQuickSnackBar(l10n.resetPasswordSuccess, isError: false);
+      await Future.delayed(const Duration(milliseconds: 1500));
       if (!mounted) return;
       Navigator.of(context).popUntil((route) => route.isFirst);
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
+      _showQuickSnackBar(ErrorHandler.getLocalizedError(authProvider.errorMessage, context), isError: true);
     }
   }
 
   void _showQuickSnackBar(String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        duration: const Duration(milliseconds: 1500),
-        behavior: SnackBarBehavior.floating,
-      ),
+    if (isError) {
+      AppNotifier.showError(
+        context,
+        message,
+        duration: const Duration(milliseconds: 2000),
+      );
+      return;
+    }
+    AppNotifier.showSuccess(
+      context,
+      message,
+      duration: const Duration(milliseconds: 2000),
     );
   }
 
@@ -152,7 +178,7 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
                 ),
               ),
             ),
-            _buildFooter(),
+            _buildFooter(l10n),
           ],
         ),
       ),
@@ -163,15 +189,18 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEEF2F3))),
+        color: AppColors.appBarBackground,
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 1), borderRadius: BorderRadius.circular(8)),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.textDark, width: 1), 
+              borderRadius: BorderRadius.circular(8)
+            ),
             child: Image.asset('assets/images/icon.png', width: 30, height: 30),
           ),
           const SizedBox(width: 12),
@@ -182,13 +211,15 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
   }
 
   Widget _buildResetCard(bool isLoading, AppLocalizations l10n) {
+    final canResend = !isLoading && !_isResending && _canResend;
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: AppColors.black.withValues(alpha: 0.03), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Form(
@@ -199,27 +230,81 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: const Icon(Icons.restart_alt, size: 40, color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 24),
             Text(l10n.resetPassword, textAlign: TextAlign.center, style: AppTextStyles.title),
             const SizedBox(height: 12),
-            Text('${l10n.otpSentTo}:\n${widget.email}', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.grey, fontSize: 13)),
+            RichText(
+              textAlign: TextAlign.center,
+              text: TextSpan(
+                style: const TextStyle(color: AppColors.textGrey, fontSize: 13, height: 1.5),
+                children: [
+                  TextSpan(text: '${l10n.otpSentTo}: '),
+                  TextSpan(text: widget.email, style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textDark)),
+                ],
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildOTPField(isLoading, l10n),
+            _buildOTPSection(isLoading, l10n),
             Align(
               alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: (isLoading || _isResending || !_canResend) ? null : _resendOTP,
-                child: Text(_canResend ? l10n.resendOTP : '${l10n.resendAfter} ${_start}s'),
+              child: InkWell(
+                onTap: canResend ? _resendOTP : null,
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+                  child: Text(
+                    _canResend ? l10n.resendOTP : '${l10n.resendAfter} ${_start}s',
+                    style: TextStyle(
+                      color: canResend ? AppColors.primary : AppColors.textGrey,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: 16),
-            _buildPasswordField(label: l10n.enterNewPassword, controller: passwordController, obscureText: _obscurePassword, onToggle: () => setState(() => _obscurePassword = !_obscurePassword)),
+            PasswordTextField(
+              controller: passwordController, 
+              label: l10n.enterNewPassword,
+              focusNode: _passwordFocus,
+              autovalidateMode: _autoValidateMode,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) => FocusScope.of(context).requestFocus(_confirmPasswordFocus),
+              validator: (value) {
+                final text = value?.trim() ?? '';
+                if (text.isEmpty) {
+                  return l10n.enterPassword;
+                }
+                return null;
+              },
+            ),
             const SizedBox(height: 16),
-            _buildPasswordField(label: l10n.reEnterPassword, controller: confirmPasswordController, obscureText: _obscureConfirmPassword, onToggle: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword)),
+            PasswordTextField(
+              controller: confirmPasswordController, 
+              label: l10n.reEnterPassword,
+              focusNode: _confirmPasswordFocus,
+              autovalidateMode: _autoValidateMode,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => _resetPassword(),
+              validator: (value) {
+                final confirmPassword = value?.trim() ?? '';
+                if (confirmPassword.isEmpty) {
+                  return l10n.enterConfirmPassword;
+                }
+
+                final newPassword = passwordController.text.trim();
+                if (confirmPassword != newPassword) {
+                  return l10n.passwordsNotMatch;
+                }
+
+                return null;
+              },
+            ),
             const SizedBox(height: 32),
             _buildSubmitButton(isLoading, l10n),
             const SizedBox(height: 24),
@@ -230,50 +315,92 @@ class _ResetPasswordPageState extends State<ResetPasswordPage> {
     );
   }
 
-  Widget _buildOTPField(bool isLoading, AppLocalizations l10n) {
+  Widget _buildOTPSection(bool isLoading, AppLocalizations l10n) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('OTP', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: otpController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(hintText: 'OTP', prefixIcon: const Icon(Icons.security, size: 20), filled: true, fillColor: const Color(0xFFF8F9FA), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-          validator: (value) => (value == null || value.isEmpty) ? 'Required' : null,
+        Text(l10n.otpLabel, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(6, (index) => _buildOTPBox(index, isLoading)),
         ),
       ],
     );
   }
 
-  Widget _buildPasswordField({required String label, required TextEditingController controller, required bool obscureText, required VoidCallback onToggle}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          obscureText: obscureText,
-          decoration: InputDecoration(hintText: '● ● ● ● ● ● ● ●', prefixIcon: const Icon(Icons.lock_outline, size: 20), suffixIcon: IconButton(icon: Icon(obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20), onPressed: onToggle), filled: true, fillColor: const Color(0xFFF8F9FA), border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
-          validator: (value) => (value == null || value.isEmpty) ? label : null,
+  Widget _buildOTPBox(int index, bool isLoading) {
+    return SizedBox(
+      width: 45,
+      height: 55,
+      child: TextFormField(
+        controller: _otpControllers[index],
+        focusNode: _otpFocusNodes[index],
+        autofocus: index == 0,
+        enabled: !isLoading,
+        textAlign: TextAlign.center,
+        keyboardType: TextInputType.number,
+        maxLength: 1,
+        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textDark),
+        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        decoration: InputDecoration(
+          counterText: "",
+          filled: true,
+          fillColor: AppColors.formFill,
+          contentPadding: EdgeInsets.zero,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
+          enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
+          focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
         ),
-      ],
+        onChanged: (value) {
+          if (value.isNotEmpty) {
+            if (index < 5) {
+              _otpFocusNodes[index + 1].requestFocus();
+            } else {
+              _otpFocusNodes[index].unfocus();
+              _passwordFocus.requestFocus();
+            }
+          } else {
+            if (index > 0) {
+              _otpFocusNodes[index - 1].requestFocus();
+            }
+          }
+        },
+      ),
     );
   }
 
   Widget _buildSubmitButton(bool isLoading, AppLocalizations l10n) {
     return SizedBox(
       height: 54,
-      child: ElevatedButton(onPressed: isLoading ? null : _resetPassword, style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white), child: Text(l10n.resetPassword)),
+      child: ElevatedButton(
+        onPressed: isLoading ? null : _resetPassword, 
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary, 
+          foregroundColor: AppColors.onPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ), 
+        child: isLoading 
+          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2))
+          : Text(l10n.resetPassword, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+      ),
     );
   }
 
   Widget _buildBackToForgot(bool isLoading, AppLocalizations l10n) {
-    return Center(child: GestureDetector(onTap: isLoading ? null : () => Navigator.pop(context), child: Text(l10n.backToForgot, style: const TextStyle(color: AppColors.primary, fontSize: 13))));
+    return Center(
+      child: GestureDetector(
+        onTap: isLoading ? null : () => Navigator.pop(context), 
+        child: Text(l10n.backToForgot, style: const TextStyle(color: AppColors.textGrey, fontSize: 13, fontWeight: FontWeight.w500))
+      )
+    );
   }
 
-  Widget _buildFooter() {
-    return const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Text('© 2026 PetCareX Vietnam', style: TextStyle(color: AppColors.grey, fontSize: 11)));
+  Widget _buildFooter(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16), 
+      child: Text(l10n.footerCopyright, style: const TextStyle(color: AppColors.textGrey, fontSize: 11))
+    );
   }
 }

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
 import 'package:petcarex/features/auth/presentation/login_page.dart';
 import 'package:petcarex/features/auth/presentation/providers/auth_provider.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/providers/language_provider.dart'; // Import mới
+import '../../../core/providers/language_provider.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/change_password_page.dart';
 import 'my_pets_page.dart';
 import 'profile_page.dart';
@@ -18,35 +19,50 @@ class AccountPage extends StatefulWidget {
 
 class _AccountPageState extends State<AccountPage> {
   void _showLogoutDialog(AppLocalizations l10n) {
+    // Lưu lại AuthProvider trước khi mở dialog để an toàn hơn
+    final authProvider = context.read<AuthProvider>();
+
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
+        // Đổi tên thành dialogContext
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Text(l10n.confirmLogout),
           content: Text(l10n.logoutMessage),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.cancel, style: const TextStyle(color: Colors.grey)),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                l10n.cancel,
+                style: const TextStyle(color: AppColors.textGrey),
+              ),
             ),
             ElevatedButton(
               onPressed: () async {
-                Navigator.pop(context);
-                final authProvider = context.read<AuthProvider>();
+                // 1. Đóng dialog bằng dialogContext
+                Navigator.pop(dialogContext);
+
+                // 2. Thực hiện logout
                 await authProvider.logout();
-                if (mounted) {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const LoginPage()),
-                    (route) => false,
-                  );
-                }
+
+                // 3. Điều hướng bằng context của trang (sử dụng context.mounted để an toàn)
+                if (!mounted) return;
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
+                  (route) => false,
+                );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFEA5455),
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                backgroundColor: AppColors.error,
+                foregroundColor: AppColors.onPrimary,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: Text(l10n.logout),
             ),
@@ -56,10 +72,11 @@ class _AccountPageState extends State<AccountPage> {
     );
   }
 
-  void _showLanguageDialog(AppLocalizations l10n) {
+  void _showLanguageDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
+        // Đổi tên thành dialogContext
         title: const Text('Chọn ngôn ngữ / Select Language'),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
@@ -69,16 +86,20 @@ class _AccountPageState extends State<AccountPage> {
               leading: const Text('🇻🇳', style: TextStyle(fontSize: 24)),
               title: const Text('Tiếng Việt'),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(const Locale('vi'));
-                if (mounted) Navigator.pop(context);
+                await context.read<LanguageProvider>().setLocale(
+                  const Locale('vi'),
+                );
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
               },
             ),
             ListTile(
               leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
               title: const Text('English'),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(const Locale('en'));
-                if (mounted) Navigator.pop(context);
+                await context.read<LanguageProvider>().setLocale(
+                  const Locale('en'),
+                );
+                if (dialogContext.mounted) Navigator.pop(dialogContext);
               },
             ),
           ],
@@ -90,9 +111,12 @@ class _AccountPageState extends State<AccountPage> {
   void _showAboutUsDialog(AppLocalizations l10n) {
     showDialog(
       context: context,
-      builder: (BuildContext context) {
+      builder: (BuildContext dialogContext) {
+        // Đổi tên thành dialogContext
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Row(
             children: [
               Image.asset('assets/images/icon.png', width: 24, height: 24),
@@ -104,24 +128,30 @@ class _AccountPageState extends State<AccountPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Capstone 2 Project - Comprehensive Pet Care System.',
+              Text(
+                l10n.aboutProjectHeadline,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Text('${l10n.version}: 1.0.0'),
-              const Text('Developed by: PetCareX Team'),
+              Text(l10n.aboutDevelopedBy),
               const SizedBox(height: 12),
-              const Text(
-                'This application helps you manage health, appointments, and connect with reputable veterinarians quickly.',
-                style: TextStyle(fontSize: 13, color: Colors.grey),
+              Text(
+                l10n.aboutProjectDescription,
+                style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
               ),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(l10n.close, style: const TextStyle(color: Color(0xFF00CFE8))),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                l10n.close,
+                style: const TextStyle(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         );
@@ -135,19 +165,14 @@ class _AccountPageState extends State<AccountPage> {
     final langProvider = context.watch<LanguageProvider>();
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
         title: Text(
           l10n.account,
-          style: const TextStyle(
-            color: Color(0xFF1E1E1E),
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
+        backgroundColor: AppColors.appBarBackground,
+        elevation: 0,
         centerTitle: true,
       ),
       body: SingleChildScrollView(
@@ -160,13 +185,13 @@ class _AccountPageState extends State<AccountPage> {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w800,
-                color: Color(0xFF1E1E1E),
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.person_outline_rounded,
-              iconColor: const Color(0xFF00CFE8),
+              iconColor: AppColors.infoAccent,
               title: l10n.personalInfo,
               subtitle: l10n.personalInfoSubtitle,
               onTap: () {
@@ -179,7 +204,7 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.pets_outlined,
-              iconColor: const Color(0xFFFAAF00),
+              iconColor: AppColors.petAccent,
               title: l10n.petInfo,
               subtitle: l10n.petInfoSubtitle,
               onTap: () {
@@ -192,21 +217,27 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.language_rounded,
-              iconColor: const Color(0xFF00CFE8),
-              title: langProvider.locale.languageCode == 'vi' ? 'Ngôn ngữ' : 'Language',
-              subtitle: langProvider.locale.languageCode == 'vi' ? 'Tiếng Việt' : 'English',
-              onTap: () => _showLanguageDialog(l10n),
+              iconColor: AppColors.primary,
+              title: langProvider.locale.languageCode == 'vi'
+                  ? 'Ngôn ngữ'
+                  : 'Language',
+              subtitle: langProvider.locale.languageCode == 'vi'
+                  ? 'Tiếng Việt'
+                  : 'English',
+              onTap: _showLanguageDialog,
             ),
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.lock_outline_rounded,
-              iconColor: const Color(0xFF7367F0),
+              iconColor: AppColors.securityAccent,
               title: l10n.changePassword,
               subtitle: l10n.changePasswordSubtitle,
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const ChangePasswordPage()),
+                  MaterialPageRoute(
+                    builder: (context) => const ChangePasswordPage(),
+                  ),
                 );
               },
             ),
@@ -216,13 +247,13 @@ class _AccountPageState extends State<AccountPage> {
               style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w700,
-                color: Color(0xFF1E1E1E),
+                color: AppColors.textDark,
               ),
             ),
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.info_outline_rounded,
-              iconColor: const Color(0xFF7367F0),
+              iconColor: AppColors.securityAccent,
               title: l10n.aboutUs,
               subtitle: l10n.aboutUsSubtitle,
               onTap: () => _showAboutUsDialog(l10n),
@@ -230,10 +261,10 @@ class _AccountPageState extends State<AccountPage> {
             const SizedBox(height: 16),
             _buildAccountItem(
               icon: Icons.logout_rounded,
-              iconColor: const Color(0xFFEA5455),
+              iconColor: AppColors.error,
               title: l10n.logout,
               subtitle: l10n.exitAccount,
-              titleColor: const Color(0xFFEA5455),
+              titleColor: AppColors.error,
               isDestructive: true,
               onTap: () => _showLogoutDialog(l10n),
             ),
@@ -259,12 +290,12 @@ class _AccountPageState extends State<AccountPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isDestructive ? const Color(0xFFFFEAEA) : Colors.white,
+          color: isDestructive
+              ? AppColors.errorLight
+              : AppColors.cardBackground,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isDestructive
-                ? const Color(0xFFFFC1C1).withOpacity(0.5)
-                : Colors.grey.withOpacity(0.12),
+            color: isDestructive ? AppColors.errorBorder : AppColors.formBorder,
             width: 1,
           ),
         ),
@@ -273,7 +304,7 @@ class _AccountPageState extends State<AccountPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.12),
+                color: iconColor.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Icon(icon, color: iconColor, size: 24),
@@ -287,25 +318,25 @@ class _AccountPageState extends State<AccountPage> {
                     title,
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: titleColor ?? const Color(0xFF1E1E1E),
+                      fontWeight: FontWeight.bold,
+                      color: titleColor ?? AppColors.textDark,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[600],
+                      color: AppColors.textGrey,
                       fontWeight: FontWeight.w400,
                     ),
                   ),
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios_rounded,
-              color: Colors.grey[400],
+              color: AppColors.iconGrey,
               size: 16,
             ),
           ],
