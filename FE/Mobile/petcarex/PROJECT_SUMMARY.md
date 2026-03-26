@@ -10,6 +10,39 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
+## ⚡ Community Performance & UX Optimization (2026-03-25)
+
+### 1) Tối ưu tốc độ đăng bài có nhiều ảnh (Pre-upload)
+- **Vấn đề cũ:** Ảnh chỉ được upload khi bấm `Đăng`, nên thời gian chờ dài và cảm giác app bị “đơ”.
+- **Giải pháp mới:** Upload ảnh **ngay khi người dùng chọn ảnh** (pre-upload), đến lúc bấm `Đăng` chỉ gửi nội dung + danh sách URL đã upload.
+- **Triển khai chính:**
+    - `CommunityProvider` thêm `preUploadImages(...)`.
+    - `createNewPost(...)` hỗ trợ `uploadedImageUrls` để bỏ qua upload lại.
+    - `CreatePostPage` quản lý trạng thái từng ảnh: `isUploading`, `isUploadFailed`, `uploadedUrl`.
+- **Lợi ích:** Giảm đáng kể thời gian chờ tại thao tác `Đăng`, UX mượt hơn trên mạng chậm.
+
+### 2) Sửa lỗi Edit Post hiển thị raw HTML script
+- **Vấn đề cũ:** Dialog `Chỉnh sửa bài viết` bind trực tiếp `post.content` (HTML), khiến người dùng thấy full script `<p>`, `<img ...>`.
+- **Giải pháp mới:**
+    - Tách `text` và `imageUrls` từ HTML trước khi hiển thị.
+    - Text hiển thị trong `TextField` dạng plain text.
+    - Ảnh hiển thị preview riêng, có thể xóa từng ảnh trước khi `Cập nhật`.
+    - Cho phép thêm ảnh mới trong lúc edit, upload ngay (pre-upload), sau đó ghép lại HTML chuẩn khi submit.
+- **Lợi ích:** Trải nghiệm chỉnh sửa đúng kỳ vọng người dùng, không lộ định dạng kỹ thuật.
+
+### 3) Cải thiện UX chọn nhiều ảnh và xóa ảnh trước khi đăng
+- **Vấn đề cũ:** Người dùng khó kiểm soát danh sách ảnh đã chọn, dễ phải thoát màn để làm lại.
+- **Giải pháp mới:**
+    - Dải preview ảnh luôn hiển thị trong màn tạo bài.
+    - Mỗi ảnh có nút xóa trực tiếp.
+    - Overlay trạng thái upload/failed theo từng ảnh giúp người dùng biết ảnh nào đã sẵn sàng.
+- **Lợi ích:** Người dùng kiểm soát chính xác ảnh trước khi đăng, giảm thao tác lặp và khó chịu.
+
+### 4) Phản biện & trade-off đã cân nhắc
+- **Pre-upload** tăng số request sớm hơn trong phiên thao tác, nhưng đổi lại giảm độ trễ ở action quan trọng nhất (`Đăng/Cập nhật`) và cải thiện cảm nhận hiệu năng.
+- Chưa thêm cơ chế “hủy ảnh đã pre-upload trên cloud khi user xóa khỏi draft” do cần contract backend riêng; hiện tại ưu tiên tốc độ và UX phía mobile.
+- Thiết kế hiện tại ưu tiên ổn định và khả dụng ngay, có thể mở rộng retry ảnh lỗi theo từng item ở iteration tiếp theo.
+
 ## 📂 Workspace chuẩn khi thao tác
 - **Mobile root path chuẩn:** `F:\capstone 2\code\PetcareX\FE\Mobile\petcarex`.
 - **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
@@ -174,6 +207,7 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Tiêu chuẩn Enum:** Enum runtime của Flutter được đặt tập trung trong `lib/core/enums/`; mọi màn hình/business logic chỉ dùng enum Dart thay vì chuỗi cứng.
 - **Chuẩn hóa Booking UI theo i18n:** Đã loại bỏ chuỗi cứng còn sót trong các bước `Service`, `Doctor`, `Time`, `Summary`, `Success`.
 - **Booking Step Header UX (2026-03):** Loại bỏ pattern trùng lặp title/subtitle (ví dụ `Dịch vụ`/`Dịch vụ`) ở các bước đặt lịch. Subtitle từng bước được đổi thành câu hướng dẫn có ngữ nghĩa rõ ràng (`bookingClinicSub`, `bookingServiceSub`, `bookingDoctorSub`, `bookingTimeSub`) để người dùng hiểu cần làm gì ở mỗi bước.
+- **Booking Step Order Update (2026-03-25):** Đổi thứ tự luồng đặt lịch thành **Clinic -> Pet -> Service -> Doctor -> Time**. Các bước còn lại giữ nguyên logic validate/nghiệp vụ; mục tiêu UX là chốt ngữ cảnh phòng khám trước rồi mới chọn thú cưng.
 - **Booking Symptoms Input UX (2026-03):** Ở bước `Dịch vụ`, ô nhập `Triệu chứng` (bắt buộc) được đưa lên đầu màn và kèm helper text để người dùng nhận biết ngay từ đầu, không cần cuộn xuống cuối danh sách dịch vụ mới thấy. Đồng thời tối ưu controller nhập liệu để tránh reset con trỏ khi Provider rebuild.
 - **Chuẩn hóa Enum Chuyên môn bác sĩ:** `VeterinarySpecialtyEnum` dùng `getTranslatedName(context)` + `fromValue(...)` để parse ổn định theo enum key backend và hiển thị theo locale.
 - **Chuẩn hóa Enum trạng thái lịch hẹn:** `AppointmentStatusEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)`; luồng `AppointmentProvider` và `AppointmentPage` bắt buộc map status qua enum, không hardcode chuỗi tại UI/Provider.
@@ -192,6 +226,8 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Home chỉ hiển thị **2 lịch sắp tới gần nhất** (lọc theo trạng thái upcoming và sắp xếp theo **ngày + giờ khám**), đảm bảo nhất quán khi so với tab **Sắp tới**.
     - UI card lịch hẹn ở Home được đồng bộ theo visual của Appointment: thumbnail thú cưng + badge trạng thái + các dòng thông tin icon (ngày giờ, bác sĩ, địa chỉ) + action bar tách riêng ở chân card.
     - Với lịch **Sắp tới**, cả Home và Appointment đều dùng chung pattern **2 nút**: `Xem chi tiết` + `Hủy`; nút `Hủy` chỉ cho phép khi trạng thái là `BOOKED` (trạng thái khác bị disable để đúng nghiệp vụ).
+- **Appointment Navigation Refresh Rule (2026-03-25):** Khi người dùng bấm tab **Lịch hẹn** ở bottom navigation, app chủ động tải lại dữ liệu để ưu tiên độ mới. Tối ưu chống gọi dư: lần mở tab đầu tiên dùng fetch khởi tạo của `AppointmentPage`; các lần bấm sau (kể cả bấm lại tab đang đứng) sẽ trigger refresh từ navigation.
+- **Trade-off hiệu năng đã chấp nhận (2026-03-25):** Refresh chủ động làm tăng tải mạng và thời gian chờ nhẹ ở một số thiết bị, nhưng đổi lại dữ liệu lịch hẹn nhất quán hơn sau các luồng tạo/hủy/chuyển màn; phù hợp ưu tiên reliability của sản phẩm hiện tại.
 - **Home Header & Background UX (2026-03-24):**
     - Home chuyển từ `SingleChildScrollView` sang `CustomScrollView` + `SliverPersistentHeader(pinned: true)` để ghim cứng cụm header gồm **logo PetCareX, icon QR và icon thông báo** khi người dùng cuộn xuống.
     - Nền Home được đặt rõ ràng `AppColors.white` ở root container và phần pinned header để loại bỏ cảm giác xám/mờ, giữ trải nghiệm sáng và đồng nhất.
