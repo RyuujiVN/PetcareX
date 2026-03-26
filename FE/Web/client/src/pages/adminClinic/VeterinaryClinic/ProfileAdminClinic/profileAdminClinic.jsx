@@ -2,6 +2,7 @@ import { EnvironmentOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '
 import { Avatar, Card, Col, Descriptions, Row, Spin, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import { getUserProfileApi } from '../../../../data/adminClinic/api/user'
+import { getRoleLabel } from '../../../../constants/veterinaryLabels'
 import styles from './profileAdminClinic.module.css'
 
 const { Title, Text } = Typography
@@ -45,7 +46,7 @@ export default function AdminClinicProfile() {
             </Row>
 
             <Descriptions className={styles.adminProfileInfo} column={1} bordered size="middle">
-              <Descriptions.Item label="Vai trò">{profileData?.role || 'ADMIN_CLINIC'}</Descriptions.Item>
+              <Descriptions.Item label="Vai trò">{getRoleLabel(profileData?.role || 'ADMIN_CLINIC', 'vi')}</Descriptions.Item>
               <Descriptions.Item label="Email">
                 <MailOutlined /> {profileData?.email || 'Chưa cập nhật'}
               </Descriptions.Item>

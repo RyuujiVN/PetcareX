@@ -23,6 +23,7 @@ import {
   SERVICE_OPTIONS,
 } from '../../../../data/client/api/appointmentApi';
 import { getBreedLabel } from '../../../../data/client/api/petApi';
+import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 
 const TIME_SLOT_GROUPS = [
   {
@@ -595,7 +596,7 @@ export default function BookingAppointment() {
                       </div>
 
                       <div style={{ color: 'var(--color-text-secondary)' }}>
-                        {selectedDoctor?.specialty || 'Chưa có chuyên môn'}
+                        {selectedDoctor?.specialty ? getSpecialtyLabel(selectedDoctor.specialty, 'vi') : 'Chưa có chuyên môn'}
                       </div>
                     </div>
                   </Card>

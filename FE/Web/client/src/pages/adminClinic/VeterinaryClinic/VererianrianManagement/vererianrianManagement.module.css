@@ -109,6 +109,17 @@
 	gap: 20px;
 }
 
+.stateText {
+	grid-column: 1 / -1;
+	background: #fff;
+	border: 1px solid #dce3eb;
+	border-radius: 12px;
+	padding: 16px;
+	text-align: center;
+	color: #607089;
+	font-weight: 600;
+}
+
 .card {
 	background: #fff;
 	border: 1px solid #dce3eb;
@@ -196,6 +207,20 @@
 
 .phone {
 	margin-top: 10px;
+}
+
+.paginationRow {
+	margin-top: 18px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+}
+
+.paginationText {
+	color: #607089;
+	font-size: 14px;
+	font-weight: 700;
 }
 
 @media (max-width: 1320px) {
