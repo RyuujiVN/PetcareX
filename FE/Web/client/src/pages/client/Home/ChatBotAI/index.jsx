@@ -1,224 +1,188 @@
-import React, { useState, useRef, useEffect } from 'react';
-import './styles.css';
-import { MessageCircle, Plus, Send, Loader } from 'lucide-react';
-import { CloseOutlined } from '@ant-design/icons';
+import React, { useEffect, useState } from "react";
+import "./styles.css";
+import { MessageCircle, Plus } from "lucide-react";
+import { EllipsisOutlined } from "@ant-design/icons";
+import { Dropdown, Input, Modal, message } from "antd";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchCreateRoom,
+  fetchDeleteRoom,
+  fetchRooms,
+  fetchRenameRoom,
+} from "../../../../redux/slices/roomSlice";
+
 export default function ChatBotAI() {
-  const [conversations, setConversations] = useState([
-    { id: 1, title: 'LuLu bị biếng ăn', unread: 0 },
-    { id: 2, title: 'Lịch tiêm phòng cho mèo', unread: 0 },
-    { id: 3, title: 'Dấu hiệu về rằng ở chó', unread: 0 },
-    { id: 4, title: 'Thức ăn tốt nhất cho Corgi', unread: 0 },
-  ]);
+  const dispatch = useDispatch();
+  const rooms = useSelector((state) => state.room.rooms || []);
+  const navigate = useNavigate();
 
-  const [activeConversation, setActiveConversation] = useState(1);
+  const { roomId } = useParams();
+  const activeConversation = roomId;
 
-  const [messagesMap, setMessagesMap] = useState({
-    1: [
-      {
-        id: 1,
-        sender: 'user',
-        content: 'Chào AI, LuLu nhà tôi đang biếng ăn, tôi nên làm gì?',
-        timestamp: '09:41 AM',
-      },
-      {
-        id: 2,
-        sender: 'ai',
-        content: 'Bạn hãy kiểm tra nhiệt độ, nước uống và môi trường nhé!',
-        timestamp: '09:42 AM',
-      },
-    ],
-  });
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [renameRoomId, setRenameRoomId] = useState(null);
+  const [renameValue, setRenameValue] = useState("");
 
-  const messages = messagesMap[activeConversation] || [];
-
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const handleNavigateRoom = (id) => {
+    navigate(`/chatbot/${id}`);
   };
-useEffect(() => {
-  window.scrollTo(0, 0);
-}, []);
-  const handleSendMessage = () => {
-    if (!inputValue.trim()) return;
 
-    const newMessage = {
-      id: Date.now(),
-      sender: 'user',
-      content: inputValue,
-      timestamp: new Date().toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit',
-      }),
+  useEffect(() => {
+    const fetchRoomsData = async () => {
+      try {
+        await dispatch(fetchRooms()).unwrap();
+      } catch (error) {
+        message.error(error.message);
+      }
     };
 
-    setMessagesMap((prev) => ({
-      ...prev,
-      [activeConversation]: [...(prev[activeConversation] || []), newMessage],
-    }));
+    fetchRoomsData();
+  }, [dispatch]);
 
-    setInputValue('');
-    setIsLoading(true);
-
-    setTimeout(() => {
-      const aiResponse = {
-        id: Date.now() + 1,
-        sender: 'ai',
-        content: 'Cảm ơn bạn! Tôi đang phân tích...',
-        timestamp: new Date().toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit',
-        }),
-      };
-
-      setMessagesMap((prev) => ({
-        ...prev,
-        [activeConversation]: [...(prev[activeConversation] || []), aiResponse],
-      }));
-
-      setIsLoading(false);
-    }, 1000);
-  };
-const handleDeleteConversation = (id) => {
-  const updated = conversations.filter((c) => c.id !== id);
-  setConversations(updated);
-
-  setMessagesMap((prev) => {
-    const newMap = { ...prev };
-    delete newMap[id];
-    return newMap;
-  });
-
-  if (id === activeConversation) {
-    if (updated.length > 0) {
-      setActiveConversation(updated[0].id);
-    } else {
-      setActiveConversation(null);
+  const handleCreateNewConversation = async () => {
+    try {
+      const created = await dispatch(
+        fetchCreateRoom({ name: "Cuộc trò chuyện mới" })
+      ).unwrap();
+      if (created?.id) {
+        navigate(`/chatbot/${created.id}`);
+      }
+    } catch (error) {
+      message.error(error?.message || "Không thể tạo cuộc trò chuyện mới");
     }
-  }
-};
+  };
 
-const handleCreateNewConversation = () => {
-  scrollToBottom();
-   const newId =
-  conversations.length > 0
-    ? Math.max(...conversations.map((c) => c.id)) + 1
-    : 1;
+  const openRenameModal = (room) => {
+    setRenameRoomId(room?.id);
+    setRenameValue(room?.name || "");
+    setIsRenameOpen(true);
+  };
 
-    setConversations([
-      {
-        id: newId,
-        title: 'Cuộc trò chuyện mới',
-        unread: 0,
+  const handleRenameOk = async () => {
+    const name = renameValue.trim();
+    if (!name) {
+      message.warning("Tên phòng không được để trống");
+      return;
+    }
+
+    try {
+      await dispatch(
+        fetchRenameRoom({
+          id: renameRoomId,
+          data: { name },
+        })
+      ).unwrap();
+      setIsRenameOpen(false);
+      setRenameRoomId(null);
+      setRenameValue("");
+    } catch (error) {
+      message.error(error?.message || "Đổi tên phòng chat thất bại");
+    }
+  };
+
+  const handleRenameCancel = () => {
+    setIsRenameOpen(false);
+    setRenameRoomId(null);
+    setRenameValue("");
+  };
+
+  const handleDeleteConversation = async (id) => {
+    Modal.confirm({
+      title: "Xoá cuộc trò chuyện?",
+      content: "Bạn có chắc muốn xoá cuộc trò chuyện này không?",
+      okText: "Xoá",
+      okButtonProps: { danger: true },
+      cancelText: "Huỷ",
+      onOk: async () => {
+        try {
+          await dispatch(fetchDeleteRoom({ id })).unwrap();
+          if (String(activeConversation) === String(id)) {
+            navigate(`/chatbot`);
+          }
+        } catch (error) {
+          message.error(error?.message || "Xoá phòng chat thất bại");
+        }
       },
-      ...conversations
-    ]);
-    setActiveConversation(newId);
+    });
   };
 
   return (
-    
-      <div className="chatbot-container">
-        <aside className="chatbot-sidebar">
-          <button className="new-conversation-btn" onClick={handleCreateNewConversation}>
-            <Plus size={20} />
-            <span>Cuộc trò chuyện mới</span>
-          </button>
+    <div className="chatbot-container">
+      <aside className="chatbot-sidebar">
+        <button
+          className="new-conversation-btn"
+          onClick={handleCreateNewConversation}
+        >
+          <Plus size={20} />
+          <span>Cuộc trò chuyện mới</span>
+        </button>
 
-          <div className="conversations-label">LỊCH SỬ GẦN ĐÂY</div>
+        <div className="conversations-label">LỊCH SỬ GẦN ĐÂY</div>
 
-          <div className="conversations-list">
-            {conversations.map((conv) => (
-              <div
+        <div className="conversations-list">
+          {rooms.map((conv) => (
+            <div
               key={conv.id}
-              className={`conversation-item ${activeConversation === conv.id ? 'active' : ''}`}
-              onClick={() => setActiveConversation(conv.id)}
+              className={`conversation-item ${activeConversation === conv.id ? "active" : ""}`}
+              onClick={() => handleNavigateRoom(conv.id)}
             >
-              <span className="conversation-icon">{conv.icon}</span>
-
               <div className="conversation-info">
-                <p className="conversation-title">{conv.title}</p>
-                <p className="conversation-meta">2 phút trước</p>
+                <p className="conversation-title">{conv.name}</p>
               </div>
 
-              <CloseOutlined
-                className="delete-icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDeleteConversation(conv.id);
-                }}
-              />
-            </div>
-            ))}
-          </div>
-        </aside>
-
-        <div className="chatbot-main">
-          <header className="chatbot-header">
-            <div className="header-content">
-              <MessageCircle className="header-icon" size={24} />
-              <h1>Trợ lý AI PetCareX</h1>
-            </div>
-          </header>
-          <div className="messages-container">
-            {messages.length === 0 ? (
-              <div className="empty-state">
-                <h2>Hôm nay bạn cần gì?</h2>
+              <div className="conversation-actions" onClick={(e) => e.stopPropagation()}>
+                <Dropdown
+                  trigger={["click"]}
+                  menu={{
+                    items: [
+                      { key: "rename", label: "Sửa tên" },
+                      { key: "delete", label: "Xoá" },
+                    ],
+                    onClick: ({ key }) => {
+                      if (key === "rename") openRenameModal(conv);
+                      if (key === "delete") handleDeleteConversation(conv.id);
+                    },
+                  }}
+                >
+                  <button type="button" className="conversation-more-btn" aria-label="Tùy chọn">
+                    <EllipsisOutlined />
+                  </button>
+                </Dropdown>
               </div>
-            ) : (
-              <>
-                {messages.map((message) => (
-                  <div key={message.id} className={`message ${message.sender}`}>
-                    <div className="message-content">
-                      <div className="message-bubble">
-                        {message.content}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-
-                {isLoading && (
-                  <div className="message ai">
-                    <div className="message-content">
-                      <div className="message-bubble">
-                        Đang trả lời...
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div ref={messagesEndRef} />
-                
-              </>
-            )}
-          </div>
-          <footer className="chatbot-footer">
-            <div className="input-container">
-              <input
-                type="text"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                placeholder="Nhập câu hỏi..."
-                className="message-input"
-              />
-
-              <button
-                onClick={handleSendMessage}
-                className="send-btn"
-                disabled={!inputValue.trim()}
-              >
-                <Send size={20} />
-              </button>
             </div>
-
-            <p className="footer-info">
-              AI có thể sai. Hãy xác nhận với bác sĩ thú y.
-            </p>
-          </footer>
+          ))}
         </div>
+      </aside>
+
+      <div className="chatbot-main">
+        <header className="chatbot-header">
+          <div className="header-content">
+            <MessageCircle className="header-icon" size={24} />
+            <h1>Trợ lý AI PetCareX</h1>
+          </div>
+        </header>
+
+        <Outlet />
       </div>
+
+      <Modal
+        title="Sửa tên cuộc trò chuyện"
+        open={isRenameOpen}
+        onOk={handleRenameOk}
+        onCancel={handleRenameCancel}
+        okText="Lưu"
+        cancelText="Huỷ"
+      >
+        <Input
+          value={renameValue}
+          onChange={(e) => setRenameValue(e.target.value)}
+          placeholder="Nhập tên cuộc trò chuyện"
+          maxLength={50}
+          autoFocus
+          onPressEnter={handleRenameOk}
+        />
+      </Modal>
+    </div>
   );
 }
