@@ -34,11 +34,6 @@ export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
   // ------------------------ Phiếu khám -----------------------------
-  @Get(':id')
-  @ApiOperation({ summary: 'Lấy thông tin phiếu khám chi tiết' })
-  async getDetail(@Param('id') id: string) {
-    return this.medicalService.findOneById(id);
-  }
 
   @Get('clinic')
   @ApiOperation({ summary: 'Lấy danh sách phiếu khám bên phòng khám' })
@@ -54,6 +49,12 @@ export class MedicalController {
       limit,
       clinicId: req?.user?.clinicId,
     });
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Lấy thông tin phiếu khám chi tiết' })
+  async getDetail(@Param('id') id: string) {
+    return this.medicalService.findOneById(id);
   }
 
   @Get('pet/:petId')
