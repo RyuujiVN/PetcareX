@@ -5,6 +5,7 @@ import {
   OnModuleDestroy,
   OnModuleInit,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { io, Socket as ClientSocket } from 'socket.io-client';
 import { ChatBotGateway } from 'src/chatbot/chatBot.gateway';
 
@@ -14,11 +15,12 @@ export class AiClientService implements OnModuleInit, OnModuleDestroy {
 
   constructor(
     @Inject(forwardRef(() => ChatBotGateway))
-    private chatBotGateway: ChatBotGateway,
+    private readonly chatBotGateway: ChatBotGateway,
+    private readonly configService: ConfigService,
   ) {}
 
   onModuleInit() {
-    this.socket = io('https://ref-matching-bars-promises.trycloudflare.com', {
+    this.socket = io(this.configService.get<string>('LINK_CONNECT_AI'), {
       transports: ['websocket'],
     });
 

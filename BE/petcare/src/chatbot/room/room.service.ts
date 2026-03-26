@@ -68,6 +68,7 @@ export class RoomService {
     return await this.roomRepository.save(room);
   }
 
+  // Chỉnh sửa đoạn chat
   async updateRoom(updateDTO: UpdateRoomDTO, roomId: string, userId: string) {
     const room = await this.roomRepository.findOne({ where: { id: roomId } });
 
@@ -77,9 +78,10 @@ export class RoomService {
       throw new ForbiddenException('Không có quyền chỉnh sửa đoạn chat này');
 
     Object.assign(room, updateDTO);
-    await this.roomRepository.save(room);
+    return await this.roomRepository.save(room);
   }
 
+  // Xoá đoạn chat
   async deleteRoom(roomId: string, userId: string) {
     const room = await this.roomRepository.findOne({ where: { id: roomId } });
 
