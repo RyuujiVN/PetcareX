@@ -1,25 +1,20 @@
-import { GoogleOAuthProvider } from "@react-oauth/google";
-import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { Provider } from "react-redux";
-import { BrowserRouter } from "react-router-dom";
-import App from "./App.jsx";
-import { AuthProvider as AdminAuthProvider } from "./hooks/adminClinic/AuthContext";
-import { AuthProvider as ClientAuthProvider } from "./hooks/client/AuthContext";
-import "./index.css";
-import { store } from "./redux/store.js";
-import "./styles/adminClinic/colorsToken.css";
-import "./styles/client/colorsToken.css";
-import {
-  getGoogleClientId,
-  isGoogleClientIdValid,
-} from "./utils/googleOAuthConfig";
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import { Provider } from 'react-redux'
+import { BrowserRouter } from 'react-router-dom'
+import App from './App.jsx'
+import { AuthProvider as AdminAuthProvider } from './hooks/adminClinic/AuthContext'
+import { AuthProvider as ClientAuthProvider } from './hooks/client/AuthContext'
+import './index.css'
+import { store } from './redux/store.js'
+import './styles/adminClinic/colorsToken.css'
+import './styles/client/colorsToken.css'
+import { initFirebaseAnalytics } from './utils/firebaseClient'
 
-const googleClientId = getGoogleClientId();
-const hasValidGoogleClientId = isGoogleClientIdValid(googleClientId);
+initFirebaseAnalytics().catch(() => undefined)
 
-function AppProviders() {
-  return (
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
     <BrowserRouter>
       <Provider store={store}>
         <ClientAuthProvider>
@@ -29,17 +24,5 @@ function AppProviders() {
         </ClientAuthProvider>
       </Provider>
     </BrowserRouter>
-  );
-}
-
-createRoot(document.getElementById("root")).render(
-  <StrictMode>
-    {hasValidGoogleClientId ? (
-      <GoogleOAuthProvider clientId={googleClientId}>
-        <AppProviders />
-      </GoogleOAuthProvider>
-    ) : (
-      <AppProviders />
-    )}
   </StrictMode>,
-);
+)
