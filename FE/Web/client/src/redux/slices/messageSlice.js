@@ -8,9 +8,9 @@ const initialState = {
 
 // Lấy danh sách message trong room
 export const fetchMessageInRoom = createAsyncThunk(
-  'chat/fetchMessageInRoom',
+  'message/fetchMessageInRoom',
   async ({ roomId, query }) => {
-    const response = await instance.get(`room/${roomId}/messages`, {
+    const response = await instance.get(`/room/${roomId}/messages`, {
       params: query
     })
 
@@ -20,9 +20,9 @@ export const fetchMessageInRoom = createAsyncThunk(
 
 // Lấy danh sách message trong room
 export const fetchOldMessageInRoom = createAsyncThunk(
-  'chat/fetchOldMessageInRoom',
+  'message/fetchOldMessageInRoom',
   async ({ roomId, query }) => {
-    const response = await instance.get(`room/${roomId}/messages`, {
+    const response = await instance.get(`/room/${roomId}/messages`, {
       params: query
     })
 
@@ -30,9 +30,9 @@ export const fetchOldMessageInRoom = createAsyncThunk(
   },
 )
 
-// Lấy danh sách message trong room
+// Gửi message
 export const fetchSendMessage = createAsyncThunk(
-  'chat/fetchSendMessage',
+  'message/fetchSendMessage',
   async (data) => {
     const response = await instance.post(`message`, data)
 
@@ -40,8 +40,8 @@ export const fetchSendMessage = createAsyncThunk(
   },
 )
 
-export const chatSlice = createSlice({
-  name: 'chat',
+export const messageSlice = createSlice({
+  name: 'message',
   initialState,
   reducers: {
     addMessage: (state, action) => {
@@ -82,6 +82,11 @@ export const chatSlice = createSlice({
 
   extraReducers: (builder) => {
     builder.addCase(fetchMessageInRoom.fulfilled, (state, action) => {
+      if (action.payload.length < 10)
+        state.hasMoreMessage = false;
+      else
+        state.hasMoreMessage = true;
+
       state.messages = action.payload
     })
 
@@ -101,6 +106,6 @@ export const chatSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { addMessage, editAiMessage } = chatSlice.actions
+export const { addMessage, editAiMessage } = messageSlice.actions
 
-export default chatSlice.reducer
+export default messageSlice.reducer

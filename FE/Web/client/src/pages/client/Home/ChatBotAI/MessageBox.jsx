@@ -8,13 +8,16 @@ import {
   editAiMessage,
   fetchMessageInRoom,
   fetchOldMessageInRoom,
-} from "../../../../redux/slices/chatSlice";
+} from "../../../../redux/slices/messageSlice";
 import socket from "../../../../socket/socket";
 import { Spin } from "antd";
+import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import "github-markdown-css/github-markdown-light.css";
 
 const MessageBox = () => {
-  const messages = useSelector((state) => state.chat.messages);
-  const hasMoreMessage = useSelector((state) => state.chat.hasMoreMessage);
+  const messages = useSelector((state) => state.message.messages);
+  const hasMoreMessage = useSelector((state) => state.message.hasMoreMessage);
   const [isLoadingMore, setIsLoadingMore] = useState(true);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -23,7 +26,6 @@ const MessageBox = () => {
   const { roomId } = useParams();
 
   const messagesEndRef = useRef();
-  const roomRef = useRef(roomId);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -145,7 +147,7 @@ const MessageBox = () => {
 
   // Cuộn xuống cuối khi lần đầu vào room
   useEffect(() => {
-    if (roomRef.current !== roomId) {
+    if (messages.length <= 10) {
       scrollToBottom();
     }
   }, [roomId, messages]);
@@ -173,16 +175,21 @@ const MessageBox = () => {
                 <span>Đang tải tin nhắn cũ...</span>
               </div>
             )}
-            {messages.map((message, index) => (
-              <div
-                key={message.id}
-                className={`message ${message.sendBy?.toLowerCase()}`}
-              >
-                <div className="message-content">
-                  <div className="message-bubble">{message.content}</div>
+            {messages.map((message) =>
+              message?.sendBy === "USER" ? (
+                <div key={message.id} className={`message user`}>
+                  <div className="message-content">
+                    <div className="message-bubble">{message.content}</div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ) : (
+                <div className="markdown-body" key={message.id}>
+                  <Markdown remarkPlugins={[remarkGfm]}>
+                    {message.content}
+                  </Markdown>
+                </div>
+              ),
+            )}
 
             {isAiLoading && (
               <div className="message ai">
