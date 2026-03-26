@@ -85,6 +85,7 @@ export default function AppRoutes({ location }) {
           <Route path=":roomId" element={<MessageBox />} />
         </Route>
         <Route path="/profile" element={<ProfileUser />} />
+        <Route path="/user/profile" element={<ProfileUser />} />
         <Route path="/petProfile" element={<PetProfile />} />
         <Route path="/listPet" element={<ListPet />} />
         <Route path="/medical-records" element={<MedicalRecords />} />
