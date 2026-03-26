@@ -111,7 +111,6 @@ export default function InformationVererianrian() {
 					return merged
 				})
 			} catch {
-				// Keep current data if additional user profile fetch fails.
 			}
 		}
 
@@ -209,7 +208,7 @@ export default function InformationVererianrian() {
 
 		Modal.confirm({
 			title: 'Bạn muốn thoát thay đổi?',
-			content: 'Bạn đang chỉnh sửa dở. Chọn "Lưu hồ sơ" để lưu, hoặc "Thoát không lưu".',
+			content: 'Bạn đang chỉnh sửa thông tin. Chọn "Lưu hồ sơ" để lưu, hoặc "Thoát không lưu".',
 			okText: 'Lưu hồ sơ',
 			cancelText: 'Thoát không lưu',
 			onOk: saveEditProfile,
