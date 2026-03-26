@@ -9,6 +9,7 @@ import './index.css'
 import './styles/adminClinic/colorsToken.css'
 import './styles/client/colorsToken.css'
 import { getGoogleClientId, isGoogleClientIdValid } from './utils/googleOAuthConfig'
+// import { GoogleOAuthProvider } from "@react-oauth/google";
 
 const googleClientId = getGoogleClientId()
 const hasValidGoogleClientId = isGoogleClientIdValid(googleClientId)

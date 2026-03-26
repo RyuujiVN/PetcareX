@@ -187,7 +187,7 @@ export default function AddNewVererianrian() {
 									label="Chuyên khoa"
 									rules={[{ required: true, message: 'Vui lòng chọn chuyên khoa' }]}
 								>
-									<Select  options={specialtyOptions} placeholder="Chọn chuyên khoa"/>
+									<Select  size="large" options={specialtyOptions} placeholder="Chọn chuyên khoa"/>
 								</Form.Item>
 							</Col>
 
