@@ -121,6 +121,8 @@ export default function InformationVererianrian() {
 	const [editing, setEditing] = useState(false)
 	const [editAvatarFile, setEditAvatarFile] = useState(null)
 	const [editAvatarPreview, setEditAvatarPreview] = useState('')
+	const [editAvatarUploading, setEditAvatarUploading] = useState(false)
+	const [editUploadedAvatarUrl, setEditUploadedAvatarUrl] = useState('')
 	const [initialEditValues, setInitialEditValues] = useState(null)
 	const specialtyOptions = useMemo(() => getSpecialtyOptions('vi'), [])
 
@@ -198,6 +200,7 @@ export default function InformationVererianrian() {
 		setInitialEditValues(initialValues)
 		setEditAvatarFile(null)
 		setEditAvatarPreview(veterinarian?.user?.avatarUrl || '')
+		setEditUploadedAvatarUrl(veterinarian?.user?.avatarUrl || '')
 		setEditOpen(true)
 	}
 
@@ -212,17 +215,18 @@ export default function InformationVererianrian() {
 	}
 
 	const saveEditProfile = async () => {
+		if (editAvatarUploading) {
+			messageApi.warning('Ảnh đang được tải lên, vui lòng đợi')
+			return
+		}
+
 		const values = await form.validateFields()
 		const normalizedFullName = values.fullName.trim()
 		const normalizedPhone = values.phone.trim()
 		const normalizedAddress = (values.address || '').trim()
 		setEditing(true)
 		try {
-			let avatarUrl = veterinarian?.user?.avatarUrl || ''
-			if (editAvatarFile) {
-				const uploaded = await uploadUserImageApi(editAvatarFile)
-				avatarUrl = uploaded?.url || uploaded?.file || uploaded?.secure_url || uploaded?.data?.url || avatarUrl
-			}
+			const avatarUrl = editUploadedAvatarUrl || veterinarian?.user?.avatarUrl || ''
 
 			await editVeterinarian(veterinarianView.userId, {
 				fullName: normalizedFullName,
@@ -261,6 +265,11 @@ export default function InformationVererianrian() {
 	}
 
 	const closeModalWithGuard = () => {
+		if (editAvatarUploading) {
+			messageApi.warning('Ảnh đang được tải lên, vui lòng đợi hoàn tất')
+			return
+		}
+
 		const isDirty = hasUnsavedChanges()
 		if (!isDirty) {
 			setEditOpen(false)
@@ -276,12 +285,36 @@ export default function InformationVererianrian() {
 		})
 	}
 
+	const handleEditAvatarUpload = async (file) => {
+		setEditAvatarFile(file)
+		setEditAvatarPreview(URL.createObjectURL(file))
+		setEditAvatarUploading(true)
+
+		try {
+			const uploaded = await uploadUserImageApi(file)
+			const avatarUrl = uploaded?.url || uploaded?.file || uploaded?.secure_url || uploaded?.data?.url || ''
+
+			if (!avatarUrl) {
+				throw new Error('Không nhận được URL ảnh từ server')
+			}
+
+			setEditUploadedAvatarUrl(avatarUrl)
+			messageApi.success('Tải ảnh đại diện thành công')
+		} catch (error) {
+			setEditAvatarFile(null)
+			setEditAvatarPreview(veterinarian?.user?.avatarUrl || '')
+			setEditUploadedAvatarUrl(veterinarian?.user?.avatarUrl || '')
+			messageApi.error(error.message || 'Không thể tải ảnh đại diện')
+		} finally {
+			setEditAvatarUploading(false)
+		}
+	}
+
 	const uploadProps = {
 		accept: 'image/*',
 		showUploadList: false,
 		beforeUpload: (file) => {
-			setEditAvatarFile(file)
-			setEditAvatarPreview(URL.createObjectURL(file))
+			handleEditAvatarUpload(file)
 			return false
 		},
 	}
@@ -380,9 +413,15 @@ export default function InformationVererianrian() {
 					onCancel={closeModalWithGuard}
 					footer={
 						<Space>
-							<Button onClick={closeModalWithGuard}>Hủy</Button>
-							<Button type="primary" icon={<SaveOutlined />} loading={editing || saving} onClick={saveEditProfile}>
-								Lưu hồ sơ
+							<Button onClick={closeModalWithGuard} disabled={editAvatarUploading || editing || saving}>Hủy</Button>
+							<Button
+								type="primary"
+								icon={<SaveOutlined />}
+								loading={editing || saving}
+								onClick={saveEditProfile}
+								disabled={editAvatarUploading}
+							>
+								{editAvatarUploading ? 'Đang tải ảnh...' : 'Lưu hồ sơ'}
 							</Button>
 						</Space>
 					}
@@ -390,7 +429,14 @@ export default function InformationVererianrian() {
 					<div className={styles.modalAvatarWrap}>
 						<Avatar size={90} src={editAvatarPreview || undefined} icon={<UserOutlined />} />
 						<Upload {...uploadProps}>
-							<Button icon={<CameraOutlined />} className={styles.modalUploadButton}>Đổi ảnh đại diện</Button>
+							<Button
+								icon={<CameraOutlined />}
+								className={styles.modalUploadButton}
+								disabled={editAvatarUploading || editing || saving}
+								loading={editAvatarUploading}
+							>
+								Đổi ảnh đại diện
+							</Button>
 						</Upload>
 					</div>
 

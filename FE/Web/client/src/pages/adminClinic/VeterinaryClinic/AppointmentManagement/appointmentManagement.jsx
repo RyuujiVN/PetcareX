@@ -34,6 +34,7 @@ import {
 	getClinicAppointmentsApi,
 	updateAppointmentStatusApi,
 } from '../../../../data/adminClinic/api/appointmentApi'
+import { getUserByIdApi } from '../../../../data/adminClinic/api/user'
 
 const { Title, Text } = Typography
 
@@ -196,6 +197,7 @@ export default function AppointmentManagement() {
 	const [appointments, setAppointments] = useState([])
 	const [selectedAppointment, setSelectedAppointment] = useState(null)
 	const [isModalOpen, setIsModalOpen] = useState(false)
+	const [ownerDetailsById, setOwnerDetailsById] = useState({})
 
 	const fetchAppointments = useCallback(async () => {
 		try {
@@ -224,6 +226,9 @@ export default function AppointmentManagement() {
 	const mappedAppointments = appointments
 		.filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
 		.map((item) => {
+			const pet = item.pet || {}
+			const owner = pet.owner || item.owner || {}
+
 			const badgeByStatus = {
 				[APPOINTMENT_STATUS.BOOKED]: 'default',
 				[APPOINTMENT_STATUS.IN_PROGRESS]: 'processing',
@@ -240,25 +245,28 @@ export default function AppointmentManagement() {
 				appointmentDateRaw: item.appointmentDate,
 				service: item.service,
 				serviceLabel: normalizeClinicText(SERVICE_OPTIONS[item.service] || item.service),
-				petName: item.pet?.name || 'Không rõ',
-				petAvatar: item.pet?.avatar || '',
-				avatarText: (item.pet?.name || 'P').charAt(0).toUpperCase(),
-				ownerName: item.pet?.owner?.fullName || 'Không rõ',
-				ownerPhone: item.pet?.owner?.phone || 'Chưa cập nhật',
-				speciesLabel: getEnumLabel(item.pet?.species),
-				breedLabel: getBreedLabel(item.pet?.breed, item.pet?.species),
+				petName: pet.name || 'Không rõ',
+				petAvatar: pet.avatar || '',
+				avatarText: (pet.name || 'P').charAt(0).toUpperCase(),
+				ownerId: owner.id || item.ownerId || '',
+				ownerName: owner.fullName || item.ownerName || 'Không rõ',
+				ownerPhone: owner.phone || item.ownerPhone || 'Chưa cập nhật',
+				speciesLabel: getEnumLabel(pet.species),
+				breedLabel: getBreedLabel(pet.breed, pet.species),
 				genderLabel:
-					typeof item.pet?.gender === 'boolean'
-						? item.pet.gender
+					typeof pet.gender === 'boolean'
+						? pet.gender
 							? 'Đực'
 							: 'Cái'
+						: typeof pet.gender === 'string'
+							? pet.gender
 						: 'Chưa cập nhật',
-				ageLabel: getAgeLabel(item.pet?.dateOfBirth),
-				dateOfBirthLabel: item.pet?.dateOfBirth
-					? new Date(item.pet.dateOfBirth).toLocaleDateString('vi-VN')
+				ageLabel: getAgeLabel(pet.dateOfBirth),
+				dateOfBirthLabel: pet.dateOfBirth
+					? new Date(pet.dateOfBirth).toLocaleDateString('vi-VN')
 					: 'Chưa cập nhật',
-				weightLabel: item.pet?.weight ? `${item.pet.weight} kg` : 'Chưa cập nhật',
-				featureNote: item.pet?.note || 'Chưa cập nhật',
+				weightLabel: pet.weight ? `${pet.weight} kg` : 'Chưa cập nhật',
+				featureNote: pet.note || 'Chưa cập nhật',
 				appointmentNote: item.note || 'Không có ghi chú',
 				clinicName: item.clinic?.name || 'Không rõ',
 				clinicAddress: item.clinic?.address || 'Không rõ',
@@ -320,9 +328,23 @@ export default function AppointmentManagement() {
 		}
 	}
 
-	const handleOpenDetails = (appointment) => {
+	const handleOpenDetails = async (appointment) => {
 		setSelectedAppointment(appointment)
 		setIsModalOpen(true)
+
+		const ownerId = appointment?.ownerId
+		if (!ownerId || ownerDetailsById[ownerId]) return
+
+		try {
+			const res = await getUserByIdApi(ownerId)
+			const ownerData = res?.data
+
+			if (ownerData) {
+				setOwnerDetailsById((prev) => ({ ...prev, [ownerId]: ownerData }))
+			}
+		} catch {
+			// Giữ yên fallback hiện tại nếu không lấy thêm được thông tin chủ nuôi.
+		}
 	}
 
 	const canClinicCancelAppointment =
@@ -358,6 +380,11 @@ export default function AppointmentManagement() {
 
 	const totalAppointments = filteredAppointments.length
 	const timeOptions = TIME_SLOTS.map((slot) => ({ value: slot, label: slot }))
+	const ownerDetails = selectedAppointment?.ownerId
+		? ownerDetailsById[selectedAppointment.ownerId]
+		: null
+	const ownerNameDisplay = ownerDetails?.fullName || selectedAppointment?.ownerName || 'Không rõ'
+	const ownerPhoneDisplay = ownerDetails?.phone || selectedAppointment?.ownerPhone || 'Chưa cập nhật'
 
 	return (
 		<div className={styles.content}>
@@ -501,9 +528,9 @@ export default function AppointmentManagement() {
 									<div className={styles.infoRow}><span>Loài:</span><strong>{selectedAppointment.speciesLabel}</strong></div>
 									<div className={styles.infoRow}><span>Giới tính:</span><strong>{selectedAppointment.genderLabel}</strong></div>
 									<div className={styles.infoRow}><span>Giống:</span><strong>{selectedAppointment.breedLabel}</strong></div>
-									<div className={styles.infoRow}><span>Tên chủ thú cưng:</span><strong>{selectedAppointment.ownerName}</strong></div>
+									<div className={styles.infoRow}><span>Tên chủ thú cưng:</span><strong>{ownerNameDisplay}</strong></div>
 									<div className={styles.infoRow}><span>Cân nặng:</span><strong>{selectedAppointment.weightLabel}</strong></div>
-									<div className={styles.infoRow}><span>Số điện thoại:</span><strong>{selectedAppointment.ownerPhone}</strong></div>
+									<div className={styles.infoRow}><span>Số điện thoại:</span><strong>{ownerPhoneDisplay}</strong></div>
 									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>Màu lông / Đặc điểm nhận dạng:</span><strong>{selectedAppointment.featureNote}</strong></div>
 								</div>
 							</div>

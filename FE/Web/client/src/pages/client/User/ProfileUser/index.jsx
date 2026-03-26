@@ -2,9 +2,17 @@ import { CameraOutlined, HomeOutlined, MailOutlined, PhoneOutlined, UserOutlined
 import { Avatar, Button, Card, Form, Input, message, Space, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getUserProfileApi, updateUserProfileApi, uploadAvatarApi } from '../../../../data/client/api/user';
+import {
+  getUserListApi,
+  getUserProfileApi,
+  updateUserProfileApi,
+  uploadAvatarApi,
+} from '../../../../data/client/api/user';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import './styles.css';
+
+const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
+const normalizePhone = (value) => String(value || '').trim();
 
 export default function ProfileUser() {
   const [form] = Form.useForm();
@@ -65,20 +73,63 @@ export default function ProfileUser() {
 
   const handleSubmit = async (values) => {
     if (uploadingAvatar) return;
+
     try {
       setLoading(true);
+
       const updateData = {
-        fullName: values.name,
-        email: values.email,
-        phone: values.phone,
-        address: values.address,
+        fullName: String(values.name || '').trim(),
+        email: normalizeEmail(values.email),
+        phone: normalizePhone(values.phone),
+        address: String(values.address || '').trim(),
         avatarUrl: avatarUrl,
       };
+
+      const currentData = {
+        fullName: String(profileData?.fullName || '').trim(),
+        email: normalizeEmail(profileData?.email),
+        phone: normalizePhone(profileData?.phone),
+        address: String(profileData?.address || '').trim(),
+        avatarUrl: profileData?.avatarUrl || null,
+      };
+
+      const hasChanges =
+        updateData.fullName !== currentData.fullName ||
+        updateData.email !== currentData.email ||
+        updateData.phone !== currentData.phone ||
+        updateData.address !== currentData.address ||
+        updateData.avatarUrl !== currentData.avatarUrl;
+
+      if (!hasChanges) {
+        message.info('Không có thay đổi để lưu');
+        return;
+      }
+
+      // Frontend-only precheck để giảm rủi ro backend trả Internal server error do dữ liệu trùng.
+      const userListRes = await getUserListApi(1, 1000, '');
+      const userItems = Array.isArray(userListRes?.data?.items) ? userListRes.data.items : [];
+      const duplicatedEmail = userItems.some(
+        (user) => user?.id !== profileData?.id && normalizeEmail(user?.email) === updateData.email,
+      );
+      const duplicatedPhone = userItems.some(
+        (user) => user?.id !== profileData?.id && normalizePhone(user?.phone) === updateData.phone,
+      );
+
+      if (duplicatedEmail) {
+        message.error('Email đã được sử dụng bởi tài khoản khác');
+        return;
+      }
+
+      if (duplicatedPhone) {
+        message.error('Số điện thoại đã được sử dụng bởi tài khoản khác');
+        return;
+      }
+
       await updateUserProfileApi(profileData.id, updateData);
       setProfileData((prev) => ({ ...prev, ...updateData }));
       await refreshUserProfile();
       message.success('Cập nhật hồ sơ thành công!');
-      navigate (-1);
+      navigate(-1);
     } catch (error) {
       const errorMsg = error.response?.data?.message || 'Cập nhật hồ sơ thất bại!';
       message.error(errorMsg);
@@ -119,7 +170,14 @@ export default function ProfileUser() {
                   className="profile-avatar"
                 />
               </Spin>
-              <label htmlFor="avatar-upload" className="avatar-upload-btn">
+              <label
+                htmlFor="avatar-upload"
+                className="avatar-upload-btn"
+                style={{
+                  opacity: uploadingAvatar || loading ? 0.5 : 1,
+                  pointerEvents: uploadingAvatar || loading ? 'none' : 'auto',
+                }}
+              >
                 <CameraOutlined />
               </label>
               <input
@@ -127,6 +185,7 @@ export default function ProfileUser() {
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
+                disabled={uploadingAvatar || loading}
                 style={{ display: 'none' }}
               />
             </div>
@@ -225,6 +284,7 @@ export default function ProfileUser() {
                   size="large"
                   className="btn-cancel"
                   onClick={handleCancel}
+                  disabled={uploadingAvatar || loading}
                 >
                   Hủy
                 </Button>

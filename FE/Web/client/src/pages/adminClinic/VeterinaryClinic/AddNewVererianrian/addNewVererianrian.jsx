@@ -45,6 +45,8 @@ export default function AddNewVererianrian() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [avatarFile, setAvatarFile] = useState(null)
 	const [avatarPreview, setAvatarPreview] = useState('')
+	const [avatarUploading, setAvatarUploading] = useState(false)
+	const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('')
 
 	const navigateToListWithFlash = (text) => {
 		sessionStorage.setItem('veterinarianFlashMessage', text)
@@ -52,6 +54,11 @@ export default function AddNewVererianrian() {
 	}
 
 	const handleSubmit = async (values) => {
+		if (avatarUploading) {
+			messageApi.warning('Ảnh đang được tải lên, vui lòng đợi')
+			return
+		}
+
 		setIsSubmitting(true)
 		try {
 			const created = await addVeterinarian({
@@ -61,9 +68,8 @@ export default function AddNewVererianrian() {
 				specialty: values.specialty,
 			})
 
-			if (avatarFile && created?.userId) {
-				const uploaded = await uploadUserImageApi(avatarFile)
-				const avatarUrl = uploaded?.url || uploaded?.secure_url || uploaded?.data?.url || ''
+			if (uploadedAvatarUrl && created?.userId) {
+				const avatarUrl = uploadedAvatarUrl
 
 				if (avatarUrl) {
 					await editVeterinarian(created.userId, {
@@ -125,12 +131,36 @@ export default function AddNewVererianrian() {
 
 	const fullNamePreview = Form.useWatch('fullName', form)
 
+	const handleAvatarUpload = async (file) => {
+		setAvatarFile(file)
+		setAvatarPreview(URL.createObjectURL(file))
+		setAvatarUploading(true)
+
+		try {
+			const uploaded = await uploadUserImageApi(file)
+			const avatarUrl = uploaded?.url || uploaded?.file || uploaded?.secure_url || uploaded?.data?.url || ''
+
+			if (!avatarUrl) {
+				throw new Error('Không nhận được URL ảnh từ server')
+			}
+
+			setUploadedAvatarUrl(avatarUrl)
+			messageApi.success('Tải ảnh đại diện thành công')
+		} catch (error) {
+			setAvatarFile(null)
+			setAvatarPreview('')
+			setUploadedAvatarUrl('')
+			messageApi.error(error.message || 'Không thể tải ảnh đại diện')
+		} finally {
+			setAvatarUploading(false)
+		}
+	}
+
 	const uploadProps = {
 		accept: 'image/*',
 		showUploadList: false,
 		beforeUpload: (file) => {
-			setAvatarFile(file)
-			setAvatarPreview(URL.createObjectURL(file))
+			handleAvatarUpload(file)
 			return false
 		},
 	}
@@ -157,6 +187,8 @@ export default function AddNewVererianrian() {
 								shape="circle"
 								icon={<CameraOutlined />}
 								className={styles.avatarButton}
+								disabled={avatarUploading || saving || isSubmitting}
+								loading={avatarUploading}
 							/>
 						</Upload>
 					</div>
@@ -221,14 +253,15 @@ export default function AddNewVererianrian() {
 
 						<div className={styles.formActions}>
 							<Space>
-								<Button onClick={handleCancel} disabled={saving || isSubmitting}>Hủy</Button>
+								<Button onClick={handleCancel} disabled={saving || isSubmitting || avatarUploading}>Hủy</Button>
 								<Button
 									type="primary"
 									htmlType="submit"
 									icon={<SaveOutlined />}
 									loading={saving || isSubmitting}
+									disabled={avatarUploading}
 								>
-									Thêm bác sĩ
+									{avatarUploading ? 'Đang tải ảnh...' : 'Thêm bác sĩ'}
 								</Button>
 							</Space>
 						</div>
