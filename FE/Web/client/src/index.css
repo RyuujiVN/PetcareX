@@ -166,7 +166,7 @@ body {
   padding: 0;
   background-color: var(--color-surface-page);
   color: var(--color-text-primary);
-  overflow-x: hidden;
+  /* overflow-x: hidden; */
   overflow-y: scroll;
   scrollbar-width: auto;
 }

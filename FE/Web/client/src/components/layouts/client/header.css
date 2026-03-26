@@ -5,7 +5,7 @@
 .petcare-header {
     background-color: var(--color-surface-card);
     box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-08);
-    position: fixed;
+    position: sticky;
     top: 0;
     left: 0;
     width: 100%;
