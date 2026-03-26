@@ -9,5 +9,6 @@ import { ChatbotRoom } from '../entities/chatbot-room.entity';
   imports: [TypeOrmModule.forFeature([ChatbotRoom, ChatbotMessage])],
   providers: [MessageService],
   controllers: [MessageController],
+  exports: [MessageService],
 })
 export class MessageModule {}
