@@ -353,20 +353,25 @@ class CommunityProvider with ChangeNotifier {
     required String content,
     required String topicId,
     List<String> imagePaths = const [],
+    List<String> uploadedImageUrls = const [],
   }) async {
     _isLoading = true;
     notifyListeners();
     try {
       final trimmed = content.trim();
-      if (trimmed.isEmpty && imagePaths.isEmpty) {
+      if (trimmed.isEmpty && imagePaths.isEmpty && uploadedImageUrls.isEmpty) {
         _errorMessage = 'shareSomething';
         return false;
       }
 
-      List<String> uploadedImageUrls = [];
-      if (imagePaths.isNotEmpty) {
-        uploadedImageUrls = await _repository.uploadPostImages(imagePaths);
-        if (uploadedImageUrls.isEmpty) {
+      var finalImageUrls = uploadedImageUrls
+          .where((url) => url.trim().isNotEmpty)
+          .map((url) => url.trim())
+          .toList();
+
+      if (finalImageUrls.isEmpty && imagePaths.isNotEmpty) {
+        finalImageUrls = await _repository.uploadPostImages(imagePaths);
+        if (finalImageUrls.isEmpty) {
           _errorMessage = 'uploadImageFailed';
           return false;
         }
@@ -374,7 +379,7 @@ class CommunityProvider with ChangeNotifier {
 
       final htmlContent = _buildHtmlContent(
         text: trimmed,
-        imageUrls: uploadedImageUrls,
+        imageUrls: finalImageUrls,
       );
 
       final newPost = await _repository.createPost(htmlContent, topicId);
@@ -389,5 +394,19 @@ class CommunityProvider with ChangeNotifier {
       notifyListeners();
     }
     return false;
+  }
+
+  Future<List<String>> preUploadImages(List<String> imagePaths) async {
+    if (imagePaths.isEmpty) return [];
+    try {
+      final uploaded = await _repository.uploadPostImages(imagePaths);
+      if (uploaded.isEmpty) {
+        _errorMessage = 'uploadImageFailed';
+      }
+      return uploaded;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return [];
+    }
   }
 }

@@ -29,7 +29,7 @@ export const updateUserProfileApi = (userId, data) => {
 };
 
 export const uploadAvatarApi = (formData) => {
-  return instance.post('/user/upload', formData, {
+  return instance.post('/cloudinary/upload/one-file', formData, {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
@@ -41,12 +41,20 @@ export const uploadUserImageApi = (file) => {
   formData.append('file', file);
 
   return instance
-    .post('/user/upload', formData, {
+    .post('/cloudinary/upload/one-file', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
     })
-    .then((response) => response.data);
+    .then((response) => {
+      const payload = response.data || {};
+      const url = payload.file || payload.url || payload.secure_url || payload.data?.url || '';
+
+      return {
+        ...payload,
+        url,
+      };
+    });
 };
 
 export const deleteAccountApi = (userId) => {

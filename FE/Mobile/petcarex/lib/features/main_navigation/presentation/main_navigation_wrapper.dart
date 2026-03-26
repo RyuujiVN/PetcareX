@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/account/presentation/account_page.dart';
 import '../../../../features/appointment/presentation/appointment_page.dart';
+import '../../../../features/appointment/presentation/provider/appointment_provider.dart';
 import '../../../../features/booking/presentation/booking_page.dart';
 import '../../../../features/community/presentation/community_page.dart';
 import '../../../../features/home/presentation/home_page.dart';
@@ -23,10 +27,12 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   final HomeChatbotHintController _homeChatbotHintController =
       HomeChatbotHintController();
 
-  final Set<int> _initializedPages = {0}; 
+  final Set<int> _initializedPages = {0};
   final List<Widget?> _pages = List<Widget?>.filled(5, null);
 
   void setSelectedIndex(int index) {
+    final wasInitialized = _initializedPages.contains(index);
+
     setState(() {
       _selectedIndex = index;
       _initializedPages.add(index);
@@ -34,6 +40,10 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
     if (index == 0) {
       _homeChatbotHintController.restartCountdown();
+    }
+
+    if (index == 2 && wasInitialized) {
+      unawaited(context.read<AppointmentProvider>().fetchAppointments());
     }
   }
 
@@ -49,21 +59,23 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   }
 
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-    setState(() {
-      _selectedIndex = index;
-      _initializedPages.add(index);
-    });
-
-    if (index == 0) {
-      _homeChatbotHintController.restartCountdown();
+    if (index == _selectedIndex) {
+      if (index == 0) {
+        _homeChatbotHintController.restartCountdown();
+      }
+      if (index == 2) {
+        unawaited(context.read<AppointmentProvider>().fetchAppointments());
+      }
+      return;
     }
+
+    setSelectedIndex(index);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     for (final i in _initializedPages) {
       _pages[i] ??= _buildPage(i);
     }
@@ -97,8 +109,18 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 l10n.navAppointments,
                 2,
               ),
-              _buildNavItem(Icons.forum_outlined, Icons.forum, l10n.navCommunity, 3),
-              _buildNavItem(Icons.person_outline, Icons.person, l10n.navProfile, 4),
+              _buildNavItem(
+                Icons.forum_outlined,
+                Icons.forum,
+                l10n.navCommunity,
+                3,
+              ),
+              _buildNavItem(
+                Icons.person_outline,
+                Icons.person,
+                l10n.navProfile,
+                4,
+              ),
             ],
           ),
         ),
@@ -121,9 +143,7 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
         children: [
           Icon(
             isSelected ? activeIcon : icon,
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.navInactive,
+            color: isSelected ? AppColors.primary : AppColors.navInactive,
             size: 24,
           ),
           const SizedBox(height: 4),
@@ -132,9 +152,7 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.bold,
-              color: isSelected
-                  ? AppColors.primary
-                  : AppColors.navInactive,
+              color: isSelected ? AppColors.primary : AppColors.navInactive,
             ),
           ),
         ],

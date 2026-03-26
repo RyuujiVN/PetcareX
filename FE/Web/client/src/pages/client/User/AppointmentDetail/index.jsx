@@ -81,7 +81,7 @@ const AppointmentDetail = () => {
         avatar: item.pet?.avatar || '/gaugau.png',
         clinic: item.clinic?.name || 'Không rõ',
         clinicAddress: item.clinic?.address || 'Không rõ',
-        service: `Dịch vụ: ${item.service}`,
+        service: `${item.service}`,
         date: dateText,
         time: timeText,
         veterinarian: item.veterinarian?.user?.fullName || 'Không rõ',

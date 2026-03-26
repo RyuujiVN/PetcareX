@@ -25,14 +25,14 @@ body::-webkit-scrollbar {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: white;
+  background: var(--color-surface-card);
   max-height: 100vh;
   position: relative;
 }
 
 
 .logo-name-small {
-  color: #333 !important;
+  color: var(--color-text-primary) !important;
 }
 
 @media print {

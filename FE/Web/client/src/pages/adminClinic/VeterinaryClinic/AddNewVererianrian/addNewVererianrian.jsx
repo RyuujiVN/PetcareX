@@ -14,28 +14,21 @@ import {
 	Upload,
 } from 'antd'
 import {
-	BellOutlined,
 	CameraOutlined,
 	EyeInvisibleOutlined,
 	EyeTwoTone,
 	LockOutlined,
 	MailOutlined,
 	SaveOutlined,
-	SearchOutlined,
 	UserOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import useVeterinarians from '../../../../data/adminClinic/api/useVeterinarians'
 import { uploadUserImageApi } from '../../../../data/adminClinic/api/user'
+import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import styles from './addNewVererianrian.module.css'
 
-const specialtyOptions = [
-	{ value: 'GENERAL_EXAMINATION', label: 'Khám tổng quát' },
-	{ value: 'INTERNAL_MEDICINE', label: 'Nội khoa' },
-	{ value: 'SURGERY', label: 'Ngoại khoa' },
-	{ value: 'ULTRASOUND', label: 'Chẩn đoán hình ảnh' },
-	{ value: 'VACCINATION_AND_PREVENTION', label: 'Tiêm chủng' },
-]
+const specialtyOptions = getSpecialtyOptions('vi')
 
 const defaultFormValues = {
 	fullName: '',
@@ -92,7 +85,25 @@ export default function AddNewVererianrian() {
 		}
 	}
 
-	const hasPendingChanges = () => form.isFieldsTouched(true) || Boolean(avatarFile)
+	const hasPendingChanges = () => {
+		const currentValues = form.getFieldsValue()
+		const hasFormValueChanged = Object.entries(defaultFormValues).some(([key, initialValue]) => {
+			const currentValue = currentValues[key]
+			return currentValue !== initialValue
+		})
+
+		return hasFormValueChanged || form.isFieldsTouched(true) || Boolean(avatarFile)
+	}
+
+	const saveProfileWithValidation = async () => {
+		try {
+			const values = await form.validateFields()
+			await handleSubmit(values)
+		} catch (error) {
+			if (error?.errorFields) return
+			messageApi.error(error.message || 'Không thể lưu thông tin bác sĩ')
+		}
+	}
 
 	const handleCancel = () => {
 		if (!hasPendingChanges()) {
@@ -102,14 +113,12 @@ export default function AddNewVererianrian() {
 
 		Modal.confirm({
 			title: 'Bạn muốn thoát thay đổi?',
-			content: 'Bạn đang nhập dở. Bạn có chắc muốn thoát mà không lưu?',
-			okText: 'Thoát không lưu',
-			cancelText: 'Ở lại',
-			onOk: () => {
-				navigate('/admin/clinic/veterinarians')
-			},
+			content: 'Bạn đang nhập thông tin. Chọn "Lưu thông tin" để lưu, hoặc "Thoát không lưu".',
+			okText: 'Lưu thông tin',
+			cancelText: 'Thoát không lưu',
+			onOk: saveProfileWithValidation,
 			onCancel: () => {
-				// keep editing
+				navigate('/admin/clinic/veterinarians')
 			},
 		})
 	}
@@ -130,19 +139,10 @@ export default function AddNewVererianrian() {
 		<div className={styles.page}>
 			{contextHolder}
 			<header className={styles.topBar}>
-				<div className={styles.searchBox}>
-					<SearchOutlined className={styles.searchIcon} />
-					<input type="text" placeholder="Tìm kiếm thú cưng, khách hàng..." value="" readOnly />
-				</div>
-				<button type="button" className={styles.notificationButton} aria-label="Thông báo">
-					<BellOutlined />
-				</button>
+				<h1 style={{fontSize: 24, fontWeight: 'bold'}}>Thêm mới bác sĩ</h1>
 			</header>
 
 			<section className={styles.content}>
-				<h1 style={{fontSize: 25}}>Thêm mới bác sĩ</h1>
-				<p>Điền thông tin cá nhân của bạn để nhận dịch vụ tốt nhất</p>
-
 				<Card className={styles.formCard}>
 					<div className={styles.avatarWrap}>
 						<Avatar
@@ -161,13 +161,13 @@ export default function AddNewVererianrian() {
 						</Upload>
 					</div>
 
-					<h2>{fullNamePreview || 'Bác sĩ mới'}</h2>
+					<h2>{fullNamePreview || 'Tên'}</h2>
 
 					<Form
 						layout="vertical"
 						form={form}
 						initialValues={defaultFormValues}
-						onFinish={handleSubmit}
+						onFinish={saveProfileWithValidation}
 						className={styles.antForm}
 					>
 						<Row gutter={16}>
@@ -180,15 +180,17 @@ export default function AddNewVererianrian() {
 									<Input prefix={<UserOutlined />} placeholder="Nhập tên bác sĩ" />
 								</Form.Item>
 							</Col>
+
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="specialty"
 									label="Chuyên khoa"
 									rules={[{ required: true, message: 'Vui lòng chọn chuyên khoa' }]}
 								>
-									<Select options={specialtyOptions} placeholder="Chọn chuyên khoa" />
+									<Select  size="large" options={specialtyOptions} placeholder="Chọn chuyên khoa"/>
 								</Form.Item>
 							</Col>
+
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="email"
@@ -201,6 +203,7 @@ export default function AddNewVererianrian() {
 									<Input prefix={<MailOutlined />} placeholder="example@email.com" />
 								</Form.Item>
 							</Col>
+
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="password"
@@ -225,7 +228,7 @@ export default function AddNewVererianrian() {
 									icon={<SaveOutlined />}
 									loading={saving || isSubmitting}
 								>
-									Lưu thay đổi
+									Thêm bác sĩ
 								</Button>
 							</Space>
 						</div>
