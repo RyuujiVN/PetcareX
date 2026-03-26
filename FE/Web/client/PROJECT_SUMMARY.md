@@ -314,9 +314,7 @@ Hiện hai file gần như đồng nhất, cùng semantic token cho:
 - **Quy ước chạy lệnh:** tất cả lệnh `npm run dev/build/lint` chạy từ root trên.
 - **Biến môi trường chính:**
   - `VITE_API_URL`
-<<<<<<< HEAD
   - `VITE_GOOGLE_CLIENT_ID`
-=======
   - `VITE_FIREBASE_WEB_API_KEY`
   - `VITE_FIREBASE_AUTH_DOMAIN`
   - `VITE_FIREBASE_PROJECT_ID`
@@ -330,7 +328,6 @@ Hiện hai file gần như đồng nhất, cùng semantic token cho:
 - Chỉ commit `.env.example` với placeholder, không chứa key thật.
 - Trên môi trường CI/CD (Vercel/Netlify/GitHub Actions), set biến `VITE_*` qua dashboard secrets thay vì hardcode.
 - Với tác vụ ghi file bằng PowerShell (`Set-Content`, `Out-File`), luôn bắt buộc dùng UTF-8 để tránh lỗi tiếng Việt.
->>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 
 ## 🧪 Hướng dẫn chạy nhanh
 1. `Set-Location "F:\capstone 2\code\PetcareX\FE\Web\client"`
