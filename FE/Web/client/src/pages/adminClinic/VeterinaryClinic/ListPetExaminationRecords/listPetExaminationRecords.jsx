@@ -158,7 +158,7 @@ export default function ListPetExaminationRecords() {
 		const availableSpecies = speciesList.length > 0 ? speciesList : dataSpecies
 
 		return [
-			{ label: 'Tất cả loài', value: 'ALL' },
+			{ style: {height: 30, display: 'flex', alignItems: 'center'}, label: 'Tất cả loài', value: 'ALL'},
 			...availableSpecies.map((item) => ({ label: formatEnumLabel(item), value: item })),
 		]
 	}, [records, speciesList])
@@ -202,23 +202,13 @@ export default function ListPetExaminationRecords() {
 	return (
 		<div className={styles.page}>
 			<header className={styles.topBar}>
-				<Input
-					className={styles.searchBox}
-					placeholder="Tìm kiếm thú cưng, khách hàng..."
-					prefix={<SearchOutlined />}
-					value={searchText}
-					onChange={(event) => setSearchText(event.target.value)}
-					allowClear
-				/>
-
-				<Button type="text" shape="circle" className={styles.notificationBtn} aria-label="Thông báo" icon={<BellOutlined />} />
+				<div className={styles.titleBlock}>
+					<h1 style={{fontSize: 25}}>Danh sách thú cưng</h1>
+				</div>
 			</header>
 
 			<section className={styles.content}>
-				<div className={styles.titleBlock}>
-					<h1>Danh sách thú cưng</h1>
-					<p>Các phiếu khám của thú cưng ở phòng khám</p>
-				</div>
+
 
 				<div className={styles.filtersRow}>
 					<Select
