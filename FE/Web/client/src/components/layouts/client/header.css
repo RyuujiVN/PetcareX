@@ -5,16 +5,17 @@
 .petcare-header {
     background-color: var(--color-surface-card);
     box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-08);
-    position: sticky;
+    position: fixed;
     top: 0;
     left: 0;
+    right: 0;
     width: 100%;
     z-index: 100;
     height: var(--petcare-header-height);
-    border: 1px solid var(--color-border-soft);
+    /* border: 1px solid var(--color-border-soft); */
 }
 
-body {
+.client-layout-content {
     padding-top: var(--petcare-header-height);
 }
 

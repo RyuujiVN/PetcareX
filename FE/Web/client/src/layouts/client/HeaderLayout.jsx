@@ -3,9 +3,11 @@ import Header from '../../components/layouts/client/header'
 
 export default function HeaderLayout() {
   return (
-    <>
+    <div>
       <Header />
-      <Outlet />
-    </>
+      <div className="client-layout-content">
+        <Outlet />
+      </div>
+    </div>
   )
 }
