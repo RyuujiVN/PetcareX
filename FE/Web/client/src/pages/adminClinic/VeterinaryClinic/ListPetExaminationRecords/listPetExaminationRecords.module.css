@@ -129,8 +129,8 @@
 
 .ageBadge {
 	font-size: 13px;
-	color: #19b987;
-	background: #e9f8f1;
+	color: #ffffff;
+	background: #4672b4;
 	border-radius: 999px;
 	padding: 3px 10px;
 	font-weight: 600;
@@ -139,7 +139,7 @@
 
 .speciesText {
 	margin: 6px 0 0;
-	color: #26b274;
+	color: #5e6d82;
 	font-size: 18px;
 	font-weight: 500;
 }
@@ -157,11 +157,14 @@
 	border: 1px solid #ebeff5 !important;
 	border-radius: 13px !important;
 	background: #f7f8fb !important;
-	color: #2d394f !important;
+	color: #ffffff !important;
 	font-size: 16px;
 	font-weight: 600;
+	background:#4672b4 !important;
 }
-
+.viewButton:hover {
+	background: #4672b4 !important;
+}
 .loadingState,
 .emptyState {
 	min-height: 320px;

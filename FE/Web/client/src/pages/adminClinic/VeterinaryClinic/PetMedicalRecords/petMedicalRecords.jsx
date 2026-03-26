@@ -1,16 +1,17 @@
-import { useNavigate } from 'react-router-dom'
+import { useState } from 'react'
+import { useNavigate, useParams } from 'react-router-dom'
+import { message } from 'antd'
 import {
 	FaHeartbeat,
 	FaPaw,
 	FaPills,
-	FaPlusCircle,
-	FaRegTrashAlt,
 	FaStethoscope,
 	FaThermometerHalf,
 	FaTint,
 	FaUserMd,
 	FaVial,
 } from 'react-icons/fa'
+import { APPOINTMENT_STATUS, updateAppointmentStatusApi } from '../../../../data/adminClinic/api/appointmentApi'
 import styles from './petMedicalRecords.module.css'
 
 const testRows = [
@@ -50,7 +51,7 @@ function Field({ label, value, placeholder = '', isSelect = false }) {
 		<label className={styles.fieldGroup}>
 			<span>{label}</span>
 			{isSelect ? (
-				<select value={value} readOnly>
+				<select value={value} disabled>
 					<option>{value}</option>
 				</select>
 			) : (
@@ -62,6 +63,27 @@ function Field({ label, value, placeholder = '', isSelect = false }) {
 
 export default function PetMedicalRecords() {
 	const navigate = useNavigate()
+	const { appointmentId } = useParams()
+	const [confirmingPayment, setConfirmingPayment] = useState(false)
+
+	const handleConfirmPayment = async () => {
+		if (!appointmentId) {
+			message.warning('Không tìm thấy mã lịch hẹn để xác nhận thanh toán')
+			navigate('/admin/clinic/exam-slips')
+			return
+		}
+
+		try {
+			setConfirmingPayment(true)
+			await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.COMPLETED)
+			message.success('Xác nhận thanh toán thành công')
+			navigate('/admin/clinic/exam-slips')
+		} catch (error) {
+			message.error(error?.response?.data?.message || error?.message || 'Không thể xác nhận thanh toán')
+		} finally {
+			setConfirmingPayment(false)
+		}
+	}
 
 	return (
 		<div className={styles.page}>
@@ -156,9 +178,6 @@ export default function PetMedicalRecords() {
 						<h3>
 							<FaVial /> Phiếu chỉ định xét nghiệm/X-Quang
 						</h3>
-						<button type="button" className={styles.linkButton}>
-							<FaPlusCircle /> Thêm chỉ định
-						</button>
 					</div>
 
 					<div className={styles.tableWrap}>
@@ -169,7 +188,6 @@ export default function PetMedicalRecords() {
 									<th>LOẠI XÉT NGHIỆM / CHẨN ĐOÁN HÌNH ẢNH</th>
 									<th>GHI CHÚ YÊU CẦU</th>
 									<th>TRẠNG THÁI</th>
-									<th />
 								</tr>
 							</thead>
 							<tbody>
@@ -180,11 +198,6 @@ export default function PetMedicalRecords() {
 										<td>{item.note}</td>
 										<td>
 											<span className={styles.waitingTag}>{item.status}</span>
-										</td>
-										<td className={styles.iconCell}>
-											<button type="button" aria-label="Xóa chỉ định">
-												<FaRegTrashAlt />
-											</button>
 										</td>
 									</tr>
 								))}
@@ -198,9 +211,6 @@ export default function PetMedicalRecords() {
 						<h3>
 							<FaPills /> Đơn thuốc chỉ định
 						</h3>
-						<button type="button" className={styles.linkButton}>
-							<FaPlusCircle /> Thêm thuốc
-						</button>
 					</div>
 
 					<div className={styles.tableWrap}>
@@ -211,7 +221,6 @@ export default function PetMedicalRecords() {
 									<th>LIỀU DÙNG</th>
 									<th>TẦN SUẤT</th>
 									<th>GHI CHÚ</th>
-									<th />
 								</tr>
 							</thead>
 							<tbody>
@@ -224,11 +233,6 @@ export default function PetMedicalRecords() {
 										<td>{item.dosage}</td>
 										<td>{item.frequency}</td>
 										<td>{item.note}</td>
-										<td className={styles.iconCell}>
-											<button type="button" aria-label="Xóa thuốc">
-												<FaRegTrashAlt />
-											</button>
-										</td>
 									</tr>
 								))}
 							</tbody>
@@ -255,17 +259,11 @@ export default function PetMedicalRecords() {
 				<div className={styles.actionRow}>
 					<button
 						type="button"
-						className={styles.cancelBtn}
-						onClick={() => navigate('/admin/clinic/medical-records')}
-					>
-						Hủy
-					</button>
-					<button
-						type="button"
 						className={styles.saveBtn}
-						onClick={() => navigate('/admin/clinic/medical-records')}
+						onClick={handleConfirmPayment}
+						disabled={confirmingPayment}
 					>
-						LƯU HỒ SƠ
+						{confirmingPayment ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
 					</button>
 				</div>
 			</div>

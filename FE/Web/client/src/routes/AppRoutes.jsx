@@ -33,7 +33,6 @@ import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/Infor
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
-
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
