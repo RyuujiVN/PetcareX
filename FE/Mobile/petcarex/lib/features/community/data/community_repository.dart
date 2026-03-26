@@ -28,47 +28,75 @@ class CommunityRepository {
   }
 
   Future<List<Topic>> getTopics() async {
-    final response = await _apiClient.get(
-      ApiHelper.topicsEndpoint(page: 1, limit: 50),
-    );
+    final response = await _apiClient.get(AppConstants.END_POINT_TOPIC_GET_ALL);
 
     if (response.statusCode == 200) {
       final dynamic raw = jsonDecode(response.body);
+      return _parseTopics(raw);
+    }
 
-      if (raw is List) {
-        return raw
+    final fallbackResponse = await _apiClient.get(
+      ApiHelper.topicsEndpoint(page: 1, limit: 50),
+    );
+
+    if (fallbackResponse.statusCode == 200) {
+      final dynamic raw = jsonDecode(fallbackResponse.body);
+      return _parseTopics(raw);
+    }
+
+    return [];
+  }
+
+  List<Topic> _parseTopics(dynamic raw) {
+    if (raw is List) {
+      return raw
+          .whereType<Map>()
+          .map((json) => Topic.fromJson(Map<String, dynamic>.from(json)))
+          .toList();
+    }
+
+    if (raw is Map<String, dynamic>) {
+      final items = raw['items'];
+      if (items is List) {
+        return items
             .whereType<Map>()
             .map((json) => Topic.fromJson(Map<String, dynamic>.from(json)))
             .toList();
-      }
-
-      if (raw is Map<String, dynamic>) {
-        final items = raw['items'];
-        if (items is List) {
-          return items
-              .whereType<Map>()
-              .map((json) => Topic.fromJson(Map<String, dynamic>.from(json)))
-              .toList();
-        }
       }
     }
 
     return [];
   }
 
-  Future<bool> likePost(String postId) async {
+  Future<PostReactionResult?> likePost(String postId) async {
     final response = await _apiClient.post(
       ApiHelper.postLikeEndpoint(postId),
       {},
     );
-    return response.statusCode == 200 || response.statusCode == 201;
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final dynamic raw = jsonDecode(response.body);
+      if (raw is Map<String, dynamic>) {
+        return PostReactionResult.fromJson(raw);
+      }
+    }
+
+    return null;
   }
 
-  Future<bool> unlikePost(String postId) async {
+  Future<PostReactionResult?> unlikePost(String postId) async {
     final response = await _apiClient.delete(
       ApiHelper.postUnlikeEndpoint(postId),
     );
-    return response.statusCode == 200;
+
+    if (response.statusCode == 200) {
+      final dynamic raw = jsonDecode(response.body);
+      if (raw is Map<String, dynamic>) {
+        return PostReactionResult.fromJson(raw);
+      }
+    }
+
+    return null;
   }
 
   Future<bool> updatePost(String postId, String content, String topicId) async {

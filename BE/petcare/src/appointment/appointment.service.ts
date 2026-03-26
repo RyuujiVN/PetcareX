@@ -4,15 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Appointment } from './entities/appointment.entity';
+import { paginate } from 'nestjs-typeorm-paginate';
+import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
 import { Repository } from 'typeorm';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
-import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
-import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
-import { paginate } from 'nestjs-typeorm-paginate';
+import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
+import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
-import { time } from 'console';
 
 @Injectable()
 export class AppointmentService {

@@ -10,6 +10,39 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
+## ⚡ Community Performance & UX Optimization (2026-03-25)
+
+### 1) Tối ưu tốc độ đăng bài có nhiều ảnh (Pre-upload)
+- **Vấn đề cũ:** Ảnh chỉ được upload khi bấm `Đăng`, nên thời gian chờ dài và cảm giác app bị “đơ”.
+- **Giải pháp mới:** Upload ảnh **ngay khi người dùng chọn ảnh** (pre-upload), đến lúc bấm `Đăng` chỉ gửi nội dung + danh sách URL đã upload.
+- **Triển khai chính:**
+    - `CommunityProvider` thêm `preUploadImages(...)`.
+    - `createNewPost(...)` hỗ trợ `uploadedImageUrls` để bỏ qua upload lại.
+    - `CreatePostPage` quản lý trạng thái từng ảnh: `isUploading`, `isUploadFailed`, `uploadedUrl`.
+- **Lợi ích:** Giảm đáng kể thời gian chờ tại thao tác `Đăng`, UX mượt hơn trên mạng chậm.
+
+### 2) Sửa lỗi Edit Post hiển thị raw HTML script
+- **Vấn đề cũ:** Dialog `Chỉnh sửa bài viết` bind trực tiếp `post.content` (HTML), khiến người dùng thấy full script `<p>`, `<img ...>`.
+- **Giải pháp mới:**
+    - Tách `text` và `imageUrls` từ HTML trước khi hiển thị.
+    - Text hiển thị trong `TextField` dạng plain text.
+    - Ảnh hiển thị preview riêng, có thể xóa từng ảnh trước khi `Cập nhật`.
+    - Cho phép thêm ảnh mới trong lúc edit, upload ngay (pre-upload), sau đó ghép lại HTML chuẩn khi submit.
+- **Lợi ích:** Trải nghiệm chỉnh sửa đúng kỳ vọng người dùng, không lộ định dạng kỹ thuật.
+
+### 3) Cải thiện UX chọn nhiều ảnh và xóa ảnh trước khi đăng
+- **Vấn đề cũ:** Người dùng khó kiểm soát danh sách ảnh đã chọn, dễ phải thoát màn để làm lại.
+- **Giải pháp mới:**
+    - Dải preview ảnh luôn hiển thị trong màn tạo bài.
+    - Mỗi ảnh có nút xóa trực tiếp.
+    - Overlay trạng thái upload/failed theo từng ảnh giúp người dùng biết ảnh nào đã sẵn sàng.
+- **Lợi ích:** Người dùng kiểm soát chính xác ảnh trước khi đăng, giảm thao tác lặp và khó chịu.
+
+### 4) Phản biện & trade-off đã cân nhắc
+- **Pre-upload** tăng số request sớm hơn trong phiên thao tác, nhưng đổi lại giảm độ trễ ở action quan trọng nhất (`Đăng/Cập nhật`) và cải thiện cảm nhận hiệu năng.
+- Chưa thêm cơ chế “hủy ảnh đã pre-upload trên cloud khi user xóa khỏi draft” do cần contract backend riêng; hiện tại ưu tiên tốc độ và UX phía mobile.
+- Thiết kế hiện tại ưu tiên ổn định và khả dụng ngay, có thể mở rộng retry ảnh lỗi theo từng item ở iteration tiếp theo.
+
 ## 📂 Workspace chuẩn khi thao tác
 - **Mobile root path chuẩn:** `F:\capstone 2\code\PetcareX\FE\Mobile\petcarex`.
 - **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
@@ -174,6 +207,7 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Tiêu chuẩn Enum:** Enum runtime của Flutter được đặt tập trung trong `lib/core/enums/`; mọi màn hình/business logic chỉ dùng enum Dart thay vì chuỗi cứng.
 - **Chuẩn hóa Booking UI theo i18n:** Đã loại bỏ chuỗi cứng còn sót trong các bước `Service`, `Doctor`, `Time`, `Summary`, `Success`.
 - **Booking Step Header UX (2026-03):** Loại bỏ pattern trùng lặp title/subtitle (ví dụ `Dịch vụ`/`Dịch vụ`) ở các bước đặt lịch. Subtitle từng bước được đổi thành câu hướng dẫn có ngữ nghĩa rõ ràng (`bookingClinicSub`, `bookingServiceSub`, `bookingDoctorSub`, `bookingTimeSub`) để người dùng hiểu cần làm gì ở mỗi bước.
+- **Booking Step Order Update (2026-03-25):** Đổi thứ tự luồng đặt lịch thành **Clinic -> Pet -> Service -> Doctor -> Time**. Các bước còn lại giữ nguyên logic validate/nghiệp vụ; mục tiêu UX là chốt ngữ cảnh phòng khám trước rồi mới chọn thú cưng.
 - **Booking Symptoms Input UX (2026-03):** Ở bước `Dịch vụ`, ô nhập `Triệu chứng` (bắt buộc) được đưa lên đầu màn và kèm helper text để người dùng nhận biết ngay từ đầu, không cần cuộn xuống cuối danh sách dịch vụ mới thấy. Đồng thời tối ưu controller nhập liệu để tránh reset con trỏ khi Provider rebuild.
 - **Chuẩn hóa Enum Chuyên môn bác sĩ:** `VeterinarySpecialtyEnum` dùng `getTranslatedName(context)` + `fromValue(...)` để parse ổn định theo enum key backend và hiển thị theo locale.
 - **Chuẩn hóa Enum trạng thái lịch hẹn:** `AppointmentStatusEnum` được bổ sung `getTranslatedName(context)` + `fromValue(...)`; luồng `AppointmentProvider` và `AppointmentPage` bắt buộc map status qua enum, không hardcode chuỗi tại UI/Provider.
@@ -192,6 +226,8 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Home chỉ hiển thị **2 lịch sắp tới gần nhất** (lọc theo trạng thái upcoming và sắp xếp theo **ngày + giờ khám**), đảm bảo nhất quán khi so với tab **Sắp tới**.
     - UI card lịch hẹn ở Home được đồng bộ theo visual của Appointment: thumbnail thú cưng + badge trạng thái + các dòng thông tin icon (ngày giờ, bác sĩ, địa chỉ) + action bar tách riêng ở chân card.
     - Với lịch **Sắp tới**, cả Home và Appointment đều dùng chung pattern **2 nút**: `Xem chi tiết` + `Hủy`; nút `Hủy` chỉ cho phép khi trạng thái là `BOOKED` (trạng thái khác bị disable để đúng nghiệp vụ).
+- **Appointment Navigation Refresh Rule (2026-03-25):** Khi người dùng bấm tab **Lịch hẹn** ở bottom navigation, app chủ động tải lại dữ liệu để ưu tiên độ mới. Tối ưu chống gọi dư: lần mở tab đầu tiên dùng fetch khởi tạo của `AppointmentPage`; các lần bấm sau (kể cả bấm lại tab đang đứng) sẽ trigger refresh từ navigation.
+- **Trade-off hiệu năng đã chấp nhận (2026-03-25):** Refresh chủ động làm tăng tải mạng và thời gian chờ nhẹ ở một số thiết bị, nhưng đổi lại dữ liệu lịch hẹn nhất quán hơn sau các luồng tạo/hủy/chuyển màn; phù hợp ưu tiên reliability của sản phẩm hiện tại.
 - **Home Header & Background UX (2026-03-24):**
     - Home chuyển từ `SingleChildScrollView` sang `CustomScrollView` + `SliverPersistentHeader(pinned: true)` để ghim cứng cụm header gồm **logo PetCareX, icon QR và icon thông báo** khi người dùng cuộn xuống.
     - Nền Home được đặt rõ ràng `AppColors.white` ở root container và phần pinned header để loại bỏ cảm giác xám/mờ, giữ trải nghiệm sáng và đồng nhất.
@@ -357,6 +393,75 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Updated `CreatePostPage` to load topics via `fetchTopics()` (instead of full `fetchInitialData()`), and render localized topic names by current locale (`vi` prefers `nameVn`, `en` prefers `nameEng`).
     - Added Dropdown selected-value guard to avoid invalid-value UI state after topic refresh.
 - **Backward-compatibility strategy:** Keep tolerant parsing to reduce risk during backend contract transition.
+
+### 7. Community Topic Filter Column (2026-03-25)
+- **Yêu cầu nghiệp vụ:** Khi người dùng bấm vào một chủ đề trong khu vực lọc của Community, danh sách bài viết chỉ hiển thị bài thuộc chủ đề đó.
+- **Triển khai hiện tại trên mobile:**
+    - Khu vực lọc chủ đề (category tabs) đã được chuẩn hóa như một cột lọc ngang dạng chip để dễ nhận biết trạng thái đang chọn.
+    - Nhãn chủ đề hiển thị theo locale hiện tại:
+        - `vi` ưu tiên `nameVn`
+        - `en` ưu tiên `nameEng`
+    - Khi chọn chủ đề, FE gọi lại danh sách bài viết với `topicId` qua `GET /api/post?topicId=...`.
+- **Tối ưu độ chắc dữ liệu (defensive filtering):**
+    - Ngoài filter từ backend, Provider có thêm lớp lọc dự phòng theo `post.topic.id == selectedTopicId` trước khi render.
+    - Mục tiêu: đảm bảo UX đúng ngay cả khi backend trả dư dữ liệu trong giai đoạn chuyển contract hoặc cache chưa nhất quán.
+- **Tối ưu tránh trùng bài khi phân trang:**
+    - Khi `loadMore`, FE chỉ append bài viết chưa tồn tại theo `post.id` để giảm khả năng lặp item do phân trang/cursor.
+- **Nguồn danh sách chủ đề cho cột lọc:**
+    - Ưu tiên `GET /api/topic/get-all` để lấy đầy đủ topic cho bộ lọc.
+    - Nếu endpoint này không khả dụng, fallback sang `GET /api/topic?page=1&limit=50` và parse `items`.
+- **Phản biện kỹ thuật & quyết định tối ưu:**
+    - Chỉ filter client-side sẽ nhẹ backend nhưng sai dữ liệu khi feed lớn/pagination server.
+    - Chỉ filter server-side sẽ gọn nhưng dễ phụ thuộc hoàn toàn vào tính đúng của API tại từng thời điểm.
+    - Giải pháp được chọn: **server-side filter là chính + client-side verify là phụ** để cân bằng hiệu năng, tính đúng và khả năng chống lỗi chuyển tiếp.
+
+### 8. Community Comment/Like Counter Consistency (2026-03-25)
+- **Vấn đề người dùng gặp:** Card bài viết hiển thị `2 comments` nhưng khi mở bottom sheet chỉ thấy 1 comment, gây cảm giác sai bộ đếm.
+- **Phân tích root cause (FE + BE):**
+    - Backend `post.commentCount` đang tăng cho **mọi comment bao gồm cả reply** (`CommentService.createComment` luôn increment `ForumPost.commentCount`, kể cả khi có `parentId`).
+    - API `GET /api/post/{id}/comments` chỉ trả **comment cấp 1** (`parentId IS NULL`).
+    - Mobile trước đó không parse `replyCount` của từng comment cha và điều kiện hiển thị nút `Xem câu trả lời` dựa vào `comment.replies`, trong khi API list comment cha không trả sẵn mảng replies.
+    - Kết quả: reply tồn tại nhưng không có tín hiệu UI để mở ra xem, nên người dùng thấy thiếu comment so với counter.
+- **Phản biện phương án:**
+    - Đổi bộ đếm trên card chỉ tính top-level ở FE: dễ hiểu tức thời nhưng lệch contract BE và sai khi hệ thống muốn tính toàn bộ thảo luận.
+    - Bắt BE đổi contract ngay: sạch về kiến trúc nhưng tốn thời gian đồng bộ và có rủi ro ảnh hưởng web/admin.
+    - Tối ưu thực tế được chọn: giữ contract hiện tại (commentCount = total gồm reply), đồng thời làm UI/logic FE phản ánh đúng tổng này.
+- **Thay đổi đã áp dụng trên mobile:**
+    - Parse `replyCount` vào model `Comment` để biết mỗi comment cha còn bao nhiêu reply.
+    - Hiển thị CTA theo số lượng reply ẩn: `Xem câu trả lời (n)` và fetch replies khi bấm.
+    - Khi gửi reply thành công, tăng `post.commentCount` ngay tại FE (đồng bộ với BE vì BE cũng tăng tổng comment).
+    - Đồng thời tăng `replyCount` của comment cha trong local state để UI không bị trễ sau khi vừa trả lời.
+- **Fix thêm cho like counter để tránh trôi số:**
+    - Không chỉ dựa optimistic +/-1; FE đã đọc payload trả về từ API like/unlike (`likeCount`, `liked`) để chốt trạng thái authoritative.
+    - Thêm khóa theo từng post khi đang like/unlike (`isLikeUpdating`) để tránh spam tap gây race condition và lệch đếm.
+
+### 9. Community Rich Content Image Flow (2026-03-25)
+- **Yêu cầu mới:** Cho phép người dùng upload ảnh khi:
+    - Tạo bài viết.
+    - Bình luận.
+    - Trả lời bình luận (reply).
+- **Ràng buộc backend:** API `POST /api/post` và `POST /api/comment` hiện nhận `content` dạng text; backend xác nhận có thể truyền nội dung HTML trực tiếp trong `content`.
+- **Phân tích & phản biện phương án:**
+    - Thêm field `images` riêng vào payload: rõ ràng dữ liệu nhưng cần đổi contract BE và ảnh hưởng web/admin.
+    - Chỉ upload ảnh và chèn URL thuần vào text: triển khai nhanh nhưng khó render nhất quán và khó mở rộng rich content.
+    - Giải pháp tối ưu đã chọn: **upload Cloudinary trước, sau đó nhúng `<img src="..." />` vào `content` HTML** để giữ nguyên contract API hiện tại và mở đường cho rich content.
+- **Thiết kế triển khai ở mobile:**
+    - Tầng UI:
+        - `CreatePostPage`: thêm chọn nhiều ảnh từ thư viện, preview thumbnail, xoá ảnh đã chọn.
+        - Comment sheet trong `CommunityPage`: thêm chọn nhiều ảnh + preview cho cả comment và reply.
+    - Tầng service/repository:
+        - `CameraService`: bổ sung `pickImagesFromGallery()` dùng `image_picker.pickMultiImage`.
+        - Dùng endpoint Cloudinary multi-file hiện có để upload ảnh và nhận URL.
+    - Tầng provider/business:
+        - `CommunityProvider` chịu trách nhiệm upload ảnh + build HTML content dùng chung cho post/comment/reply.
+        - Logic build content: text được escape HTML + newline -> `<br/>`, ảnh nhúng bằng `<img src="url" />`.
+    - Tầng render:
+        - `CommunityPage` parse nhẹ HTML để hiển thị text + ảnh (cho post/comment/reply), tránh lộ raw HTML ra UI.
+        - Có fallback hiển thị `post.images` cũ khi content chưa chứa `<img>` để đảm bảo tương thích dữ liệu legacy.
+- **Kết quả:**
+    - Người dùng có thể đính kèm ảnh khi đăng bài, bình luận và trả lời.
+    - Không cần thay đổi contract API BE hiện tại.
+    - `flutter analyze` sạch cho phạm vi `community` + `camera_service`.
 
 ## 📝 Hướng dẫn chạy dự án
 1. **Vào đúng root mobile trước khi chạy lệnh:** `Set-Location "F:\capstone 2\code\PetcareX\FE\Mobile\petcarex"`.
