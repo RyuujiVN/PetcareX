@@ -5,8 +5,9 @@ import { useNavigate } from 'react-router-dom'
 import useVeterinarians from '../../../../data/adminClinic/api/useVeterinarians'
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels'
 import styles from './vererianrianManagement.module.css'
+import { SearchOutlined } from '@ant-design/icons'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 12
 
 const filterItems = [
 	{ label: 'Tất cả bác sĩ', specialty: '' },
@@ -65,7 +66,6 @@ export default function VeterinarianManagement() {
 			specialty: getSpecialtyLabel(item?.specialty, 'vi'),
 			phone: item?.user?.phone || 'Chưa cập nhật',
 			email: item?.user?.email || 'Chưa cập nhật',
-			status: item?.user?.deleted ? 'TẠM KHÓA' : 'SẴN SÀNG',
 			statusType: item?.user?.deleted ? 'leave' : 'ready',
 			image: item?.user?.avatarUrl || defaultDoctorImage,
 			raw: item,
@@ -84,6 +84,7 @@ export default function VeterinarianManagement() {
 			{contextHolder}
 			<header className={styles.topBar}>
 				<div className={styles.searchBox}>
+					<SearchOutlined />
 					<input
 						type="text"
 						placeholder="Tìm kiếm bác sĩ theo tên, email..."
@@ -97,32 +98,35 @@ export default function VeterinarianManagement() {
 			</header>
 
 			<section className={styles.content}>
-				<div className={styles.titleRow}>
-					<div>
-						<h1>Đội ngũ Bác sĩ</h1>
-						<p>Quản lý và theo dõi hiệu suất làm việc của các chuyên gia.</p>
+				<div className={styles.stickyPanel}>
+					<div className={styles.titleRow}>
+						<div>
+							<h1 style={{fontSize: 25, fontWeight: 'bold'}}>Đội ngũ Bác sĩ</h1>
+							<p>Quản lý danh sách bác sĩ của phòng khám.</p>
+						</div>
+
+						<button
+							type="button"
+							className={styles.addButton}
+							onClick={() => navigate('/admin/clinic/veterinarians/add-new')}
+						>
+							<FaPlus /> Thêm bác sĩ mới
+						</button>
 					</div>
 
-					<button
-						type="button"
-						className={styles.addButton}
-						onClick={() => navigate('/admin/clinic/veterinarians/add-new')}
-					>
-						<FaPlus /> Thêm bác sĩ mới
-					</button>
-				</div>
-
-				<div className={styles.filterRow}>
-					{filterItems.map((item) => (
-						<button
-							key={item.label}
-							type="button"
-							className={`${styles.filterButton} ${selectedFilter === item.specialty ? styles.filterButtonActive : ''}`}
-							onClick={() => setSelectedFilter(item.specialty)}
-						>
-							{item.label}
-						</button>
-					))}
+					<div className={styles.filterRow}>
+						{filterItems.map((item) => (
+							<button
+								style={{fontSize: 12}}
+								key={item.label}
+								type="button"
+								className={`${styles.filterButton} ${selectedFilter === item.specialty ? styles.filterButtonActive : ''}`}
+								onClick={() => setSelectedFilter(item.specialty)}
+							>
+								{item.label}
+							</button>
+						))}
+					</div>
 				</div>
 
 				<div className={styles.cardGrid}>
@@ -154,7 +158,7 @@ export default function VeterinarianManagement() {
 						>
 							<img src={doctor.image} alt={doctor.name} className={styles.cardImage} loading="lazy" />
 							<div className={styles.cardBody}>
-								<h3>{doctor.name}</h3>
+								<h3 style={{fontSize: 24, fontWeight: 'bold'}}>{doctor.name}</h3>
 								<p className={styles.specialty}>{doctor.specialty}</p>
 
 								<div className={styles.infoLine}>
