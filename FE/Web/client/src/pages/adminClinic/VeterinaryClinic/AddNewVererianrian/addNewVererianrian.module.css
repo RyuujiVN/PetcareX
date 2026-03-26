@@ -6,53 +6,17 @@
 .topBar {
 	height: 64px;
 	border-bottom: 1px solid #dfe5ee;
-	background: #fff;
+	background: #f6f7fb;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 0 22px;
 }
 
-.searchBox {
-	width: min(520px, 100%);
-	height: 42px;
-	border: 1px solid #e1e7ef;
-	background: #f4f7fb;
-	border-radius: 10px;
-	display: flex;
-	align-items: center;
-	padding: 0 12px;
-	gap: 8px;
-}
-
-.searchIcon {
-	color: #9babc0;
-	font-size: 14px;
-}
-
-.searchBox input {
-	width: 100%;
-	border: 0;
-	background: transparent;
-	color: #6c7a8e;
-	font-size: 14px;
-	outline: none;
-}
-
-.notificationButton {
-	width: 32px;
-	height: 32px;
-	border: 0;
-	border-radius: 999px;
-	background: #fff;
-	color: #8ea0b6;
-	cursor: pointer;
-}
-
 .content {
-	max-width: 1040px;
+	max-width: 900px;
 	margin: 0 auto;
-	padding: 24px 20px 30px;
+	padding: 10px 20px 24px;
 }
 
 .content h1 {
@@ -85,8 +49,8 @@
 }
 
 .avatar {
-	border: 4px solid #c7d6f0;
-	background: #f2e0bd;
+	border: 4px solid #d4def0;
+	background: #e7e1d4;
 	box-shadow: 0 10px 18px rgba(34, 52, 84, 0.15);
 }
 
@@ -94,16 +58,16 @@
 	position: absolute;
 	right: 14px;
 	bottom: 8px;
-	background: #4be0d4 !important;
-	border-color: #4be0d4 !important;
-	box-shadow: 0 8px 16px rgba(75, 224, 212, 0.45);
+	background: --color-brand-primary-active !important;
+	border-color: --color-brand-primary-active !important;
+	box-shadow: 0 8px 16px --color-brand-primary-active;
 }
 
 .formCard h2 {
 	margin: 14px 0 18px;
 	text-align: center;
 	color: #1d2e4f;
-	font-size: 40px;
+	font-size: 25px;
 	font-weight: 700;
 }
 
@@ -145,7 +109,6 @@
 	padding: 20px 0 8px;
 	display: flex;
 	justify-content: flex-end;
-	border-top: 1px solid #edf2f7;
 }
 
 .formActions :global(.ant-btn) {
