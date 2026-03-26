@@ -89,20 +89,6 @@
 	border-radius: 10px !important;
 }
 
-.editForm :global(.ant-form-item-label > label) {
-	font-weight: 600;
-	color: #2f4661;
-}
-
-.editForm :global(.ant-input-affix-wrapper),
-.editForm :global(.ant-input),
-
-.editForm :global(.ant-select-selector),
-.editForm :global(.ant-picker) {
-	border-radius: 10px !important;
-	min-height: 42px !important;
-}
-
 @media (max-width: 1180px) {
 	.nameTitle {
 		font-size: 30px !important;

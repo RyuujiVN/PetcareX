@@ -4,6 +4,7 @@ import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, Toolti
 import { CalendarOutlined, EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/adminClinic/api/appointmentApi'
+import { getClinicPetSpeciesApi } from '../../../../data/adminClinic/api/petApi'
 import styles from './listPetMedicalRecords.module.css'
 
 const PAGE_SIZE = 8
@@ -66,11 +67,25 @@ const sortByTimeAsc = (a, b) => {
 export default function ListPetMedicalRecords() {
 	const navigate = useNavigate()
 	const [loading, setLoading] = useState(false)
+	const [loadingSpecies, setLoadingSpecies] = useState(false)
 	const [searchText, setSearchText] = useState('')
 	const [selectedSpecies, setSelectedSpecies] = useState('ALL')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
 	const [currentPage, setCurrentPage] = useState(1)
 	const [petRows, setPetRows] = useState([])
+	const [speciesList, setSpeciesList] = useState([])
+
+	const fetchSpecies = useCallback(async () => {
+		try {
+			setLoadingSpecies(true)
+			const response = await getClinicPetSpeciesApi()
+			setSpeciesList(Array.isArray(response) ? response : [])
+		} catch {
+			setSpeciesList([])
+		} finally {
+			setLoadingSpecies(false)
+		}
+	}, [])
 
 	const fetchMedicalRecordPets = useCallback(async () => {
 		try {
@@ -107,7 +122,7 @@ export default function ListPetMedicalRecords() {
 					petId: String(petId),
 					name: pet?.name || 'Không rõ tên',
 					avatar: pet?.avatar || '',
-					species: formatEnumLabel(pet?.species),
+					species: pet?.species || '',
 					speciesLabel: formatSpeciesLabel(pet?.species, pet?.breed),
 					ownerName: owner?.fullName || 'Không rõ chủ nuôi',
 					ownerPhone: owner?.phone || 'Chưa cập nhật',
@@ -127,8 +142,9 @@ export default function ListPetMedicalRecords() {
 			setPetRows(mappedRows)
 			setSelectedSpecies((current) => {
 				if (current === 'ALL') return current
-				const exists = mappedRows.some((row) => row.species === current)
-				return exists ? current : 'ALL'
+				const existsInBackend = speciesList.includes(current)
+				const existsInRows = mappedRows.some((row) => row.species === current)
+				return existsInBackend || existsInRows ? current : 'ALL'
 			})
 		} catch (error) {
 			setPetRows([])
@@ -136,20 +152,25 @@ export default function ListPetMedicalRecords() {
 		} finally {
 			setLoading(false)
 		}
-	}, [selectedDate])
+	}, [selectedDate, speciesList])
+
+	useEffect(() => {
+		fetchSpecies()
+	}, [fetchSpecies])
 
 	useEffect(() => {
 		fetchMedicalRecordPets()
 	}, [fetchMedicalRecordPets])
 
 	const speciesOptions = useMemo(() => {
-		const uniqueSpecies = [...new Set(petRows.map((item) => item.species).filter(Boolean))]
+		const dataSpecies = [...new Set(petRows.map((item) => item.species).filter(Boolean))]
+		const availableSpecies = speciesList.length > 0 ? speciesList : dataSpecies
 
 		return [
 			{ label: 'Tất cả loài', value: 'ALL' },
-			...uniqueSpecies.map((item) => ({ label: item, value: item })),
+			...availableSpecies.map((item) => ({ label: formatEnumLabel(item), value: item })),
 		]
-	}, [petRows])
+	}, [petRows, speciesList])
 
 	const filteredRows = useMemo(() => {
 		const keyword = searchText.trim().toLowerCase()
@@ -214,6 +235,7 @@ export default function ListPetMedicalRecords() {
 						value={selectedSpecies}
 						onChange={setSelectedSpecies}
 						options={speciesOptions}
+						loading={loadingSpecies}
 					/>
 
 					<DatePicker
@@ -249,7 +271,7 @@ export default function ListPetMedicalRecords() {
 									<th>ID & THÚ CƯNG</th>
 									<th>LOÀI</th>
 									<th>CHỦ NUÔI</th>
-									<th>LỊCH KHÁM TRONG NGÀY</th>
+									<th>NGÀY KHÁM</th>
 									<th>NGÀY TÁI KHÁM</th>
 									<th>THAO TÁC</th>
 								</tr>
@@ -282,16 +304,16 @@ export default function ListPetMedicalRecords() {
 											</div>
 										</td>
 										<td>
-											<Tag color="blue">{row.revisitDateLabel}</Tag>
+											<Tag style={{marginLeft: 15}}color="blue">{row.revisitDateLabel}</Tag>
 										</td>
 										<td>
 											<div className={styles.actionBtns}>
 												<Tooltip title="Xem sổ y tế">
 													<Button type="text" icon={<EyeOutlined />} onClick={() => onOpenMedicalRecord(row)} />
 												</Tooltip>
-												<Tooltip title="Cập nhật sổ y tế">
+												{/* <Tooltip title="Cập nhật sổ y tế">
 													<Button type="text" icon={<EditOutlined />} onClick={() => onOpenMedicalRecord(row)} />
-												</Tooltip>
+												</Tooltip> */}
 											</div>
 										</td>
 									</tr>

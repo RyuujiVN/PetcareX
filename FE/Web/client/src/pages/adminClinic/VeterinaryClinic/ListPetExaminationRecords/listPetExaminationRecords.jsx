@@ -4,6 +4,7 @@ import { BellOutlined, FileTextOutlined, SearchOutlined } from '@ant-design/icon
 import { Button, DatePicker, Empty, Input, Select, Spin, message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, APPOINTMENT_STATUS_LABEL, getClinicAppointmentsApi } from '../../../../data/adminClinic/api/appointmentApi'
+import { getClinicPetSpeciesApi } from '../../../../data/adminClinic/api/petApi'
 import styles from './listPetExaminationRecords.module.css'
 
 const normalizeDate = (dateValue) => {
@@ -74,9 +75,23 @@ export default function ListPetExaminationRecords() {
 	const navigate = useNavigate()
 	const [records, setRecords] = useState([])
 	const [loading, setLoading] = useState(false)
+	const [loadingSpecies, setLoadingSpecies] = useState(false)
 	const [selectedDate, setSelectedDate] = useState('')
 	const [selectedSpecies, setSelectedSpecies] = useState('ALL')
 	const [searchText, setSearchText] = useState('')
+	const [speciesList, setSpeciesList] = useState([])
+
+	const fetchSpecies = useCallback(async () => {
+		try {
+			setLoadingSpecies(true)
+			const response = await getClinicPetSpeciesApi()
+			setSpeciesList(Array.isArray(response) ? response : [])
+		} catch {
+			setSpeciesList([])
+		} finally {
+			setLoadingSpecies(false)
+		}
+	}, [])
 
 	const fetchExaminationRecords = useCallback(async () => {
 		try {
@@ -92,8 +107,9 @@ export default function ListPetExaminationRecords() {
 			const mappedItems = items
 				.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
 				.map((item) => {
-					const speciesLabel = formatEnumLabel(item?.pet?.species)
-					const breedLabel = formatBreedLabel(item?.pet?.breed, item?.pet?.species)
+					const speciesRaw = item?.pet?.species || ''
+					const speciesLabel = formatEnumLabel(speciesRaw)
+					const breedLabel = formatBreedLabel(item?.pet?.breed, speciesRaw)
 
 					return {
 						id: item?.id,
@@ -104,7 +120,8 @@ export default function ListPetExaminationRecords() {
 						service: item?.service || 'Không xác định',
 						petName: item?.pet?.name || 'Không rõ tên thú cưng',
 						petAvatar: item?.pet?.avatar || '',
-						species: speciesLabel,
+						speciesRaw,
+						speciesLabel,
 						breed: breedLabel,
 						ownerName: item?.pet?.owner?.fullName || 'Không rõ chủ nuôi',
 						ageLabel: getAgeLabel(item?.pet?.dateOfBirth),
@@ -116,8 +133,9 @@ export default function ListPetExaminationRecords() {
 			setRecords(mappedItems)
 			setSelectedSpecies((current) => {
 				if (current === 'ALL') return current
-				const hasSpecies = mappedItems.some((item) => item.species === current)
-				return hasSpecies ? current : 'ALL'
+				const existsInBackend = speciesList.includes(current)
+				const existsInRecords = mappedItems.some((item) => item.speciesRaw === current)
+				return existsInBackend || existsInRecords ? current : 'ALL'
 			})
 		} catch (error) {
 			message.error(error.message || 'Không thể tải danh sách thú cưng khám bệnh')
@@ -125,25 +143,31 @@ export default function ListPetExaminationRecords() {
 		} finally {
 			setLoading(false)
 		}
-	}, [selectedDate])
+	}, [selectedDate, speciesList])
+
+	useEffect(() => {
+		fetchSpecies()
+	}, [fetchSpecies])
 
 	useEffect(() => {
 		fetchExaminationRecords()
 	}, [fetchExaminationRecords])
 
 	const speciesOptions = useMemo(() => {
-		const uniqueSpecies = [...new Set(records.map((item) => item.species).filter(Boolean))]
+		const dataSpecies = [...new Set(records.map((item) => item.speciesRaw).filter(Boolean))]
+		const availableSpecies = speciesList.length > 0 ? speciesList : dataSpecies
+
 		return [
 			{ label: 'Tất cả loài', value: 'ALL' },
-			...uniqueSpecies.map((item) => ({ label: item, value: item })),
+			...availableSpecies.map((item) => ({ label: formatEnumLabel(item), value: item })),
 		]
-	}, [records])
+	}, [records, speciesList])
 
 	const visibleRecords = useMemo(() => {
 		const keyword = searchText.trim().toLowerCase()
 
 		return records.filter((item) => {
-			if (selectedSpecies !== 'ALL' && item.species !== selectedSpecies) {
+			if (selectedSpecies !== 'ALL' && item.speciesRaw !== selectedSpecies) {
 				return false
 			}
 
@@ -152,7 +176,7 @@ export default function ListPetExaminationRecords() {
 			}
 
 			if (keyword) {
-				const searchable = [item.petName, item.ownerName, item.species, item.breed].join(' ').toLowerCase()
+				const searchable = [item.petName, item.ownerName, item.speciesLabel, item.breed].join(' ').toLowerCase()
 				if (!searchable.includes(keyword)) {
 					return false
 				}
@@ -202,6 +226,7 @@ export default function ListPetExaminationRecords() {
 						value={selectedSpecies}
 						onChange={setSelectedSpecies}
 						options={speciesOptions}
+						loading={loadingSpecies}
 					/>
 
 					<DatePicker
@@ -247,7 +272,7 @@ export default function ListPetExaminationRecords() {
 										<span className={styles.ageBadge}>{record.ageLabel}</span>
 									</div>
 
-									<p className={styles.speciesText}>{record.breed || record.species}</p>
+									<p className={styles.speciesText}>{record.breed || record.speciesLabel}</p>
 									<p className={styles.ownerText}>Chủ nuôi: {record.ownerName}</p>
 
 									<Button type="default" className={styles.viewButton} onClick={() => openRecordDetail(record)}>

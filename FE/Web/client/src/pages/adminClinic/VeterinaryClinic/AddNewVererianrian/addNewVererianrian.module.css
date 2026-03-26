@@ -76,6 +76,9 @@
 	margin: 0 auto;
 }
 
+.formActions{
+	margin-left: 76%;
+}
 
 
 @media (max-width: 1024px) {

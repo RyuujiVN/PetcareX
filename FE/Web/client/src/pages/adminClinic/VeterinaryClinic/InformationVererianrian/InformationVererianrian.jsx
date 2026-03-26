@@ -435,7 +435,7 @@ export default function InformationVererianrian() {
 							<Col span={12}>
 								<Form.Item name="joinDate" label="Ngày tham gia">
 									<DatePicker
-										style={{ width: '100%' }}
+										style={{ width: '100%', height: 40 }}
 										format="DD/MM/YYYY"
 										disabled
 										inputReadOnly
