@@ -29,6 +29,7 @@ import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import styles from './addNewVererianrian.module.css'
 
 const specialtyOptions = getSpecialtyOptions('vi')
+const passwordPolicyRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
 
 const defaultFormValues = {
 	fullName: '',
@@ -61,26 +62,22 @@ export default function AddNewVererianrian() {
 
 		setIsSubmitting(true)
 		try {
+			const fullName = String(values.fullName || '').trim()
+			const email = String(values.email || '').trim().toLowerCase()
+			const password = String(values.password || '')
+
 			const created = await addVeterinarian({
-				fullName: values.fullName,
-				email: values.email,
-				password: values.password,
+				fullName,
+				email,
+				password,
 				specialty: values.specialty,
 			})
 
 			if (uploadedAvatarUrl && created?.userId) {
-				const avatarUrl = uploadedAvatarUrl
-
-				if (avatarUrl) {
-					await editVeterinarian(created.userId, {
-						fullName: values.fullName,
-						email: values.email,
-						phone: '',
-						address: '',
-						avatarUrl,
-						specialty: values.specialty,
-					})
-				}
+				// Chỉ gửi field cần cập nhật để tránh fail validate các field optional như phone.
+				await editVeterinarian(created.userId, {
+					avatarUrl: uploadedAvatarUrl,
+				})
 			}
 
 			navigateToListWithFlash('Thêm bác sĩ mới thành công')
@@ -240,7 +237,14 @@ export default function AddNewVererianrian() {
 								<Form.Item
 									name="password"
 									label="Mật khẩu"
-									rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+									rules={[
+										{ required: true, message: 'Vui lòng nhập mật khẩu' },
+										{ min: 6, message: 'Mật khẩu tối thiểu là 6 ký tự' },
+										{
+											pattern: passwordPolicyRegex,
+											message: 'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số',
+										},
+									]}
 								>
 									<Input.Password
 										prefix={<LockOutlined />}
