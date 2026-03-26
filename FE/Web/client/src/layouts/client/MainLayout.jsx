@@ -4,12 +4,10 @@ import Footer from '../../components/layouts/client/footer'
 
 export default function MainLayout() {
   return (
-    <div>
+    <>
       <Header />
-      <div className="client-layout-content">
-        <Outlet />
-      </div>
+      <Outlet />
       <Footer />
-    </div>
+    </>
   )
 }

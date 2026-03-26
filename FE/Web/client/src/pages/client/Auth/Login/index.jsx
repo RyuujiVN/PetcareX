@@ -1,15 +1,15 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
-import { GoogleLogin } from '@react-oauth/google';
 import { Button, Divider, Form, Input, Typography, message } from 'antd';
 import { useState } from 'react';
+import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 import { isAdminClinicAccount } from '../../../../constants/authRole';
-import { loginApi, loginGoogleApi } from '../../../../data/client/api/auth';
+import { loginApi } from '../../../../data/client/api/auth';
 import { useAuth } from '../../../../hooks/client/AuthContext';
-import { decodeGoogleCredential } from '../../../../utils/googleAuth';
-import { getGoogleClientConfigError, getGoogleClientId, isGoogleClientIdValid } from '../../../../utils/googleOAuthConfig';
+import { authenticateClientWithGoogle } from '../../../../utils/clientGoogleAuth';
+import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from '../../../../utils/firebaseClient';
 
 const { Title, Text, Link } = Typography;
 
@@ -20,9 +20,8 @@ export default function Login() {
   const [form] = Form.useForm();
   const { login } = useAuth();
   const navigate = useNavigate();
-  const googleClientId = getGoogleClientId();
-  const hasValidGoogleClientId = isGoogleClientIdValid(googleClientId);
-  const googleConfigError = getGoogleClientConfigError(googleClientId);
+  const hasGoogleAuth = isFirebaseGoogleAuthReady();
+  const googleConfigError = getFirebaseConfigError();
 
   const handleLogin = async (values) => {
 
@@ -85,39 +84,23 @@ export default function Login() {
 
   };
 
-  const handleGoogleLogin = async (credentialResponse) => {
-    const googleIdToken = credentialResponse?.credential;
-
-    if (!googleIdToken) {
-      message.error('Không nhận được Google token. Vui lòng thử lại.');
-      return;
-    }
-
+  const handleGoogleLogin = async () => {
     try {
       setGoogleLoading(true);
 
-      const { fullName, avatarUrl } = decodeGoogleCredential(googleIdToken);
-      const res = await loginGoogleApi({ googleIdToken, fullName, avatarUrl });
-      const data = res?.data;
+      const authResult = await authenticateClientWithGoogle();
 
-      if (!data || !data.accessToken) {
-        message.error(data?.message || 'Đăng nhập bằng Google thất bại.');
-        return;
-      }
-
-      const { accessToken, userInfo } = data;
-
-      if (isAdminClinicAccount(userInfo)) {
+      if (authResult.status === 'admin-account') {
         message.warning('Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.');
         navigate('/admin/login', { replace: true });
         return;
       }
 
-      login(accessToken, userInfo);
+      login(authResult.accessToken, authResult.userInfo);
       message.success('Đăng nhập bằng Google thành công!');
       navigate('/home');
     } catch (error) {
-      message.error(error?.response?.data?.message || 'Đăng nhập bằng Google thất bại.');
+      message.error(error?.response?.data?.message || error?.message || 'Đăng nhập bằng Google thất bại.');
     } finally {
       setGoogleLoading(false);
     }
@@ -193,19 +176,17 @@ export default function Login() {
           Hoặc tiếp tục đăng nhập với
         </Divider>
 
-        {hasValidGoogleClientId ? (
+        {hasGoogleAuth ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            <GoogleLogin
-              onSuccess={handleGoogleLogin}
-              onError={() => message.error('Đăng nhập bằng Google thất bại. Vui lòng thử lại.')}
-              text="signin_with"
-              width="360"
-              shape="pill"
-              theme="outline"
+            <Button
+              onClick={handleGoogleLogin}
+              icon={<FcGoogle />}
+              loading={googleLoading}
               size="large"
-              useOneTap={false}
-            />
-            {googleLoading && <Text type="secondary">Đang xác thực Google...</Text>}
+              style={{ width: 360, height: 44, borderRadius: 999, fontWeight: 600 }}
+            >
+              Tiếp tục với Google
+            </Button>
           </div>
         ) : (
           <Text type="secondary" style={{ display: 'block', textAlign: 'center' }}>

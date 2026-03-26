@@ -1,21 +1,20 @@
 import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
-import { GoogleLogin } from "@react-oauth/google";
 import {
-    Button,
-    Checkbox,
-    Divider,
-    Form,
-    Input,
-    message,
-    Typography,
+  Button,
+  Checkbox,
+  Divider,
+  Form,
+  Input,
+  message,
+  Typography,
 } from "antd";
 import React from "react";
+import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
-import { isAdminClinicAccount } from "../../../../constants/authRole";
-import { loginGoogleApi, registerApi } from "../../../../data/client/api/auth";
+import { registerApi } from "../../../../data/client/api/auth";
 import { useAuth } from "../../../../hooks/client/AuthContext";
-import { decodeGoogleCredential } from "../../../../utils/googleAuth";
-import { getGoogleClientConfigError, getGoogleClientId, isGoogleClientIdValid } from "../../../../utils/googleOAuthConfig";
+import { authenticateClientWithGoogle } from "../../../../utils/clientGoogleAuth";
+import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from "../../../../utils/firebaseClient";
 import "./styles.css";
 
 const { Title, Text } = Typography;
@@ -26,36 +25,39 @@ export default function Register() {
   const [loading, setLoading] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
   const { login } = useAuth();
-  const googleClientId = getGoogleClientId();
-  const hasValidGoogleClientId = isGoogleClientIdValid(googleClientId);
-  const googleConfigError = getGoogleClientConfigError(googleClientId);
+  const hasGoogleAuth = isFirebaseGoogleAuthReady();
+  const googleConfigError = getFirebaseConfigError();
 
-  const validatePassword = (value) => {
+  const validatePassword = (_, value) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+
     if (!value) return Promise.reject("Vui lòng nhập mật khẩu");
     if (!regex.test(value)) {
-      return Promise.reject(
-        "Mật khẩu phải ≥8 ký tự, gồm chữ hoa, chữ thường và số"
-      );
+      return Promise.reject("Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số");
     }
+
     return Promise.resolve();
   };
 
-  const validateFullName = (value) => {
+  const validateFullName = (_, value) => {
     const regex = /^[\p{L}\s]+$/u;
+
     if (!value) return Promise.reject("Vui lòng nhập họ và tên");
     if (!regex.test(value)) {
       return Promise.reject("Họ tên không được chứa số hoặc ký tự đặc biệt");
     }
+
     return Promise.resolve();
   };
 
-  const validateEmail = (value) => {
+  const validateEmail = (_, value) => {
     const regex = /^\S+@\S+\.\S+$/;
+
     if (!value) return Promise.reject("Vui lòng nhập email");
     if (!regex.test(value)) {
       return Promise.reject("Email không hợp lệ");
     }
+
     return Promise.resolve();
   };
 
@@ -90,39 +92,23 @@ export default function Register() {
     }
   };
 
-  const handleGoogleRegister = async (credentialResponse) => {
-    const googleIdToken = credentialResponse?.credential;
-
-    if (!googleIdToken) {
-      message.error("Không nhận được Google token. Vui lòng thử lại.");
-      return;
-    }
-
+  const handleGoogleRegister = async () => {
     try {
       setGoogleLoading(true);
 
-      const { fullName, avatarUrl } = decodeGoogleCredential(googleIdToken);
-      const res = await loginGoogleApi({ googleIdToken, fullName, avatarUrl });
-      const data = res?.data;
+      const authResult = await authenticateClientWithGoogle();
 
-      if (!data || !data.accessToken) {
-        message.error(data?.message || "Đăng nhập bằng Google thất bại.");
-        return;
-      }
-
-      const { accessToken, userInfo } = data;
-
-      if (isAdminClinicAccount(userInfo)) {
+      if (authResult.status === "admin-account") {
         message.warning("Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.");
         navigate("/admin/login", { replace: true });
         return;
       }
 
-      login(accessToken, userInfo);
+      login(authResult.accessToken, authResult.userInfo);
       message.success("Đăng nhập bằng Google thành công!");
       navigate("/home");
     } catch (error) {
-      message.error(error?.response?.data?.message || "Đăng nhập bằng Google thất bại.");
+      message.error(error?.response?.data?.message || error?.message || "Đăng nhập bằng Google thất bại.");
     } finally {
       setGoogleLoading(false);
     }
@@ -147,7 +133,7 @@ export default function Register() {
             name="fullName"
             label="Họ và tên"
             rules={[
-              { required: true, message: "Vui lòng nhập họ và tên" },
+              { validator: validateFullName },
             ]}
           >
             <Input
@@ -160,7 +146,7 @@ export default function Register() {
             name="email"
             label="Email"
             rules={[
-              { required: true, message: "Vui lòng nhập email" },
+              { validator: validateEmail },
             ]}
           >
             <Input
@@ -174,7 +160,7 @@ export default function Register() {
             name="password"
             label="Mật khẩu"
             rules={[
-              { required: true, message: "Vui lòng nhập mật khẩu" },
+              { validator: validatePassword },
             ]}
           >
             <Input.Password
@@ -247,19 +233,17 @@ export default function Register() {
           Hoặc tiếp tục đăng nhập với
         </Divider>
 
-        {hasValidGoogleClientId ? (
+        {hasGoogleAuth ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-            <GoogleLogin
-              onSuccess={handleGoogleRegister}
-              onError={() => message.error("Đăng nhập bằng Google thất bại. Vui lòng thử lại.")}
-              text="signin_with"
-              width="360"
-              shape="pill"
-              theme="outline"
+            <Button
+              onClick={handleGoogleRegister}
+              icon={<FcGoogle />}
+              loading={googleLoading}
               size="large"
-              useOneTap={false}
-            />
-            {googleLoading && <Text type="secondary">Đang xác thực Google...</Text>}
+              style={{ width: 360, height: 44, borderRadius: 999, fontWeight: 600 }}
+            >
+              Tiếp tục với Google
+            </Button>
           </div>
         ) : (
           <Text type="secondary" style={{ display: 'block', textAlign: 'center' }}>
