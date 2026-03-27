@@ -12,6 +12,7 @@ import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
 import { PetBreedEnum } from 'src/common/enums/pet-breed.enum';
+import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 
 @Entity('pet')
 export class Pet {
@@ -59,4 +60,7 @@ export class Pet {
 
   @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.pet)
   medicalRecords: MedicalRecord[];
+
+  @OneToMany(() => AiDiagnosis, (aiDiagnosis) => aiDiagnosis.user)
+  aiDiagnoses: AiDiagnosis[];
 }
