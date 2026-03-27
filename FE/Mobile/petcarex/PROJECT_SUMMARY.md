@@ -43,6 +43,40 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - Chưa thêm cơ chế “hủy ảnh đã pre-upload trên cloud khi user xóa khỏi draft” do cần contract backend riêng; hiện tại ưu tiên tốc độ và UX phía mobile.
 - Thiết kế hiện tại ưu tiên ổn định và khả dụng ngay, có thể mở rộng retry ảnh lỗi theo từng item ở iteration tiếp theo.
 
+### 5) Community Comment/Reply Image Composer Sync (2026-03-27)
+- **Vấn đề cũ:**
+    - Comment có ảnh vẫn upload khi bấm `Gửi`, làm thao tác gửi dễ bị chờ lâu.
+    - Luồng `Trả lời` chưa có trải nghiệm upload ảnh rõ ràng như tạo bài, gây cảm giác reply chỉ gửi text.
+- **Giải pháp triển khai:**
+    - Chuẩn hóa composer ảnh ở bottom sheet comment/reply sang **pre-upload ngay khi chọn ảnh**.
+    - Mỗi ảnh có state riêng: `isUploading`, `isUploadFailed`, `uploadedUrl` (tương tự Create Post).
+    - Nút `Gửi` chỉ submit khi:
+        - Không còn ảnh đang upload.
+        - Không có ảnh lỗi upload.
+        - Có ít nhất text hoặc ảnh đã upload thành công.
+    - Payload gửi comment/reply ưu tiên `uploadedImageUrls` đã có sẵn; provider vẫn giữ fallback upload bằng `imagePaths` để tương thích ngược.
+- **Tối ưu UX UI:**
+    - Ảnh đang upload hiển thị **mờ (opacity)** + spinner để tạo cảm giác “đang xử lý” kiểu feed social.
+    - Ảnh lỗi có overlay đỏ + icon lỗi, cho phép xóa từng ảnh trước khi gửi.
+    - Hiển thị bộ đếm `uploaded/total` trong composer để người dùng biết ảnh nào đã sẵn sàng.
+- **Kết quả:**
+    - Comment có ảnh gửi nhanh và ổn định hơn do URL ảnh đã sẵn trước khi submit.
+    - Reply đã hỗ trợ upload ảnh đầy đủ và dùng chung một flow nhất quán với comment.
+
+### 6) Community Self Comment Edit/Delete (2026-03-27)
+- **Nhu cầu:** Người dùng cần sửa/xóa bình luận của chính mình khi gõ sai nội dung hoặc đăng nhầm.
+- **API backend đã có sẵn:**
+    - `PUT /api/comment/{id}`: sửa `content`.
+    - `DELETE /api/comment/{id}`: xóa bình luận.
+- **Triển khai FE mobile:**
+    - Trong bottom sheet comment, mỗi comment/reply của **chính chủ** (`comment.author.id == currentUser.id`) hiển thị menu thao tác (`...`) gồm `Cập nhật` và `Xóa`.
+    - Luồng sửa comment mở dialog nhập lại text; ảnh cũ trong content HTML được giữ nguyên để tránh mất dữ liệu media khi người dùng chỉ sửa chữ.
+    - Luồng xóa comment có confirm dialog trước khi gọi API.
+    - Sau khi API thành công, Provider cập nhật local state ngay cho list comment/reply + đồng bộ giảm `commentCount` ở card bài viết.
+- **Phản biện UX/tech:**
+    - Giữ quyền thao tác trực tiếp trong từng item comment giúp giảm số bước, đúng kỳ vọng social feed.
+    - Dùng check quyền ở FE để ẩn thao tác với comment người khác; quyền thực tế vẫn do BE xác thực để đảm bảo an toàn.
+
 ## 🐾 Pet Avatar Fullscreen Fix (2026-03-27)
 
 ### Bối cảnh lỗi

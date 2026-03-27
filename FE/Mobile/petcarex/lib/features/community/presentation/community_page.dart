@@ -152,9 +152,10 @@ class _CommunityPageState extends State<CommunityPage> {
     Post post,
     CommunityProvider provider,
     AppLocalizations l10n,
+    String? currentUserId,
   ) {
     final TextEditingController commentController = TextEditingController();
-    final List<File> selectedImages = [];
+    final List<_CommentComposerImage> composerImages = [];
     provider.fetchComments(post.id);
     provider.setReplyTarget(null);
 
@@ -200,6 +201,7 @@ class _CommunityPageState extends State<CommunityPage> {
                               provider,
                               l10n,
                               post.id,
+                              currentUserId: currentUserId,
                             ),
                           ),
                   ),
@@ -209,19 +211,53 @@ class _CommunityPageState extends State<CommunityPage> {
                     provider,
                     replyTarget,
                     l10n,
-                    selectedImages,
+                    composerImages,
                     onPickImages: () async {
                       final picked = await _cameraService.pickImagesFromGallery();
                       if (picked.isEmpty) return;
 
+                      final incoming = picked
+                          .map((file) => _CommentComposerImage(file: file))
+                          .toList();
+
                       setModalState(() {
-                        selectedImages.addAll(picked);
+                        composerImages.addAll(incoming);
                       });
+
+                      final uploadedUrls = await provider.preUploadImages(
+                        picked.map((e) => e.path).toList(),
+                      );
+
+                      if (!mounted) return;
+
+                      var hasFailedUpload = false;
+                      setModalState(() {
+                        for (var i = 0; i < incoming.length; i++) {
+                          incoming[i].isUploading = false;
+                          if (i < uploadedUrls.length &&
+                              uploadedUrls[i].trim().isNotEmpty) {
+                            incoming[i].uploadedUrl = uploadedUrls[i].trim();
+                            incoming[i].isUploadFailed = false;
+                          } else {
+                            incoming[i].isUploadFailed = true;
+                            hasFailedUpload = true;
+                          }
+                        }
+                      });
+
+                      if (hasFailedUpload && mounted) {
+                        AppNotifier.showError(this.context, l10n.uploadImageFailed);
+                      }
                     },
                     onRemoveImage: (index) {
-                      if (index < 0 || index >= selectedImages.length) return;
+                      if (index < 0 || index >= composerImages.length) return;
                       setModalState(() {
-                        selectedImages.removeAt(index);
+                        composerImages.removeAt(index);
+                      });
+                    },
+                    onClearImages: () {
+                      setModalState(() {
+                        composerImages.clear();
                       });
                     },
                   ),
@@ -233,6 +269,129 @@ class _CommunityPageState extends State<CommunityPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _showEditCommentDialog({
+    required Comment comment,
+    required String postId,
+    required CommunityProvider provider,
+    required AppLocalizations l10n,
+    String? parentId,
+  }) async {
+    final initialText = _extractPlainTextFromHtml(comment.content);
+    final currentImages = _extractImageUrlsFromHtml(comment.content);
+    final controller = TextEditingController(text: initialText);
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.update),
+        content: SizedBox(
+          width: 340,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextField(
+                controller: controller,
+                maxLines: 5,
+                decoration: InputDecoration(hintText: l10n.commentHint),
+              ),
+              if (currentImages.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                Text(
+                  '${currentImages.length} ${l10n.uploadPhoto}',
+                  style: const TextStyle(
+                    color: AppColors.textGrey,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.update),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final updatedHtml = _composeHtmlContent(
+      text: controller.text.trim(),
+      imageUrls: currentImages,
+    );
+
+    if (updatedHtml.trim().isEmpty) {
+      if (!mounted) return;
+      AppNotifier.showError(context, l10n.shareSomething);
+      return;
+    }
+
+    final success = await provider.updateComment(
+      commentId: comment.id,
+      postId: postId,
+      content: updatedHtml,
+      parentId: parentId,
+    );
+
+    if (!mounted) return;
+    if (success) {
+      AppNotifier.showSuccess(context, l10n.success);
+      return;
+    }
+
+    AppNotifier.showError(context, provider.errorMessage ?? l10n.failed);
+  }
+
+  Future<void> _showDeleteCommentConfirm({
+    required Comment comment,
+    required String postId,
+    required CommunityProvider provider,
+    required AppLocalizations l10n,
+    String? parentId,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.confirmDelete),
+        content: Text(l10n.deletePostConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(l10n.cancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final success = await provider.deleteComment(
+      commentId: comment.id,
+      postId: postId,
+      parentId: parentId,
+    );
+
+    if (!mounted) return;
+    if (success) {
+      AppNotifier.showSuccess(context, l10n.success);
+      return;
+    }
+
+    AppNotifier.showError(context, provider.errorMessage ?? l10n.failed);
   }
 
   Future<void> _showEditPostDialog(
@@ -564,10 +723,19 @@ class _CommunityPageState extends State<CommunityPage> {
     CommunityProvider provider,
     Comment? replyTarget,
     AppLocalizations l10n,
-    List<File> selectedImages, {
+    List<_CommentComposerImage> composerImages, {
     required VoidCallback onPickImages,
     required ValueChanged<int> onRemoveImage,
+    VoidCallback? onClearImages,
   }) {
+    final clearImages = onClearImages ?? () {};
+    final uploadedImageUrls = composerImages
+        .where((item) => (item.uploadedUrl ?? '').trim().isNotEmpty)
+        .map((item) => item.uploadedUrl!.trim())
+        .toList();
+    final hasUploadingImages = composerImages.any((item) => item.isUploading);
+    final hasFailedImages = composerImages.any((item) => item.isUploadFailed);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
       decoration: BoxDecoration(
@@ -646,20 +814,30 @@ class _CommunityPageState extends State<CommunityPage> {
                   ),
                   onPressed: () async {
                     final hasText = controller.text.trim().isNotEmpty;
-                    final hasImages = selectedImages.isNotEmpty;
+                    final hasImages = uploadedImageUrls.isNotEmpty;
                     if (!hasText && !hasImages) return;
+
+                    if (hasUploadingImages) {
+                      AppNotifier.showError(context, l10n.uploadingImage);
+                      return;
+                    }
+
+                    if (hasFailedImages) {
+                      AppNotifier.showError(context, l10n.uploadImageFailed);
+                      return;
+                    }
 
                     final success = await provider.sendComment(
                       post.id,
                       controller.text.trim(),
-                      imagePaths: selectedImages.map((e) => e.path).toList(),
+                      uploadedImageUrls: uploadedImageUrls,
                     );
 
                     if (!mounted) return;
 
                     if (success) {
                       controller.clear();
-                      selectedImages.clear();
+                      clearImages();
                     } else if (provider.errorMessage == 'uploadImageFailed') {
                       AppNotifier.showError(context, l10n.uploadImageFailed);
                     }
@@ -668,49 +846,102 @@ class _CommunityPageState extends State<CommunityPage> {
               ),
             ],
           ),
-          if (selectedImages.isNotEmpty)
+          if (composerImages.isNotEmpty)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: SizedBox(
-                height: 64,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: selectedImages.length,
-                  separatorBuilder: (_, separatorIndex) => const SizedBox(width: 8),
-                  itemBuilder: (context, index) => Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          selectedImages[index],
-                          width: 64,
-                          height: 64,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                        top: 2,
-                        right: 2,
-                        child: GestureDetector(
-                          onTap: () => onRemoveImage(index),
-                          child: Container(
-                            width: 18,
-                            height: 18,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.black,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 64,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: composerImages.length,
+                      separatorBuilder: (_, separatorIndex) => const SizedBox(width: 8),
+                      itemBuilder: (context, index) {
+                        final image = composerImages[index];
+                        return Stack(
+                          children: [
+                            Opacity(
+                              opacity: image.isUploading ? 0.45 : 1,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  image.file,
+                                  width: 64,
+                                  height: 64,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.close,
-                              color: AppColors.white,
-                              size: 12,
+                            if (image.isUploading)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.black.withValues(alpha: 0.25),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: AppColors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            if (image.isUploadFailed)
+                              Positioned.fill(
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error.withValues(alpha: 0.3),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  alignment: Alignment.center,
+                                  child: const Icon(
+                                    Icons.error_outline,
+                                    color: AppColors.white,
+                                    size: 16,
+                                  ),
+                                ),
+                              ),
+                            Positioned(
+                              top: 2,
+                              right: 2,
+                              child: GestureDetector(
+                                onTap: () => onRemoveImage(index),
+                                child: Container(
+                                  width: 18,
+                                  height: 18,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: AppColors.black,
+                                  ),
+                                  child: const Icon(
+                                    Icons.close,
+                                    color: AppColors.white,
+                                    size: 12,
+                                  ),
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ),
-                    ],
+                          ],
+                        );
+                      },
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${uploadedImageUrls.length}/${composerImages.length}',
+                    style: const TextStyle(
+                      color: AppColors.textGrey,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
@@ -724,7 +955,10 @@ class _CommunityPageState extends State<CommunityPage> {
     AppLocalizations l10n,
     String postId, {
     bool isReply = false,
+    String? currentUserId,
+    String? parentCommentId,
   }) {
+    final isMyComment = currentUserId != null && currentUserId == comment.author.id;
     final replies = provider.getRepliesForComment(comment.id);
     final isRepliesLoading = provider.isRepliesLoading(comment.id);
     final hasHiddenReplies = comment.replyCount > 0 && replies.isEmpty;
@@ -789,13 +1023,66 @@ class _CommunityPageState extends State<CommunityPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            comment.author.fullName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                              color: AppColors.textDark,
-                            ),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  comment.author.fullName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 13,
+                                    color: AppColors.textDark,
+                                  ),
+                                ),
+                              ),
+                              if (isMyComment)
+                                SizedBox(
+                                  width: 28,
+                                  height: 24,
+                                  child: PopupMenuButton<String>(
+                                    tooltip: '',
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(minWidth: 110),
+                                    icon: const Icon(
+                                      Icons.more_vert,
+                                      size: 16,
+                                      color: AppColors.textGrey,
+                                    ),
+                                    onSelected: (value) {
+                                      if (value == 'edit') {
+                                        _showEditCommentDialog(
+                                          comment: comment,
+                                          postId: postId,
+                                          provider: provider,
+                                          l10n: l10n,
+                                          parentId: parentCommentId,
+                                        );
+                                      } else if (value == 'delete') {
+                                        _showDeleteCommentConfirm(
+                                          comment: comment,
+                                          postId: postId,
+                                          provider: provider,
+                                          l10n: l10n,
+                                          parentId: parentCommentId,
+                                        );
+                                      }
+                                    },
+                                    itemBuilder: (_) => [
+                                      PopupMenuItem(
+                                        value: 'edit',
+                                        child: Text(l10n.update),
+                                      ),
+                                      PopupMenuItem(
+                                        value: 'delete',
+                                        child: Text(l10n.delete),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                            ],
                           ),
                           const SizedBox(height: 4),
                           _buildHtmlContentView(
@@ -852,6 +1139,8 @@ class _CommunityPageState extends State<CommunityPage> {
                   l10n,
                   postId,
                   isReply: true,
+                  currentUserId: currentUserId,
+                  parentCommentId: comment.id,
                 ),
               )
             else if (!isRepliesLoading && hasHiddenReplies)
@@ -1176,6 +1465,7 @@ class _CommunityPageState extends State<CommunityPage> {
               const Spacer(),
               if (currentUserId != null && currentUserId == post.author.id)
                 PopupMenuButton<String>(
+                  tooltip: '',
                   icon: const Icon(Icons.more_horiz, color: AppColors.iconGrey),
                   onSelected: (value) {
                     if (value == 'edit') {
@@ -1232,7 +1522,12 @@ class _CommunityPageState extends State<CommunityPage> {
                 icon: Icons.chat_bubble_outline,
                 label: '${post.commentCount}',
                 color: AppColors.textGrey,
-                onTap: () => _showCommentSheet(post, provider, l10n),
+                onTap: () => _showCommentSheet(
+                  post,
+                  provider,
+                  l10n,
+                  currentUserId,
+                ),
               ),
             ],
           ),
@@ -1272,4 +1567,13 @@ class _EditComposerImage {
   _EditComposerImage({
     required this.file,
   });
+}
+
+class _CommentComposerImage {
+  final File file;
+  String? uploadedUrl;
+  bool isUploading = true;
+  bool isUploadFailed = false;
+
+  _CommentComposerImage({required this.file});
 }

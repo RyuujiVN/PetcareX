@@ -234,18 +234,24 @@ class CommunityProvider with ChangeNotifier {
   Future<bool> sendComment(
     String postId,
     String content, {
+    List<String> uploadedImageUrls = const [],
     List<String> imagePaths = const [],
   }) async {
     try {
+      _errorMessage = null;
       final trimmed = content.trim();
-      if (trimmed.isEmpty && imagePaths.isEmpty) {
+      var finalImageUrls = uploadedImageUrls
+          .where((url) => url.trim().isNotEmpty)
+          .map((url) => url.trim())
+          .toList();
+
+      if (trimmed.isEmpty && finalImageUrls.isEmpty && imagePaths.isEmpty) {
         return false;
       }
 
-      List<String> uploadedImageUrls = [];
-      if (imagePaths.isNotEmpty) {
-        uploadedImageUrls = await _repository.uploadPostImages(imagePaths);
-        if (uploadedImageUrls.isEmpty) {
+      if (finalImageUrls.isEmpty && imagePaths.isNotEmpty) {
+        finalImageUrls = await _repository.uploadPostImages(imagePaths);
+        if (finalImageUrls.isEmpty) {
           _errorMessage = 'uploadImageFailed';
           return false;
         }
@@ -253,7 +259,7 @@ class CommunityProvider with ChangeNotifier {
 
       final htmlContent = _buildHtmlContent(
         text: trimmed,
-        imageUrls: uploadedImageUrls,
+        imageUrls: finalImageUrls,
       );
 
       final parentId = _activeReplyTarget?.id;
@@ -278,6 +284,7 @@ class CommunityProvider with ChangeNotifier {
           _incrementReplyCount(parentId);
         }
         
+        _errorMessage = null;
         _activeReplyTarget = null;
         notifyListeners();
         return true;
@@ -293,6 +300,93 @@ class CommunityProvider with ChangeNotifier {
       final parentIndex = comments.indexWhere((comment) => comment.id == parentId);
       if (parentIndex != -1) {
         comments[parentIndex].replyCount++;
+        return;
+      }
+    }
+  }
+
+  Future<bool> updateComment({
+    required String commentId,
+    required String postId,
+    required String content,
+    String? parentId,
+  }) async {
+    try {
+      _errorMessage = null;
+      final success = await _repository.updateComment(commentId, content);
+      if (!success) {
+        _errorMessage = 'failed';
+        return false;
+      }
+
+      final targetList = parentId == null
+          ? _postComments[postId]
+          : _commentReplies[parentId];
+
+      if (targetList != null) {
+        final index = targetList.indexWhere((item) => item.id == commentId);
+        if (index != -1) {
+          final old = targetList[index];
+          targetList[index] = Comment(
+            id: old.id,
+            content: content,
+            createdAt: old.createdAt,
+            author: old.author,
+            replyCount: old.replyCount,
+            replies: old.replies,
+          );
+        }
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    }
+  }
+
+  Future<bool> deleteComment({
+    required String commentId,
+    required String postId,
+    String? parentId,
+  }) async {
+    try {
+      _errorMessage = null;
+      final success = await _repository.deleteComment(commentId);
+      if (!success) {
+        _errorMessage = 'failed';
+        return false;
+      }
+
+      if (parentId == null) {
+        _postComments[postId]?.removeWhere((item) => item.id == commentId);
+        _commentReplies.remove(commentId);
+      } else {
+        _commentReplies[parentId]?.removeWhere((item) => item.id == commentId);
+        _decrementReplyCount(parentId);
+      }
+
+      final postIndex = _posts.indexWhere((post) => post.id == postId);
+      if (postIndex != -1) {
+        final currentCount = _posts[postIndex].commentCount;
+        _posts[postIndex].commentCount = currentCount > 0 ? currentCount - 1 : 0;
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      return false;
+    }
+  }
+
+  void _decrementReplyCount(String parentId) {
+    for (final comments in _postComments.values) {
+      final parentIndex = comments.indexWhere((comment) => comment.id == parentId);
+      if (parentIndex != -1) {
+        final currentCount = comments[parentIndex].replyCount;
+        comments[parentIndex].replyCount = currentCount > 0 ? currentCount - 1 : 0;
         return;
       }
     }
