@@ -1,0 +1,288 @@
+.pageRoot {
+	padding: 10px 18px 18px;
+	background: #eef2f5;
+	min-height: 100%;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.headerBlock h1 {
+	margin: 0;
+	font-size: 34px;
+	font-weight: 800;
+	color: #1f2f46;
+}
+
+.headerBlock p {
+	margin: 4px 0 0;
+	font-size: 18px;
+	color: #7e8c9f;
+}
+
+.metricGrid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+	margin-top: 16px;
+}
+
+.metricCard {
+	background: #fff;
+	border: 1px solid #dde5ee;
+	border-radius: 16px;
+	padding: 16px;
+	min-height: 130px;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	box-shadow: 0 4px 18px rgba(32, 53, 81, 0.06);
+}
+
+.metricIcon {
+	width: 38px;
+	height: 38px;
+	border-radius: 10px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 18px;
+	margin-bottom: 12px;
+}
+
+.todayIcon {
+	color: #32bf77;
+	background: #e6f8ee;
+}
+
+.waitingIcon {
+	color: #f89b36;
+	background: #fff3e6;
+}
+
+.doneIcon {
+	color: #638dff;
+	background: #ebf0ff;
+}
+
+.metricLabel {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 600;
+	color: #8a99ad;
+}
+
+.metricCard strong {
+	margin-top: 4px;
+	font-size: 42px;
+	line-height: 1;
+	color: #132844;
+}
+
+.tablePanel {
+	margin-top: 14px;
+	background: #fff;
+	border-radius: 16px;
+	border: 1px solid #dde5ee;
+	overflow: hidden;
+	box-shadow: 0 4px 18px rgba(32, 53, 81, 0.06);
+}
+
+.tablePanelHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 16px;
+	border-bottom: 1px solid #ebf0f5;
+}
+
+.tablePanelHeader h2 {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 800;
+	color: #233952;
+}
+
+.datePicker {
+	width: 170px;
+}
+
+.tableWrap {
+	overflow-x: auto;
+}
+
+.tableWrap table {
+	width: 100%;
+	border-collapse: collapse;
+	min-width: 920px;
+}
+
+.tableWrap thead {
+	background: #f8fafc;
+}
+
+.tableWrap th {
+	padding: 13px 16px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #72839a;
+	text-align: left;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+
+.tableWrap td {
+	padding: 12px 16px;
+	font-size: 14px;
+	font-weight: 600;
+	color: #243a54;
+	border-top: 1px solid #edf1f5;
+	vertical-align: middle;
+}
+
+.petCell {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.petAvatar {
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	overflow: hidden;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: #eff4fa;
+	color: #5d7591;
+	font-weight: 800;
+	border: 1px solid #d8e2ed;
+}
+
+.petAvatar img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+.petInfo {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.petInfo strong {
+	font-size: 14px;
+	color: #1f344e;
+	line-height: 1.2;
+}
+
+.petInfo p {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 500;
+	color: #8a99ad;
+}
+
+.actionWrap {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.viewBtn,
+.deleteBtn {
+	height: 30px;
+	padding: 0 10px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 700;
+	border: none;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.viewBtn {
+	background: #50dfce;
+	color: #ffffff;
+}
+
+.viewBtn:hover {
+	background: #37cab8;
+	color: #ffffff !important;
+}
+
+.deleteBtn {
+	background: #e7edf4;
+	color: #7d8ca1;
+}
+
+.deleteBtn:hover {
+	background: #d5dfea;
+	color: #4f5f76 !important;
+}
+
+.footerRow {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 12px 16px;
+	border-top: 1px solid #edf1f5;
+	background: #fff;
+}
+
+.footerRow p {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 500;
+	color: #788aa0;
+}
+
+.loadingWrap,
+.emptyWrap {
+	min-height: 380px;
+	display: grid;
+	place-items: center;
+	background: #fff;
+}
+
+:global(.ant-picker) {
+	border-radius: 10px;
+	height: 38px;
+}
+
+@media (max-width: 1280px) {
+	.metricGrid {
+		grid-template-columns: 1fr;
+	}
+
+	.metricCard {
+		min-height: 104px;
+	}
+}
+
+@media (max-width: 768px) {
+	.pageRoot {
+		padding: 10px;
+	}
+
+	.headerBlock h1 {
+		font-size: 28px;
+	}
+
+	.headerBlock p {
+		font-size: 15px;
+	}
+
+	.tablePanelHeader {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+	}
+
+	.footerRow {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+}

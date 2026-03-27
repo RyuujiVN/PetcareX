@@ -36,6 +36,8 @@ import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalR
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import PetMedicalBill from '../pages/adminClinic/VeterinaryClinic/PetMedicalBill/petMedicalBill'
 import PetAppointmentVererianrian from '../pages/adminVererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
+import ListMedicalRecords from '../pages/adminVererianrian/ListMedicalRecords/listMedicalRecords'
+import ViewPetMedicalRecords from '../pages/adminVererianrian/ViewPetMedicalRecords/viewPetMedicalRecords'
 import AdminVererianrianLayout from '../layouts/adminVererianrian/AdminVererianrianLayout'
 import { useAuth } from '../hooks/adminClinic/AuthContext'
 import { ADMIN_AUTH_STORAGE } from '../constants/authStorage'
@@ -134,8 +136,8 @@ export default function AppRoutes({ location }) {
 
       <Route element={<RequireVeterinarian><AdminVererianrianLayout /></RequireVeterinarian>}>
         <Route path="/admin/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
-        <Route path="/admin/veterinarian/medical-records" element={<AdminListPetMedicalRecords />} />
-        <Route path="/admin/veterinarian/medical-records/view" element={<ViewMedicalRecords />} />
+        <Route path="/admin/veterinarian/medical-records" element={<ListMedicalRecords />} />
+        <Route path="/admin/veterinarian/medical-records/view" element={<ViewPetMedicalRecords />} />
         <Route path="/admin/veterinarian/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/admin/veterinarian/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
         <Route path="/admin/veterinarian/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
