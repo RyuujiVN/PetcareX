@@ -32,6 +32,7 @@ import AddNewVererianrian from '../pages/adminClinic/VeterinaryClinic/AddNewVere
 import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
+import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
 
 export default function AppRoutes({ location }) {
   return (
@@ -41,7 +42,10 @@ export default function AppRoutes({ location }) {
       <Route path="/admin/register" element={<AdminRegister />} />
       <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
       <Route path="/admin/reEnterPassword" element={<AdminReEnterPassword />} />
-      <Route path="/admin/confirm-password" element={<Navigate to="/admin/reEnterPassword" replace />} />
+      <Route
+        path="/admin/confirm-password"
+        element={<Navigate to="/admin/reEnterPassword" replace />}
+      />
 
       <Route element={<AdminClinicLayout />}>
         <Route path="/admin/home" element={<AppointmentManagement />} />
@@ -73,17 +77,26 @@ export default function AppRoutes({ location }) {
 
       <Route element={<HeaderLayout />}>
         <Route path="/add-pet" element={<AddPet />} />
-        <Route path="/chatbot" element={<ChatBotAI />} />
-        <Route path="/user/profile" element={<ProfileUser />} />
-        <Route path="/profile" element={<Navigate to="/user/profile" replace />} />
+        <Route path="/chatbot" element={<ChatBotAI />}>
+          <Route index element={<MessageBox />} />
+          <Route path=":roomId" element={<MessageBox />} />
+        </Route>
+        <Route path="/chat" element={<ChatBotAI />}>
+          <Route index element={<MessageBox />} />
+          <Route path=":roomId" element={<MessageBox />} />
+        </Route>
+        <Route path="/profile" element={<ProfileUser />} />
         <Route path="/petProfile" element={<PetProfile />} />
         <Route path="/listPet" element={<ListPet />} />
         <Route path="/medical-records" element={<MedicalRecords />} />
         <Route path="/forum" element={<Forum />} />
-        <Route path="/listPetMedicalRecords" element={<ListPetMedicalRecords />} />
+        <Route
+          path="/listPetMedicalRecords"
+          element={<ListPetMedicalRecords />}
+        />
       </Route>
 
       <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
     </Routes>
-  )
+  );
 }

@@ -6,203 +6,128 @@
 .topBar {
 	height: 64px;
 	border-bottom: 1px solid #dfe5ee;
-	background: #fff;
+	background: #f6f7fb;
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
 	padding: 0 22px;
 }
 
-.searchBox {
-	width: min(520px, 100%);
-	height: 42px;
-	border: 1px solid #e1e7ef;
-	background: #f4f7fb;
-	border-radius: 10px;
-	display: flex;
-	align-items: center;
-	padding: 0 12px;
-	gap: 8px;
-}
-
-.searchIcon {
-	color: #9babc0;
-	font-size: 14px;
-}
-
-.searchBox input {
-	width: 100%;
-	border: 0;
-	background: transparent;
-	color: #6c7a8e;
-	font-size: 14px;
-	outline: none;
-}
-
-.notificationButton {
-	width: 32px;
-	height: 32px;
-	border: 0;
-	border-radius: 999px;
-	background: #fff;
-	color: #8ea0b6;
-	cursor: pointer;
-}
-
 .content {
-	max-width: 920px;
+	max-width: 900px;
 	margin: 0 auto;
-	padding: 26px 22px 34px;
+	padding: 10px 20px 24px;
 }
 
 .content h1 {
 	margin: 0;
-	color: #20263a;
-	font-size: 40px;
+	color: #1e2a44;
+	font-size: 52px;
 	font-weight: 700;
 }
 
 .content p {
 	margin: 8px 0 0;
-	color: #7e8c9f;
-	font-size: 14px;
+	color: #6f8199;
+	font-size: 18px;
 }
 
 .formCard {
 	margin-top: 16px;
-	border: 1px solid #dde4ed;
+	border: 1px solid #d8e3ee;
 	border-radius: 12px;
 	background: #fff;
-	overflow: hidden;
+	box-shadow: 0 16px 30px rgba(30, 56, 86, 0.08);
 }
 
 .avatarWrap {
-	margin: 20px auto 0;
-	width: 124px;
 	position: relative;
+	width: 188px;
+	margin: 8px auto 18px;
+	display: flex;
+	justify-content: center;
 }
 
 .avatar {
-	width: 102px;
-	height: 102px;
-	border-radius: 50%;
-	margin: 0 auto;
-	border: 3px solid #d3dce8;
-	background: #f3e8d0;
-	display: grid;
-	place-items: center;
-	font-size: 44px;
+	border: 4px solid #d4def0;
+	background: #e7e1d4;
+	box-shadow: 0 10px 18px rgba(34, 52, 84, 0.15);
 }
 
 .avatarButton {
 	position: absolute;
-	right: 2px;
-	bottom: 2px;
-	width: 22px;
-	height: 22px;
-	border-radius: 50%;
-	border: 0;
-	display: grid;
-	place-items: center;
-	background: #38d3c8;
-	color: #fff;
-	font-size: 11px;
-	cursor: pointer;
-	box-shadow: 0 6px 16px rgba(56, 211, 200, 0.35);
+	right: 14px;
+	bottom: 8px;
+	background: --color-brand-primary-active !important;
+	border-color: --color-brand-primary-active !important;
+	box-shadow: 0 8px 16px --color-brand-primary-active;
 }
 
 .formCard h2 {
-	margin: 10px 0 0;
+	margin: 14px 0 18px;
 	text-align: center;
-	color: #222b3f;
-	font-size: 34px;
+	color: #1d2e4f;
+	font-size: 25px;
 	font-weight: 700;
 }
 
-.formGrid {
-	margin: 18px auto 0;
-	max-width: 840px;
-	padding: 0 18px 24px;
-	display: grid;
-	grid-template-columns: repeat(2, minmax(240px, 1fr));
-	gap: 14px 16px;
+.antForm {
+	max-width: 920px;
+	margin: 0 auto;
 }
 
-.field {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
+.antForm :global(.ant-form-item-label > label) {
+	font-size: 16px;
+	font-weight: 700;
+	color: #243859;
 }
 
-.field span {
-	color: #323e57;
-	font-size: 14px;
-	font-weight: 600;
+.antForm :global(.ant-input-affix-wrapper),
+.antForm :global(.ant-input),
+.antForm :global(.ant-select-selector) {
+	height: 48px !important;
+	width: 100% !important;
+	border-radius: 12px !important;
+	font-size: 16px !important;
 }
 
-.inputWrap {
-	height: 42px;
-	border: 1px solid #e2e8f0;
-	background: #f9fbfd;
-	border-radius: 8px;
-	display: flex;
-	align-items: center;
-	padding: 0 12px;
-	gap: 8px;
+.antForm :global(.ant-select) {
+	width: 100% !important;
 }
 
-.fieldIcon {
-	color: #a8b5c8;
-	font-size: 13px;
+.antForm :global(.ant-select-selection-item),
+.antForm :global(.ant-input) {
+	line-height: 1.1 !important;
 }
 
-.inputWrap input {
-	width: 100%;
-	border: 0;
-	background: transparent;
-	color: #34455f;
-	font-size: 14px;
-	outline: none;
-}
-
-.fullRow {
-	grid-column: 1;
+.antForm :global(.ant-input-password input) {
+	height: 32px !important;
 }
 
 .formActions {
-	border-top: 1px solid #edf2f6;
-	min-height: 86px;
+	margin-top: 20px;
+	padding: 20px 0 8px;
 	display: flex;
-	align-items: center;
 	justify-content: flex-end;
-	gap: 10px;
-	padding: 10px 18px;
 }
 
-.cancelButton,
-.submitButton {
-	height: 40px;
-	border-radius: 8px;
-	border: 1px solid #d8e0e9;
-	font-size: 14px;
-	font-weight: 600;
-	cursor: pointer;
+.formActions :global(.ant-btn) {
+	height: 44px;
+	border-radius: 10px;
 	padding: 0 18px;
+	font-size: 16px;
+	font-weight: 600;
 }
 
-.cancelButton {
-	background: #fff;
-	color: #6d7f95;
+.formActions :global(.ant-btn-primary) {
+	background: var(--color-brand-primary, #4672b4);
+	border-color: var(--color-brand-primary, #4672b4);
 }
 
-.submitButton {
-	border: 0;
-	background: linear-gradient(90deg, #50dbc9, #2cc2c8);
-	color: #fff;
-	display: inline-flex;
-	align-items: center;
-	gap: 8px;
-	box-shadow: 0 8px 16px rgba(45, 194, 201, 0.3);
+.formActions :global(.ant-btn-primary:hover),
+.formActions :global(.ant-btn-primary:focus) {
+	background: var(--color-brand-primary-hover, #4672b4) !important;
+	border-color: var(--color-brand-primary-hover, #4672b4) !important;
 }
 
 @media (max-width: 1024px) {
@@ -211,31 +136,39 @@
 	}
 
 	.content h1 {
-		font-size: 32px;
+		font-size: 36px;
+	}
+
+	.content p {
+		font-size: 16px;
+	}
+
+	.formCard h2 {
+		font-size: 30px;
+	}
+
+	.avatarWrap {
+		width: 166px;
+	}
+
+	.antForm :global(.ant-form-item-label > label) {
+		font-size: 15px;
+	}
+
+	.antForm :global(.ant-input-affix-wrapper),
+	.antForm :global(.ant-input),
+	.antForm :global(.ant-select-selector) {
+		height: 46px !important;
+		font-size: 16px !important;
 	}
 }
 
 @media (max-width: 768px) {
 	.content {
-		padding: 18px 10px 24px;
-	}
-
-	.formGrid {
-		grid-template-columns: 1fr;
-	}
-
-	.fullRow {
-		grid-column: auto;
+		padding: 16px 10px 24px;
 	}
 
 	.formActions {
-		justify-content: stretch;
-		flex-wrap: wrap;
-	}
-
-	.cancelButton,
-	.submitButton {
-		flex: 1 1 200px;
 		justify-content: center;
 	}
 }

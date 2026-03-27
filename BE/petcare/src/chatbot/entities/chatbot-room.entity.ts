@@ -21,9 +21,6 @@ export class ChatbotRoom {
   @Column()
   name: string;
 
-  @Column({ name: 'session_id' })
-  sessionId: string;
-
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

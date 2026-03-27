@@ -1,17 +1,22 @@
 .layout {
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-columns: 320px 1fr;
   background: #f3f6fb;
+  overflow: hidden;
 }
 
 .sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
   background: #f6f7fb;
   border-right: 1px solid #e6ebf4;
   padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  overflow-y: auto;
 }
 
 .brandBox {
@@ -111,6 +116,9 @@
 
 .main {
   min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 @media (max-width: 1024px) {
@@ -141,13 +149,23 @@
 
 @media (max-width: 768px) {
   .layout {
+    height: auto;
     grid-template-columns: 1fr;
+    overflow: visible;
   }
 
   .sidebar {
+    position: static;
+    height: auto;
     border-right: 0;
     border-bottom: 1px solid #e6ebf4;
     gap: 12px;
+    overflow: visible;
+  }
+
+  .main {
+    height: auto;
+    overflow: visible;
   }
 
   .menu {

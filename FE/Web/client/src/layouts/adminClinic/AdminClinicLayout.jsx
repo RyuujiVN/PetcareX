@@ -2,6 +2,7 @@ import { CalendarOutlined, FileSearchOutlined, LineChartOutlined, MedicineBoxOut
 import { Avatar } from 'antd'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../hooks/adminClinic/AuthContext'
+import { getRoleLabel } from '../../constants/veterinaryLabels'
 import styles from './AdminClinicLayout.module.css'
 
 const menuItems = [
@@ -64,7 +65,7 @@ export default function AdminClinicLayout() {
             <Avatar size={42} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
             <div>
               <h4>{userProfile?.fullName || 'Người dùng'}</h4>
-              <p>{userProfile?.role || 'ADMIN_CLINIC'}</p>
+              <p>{getRoleLabel(userProfile?.role || 'ADMIN_CLINIC', 'vi')}</p>
             </div>
           </div>
         </NavLink>

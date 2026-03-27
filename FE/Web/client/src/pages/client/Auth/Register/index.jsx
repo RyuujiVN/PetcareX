@@ -1,17 +1,22 @@
+import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
+import { GoogleLogin } from "@react-oauth/google";
+import {
+    Button,
+    Checkbox,
+    Divider,
+    Form,
+    Input,
+    message,
+    Typography,
+} from "antd";
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Form,
-  Input,
-  Button,
-  Checkbox,
-  message,
-  Typography,
-} from "antd";
-import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
+import { isAdminClinicAccount } from "../../../../constants/authRole";
+import { loginGoogleApi, registerApi } from "../../../../data/client/api/auth";
+import { useAuth } from "../../../../hooks/client/AuthContext";
+import { decodeGoogleCredential } from "../../../../utils/googleAuth";
+import { getGoogleClientConfigError, getGoogleClientId, isGoogleClientIdValid } from "../../../../utils/googleOAuthConfig";
 import "./styles.css";
-import { registerApi } from "../../../../data/client/api/auth";
-import { FaPaw } from "react-icons/fa";
 
 const { Title, Text } = Typography;
 
@@ -19,6 +24,11 @@ export default function Register() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
+  const [googleLoading, setGoogleLoading] = React.useState(false);
+  const { login } = useAuth();
+  const googleClientId = getGoogleClientId();
+  const hasValidGoogleClientId = isGoogleClientIdValid(googleClientId);
+  const googleConfigError = getGoogleClientConfigError(googleClientId);
 
   const validatePassword = (value) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -80,9 +90,47 @@ export default function Register() {
     }
   };
 
+  const handleGoogleRegister = async (credentialResponse) => {
+    const googleIdToken = credentialResponse?.credential;
+
+    if (!googleIdToken) {
+      message.error("Không nhận được Google token. Vui lòng thử lại.");
+      return;
+    }
+
+    try {
+      setGoogleLoading(true);
+
+      const { fullName, avatarUrl } = decodeGoogleCredential(googleIdToken);
+      const res = await loginGoogleApi({ googleIdToken, fullName, avatarUrl });
+      const data = res?.data;
+
+      if (!data || !data.accessToken) {
+        message.error(data?.message || "Đăng nhập bằng Google thất bại.");
+        return;
+      }
+
+      const { accessToken, userInfo } = data;
+
+      if (isAdminClinicAccount(userInfo)) {
+        message.warning("Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.");
+        navigate("/admin/login", { replace: true });
+        return;
+      }
+
+      login(accessToken, userInfo);
+      message.success("Đăng nhập bằng Google thành công!");
+      navigate("/home");
+    } catch (error) {
+      message.error(error?.response?.data?.message || "Đăng nhập bằng Google thất bại.");
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="register-container">
-      <div style={{ padding: '40px 25px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
+      <div style={{ padding: '40px 25px', background: 'var(--color-surface-card)', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <UserOutlined style={{ fontSize: '48px', color: 'var(--auth-primary)' }} />
           <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng ký tài khoản</Title>
@@ -103,7 +151,7 @@ export default function Register() {
             ]}
           >
             <Input
-              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              prefix={<UserOutlined style={{ color: 'var(--color-text-disabled)' }} />}
               placeholder="Nhập họ và tên của bạn"
             />
           </Form.Item>
@@ -117,7 +165,7 @@ export default function Register() {
           >
             <Input
               type="email"
-              prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              prefix={<MailOutlined style={{ color: 'var(--color-text-disabled)' }} />}
               placeholder="example@email.com"
             />
           </Form.Item>
@@ -130,7 +178,7 @@ export default function Register() {
             ]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              prefix={<LockOutlined style={{ color: 'var(--color-text-disabled)' }} />}
               placeholder="Nhập mật khẩu"
             />
           </Form.Item>
@@ -152,7 +200,7 @@ export default function Register() {
             ]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+              prefix={<LockOutlined style={{ color: 'var(--color-text-disabled)' }} />}
               placeholder="Nhập lại mật khẩu"
             />
           </Form.Item>
@@ -188,12 +236,36 @@ export default function Register() {
               htmlType="submit"
               block
               loading={loading}
-              style={{ backgroundColor: 'var(--auth-primary)', color: 'white', fontWeight: 'bold', borderColor: 'var(--auth-primary)' }}
+              style={{ backgroundColor: 'var(--auth-primary)', color: 'var(--color-surface-card)', fontWeight: 'bold', borderColor: 'var(--auth-primary)' }}
             >
               Tạo tài khoản
             </Button>
           </Form.Item>
         </Form>
+
+        <Divider style={{ borderColor: 'var(--color-border-strong)' }} plain>
+          Hoặc tiếp tục đăng nhập với
+        </Divider>
+
+        {hasValidGoogleClientId ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <GoogleLogin
+              onSuccess={handleGoogleRegister}
+              onError={() => message.error("Đăng nhập bằng Google thất bại. Vui lòng thử lại.")}
+              text="signin_with"
+              width="360"
+              shape="pill"
+              theme="outline"
+              size="large"
+              useOneTap={false}
+            />
+            {googleLoading && <Text type="secondary">Đang xác thực Google...</Text>}
+          </div>
+        ) : (
+          <Text type="secondary" style={{ display: 'block', textAlign: 'center' }}>
+            {googleConfigError}
+          </Text>
+        )}
 
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
           <Text type="secondary">
@@ -201,7 +273,7 @@ export default function Register() {
           </Text>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#666' }}>
+        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
           © 2026 PetcareX Việt Nam
         </div>
       </div>

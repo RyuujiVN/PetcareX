@@ -8,6 +8,10 @@ export const registerApi = (data) => {
   return instance.post('/auth/register', data);
 };
 
+export const loginGoogleApi = (data) => {
+  return instance.post('/auth/login-google', data);
+};
+
 export const forgotPasswordApi = (email) => {
   return instance.post('/auth/forgot-password', { email });
 };

@@ -23,6 +23,7 @@ import {
   SERVICE_OPTIONS,
 } from '../../../../data/client/api/appointmentApi';
 import { getBreedLabel } from '../../../../data/client/api/petApi';
+import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 
 const TIME_SLOT_GROUPS = [
   {
@@ -533,7 +534,7 @@ export default function BookingAppointment() {
                     rules={[{ required: true, message: 'Vui lòng chọn dịch vụ' }]}
                   >
                     <Select
-                      style={{ width: '100%', height: '70%' }}
+                      size="large"
                       options={serviceOptions}
                     />
                   </Form.Item>
@@ -546,7 +547,7 @@ export default function BookingAppointment() {
                     rules={[{ required: true, message: 'Vui lòng chọn phòng khám' }]}
                   >
                     <Select
-                      style={{ width: '100%', height: '70%' }}
+                      size="large"
                       disabled={Boolean(preselectedClinicId)}
                       options={clinics.map((item) => ({
                         label: item.name,
@@ -571,7 +572,8 @@ export default function BookingAppointment() {
                     rules={[{ required: true, message: 'Vui lòng chọn bác sĩ' }]}
                   >
                     <Select
-                      style={{ width: '100%', marginBottom: 60 }}
+                      size="large"
+                      style={{marginBottom: 20}}
                       options={doctors.map((item) => ({
                         label: item.user?.fullName,
                         value: item.userId,
@@ -595,7 +597,7 @@ export default function BookingAppointment() {
                       </div>
 
                       <div style={{ color: 'var(--color-text-secondary)' }}>
-                        {selectedDoctor?.specialty || 'Chưa có chuyên môn'}
+                        {selectedDoctor?.specialty ? getSpecialtyLabel(selectedDoctor.specialty, 'vi') : 'Chưa có chuyên môn'}
                       </div>
                     </div>
                   </Card>

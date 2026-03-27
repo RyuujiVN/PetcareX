@@ -1,80 +1,96 @@
+import { useEffect, useMemo, useState } from 'react'
+import { message } from 'antd'
 import { FaBell, FaMapMarkerAlt, FaPlus } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
+import useVeterinarians from '../../../../data/adminClinic/api/useVeterinarians'
+import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels'
 import styles from './vererianrianManagement.module.css'
+import { SearchOutlined } from '@ant-design/icons'
 
-const filterItems = ['Tất cả bác sĩ', 'Nội khoa', 'Ngoại khoa', 'Chẩn đoán hình ảnh', 'Tiêm chủng']
+const PAGE_SIZE = 12
 
-const doctors = [
-	{
-		name: 'BS. Nguyễn Văn A',
-		specialty: 'CHUYÊN KHOA NỘI',
-		years: '8 năm kinh nghiệm',
-		phone: '0321564789',
-		status: 'SẴN SÀNG',
-		statusType: 'ready',
-		image:
-			'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&w=960&q=80',
-	},
-	{
-		name: 'BS. Trần Thị B',
-		specialty: 'CHUYÊN KHOA NGOẠI',
-		years: '5 năm kinh nghiệm',
-		phone: '0321564789',
-		status: 'ĐANG BẬN',
-		statusType: 'busy',
-		image:
-			'https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=960&q=80',
-	},
-	{
-		name: 'BS. Lê Văn C',
-		specialty: 'CHUYÊN KHOA NỘI',
-		years: '10 năm kinh nghiệm',
-		phone: '0321564789',
-		status: 'SẴN SÀNG',
-		statusType: 'ready',
-		image:
-			'https://images.unsplash.com/photo-1603415526960-f8fbc341c9f6?auto=format&fit=crop&w=960&q=80',
-	},
-	{
-		name: 'BS. Phạm Hoài D',
-		specialty: 'CĐ HÌNH ẢNH',
-		years: '4 năm kinh nghiệm',
-		phone: '0321564789',
-		status: 'NGHỈ PHÉP',
-		statusType: 'leave',
-		image:
-			'https://images.unsplash.com/photo-1607990281513-2c110a25bd8c?auto=format&fit=crop&w=960&q=80',
-	},
-	{
-		name: 'BS. Hoàng Xuân E',
-		specialty: 'CHUYÊN KHOA NGOẠI',
-		years: '12 năm kinh nghiệm',
-		phone: '0321564789',
-		status: 'ĐANG BẬN',
-		statusType: 'busy',
-		image:
-			'https://images.unsplash.com/photo-1612531386530-97286d97c2d2?auto=format&fit=crop&w=960&q=80',
-	},
-	{
-		name: 'BS. Đặng Thu F',
-		specialty: 'CHUYÊN KHOA NỘI',
-		years: '3 năm kinh nghiệm',
-		phone: '0321564789',
-		status: 'SẴN SÀNG',
-		statusType: 'ready',
-		image:
-			'https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=960&q=80',
-	},
+const filterItems = [
+	{ label: 'Tất cả bác sĩ', specialty: '' },
+	{ label: getSpecialtyLabel('INTERNAL_MEDICINE', 'vi'), specialty: 'INTERNAL_MEDICINE' },
+	{ label: getSpecialtyLabel('SURGERY', 'vi'), specialty: 'SURGERY' },
+	{ label: getSpecialtyLabel('ULTRASOUND', 'vi'), specialty: 'ULTRASOUND' },
+	{ label: getSpecialtyLabel('VACCINATION_AND_PREVENTION', 'vi'), specialty: 'VACCINATION_AND_PREVENTION' },
 ]
+
+const defaultDoctorImage =
+	'https://images.unsplash.com/photo-1612531386530-97286d97c2d2?auto=format&fit=crop&w=960&q=80'
 
 export default function VeterinarianManagement() {
 	const navigate = useNavigate()
+	const [messageApi, contextHolder] = message.useMessage()
+	const [selectedFilter, setSelectedFilter] = useState(filterItems[0].specialty)
+	const [searchValue, setSearchValue] = useState('')
+	const [debouncedSearch, setDebouncedSearch] = useState('')
+	const [currentPage, setCurrentPage] = useState(1)
+
+	const { veterinarians, loading, error, pagination, fetchVeterinarians } = useVeterinarians()
+
+	useEffect(() => {
+		const timer = window.setTimeout(() => {
+			setDebouncedSearch(searchValue.trim())
+		}, 400)
+
+		return () => window.clearTimeout(timer)
+	}, [searchValue])
+
+	useEffect(() => {
+		setCurrentPage(1)
+	}, [selectedFilter, debouncedSearch])
+
+	useEffect(() => {
+		fetchVeterinarians({
+			page: currentPage,
+			size: PAGE_SIZE,
+			search: debouncedSearch,
+			specialty: selectedFilter,
+		}).catch(() => {})
+	}, [currentPage, debouncedSearch, fetchVeterinarians, selectedFilter])
+
+	useEffect(() => {
+		const flash = sessionStorage.getItem('veterinarianFlashMessage')
+		if (!flash) return
+
+		messageApi.success(flash)
+		sessionStorage.removeItem('veterinarianFlashMessage')
+	}, [messageApi])
+
+	const doctors = useMemo(() => {
+		return veterinarians.map((item) => ({
+			userId: item?.userId,
+			name: item?.user?.fullName || 'Chưa cập nhật',
+			specialty: getSpecialtyLabel(item?.specialty, 'vi'),
+			phone: item?.user?.phone || 'Chưa cập nhật',
+			email: item?.user?.email || 'Chưa cập nhật',
+			statusType: item?.user?.deleted ? 'leave' : 'ready',
+			image: item?.user?.avatarUrl || defaultDoctorImage,
+			raw: item,
+		}))
+	}, [veterinarians])
+
+	const handleOpenInformation = (doctor) => {
+		sessionStorage.setItem('selectedVeterinarian', JSON.stringify(doctor.raw))
+		navigate('/admin/clinic/veterinarians/information', {
+			state: { veterinarian: doctor.raw },
+		})
+	}
 
 	return (
 		<div className={styles.page}>
+			{contextHolder}
 			<header className={styles.topBar}>
 				<div className={styles.searchBox}>
-					<input type="text" placeholder="Tìm kiếm thú cưng, khách hàng..." value="" readOnly />
+					<SearchOutlined />
+					<input
+						type="text"
+						placeholder="Tìm kiếm bác sĩ theo tên, email..."
+						value={searchValue}
+						onChange={(event) => setSearchValue(event.target.value)}
+					/>
 				</div>
 				<button type="button" className={styles.notificationButton} aria-label="Thông báo">
 					<FaBell />
@@ -82,43 +98,59 @@ export default function VeterinarianManagement() {
 			</header>
 
 			<section className={styles.content}>
-				<div className={styles.titleRow}>
-					<div>
-						<h1>Đội ngũ Bác sĩ</h1>
-						<p>Quản lý và theo dõi hiệu suất làm việc của các chuyên gia.</p>
+				<div className={styles.stickyPanel}>
+					<div className={styles.titleRow}>
+						<div>
+							<h1 style={{fontSize: 25, fontWeight: 'bold'}}>Đội ngũ Bác sĩ</h1>
+							<p>Quản lý danh sách bác sĩ của phòng khám.</p>
+						</div>
+
+						<button
+							type="button"
+							className={styles.addButton}
+							onClick={() => navigate('/admin/clinic/veterinarians/add-new')}
+						>
+							<FaPlus /> Thêm bác sĩ mới
+						</button>
 					</div>
 
-					<button
-						type="button"
-						className={styles.addButton}
-						onClick={() => navigate('/admin/clinic/veterinarians/add-new')}
-					>
-						<FaPlus /> Thêm bác sĩ mới
-					</button>
-				</div>
-
-				<div className={styles.filterRow}>
-					{filterItems.map((item, index) => (
-						<button
-							key={item}
-							type="button"
-							className={`${styles.filterButton} ${index === 0 ? styles.filterButtonActive : ''}`}
-						>
-							{item}
-						</button>
-					))}
+					<div className={styles.filterRow}>
+						{filterItems.map((item) => (
+							<button
+								style={{fontSize: 12}}
+								key={item.label}
+								type="button"
+								className={`${styles.filterButton} ${selectedFilter === item.specialty ? styles.filterButtonActive : ''}`}
+								onClick={() => setSelectedFilter(item.specialty)}
+							>
+								{item.label}
+							</button>
+						))}
+					</div>
 				</div>
 
 				<div className={styles.cardGrid}>
-					{doctors.map((doctor) => (
+					{loading && (
+						<div className={styles.stateText}>Đang tải danh sách bác sĩ...</div>
+					)}
+
+					{!loading && error && <div className={styles.stateText}>{error}</div>}
+
+					{!loading && !error && doctors.length === 0 && (
+						<div className={styles.stateText}>Không có bác sĩ phù hợp với bộ lọc hiện tại</div>
+					)}
+
+					{!loading &&
+						!error &&
+						doctors.map((doctor) => (
 						<article
-							key={doctor.name}
+							key={doctor.userId || doctor.name}
 							className={`${styles.card} ${styles.cardInteractive}`}
-							onClick={() => navigate('/admin/clinic/veterinarians/information')}
+							onClick={() => handleOpenInformation(doctor)}
 							onKeyDown={(event) => {
 								if (event.key === 'Enter' || event.key === ' ') {
 									event.preventDefault()
-									navigate('/admin/clinic/veterinarians/information')
+									handleOpenInformation(doctor)
 								}
 							}}
 							role="button"
@@ -126,22 +158,48 @@ export default function VeterinarianManagement() {
 						>
 							<img src={doctor.image} alt={doctor.name} className={styles.cardImage} loading="lazy" />
 							<div className={styles.cardBody}>
-								<h3>{doctor.name}</h3>
+								<h3 style={{fontSize: 24, fontWeight: 'bold'}}>{doctor.name}</h3>
 								<p className={styles.specialty}>{doctor.specialty}</p>
 
 								<div className={styles.infoLine}>
 									<span className={styles.metaText}>
-										<FaMapMarkerAlt /> {doctor.years}
+										<FaMapMarkerAlt /> {doctor.phone}
 									</span>
 									<span className={`${styles.statusBadge} ${styles[doctor.statusType]}`}>{doctor.status}</span>
 								</div>
 
 								<p className={styles.phone}>
-									<FaMapMarkerAlt /> {doctor.phone}
+									<FaMapMarkerAlt /> {doctor.email}
 								</p>
 							</div>
 						</article>
-					))}
+						))}
+				</div>
+
+				<div className={styles.paginationRow}>
+					<button
+						type="button"
+						className={styles.filterButton}
+						onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+						disabled={loading || currentPage <= 1}
+					>
+						Trang trước
+					</button>
+					<span className={styles.paginationText}>
+						Trang {pagination.currentPage || currentPage}/{pagination.totalPages || 1}
+					</span>
+					<button
+						type="button"
+						className={styles.filterButton}
+						onClick={() =>
+							setCurrentPage((prev) =>
+								Math.min(prev + 1, Math.max(pagination.totalPages || 1, 1)),
+							)
+						}
+						disabled={loading || currentPage >= (pagination.totalPages || 1)}
+					>
+						Trang sau
+					</button>
 				</div>
 			</section>
 		</div>
