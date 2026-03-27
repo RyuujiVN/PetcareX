@@ -1,4 +1,4 @@
-const collectNormalizedRoles = (userInfo) => {
+export const isAdminClinicAccount = (userInfo) => {
   const roleTokens = [];
 
   if (typeof userInfo?.role === 'string') {
@@ -19,21 +19,13 @@ const collectNormalizedRoles = (userInfo) => {
     });
   }
 
-  return roleTokens.map((item) => String(item).toUpperCase());
-};
+  const normalized = roleTokens.map((item) => String(item).toUpperCase());
 
-export const isVeterinarianAccount = (userInfo) => {
-  const normalized = collectNormalizedRoles(userInfo);
-
-  return normalized.some((role) => role.includes('VETERINARIAN') || role.includes('DOCTOR'));
-};
-
-export const isClinicAdminAccount = (userInfo) => {
-  const normalized = collectNormalizedRoles(userInfo);
-
-  return normalized.some((role) => role.includes('ADMIN') || role.includes('CLINIC'));
-};
-
-export const isAdminClinicAccount = (userInfo) => {
-  return isClinicAdminAccount(userInfo) || isVeterinarianAccount(userInfo);
+  return normalized.some(
+    (role) =>
+      role.includes('ADMIN') ||
+      role.includes('CLINIC') ||
+      role.includes('VETERINARIAN') ||
+      role.includes('DOCTOR'),
+  );
 };

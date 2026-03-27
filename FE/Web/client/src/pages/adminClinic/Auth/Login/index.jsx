@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 import { loginApi } from '../../../../data/adminClinic/api/auth';
-import { isClinicAdminAccount, isVeterinarianAccount } from '../../../../constants/authRole';
+import { isAdminClinicAccount } from '../../../../constants/authRole';
 import { useAuth } from '../../../../hooks/adminClinic/AuthContext';
 
 const { Title, Text, Link } = Typography;
@@ -46,20 +46,33 @@ export default function Login() {
 
       const { accessToken, userInfo } = data;
 
-      const veterinarianAccount = isVeterinarianAccount(userInfo);
-      const clinicAdminAccount = isClinicAdminAccount(userInfo);
 
-      if (!veterinarianAccount && !clinicAdminAccount) {
-        message.warning('Tài khoản người dùng vui lòng đăng nhập ở cổng khách hàng.');
-        navigate('/login', { replace: true });
+      const adminVerererianAccount = isAdminClinicAccount(userInfo);
+
+      if (!adminVerererianAccount) {
+        message.warning('Tài khoản bác sĩ thú y vui lòng đăng nhập tại cổng quản trị bác sĩ thú y.');
+        navigate('/admin/veterinarian/login', { replace: true });
         return;
       }
 
       login(accessToken, userInfo);
 
+
+      const adminAccount = isAdminClinicAccount(userInfo);
+
+      if (!adminAccount) {
+        message.warning('Tài khoản người dùng vui lòng đăng nhập ở cổng khách hàng.');
+        navigate('/login', { replace: true });
+        return;
+      }
+      
+
+      login(accessToken, userInfo);
+
       message.success("Đăng nhập thành công!");
 
-      navigate(veterinarianAccount ? '/admin/veterinarian/appointments' : '/admin/home', { replace: true });
+      navigate('/admin/home');
+      navigate('/admin/veterinarian/home');
 
     } catch (err) {
 
