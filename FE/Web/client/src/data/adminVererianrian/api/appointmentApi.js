@@ -56,3 +56,11 @@ export const getVeterinarianAppointmentsApi = async ({ page = 1, limit = 300, da
 		itemCount: filteredItems.length,
 	}
 }
+
+export const updateVeterinarianAppointmentStatusApi = (appointmentId, payload) => {
+	return instance.patch(`/appointment/${appointmentId}`, payload).then((response) => response.data)
+}
+
+export const deleteVeterinarianAppointmentApi = (appointmentId) => {
+	return instance.delete(`/appointment/${appointmentId}`).then((response) => response.data)
+}

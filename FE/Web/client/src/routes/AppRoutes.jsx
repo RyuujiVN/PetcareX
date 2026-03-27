@@ -36,6 +36,8 @@ import AdminVererianrianLayout from './../layouts/adminVererianrian/AdminVereria
 import PetAppointmentVererianrian from './../pages/adminVererianrian/PetAppointmentVererianrian/petAppointmentVererianrian';
 import ListMedicalRecords from './../pages/adminVererianrian/ListMedicalRecords/listMedicalRecords';
 import ViewPetMedicalRecords from './../pages/adminVererianrian/ViewPetMedicalRecords/viewPetMedicalRecords';
+import ListExaminationForm from './../pages/adminVererianrian/ListExaminationForm/listExaminationForm';
+import RecordExaminationForm from './../pages/adminVererianrian/RecordExaminationForm/recordExaminationForm';
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
@@ -71,6 +73,8 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
         <Route path="/admin/veterinarian/listRecords" element={<ListMedicalRecords />} />
         <Route path="/admin/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
+        <Route path="/admin/veterinarian/exam-forms" element={<ListExaminationForm />} />
+        <Route path="/admin/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
       </Route>
 
 

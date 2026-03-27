@@ -16,7 +16,7 @@ import styles from './AdminVererianrianLayout.module.css'
 const menuItems = [
   { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/admin/veterinarian/appointments' },
   { key: 'records', label: 'Hồ sơ bệnh án', icon: FileTextOutlined, path: '/admin/veterinarian/listRecords' },
-  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/admin/veterinarian/viewRecords' },
+  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/admin/veterinarian/exam-forms' },
 ]
 
 const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
