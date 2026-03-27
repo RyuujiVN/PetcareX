@@ -65,8 +65,14 @@ export class ChatBotGateway
     // Gửi lại message về client
     client.emit('serverResponseMessage', message);
 
+    const messageSend = {
+      message: payload.content,
+      user_id: userId,
+      room_id: payload.roomId,
+    };
+
     // Gửi message cho AI
-    this.aiClientService.sendMessage(payload);
+    this.aiClientService.sendMessage(messageSend);
   }
 
   @SubscribeMessage('joinRoom')
@@ -79,6 +85,14 @@ export class ChatBotGateway
   handleLeaveRoom(client: Socket, payload: any) {
     if (!payload?.roomId) return;
     client.leave(payload.roomId);
+  }
+
+  @SubscribeMessage('stopStream')
+  async handleStopStream(client: Socket, payload: any) {
+    const message = await this.messageService.createMessage(payload);
+    this.server.to(payload.roomId).emit('serverResponseAIMessage', message);
+
+    this.aiClientService.stopStream();
   }
 
   async sendMessageToClient(roomId: string, data: any) {

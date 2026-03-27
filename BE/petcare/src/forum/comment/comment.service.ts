@@ -119,8 +119,9 @@ export class CommentService {
       const comment = await commentRepo.findOne({ where: { id: id } });
 
       if (!comment) throw new NotFoundException('Không tìm thấy bình luận');
-      if (comment.userId !== user.id || user.role !== RoleEnum.ADMIN)
-        throw new NotFoundException('Không có quyền xoá bình luận này');
+
+      if (comment.userId !== user.id && user.role !== RoleEnum.ADMIN)
+        throw new ForbiddenException('Không có quyền xoá bình luận này');
 
       // 2. Xoá bình luận
       await commentRepo.delete({ id: id });
