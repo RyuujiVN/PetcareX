@@ -21,6 +21,12 @@
 	overflow: hidden;
 }
 
+.modalContainer {
+	position: relative;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
 .closeButton {
 	position: absolute;
 	top: 16px;
@@ -58,6 +64,43 @@
 	max-height: calc(86vh - 105px);
 	overflow-y: auto;
 	padding: 18px 24px 24px;
+}
+
+.contentInModal {
+	max-height: 70vh;
+}
+
+.markdownReport {
+	color: #1f2937;
+	font-size: 16px;
+	line-height: 1.65;
+	font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
+	white-space: normal;
+	word-break: break-word;
+}
+
+.markdownReport :global(h1),
+.markdownReport :global(h2),
+.markdownReport :global(h3),
+.markdownReport :global(h4) {
+	margin-top: 14px;
+	margin-bottom: 8px;
+	font-weight: 700;
+	color: #111827;
+}
+
+.markdownReport :global(p) {
+	margin: 8px 0;
+}
+
+.markdownReport :global(ul),
+.markdownReport :global(ol) {
+	margin: 8px 0;
+	padding-left: 22px;
+}
+
+.markdownReport :global(li) {
+	margin-bottom: 4px;
 }
 
 .block {
@@ -154,6 +197,10 @@
 		padding: 14px 16px 18px;
 	}
 
+	.contentInModal {
+		max-height: 68vh;
+	}
+
 	.blockTitle {
 		font-size: 16px;
 	}
@@ -161,7 +208,8 @@
 	.symptomList,
 	.predictionList,
 	.paragraph,
-	.impactList p {
+	.impactList p,
+	.markdownReport {
 		font-size: 15px;
 	}
 }

@@ -24,6 +24,7 @@ import {
 } from '../../../../data/client/api/appointmentApi';
 import { getBreedLabel } from '../../../../data/client/api/petApi';
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
+import { generateAndStoreDiagnosisReport } from '../../../../data/client/api/appointmentDiagnosis';
 
 const TIME_SLOT_GROUPS = [
   {
@@ -420,6 +421,16 @@ export default function BookingAppointment() {
       setSubmitting(true);
       const created = await createAppointmentApi(payload);
       await fetchAppointments();
+
+      if (created?.id) {
+        await generateAndStoreDiagnosisReport({
+          appointmentId: created.id,
+          symptomsText: values.symptoms.trim(),
+          petName: created?.pet?.name || selectedPet?.name,
+          species: created?.pet?.species || selectedPet?.species,
+          appointmentDate: values.selectedDate,
+        });
+      }
 
       const appointmentData = {
         petName: created?.pet?.name || selectedPet.name,
