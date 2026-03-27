@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, Tooltip, message } from 'antd'
 import { CalendarOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/adminClinic/api/appointmentApi'
 import { getClinicPetSpeciesApi } from '../../../../data/adminClinic/api/petApi'
 import styles from './listPetMedicalRecords.module.css'
@@ -66,6 +66,9 @@ const sortByTimeAsc = (a, b) => {
 
 export default function ListPetMedicalRecords() {
 	const navigate = useNavigate()
+	const location = useLocation()
+	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
 	const [loading, setLoading] = useState(false)
 	const [loadingSpecies, setLoadingSpecies] = useState(false)
 	const [searchText, setSearchText] = useState('')
@@ -219,7 +222,7 @@ export default function ListPetMedicalRecords() {
 			searchParams.set('medicalId', row.medicalId)
 		}
 
-		navigate(`/admin/clinic/medical-records/view?${searchParams.toString()}`, {
+		navigate(`${routePrefix}/medical-records/view?${searchParams.toString()}`, {
 			state: {
 				record: row,
 			},

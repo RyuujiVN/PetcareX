@@ -1,0 +1,138 @@
+.layout {
+  min-height: 100vh;
+  display: flex;
+  background: #f3f6fb;
+}
+
+.sidebar {
+  width: 270px;
+  background: #ffffff;
+  border-right: 1px solid #e2e8f1;
+  padding: 22px 16px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.brandWrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.brandIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #4672b4;
+  font-size: 18px;
+}
+
+.brandWrap h2 {
+  margin: 0;
+  color: #1f2f4d;
+}
+
+.brandWrap p {
+  margin: 4px 0 0;
+  color: #6f809c;
+  font-size: 13px;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menuItem {
+  border-radius: 999px;
+  border: 1px solid #e5ebf5;
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #4d5f7f;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.menuItemActive {
+  background: #4672b4;
+  border-color: #4672b4;
+  color: #ffffff;
+}
+
+.profileCard {
+  border-top: 1px solid #e2e8f1;
+  padding-top: 14px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.profileMeta h4 {
+  margin: 0;
+  color: #21324e;
+  font-size: 14px;
+}
+
+.profileMeta p {
+  margin: 2px 0 0;
+  color: #7487a5;
+  font-size: 12px;
+}
+
+.logoutBtn {
+  color: #4672b4;
+}
+
+.main {
+  flex: 1;
+  padding: 20px 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.searchInput {
+  max-width: 360px;
+}
+
+.searchInput :global(.ant-input-affix-wrapper) {
+  border-radius: 999px;
+}
+
+.bellButton {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid #d9e3f1;
+  color: #4672b4;
+}
+
+.content {
+  min-height: calc(100vh - 96px);
+}
+
+@media (max-width: 992px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #e2e8f1;
+  }
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { message } from 'antd'
 import {
 	FaHeartbeat,
@@ -63,9 +63,12 @@ function Field({ label, value, placeholder = '', isSelect = false }) {
 
 export default function PetMedicalRecords() {
 	const navigate = useNavigate()
+	const location = useLocation()
+	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
 	const { appointmentId } = useParams()
 	const handleMedicalRecord = () => {
-		navigate(`/admin/clinic/exam-slips/${appointmentId}/bill`)
+		navigate(`${routePrefix}/exam-slips/${appointmentId}/bill`)
 	}
 	return (
 		<div className={styles.page}>

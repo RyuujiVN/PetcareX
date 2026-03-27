@@ -258,14 +258,12 @@ def main():
     parser = argparse.ArgumentParser(description="Embed JSONL into ChromaDB")
     parser.add_argument("--file", type=str, help="Path to specific JSONL file")
     parser.add_argument("--data-dir", type=str, default=DATA_DIR, help="Directory with JSONL files")
-    parser.add_argument("--reset", action="store_true", help="Reset vectorstore")
-    parser.add_argument("--device", type=str, default=EMBEDDING_DEVICE, help="cuda or cpu")
     parser.add_argument("--batch-records", type=int, default=RECORDS_PER_BATCH,
                         help=f"Records per batch (default {RECORDS_PER_BATCH})")
     args = parser.parse_args()
+    
 
     start_time = time.time()
-
     if args.file:
         files = [args.file]
     else:

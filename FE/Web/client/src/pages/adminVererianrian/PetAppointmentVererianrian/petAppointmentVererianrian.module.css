@@ -1,0 +1,215 @@
+.pageWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.titleBlock :global(.ant-typography) {
+  margin-bottom: 0;
+}
+
+.titleBlock :global(h2.ant-typography) {
+  margin: 0;
+  color: #203355;
+  font-size: 34px;
+}
+
+.titleBlock :global(.ant-typography + .ant-typography) {
+  color: #6f809d;
+  font-size: 16px;
+}
+
+.summaryCard {
+  border-radius: 18px;
+  border: 1px solid #dce5f3;
+  box-shadow: 0 4px 14px rgba(70, 114, 180, 0.08);
+}
+
+.summaryIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.summaryIconGreen {
+  background: #dff6e8;
+  color: #37b86d;
+}
+
+.summaryIconOrange {
+  background: #fff1e3;
+  color: #f08b3b;
+}
+
+.summaryIconBlue {
+  background: #e5ebff;
+  color: #4672b4;
+}
+
+.summaryTitle {
+  color: #6f809d;
+  font-size: 15px;
+}
+
+.summaryValue {
+  margin: 6px 0 0 !important;
+  color: #1d2f4f !important;
+}
+
+.tablePanel {
+  border-radius: 18px;
+  border: 1px solid #dce5f3;
+  box-shadow: 0 4px 14px rgba(70, 114, 180, 0.08);
+}
+
+.tableHeader {
+  margin-bottom: 10px;
+}
+
+.panelTitle {
+  margin: 0 !important;
+  font-size: 28px !important;
+  color: #1d2f4f !important;
+}
+
+.segmented {
+  background: #edf2fb;
+}
+
+.segmented :global(.ant-segmented-item-selected) {
+  color: #4672b4;
+}
+
+.tableHeadRow {
+  display: grid;
+  grid-template-columns: 2.2fr 1.1fr 1fr 1.1fr 1.3fr;
+  gap: 12px;
+  background: #f3f6fb;
+  border: 1px solid #e0e7f3;
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: #6e7f9b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 2.2fr 1.1fr 1fr 1.1fr 1.3fr;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid #edf2fb;
+  padding: 12px 8px;
+}
+
+.petInfoCol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.petAvatar {
+  background: #eaf0fb;
+  color: #344f81;
+}
+
+.petName {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1e3150;
+}
+
+.ownerName {
+  display: block;
+  color: #71819d;
+}
+
+.serviceTag,
+.statusTag {
+  border-radius: 999px;
+  border: none;
+  padding: 4px 10px;
+  font-size: 12px;
+  width: fit-content;
+}
+
+.serviceVaccine {
+  background: #dff8e8;
+  color: #2faa61;
+}
+
+.serviceGeneral {
+  background: #e5ebff;
+  color: #4672b4;
+}
+
+.serviceSurgery {
+  background: #f2e4ff;
+  color: #a34ee3;
+}
+
+.serviceConsulting {
+  background: #f8efc9;
+  color: #aa8300;
+}
+
+.statusUpcoming {
+  background: #fff0e2;
+  color: #e9802d;
+}
+
+.statusInProgress {
+  background: #e7edff;
+  color: #4672b4;
+}
+
+.statusConfirmed {
+  background: #dff8e8;
+  color: #32b663;
+}
+
+.timeText {
+  color: #1f3253;
+}
+
+.actionsCol :global(.ant-btn) {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.primaryActionBtn {
+  background: #4672b4 !important;
+  border-color: #4672b4 !important;
+}
+
+.ghostActionBtn {
+  color: #7b8cab;
+  border: 1px solid #d5dff0;
+}
+
+.tableFooter {
+  margin-top: 12px;
+}
+
+.tableFooter :global(.ant-typography) {
+  color: #6f819f;
+}
+
+@media (max-width: 992px) {
+  .tablePanel {
+    overflow-x: auto;
+  }
+
+  .tableHeadRow,
+  .tableRow,
+  .tableHeader,
+  .tableFooter {
+    min-width: 900px;
+  }
+}
