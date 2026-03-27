@@ -64,27 +64,9 @@ function Field({ label, value, placeholder = '', isSelect = false }) {
 export default function PetMedicalRecords() {
 	const navigate = useNavigate()
 	const { appointmentId } = useParams()
-	const [confirmingPayment, setConfirmingPayment] = useState(false)
-
-	const handleConfirmPayment = async () => {
-		if (!appointmentId) {
-			message.warning('Không tìm thấy mã lịch hẹn để xác nhận thanh toán')
-			navigate('/admin/clinic/exam-slips')
-			return
-		}
-
-		try {
-			setConfirmingPayment(true)
-			await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.COMPLETED)
-			message.success('Xác nhận thanh toán thành công')
-			navigate('/admin/clinic/exam-slips')
-		} catch (error) {
-			message.error(error?.response?.data?.message || error?.message || 'Không thể xác nhận thanh toán')
-		} finally {
-			setConfirmingPayment(false)
-		}
+	const handleMedicalRecord = () => {
+		navigate(`/admin/clinic/exam-slips/${appointmentId}/bill`)
 	}
-
 	return (
 		<div className={styles.page}>
 			<div className={styles.pageWrap}>
@@ -260,10 +242,9 @@ export default function PetMedicalRecords() {
 					<button
 						type="button"
 						className={styles.saveBtn}
-						onClick={handleConfirmPayment}
-						disabled={confirmingPayment}
+						onClick={handleMedicalRecord}
 					>
-						{confirmingPayment ? 'Đang xử lý...' : 'Xác nhận thanh toán'}
+						Hồ sơ bệnh án
 					</button>
 				</div>
 			</div>

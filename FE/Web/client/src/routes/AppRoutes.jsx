@@ -27,12 +27,14 @@ import AdminForgotPassword from '../pages/adminClinic/Auth/ForgotPassword'
 import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
 import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
 import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
+import ViewMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords'
 import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
 import VererianrianManagement from '../pages/adminClinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
 import AddNewVererianrian from '../pages/adminClinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
 import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
+import PetMedicalBill from '../pages/adminClinic/VeterinaryClinic/PetMedicalBill/petMedicalBill'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
 export default function AppRoutes({ location }) {
   return (
@@ -52,12 +54,14 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
+        <Route path="/admin/clinic/medical-records/view" element={<ViewMedicalRecords />} />
         <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/veterinarians" element={<VererianrianManagement />} />
         <Route path="/admin/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
         <Route path="/admin/clinic/veterinarians/information" element={<InformationVererianrian />} />
         <Route path="/admin/clinic/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/admin/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
+        <Route path="/admin/clinic/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
       </Route>
 
       <Route path="/login" element={<Login />} />
