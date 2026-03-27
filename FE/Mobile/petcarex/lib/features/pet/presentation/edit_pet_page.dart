@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -233,6 +234,75 @@ class _EditPetPageState extends State<EditPetPage> {
     );
   }
 
+  bool get _hasPreviewImage {
+    if (_selectedImage != null) {
+      return true;
+    }
+    return (_uploadedAvatarUrl?.startsWith('http') ?? false);
+  }
+
+  void _openAvatarPreview() {
+    if (!_hasPreviewImage) {
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withValues(alpha: 0.86),
+      builder: (dialogContext) {
+        final Widget imageWidget;
+        if (_selectedImage != null) {
+          imageWidget = Image.file(_selectedImage!, fit: BoxFit.contain);
+        } else {
+          imageWidget = CachedNetworkImage(
+            // Fullscreen preview should use the original Cloudinary URL.
+            // Some transformed URLs can fail depending on backend/cloud settings.
+            imageUrl: _uploadedAvatarUrl!,
+            fit: BoxFit.contain,
+            placeholder: (context, url) => const Center(
+              child: CircularProgressIndicator(color: AppColors.white),
+            ),
+            errorWidget: (context, url, error) => const Icon(
+              Icons.broken_image,
+              color: AppColors.white,
+              size: 56,
+            ),
+          );
+        }
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () => Navigator.pop(dialogContext),
+                child: Container(color: Colors.transparent),
+              ),
+            ),
+            Positioned.fill(
+              child: Center(
+                child: InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: imageWidget,
+                ),
+              ),
+            ),
+            Positioned(
+              top: 12,
+              right: 12,
+              child: SafeArea(
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: AppColors.white),
+                  onPressed: () => Navigator.pop(dialogContext),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -285,73 +355,74 @@ class _EditPetPageState extends State<EditPetPage> {
                         width: double.infinity,
                         child: Form(
                           key: _formKey,
-                          child: IgnorePointer(
-                            ignoring: !_isEditMode,
-                            child: AnimatedOpacity(
-                              duration: const Duration(milliseconds: 180),
-                              opacity: _isEditMode ? 1 : 0.98,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Align(
-                                    alignment: Alignment.center,
-                                    child: PetAvatarPicker(
-                                      selectedImage: _selectedImage,
-                                      avatarUrl: _uploadedAvatarUrl,
-                                      isUploading: _isUploadingAvatar,
-                                      onPickImage: _pickImage,
-                                      compactStyle: true,
-                                    ),
+                          child: AnimatedOpacity(
+                            duration: const Duration(milliseconds: 180),
+                            opacity: _isEditMode ? 1 : 0.98,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: Alignment.center,
+                                  child: PetAvatarPicker(
+                                    selectedImage: _selectedImage,
+                                    avatarUrl: _uploadedAvatarUrl,
+                                    isUploading: _isUploadingAvatar,
+                                    onPickImage: _pickImage,
+                                    onAvatarTap: _isEditMode
+                                        ? null
+                                        : _openAvatarPreview,
+                                    compactStyle: true,
+                                    allowImagePick: _isEditMode,
                                   ),
-                                  const SizedBox(height: 12),
-                                  _buildPetHeader(l10n),
-                                  const SizedBox(height: 20),
-                                  Row(
+                                ),
+                                const SizedBox(height: 12),
+                                _buildPetHeader(l10n),
+                                const SizedBox(height: 20),
+                                Text(
+                                  l10n.petInformation,
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.text,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                IgnorePointer(
+                                  ignoring: !_isEditMode,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      const Icon(
-                                        Icons.pets,
-                                        color: AppColors.primary,
-                                        size: 20,
+                                      _buildPetNameField(l10n),
+                                      const SizedBox(height: 12),
+                                      _buildSpeciesBreedFields(
+                                        petProvider,
+                                        l10n,
+                                        shouldStackFields,
                                       ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        l10n.petInformation,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: AppColors.text,
-                                        ),
+                                      const SizedBox(height: 12),
+                                      _buildGenderSelector(l10n),
+                                      const SizedBox(height: 12),
+                                      PetBirthdateAgeFields(
+                                        l10n: l10n,
+                                        birthdateController:
+                                            birthdateController,
+                                        vertical: shouldStackFields,
+                                        onBirthdateChanged: () {
+                                          if (mounted) {
+                                            setState(() {});
+                                          }
+                                        },
+                                      ),
+                                      const SizedBox(height: 12),
+                                      _buildWeightAndFurColorSection(
+                                        l10n,
+                                        shouldStackFields,
                                       ),
                                     ],
                                   ),
-                                  const SizedBox(height: 12),
-                                  _buildPetNameField(l10n),
-                                  const SizedBox(height: 12),
-                                  _buildSpeciesBreedFields(
-                                    petProvider,
-                                    l10n,
-                                    shouldStackFields,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildGenderSelector(l10n),
-                                  const SizedBox(height: 12),
-                                  PetBirthdateAgeFields(
-                                    l10n: l10n,
-                                    birthdateController: birthdateController,
-                                    vertical: shouldStackFields,
-                                    onBirthdateChanged: () {
-                                      if (mounted) {
-                                        setState(() {});
-                                      }
-                                    },
-                                  ),
-                                  const SizedBox(height: 12),
-                                  _buildWeightAndFurColorSection(
-                                    l10n,
-                                    shouldStackFields,
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
