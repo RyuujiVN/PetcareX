@@ -11,7 +11,9 @@ from contextlib import asynccontextmanager
 from typing import Optional, List, Tuple, Set
 import torch
 from fastapi import FastAPI
+from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from transformers import TextIteratorStreamer
 from rag_pipeline import Retriever, LLMGenerator
 from structured_retriever import StructuredDBRetriever
@@ -24,6 +26,7 @@ from config import (
     LLM_MAX_NEW_TOKENS,
     LLM_DO_SAMPLE,
     SYSTEM_PROMPT,
+    TRIAGE_PROMPT,
     PROMPT_TEMPLATE,
     POSTGRES_DSN,
 )
@@ -63,6 +66,19 @@ app.add_middleware(
 )
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 socket_app = socketio.ASGIApp(sio, app)
+
+
+class TriageRequest(BaseModel):
+    user_id: str
+    pet_id: str
+    symptoms: str
+
+
+class TriageResponse(BaseModel):
+    status: str
+    triage_id: str
+    message: str
+    analysis: str
 
 
 def build_history_text(history: List[Tuple[str, str]]) -> str:
@@ -175,6 +191,7 @@ async def handle_chat(sid, data):
             return
     message = data.get("message", "").strip()
     room_id = data.get("room_id", "")
+    user_id = data.get("user_id", "")
 
     if not message:
         return
@@ -252,10 +269,10 @@ async def handle_chat(sid, data):
             if token is None:
                 break
             full_answer += token
-            await sio.emit('chat_response', {"type": "token", "token": token}, to=sid)
+            await sio.emit('chat_response', {"type": "token", "token": token, "user_id": user_id}, to=sid)
 
         answer = full_answer.strip()
-        await sio.emit('chat_response', {"type": "done", "answer": answer}, to=sid)
+        await sio.emit('chat_response', {"type": "done", "answer": answer, "user_id": user_id}, to=sid)
     except Exception as exc:
         await sio.emit(
             'chat_response',
@@ -274,6 +291,40 @@ async def handle_chat(sid, data):
 async def handle_default_message_event(sid, data):
     if isinstance(data, dict) and "message" in data:
         await handle_chat(sid, data)
+
+@app.post("/api/triage", response_model=TriageResponse, status_code=201)
+def create_triage(data: TriageRequest):
+    if not data.symptoms.strip():
+        raise HTTPException(status_code=400, detail="Missing 'symptoms' in request body.")
+
+    prompt = TRIAGE_PROMPT.format(symptoms=data.symptoms.strip())
+    with llm_lock:
+        inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
+        outputs = llm.model.generate(**inputs, max_new_tokens=512, pad_token_id=llm.tokenizer.pad_token_id)
+
+        input_len = inputs.input_ids.shape[1]
+        answer = llm.tokenizer.decode(outputs[0][input_len:], skip_special_tokens=True).strip()
+
+    db = SessionLocal()
+    try:
+        triage = crud.create_triage_result(
+            db=db,
+            user_id=data.user_id,
+            pet_id=data.pet_id,
+            symptoms=data.symptoms.strip(),
+            context=answer,
+        )
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid 'user_id' or 'pet_id' format (must be UUID).")
+    finally:
+        db.close()
+
+    return TriageResponse(
+        status="success",
+        triage_id=str(triage.id),
+        message="Đã phân tích triệu chứng và lưu kết quả thành công.",
+        analysis=answer,
+    )
 
 if __name__ == "__main__":
     import uvicorn
