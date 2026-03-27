@@ -7,6 +7,8 @@ export const APPOINTMENT_STATUS = {
   CANCELLED: 'CANCELLED',
 };
 
+export const APPOINTMENT_PAYMENT_SYNC_EVENT_KEY = 'adminClinic:appointmentPaymentSync';
+
 export const APPOINTMENT_STATUS_LABEL = {
   [APPOINTMENT_STATUS.BOOKED]: 'Chờ khám',
   [APPOINTMENT_STATUS.IN_PROGRESS]: 'Đang khám',

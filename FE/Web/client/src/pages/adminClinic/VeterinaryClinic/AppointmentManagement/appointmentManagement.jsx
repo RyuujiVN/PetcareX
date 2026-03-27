@@ -28,6 +28,7 @@ import {
 } from '@ant-design/icons'
 import styles from './appointmentManagement.module.css'
 import {
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
 	APPOINTMENT_STATUS,
 	APPOINTMENT_STATUS_LABEL,
 	SERVICE_OPTIONS,
@@ -261,6 +262,44 @@ export default function AppointmentManagement() {
 
 	useEffect(() => {
 		fetchAppointments()
+	}, [fetchAppointments])
+
+	useEffect(() => {
+		const syncAppointmentsOnFocus = () => {
+			fetchAppointments()
+		}
+
+		const syncAppointmentsOnVisibilityChange = () => {
+			if (!document.hidden) {
+				fetchAppointments()
+			}
+		}
+
+		const syncAppointmentsOnPayment = (event) => {
+			if (event.key !== APPOINTMENT_PAYMENT_SYNC_EVENT_KEY || !event.newValue) return
+
+			try {
+				const payload = JSON.parse(event.newValue)
+				if (!payload?.appointmentId || !payload?.status) return
+
+				setAppointments((prev) =>
+					prev.map((item) =>
+						item.id === payload.appointmentId ? { ...item, status: payload.status } : item,
+					),
+				)
+			} catch {
+			}
+		}
+
+		window.addEventListener('focus', syncAppointmentsOnFocus)
+		document.addEventListener('visibilitychange', syncAppointmentsOnVisibilityChange)
+		window.addEventListener('storage', syncAppointmentsOnPayment)
+
+		return () => {
+			window.removeEventListener('focus', syncAppointmentsOnFocus)
+			document.removeEventListener('visibilitychange', syncAppointmentsOnVisibilityChange)
+			window.removeEventListener('storage', syncAppointmentsOnPayment)
+		}
 	}, [fetchAppointments])
 
 	const mappedAppointments = appointments

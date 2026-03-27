@@ -1,14 +1,18 @@
 import { useState } from 'react'
 import { Button, Modal, message } from 'antd'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
 	CalendarOutlined,
 	FileDoneOutlined,
 	MedicineBoxOutlined,
 	PrinterOutlined,
-	SearchOutlined,
 } from '@ant-design/icons'
 import styles from './petMedicalBill.module.css'
+import {
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+	APPOINTMENT_STATUS,
+	updateAppointmentStatusApi,
+} from '../../../../data/adminClinic/api/appointmentApi'
 
 const billData = {
 	code: 'HD-4924',
@@ -26,7 +30,9 @@ const billData = {
 
 export default function PetMedicalBill() {
 	const navigate = useNavigate()
+	const { appointmentId } = useParams()
 	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+	const [isConfirmingPayment, setIsConfirmingPayment] = useState(false)
 
 	const handlePrintInvoice = () => {
 		window.print()
@@ -40,10 +46,33 @@ export default function PetMedicalBill() {
 		setIsPaymentModalOpen(false)
 	}
 
-	const handleConfirmPayment = () => {
-		setIsPaymentModalOpen(false)
-		message.success('Thanh toán thành công')
-		navigate('/admin/clinic/exam-slips')
+	const handleConfirmPayment = async () => {
+		if (!appointmentId) {
+			message.error('Không tìm thấy lịch khám để xác nhận thanh toán')
+			return
+		}
+
+		try {
+			setIsConfirmingPayment(true)
+			await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.COMPLETED)
+
+			localStorage.setItem(
+				APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+				JSON.stringify({
+					appointmentId,
+					status: APPOINTMENT_STATUS.COMPLETED,
+					updatedAt: Date.now(),
+				}),
+			)
+
+			setIsPaymentModalOpen(false)
+			message.success('Thanh toán thành công')
+			navigate('/admin/clinic/appointments')
+		} catch (error) {
+			message.error(error.message || 'Không thể xác nhận thanh toán')
+		} finally {
+			setIsConfirmingPayment(false)
+		}
 	}
 
 	return (
@@ -119,12 +148,14 @@ export default function PetMedicalBill() {
 
 			<Modal
 				open={isPaymentModalOpen}
-				onCancel={closePaymentModal}
+				onCancel={isConfirmingPayment ? undefined : closePaymentModal}
 				footer={null}
 				centered
 				width={560}
 				className={styles.paymentModal}
 				destroyOnClose
+				closable={!isConfirmingPayment}
+				maskClosable={!isConfirmingPayment}
 			>
 				<div className={styles.modalBody}>
 					<h3>
@@ -166,9 +197,14 @@ export default function PetMedicalBill() {
 						<strong>{billData.grandTotal}</strong>
 					</div>
 
-					<button type="button" className={styles.confirmButton} onClick={handleConfirmPayment}>
+					<button
+						type="button"
+						className={styles.confirmButton}
+						onClick={handleConfirmPayment}
+						disabled={isConfirmingPayment}
+					>
 						<CalendarOutlined />
-						<span>Xác nhận thanh toán</span>
+						<span>{isConfirmingPayment ? 'Đang xác nhận...' : 'Xác nhận thanh toán'}</span>
 					</button>
 				</div>
 			</Modal>
