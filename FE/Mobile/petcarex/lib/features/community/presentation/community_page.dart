@@ -279,62 +279,252 @@ class _CommunityPageState extends State<CommunityPage> {
     String? parentId,
   }) async {
     final initialText = _extractPlainTextFromHtml(comment.content);
-    final currentImages = _extractImageUrlsFromHtml(comment.content);
+    final existingImageUrls = _extractImageUrlsFromHtml(comment.content);
+    final uploadingImages = <_EditComposerImage>[];
     final controller = TextEditingController(text: initialText);
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.update),
-        content: SizedBox(
-          width: 340,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TextField(
-                controller: controller,
-                maxLines: 5,
-                decoration: InputDecoration(hintText: l10n.commentHint),
-              ),
-              if (currentImages.isNotEmpty) ...[
-                const SizedBox(height: 10),
-                Text(
-                  '${currentImages.length} ${l10n.uploadPhoto}',
-                  style: const TextStyle(
-                    color: AppColors.textGrey,
-                    fontSize: 12,
+      builder: (dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final hasUploading = uploadingImages.any((item) => item.isUploading);
+            final hasFailed = uploadingImages.any((item) => item.isUploadFailed);
+            return AlertDialog(
+              title: Text(l10n.update),
+              content: SizedBox(
+                width: 360,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: controller,
+                        maxLines: 5,
+                        decoration: InputDecoration(hintText: l10n.commentHint),
+                      ),
+                      const SizedBox(height: 12),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final picked = await _cameraService.pickImagesFromGallery();
+                          if (picked.isEmpty) return;
+
+                          final incoming = picked
+                              .map((file) => _EditComposerImage(file: file))
+                              .toList();
+
+                          setModalState(() {
+                            uploadingImages.addAll(incoming);
+                          });
+
+                          final uploadedUrls = await provider.preUploadImages(
+                            picked.map((e) => e.path).toList(),
+                          );
+
+                          if (!mounted) return;
+
+                          setModalState(() {
+                            for (var i = 0; i < incoming.length; i++) {
+                              incoming[i].isUploading = false;
+                              if (i < uploadedUrls.length &&
+                                  uploadedUrls[i].trim().isNotEmpty) {
+                                incoming[i].uploadedUrl = uploadedUrls[i].trim();
+                                incoming[i].isUploadFailed = false;
+                              } else {
+                                incoming[i].isUploadFailed = true;
+                              }
+                            }
+                          });
+                        },
+                        icon: const Icon(Icons.photo_library_outlined),
+                        label: Text(l10n.uploadPhoto),
+                      ),
+                      const SizedBox(height: 12),
+                      if (existingImageUrls.isNotEmpty || uploadingImages.isNotEmpty)
+                        SizedBox(
+                          height: 80,
+                          child: ListView(
+                            scrollDirection: Axis.horizontal,
+                            children: [
+                              ...existingImageUrls.asMap().entries.map(
+                                (entry) => Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: CachedNetworkImage(
+                                          imageUrl: ImageHelper.getThumbnailUrl(entry.value),
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              existingImageUrls.removeAt(entry.key);
+                                            });
+                                          },
+                                          child: Container(
+                                            width: 18,
+                                            height: 18,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.black,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              size: 12,
+                                              color: AppColors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              ...uploadingImages.asMap().entries.map(
+                                (entry) => Padding(
+                                  padding: const EdgeInsets.only(right: 8),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.file(
+                                          entry.value.file,
+                                          width: 80,
+                                          height: 80,
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                      if (entry.value.isUploading)
+                                        Positioned.fill(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: AppColors.black.withValues(alpha: 0.35),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: const SizedBox(
+                                              width: 16,
+                                              height: 16,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                color: AppColors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      if (entry.value.isUploadFailed)
+                                        Positioned.fill(
+                                          child: Container(
+                                            decoration: BoxDecoration(
+                                              color: AppColors.error.withValues(alpha: 0.3),
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                            alignment: Alignment.center,
+                                            child: const Icon(
+                                              Icons.error_outline,
+                                              color: AppColors.white,
+                                              size: 18,
+                                            ),
+                                          ),
+                                        ),
+                                      Positioned(
+                                        top: 4,
+                                        right: 4,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            setModalState(() {
+                                              uploadingImages.removeAt(entry.key);
+                                            });
+                                          },
+                                          child: Container(
+                                            width: 18,
+                                            height: 18,
+                                            decoration: const BoxDecoration(
+                                              color: AppColors.black,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              size: 12,
+                                              color: AppColors.white,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
                 ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext, false),
+                  child: Text(l10n.cancel),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    if (hasUploading) {
+                      AppNotifier.showError(this.context, l10n.uploadingImage);
+                      return;
+                    }
+
+                    if (hasFailed) {
+                      AppNotifier.showError(this.context, l10n.uploadImageFailed);
+                      return;
+                    }
+
+                    final newImageUrls = uploadingImages
+                        .where((item) => item.uploadedUrl != null)
+                        .map((item) => item.uploadedUrl!)
+                        .toList();
+
+                    final candidateHtml = _composeHtmlContent(
+                      text: controller.text.trim(),
+                      imageUrls: [...existingImageUrls, ...newImageUrls],
+                    );
+
+                    if (candidateHtml.trim().isEmpty) {
+                      AppNotifier.showError(this.context, l10n.shareSomething);
+                      return;
+                    }
+
+                    Navigator.pop(dialogContext, true);
+                  },
+                  child: Text(l10n.update),
+                ),
               ],
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.cancel),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.update),
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
 
     if (confirmed != true) return;
 
+    final newImageUrls = uploadingImages
+        .where((item) => item.uploadedUrl != null)
+        .map((item) => item.uploadedUrl!)
+        .toList();
+
     final updatedHtml = _composeHtmlContent(
       text: controller.text.trim(),
-      imageUrls: currentImages,
+      imageUrls: [...existingImageUrls, ...newImageUrls],
     );
-
-    if (updatedHtml.trim().isEmpty) {
-      if (!mounted) return;
-      AppNotifier.showError(context, l10n.shareSomething);
-      return;
-    }
 
     final success = await provider.updateComment(
       commentId: comment.id,

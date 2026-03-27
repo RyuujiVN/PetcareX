@@ -77,6 +77,30 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
     - Giữ quyền thao tác trực tiếp trong từng item comment giúp giảm số bước, đúng kỳ vọng social feed.
     - Dùng check quyền ở FE để ẩn thao tác với comment người khác; quyền thực tế vẫn do BE xác thực để đảm bảo an toàn.
 
+### 7) Community Edit Comment With Images (2026-03-27)
+- **Vấn đề cũ:** Dialog `Cập nhật` bình luận chỉ sửa được text, không cho quản lý ảnh nên người dùng không thể xóa ảnh cũ hoặc thêm ảnh mới khi sửa comment.
+- **Giải pháp triển khai:** Đồng bộ luồng `Edit Comment` theo đúng pattern đã dùng ở `Edit Post`.
+    - Parse comment HTML thành `text` + `existingImageUrls` để hiển thị đúng ngữ nghĩa.
+    - Cho phép xóa từng ảnh cũ ngay trong dialog trước khi bấm `Cập nhật`.
+    - Cho phép thêm ảnh mới và **pre-upload ngay khi chọn ảnh** (không đợi tới lúc submit).
+    - Ảnh mới có state per-item: `isUploading`, `isUploadFailed`, `uploadedUrl`.
+    - Khi submit, FE build lại HTML từ `text + existingImageUrls còn lại + uploadedImageUrls mới`.
+- **Guard khi submit:**
+    - Chặn `Cập nhật` nếu còn ảnh đang upload.
+    - Chặn `Cập nhật` nếu có ảnh upload lỗi.
+    - Chỉ gửi payload khi nội dung cuối cùng không rỗng (text và ảnh đều trống thì báo lỗi).
+- **Kết quả:**
+    - Người dùng có thể chỉnh sửa comment có ảnh một cách đầy đủ: giữ/xóa ảnh cũ + thêm ảnh mới + cập nhật text trong cùng một luồng nhất quán.
+
+### 8) Edit Comment Dialog Premature Close Fix (2026-03-27)
+- **Vấn đề phát sinh:** Khi người dùng bấm `Cập nhật` trong lúc ảnh mới vẫn đang upload, dialog bị đóng trước rồi mới báo lỗi `Đang tải ảnh lên, vui lòng đợi...`, làm mất ngữ cảnh chỉnh sửa.
+- **Root cause:** Validate trạng thái upload được đặt **sau** `Navigator.pop(...)` (sau khi dialog đã đóng).
+- **Sửa triệt để:**
+    - Chuyển validate upload/failed/empty-content vào ngay trong `onPressed` của nút `Cập nhật` trong dialog.
+    - Nếu chưa hợp lệ thì chỉ hiển thị thông báo lỗi và **giữ nguyên dialog đang mở**.
+    - Chỉ `Navigator.pop(true)` khi toàn bộ điều kiện hợp lệ.
+- **Kết quả UX:** Người dùng không còn bị đá ra khỏi dialog khi bấm cập nhật quá sớm; có thể chờ upload xong rồi tiếp tục chỉnh sửa trong cùng ngữ cảnh.
+
 ## 🐾 Pet Avatar Fullscreen Fix (2026-03-27)
 
 ### Bối cảnh lỗi
