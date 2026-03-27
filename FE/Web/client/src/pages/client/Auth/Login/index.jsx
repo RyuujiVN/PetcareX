@@ -54,7 +54,7 @@ export default function Login() {
 
       if (adminAccount) {
         message.warning('Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.');
-        navigate('/admin/login', { replace: true });
+        navigate('/adminClinic/login', { replace: true });
         return;
       }
 
@@ -92,7 +92,7 @@ export default function Login() {
 
       if (authResult.status === 'admin-account') {
         message.warning('Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.');
-        navigate('/admin/login', { replace: true });
+        navigate('/adminClinic/login', { replace: true });
         return;
       }
 
