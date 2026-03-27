@@ -175,6 +175,7 @@ async def handle_chat(sid, data):
             return
     message = data.get("message", "").strip()
     room_id = data.get("room_id", "")
+    user_id = data.get("user_id", "")
 
     if not message:
         return
@@ -252,10 +253,10 @@ async def handle_chat(sid, data):
             if token is None:
                 break
             full_answer += token
-            await sio.emit('chat_response', {"type": "token", "token": token}, to=sid)
+            await sio.emit('chat_response', {"type": "token", "token": token, "user_id": user_id}, to=sid)
 
         answer = full_answer.strip()
-        await sio.emit('chat_response', {"type": "done", "answer": answer}, to=sid)
+        await sio.emit('chat_response', {"type": "done", "answer": answer, "user_id": user_id}, to=sid)
     except Exception as exc:
         await sio.emit(
             'chat_response',

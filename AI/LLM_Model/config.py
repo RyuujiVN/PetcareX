@@ -83,7 +83,7 @@ Thông tin tham khảo:
 """
 
 
-POSTGRES_DSN = "postgresql://postgres:Hiep01698183444%40@localhost:5432/Petcare"
+POSTGRES_DSN = "postgresql://postgres:123456@localhost:5432/Petcare"
 POSTGRES_DSN = os.getenv("POSTGRES_DSN", POSTGRES_DSN)
 STRUCTURED_DB_TIMEOUT_MS = int(os.getenv("STRUCTURED_DB_TIMEOUT_MS", "800"))
 STRUCTURED_TOP_CLINICS = int(os.getenv("STRUCTURED_TOP_CLINICS", "5"))
