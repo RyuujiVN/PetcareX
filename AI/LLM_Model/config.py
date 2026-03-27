@@ -91,7 +91,7 @@ NGUYÊN TẮC QUAN TRỌNG:
 
 Thông tin người dùng nhập vào khi đặt lịch: {symptoms}
 
-Hãy trả lời theo định dạng Markdown với 3 phần rõ ràng sau:
+Hãy trả lời với 3 phần rõ ràng sau:
 
 1. Đánh giá tình trạng & Cảnh báo:
 (Nêu mức độ nghiêm trọng. Nếu có dấu hiệu nguy kịch, hãy IN ĐẬM cảnh báo khẩn cấp và yêu cầu đi viện ngay. Nếu không, giải thích sơ bộ đây có thể là dấu hiệu của nhóm vấn đề gì - tiêu hóa, hô hấp, thần kinh...).
