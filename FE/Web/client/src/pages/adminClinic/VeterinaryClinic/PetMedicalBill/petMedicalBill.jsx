@@ -49,18 +49,10 @@ export default function PetMedicalBill() {
 	return (
 		<div className={styles.page}>
 			<header className={styles.topBar}>
-				<div className={styles.searchBox}>
-					<SearchOutlined />
-					<span>Tìm kiếm thú cưng, khách hàng...</span>
-				</div>
+                <h1 style={{fontSize: 25, fontWeight: 'bold'}}>Hóa đơn bệnh án</h1>
 			</header>
 
 			<section className={styles.contentWrap}>
-				<div className={styles.pageTitleBlock}>
-					<h1>Hóa đơn bệnh án</h1>
-					<p>Thú cưng: Mèo Anh lông ngắn</p>
-				</div>
-
 				<article className={styles.card}>
 					<section className={styles.sectionBlock}>
 						<h2>
@@ -106,11 +98,14 @@ export default function PetMedicalBill() {
 					</section>
 
 					<div className={styles.actionRow}>
-						<Button type="primary" className={styles.actionButton} icon={<PrinterOutlined />} onClick={handlePrintInvoice}>
+						<Button style={{fontSize: 16}} type="primary" className={styles.actionButton} icon={<PrinterOutlined />} 
+						// onClick={handlePrintInvoice}>
+						onClick={openPaymentModal}>
 							In hóa đơn
 						</Button>
 
 						<Button
+                            style={{fontSize: 16}}
 							type="primary"
 							className={styles.actionButton}
 							icon={<CalendarOutlined />}

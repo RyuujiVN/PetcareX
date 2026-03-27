@@ -4,9 +4,13 @@
 }
 
 .topBar {
+   height: 64px;
+	border-bottom: 1px solid #dfe5ee;
+	background: #f6f7fb;
 	display: flex;
 	align-items: center;
-	padding: 18px 28px 10px;
+	justify-content: space-between;
+	padding: 0 22px;
 }
 
 .searchBox {
@@ -46,7 +50,7 @@
 
 .card {
 	margin-top: 20px;
-	background: #ffffff;
+	background: #ffffff85;
 	border-radius: 24px;
 	border: 1px solid #dbe3e8;
 	box-shadow: 0 18px 34px rgba(15, 33, 62, 0.06);
@@ -62,13 +66,13 @@
 	display: flex;
 	align-items: center;
 	gap: 10px;
-	font-size: 30px;
+	font-size: 23px;
 	color: #1e2436;
 	font-weight: 800;
 }
 
 .sectionBlock h2 :global(svg) {
-	color: #22c662;
+	color: #4672b4;
 }
 
 .vitalGrid {
@@ -82,7 +86,7 @@
 	display: block;
 	margin-bottom: 8px;
 	color: #354059;
-	font-size: 21px;
+	font-size: 16px;
 	font-weight: 700;
 }
 
@@ -95,7 +99,7 @@
 	display: flex;
 	align-items: center;
 	padding: 0 14px;
-	font-size: 28px;
+	font-size: 18px;
 	font-weight: 500;
 }
 
@@ -110,7 +114,7 @@
 	background: #ecf4f5;
 	color: #283149;
 	padding: 14px;
-	font-size: 23px;
+	font-size: 18px;
 	line-height: 1.45;
 }
 
@@ -126,11 +130,11 @@
 	min-width: 158px;
 	border: none !important;
 	border-radius: 24px !important;
-	background: #49d2c8 !important;
+	background: var(--color-brand-primary);
 	color: #ffffff !important;
 	font-weight: 700;
 	font-size: 20px;
-	box-shadow: 0 8px 16px rgba(44, 188, 177, 0.24);
+	box-shadow: 0 8px 16px var(--color-brand-primary);
 }
 
 .actionButton:hover {
@@ -159,26 +163,26 @@
 	align-items: center;
 	gap: 10px;
 	color: #1d2434;
-	font-size: 44px;
+	font-size: 30px;
 	font-weight: 800;
 }
 
 .modalBody h3 :global(svg) {
-	color: #22c662;
+	color: #4672b4;
 }
 
 .billCode {
 	margin: 16px 0 18px;
 	text-align: center;
 	color: #4f5b75;
-	font-size: 39px;
+	font-size: 20px;
 	font-weight: 800;
 }
 
 .modalSectionTitle {
 	margin: 14px 0 10px;
 	color: #98a3ba;
-	font-size: 32px;
+	font-size: 20px;
 	font-weight: 800;
 }
 
@@ -192,7 +196,7 @@
 	align-items: center;
 	justify-content: space-between;
 	gap: 16px;
-	font-size: 37px;
+	font-size: 20px;
 	color: #2f3850;
 }
 
@@ -217,28 +221,28 @@
 	align-items: baseline;
 	justify-content: space-between;
 	color: #3d3e40;
-	font-size: 49px;
+	font-size: 20px;
 	font-weight: 800;
 }
 
 .modalRowTotal strong {
-	font-size: 52px;
+	font-size: 20px;
 	color: #3d3e40;
 }
 
 .confirmButton {
-	margin-top: 24px;
+	margin-top: 35px;
 	width: 100%;
-	height: 66px;
+	height: 60px;
 	border: none;
 	border-radius: 34px;
-	background: #4dd2c7;
+	background: var(--color-brand-primary);
 	color: #ffffff;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	gap: 10px;
-	font-size: 24px;
+	font-size: 20px;
 	font-weight: 800;
 	cursor: pointer;
 }
