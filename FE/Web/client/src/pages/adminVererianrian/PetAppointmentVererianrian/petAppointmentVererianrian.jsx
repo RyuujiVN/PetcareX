@@ -118,16 +118,11 @@ export default function PetAppointmentVererianrian() {
 
   return (
     <div className={styles.pageWrap}>
-      <div className={styles.titleBlock}>
-        <Typography.Title level={2}>Dashboard Bác sĩ</Typography.Title>
-        <Typography.Text>Chào mừng trở lại, hôm nay bạn có 12 lịch hẹn.</Typography.Text>
-      </div>
-
       <Row gutter={[16, 16]}>
         {summaryCards.map((card) => (
           <Col xs={24} lg={8} key={card.key}>
             <Card className={styles.summaryCard}>
-              <div className={`${styles.summaryIcon} ${styles[card.iconClassName]}`}>{card.icon}</div>
+              <div className={`${styles.summaryIcon} ${styles[card.iconClassName]}`}>{card.icon} </div>
               <Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
               <Typography.Title level={2} className={styles.summaryValue}>
                 {card.value}
@@ -139,7 +134,7 @@ export default function PetAppointmentVererianrian() {
 
       <Card className={styles.tablePanel}>
         <Flex justify="space-between" align="center" className={styles.tableHeader}>
-          <Typography.Title level={3} className={styles.panelTitle}>
+          <Typography.Title className={styles.panelTitle}>
             Danh sách lịch hẹn hôm nay
           </Typography.Title>
           <Segmented
@@ -193,7 +188,7 @@ export default function PetAppointmentVererianrian() {
 
         <Flex justify="space-between" align="center" className={styles.tableFooter}>
           <Typography.Text>Hiển thị 4 trong số 12 lịch hẹn</Typography.Text>
-          <Space size={8}>
+          <Space size={8}> 
             <Button shape="circle" icon={<LeftOutlined />} />
             <Button shape="circle" icon={<RightOutlined />} />
           </Space>

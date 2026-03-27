@@ -33,6 +33,9 @@ import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalR
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
 import AdminVererianrianLayout from './../layouts/adminVererianrian/AdminVererianrianLayout';
+import PetAppointmentVererianrian from './../pages/adminVererianrian/PetAppointmentVererianrian/petAppointmentVererianrian';
+import ListMedicalRecords from './../pages/adminVererianrian/ListMedicalRecords/listMedicalRecords';
+import ViewPetMedicalRecords from './../pages/adminVererianrian/ViewPetMedicalRecords/viewPetMedicalRecords';
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
@@ -65,11 +68,9 @@ export default function AppRoutes({ location }) {
       />
 
       <Route element={<AdminVererianrianLayout/>}>
-        <Route path="/admin/veterinarian/appointments" element={<AppointmentManagement />} />
-        <Route path="/admin/veterinarian/profile" element={<AdminClinicProfile />} />
-        <Route path="/admin/veterinarian/medical-records" element={<AdminListPetMedicalRecords />} />
-        <Route path="/admin/veterinarian/exam-slips" element={<ListPetExaminationRecords />} />
-        <Route path="/admin/veterinarian/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
+        <Route path="/admin/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
+        <Route path="/admin/veterinarian/listRecords" element={<ListMedicalRecords />} />
+        <Route path="/admin/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
       </Route>
 
 

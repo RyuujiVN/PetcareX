@@ -15,8 +15,8 @@ import styles from './AdminVererianrianLayout.module.css'
 
 const menuItems = [
   { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/admin/veterinarian/appointments' },
-  { key: 'records', label: 'Hồ sơ bệnh án', icon: FileTextOutlined, path: '/admin/veterinarian/medical-records' },
-  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/admin/veterinarian/exam-slips' },
+  { key: 'records', label: 'Hồ sơ bệnh án', icon: FileTextOutlined, path: '/admin/veterinarian/listRecords' },
+  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/admin/veterinarian/viewRecords' },
 ]
 
 const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
@@ -87,9 +87,6 @@ export default function AdminVererianrianLayout() {
             prefix={<SearchOutlined />}
             placeholder="Tìm kiếm thú cưng, chủ nuôi..."
           />
-          <Badge dot offset={[-4, 4]}>
-            <Button type="text" className={styles.bellButton} icon={<BellOutlined />} />
-          </Badge>
         </header>
 
         <section className={styles.content}>
