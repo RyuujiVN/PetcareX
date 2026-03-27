@@ -35,12 +35,80 @@ import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/Infor
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import PetMedicalBill from '../pages/adminClinic/VeterinaryClinic/PetMedicalBill/petMedicalBill'
+import PetAppointmentVererianrian from '../pages/adminVererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
+import AdminVererianrianLayout from '../layouts/adminVererianrian/AdminVererianrianLayout'
+import { useAuth } from '../hooks/adminClinic/AuthContext'
+import { ADMIN_AUTH_STORAGE } from '../constants/authStorage'
+import { isClinicAdminAccount, isVeterinarianAccount } from '../constants/authRole'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
+
+const getStoredAdminUserInfo = () => {
+  try {
+    const rawUserInfo = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+    return rawUserInfo ? JSON.parse(rawUserInfo) : null
+  } catch {
+    return null
+  }
+}
+
+const resolveAdminRouteByRole = (userInfo) => {
+  if (isVeterinarianAccount(userInfo) && !isClinicAdminAccount(userInfo)) {
+    return '/admin/veterinarian/appointments'
+  }
+
+  if (isClinicAdminAccount(userInfo)) {
+    return '/admin/home'
+  }
+
+  return '/admin/login'
+}
+
+function AdminLoginEntry() {
+  const { token, userProfile } = useAuth()
+
+  if (!token) return <AdminLogin />
+
+  const routePath = resolveAdminRouteByRole(userProfile || getStoredAdminUserInfo())
+  return <Navigate to={routePath} replace />
+}
+
+function RequireClinicAdmin({ children }) {
+  const { token, userProfile } = useAuth()
+
+  if (!token) return <Navigate to="/admin/login" replace />
+
+  const userInfo = userProfile || getStoredAdminUserInfo()
+
+  if (isVeterinarianAccount(userInfo) && !isClinicAdminAccount(userInfo)) {
+    return <Navigate to="/admin/veterinarian/appointments" replace />
+  }
+
+  if (!isClinicAdminAccount(userInfo)) {
+    return <Navigate to="/admin/login" replace />
+  }
+
+  return children
+}
+
+function RequireVeterinarian({ children }) {
+  const { token, userProfile } = useAuth()
+
+  if (!token) return <Navigate to="/admin/login" replace />
+
+  const userInfo = userProfile || getStoredAdminUserInfo()
+
+  if (!isVeterinarianAccount(userInfo)) {
+    return <Navigate to="/admin/home" replace />
+  }
+
+  return children
+}
+
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
       <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin/login" element={<AdminLoginEntry />} />
       <Route path="/admin/register" element={<AdminRegister />} />
       <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
       <Route path="/admin/reEnterPassword" element={<AdminReEnterPassword />} />
@@ -49,7 +117,7 @@ export default function AppRoutes({ location }) {
         element={<Navigate to="/admin/reEnterPassword" replace />}
       />
 
-      <Route element={<AdminClinicLayout />}>
+      <Route element={<RequireClinicAdmin><AdminClinicLayout /></RequireClinicAdmin>}>
         <Route path="/admin/home" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
@@ -62,6 +130,15 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/admin/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
         <Route path="/admin/clinic/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
+      </Route>
+
+      <Route element={<RequireVeterinarian><AdminVererianrianLayout /></RequireVeterinarian>}>
+        <Route path="/admin/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
+        <Route path="/admin/veterinarian/medical-records" element={<AdminListPetMedicalRecords />} />
+        <Route path="/admin/veterinarian/medical-records/view" element={<ViewMedicalRecords />} />
+        <Route path="/admin/veterinarian/exam-slips" element={<ListPetExaminationRecords />} />
+        <Route path="/admin/veterinarian/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
+        <Route path="/admin/veterinarian/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
       </Route>
 
       <Route path="/login" element={<Login />} />

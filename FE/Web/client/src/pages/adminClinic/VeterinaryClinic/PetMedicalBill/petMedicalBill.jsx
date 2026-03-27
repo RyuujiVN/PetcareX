@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Button, Modal, message } from 'antd'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
 	CalendarOutlined,
 	FileDoneOutlined,
@@ -30,6 +30,9 @@ const billData = {
 
 export default function PetMedicalBill() {
 	const navigate = useNavigate()
+	const location = useLocation()
+	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
 	const { appointmentId } = useParams()
 	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
 	const [isConfirmingPayment, setIsConfirmingPayment] = useState(false)
@@ -67,7 +70,7 @@ export default function PetMedicalBill() {
 
 			setIsPaymentModalOpen(false)
 			message.success('Thanh toán thành công')
-			navigate('/admin/clinic/appointments')
+			navigate(`${routePrefix}/appointments`)
 		} catch (error) {
 			message.error(error.message || 'Không thể xác nhận thanh toán')
 		} finally {

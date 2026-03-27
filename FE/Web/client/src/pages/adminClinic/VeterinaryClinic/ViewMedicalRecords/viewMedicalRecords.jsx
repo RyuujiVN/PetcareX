@@ -211,6 +211,8 @@ const mapMedicalToReminder = (record) => {
 function ViewMedicalRecords() {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
 	const [searchParams] = useSearchParams()
 	const [loading, setLoading] = useState(false)
 	const [timelineRecords, setTimelineRecords] = useState(EMPTY_TIMELINE)
@@ -220,7 +222,7 @@ function ViewMedicalRecords() {
 	const medicalId = searchParams.get('medicalId')
 	const petId = searchParams.get('petId')
 	const handleChangePet = () => {
-		navigate('/admin/clinic/medical-records')
+		navigate(`${routePrefix}/medical-records`)
 	}
 
 	const loadMedicalData = useCallback(async () => {

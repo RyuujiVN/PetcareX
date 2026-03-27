@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { FileTextOutlined } from '@ant-design/icons'
 import { Button, DatePicker, Empty, Select, Spin, message } from 'antd'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, APPOINTMENT_STATUS_LABEL, getClinicAppointmentsApi } from '../../../../data/adminClinic/api/appointmentApi'
 import { getClinicPetSpeciesApi } from '../../../../data/adminClinic/api/petApi'
 import styles from './listPetExaminationRecords.module.css'
@@ -73,6 +73,9 @@ const getStatusLabel = (status) => APPOINTMENT_STATUS_LABEL[status] || status ||
 
 export default function ListPetExaminationRecords() {
 	const navigate = useNavigate()
+	const location = useLocation()
+	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
 	const [records, setRecords] = useState([])
 	const [loading, setLoading] = useState(false)
 	const [loadingSpecies, setLoadingSpecies] = useState(false)
@@ -192,7 +195,7 @@ export default function ListPetExaminationRecords() {
 			return
 		}
 
-		navigate(`/admin/clinic/exam-slips/${record.id}`, {
+		navigate(`${routePrefix}/exam-slips/${record.id}`, {
 			state: {
 				record,
 			},

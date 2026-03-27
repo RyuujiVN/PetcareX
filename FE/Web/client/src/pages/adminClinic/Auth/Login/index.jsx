@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 import { loginApi } from '../../../../data/adminClinic/api/auth';
-import { isAdminClinicAccount } from '../../../../constants/authRole';
+import { isClinicAdminAccount, isVeterinarianAccount } from '../../../../constants/authRole';
 import { useAuth } from '../../../../hooks/adminClinic/AuthContext';
 
 const { Title, Text, Link } = Typography;
@@ -46,9 +46,10 @@ export default function Login() {
 
       const { accessToken, userInfo } = data;
 
-      const adminAccount = isAdminClinicAccount(userInfo);
+      const veterinarianAccount = isVeterinarianAccount(userInfo);
+      const clinicAdminAccount = isClinicAdminAccount(userInfo);
 
-      if (!adminAccount) {
+      if (!veterinarianAccount && !clinicAdminAccount) {
         message.warning('Tài khoản người dùng vui lòng đăng nhập ở cổng khách hàng.');
         navigate('/login', { replace: true });
         return;
@@ -58,7 +59,7 @@ export default function Login() {
 
       message.success("Đăng nhập thành công!");
 
-      navigate('/admin/home');
+      navigate(veterinarianAccount ? '/admin/veterinarian/appointments' : '/admin/home', { replace: true });
 
     } catch (err) {
 
