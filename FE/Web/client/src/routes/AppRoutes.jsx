@@ -27,6 +27,7 @@ import AdminForgotPassword from '../pages/adminClinic/Auth/ForgotPassword'
 import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
 import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
 import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
+import ViewMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords'
 import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
 import VererianrianManagement from '../pages/adminClinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
 import AddNewVererianrian from '../pages/adminClinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
@@ -53,6 +54,7 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
+        <Route path="/admin/clinic/medical-records/view" element={<ViewMedicalRecords />} />
         <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/veterinarians" element={<VererianrianManagement />} />
         <Route path="/admin/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
