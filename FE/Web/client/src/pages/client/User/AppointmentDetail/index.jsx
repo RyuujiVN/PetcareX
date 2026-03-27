@@ -6,7 +6,7 @@ import {
   APPOINTMENT_STATUS,
   getMyAppointmentsApi,
   updateAppointmentStatusApi,
-} from '../../../../data/client/api/appointmentApi';
+} from '../../../../data/client/api/appointmentApi'; 
 import { getBreedLabel } from '../../../../data/client/api/petApi';
 import './styles.css';
 
@@ -198,6 +198,15 @@ const handleViewDetails = (appointment) => {
               onClick={() => handleViewDetails(appointment)}
             >
               Xem chi tiết
+            </antd.Button>
+            <antd.Button
+              style={{ backgroundColor: 'var(--color-text-secondary)', borderColor: 'var(--color-text-secondary)' }}
+              type="primary"
+              block
+              icon={<icons.ReadOutlined />}
+              onClick={() => handleViewDetails(appointment)}
+            >
+              Chuẩn đoán
             </antd.Button>
             {!isHistory && (
               <antd.Button
