@@ -49,6 +49,7 @@ export class AppointmentService {
 
         'owner.id',
         'owner.fullName',
+        'owner.phone',
 
         'veterinarian.specialty',
 
@@ -82,9 +83,6 @@ export class AppointmentService {
         'pet.avatar',
         'pet.species',
         'pet.breed',
-        'pet.gender',
-        'pet.dateOfBirth',
-        'pet.note',
 
         'clinic.id',
         'clinic.name',
@@ -92,7 +90,6 @@ export class AppointmentService {
 
         'owner.id',
         'owner.fullName',
-        'owner.phone',
 
         'veterinarian.specialty',
 
@@ -131,6 +128,9 @@ export class AppointmentService {
         'pet.avatar',
         'pet.species',
         'pet.breed',
+        'pet.gender',
+        'pet.dateOfBirth',
+        'pet.note',
 
         'clinic.id',
         'clinic.name',
@@ -138,6 +138,7 @@ export class AppointmentService {
 
         'owner.id',
         'owner.fullName',
+        'owner.phone',
 
         'veterinarian.specialty',
 

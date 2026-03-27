@@ -14,6 +14,7 @@ import AppointmentDetail from '../pages/client/User/AppointmentDetail'
 import SuccessBooking from '../pages/client/User/SuccessBooking'
 import PetProfile from '../pages/client/User/PetProfile'
 import ListPet from '../pages/client/User/ListPet'
+import PetDiagnosis from '../pages/client/User/PetDiagnosis/petDiagnosis'
 import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
 import Forum from '../pages/client/User/Forum/forum'
 import ListPetMedicalRecords from '../pages/client/User/ListPetMedicalRecords/listMedicalRecords'
@@ -87,6 +88,7 @@ export default function AppRoutes({ location }) {
         <Route path="/profile" element={<ProfileUser />} />
         <Route path="/user/profile" element={<ProfileUser />} />
         <Route path="/petProfile" element={<PetProfile />} />
+        <Route path="/petDiagnosis" element={<PetDiagnosis />} />
         <Route path="/listPet" element={<ListPet />} />
         <Route path="/medical-records" element={<MedicalRecords />} />
         <Route path="/forum" element={<Forum />} />

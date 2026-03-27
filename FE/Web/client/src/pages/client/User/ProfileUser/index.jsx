@@ -105,7 +105,6 @@ export default function ProfileUser() {
         return;
       }
 
-      // Frontend-only precheck để giảm rủi ro backend trả Internal server error do dữ liệu trùng.
       const userListRes = await getUserListApi(1, 1000, '');
       const userItems = Array.isArray(userListRes?.data?.items) ? userListRes.data.items : [];
       const duplicatedEmail = userItems.some(
@@ -158,9 +157,6 @@ export default function ProfileUser() {
         <h2 className="profile-titles">Thông tin cá nhân</h2>
 
           <div className="profile-avatar-section">
-              <p className="profile-description">
-            Cập nhật thông tin cá nhân của bạn để nhận dịch vụ tốt nhất
-          </p>
             <div className="profile-avatar-container">
               <Spin spinning={uploadingAvatar} style={{ display: 'inline-block' }}>
                 <Avatar

@@ -1,0 +1,167 @@
+.pageWrap {
+	min-height: calc(100vh - 80px);
+	padding: 70px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	background:
+		radial-gradient(circle at 20% 20%, rgba(86, 170, 255, 0.1), transparent 50%),
+		radial-gradient(circle at 85% 30%, rgba(250, 194, 82, 0.14), transparent 48%),
+		#f5f7fb;
+}
+
+.reportCard {
+	width: min(760px, 100%);
+	max-height: min(86vh, 920px);
+	background: #ffffff;
+	border: 1px solid #e6eaf2;
+	border-radius: 14px;
+	box-shadow: 0 20px 48px rgba(33, 56, 97, 0.12);
+	position: relative;
+	overflow: hidden;
+}
+
+.closeButton {
+	position: absolute;
+	top: 16px;
+	right: 16px;
+	width: 34px;
+	height: 34px;
+	border: none;
+	border-radius: 999px;
+	background: #eef2f8;
+	color: #1f2937;
+	cursor: pointer;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+.closeButton:hover {
+	background: #dde5f2;
+	transform: translateY(-1px);
+}
+
+.title {
+	margin: 0;
+	padding: 20px 56px 18px 24px;
+	border-bottom: 1px solid #edf1f7;
+	color: #111827;
+	font-size: 24px;
+	line-height: 1.3;
+	font-weight: 700;
+	font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
+}
+
+.content {
+	max-height: calc(86vh - 105px);
+	overflow-y: auto;
+	padding: 18px 24px 24px;
+}
+
+.block {
+	margin-bottom: 18px;
+}
+
+.block:last-child {
+	margin-bottom: 0;
+}
+
+.blockTitle {
+	margin: 0 0 10px;
+	font-size: 18px;
+	line-height: 1.4;
+	color: #111827;
+	font-weight: 700;
+	font-family: "Be Vietnam Pro", "Segoe UI", Tahoma, sans-serif;
+}
+
+.symptomList,
+.predictionList {
+	margin: 0;
+	padding-left: 24px;
+	color: #1f2937;
+	font-size: 18px;
+	line-height: 1.65;
+}
+
+.predictionList {
+	list-style: none;
+	padding-left: 0;
+}
+
+.predictionList li {
+	margin-bottom: 6px;
+}
+
+.predictionList li:last-child {
+	margin-bottom: 0;
+}
+
+.paragraph {
+	margin: 10px 0 0;
+	color: #1f2937;
+	font-size: 18px;
+	line-height: 1.65;
+}
+
+.impactList {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+}
+
+.impactList p {
+	margin: 0;
+	padding: 8px 14px;
+	border-radius: 999px;
+	font-size: 16px;
+	line-height: 1.45;
+	background: #ecf1fa;
+	color: #1e3a5f;
+	border: 1px solid #d5dfef;
+}
+
+.highRisk {
+	color: #bf1f2f;
+	font-weight: 700;
+}
+
+.mediumRisk {
+	color: #b46907;
+	font-weight: 700;
+}
+
+@media (max-width: 768px) {
+	.pageWrap {
+		padding: 12px;
+		align-items: flex-start;
+	}
+
+	.reportCard {
+		width: 100%;
+		max-height: 92vh;
+	}
+
+	.title {
+		font-size: 24px;
+		padding: 16px 50px 14px 16px;
+	}
+
+	.content {
+		max-height: calc(92vh - 88px);
+		padding: 14px 16px 18px;
+	}
+
+	.blockTitle {
+		font-size: 16px;
+	}
+
+	.symptomList,
+	.predictionList,
+	.paragraph,
+	.impactList p {
+		font-size: 15px;
+	}
+}

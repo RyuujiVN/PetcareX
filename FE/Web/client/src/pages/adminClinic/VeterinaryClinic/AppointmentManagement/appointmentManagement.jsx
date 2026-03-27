@@ -38,7 +38,7 @@ import { getUserByIdApi } from '../../../../data/adminClinic/api/user'
 
 const { Title, Text } = Typography
 
-const TIME_SLOTS = ['08:00', '09:00', '10:30', '13:30', '15:00', '16:30']
+const TIME_SLOTS = ['08:00', '08:30','09:00', '09:30', '10:00', '10:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30']
 
 const STATUS_COLUMNS = [
 	{
@@ -73,6 +73,30 @@ const LEGACY_TEXT_MAP = {
 	'Siêu âm xét nghiệm': 'Siêu âm xét nghiệm',
 	'Phẫu thuật': 'Phẫu thuật',
 	'Cấp cứu': 'Cấp cứu',
+}
+
+const MISSING_APPOINTMENT_FIELD = 'Không có trong dữ liệu lịch hẹn'
+
+const pickFirst = (...values) => values.find((value) => value !== undefined && value !== null && value !== '')
+
+const getNestedValue = (source, path) => {
+	if (!source || !path) return undefined
+
+	return path.split('.').reduce((acc, key) => {
+		if (acc === undefined || acc === null) return undefined
+		return acc[key]
+	}, source)
+}
+
+const getByPaths = (source, paths, fallback) => {
+	for (const path of paths) {
+		const value = getNestedValue(source, path)
+		if (value !== undefined && value !== null && value !== '') {
+			return value
+		}
+	}
+
+	return fallback
 }
 
 const normalizeClinicText = (value) => {
@@ -141,6 +165,22 @@ const formatDisplayDate = (dateValue) => {
 }
 
 const getTimeValue = (time) => (time || '').slice(0, 5)
+
+const getGenderLabel = (value) => {
+	if (typeof value === 'boolean') {
+		return value ? 'Đực' : 'Cái'
+	}
+
+	if (typeof value === 'string') {
+		const normalized = value.trim().toLowerCase()
+		if (!normalized) return MISSING_APPOINTMENT_FIELD
+		if (['male', 'm', 'duc', 'đực', 'true', '1'].includes(normalized)) return 'Đực'
+		if (['female', 'f', 'cai', 'cái', 'false', '0'].includes(normalized)) return 'Cái'
+		return value
+	}
+
+	return MISSING_APPOINTMENT_FIELD
+}
 
 function AppointmentCard({ item, onOpenDetails, onDragStart }) {
 	return (
@@ -226,8 +266,20 @@ export default function AppointmentManagement() {
 	const mappedAppointments = appointments
 		.filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
 		.map((item) => {
-			const pet = item.pet || {}
-			const owner = pet.owner || item.owner || {}
+			const petSource = item.pet || {}
+			const ownerSource = pickFirst(petSource.owner, item.owner, {})
+
+			const petName = getByPaths(item, ['pet.name', 'petName', 'pet_name'], 'Không rõ')
+			const petAvatar = getByPaths(item, ['pet.avatar', 'petAvatar', 'pet_avatar'], '')
+			const petSpecies = getByPaths(item, ['pet.species', 'petSpecies', 'pet_species'], null)
+			const petBreed = getByPaths(item, ['pet.breed', 'petBreed', 'pet_breed'], null)
+			const petGender = getByPaths(item, ['pet.gender', 'petGender', 'pet_gender'], null)
+			const petDateOfBirth = getByPaths(item, ['pet.dateOfBirth', 'pet.date_of_birth', 'petDateOfBirth', 'pet_date_of_birth'], null)
+			// const petWeight = getByPaths(item, ['pet.weight', 'petWeight', 'pet_weight'], null)
+			const petFeature = getByPaths(item, ['pet.note', 'pet.featureNote', 'pet_note', 'featureNote', 'feature_note'], null)
+			const ownerId = getByPaths(item, ['pet.owner.id', 'owner.id', 'ownerId', 'owner_id', 'pet.ownerId'], '')
+			const ownerName = getByPaths(item, ['pet.owner.fullName', 'owner.fullName', 'ownerName', 'owner_name'], 'Không rõ')
+			const ownerPhone = getByPaths(item, ['pet.owner.phone', 'owner.phone', 'ownerPhone', 'owner_phone'], MISSING_APPOINTMENT_FIELD)
 
 			const badgeByStatus = {
 				[APPOINTMENT_STATUS.BOOKED]: 'default',
@@ -245,32 +297,31 @@ export default function AppointmentManagement() {
 				appointmentDateRaw: item.appointmentDate,
 				service: item.service,
 				serviceLabel: normalizeClinicText(SERVICE_OPTIONS[item.service] || item.service),
-				petName: pet.name || 'Không rõ',
-				petAvatar: pet.avatar || '',
-				avatarText: (pet.name || 'P').charAt(0).toUpperCase(),
-				ownerId: owner.id || item.ownerId || '',
-				ownerName: owner.fullName || item.ownerName || 'Không rõ',
-				ownerPhone: owner.phone || item.ownerPhone || 'Chưa cập nhật',
-				speciesLabel: getEnumLabel(pet.species),
-				breedLabel: getBreedLabel(pet.breed, pet.species),
-				genderLabel:
-					typeof pet.gender === 'boolean'
-						? pet.gender
-							? 'Đực'
-							: 'Cái'
-						: typeof pet.gender === 'string'
-							? pet.gender
-						: 'Chưa cập nhật',
-				ageLabel: getAgeLabel(pet.dateOfBirth),
-				dateOfBirthLabel: pet.dateOfBirth
-					? new Date(pet.dateOfBirth).toLocaleDateString('vi-VN')
-					: 'Chưa cập nhật',
-				weightLabel: pet.weight ? `${pet.weight} kg` : 'Chưa cập nhật',
-				featureNote: pet.note || 'Chưa cập nhật',
+				petName,
+				petAvatar,
+				avatarText: (petName || 'P').charAt(0).toUpperCase(),
+				ownerId,
+				ownerName,
+				ownerPhone,
+				speciesLabel: petSpecies ? getEnumLabel(petSpecies) : MISSING_APPOINTMENT_FIELD,
+				breedLabel: getBreedLabel(petBreed, petSpecies),
+				genderLabel: getGenderLabel(petGender),
+				ageLabel: getAgeLabel(petDateOfBirth),
+				dateOfBirthLabel: petDateOfBirth
+					? new Date(petDateOfBirth).toLocaleDateString('vi-VN')
+					: MISSING_APPOINTMENT_FIELD,
+				// weightLabel:
+				// 	petWeight !== null && petWeight !== undefined && petWeight !== ''
+				// 		? `${petWeight} kg`
+				// 		: MISSING_APPOINTMENT_FIELD,
+				featureNote: petFeature || MISSING_APPOINTMENT_FIELD,
 				appointmentNote: item.note || 'Không có ghi chú',
 				clinicName: item.clinic?.name || 'Không rõ',
 				clinicAddress: item.clinic?.address || 'Không rõ',
-				veterinarianName: item.veterinarian?.user?.fullName || 'Chưa phân công',
+				veterinarianName:
+					getByPaths(item, ['veterinarian.user.fullName', 'veterinarianName'], 'Chưa phân công'),
+				ownerRaw: ownerSource,
+				petRaw: petSource,
 			}
 		})
 
@@ -343,7 +394,6 @@ export default function AppointmentManagement() {
 				setOwnerDetailsById((prev) => ({ ...prev, [ownerId]: ownerData }))
 			}
 		} catch {
-			// Giữ yên fallback hiện tại nếu không lấy thêm được thông tin chủ nuôi.
 		}
 	}
 
@@ -358,7 +408,6 @@ export default function AppointmentManagement() {
 			title: 'Xóa lịch đặt',
 			content: 'Xác nhận hủy lịch đặt này?',
 			okText: 'Xóa lịch',
-			cancelText: 'Đóng',
 			okButtonProps: { danger: true },
 			centered: true,
 			async onOk() {
@@ -384,7 +433,7 @@ export default function AppointmentManagement() {
 		? ownerDetailsById[selectedAppointment.ownerId]
 		: null
 	const ownerNameDisplay = ownerDetails?.fullName || selectedAppointment?.ownerName || 'Không rõ'
-	const ownerPhoneDisplay = ownerDetails?.phone || selectedAppointment?.ownerPhone || 'Chưa cập nhật'
+	const ownerPhoneDisplay = ownerDetails?.phone || selectedAppointment?.ownerPhone || MISSING_APPOINTMENT_FIELD
 
 	return (
 		<div className={styles.content}>
@@ -481,6 +530,7 @@ export default function AppointmentManagement() {
 				</div>
 				
 				<Modal
+				style={{textAlign: 'center'}}
 					title="THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM"
 					open={isModalOpen}
 					onCancel={() => setIsModalOpen(false)}
@@ -490,9 +540,6 @@ export default function AppointmentManagement() {
 								Xóa lịch đặt
 							</Button>
 						) : null,
-						<Button key="close" onClick={() => setIsModalOpen(false)}>
-							Đóng
-						</Button>,
 					]}
 					width={920}
 					centered
@@ -509,14 +556,14 @@ export default function AppointmentManagement() {
 								</Avatar>
 								<div>
 									<Title level={3} className={styles.petTitle}>{selectedAppointment.petName}</Title>
-									<Text className={styles.petSubMeta}>
-										{`${selectedAppointment.breedLabel} · ${selectedAppointment.ageLabel} · ${selectedAppointment.weightLabel}`}
+									{/* <Text className={styles.petSubMeta}>
+										{`${selectedAppointment.breedLabel} · ${selectedAppointment.ageLabel}`}
 									</Text>
 									<div className={styles.petMetaLine}>
 										<span className={styles.metaDot} />
 										<span>{selectedAppointment.genderLabel}</span>
 										<span>Ngày sinh: {selectedAppointment.dateOfBirthLabel}</span>
-									</div>
+									</div> */}
 								</div>
 							</div>
 
@@ -529,9 +576,8 @@ export default function AppointmentManagement() {
 									<div className={styles.infoRow}><span>Giới tính:</span><strong>{selectedAppointment.genderLabel}</strong></div>
 									<div className={styles.infoRow}><span>Giống:</span><strong>{selectedAppointment.breedLabel}</strong></div>
 									<div className={styles.infoRow}><span>Tên chủ thú cưng:</span><strong>{ownerNameDisplay}</strong></div>
-									<div className={styles.infoRow}><span>Cân nặng:</span><strong>{selectedAppointment.weightLabel}</strong></div>
+									<div className={styles.infoRow}><span>Đặc điểm nhận dạng:</span><strong>{selectedAppointment.featureNote}</strong></div>
 									<div className={styles.infoRow}><span>Số điện thoại:</span><strong>{ownerPhoneDisplay}</strong></div>
-									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>Màu lông / Đặc điểm nhận dạng:</span><strong>{selectedAppointment.featureNote}</strong></div>
 								</div>
 							</div>
 
