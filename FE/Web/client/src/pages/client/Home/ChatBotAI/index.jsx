@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import "./styles.css";
 import { MessageCircle, Plus } from "lucide-react";
-import { EllipsisOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, EllipsisOutlined } from "@ant-design/icons";
 import { Dropdown, Input, Modal, message } from "antd";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -136,8 +136,8 @@ export default function ChatBotAI() {
                   trigger={["click"]}
                   menu={{
                     items: [
-                      { key: "rename", label: "Sửa tên" },
-                      { key: "delete", label: "Xoá" },
+                      { key: "rename", icon: <EditOutlined />, label: "Sửa tên" },
+                      { key: "delete", icon: <DeleteOutlined />, label: "Xoá", danger: true },
                     ],
                     onClick: ({ key }) => {
                       if (key === "rename") openRenameModal(conv);

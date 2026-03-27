@@ -209,6 +209,13 @@ input.form-input[type="text"] {
   color: var(--primary);
 }
 
+.cancel-button:disabled,
+.submit-button:disabled,
+.choose-file-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .submit-button {
   padding: 12px 20px;
   background: var(--primary);

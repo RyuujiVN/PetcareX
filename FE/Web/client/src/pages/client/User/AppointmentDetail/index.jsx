@@ -6,8 +6,13 @@ import {
   APPOINTMENT_STATUS,
   getMyAppointmentsApi,
   updateAppointmentStatusApi,
-} from '../../../../data/client/api/appointmentApi';
+} from '../../../../data/client/api/appointmentApi'; 
 import { getBreedLabel } from '../../../../data/client/api/petApi';
+import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
+import {
+  generateAndStoreDiagnosisReport,
+  getStoredDiagnosisReport,
+} from '../../../../data/client/api/appointmentDiagnosis';
 import './styles.css';
 
 const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
@@ -31,6 +36,10 @@ const AppointmentDetail = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
+  const [isDiagnosisVisible, setIsDiagnosisVisible] = useState(false);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [diagnosisData, setDiagnosisData] = useState(null);
+  const [diagnosisAppointment, setDiagnosisAppointment] = useState(null);
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -85,6 +94,7 @@ const AppointmentDetail = () => {
         date: dateText,
         time: timeText,
         veterinarian: item.veterinarian?.user?.fullName || 'Không rõ',
+        species: item.pet?.species || '',
         notes: item.note,
         rawDate: date,
         status: item.status,
@@ -141,6 +151,35 @@ const handleViewDetails = (appointment) => {
   setSelectedAppointment(appointment);
   setIsModalVisible(true);
 };
+
+  const handleOpenDiagnosis = async (appointment) => {
+    setDiagnosisAppointment(appointment);
+    setDiagnosisData(null);
+    setIsDiagnosisVisible(true);
+    setDiagnosisLoading(true);
+
+    try {
+      const cached = getStoredDiagnosisReport(appointment.id);
+      if (cached) {
+        setDiagnosisData(cached);
+        return;
+      }
+
+      const report = await generateAndStoreDiagnosisReport({
+        appointmentId: appointment.id,
+        symptomsText: appointment.notes,
+        petName: appointment.petName,
+        species: appointment.species,
+        appointmentDate: appointment.rawDate,
+      });
+
+      setDiagnosisData(report);
+    } catch (error) {
+      antd.message.error(error.message || 'Không thể tải chẩn đoán AI');
+    } finally {
+      setDiagnosisLoading(false);
+    }
+  };
   const handleBookingNew = () => {
     navigate('/booking');
   };
@@ -198,6 +237,15 @@ const handleViewDetails = (appointment) => {
               onClick={() => handleViewDetails(appointment)}
             >
               Xem chi tiết
+            </antd.Button>
+            <antd.Button
+              style={{ backgroundColor: 'var(--color-text-secondary)', borderColor: 'var(--color-text-secondary)' }}
+              type="primary"
+              block
+              icon={<icons.ReadOutlined />}
+              onClick={() => handleOpenDiagnosis(appointment)}
+            >
+              Chuẩn đoán
             </antd.Button>
             {!isHistory && (
               <antd.Button
@@ -381,6 +429,39 @@ const handleViewDetails = (appointment) => {
       )}
     </div>
           )}
+        </antd.Modal>
+
+        <antd.Modal
+          open={isDiagnosisVisible}
+          onCancel={() => {
+            setIsDiagnosisVisible(false);
+            setDiagnosisData(null);
+            setDiagnosisAppointment(null);
+          }}
+          footer={null}
+          width={920}
+          centered
+          className="diagnosis-modal"
+          destroyOnClose
+        >
+          <div className="diagnosis-modal-shell">
+            {diagnosisLoading ? (
+              <div className="diagnosis-loading-wrap">
+                <antd.Spin size="large" />
+              </div>
+            ) : (
+              <PetDiagnosisContent
+                diagnosis={diagnosisData}
+                appointment={diagnosisAppointment}
+                onClose={() => {
+                  setIsDiagnosisVisible(false);
+                  setDiagnosisData(null);
+                  setDiagnosisAppointment(null);
+                }}
+                inModal
+              />
+            )}
+          </div>
         </antd.Modal>
       </div>
     </div>

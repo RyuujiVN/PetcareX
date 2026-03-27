@@ -1,4 +1,10 @@
 import instance from './instance';
+import {
+  extractCloudinaryUrl,
+  postMultipartFormData,
+  uploadMultipleFilesToCloudinary,
+  uploadOneFileToCloudinary,
+} from '../../shared/api/cloudinaryUploadFetch';
 
 export const getUserListApi = (page = 1, limit = 10, search = '') => {
   return instance.get('/user', {
@@ -29,30 +35,25 @@ export const updateUserProfileApi = (userId, data) => {
 };
 
 export const uploadAvatarApi = (formData) => {
-  return instance.post('/cloudinary/upload/one-file', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
+  return postMultipartFormData('/cloudinary/upload/one-file', formData).then((payload) => ({
+    data: {
+      ...payload,
+      file: extractCloudinaryUrl(payload),
     },
-  });
+  }));
 };
 
 export const uploadUserImageApi = (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  return instance.post('/cloudinary/upload/one-file', formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
-  }).then((response) => {
-    const payload = response.data || {};
-    const url = payload.file || payload.url || payload.secure_url || payload.data?.url || '';
-
+  return uploadOneFileToCloudinary(file).then((payload) => {
     return {
       ...payload,
-      url,
+      url: payload.file,
     };
   });
+};
+
+export const uploadUserImagesApi = (files) => {
+  return uploadMultipleFilesToCloudinary(files).then((result) => result.urls);
 };
 
 export const deleteAccountApi = (userId) => {

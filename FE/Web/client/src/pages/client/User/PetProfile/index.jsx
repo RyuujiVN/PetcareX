@@ -44,6 +44,8 @@ export default function PetProfile() {
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('');
   const [petData, setPetData] = useState(null);
   const [ownerName, setOwnerName] = useState("");
   const [speciesList, setSpeciesList] = useState([]);
@@ -181,6 +183,7 @@ export default function PetProfile() {
 
       setImagePreview(mappedPetData.avatar);
       setAvatarFile(null);
+      setUploadedAvatarUrl(mappedPetData.avatar || '');
     } catch (error) {
       message.error(error.message || "Không thể tải thông tin thú cưng!");
     } finally {
@@ -188,11 +191,12 @@ export default function PetProfile() {
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     setAvatarFile(file);
+    setUploadingAvatar(true);
 
     const reader = new FileReader();
 
@@ -201,9 +205,34 @@ export default function PetProfile() {
     };
 
     reader.readAsDataURL(file);
+
+    try {
+      const uploadResult = await uploadPetAvatarApi(file);
+      const nextAvatarUrl = uploadResult?.file || '';
+
+      if (!nextAvatarUrl) {
+        throw new Error("Không nhận được URL ảnh từ server");
+      }
+
+      setUploadedAvatarUrl(nextAvatarUrl);
+      message.success("Tải ảnh thú cưng thành công");
+    } catch (error) {
+      setAvatarFile(null);
+      setImagePreview(petData?.avatar || null);
+      setUploadedAvatarUrl(petData?.avatar || '');
+      message.error(error.message || "Không thể tải ảnh thú cưng");
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = "";
+    }
   };
 
   const handleSubmit = async (values) => {
+    if (uploadingAvatar) {
+      message.warning("Ảnh đang được tải lên, vui lòng đợi");
+      return;
+    }
+
     if (!currentPetId) {
       message.error("Không tìm thấy thú cưng để cập nhật");
       return;
@@ -222,11 +251,7 @@ export default function PetProfile() {
     try {
       setLoading(true);
 
-      let avatarUrl = petData?.avatar || "";
-      if (avatarFile) {
-        const uploadResult = await uploadPetAvatarApi(avatarFile);
-        avatarUrl = uploadResult?.file || avatarUrl;
-      }
+      const avatarUrl = uploadedAvatarUrl || petData?.avatar || "";
 
       const updatePayload = {
         name: values.petName,
@@ -304,7 +329,14 @@ export default function PetProfile() {
                 className="profile-avatar"
               />
 
-              <label htmlFor="avatar-upload" className="avatar-upload-btn">
+              <label
+                htmlFor="avatar-upload"
+                className="avatar-upload-btn"
+                style={{
+                  opacity: uploadingAvatar || loading ? 0.5 : 1,
+                  pointerEvents: uploadingAvatar || loading ? "none" : "auto",
+                }}
+              >
                 <CameraOutlined />
               </label>
 
@@ -313,6 +345,7 @@ export default function PetProfile() {
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
+                disabled={uploadingAvatar || loading}
                 style={{ display: "none" }}
               />
 
@@ -485,6 +518,7 @@ export default function PetProfile() {
                   size="large"
                   className="btn-cancel"
                   onClick={handleCancel}
+                  disabled={loading || uploadingAvatar}
                 >
                   Hủy
                 </Button>
@@ -495,8 +529,9 @@ export default function PetProfile() {
                   className="btn-submit"
                   htmlType="submit"
                   loading={loading}
+                  disabled={loading || uploadingAvatar}
                 >
-                  Lưu thay đổi
+                  {uploadingAvatar ? "Đang tải ảnh..." : "Lưu thay đổi"}
                 </Button>
 
               </Space>

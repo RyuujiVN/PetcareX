@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
 import {
-    BadRequestException,
-    Injectable,
-    NotFoundException,
-    UnauthorizedException,
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -13,8 +13,10 @@ import { LoginTicket, OAuth2Client } from 'google-auth-library';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from 'src/otp/otp.service';
+import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import { Repository } from 'typeorm';
 import { ChangePasswordDTO } from './dtos/change-password.dto';
 import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
@@ -29,6 +31,10 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(AdminClinic)
+    private readonly adminClinicRepository: Repository<AdminClinic>,
+    @InjectRepository(Veterinarian)
+    private readonly veterinarianRepository: Repository<Veterinarian>,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
@@ -64,18 +70,44 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
     };
 
+    // Nếu user là admin clinic hoặc veterinarian thì lấy thông tin clinic
+    let clinicInfo: any = null;
+
     if (user.role === RoleEnum.ADMIN_CLINIC) {
-      const adminClinic = await this.userService.findOneAdminClinicById(
-        user.id,
-      );
+      const adminClinic = await this.adminClinicRepository
+        .createQueryBuilder('adminClinic')
+        .leftJoinAndSelect('adminClinic.clinic', 'clinic')
+        .where('adminClinic.userId = :userId', { userId: user.id })
+        .select([
+          'adminClinic.userId',
+          'adminClinic.clinicId',
+
+          'clinic.id',
+          'clinic.name',
+          'clinic.avatarUrl',
+        ])
+        .getOne();
       payload.clinicId = adminClinic?.clinicId;
+      clinicInfo = adminClinic?.clinic || null;
     }
 
     if (user.role === RoleEnum.VETERINARIAN) {
-      const veterinarian = await this.userService.findOneVeterinarianById(
-        user.id,
-      );
+      const veterinarian = await this.veterinarianRepository
+        .createQueryBuilder('veterinarian')
+        .leftJoinAndSelect('veterinarian.clinic', 'clinic')
+        .where('veterinarian.userId = :userId', { userId: user.id })
+        .select([
+          'veterinarian.userId',
+          'veterinarian.clinicId',
+          'veterinarian.specialty',
+
+          'clinic.id',
+          'clinic.name',
+          'clinic.avatarUrl',
+        ])
+        .getOne();
       payload.clinicId = veterinarian?.clinicId;
+      clinicInfo = veterinarian?.clinic || null;
     }
 
     const accessToken = this.jwtService.sign(payload, {
@@ -83,10 +115,16 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    return {
+    const response: any = {
       userInfo: payload,
       accessToken: accessToken,
     };
+
+    if (clinicInfo) {
+      response.clinicInfo = clinicInfo;
+    }
+
+    return response;
   }
 
   async validateGoogleIdToken(idToken: string) {

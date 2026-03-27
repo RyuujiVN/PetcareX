@@ -1,107 +1,216 @@
-import {
-	FaDog,
-	FaEye,
-	FaPencilAlt,
-	FaSearch,
-	FaSlidersH,
-} from 'react-icons/fa'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import dayjs from 'dayjs'
+import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, Tooltip, message } from 'antd'
+import { CalendarOutlined, EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/adminClinic/api/appointmentApi'
+import { getClinicPetSpeciesApi } from '../../../../data/adminClinic/api/petApi'
 import styles from './listPetMedicalRecords.module.css'
 
-const petRows = [
-	{
-		name: 'Milo',
-		id: '#PET-0842',
-		species: 'Chó (Golden)',
-		owner: 'Nguyễn Văn An',
-		phone: '090 123 4567',
-		lastVisitDate: '12/10/2023',
-		lastVisitNote: 'Tiêm ngừa định kỳ',
-		status: 'Khỏe mạnh',
-		statusType: 'healthy',
-		avatarTone: 'toneGold',
-	},
-	{
-		name: 'Luna',
-		id: '#PET-1159',
-		species: 'Mèo (Mướp)',
-		owner: 'Trần Thị Bích',
-		phone: '098 765 4321',
-		lastVisitDate: '18/10/2023',
-		lastVisitNote: 'Viêm tai ngoài',
-		status: 'Đang điều trị',
-		statusType: 'treating',
-		avatarTone: 'toneBlue',
-	},
-	{
-		name: 'Cooper',
-		id: '#PET-0932',
-		species: 'Chó (Poodle)',
-		owner: 'Lê Hoàng Nam',
-		phone: '093 333 9999',
-		lastVisitDate: '20/10/2023',
-		lastVisitNote: 'Xét nghiệm máu',
-		status: 'Tái khám',
-		statusType: 'revisit',
-		avatarTone: 'toneYellow',
-	},
-	{
-		name: 'Simba',
-		id: '#PET-2204',
-		species: 'Mèo (Anh)',
-		owner: 'Phạm Minh Tuấn',
-		phone: '091 222 8888',
-		lastVisitDate: '21/10/2023',
-		lastVisitNote: 'Phẫu thuật triệt sản',
-		status: 'Nội trú',
-		statusType: 'inpatient',
-		avatarTone: 'toneGreen',
-	},
-	{
-		name: 'Simba',
-		id: '#PET-2204',
-		species: 'Mèo (Anh)',
-		owner: 'Phạm Minh Tuấn',
-		phone: '091 222 8888',
-		lastVisitDate: '21/10/2023',
-		lastVisitNote: 'Phẫu thuật triệt sản',
-		status: 'Nội trú',
-		statusType: 'inpatient',
-		avatarTone: 'toneGreen',
-	},
-	{
-		name: 'Simba',
-		id: '#PET-2204',
-		species: 'Mèo (Anh)',
-		owner: 'Phạm Minh Tuấn',
-		phone: '091 222 8888',
-		lastVisitDate: '21/10/2023',
-		lastVisitNote: 'Phẫu thuật triệt sản',
-		status: 'Nội trú',
-		statusType: 'inpatient',
-		avatarTone: 'toneGreen',
-	},
-	{
-		name: 'Simba',
-		id: '#PET-2204',
-		species: 'Mèo (Anh)',
-		owner: 'Phạm Minh Tuấn',
-		phone: '091 222 8888',
-		lastVisitDate: '21/10/2023',
-		lastVisitNote: 'Phẫu thuật triệt sản',
-		status: 'Nội trú',
-		statusType: 'inpatient',
-		avatarTone: 'toneGreen',
-	},
-]
+const PAGE_SIZE = 8
 
-const pageItems = ['1', '2', '3']
+const normalizeDate = (dateValue) => {
+	if (!dateValue) return ''
+
+	const date = new Date(dateValue)
+	if (Number.isNaN(date.getTime())) return ''
+
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+	const day = String(date.getDate()).padStart(2, '0')
+
+	return `${year}-${month}-${day}`
+}
+
+const formatDisplayDate = (dateValue) => {
+	if (!dateValue) return 'Chưa cập nhật'
+	return new Date(dateValue).toLocaleDateString('vi-VN')
+}
+
+const formatDisplayTime = (timeValue) => (timeValue || '').slice(0, 5)
+
+const formatEnumLabel = (value) => {
+	if (!value) return 'Không xác định'
+
+	return String(value)
+		.replace(/_/g, ' ')
+		.toLowerCase()
+		.replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
+const formatSpeciesLabel = (species, breed) => {
+	const speciesLabel = formatEnumLabel(species)
+	const breedLabel = formatEnumLabel(breed)
+
+	if (!breed || breedLabel === 'Không Xác Định') {
+		return speciesLabel
+	}
+
+	return `${speciesLabel} (${breedLabel})`
+}
+
+const pickRevisitDate = (item) => {
+	return item?.medical?.followUpDate || item?.followUpDate || item?.revisitDate || item?.appointmentDate || ''
+}
+
+const sortByTimeAsc = (a, b) => {
+	const timeA = formatDisplayTime(a?.appointmentTime)
+	const timeB = formatDisplayTime(b?.appointmentTime)
+
+	if (!timeA && !timeB) return 0
+	if (!timeA) return 1
+	if (!timeB) return -1
+
+	return timeA.localeCompare(timeB)
+}
 
 export default function ListPetMedicalRecords() {
 	const navigate = useNavigate()
+	const [loading, setLoading] = useState(false)
+	const [loadingSpecies, setLoadingSpecies] = useState(false)
+	const [searchText, setSearchText] = useState('')
+	const [selectedSpecies, setSelectedSpecies] = useState('ALL')
+	const [selectedDate, setSelectedDate] = useState(dayjs())
+	const [currentPage, setCurrentPage] = useState(1)
+	const [petRows, setPetRows] = useState([])
+	const [speciesList, setSpeciesList] = useState([])
 
-	const onOpenMedicalRecord = () => {
-		navigate('/admin/clinic/view-pet-appointment')
+	const fetchSpecies = useCallback(async () => {
+		try {
+			setLoadingSpecies(true)
+			const response = await getClinicPetSpeciesApi()
+			setSpeciesList(Array.isArray(response) ? response : [])
+		} catch {
+			setSpeciesList([])
+		} finally {
+			setLoadingSpecies(false)
+		}
+	}, [])
+
+	const fetchMedicalRecordPets = useCallback(async () => {
+		try {
+			setLoading(true)
+
+			const response = await getClinicAppointmentsApi({
+				page: 1,
+				limit: 500,
+				date: selectedDate.format('YYYY-MM-DD'),
+			})
+
+			const items = Array.isArray(response?.items) ? response.items : []
+			const activeItems = items.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
+			const groupedByPet = new Map()
+
+			activeItems.forEach((item) => {
+				const petId = item?.pet?.id
+				if (!petId) return
+
+				const currentGroup = groupedByPet.get(petId) || []
+				currentGroup.push(item)
+				groupedByPet.set(petId, currentGroup)
+			})
+
+			const mappedRows = Array.from(groupedByPet.entries()).map(([petId, appointments]) => {
+				const sortedAppointments = [...appointments].sort(sortByTimeAsc)
+				const firstAppointment = sortedAppointments[0] || {}
+				const pet = firstAppointment?.pet || {}
+				const owner = pet?.owner || {}
+
+				return {
+					key: String(petId),
+					appointmentId: firstAppointment?.id || '',
+					petId: String(petId),
+					name: pet?.name || 'Không rõ tên',
+					avatar: pet?.avatar || '',
+					species: pet?.species || '',
+					speciesLabel: formatSpeciesLabel(pet?.species, pet?.breed),
+					ownerName: owner?.fullName || 'Không rõ chủ nuôi',
+					ownerPhone: owner?.phone || 'Chưa cập nhật',
+					appointmentSummary: sortedAppointments
+						.map((appointment) => {
+							const time = formatDisplayTime(appointment?.appointmentTime)
+							return time || '--:--'
+						})
+						.join(', '),
+					revisitDateRaw: pickRevisitDate(firstAppointment),
+					revisitDateLabel: formatDisplayDate(pickRevisitDate(firstAppointment)),
+					totalAppointments: sortedAppointments.length,
+					dateKey: normalizeDate(firstAppointment?.appointmentDate),
+				}
+			})
+
+			setPetRows(mappedRows)
+			setSelectedSpecies((current) => {
+				if (current === 'ALL') return current
+				const existsInBackend = speciesList.includes(current)
+				const existsInRows = mappedRows.some((row) => row.species === current)
+				return existsInBackend || existsInRows ? current : 'ALL'
+			})
+		} catch (error) {
+			setPetRows([])
+			message.error(error.message || 'Không thể tải danh sách sổ y tế điện tử')
+		} finally {
+			setLoading(false)
+		}
+	}, [selectedDate, speciesList])
+
+	useEffect(() => {
+		fetchSpecies()
+	}, [fetchSpecies])
+
+	useEffect(() => {
+		fetchMedicalRecordPets()
+	}, [fetchMedicalRecordPets])
+
+	const speciesOptions = useMemo(() => {
+		const dataSpecies = [...new Set(petRows.map((item) => item.species).filter(Boolean))]
+		const availableSpecies = speciesList.length > 0 ? speciesList : dataSpecies
+
+		return [
+			{ label: 'Tất cả loài', value: 'ALL' },
+			...availableSpecies.map((item) => ({ label: formatEnumLabel(item), value: item })),
+		]
+	}, [petRows, speciesList])
+
+	const filteredRows = useMemo(() => {
+		const keyword = searchText.trim().toLowerCase()
+
+		return petRows.filter((row) => {
+			if (selectedSpecies !== 'ALL' && row.species !== selectedSpecies) {
+				return false
+			}
+
+			if (keyword) {
+				const searchable = [row.petId, row.name, row.ownerName].join(' ').toLowerCase()
+				if (!searchable.includes(keyword)) {
+					return false
+				}
+			}
+
+			return true
+		})
+	}, [petRows, searchText, selectedSpecies])
+
+	const paginatedRows = useMemo(() => {
+		const startIndex = (currentPage - 1) * PAGE_SIZE
+		return filteredRows.slice(startIndex, startIndex + PAGE_SIZE)
+	}, [currentPage, filteredRows])
+
+	useEffect(() => {
+		setCurrentPage(1)
+	}, [searchText, selectedSpecies, selectedDate])
+
+	const onOpenMedicalRecord = (row) => {
+		if (!row?.appointmentId) {
+			message.warning('Không tìm thấy lịch khám để mở sổ y tế')
+			return
+		}
+
+		navigate(`/admin/clinic/exam-slips/${row.appointmentId}`, {
+			state: {
+				record: row,
+			},
+		})
 	}
 
 	return (
@@ -110,34 +219,51 @@ export default function ListPetMedicalRecords() {
 				<h1>Hồ sơ y tế điện tử của thú cưng</h1>
 			</header>
 
-				<section className={styles.mainPanel}>
-					<div className={styles.titleBox}>
-						<h2>Hồ sơ bệnh án điện tử</h2>
-						<p>Quản lý và tra cứu thông tin sức khỏe thú cưng trong hệ thống</p>
-					</div>
+			<section className={styles.mainPanel}>
+				<div className={styles.toolbar}>
+					<Input
+						className={styles.searchBox}
+						placeholder="Tìm theo ID, tên thú cưng hoặc tên chủ nuôi..."
+						prefix={<SearchOutlined />}
+						value={searchText}
+						onChange={(event) => setSearchText(event.target.value)}
+						allowClear
+					/>
 
-					<div className={styles.toolbar}>
-						<div className={styles.searchBox}>
-							<FaSearch />
-							<input
-								type="text"
-								value=""
-								readOnly
-								placeholder="Tìm theo tên thú cưng, ID hoặc tên chủ nuôi..."
-							/>
-						</div>
-						<button type="button" className={styles.filterBtn}>
-							Tất cả loài
-						</button>
-						<button type="button" className={styles.filterBtn}>
-							Mọi trạng thái
-						</button>
-						<button type="button" className={styles.advancedBtn}>
-							<FaSlidersH />
-							<span>Lọc nâng cao</span>
-						</button>
-					</div>
+					<Select
+						className={styles.filterSelect}
+						value={selectedSpecies}
+						onChange={setSelectedSpecies}
+						options={speciesOptions}
+						loading={loadingSpecies}
+					/>
 
+					<DatePicker
+						className={styles.datePicker}
+						value={selectedDate}
+						onChange={(value) => setSelectedDate(value || dayjs())}
+						format="DD/MM/YYYY"
+						allowClear={false}
+						suffixIcon={<CalendarOutlined />}
+					/>
+				</div>
+
+				{loading ? (
+					<div className={styles.loadingWrap}>
+						<Spin size="large" />
+					</div>
+				) : filteredRows.length === 0 ? (
+					<div className={styles.emptyWrap}>
+						<Empty
+							description={
+								<>
+									<div className={styles.emptyTitle}>Không có thú cưng phù hợp</div>
+									<div className={styles.emptyDescription}>Vui lòng đổi ngày hoặc bộ lọc loài để xem dữ liệu khác.</div>
+								</>
+							}
+						/>
+					</div>
+				) : (
 					<div className={styles.tableWrap}>
 						<table>
 							<thead>
@@ -145,52 +271,49 @@ export default function ListPetMedicalRecords() {
 									<th>ID & THÚ CƯNG</th>
 									<th>LOÀI</th>
 									<th>CHỦ NUÔI</th>
-									<th>LẦN KHÁM CUỐI</th>
-									<th>TRẠNG THÁI</th>
+									<th>NGÀY KHÁM</th>
+									<th>NGÀY TÁI KHÁM</th>
 									<th>THAO TÁC</th>
 								</tr>
 							</thead>
 							<tbody>
-								{petRows.map((row, index) => (
-									<tr key={`${row.id}-${index}`}>
+								{paginatedRows.map((row) => (
+									<tr key={row.key}>
 										<td>
 											<div className={styles.petCell}>
-												<div className={`${styles.petAvatar} ${styles[row.avatarTone]}`} aria-hidden="true" />
-												<div>
-													<h3>{row.name}</h3>
-													<p>{row.id}</p>
+												<div className={styles.petAvatar} aria-hidden="true">
+													{row.avatar ? <img src={row.avatar} alt={row.name} /> : row.name.charAt(0).toUpperCase()}
+												</div>
+												<div className={styles.infoBlock}>
+													<strong>{row.name}</strong>
+													<p>#{row.petId}</p>
 												</div>
 											</div>
 										</td>
+										<td>{row.speciesLabel}</td>
 										<td>
-											<div className={styles.infoWithIcon}>
-												<FaDog />
-												<span>{row.species}</span>
+											<div className={styles.infoBlock}>
+												<strong>{row.ownerName}</strong>
+												<p>{row.ownerPhone}</p>
 											</div>
 										</td>
 										<td>
 											<div className={styles.infoBlock}>
-												<strong>{row.owner}</strong>
-												<p>{row.phone}</p>
+												<strong>{row.appointmentSummary}</strong>
+												<p>{`${row.totalAppointments} lịch hẹn`}</p>
 											</div>
 										</td>
 										<td>
-											<div className={styles.infoBlock}>
-												<strong>{row.lastVisitDate}</strong>
-												<p>{row.lastVisitNote}</p>
-											</div>
-										</td>
-										<td>
-											<span className={`${styles.statusTag} ${styles[`status${row.statusType}`]}`}>{row.status}</span>
+											<Tag style={{marginLeft: 15}}color="blue">{row.revisitDateLabel}</Tag>
 										</td>
 										<td>
 											<div className={styles.actionBtns}>
-												<button type="button" onClick={onOpenMedicalRecord} aria-label="Xem chi tiết hồ sơ">
-													<FaEye />
-												</button>
-												<button type="button" onClick={onOpenMedicalRecord} aria-label="Chỉnh sửa hồ sơ">
-													<FaPencilAlt />
-												</button>
+												<Tooltip title="Xem sổ y tế">
+													<Button type="text" icon={<EyeOutlined />} onClick={() => onOpenMedicalRecord(row)} />
+												</Tooltip>
+												{/* <Tooltip title="Cập nhật sổ y tế">
+													<Button type="text" icon={<EditOutlined />} onClick={() => onOpenMedicalRecord(row)} />
+												</Tooltip> */}
 											</div>
 										</td>
 									</tr>
@@ -198,26 +321,18 @@ export default function ListPetMedicalRecords() {
 							</tbody>
 						</table>
 
-						<div className={styles.pagination}>
-							<button type="button" aria-label="Trang trước">
-								‹
-							</button>
-							{pageItems.map((item, index) => (
-								<button
-									key={item}
-									type="button"
-									className={index === 0 ? styles.activePage : ''}
-									aria-label={`Trang ${item}`}
-								>
-									{item}
-								</button>
-							))}
-							<button type="button" aria-label="Trang sau">
-								›
-							</button>
+						<div className={styles.paginationWrap}>
+							<Pagination
+								current={currentPage}
+								total={filteredRows.length}
+								pageSize={PAGE_SIZE}
+								onChange={(page) => setCurrentPage(page)}
+								showSizeChanger={false}
+							/>
 						</div>
 					</div>
-				</section>
+				)}
+			</section>
 		</div>
 	)
 }

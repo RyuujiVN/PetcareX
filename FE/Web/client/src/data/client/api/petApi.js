@@ -1,4 +1,5 @@
 import instance from './instance';
+import { uploadOneFileToCloudinary } from '../../shared/api/cloudinaryUploadFetch';
 
 export const getEnumLabel = (value) => {
   if (!value) return '';
@@ -66,8 +67,8 @@ export const getBreedsBySpeciesApi = (speciesId) => {
 };
 
 export const uploadPetAvatarApi = (file) => {
-  const formData = new FormData();
-  formData.append('file', file);
-
-  return instance.post('/pet/upload', formData).then((response) => response.data);
+  return uploadOneFileToCloudinary(file).then((payload) => ({
+    ...payload,
+    file: payload.file,
+  }));
 };

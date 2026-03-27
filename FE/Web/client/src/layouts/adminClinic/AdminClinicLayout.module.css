@@ -85,14 +85,32 @@
   padding: 14px 4px 0;
   text-decoration: none;
   border-radius: 12px;
+  width: 100%;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
-.profileBox:hover {
-  background: #eff4fb;
+:global(.ant-dropdown).profileMenuOverlay :global(.ant-dropdown-menu) {
+  border-radius: 14px;
+  padding: 6px;
+  min-width: 180px;
 }
 
-.profileBoxActive {
-  background: #d9e9fb;
+:global(.ant-dropdown).profileMenuOverlay :global(.ant-dropdown-menu-item) {
+  border-radius: 10px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.passwordActions {
+  margin-top: 8px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .profileInfo {

@@ -92,9 +92,6 @@ export default function VeterinarianManagement() {
 						onChange={(event) => setSearchValue(event.target.value)}
 					/>
 				</div>
-				<button type="button" className={styles.notificationButton} aria-label="Thông báo">
-					<FaBell />
-				</button>
 			</header>
 
 			<section className={styles.content}>
