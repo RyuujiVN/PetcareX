@@ -11,10 +11,8 @@ from contextlib import asynccontextmanager
 from typing import Optional, List, Tuple, Set
 import torch
 from fastapi import FastAPI
-from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-from transformers import TextIteratorStreamer
+from transformers import TextIteratorStreamer, StoppingCriteria, StoppingCriteriaList
 from rag_pipeline import Retriever, LLMGenerator
 from structured_retriever import StructuredDBRetriever
 from database import engine, SessionLocal
@@ -40,6 +38,13 @@ llm: LLMGenerator = None
 structured_retriever: StructuredDBRetriever = None
 llm_lock = threading.Lock()
 
+class StopGenerationCreteria(StoppingCriteria):
+    def __init__(self):
+        self.stop_event = threading.Event()
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+        return self.stop_event.is_set()
+global_stop_criteria = StopGenerationCreteria()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -66,19 +71,6 @@ app.add_middleware(
 )
 sio = socketio.AsyncServer(async_mode='asgi', cors_allowed_origins='*')
 socket_app = socketio.ASGIApp(sio, app)
-
-
-class TriageRequest(BaseModel):
-    user_id: str
-    pet_id: str
-    symptoms: str
-
-
-class TriageResponse(BaseModel):
-    status: str
-    triage_id: str
-    message: str
-    analysis: str
 
 
 def build_history_text(history: List[Tuple[str, str]]) -> str:
@@ -238,6 +230,7 @@ async def handle_chat(sid, data):
             llm.tokenizer, skip_prompt=True, skip_special_tokens=True, timeout=120.0
         )
         inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
+        global_stop_criteria.stop_event.clear()
         generate_kwargs = dict(
             **inputs,
             max_new_tokens=LLM_MAX_NEW_TOKENS,
@@ -245,6 +238,7 @@ async def handle_chat(sid, data):
             pad_token_id=llm.tokenizer.pad_token_id,
             repetition_penalty=1.1,
             streamer=streamer,
+            stopping_criteria=StoppingCriteriaList([global_stop_criteria]),
         )
 
         loop = asyncio.get_running_loop()
@@ -292,39 +286,31 @@ async def handle_default_message_event(sid, data):
     if isinstance(data, dict) and "message" in data:
         await handle_chat(sid, data)
 
-@app.post("/api/triage", response_model=TriageResponse, status_code=201)
-def create_triage(data: TriageRequest):
-    if not data.symptoms.strip():
-        raise HTTPException(status_code=400, detail="Missing 'symptoms' in request body.")
+@sio.on('stop_chat')
+async def handle_stop_chat(sid, data):
+    global_stop_criteria.stop_event.set()   
+    await sio.emit('chat_response', {"type": "status", "status": "Stopped"}, to=sid)
 
-    prompt = TRIAGE_PROMPT.format(symptoms=data.symptoms.strip())
+@app.post("/api/triage")
+def create_triage(data: dict):
+    symptoms = data.get("symptoms", "")
+    if not symptoms:
+        return {"error": "Missing 'symptoms' in request body."}
+    
+    prompt = TRIAGE_PROMPT.format(symptoms=symptoms)
     with llm_lock:
         inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
         outputs = llm.model.generate(**inputs, max_new_tokens=512, pad_token_id=llm.tokenizer.pad_token_id)
 
         input_len = inputs.input_ids.shape[1]
-        answer = llm.tokenizer.decode(outputs[0][input_len:], skip_special_tokens=True).strip()
+        answer = llm.tokenizer.decode(outputs[0][input_len:], skip_special_tokens=True)
 
-    db = SessionLocal()
-    try:
-        triage = crud.create_triage_result(
-            db=db,
-            user_id=data.user_id,
-            pet_id=data.pet_id,
-            symptoms=data.symptoms.strip(),
-            context=answer,
-        )
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid 'user_id' or 'pet_id' format (must be UUID).")
-    finally:
-        db.close()
+    return {
+        "status": "success",
+        "analysis": answer.strip(),
+    }
 
-    return TriageResponse(
-        status="success",
-        triage_id=str(triage.id),
-        message="Đã phân tích triệu chứng và lưu kết quả thành công.",
-        analysis=answer,
-    )
+
 
 if __name__ == "__main__":
     import uvicorn
