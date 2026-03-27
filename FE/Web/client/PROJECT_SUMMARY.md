@@ -14,7 +14,11 @@ Dự án được phát triển bằng React + Vite, tổ chức theo kiến tr�
 - **Icons**: Ant Design Icons, React Icons, Lucide.
 - **HTTP**: Axios (chính) + Fetch wrapper (một số module).
 - **Date handling**: `dayjs`.
+<<<<<<< HEAD
+- **OAuth**: `@react-oauth/google` (client portal).
+=======
 - **Auth social login**: Firebase Web SDK (`firebase/auth`) + backend endpoint `/auth/login-google`.
+>>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 - **Styling**: CSS modules + page CSS + token CSS variables.
 
 ## 🧩 Kiến trúc ứng dụng
@@ -26,7 +30,11 @@ Dự án được phát triển bằng React + Vite, tổ chức theo kiến tr�
   - Bọc **2 auth context song song**:
     - `ClientAuthProvider`
     - `AdminAuthProvider`
+<<<<<<< HEAD
+  - Chỉ bọc `GoogleOAuthProvider` khi `VITE_GOOGLE_CLIENT_ID` hợp lệ.
+=======
   - Khởi tạo Firebase Analytics an toàn (nếu browser hỗ trợ và có `measurementId`), không làm crash app khi bị chặn analytics.
+>>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 
 ### 2) Routing & Layout phân tầng
 - Định tuyến tập trung tại `src/routes/AppRoutes.jsx`.
@@ -64,6 +72,8 @@ Mỗi context quản lý riêng:
 - Client login sẽ chặn role admin/clinic/vet và điều hướng sang `/admin/login`.
 - Admin login sẽ chặn role user thường và điều hướng sang `/login`.
 
+<<<<<<< HEAD
+=======
 ### 4) Google Login/Register (Client) - kiến trúc mới gọn hơn
 - Firebase config tập trung tại `src/utils/firebaseClient.js`.
 - Luồng Google auth cho client gom tại `src/utils/clientGoogleAuth.js` để tái sử dụng cho cả màn Login và Register.
@@ -71,6 +81,7 @@ Mỗi context quản lý riêng:
 - Sau khi lấy token Google từ Firebase, FE gọi API `/auth/login-google` như cũ để backend thống nhất cấp `accessToken` nội bộ.
 - Nếu account thuộc role admin/clinic/vet thì vẫn redirect về `/admin/login` (đảm bảo không lẫn phiên giữa 2 portal).
 
+>>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 ## 🌐 API Layer & Networking
 
 ## 1) Base URL & env
@@ -113,7 +124,11 @@ Hiện tại codebase đang tồn tại song song 2 phong cách gọi API:
 
 ### 1) Auth (Login/Register/Forgot/Reset)
 - Đầy đủ form validation và thông báo lỗi.
+<<<<<<< HEAD
+- Google login/register dùng `login-google` + decode token để lấy `fullName/avatarUrl`.
+=======
 - Google login/register dùng Firebase popup auth + helper dùng chung, sau đó gọi `login-google` để nhận token hệ thống.
+>>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 - OTP reset password có:
   - Countdown hết hạn OTP (300s).
   - Cooldown resend (60s).
@@ -299,6 +314,7 @@ Hiện hai file gần như đồng nhất, cùng semantic token cho:
 - **Quy ước chạy lệnh:** tất cả lệnh `npm run dev/build/lint` chạy từ root trên.
 - **Biến môi trường chính:**
   - `VITE_API_URL`
+  - `VITE_GOOGLE_CLIENT_ID`
   - `VITE_FIREBASE_WEB_API_KEY`
   - `VITE_FIREBASE_AUTH_DOMAIN`
   - `VITE_FIREBASE_PROJECT_ID`

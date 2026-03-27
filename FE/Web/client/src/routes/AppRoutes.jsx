@@ -14,6 +14,7 @@ import AppointmentDetail from '../pages/client/User/AppointmentDetail'
 import SuccessBooking from '../pages/client/User/SuccessBooking'
 import PetProfile from '../pages/client/User/PetProfile'
 import ListPet from '../pages/client/User/ListPet'
+import PetDiagnosis from '../pages/client/User/PetDiagnosis/petDiagnosis'
 import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
 import Forum from '../pages/client/User/Forum/forum'
 import ListPetMedicalRecords from '../pages/client/User/ListPetMedicalRecords/listMedicalRecords'
@@ -33,7 +34,6 @@ import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/Infor
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
-
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
@@ -86,7 +86,9 @@ export default function AppRoutes({ location }) {
           <Route path=":roomId" element={<MessageBox />} />
         </Route>
         <Route path="/profile" element={<ProfileUser />} />
+        <Route path="/user/profile" element={<ProfileUser />} />
         <Route path="/petProfile" element={<PetProfile />} />
+        <Route path="/petDiagnosis" element={<PetDiagnosis />} />
         <Route path="/listPet" element={<ListPet />} />
         <Route path="/medical-records" element={<MedicalRecords />} />
         <Route path="/forum" element={<Forum />} />

@@ -489,6 +489,13 @@
 	background: #f2f7fb;
 }
 
+.commentActionRow button:disabled,
+.modalActionRow button:disabled,
+.removeImageBtn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 .previewImageWrap {
 	display: flex;
 	align-items: center;

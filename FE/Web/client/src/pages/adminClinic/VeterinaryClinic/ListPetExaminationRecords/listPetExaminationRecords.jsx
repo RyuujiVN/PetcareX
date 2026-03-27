@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
-import { BellOutlined, FileTextOutlined, SearchOutlined } from '@ant-design/icons'
-import { Button, DatePicker, Empty, Input, Select, Spin, message } from 'antd'
+import { FileTextOutlined } from '@ant-design/icons'
+import { Button, DatePicker, Empty, Select, Spin, message } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, APPOINTMENT_STATUS_LABEL, getClinicAppointmentsApi } from '../../../../data/adminClinic/api/appointmentApi'
+import { getClinicPetSpeciesApi } from '../../../../data/adminClinic/api/petApi'
 import styles from './listPetExaminationRecords.module.css'
 
 const normalizeDate = (dateValue) => {
@@ -48,10 +49,10 @@ const formatBreedLabel = (breed, species) => {
 }
 
 const getAgeLabel = (dateOfBirth) => {
-	if (!dateOfBirth) return 'N/A'
+	if (!dateOfBirth) return 'Chưa rõ tuổi'
 
 	const birthDate = new Date(dateOfBirth)
-	if (Number.isNaN(birthDate.getTime())) return 'N/A'
+	if (Number.isNaN(birthDate.getTime())) return 'Chưa rõ tuổi'
 
 	const now = new Date()
 	let years = now.getFullYear() - birthDate.getFullYear()
@@ -65,7 +66,7 @@ const getAgeLabel = (dateOfBirth) => {
 		return 'Dưới 1 năm'
 	}
 
-	return `${years} Years`
+	return `${years} tuổi`
 }
 
 const getStatusLabel = (status) => APPOINTMENT_STATUS_LABEL[status] || status || 'Không xác định'
@@ -74,9 +75,23 @@ export default function ListPetExaminationRecords() {
 	const navigate = useNavigate()
 	const [records, setRecords] = useState([])
 	const [loading, setLoading] = useState(false)
+	const [loadingSpecies, setLoadingSpecies] = useState(false)
 	const [selectedDate, setSelectedDate] = useState('')
 	const [selectedSpecies, setSelectedSpecies] = useState('ALL')
 	const [searchText, setSearchText] = useState('')
+	const [speciesList, setSpeciesList] = useState([])
+
+	const fetchSpecies = useCallback(async () => {
+		try {
+			setLoadingSpecies(true)
+			const response = await getClinicPetSpeciesApi()
+			setSpeciesList(Array.isArray(response) ? response : [])
+		} catch {
+			setSpeciesList([])
+		} finally {
+			setLoadingSpecies(false)
+		}
+	}, [])
 
 	const fetchExaminationRecords = useCallback(async () => {
 		try {
@@ -92,8 +107,9 @@ export default function ListPetExaminationRecords() {
 			const mappedItems = items
 				.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
 				.map((item) => {
-					const speciesLabel = formatEnumLabel(item?.pet?.species)
-					const breedLabel = formatBreedLabel(item?.pet?.breed, item?.pet?.species)
+					const speciesRaw = item?.pet?.species || ''
+					const speciesLabel = formatEnumLabel(speciesRaw)
+					const breedLabel = formatBreedLabel(item?.pet?.breed, speciesRaw)
 
 					return {
 						id: item?.id,
@@ -104,7 +120,8 @@ export default function ListPetExaminationRecords() {
 						service: item?.service || 'Không xác định',
 						petName: item?.pet?.name || 'Không rõ tên thú cưng',
 						petAvatar: item?.pet?.avatar || '',
-						species: speciesLabel,
+						speciesRaw,
+						speciesLabel,
 						breed: breedLabel,
 						ownerName: item?.pet?.owner?.fullName || 'Không rõ chủ nuôi',
 						ageLabel: getAgeLabel(item?.pet?.dateOfBirth),
@@ -116,8 +133,9 @@ export default function ListPetExaminationRecords() {
 			setRecords(mappedItems)
 			setSelectedSpecies((current) => {
 				if (current === 'ALL') return current
-				const hasSpecies = mappedItems.some((item) => item.species === current)
-				return hasSpecies ? current : 'ALL'
+				const existsInBackend = speciesList.includes(current)
+				const existsInRecords = mappedItems.some((item) => item.speciesRaw === current)
+				return existsInBackend || existsInRecords ? current : 'ALL'
 			})
 		} catch (error) {
 			message.error(error.message || 'Không thể tải danh sách thú cưng khám bệnh')
@@ -125,25 +143,31 @@ export default function ListPetExaminationRecords() {
 		} finally {
 			setLoading(false)
 		}
-	}, [selectedDate])
+	}, [selectedDate, speciesList])
+
+	useEffect(() => {
+		fetchSpecies()
+	}, [fetchSpecies])
 
 	useEffect(() => {
 		fetchExaminationRecords()
 	}, [fetchExaminationRecords])
 
 	const speciesOptions = useMemo(() => {
-		const uniqueSpecies = [...new Set(records.map((item) => item.species).filter(Boolean))]
+		const dataSpecies = [...new Set(records.map((item) => item.speciesRaw).filter(Boolean))]
+		const availableSpecies = speciesList.length > 0 ? speciesList : dataSpecies
+
 		return [
-			{ label: 'Tất cả loài', value: 'ALL' },
-			...uniqueSpecies.map((item) => ({ label: item, value: item })),
+			{ style: {height: 30, display: 'flex', alignItems: 'center'}, label: 'Tất cả loài', value: 'ALL'},
+			...availableSpecies.map((item) => ({ label: formatEnumLabel(item), value: item })),
 		]
-	}, [records])
+	}, [records, speciesList])
 
 	const visibleRecords = useMemo(() => {
 		const keyword = searchText.trim().toLowerCase()
 
 		return records.filter((item) => {
-			if (selectedSpecies !== 'ALL' && item.species !== selectedSpecies) {
+			if (selectedSpecies !== 'ALL' && item.speciesRaw !== selectedSpecies) {
 				return false
 			}
 
@@ -152,7 +176,7 @@ export default function ListPetExaminationRecords() {
 			}
 
 			if (keyword) {
-				const searchable = [item.petName, item.ownerName, item.species, item.breed].join(' ').toLowerCase()
+				const searchable = [item.petName, item.ownerName, item.speciesLabel, item.breed].join(' ').toLowerCase()
 				if (!searchable.includes(keyword)) {
 					return false
 				}
@@ -178,23 +202,13 @@ export default function ListPetExaminationRecords() {
 	return (
 		<div className={styles.page}>
 			<header className={styles.topBar}>
-				<Input
-					className={styles.searchBox}
-					placeholder="Tìm kiếm thú cưng, khách hàng..."
-					prefix={<SearchOutlined />}
-					value={searchText}
-					onChange={(event) => setSearchText(event.target.value)}
-					allowClear
-				/>
-
-				<Button type="text" shape="circle" className={styles.notificationBtn} aria-label="Thông báo" icon={<BellOutlined />} />
+				<div className={styles.titleBlock}>
+					<h1 style={{fontSize: 25}}>Danh sách thú cưng</h1>
+				</div>
 			</header>
 
 			<section className={styles.content}>
-				<div className={styles.titleBlock}>
-					<h1>Danh sách thú cưng</h1>
-					<p>Các phiếu khám của thú cưng ở phòng khám</p>
-				</div>
+
 
 				<div className={styles.filtersRow}>
 					<Select
@@ -202,14 +216,15 @@ export default function ListPetExaminationRecords() {
 						value={selectedSpecies}
 						onChange={setSelectedSpecies}
 						options={speciesOptions}
+						loading={loadingSpecies}
 					/>
 
 					<DatePicker
 						className={styles.datePicker}
 						format="DD/MM/YYYY"
 						placeholder="Chọn ngày"
-						value={selectedDate ? dayjs(selectedDate, 'YYYY-MM-DD') : null}
-						onChange={(_, dateString) => setSelectedDate(Array.isArray(dateString) ? '' : dateString || '')}
+						value={selectedDate ? dayjs(selectedDate) : null}
+						onChange={(date) => setSelectedDate(date ? date.format('YYYY-MM-DD') : '')}
 						allowClear
 					/>
 				</div>
@@ -243,12 +258,12 @@ export default function ListPetExaminationRecords() {
 
 								<div className={styles.cardBody}>
 									<div className={styles.petHeaderRow}>
-										<h3>{record.petName}</h3>
-										<span className={styles.ageBadge}>{record.ageLabel}</span>
+										<h3 style={{fontSize: 23}}>Tên: {record.petName}</h3>
+										<span className={styles.ageBadge}>Tuổi: {record.ageLabel}</span>
 									</div>
 
-									<p className={styles.speciesText}>{record.breed || record.species}</p>
-									<p className={styles.ownerText}>Chủ nuôi: {record.ownerName}</p>
+									<p style={{fontSize: 16}} className={styles.speciesText}>Loài: {record.breed || record.speciesLabel}</p>
+									<p style={{fontSize: 16}} className={styles.ownerText}>Chủ nuôi: {record.ownerName}</p>
 
 									<Button type="default" className={styles.viewButton} onClick={() => openRecordDetail(record)}>
 										<FileTextOutlined />

@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
-import { data, useNavigate, useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Form, Input } from "antd";
 import { Send } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";

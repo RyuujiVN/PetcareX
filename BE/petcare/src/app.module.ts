@@ -21,6 +21,8 @@ import { MedicineModule } from './medicine/medicine.module';
 import { ForumModule } from './forum/forum.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
+import { AiDiagnosisModule } from './ai-diagnosis/ai-diagnosis.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -43,6 +45,8 @@ import { ChatbotModule } from './chatbot/chatbot.module';
     ForumModule,
     InvoiceModule,
     ChatbotModule,
+    AiDiagnosisModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

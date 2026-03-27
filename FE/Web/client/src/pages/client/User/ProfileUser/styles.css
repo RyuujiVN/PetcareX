@@ -130,14 +130,6 @@
     color: var(--color-text-primary);
 }
 
-.profile-description {
-  font-size: 14px;
-  color: var(--auto-rgba-0-0-0-0-9);
-  margin-right: 40%;
-  padding-bottom: 20px;
-  font-weight: 500;
-
-}
 
 .profile-form-card {
   border: none !important;
