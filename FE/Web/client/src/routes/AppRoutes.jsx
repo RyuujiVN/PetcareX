@@ -33,6 +33,7 @@ import AddNewVererianrian from '../pages/adminClinic/VeterinaryClinic/AddNewVere
 import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
 import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
+import PetMedicalBill from '../pages/adminClinic/VeterinaryClinic/PetMedicalBill/petMedicalBill'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
 export default function AppRoutes({ location }) {
   return (
@@ -58,6 +59,7 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/veterinarians/information" element={<InformationVererianrian />} />
         <Route path="/admin/clinic/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/admin/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
+        <Route path="/admin/clinic/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
       </Route>
 
       <Route path="/login" element={<Login />} />
