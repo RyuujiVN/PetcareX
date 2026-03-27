@@ -44,7 +44,7 @@ export default function ReEnterPassword() {
     return () => clearTimeout(id);
   }, [otpExpiryLeft]);
 
-  const handleGoBack = () => navigate('/admin/login');
+  const handleGoBack = () => navigate('/login');
 
   const handleResendOtp = async () => {
     if (!email) {
@@ -79,7 +79,7 @@ export default function ReEnterPassword() {
         confirmPassword: values.confirmPassword,
       });
       message.success(response.data?.message || 'Mật khẩu đã được đặt lại thành công');
-      setTimeout(() => navigate('/admin/login'), 1500);
+      setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       message.error(err.response?.data?.message || err.message || 'Đặt lại mật khẩu thất bại');
     } finally {

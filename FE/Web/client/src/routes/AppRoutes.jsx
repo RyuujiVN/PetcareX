@@ -20,7 +20,6 @@ import ListPetMedicalRecords from '../pages/client/User/ListPetMedicalRecords/li
 import MainLayout from '../layouts/client/MainLayout'
 import HeaderLayout from '../layouts/client/HeaderLayout'
 import AdminClinicLayout from '../layouts/adminClinic/AdminClinicLayout'
-import AdminLogin from '../pages/adminClinic/Auth/Login'
 import AdminRegister from '../pages/adminClinic/Auth/Register'
 import AdminForgotPassword from '../pages/adminClinic/Auth/ForgotPassword'
 import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
@@ -37,8 +36,8 @@ import AdminVererianrianLayout from './../layouts/adminVererianrian/AdminVereria
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
-      <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<Navigate to="/login" replace />} />
+      <Route path="/admin/login" element={<Navigate to="/login" replace />} />
       <Route path="/admin/register" element={<AdminRegister />} />
       <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
       <Route path="/admin/reEnterPassword" element={<AdminReEnterPassword />} />
@@ -58,7 +57,7 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
       </Route>
 
-      <Route path="/admin/veterinarian/login" element={<AdminLogin />} />
+      <Route path="/admin/veterinarian/login" element={<Navigate to="/login" replace />} />
       <Route path="/admin/veterinarian/register" element={<AdminRegister />} />
       <Route path="/admin/veterinarian/forgot-password" element={<AdminForgotPassword />} />
       <Route path="/admin/veterinarian/reEnterPassword" element={<AdminReEnterPassword />} />
@@ -109,7 +108,7 @@ export default function AppRoutes({ location }) {
         />
       </Route>
 
-      <Route path="/admin/*" element={<Navigate to="/admin/login" replace />} />
+      <Route path="/admin/*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 }
