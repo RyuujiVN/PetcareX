@@ -8,13 +8,14 @@
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
     width: 100%;
     z-index: 100;
     height: var(--petcare-header-height);
-    border: 1px solid var(--color-border-soft);
+    /* border: 1px solid var(--color-border-soft); */
 }
 
-body {
+.client-layout-content {
     padding-top: var(--petcare-header-height);
 }
 

@@ -30,6 +30,8 @@ export default function AddPet() {
   const [breedList, setBreedList] = useState([]);
   const [loadingMeta, setLoadingMeta] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('');
   const fileInputRef = useRef();
 
   const calculateAgeFromDate = (dateValue) => {
@@ -50,11 +52,32 @@ export default function AddPet() {
     return `${Math.max(age, 0)} tuổi`;
   };
 
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setAvatarFile(file);
-      setAvatar(URL.createObjectURL(file));
+    if (!file) return;
+
+    setAvatarFile(file);
+    setAvatar(URL.createObjectURL(file));
+    setUploadingAvatar(true);
+
+    try {
+      const uploadRes = await uploadPetAvatarApi(file);
+      const nextAvatarUrl = uploadRes?.file || '';
+
+      if (!nextAvatarUrl) {
+        throw new Error('Không nhận được URL ảnh từ server');
+      }
+
+      setUploadedAvatarUrl(nextAvatarUrl);
+      message.success('Tải ảnh thú cưng thành công');
+    } catch (error) {
+      setAvatarFile(null);
+      setAvatar(null);
+      setUploadedAvatarUrl('');
+      message.error(error.message || 'Không thể tải ảnh thú cưng');
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = '';
     }
   };
 
@@ -105,6 +128,11 @@ export default function AddPet() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (uploadingAvatar) {
+      message.warning('Ảnh đang được tải lên, vui lòng đợi trong giây lát');
+      return;
+    }
+
     if (!name || !species || !breed || !gender || !birthday || !weight) {
       message.warning('Vui lòng điền đầy đủ thông tin bắt buộc');
       return;
@@ -117,18 +145,10 @@ export default function AddPet() {
       return;
     }
 
-    let avatarUrl = '';
+    let avatarUrl = uploadedAvatarUrl || '';
 
-    try {
-      if (avatarFile) {
-        const uploadRes = await uploadPetAvatarApi(avatarFile);
-        avatarUrl = uploadRes?.file || '';
-      } else if (avatar && avatar.startsWith('http')) {
-        avatarUrl = avatar;
-      }
-    } catch (error) {
-      message.error(error.message || 'Không thể tải ảnh thú cưng');
-      return;
+    if (!avatarUrl && avatar && avatar.startsWith('http')) {
+      avatarUrl = avatar;
     }
 
     if (!avatarUrl) {
@@ -176,17 +196,25 @@ export default function AddPet() {
             <label className="form-labels" style={{fontWeight: 'bold'}}>Ảnh đại diện thú cưng</label>
             <div
               className="upload-box"
-              onClick={() => fileInputRef.current && fileInputRef.current.click()}
+              onClick={() => {
+                if (uploadingAvatar || submitting) return;
+                if (fileInputRef.current) {
+                  fileInputRef.current.click();
+                }
+              }}
             >
               {avatar ? (
                 <img src={avatar} className="avatar-preview" alt="preview" />
               ) : (
                 <>
                   <FiCamera size={36} color="var(--c-13ecda)" />
-                  <p className="upload-text">Tải lên hình ảnh thú cưng của bạn</p>
+                  <p className="upload-text">
+                    {uploadingAvatar ? 'Đang tải ảnh lên...' : 'Tải lên hình ảnh thú cưng của bạn'}
+                  </p>
                   <button
                     type="button"
                     className="choose-file-button"
+                    disabled={uploadingAvatar || submitting}
                   >
                     Chọn tệp tin
                   </button>
@@ -199,6 +227,7 @@ export default function AddPet() {
               ref={fileInputRef}
               className="hidden-file-input"
               onChange={handleFileChange}
+              disabled={uploadingAvatar || submitting}
             />
           </div>
 
@@ -315,18 +344,21 @@ export default function AddPet() {
               type="button"
               className="cancel-button"
               onClick={() => navigate(-1)}
+              disabled={submitting || uploadingAvatar}
             >
               Hủy bỏ
             </button>
             <button
                 type="submit"
                 className="submit-button"
-                disabled={submitting}
+                disabled={submitting || uploadingAvatar}
               >
                 {submitting ? (
                   <>
                     <span className="spinner"></span> Đang lưu...
                   </>
+                ) : uploadingAvatar ? (
+                  'Đang tải ảnh...'
                 ) : (
                   'Thêm thú cưng mới'
                 )}

@@ -29,6 +29,7 @@ import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import styles from './addNewVererianrian.module.css'
 
 const specialtyOptions = getSpecialtyOptions('vi')
+const passwordPolicyRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
 
 const defaultFormValues = {
 	fullName: '',
@@ -45,6 +46,8 @@ export default function AddNewVererianrian() {
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [avatarFile, setAvatarFile] = useState(null)
 	const [avatarPreview, setAvatarPreview] = useState('')
+	const [avatarUploading, setAvatarUploading] = useState(false)
+	const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('')
 
 	const navigateToListWithFlash = (text) => {
 		sessionStorage.setItem('veterinarianFlashMessage', text)
@@ -52,29 +55,29 @@ export default function AddNewVererianrian() {
 	}
 
 	const handleSubmit = async (values) => {
+		if (avatarUploading) {
+			messageApi.warning('Ảnh đang được tải lên, vui lòng đợi')
+			return
+		}
+
 		setIsSubmitting(true)
 		try {
+			const fullName = String(values.fullName || '').trim()
+			const email = String(values.email || '').trim().toLowerCase()
+			const password = String(values.password || '')
+
 			const created = await addVeterinarian({
-				fullName: values.fullName,
-				email: values.email,
-				password: values.password,
+				fullName,
+				email,
+				password,
 				specialty: values.specialty,
 			})
 
-			if (avatarFile && created?.userId) {
-				const uploaded = await uploadUserImageApi(avatarFile)
-				const avatarUrl = uploaded?.url || uploaded?.secure_url || uploaded?.data?.url || ''
-
-				if (avatarUrl) {
-					await editVeterinarian(created.userId, {
-						fullName: values.fullName,
-						email: values.email,
-						phone: '',
-						address: '',
-						avatarUrl,
-						specialty: values.specialty,
-					})
-				}
+			if (uploadedAvatarUrl && created?.userId) {
+				// Chỉ gửi field cần cập nhật để tránh fail validate các field optional như phone.
+				await editVeterinarian(created.userId, {
+					avatarUrl: uploadedAvatarUrl,
+				})
 			}
 
 			navigateToListWithFlash('Thêm bác sĩ mới thành công')
@@ -125,12 +128,36 @@ export default function AddNewVererianrian() {
 
 	const fullNamePreview = Form.useWatch('fullName', form)
 
+	const handleAvatarUpload = async (file) => {
+		setAvatarFile(file)
+		setAvatarPreview(URL.createObjectURL(file))
+		setAvatarUploading(true)
+
+		try {
+			const uploaded = await uploadUserImageApi(file)
+			const avatarUrl = uploaded?.url || uploaded?.file || uploaded?.secure_url || uploaded?.data?.url || ''
+
+			if (!avatarUrl) {
+				throw new Error('Không nhận được URL ảnh từ server')
+			}
+
+			setUploadedAvatarUrl(avatarUrl)
+			messageApi.success('Tải ảnh đại diện thành công')
+		} catch (error) {
+			setAvatarFile(null)
+			setAvatarPreview('')
+			setUploadedAvatarUrl('')
+			messageApi.error(error.message || 'Không thể tải ảnh đại diện')
+		} finally {
+			setAvatarUploading(false)
+		}
+	}
+
 	const uploadProps = {
 		accept: 'image/*',
 		showUploadList: false,
 		beforeUpload: (file) => {
-			setAvatarFile(file)
-			setAvatarPreview(URL.createObjectURL(file))
+			handleAvatarUpload(file)
 			return false
 		},
 	}
@@ -157,6 +184,8 @@ export default function AddNewVererianrian() {
 								shape="circle"
 								icon={<CameraOutlined />}
 								className={styles.avatarButton}
+								disabled={avatarUploading || saving || isSubmitting}
+								loading={avatarUploading}
 							/>
 						</Upload>
 					</div>
@@ -208,7 +237,14 @@ export default function AddNewVererianrian() {
 								<Form.Item
 									name="password"
 									label="Mật khẩu"
-									rules={[{ required: true, message: 'Vui lòng nhập mật khẩu' }]}
+									rules={[
+										{ required: true, message: 'Vui lòng nhập mật khẩu' },
+										{ min: 6, message: 'Mật khẩu tối thiểu là 6 ký tự' },
+										{
+											pattern: passwordPolicyRegex,
+											message: 'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số',
+										},
+									]}
 								>
 									<Input.Password
 										prefix={<LockOutlined />}
@@ -221,14 +257,15 @@ export default function AddNewVererianrian() {
 
 						<div className={styles.formActions}>
 							<Space>
-								<Button onClick={handleCancel} disabled={saving || isSubmitting}>Hủy</Button>
+								<Button onClick={handleCancel} disabled={saving || isSubmitting || avatarUploading}>Hủy</Button>
 								<Button
 									type="primary"
 									htmlType="submit"
 									icon={<SaveOutlined />}
 									loading={saving || isSubmitting}
+									disabled={avatarUploading}
 								>
-									Thêm bác sĩ
+									{avatarUploading ? 'Đang tải ảnh...' : 'Thêm bác sĩ'}
 								</Button>
 							</Space>
 						</div>

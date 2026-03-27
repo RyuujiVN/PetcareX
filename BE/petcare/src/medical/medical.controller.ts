@@ -28,8 +28,8 @@ import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-med
 import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
 
 @Controller('medical')
-@ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+// @ApiBearerAuth('JWT-auth')
+// @UseGuards(JwtAuthGuard)
 export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 

@@ -803,7 +803,7 @@
 
 .btn-cta-primary {
   background: var(--color-brand-muted);
-  color: var(--auto-rgb-0-0-0);
+  color: white;
 }
 
 .btn-cta-secondary {

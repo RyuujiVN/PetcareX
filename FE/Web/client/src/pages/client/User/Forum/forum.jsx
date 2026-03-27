@@ -174,8 +174,11 @@ function Forum() {
 	const [composerTopicId, setComposerTopicId] = useState(NO_TOPIC_VALUE)
 	const [composerImageFile, setComposerImageFile] = useState(null)
 	const [composerImagePreview, setComposerImagePreview] = useState('')
+	const [composerImageUrl, setComposerImageUrl] = useState('')
+	const [uploadingComposerImage, setUploadingComposerImage] = useState(false)
 	const [submittingPost, setSubmittingPost] = useState(false)
 	const [editingPost, setEditingPost] = useState(null)
+	const [uploadingEditImage, setUploadingEditImage] = useState(false)
 	const [submittingEditPost, setSubmittingEditPost] = useState(false)
 	const [menuPostId, setMenuPostId] = useState(null)
 	const [expandedPostId, setExpandedPostId] = useState(null)
@@ -184,11 +187,15 @@ function Forum() {
 	const [commentText, setCommentText] = useState('')
 	const [commentImageFile, setCommentImageFile] = useState(null)
 	const [commentImagePreview, setCommentImagePreview] = useState('')
+	const [commentImageUrl, setCommentImageUrl] = useState('')
+	const [uploadingCommentImage, setUploadingCommentImage] = useState(false)
 	const [submittingComment, setSubmittingComment] = useState(false)
 	const [replyingComment, setReplyingComment] = useState(null)
 	const [replyText, setReplyText] = useState('')
 	const [replyImageFile, setReplyImageFile] = useState(null)
 	const [replyImagePreview, setReplyImagePreview] = useState('')
+	const [replyImageUrl, setReplyImageUrl] = useState('')
+	const [uploadingReplyImage, setUploadingReplyImage] = useState(false)
 	const [submittingReply, setSubmittingReply] = useState(false)
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
@@ -385,6 +392,11 @@ function Forum() {
 	}
 
 	const handleCreatePost = async () => {
+		if (uploadingComposerImage) {
+			message.warning('Ảnh đang được tải lên, vui lòng đợi')
+			return
+		}
+
 		if (!composerTitle.trim() && !composerText.trim() && !composerImageFile) {
 			message.warning('Vui lòng nhập nội dung hoặc chọn ảnh trước khi đăng')
 			return
@@ -392,7 +404,7 @@ function Forum() {
 
 		try {
 			setSubmittingPost(true)
-			const imageUrl = composerImageFile ? await uploadImage(composerImageFile) : null
+			const imageUrl = composerImageUrl || null
 			await createPost({
 				topicId: composerTopicId === NO_TOPIC_VALUE ? null : composerTopicId,
 				content: attachPostToContent({
@@ -407,6 +419,7 @@ function Forum() {
 			setComposerTopicId(NO_TOPIC_VALUE)
 			setComposerImageFile(null)
 			setComposerImagePreview('')
+			setComposerImageUrl('')
 			setIsComposerModalOpen(false)
 			await loadPosts()
 		} catch (error) {
@@ -434,6 +447,7 @@ function Forum() {
 			topicId: post.rawTopicId ? String(post.rawTopicId) : NO_TOPIC_VALUE,
 			imageFile: null,
 			imagePreview: post.image || '',
+			imageUrl: post.image || '',
 			existingImageUrl: post.image || '',
 		})
 	}
@@ -441,6 +455,8 @@ function Forum() {
 	const handlePickEditImage = async (event) => {
 		const file = event.target.files?.[0]
 		if (!file) return
+
+		setUploadingEditImage(true)
 
 		try {
 			const preview = await toDataUrl(file)
@@ -453,8 +469,31 @@ function Forum() {
 					  }
 					: prev,
 			)
+
+			const uploadedUrl = await uploadImage(file)
+			setEditingPost((prev) =>
+				prev
+					? {
+							...prev,
+							imageUrl: uploadedUrl,
+					  }
+					: prev,
+			)
+			message.success('Tải ảnh bài viết thành công')
 		} catch (error) {
+			setEditingPost((prev) =>
+				prev
+					? {
+							...prev,
+							imageFile: null,
+							imagePreview: prev.existingImageUrl || '',
+							imageUrl: prev.existingImageUrl || '',
+					  }
+					: prev,
+			)
 			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+		} finally {
+			setUploadingEditImage(false)
 		}
 
 		event.target.value = ''
@@ -463,6 +502,11 @@ function Forum() {
 	const handleSaveEditedPost = async () => {
 		if (!editingPost) return
 
+		if (uploadingEditImage) {
+			message.warning('Ảnh đang được tải lên, vui lòng đợi')
+			return
+		}
+
 		if (!editingPost.title.trim() && !editingPost.text.trim() && !editingPost.imagePreview) {
 			message.warning('Bài viết không được để trống hoàn toàn')
 			return
@@ -470,9 +514,7 @@ function Forum() {
 
 		try {
 			setSubmittingEditPost(true)
-			const imageUrl = editingPost.imageFile
-				? await uploadImage(editingPost.imageFile)
-				: editingPost.existingImageUrl || null
+			const imageUrl = editingPost.imageUrl || null
 
 			await updatePost(editingPost.id, {
 				topicId: editingPost.topicId === NO_TOPIC_VALUE ? null : editingPost.topicId,
@@ -528,11 +570,20 @@ function Forum() {
 		if (!file) return
 
 		setComposerImageFile(file)
+		setUploadingComposerImage(true)
 		try {
 			const preview = await toDataUrl(file)
 			setComposerImagePreview(preview)
+			const uploadedUrl = await uploadImage(file)
+			setComposerImageUrl(uploadedUrl)
+			message.success('Tải ảnh bài viết thành công')
 		} catch (error) {
+			setComposerImageFile(null)
+			setComposerImagePreview('')
+			setComposerImageUrl('')
 			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+		} finally {
+			setUploadingComposerImage(false)
 		}
 
 		event.target.value = ''
@@ -641,6 +692,8 @@ function Forum() {
 			setCommentText('')
 			setCommentImageFile(null)
 			setCommentImagePreview('')
+			setCommentImageUrl('')
+			setReplyImageUrl('')
 			return
 		}
 
@@ -649,6 +702,8 @@ function Forum() {
 		setCommentText('')
 		setCommentImageFile(null)
 		setCommentImagePreview('')
+		setCommentImageUrl('')
+		setReplyImageUrl('')
 
 		if (!commentsByPost[post.id]) {
 			await loadCommentsForPost(post.id)
@@ -666,10 +721,19 @@ function Forum() {
 		if (!file) return
 
 		setCommentImageFile(file)
+		setUploadingCommentImage(true)
 		try {
 			setCommentImagePreview(await toDataUrl(file))
+			const uploadedUrl = await uploadImage(file)
+			setCommentImageUrl(uploadedUrl)
+			message.success('Tải ảnh bình luận thành công')
 		} catch (error) {
+			setCommentImageFile(null)
+			setCommentImagePreview('')
+			setCommentImageUrl('')
 			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+		} finally {
+			setUploadingCommentImage(false)
 		}
 
 		event.target.value = ''
@@ -680,16 +744,30 @@ function Forum() {
 		if (!file) return
 
 		setReplyImageFile(file)
+		setUploadingReplyImage(true)
 		try {
 			setReplyImagePreview(await toDataUrl(file))
+			const uploadedUrl = await uploadImage(file)
+			setReplyImageUrl(uploadedUrl)
+			message.success('Tải ảnh phản hồi thành công')
 		} catch (error) {
+			setReplyImageFile(null)
+			setReplyImagePreview('')
+			setReplyImageUrl('')
 			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+		} finally {
+			setUploadingReplyImage(false)
 		}
 
 		event.target.value = ''
 	}
 
 	const handleCreateComment = async (postId) => {
+		if (uploadingCommentImage) {
+			message.warning('Ảnh bình luận đang được tải lên, vui lòng đợi')
+			return
+		}
+
 		if (!commentText.trim() && !commentImageFile) {
 			message.warning('Vui lòng nhập bình luận hoặc chọn ảnh')
 			return
@@ -697,7 +775,7 @@ function Forum() {
 
 		try {
 			setSubmittingComment(true)
-			const imageUrl = commentImageFile ? await uploadImage(commentImageFile) : null
+			const imageUrl = commentImageUrl || null
 			const createdComment = await createComment({
 				postId,
 				parentId: null,
@@ -718,6 +796,7 @@ function Forum() {
 			setCommentText('')
 			setCommentImageFile(null)
 			setCommentImagePreview('')
+			setCommentImageUrl('')
 			setApiPosts((prev) =>
 				prev.map((item) =>
 					item.id === postId
@@ -738,6 +817,11 @@ function Forum() {
 	const handleReplyComment = async () => {
 		if (!replyingComment?.postId || !replyingComment?.parentId) return
 
+		if (uploadingReplyImage) {
+			message.warning('Ảnh phản hồi đang được tải lên, vui lòng đợi')
+			return
+		}
+
 		if (!replyText.trim() && !replyImageFile) {
 			message.warning('Vui lòng nhập reply hoặc chọn ảnh')
 			return
@@ -745,7 +829,7 @@ function Forum() {
 
 		try {
 			setSubmittingReply(true)
-			const imageUrl = replyImageFile ? await uploadImage(replyImageFile) : null
+			const imageUrl = replyImageUrl || null
 			const createdReply = await createComment({
 				postId: replyingComment.postId,
 				parentId: replyingComment.parentId,
@@ -770,6 +854,7 @@ function Forum() {
 			setReplyText('')
 			setReplyImageFile(null)
 			setReplyImagePreview('')
+			setReplyImageUrl('')
 			setApiPosts((prev) =>
 				prev.map((item) =>
 					item.id === createdReply.postId
@@ -986,8 +1071,10 @@ function Forum() {
 															onClick={() => {
 																setCommentImageFile(null)
 																setCommentImagePreview('')
+																setCommentImageUrl('')
 															}}
 															className={styles.removeImageBtn}
+															disabled={uploadingCommentImage}
 														>
 															Gỡ ảnh
 														</button>
@@ -1001,15 +1088,19 @@ function Forum() {
 														onChange={handlePickCommentImage}
 														hidden
 													/>
-													<button type="button" onClick={() => commentImageInputRef.current?.click()}>
+															<button
+																type="button"
+																onClick={() => commentImageInputRef.current?.click()}
+																disabled={uploadingCommentImage || submittingComment}
+															>
 														<FaImage /> Ảnh
 													</button>
 													<button
 														type="button"
 														onClick={() => handleCreateComment(post.id)}
-														disabled={submittingComment}
+																disabled={submittingComment || uploadingCommentImage}
 													>
-														{submittingComment ? 'Đang gửi...' : 'Gửi'}
+																{submittingComment ? 'Đang gửi...' : uploadingCommentImage ? 'Đang tải ảnh...' : 'Gửi'}
 													</button>
 												</div>
 											</div>
@@ -1051,6 +1142,7 @@ function Forum() {
 																	setReplyText(`@${thread.main.user.fullName} `)
 																	setReplyImageFile(null)
 																	setReplyImagePreview('')
+																	setReplyImageUrl('')
 																}}
 															>
 																Reply
@@ -1081,8 +1173,10 @@ function Forum() {
 																			onClick={() => {
 																				setReplyImageFile(null)
 																				setReplyImagePreview('')
+																				setReplyImageUrl('')
 																			}}
 																			className={styles.removeImageBtn}
+																			disabled={uploadingReplyImage}
 																		>
 																			Gỡ ảnh
 																		</button>
@@ -1101,6 +1195,7 @@ function Forum() {
 																	<button
 																		type="button"
 																		onClick={() => replyImageInputRef.current?.click()}
+																		disabled={uploadingReplyImage || submittingReply}
 																	>
 																		<FaImage /> Ảnh
 																	</button>
@@ -1108,9 +1203,9 @@ function Forum() {
 																	<button
 																		type="button"
 																		onClick={handleReplyComment}
-																		disabled={submittingReply}
+																		disabled={submittingReply || uploadingReplyImage}
 																	>
-																		{submittingReply ? 'Đang gửi...' : 'Gửi reply'}
+																		{submittingReply ? 'Đang gửi...' : uploadingReplyImage ? 'Đang tải ảnh...' : 'Gửi reply'}
 																	</button>
 
 																	<button
@@ -1120,6 +1215,7 @@ function Forum() {
 																			setReplyText('')
 																			setReplyImageFile(null)
 																			setReplyImagePreview('')
+																			setReplyImageUrl('')
 																		}}
 																	>
 																		Hủy
@@ -1228,8 +1324,10 @@ function Forum() {
 								onClick={() => {
 									setComposerImageFile(null)
 									setComposerImagePreview('')
+									setComposerImageUrl('')
 								}}
 								className={styles.removeImageBtn}
+								disabled={uploadingComposerImage}
 							>
 								Gỡ ảnh
 							</button>
@@ -1244,11 +1342,15 @@ function Forum() {
 							onChange={handlePickComposerImage}
 							hidden
 						/>
-						<button type="button" onClick={() => postImageInputRef.current?.click()}>
+						<button
+							type="button"
+							onClick={() => postImageInputRef.current?.click()}
+							disabled={uploadingComposerImage || submittingPost}
+						>
 							<FaImage /> Chọn ảnh
 						</button>
-						<button type="button" onClick={handleCreatePost} disabled={submittingPost || loadingTopics}>
-							{submittingPost ? 'Đang đăng...' : 'Đăng bài'}
+						<button type="button" onClick={handleCreatePost} disabled={submittingPost || loadingTopics || uploadingComposerImage}>
+							{submittingPost ? 'Đang đăng...' : uploadingComposerImage ? 'Đang tải ảnh...' : 'Đăng bài'}
 						</button>
 						<button
 							type="button"
@@ -1296,6 +1398,7 @@ function Forum() {
 														...prev,
 														imageFile: null,
 														imagePreview: '',
+																	imageUrl: '',
 														existingImageUrl: '',
 												  }
 												: prev,
@@ -1316,13 +1419,17 @@ function Forum() {
 								onChange={handlePickEditImage}
 								hidden
 							/>
-							<button type="button" onClick={() => postImageInputRef.current?.click()}>
+							<button
+								type="button"
+								onClick={() => postImageInputRef.current?.click()}
+								disabled={uploadingEditImage || submittingEditPost}
+							>
 								<FaImage /> Chọn ảnh khác
 							</button>
-							<button type="button" onClick={handleSaveEditedPost} disabled={submittingEditPost || loadingTopics}>
-								{submittingEditPost ? 'Đang lưu...' : 'Lưu chỉnh sửa'}
+							<button type="button" onClick={handleSaveEditedPost} disabled={submittingEditPost || loadingTopics || uploadingEditImage}>
+								{submittingEditPost ? 'Đang lưu...' : uploadingEditImage ? 'Đang tải ảnh...' : 'Lưu chỉnh sửa'}
 							</button>
-							<button type="button" onClick={closeEditModal}>
+							<button type="button" onClick={closeEditModal} disabled={uploadingEditImage || submittingEditPost}>
 								Hủy
 							</button>
 						</div>

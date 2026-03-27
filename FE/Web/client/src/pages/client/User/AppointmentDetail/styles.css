@@ -415,3 +415,21 @@ body.modal-open {
 .no-animate .appointment-card {
   animation: none !important;
 }
+
+.diagnosis-modal .ant-modal-content {
+  border-radius: 14px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.diagnosis-modal-shell {
+  position: relative;
+  background: var(--color-surface-card);
+}
+
+.diagnosis-loading-wrap {
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
