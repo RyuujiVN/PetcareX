@@ -154,7 +154,8 @@ export default function ListMedicalRecords() {
 							<table>
 								<thead>
 									<tr>
-										<th>THÚ CƯNG & CHỦ NUÔI</th>
+										<th>THÚ CƯNG</th>
+										<th>CHỦ NUÔI</th>
 										<th>NGÀY TẠO</th>
 										<th>THỜI GIAN</th>
 										<th>THAO TÁC</th>
@@ -174,10 +175,10 @@ export default function ListMedicalRecords() {
 													</div>
 													<div className={styles.petInfo}>
 														<strong>{row.petName}</strong>
-														<p>{row.ownerName}</p>
 													</div>
 												</div>
 											</td>
+											<td>{row.ownerName}</td>
 											<td>{row.createdDate}</td>
 											<td>{row.time}</td>
 											<td>

@@ -137,9 +137,9 @@
 }
 
 .ownerName {
-  display: block;
-  color: #000000;
+  color: #1f344e;
   font-size: 14px;
+  line-height: 1.2;
 }
 
 .serviceTag,
