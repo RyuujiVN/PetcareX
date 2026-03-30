@@ -4,6 +4,7 @@ import {
   Injectable,
   OnModuleDestroy,
   OnModuleInit,
+  ServiceUnavailableException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { io, Socket as ClientSocket } from 'socket.io-client';
@@ -41,6 +42,7 @@ export class AiClientService implements OnModuleInit, OnModuleDestroy {
     this.socket.io.on('reconnect_failed', () => {
       console.error('AI server unreachable after 3 attempts');
     });
+
     this.socket.on('chat_response', (data) => {
       this.chatBotGateway.sendMessageToClient(data.room_id, data);
     });

@@ -22,6 +22,8 @@ export default function ChatBotAI() {
   const rooms = useSelector((state) => state.room.rooms || []);
   const navigate = useNavigate();
 
+  console.log(rooms);
+
   const { roomId } = useParams();
   const activeConversation = roomId;
 

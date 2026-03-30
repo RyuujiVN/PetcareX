@@ -14,6 +14,7 @@ import { Spin } from "antd";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "github-markdown-css/github-markdown-light.css";
+import { addRoom } from "../../../../redux/slices/roomSlice";
 
 const MessageBox = () => {
   const messages = useSelector((state) => state.message.messages);
@@ -33,15 +34,15 @@ const MessageBox = () => {
   const [isAiWaitingFirstToken, setIsAiWaitingFirstToken] = useState(false);
 
   const handleSendMessage = (value) => {
-    if (isAiLoading) return;
+    value.content = value.content?.trim();
+    if (isAiLoading || !value.content) return;
 
-    const content = value?.content?.trim();
     value.sendBy = "USER";
-    if (!content) return;
+    value.roomId = roomId;
 
     setIsAiLoading(true);
     setIsAiWaitingFirstToken(true);
-    socket.emit("message", { ...value, roomId, content });
+    socket.emit("message", value);
     form.resetFields(["content"]);
     scrollToBottom();
   };
@@ -69,7 +70,7 @@ const MessageBox = () => {
     inputRef.current?.focus(); // focus lại input
   };
 
-  // Chạy lần đầy
+  // Chạy lần đầu
   useEffect(() => {
     const init = async () => {
       if (roomId) {
@@ -133,16 +134,25 @@ const MessageBox = () => {
       dispatch(editAiMessage(payload));
     };
 
+    // Lắng nghe server trả room khi nhắn lần đầu chưa có room
+    const serverResponseNewRoom = (data) => {
+      dispatch(addRoom(data));
+      navigate(`/chatbot/${data.id}`);
+    };
+
     socket.on("aiResponse", onAiResponse);
     socket.on("serverResponseAIMessage", serverResponseAIMessage);
     socket.on("serverResponseMessage", onServerResponseMessage);
     socket.on("serverResponseRoom", onServerResponseRoom);
+    socket.on("serverResponseNewRoom", serverResponseNewRoom);
 
     return () => {
       socket.off("aiResponse", onAiResponse);
       socket.off("serverResponseMessage", onServerResponseMessage);
       socket.off("serverResponseAIMessage", serverResponseAIMessage);
       socket.off("serverResponseRoom", onServerResponseRoom);
+      socket.off("serverResponseNewRoom", serverResponseNewRoom);
+
       if (roomId) {
         socket.emit("leaveRoom", { roomId });
       }

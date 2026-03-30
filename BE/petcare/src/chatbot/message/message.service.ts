@@ -19,7 +19,7 @@ export class MessageService {
       const roomRepo = manager.getRepository(ChatbotRoom);
       const room = await roomRepo.findOne({ where: { id: createDTO.roomId } });
 
-      if (!room) {
+      if (!room || !createDTO.roomId) {
         const roomPayload = {
           userId: userId,
           name: createDTO.content.slice(0, 30),
