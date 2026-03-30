@@ -14,6 +14,7 @@ import '../../auth/presentation/providers/auth_provider.dart';
 import '../data/models/community_models.dart';
 import 'create_post_page.dart';
 import 'provider/community_provider.dart';
+import 'widgets/image_viewer.dart';
 
 class CommunityPage extends StatefulWidget {
   const CommunityPage({super.key});
@@ -85,6 +86,190 @@ class _CommunityPageState extends State<CommunityPage> {
     return segments.join('\n');
   }
 
+  Widget _buildImageGrid(
+    List<String> imageUrls, {
+    double maxHeight = 300,
+    bool compact = false,
+  }) {
+    final displayCount = imageUrls.length > 4 ? 4 : imageUrls.length;
+    final hasMore = imageUrls.length > 4;
+    final moreCount = imageUrls.length - 4;
+
+    if (displayCount == 1) {
+      return _buildSingleImage(imageUrls[0], maxHeight);
+    }
+
+    if (displayCount == 2) {
+      return _buildTwoImages(imageUrls, maxHeight);
+    }
+
+    if (displayCount == 3) {
+      return _buildThreeImages(imageUrls, maxHeight);
+    }
+
+    // displayCount == 4
+    return _buildFourImages(imageUrls, maxHeight, hasMore, moreCount);
+  }
+
+  Widget _buildSingleImage(String url, double maxHeight) {
+    return GestureDetector(
+      onTap: () => ImageViewer.show(context, [url], initialIndex: 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          width: double.infinity,
+          height: maxHeight,
+          color: AppColors.background,
+          child: CachedNetworkImage(
+            imageUrl: ImageHelper.getThumbnailUrl(url),
+            fit: BoxFit.contain,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTwoImages(List<String> imageUrls, double maxHeight) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildImageItem(imageUrls[0], 0, imageUrls, maxHeight),
+        ),
+        const SizedBox(width: 4),
+        Expanded(
+          child: _buildImageItem(imageUrls[1], 1, imageUrls, maxHeight),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildThreeImages(List<String> imageUrls, double maxHeight) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildImageItem(imageUrls[0], 0, imageUrls, maxHeight * 0.5),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _buildImageItem(imageUrls[1], 1, imageUrls, maxHeight * 0.5),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        _buildImageItem(imageUrls[2], 2, imageUrls, maxHeight * 0.5),
+      ],
+    );
+  }
+
+  Widget _buildFourImages(
+    List<String> imageUrls,
+    double maxHeight,
+    bool hasMore,
+    int moreCount,
+  ) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: _buildImageItem(imageUrls[0], 0, imageUrls, maxHeight * 0.5),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _buildImageItem(imageUrls[1], 1, imageUrls, maxHeight * 0.5),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: _buildImageItem(imageUrls[2], 2, imageUrls, maxHeight * 0.5),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: _buildImageItemWithOverlay(
+                imageUrls[3],
+                3,
+                imageUrls,
+                maxHeight * 0.5,
+                hasMore ? moreCount : 0,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildImageItem(
+    String url,
+    int index,
+    List<String> allUrls,
+    double height,
+  ) {
+    return GestureDetector(
+      onTap: () => ImageViewer.show(context, allUrls, initialIndex: index),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          height: height,
+          color: AppColors.background,
+          child: CachedNetworkImage(
+            imageUrl: ImageHelper.getThumbnailUrl(url),
+            fit: BoxFit.cover,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildImageItemWithOverlay(
+    String url,
+    int index,
+    List<String> allUrls,
+    double height,
+    int moreCount,
+  ) {
+    return GestureDetector(
+      onTap: () => ImageViewer.show(context, allUrls, initialIndex: index),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          children: [
+            Container(
+              height: height,
+              color: AppColors.background,
+              child: CachedNetworkImage(
+                imageUrl: ImageHelper.getThumbnailUrl(url),
+                fit: BoxFit.cover,
+              ),
+            ),
+            if (moreCount > 0)
+              Container(
+                height: height,
+                decoration: BoxDecoration(
+                  color: AppColors.black.withValues(alpha: 0.5),
+                ),
+                child: Center(
+                  child: Text(
+                    '+$moreCount',
+                    style: const TextStyle(
+                      color: AppColors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildHtmlContentView(
     String rawContent, {
     required TextStyle textStyle,
@@ -108,19 +293,10 @@ class _CommunityPageState extends State<CommunityPage> {
           ),
         if (imageUrls.isNotEmpty) ...[
           SizedBox(height: compact ? 8 : 12),
-          ...imageUrls.map(
-            (url) => Padding(
-              padding: EdgeInsets.only(bottom: compact ? 8 : 12),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(compact ? 10 : 16),
-                child: CachedNetworkImage(
-                  imageUrl: ImageHelper.getThumbnailUrl(url),
-                  width: double.infinity,
-                  height: imageHeight,
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
+          _buildImageGrid(
+            imageUrls,
+            maxHeight: compact ? 160 : imageHeight,
+            compact: compact,
           ),
         ],
       ],

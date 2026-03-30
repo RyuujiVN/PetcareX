@@ -287,7 +287,7 @@ async def handle_default_message_event(sid, data):
         await handle_chat(sid, data)
 
 @sio.on('stop_chat')
-async def handle_stop_chat(sid, data):
+async def handle_stop_chat(sid, *args):
     global_stop_criteria.stop_event.set()   
     await sio.emit('chat_response', {"type": "status", "status": "Stopped"}, to=sid)
 
