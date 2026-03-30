@@ -1,24 +1,14 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import {
   Row, Col, Card, Statistic, Table, Tag, Button, Space,
-  Typography, Avatar, Pagination, Flex, Popconfirm,
+  Typography, Avatar, Pagination, Flex, Popconfirm, message,
 } from 'antd'
 import {
   PlusOutlined, EyeOutlined, DeleteOutlined,
   MedicineBoxOutlined, UserOutlined, FileTextOutlined,
 } from '@ant-design/icons'
+import { getClinicListApi, deleteClinicApi } from '../../../../data/admin/api/clinicApi'
 import './style.css'
-
-// TODO: thay bằng enum từ thư mục enum khi backend cung cấp clinic status
-const CLINIC_STATUS = {
-  ACTIVE: 'ACTIVE',
-  INACTIVE: 'INACTIVE',
-}
-
-const CLINIC_STATUS_MAP = {
-  [CLINIC_STATUS.ACTIVE]: { color: 'success', label: 'Hoạt động' },
-  [CLINIC_STATUS.INACTIVE]: { color: 'error', label: 'Dừng hoạt động' },
-}
 
 /**
  * Lấy 2 chữ cái viết tắt từ tên phòng khám.
@@ -48,15 +38,11 @@ const formatDate = (date) => {
 
 export default function Clinics() {
   const [clinicList, setClinicList] = useState([])
-  // TODO: gọi API lấy danh sách phòng khám
-
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
     total: 0,
   })
-  // TODO: cập nhật total từ response API
-
   const [loading, setLoading] = useState(false)
 
   // TODO: gọi API lấy số liệu thống kê
@@ -66,12 +52,40 @@ export default function Clinics() {
     totalPosts: 0,
   })
 
+  const fetchClinics = useCallback(async (page, pageSize) => {
+    setLoading(true)
+    try {
+      const data = await getClinicListApi(page, pageSize)
+      setClinicList(data.items || [])
+      setPagination({
+        current: data.meta.currentPage,
+        pageSize: data.meta.itemsPerPage,
+        total: data.meta.totalItems,
+      })
+    } catch (error) {
+      message.error(error.message || 'Không thể tải danh sách phòng khám')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchClinics(pagination.current, pagination.pageSize)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleView = (id) => {
     // TODO: điều hướng đến trang chi tiết phòng khám
   }
 
-  const handleDelete = (id) => {
-    // TODO: gọi API xóa phòng khám theo id
+  const handleDelete = async (id) => {
+    try {
+      await deleteClinicApi(id)
+      message.success('Xóa phòng khám thành công')
+      fetchClinics(pagination.current, pagination.pageSize)
+    } catch (error) {
+      message.error(error.message || 'Không thể xóa phòng khám')
+    }
   }
 
   const handleAdd = () => {
@@ -79,8 +93,7 @@ export default function Clinics() {
   }
 
   const handlePageChange = (page, pageSize) => {
-    setPagination((prev) => ({ ...prev, current: page, pageSize }))
-    // TODO: gọi API với params page và pageSize mới
+    fetchClinics(page, pageSize)
   }
 
   const columns = [
@@ -103,14 +116,14 @@ export default function Clinics() {
       key: 'phone',
     },
     {
-      title: 'VỊ TRÍ',
-      dataIndex: 'location',
-      key: 'location',
+      title: 'ĐỊA CHỈ',
+      dataIndex: 'address',
+      key: 'address',
     },
     {
-      title: 'NGÀY THÀNH LẬP',
-      dataIndex: 'establishedDate',
-      key: 'establishedDate',
+      title: 'NGÀY TẠO',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       render: (date) => formatDate(date),
     },
     {
@@ -120,11 +133,13 @@ export default function Clinics() {
     },
     {
       title: 'TRẠNG THÁI',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status) => {
-        const config = CLINIC_STATUS_MAP[status] || { color: 'default', label: status }
-        return <Tag color={config.color}>{config.label}</Tag>
+      dataIndex: 'deleted',
+      key: 'deleted',
+      render: (deleted) => {
+        if (deleted) {
+          return <Tag color="error">Dừng hoạt động</Tag>
+        }
+        return <Tag color="success">Hoạt động</Tag>
       },
     },
     {
