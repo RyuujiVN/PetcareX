@@ -8,8 +8,11 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Input } from 'antd'
+import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/adminClinic/AuthContext'
+import { getPrimaryRole } from '../../constants/authRole'
+import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import styles from './AdminVererianrianLayout.module.css'
 
@@ -35,7 +38,8 @@ const getClinicDisplayName = (profile) => {
 export default function AdminVererianrianLayout() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { userProfile, logout } = useAuth()
+  const { token, userProfile, logout, activeRole } = useAuth()
+  const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
   const clinicDisplayName = getClinicDisplayName(userProfile)
   const hideSearchRoutes = [
     '/admin/veterinarian/exam-forms/create',
@@ -46,6 +50,24 @@ export default function AdminVererianrianLayout() {
     logout()
     navigate('/login', { replace: true })
   }
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login', { replace: true })
+      return
+    }
+
+    if (!effectiveRole) return
+
+    if (effectiveRole === RoleEnum.ADMIN_CLINIC) {
+      navigate('/admin/clinic/appointments', { replace: true })
+      return
+    }
+
+    if (effectiveRole === RoleEnum.ADMIN) {
+      navigate('/admin/home', { replace: true })
+    }
+  }, [token, effectiveRole, navigate])
 
   return (
     <div className={styles.layout}>

@@ -13,7 +13,7 @@ import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { getAuthPortalByRole, getPostLoginPathByRole } from "../../../../constants/authRole";
 import { registerApi } from "../../../../data/client/api/auth";
-import { useAuth as useAdminAuth } from "../../../../hooks/adminClinic/AuthContext";
+import { useAuth as useAdminAuth } from "../../../../hooks/Clinic/AuthContext";
 import { useAuth } from "../../../../hooks/client/AuthContext";
 import { authenticateClientWithGoogle } from "../../../../utils/clientGoogleAuth";
 import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from "../../../../utils/firebaseClient";

@@ -1,4 +1,4 @@
-﻿import { FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
+import { FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from "react-icons/fa";
 import { useLocation, useNavigate } from "react-router-dom";
 import "../HomePage/styles.css"; 
 import "./HomePageClinic.css";
@@ -25,7 +25,7 @@ export default function HomePageClinic() {
       id: 2,
       icon: <FaRobot className="feature-icon" />,
       title: "Hồ sơ Y tế",
-      description: "Cho bạn xem được chi tiết hồ sơ của thú cưng của bạn khi khám xong.",
+      description: "Cho bạn xem được chi tiết hồ sơ của thú cưng khi khám xong.",
       colorClass: "purple-bg"
     },
     {
@@ -69,22 +69,22 @@ export default function HomePageClinic() {
 
   const servicesLeft = [
     { id: 1, title: 'CẤP CỨU 24/7',
-      description: 'PetCareX Phòng khám thú cưng luôn cấp cứu 24/7, sẵn sàng bên bé mọi lúc, mọi nơi. Vì mỗi nhịp tim nhỏ bé đều xứng đáng được bảo vệ và yêu thương.'
+      description: 'PetCareX phòng khám thú cưng luôn cấp cứu 24/7, sẵn sàng bên bé mọi lúc, mọi nơi. Vì mỗi nhịp tim nhỏ bé đều xứng đáng được bảo vệ và yêu thương.'
     },
     { id: 3, title: 'ĐỘI NGŨ BÁC SĨ',
       description: 'Đội ngũ bác sĩ giàu kinh nghiệm, tận tâm và yêu thương thú cưng, luôn đặt sức khỏe và sự an toàn của bé lên hàng đầu.'
     },
     { id: 5, title: 'KHÁM CHỮA BỆNH TẠI NHÀ',
-      description: 'Dịch vụ khám và điều trị thú cưng tại nhà – tiện lợi, an toàn, giúp bé được chăm sóc y tế tận nơi trong không gian quen thuộc.'
+      description: 'Dịch vụ khám và điều trị thú cưng tại nhà - tiện lợi, an toàn, giúp bé được chăm sóc y tế tận nơi trong không gian quen thuộc.'
     }
   ];
 
   const servicesRight = [
     { id: 4, title: 'THẨM MỸ',
-      description: 'Phòng khám cung cấp dịch vụ thẩm mỹ thú cưng chuyên nghiệp, giúp bé luôn sạch sẽ, thơm tho và rạng rỡ. Chăm sóc nhẹ nhàng – tạo kiểu tinh tế – nâng tầm vẻ đẹp và sự tự tin cho từng “boss”.'
+      description: 'Phòng khám cung cấp dịch vụ thẩm mỹ thú cưng chuyên nghiệp, giúp bé luôn sạch sẽ, thơm tho và rạng rỡ. Chăm sóc nhẹ nhàng - tạo kiểu tinh tế - nâng tầm vẻ đẹp và sự tự tin cho từng "boss".'
     },
     { id: 2, title: 'TƯ VẤN DINH DƯỠNG',
-      description: 'Dịch vụ tư vấn dinh dưỡng thú cưng – xây dựng khẩu phần ăn khoa học theo từng độ tuổi và tình trạng sức khỏe, giúp bé phát triển khỏe mạnh và phòng ngừa bệnh tật.'
+      description: 'Dịch vụ tư vấn dinh dưỡng thú cưng - xây dựng khẩu phần ăn khoa học theo từng độ tuổi và tình trạng sức khỏe, giúp bé phát triển khỏe mạnh và phòng ngừa bệnh tật.'
     },
     { id: 6, title: 'TRANG THIẾT BỊ KHÁM',
       description: 'Phòng khám được trang bị thiết bị y tế hiện đại, hỗ trợ chẩn đoán nhanh và chính xác như máy xét nghiệm, siêu âm, X-quang,...'
@@ -148,8 +148,8 @@ export default function HomePageClinic() {
             <button className="btn btn-secondary">ĐỌC THÊM -</button>
           </div>
           <div className="about-highlight">
-            <div className="highlight-number">20 NĂM</div>
-            <div className="highlight-label">5 CHI NHÁNH</div>
+            <div className="highlight-number">20 NAM</div>
+            <div className="highlight-label">5 CHI NHANH</div>
           </div>
         </div>
       </section>
@@ -245,4 +245,3 @@ export default function HomePageClinic() {
     </div>
   );
 }
-

@@ -1,9 +1,11 @@
 import { CalendarOutlined, FileSearchOutlined, KeyOutlined, LineChartOutlined, LogoutOutlined, MedicineBoxOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
 import { Avatar, Button, Dropdown, Form, Input, Modal, message } from 'antd'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { changePasswordApi } from '../../data/adminClinic/api/auth'
 import { useAuth } from '../../hooks/adminClinic/AuthContext'
+import { getPrimaryRole } from '../../constants/authRole'
+import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import styles from './AdminClinicLayout.module.css'
 
@@ -40,8 +42,27 @@ export default function AdminClinicLayout() {
   const [passwordForm] = Form.useForm()
   const navigate = useNavigate()
   const location = useLocation()
-  const { userProfile, logout, login } = useAuth()
+  const { token, userProfile, logout, login, activeRole } = useAuth()
+  const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
   const clinicDisplayName = getClinicDisplayName(userProfile)
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login', { replace: true })
+      return
+    }
+
+    if (!effectiveRole) return
+
+    if (effectiveRole === RoleEnum.VETERINARIAN) {
+      navigate('/admin/veterinarian/appointments', { replace: true })
+      return
+    }
+
+    if (effectiveRole === RoleEnum.ADMIN) {
+      navigate('/admin/home', { replace: true })
+    }
+  }, [token, effectiveRole, navigate])
 
   const handleLogout = () => {
     logout()

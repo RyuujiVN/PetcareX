@@ -9,8 +9,11 @@ import {
   UserOutlined,
 } from '@ant-design/icons'
 import { Avatar, Badge, Input } from 'antd'
+import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/adminClinic/AuthContext'
+import { useAuth } from '../../hooks/Clinic/AuthContext'
+import { getPrimaryRole } from '../../constants/authRole'
+import { RoleEnum } from '../../enum/role.enum'
 import '../../styles/admin/colorsToken.css'
 import styles from './AdminLayout.module.css'
 
@@ -28,7 +31,24 @@ const isMenuActive = (pathname, path) => {
 export default function AdminLayout() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { userProfile, logout } = useAuth()
+  const { token, userProfile, logout, activeRole } = useAuth()
+  const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login', { replace: true })
+      return
+    }
+
+    if (!effectiveRole || effectiveRole === RoleEnum.ADMIN) return
+
+    if (effectiveRole === RoleEnum.ADMIN_CLINIC) {
+      navigate('/admin/clinic/appointments', { replace: true })
+      return
+    }
+
+    navigate('/admin/veterinarian/appointments', { replace: true })
+  }, [token, effectiveRole, navigate])
 
   const handleLogout = () => {
     logout()

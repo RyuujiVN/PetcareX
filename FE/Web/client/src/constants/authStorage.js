@@ -6,6 +6,7 @@ export const CLIENT_AUTH_STORAGE = {
 export const ADMIN_AUTH_STORAGE = {
   tokenKey: 'adminAccessToken',
   userInfoKey: 'adminUserInfo',
+  activeRoleKey: 'adminActiveRole',
 };
 
 export const LEGACY_AUTH_STORAGE = {

@@ -410,4 +410,3 @@ function MedicalRecords() {
 }
 
 export default MedicalRecords
-

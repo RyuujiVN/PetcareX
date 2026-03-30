@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getUserProfileApi } from "../../data/adminClinic/api/user";
+import { getPrimaryRole } from "../../constants/authRole";
 import {
 	ADMIN_AUTH_STORAGE,
 	clearAuthStorage,
@@ -50,6 +51,9 @@ const mergeClinicMetadata = (profile, fallbackProfile = null) => {
 export const AuthProvider = ({ children }) => {
 	const [token, setToken] = useState(localStorage.getItem(ADMIN_AUTH_STORAGE.tokenKey));
 	const [userProfile, setUserProfile] = useState(null);
+	const [activeRole, setActiveRole] = useState(
+		localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey) || null,
+	);
 
 	useEffect(() => {
 		clearLegacyAuthStorage();
@@ -58,18 +62,32 @@ export const AuthProvider = ({ children }) => {
 	useEffect(() => {
 		if (token) {
 			const cachedProfile = readStoredAdminProfile();
+			const storedRole = localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey);
+			if (!storedRole && cachedProfile) {
+				const cachedRole = getPrimaryRole(cachedProfile);
+				setActiveRole(cachedRole);
+				localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, cachedRole);
+			}
 
 			getUserProfileApi()
 				.then((res) => {
 					const mergedProfile = mergeClinicMetadata(res.data, cachedProfile);
 					setUserProfile(mergedProfile);
 					localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+
+					if (!localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey)) {
+						const resolvedRole = getPrimaryRole(mergedProfile);
+						setActiveRole(resolvedRole);
+						localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
+					}
 				})
 				.catch(() => {
 					setUserProfile(cachedProfile || null);
 				});
 		} else {
 			setUserProfile(null);
+			setActiveRole(null);
+			localStorage.removeItem(ADMIN_AUTH_STORAGE.activeRoleKey);
 		}
 	}, [token]);
 
@@ -78,8 +96,11 @@ export const AuthProvider = ({ children }) => {
 		localStorage.setItem(ADMIN_AUTH_STORAGE.tokenKey, accessToken);
 		if (profile) {
 			const mergedProfile = mergeClinicMetadata(profile, readStoredAdminProfile());
+			const resolvedRole = getPrimaryRole(mergedProfile);
 			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+			localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
 			setUserProfile(mergedProfile);
+			setActiveRole(resolvedRole);
 		}
 		setToken(accessToken);
 	};
@@ -87,8 +108,10 @@ export const AuthProvider = ({ children }) => {
 	const logout = () => {
 		clearAuthStorage(ADMIN_AUTH_STORAGE);
 		clearLegacyAuthStorage();
+		localStorage.removeItem(ADMIN_AUTH_STORAGE.activeRoleKey);
 		setToken(null);
 		setUserProfile(null);
+		setActiveRole(null);
 	};
 
 	const refreshUserProfile = async () => {
@@ -98,6 +121,11 @@ export const AuthProvider = ({ children }) => {
 			const mergedProfile = mergeClinicMetadata(res.data, readStoredAdminProfile());
 			setUserProfile(mergedProfile);
 			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+			if (!localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey)) {
+				const resolvedRole = getPrimaryRole(mergedProfile);
+				setActiveRole(resolvedRole);
+				localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
+			}
 			return mergedProfile;
 		} catch {
 			setUserProfile(null);
@@ -105,7 +133,7 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	return (
-		<AuthContext.Provider value={{ token, login, logout, userProfile, refreshUserProfile }}>
+		<AuthContext.Provider value={{ token, login, logout, userProfile, refreshUserProfile, activeRole }}>
 			{children}
 		</AuthContext.Provider>
 	);
