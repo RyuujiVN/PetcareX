@@ -1,8 +1,5 @@
 .pageRoot {
 	max-width: 1220px;
-	margin: 0 auto;
-	padding: 6px 4px 20px;
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .loadingWrap {
@@ -33,7 +30,7 @@
 	width: 38px;
 	height: 38px;
 	border-radius: 50%;
-	background: #1ed4c8;
+	background: #4672b4;
 	color: #fff;
 	display: inline-flex;
 	align-items: center;
@@ -66,7 +63,7 @@
 	margin: 0;
 	font-size: 18px;
 	font-weight: 800;
-	color: #1ad5c9;
+	color: #4672b4;
 }
 
 .headerMeta span {
@@ -255,8 +252,8 @@
 }
 
 .saveBtn {
-	background: #1fd6ca !important;
-	border-color: #1fd6ca !important;
+	background: #4672b4 !important;
+	border-color: #4672b4 !important;
 	color: #fff !important;
 	box-shadow: none;
 }

@@ -184,6 +184,11 @@
 	color: #788aa0;
 }
 
+.paginationArrows {
+	display: inline-flex;
+	gap: 8px;
+}
+
 .loadingWrap,
 .emptyWrap {
 	min-height: 380px;

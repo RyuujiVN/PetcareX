@@ -135,7 +135,7 @@ export default function ViewPetMedicalRecords() {
 				const detail = await getMedicalById(medicalId)
 				records = detail ? [detail] : []
 			} else if (petId) {
-				const byPet = await getMedicalByPetId(petId)
+				const byPet = await getMedicalByPetId(petId, 1, 200)
 				records = Array.isArray(byPet?.items)
 					? byPet.items
 					: Array.isArray(byPet?.data)
@@ -161,6 +161,12 @@ export default function ViewPetMedicalRecords() {
 				}
 				return
 			}
+
+			records.sort((a, b) => {
+				const aTime = new Date(a?.createdAt || 0).getTime()
+				const bTime = new Date(b?.createdAt || 0).getTime()
+				return aTime - bTime
+			})
 
 			const enriched = await Promise.all(
 				records.map(async (record) => {

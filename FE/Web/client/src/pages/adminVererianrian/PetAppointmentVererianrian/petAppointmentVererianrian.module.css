@@ -86,7 +86,7 @@
 
 .tableHeadRow {
   display: grid;
-  grid-template-columns: 2.2fr 1.1fr 1fr 1.1fr 1.3fr;
+  grid-template-columns: 2.4fr 1.2fr 1fr 1.6fr;
   gap: 12px;
   background: #f3f6fb;
   border: 1px solid #e0e7f3;
@@ -100,11 +100,20 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 2.2fr 1.1fr 1fr 1.1fr 1.3fr;
+  grid-template-columns: 2.4fr 1.2fr 1fr 1.6fr;
   gap: 12px;
   align-items: center;
   border-bottom: 1px solid #edf2fb;
   padding: 12px 8px;
+}
+
+.loadingWrap,
+.emptyText {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 160px;
+  color: #6f809d;
 }
 
 .petInfoCol {

@@ -1,22 +1,29 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, DatePicker, Empty, Pagination, Spin, message } from 'antd'
+import { Button, DatePicker, Empty, Spin, message } from 'antd'
+import { EyeOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
-import {
-	CalendarOutlined,
-	CheckCircleOutlined,
-	ClockCircleOutlined,
-	DeleteOutlined,
-	EyeOutlined,
-} from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { Typography } from 'antd'
+import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
 	getVeterinarianAppointmentsApi,
 } from '../../../data/adminVererianrian/api/appointmentApi'
 import styles from './listMedicalRecords.module.css'
 
-const PAGE_SIZE = 6
+const PAGE_SIZE = 4
+
+const getCurrentVeterinarianUserId = () => {
+	try {
+		const raw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+		if (!raw) return ''
+
+		const profile = JSON.parse(raw)
+		return profile?.id || profile?.user?.id || ''
+	} catch {
+		return ''
+	}
+}
 
 const formatDate = (value) => {
 	if (!value) return 'Chưa cập nhật'
@@ -40,17 +47,10 @@ const toPetRow = (item) => {
 		medicalId: item?.medical?.id || '',
 		petId: pet?.id || '',
 		petName: pet?.name || 'Chưa cập nhật',
-		petBreed: pet?.breed || '',
-		petSpecies: pet?.species || '',
 		petAvatar: pet?.avatar || '',
-		petDateOfBirth: pet?.dateOfBirth || '',
-		petGender: pet?.gender,
-		petWeight: pet?.weight,
 		ownerName: owner?.fullName || 'Chưa cập nhật',
 		createdDate: formatDate(item?.appointmentDate),
-		timeRange: formatTime(item?.appointmentTime),
-		revisitDate: formatDate(item?.medical?.followUpDate || item?.followUpDate),
-		status: item?.status,
+		time: formatTime(item?.appointmentTime),
 	}
 }
 
@@ -60,7 +60,6 @@ export default function ListMedicalRecords() {
 	const [selectedDate, setSelectedDate] = useState(dayjs())
 	const [currentPage, setCurrentPage] = useState(1)
 	const [rows, setRows] = useState([])
-	const [hiddenRowIds, setHiddenRowIds] = useState([])
 
 	const fetchRecords = useCallback(async () => {
 		try {
@@ -72,9 +71,16 @@ export default function ListMedicalRecords() {
 			})
 
 			const items = Array.isArray(response?.items) ? response.items : []
-			const activeItems = items.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
+			const currentUserId = getCurrentVeterinarianUserId()
+			const activeItems = items
+				.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
+				.filter((item) => {
+					if (!currentUserId) return true
+					const veterinarianUserId = item?.veterinarian?.user?.id
+					return String(veterinarianUserId || '') === String(currentUserId)
+				})
 			const mappedRows = activeItems.map(toPetRow)
-			mappedRows.sort((a, b) => a.timeRange.localeCompare(b.timeRange))
+			mappedRows.sort((a, b) => a.time.localeCompare(b.time))
 			setRows(mappedRows)
 		} catch (error) {
 			setRows([])
@@ -92,32 +98,12 @@ export default function ListMedicalRecords() {
 		setCurrentPage(1)
 	}, [selectedDate])
 
-	const visibleRows = useMemo(
-		() => rows.filter((row) => !hiddenRowIds.includes(row.id)),
-		[rows, hiddenRowIds],
-	)
-
-	const stats = useMemo(() => {
-		const waitingCount = visibleRows.filter((row) => {
-			return row.status === APPOINTMENT_STATUS.BOOKED || row.status === APPOINTMENT_STATUS.IN_PROGRESS
-		}).length
-
-		const completedCount = visibleRows.filter(
-			(row) => row.status === APPOINTMENT_STATUS.COMPLETED,
-		).length
-
-		return {
-			today: visibleRows.length,
-			waiting: waitingCount,
-			completed: completedCount,
-		}
-	}, [visibleRows])
-
 	const paginatedRows = useMemo(() => {
 		const startIndex = (currentPage - 1) * PAGE_SIZE
-		return visibleRows.slice(startIndex, startIndex + PAGE_SIZE)
-	}, [currentPage, visibleRows])
+		return rows.slice(startIndex, startIndex + PAGE_SIZE)
+	}, [currentPage, rows])
 
+	const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
 
 	const handleViewRecords = (row) => {
 		if (!row?.petId) {
@@ -140,17 +126,11 @@ export default function ListMedicalRecords() {
 		})
 	}
 
-	const onHideRow = (rowId) => {
-		setHiddenRowIds((prev) => [...prev, rowId])
-	}
-
 	return (
 		<div className={styles.pageRoot}>
 			<section className={styles.tablePanel}>
 				<div className={styles.tablePanelHeader}>
-					<Typography.Title className={styles.panelTitle}>
-            			Hồ sơ bệnh án thú cưng
-          			</Typography.Title>
+					<Typography.Title className={styles.panelTitle}>Hồ sơ bệnh án thú cưng</Typography.Title>
 					<DatePicker
 						value={selectedDate}
 						onChange={(value) => setSelectedDate(value || dayjs())}
@@ -164,7 +144,7 @@ export default function ListMedicalRecords() {
 					<div className={styles.loadingWrap}>
 						<Spin size="large" />
 					</div>
-				) : visibleRows.length === 0 ? (
+				) : rows.length === 0 ? (
 					<div className={styles.emptyWrap}>
 						<Empty description="Không có hồ sơ theo ngày đã chọn" />
 					</div>
@@ -177,7 +157,6 @@ export default function ListMedicalRecords() {
 										<th>THÚ CƯNG & CHỦ NUÔI</th>
 										<th>NGÀY TẠO</th>
 										<th>THỜI GIAN</th>
-										<th>NGÀY TÁI KHÁM</th>
 										<th>THAO TÁC</th>
 									</tr>
 								</thead>
@@ -200,15 +179,15 @@ export default function ListMedicalRecords() {
 												</div>
 											</td>
 											<td>{row.createdDate}</td>
-											<td>{row.timeRange}</td>
-											<td>{row.revisitDate}</td>
+											<td>{row.time}</td>
 											<td>
 												<div className={styles.actionWrap}>
-													<Button className={styles.viewBtn} onClick={() => handleViewRecords(row)}>
+													<Button
+														className={styles.viewBtn}
+														onClick={() => handleViewRecords(row)}
+														style={{ backgroundColor: '#4672b4', borderColor: '#4672b4', color: '#fff' }}
+													>
 														<EyeOutlined /> Xem chi tiết
-													</Button>
-													<Button className={styles.deleteBtn} onClick={() => onHideRow(row.id)}>
-														<DeleteOutlined /> Xóa
 													</Button>
 												</div>
 											</td>
@@ -219,15 +198,21 @@ export default function ListMedicalRecords() {
 						</div>
 
 						<div className={styles.footerRow}>
-							<p>Hiển thị {paginatedRows.length} trong số {visibleRows.length} lịch hẹn</p>
-							<Pagination
-								current={currentPage}
-								total={visibleRows.length}
-								pageSize={PAGE_SIZE}
-								onChange={(page) => setCurrentPage(page)}
-								showSizeChanger={false}
-								simple
-							/>
+							<p>Hiển thị {paginatedRows.length} trong số {rows.length} lịch hẹn</p>
+							<div className={styles.paginationArrows}>
+								<Button
+									shape="circle"
+									icon={<LeftOutlined />}
+									disabled={currentPage <= 1}
+									onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+								/>
+								<Button
+									shape="circle"
+									icon={<RightOutlined />}
+									disabled={currentPage >= totalPages}
+									onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+								/>
+							</div>
 						</div>
 					</>
 				)}

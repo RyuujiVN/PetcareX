@@ -1,23 +1,33 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
-	CalendarOutlined,
-	CheckCircleOutlined,
-	ClockCircleOutlined,
-	DeleteOutlined,
 	FileAddOutlined,
+	LeftOutlined,
+	RightOutlined,
 } from '@ant-design/icons'
-import { Avatar, Button, Card, DatePicker, Empty, Modal, Spin, Typography, message } from 'antd'
+import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
 import { useNavigate } from 'react-router-dom'
+import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
-	deleteVeterinarianAppointmentApi,
 	getVeterinarianAppointmentsApi,
 } from '../../../data/adminVererianrian/api/appointmentApi'
 import { getBreedLabel } from '../../../data/client/api/petApi'
 import styles from './listExaminationForm.module.css'
 
 const PAGE_SIZE = 4
+
+const getCurrentVeterinarianUserId = () => {
+	try {
+		const raw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+		if (!raw) return ''
+
+		const profile = JSON.parse(raw)
+		return profile?.id || profile?.user?.id || ''
+	} catch {
+		return ''
+	}
+}
 
 const formatDate = (value) => {
 	if (!value) return '--/--/----'
@@ -34,8 +44,9 @@ const toRecordRow = (item) => {
 		id: String(item?.id || Math.random()),
 		appointmentId: item?.id,
 		status: item?.status,
+		hasMedicalRecord: Boolean(item?.medical?.id),
 		createdDate: formatDate(item?.appointmentDate),
-		revisitDate: formatDate(item?.appointmentDate),
+		appointmentTime: String(item?.appointmentTime || '').slice(0, 5),
 		formName: item?.service || 'Chưa cập nhật',
 		petName: pet?.name || 'Chưa cập nhật',
 		petAvatar: pet?.avatar || '',
@@ -45,32 +56,12 @@ const toRecordRow = (item) => {
 	}
 }
 
-const summaryCardConfig = [
-	{
-		key: 'today',
-		title: 'Lịch hôm nay',
-		icon: <CalendarOutlined />,
-		iconClass: 'summaryIconGreen',
-	},
-	{
-		key: 'waiting',
-		title: 'Đang chờ',
-		icon: <ClockCircleOutlined />,
-		iconClass: 'summaryIconOrange',
-	},
-	{
-		key: 'completed',
-		title: 'Đã hoàn thành',
-		icon: <CheckCircleOutlined />,
-		iconClass: 'summaryIconBlue',
-	},
-]
-
 export default function ListExaminationForm() {
 	const navigate = useNavigate()
 	const [loading, setLoading] = useState(false)
 	const [selectedDate, setSelectedDate] = useState(dayjs())
 	const [rows, setRows] = useState([])
+	const [currentPage, setCurrentPage] = useState(1)
 
 	const fetchAppointments = useCallback(async () => {
 		try {
@@ -82,8 +73,17 @@ export default function ListExaminationForm() {
 			})
 
 			const items = Array.isArray(response?.items) ? response.items : []
-			const activeItems = items.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
-			setRows(activeItems.map(toRecordRow).slice(0, PAGE_SIZE))
+			const currentUserId = getCurrentVeterinarianUserId()
+			const activeItems = items
+				.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
+				.filter((item) => {
+					if (!currentUserId) return true
+					const veterinarianUserId = item?.veterinarian?.user?.id
+					return String(veterinarianUserId || '') === String(currentUserId)
+				})
+			const mappedRows = activeItems.map(toRecordRow)
+			mappedRows.sort((a, b) => String(a.appointmentTime).localeCompare(String(b.appointmentTime)))
+			setRows(mappedRows)
 		} catch (error) {
 			setRows([])
 			message.error(error?.message || 'Không thể tải danh sách phiếu khám')
@@ -96,19 +96,16 @@ export default function ListExaminationForm() {
 		fetchAppointments()
 	}, [fetchAppointments])
 
-	const stats = useMemo(() => {
-		const waitingCount = rows.filter((row) => {
-			return row.status === APPOINTMENT_STATUS.BOOKED || row.status === APPOINTMENT_STATUS.IN_PROGRESS
-		}).length
+	useEffect(() => {
+		setCurrentPage(1)
+	}, [selectedDate])
 
-		const completedCount = rows.filter((row) => row.status === APPOINTMENT_STATUS.COMPLETED).length
+	const paginatedRows = useMemo(() => {
+		const startIndex = (currentPage - 1) * PAGE_SIZE
+		return rows.slice(startIndex, startIndex + PAGE_SIZE)
+	}, [currentPage, rows])
 
-		return {
-			today: rows.length,
-			waiting: waitingCount,
-			completed: completedCount,
-		}
-	}, [rows])
+	const totalPages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE))
 
 	const handleCreateExamination = (row) => {
 		if (!row?.appointmentId) {
@@ -119,25 +116,6 @@ export default function ListExaminationForm() {
 		navigate(`/admin/veterinarian/exam-forms/create?appointmentId=${row.appointmentId}`, {
 			state: {
 				appointment: row,
-			},
-		})
-	}
-
-	const handleDelete = (row) => {
-		Modal.confirm({
-			title: 'Bạn có muốn xóa lịch hẹn này không?',
-			content: 'Hành động này sẽ xóa lịch hẹn khỏi danh sách.',
-			okText: 'Xóa',
-			cancelText: 'Hủy',
-			okButtonProps: { danger: true },
-			onOk: async () => {
-				try {
-					await deleteVeterinarianAppointmentApi(row.appointmentId)
-					message.success('Xóa lịch hẹn thành công')
-					fetchAppointments()
-				} catch (error) {
-					message.error(error?.message || 'Không thể xóa lịch hẹn')
-				}
 			},
 		})
 	}
@@ -175,12 +153,11 @@ export default function ListExaminationForm() {
 										<th>THÚ CƯNG & CHỦ NUÔI</th>
 										<th>NGÀY TẠO</th>
 										<th>TÊN PHIẾU KHÁM</th>
-										<th>NGÀY TÁI KHÁM</th>
 										<th>THAO TÁC</th>
 									</tr>
 								</thead>
 								<tbody>
-									{rows.map((row) => (
+									{paginatedRows.map((row) => (
 										<tr key={row.id}>
 											<td>
 												<div className={styles.petCell}>
@@ -195,7 +172,6 @@ export default function ListExaminationForm() {
 											</td>
 											<td>{row.createdDate}</td>
 											<td>{row.formName}</td>
-											<td>{row.revisitDate}</td>
 											<td>
 												<div className={styles.actionWrap}>
 													<Button
@@ -203,15 +179,9 @@ export default function ListExaminationForm() {
 														className={styles.createBtn}
 														onClick={() => handleCreateExamination(row)}
 														icon={<FileAddOutlined />}
+														style={{ backgroundColor: '#4672b4', borderColor: '#4672b4' }}
 													>
-														Tạo phiếu khám
-													</Button>
-													<Button
-														className={styles.deleteBtn}
-														onClick={() => handleDelete(row)}
-														icon={<DeleteOutlined />}
-													>
-														Xóa
+														{row.hasMedicalRecord ? 'Tạo lại phiếu khám' : 'Tạo phiếu khám'}
 													</Button>
 												</div>
 											</td>
@@ -222,7 +192,21 @@ export default function ListExaminationForm() {
 						</div>
 
 						<div className={styles.footerRow}>
-							<p>Hiển thị {rows.length} trong số {stats.today} lịch hẹn</p>
+							<p>Hiển thị {paginatedRows.length} trong số {rows.length} lịch hẹn</p>
+							<div className={styles.paginationArrows}>
+								<Button
+									shape="circle"
+									icon={<LeftOutlined />}
+									disabled={currentPage <= 1}
+									onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+								/>
+								<Button
+									shape="circle"
+									icon={<RightOutlined />}
+									disabled={currentPage >= totalPages}
+									onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+								/>
+							</div>
 						</div>
 					</>
 				)}

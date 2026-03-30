@@ -29,6 +29,7 @@ import {
 } from 'antd'
 import dayjs from 'dayjs'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
 	getVeterinarianAppointmentsApi,
@@ -195,7 +196,17 @@ export default function RecordExaminationForm() {
 	}, [selectedSpecies])
 
 	const doctorName = useMemo(() => {
-		return location?.state?.doctorName || 'BS. Đặng Hoàng Nam'
+		if (location?.state?.doctorName) return location.state.doctorName
+
+		try {
+			const rawProfile = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+			if (!rawProfile) return 'Bác sĩ phụ trách'
+
+			const profile = JSON.parse(rawProfile)
+			return profile?.fullName || profile?.user?.fullName || 'Bác sĩ phụ trách'
+		} catch {
+			return 'Bác sĩ phụ trách'
+		}
 	}, [location?.state?.doctorName])
 
 	const prescriptionDate = useMemo(() => {
@@ -203,8 +214,12 @@ export default function RecordExaminationForm() {
 	}, [])
 
 	const examinationCode = useMemo(() => {
-		return `SP: APC-20231024-001`
-	}, [])
+		if (appointmentId) {
+			return `AP-${String(appointmentId).slice(0, 8).toUpperCase()}`
+		}
+
+		return `AP-${dayjs().format('YYYYMMDDHHmm')}`
+	}, [appointmentId])
 
 	const handleValuesChange = (_, allValues) => {
 		const normalized = {
