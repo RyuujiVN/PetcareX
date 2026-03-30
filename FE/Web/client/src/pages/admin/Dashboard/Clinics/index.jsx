@@ -1,18 +1,36 @@
-import { useCallback, useEffect, useState } from 'react'
 import {
-  Row, Col, Card, Statistic, Table, Tag, Button, Space,
-  Typography, Avatar, Pagination, Flex, Popconfirm, message,
-} from 'antd'
-import {
-  PlusOutlined, EyeOutlined, DeleteOutlined,
-  MedicineBoxOutlined, UserOutlined, FileTextOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+  FileTextOutlined,
+  LockOutlined,
+  MailOutlined,
+  MedicineBoxOutlined,
+  PhoneOutlined,
+  PlusOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
-import { getClinicListApi, deleteClinicApi } from '../../../../data/admin/api/clinicApi'
+import {
+  Avatar,
+  Button,
+  Card,
+  Col,
+  Divider,
+  Flex,
+  Form,
+  Input,
+  Modal,
+  Pagination,
+  Popconfirm,
+  Row,
+  Space,
+  Statistic, Table, Tag,
+  Typography,
+  message,
+} from 'antd'
+import { useCallback, useEffect, useState } from 'react'
+import { createClinicApi, deleteClinicApi, getClinicListApi } from '../../../../data/admin/api/clinicApi'
 import './style.css'
 
-/**
- * Lấy 2 chữ cái viết tắt từ tên phòng khám.
- */
 const getAbbreviation = (name) => {
   if (!name) return ''
   return name
@@ -23,10 +41,6 @@ const getAbbreviation = (name) => {
     .toUpperCase()
     .slice(0, 2)
 }
-
-/**
- * Format ngày sang dd/MM/yyyy.
- */
 const formatDate = (date) => {
   if (!date) return '—'
   const d = new Date(date)
@@ -44,6 +58,9 @@ export default function Clinics() {
     total: 0,
   })
   const [loading, setLoading] = useState(false)
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [addLoading, setAddLoading] = useState(false)
+  const [addForm] = Form.useForm()
 
   // TODO: gọi API lấy số liệu thống kê
   const [stats] = useState({
@@ -71,11 +88,10 @@ export default function Clinics() {
 
   useEffect(() => {
     fetchClinics(pagination.current, pagination.pageSize)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handleView = (id) => {
-    // TODO: điều hướng đến trang chi tiết phòng khám
+    //Điều hướng đến trang chi tiết phòng khám
   }
 
   const handleDelete = async (id) => {
@@ -89,7 +105,39 @@ export default function Clinics() {
   }
 
   const handleAdd = () => {
-    // TODO: mở modal hoặc điều hướng trang thêm phòng khám
+    addForm.resetFields()
+    setAddModalOpen(true)
+  }
+
+  const handleAddSubmit = async () => {
+    try {
+      const values = await addForm.validateFields()
+      setAddLoading(true)
+      await createClinicApi({
+        clinic: {
+          name: values.clinicName,
+          email: values.clinicEmail,
+          phone: values.clinicPhone,
+          address: values.clinicAddress,
+          description: values.clinicDescription || '',
+          avatarUrl: '',
+        },
+        admin: {
+          fullName: values.adminFullName,
+          email: values.adminEmail,
+          password: values.adminPassword,
+        },
+      })
+      message.success('Thêm phòng khám thành công')
+      setAddModalOpen(false)
+      fetchClinics(1, pagination.pageSize)
+    } catch (error) {
+      if (error.message) {
+        message.error(error.message)
+      }
+    } finally {
+      setAddLoading(false)
+    }
   }
 
   const handlePageChange = (page, pageSize) => {
@@ -238,6 +286,146 @@ export default function Clinics() {
           />
         </Flex>
       </Card>
+
+      {/* ── Modal thêm phòng khám ── */}
+      <Modal
+        title="Thêm phòng khám mới"
+        open={addModalOpen}
+        onCancel={() => setAddModalOpen(false)}
+        onOk={handleAddSubmit}
+        okText="Thêm phòng khám"
+        cancelText="Hủy"
+        confirmLoading={addLoading}
+        width={620}
+        destroyOnClose
+        className="add-clinic-modal"
+      >
+        <Form
+          form={addForm}
+          layout="vertical"
+          requiredMark={false}
+          className="add-clinic-form"
+        >
+          <Divider orientation="left" plain>
+            <Space>
+              <MedicineBoxOutlined />
+              Thông tin phòng khám
+            </Space>
+          </Divider>
+
+          <Form.Item
+            name="clinicName"
+            label="Tên phòng khám"
+            rules={[{ required: true, message: 'Vui lòng nhập tên phòng khám' }]}
+          >
+            <Input
+              prefix={<MedicineBoxOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+              placeholder="VD: Phòng khám thú y ABC"
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="clinicEmail"
+                label="Email phòng khám"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập email' },
+                  { type: 'email', message: 'Email không hợp lệ' },
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                  placeholder="clinic@email.com"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="clinicPhone"
+                label="Số điện thoại"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập SĐT' },
+                  { pattern: /^0\d{9}$/, message: 'SĐT phải gồm 10 chữ số, bắt đầu bằng 0' },
+                ]}
+              >
+                <Input
+                  prefix={<PhoneOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                  placeholder="0901234567"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item
+            name="clinicAddress"
+            label="Địa chỉ"
+            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+          >
+            <Input placeholder="VD: 123 Nguyễn Văn Linh, Đà Nẵng" />
+          </Form.Item>
+
+          <Form.Item name="clinicDescription" label="Mô tả">
+            <Input.TextArea
+              rows={3}
+              placeholder="Mô tả ngắn về phòng khám (không bắt buộc)"
+              showCount
+              maxLength={500}
+            />
+          </Form.Item>
+
+          <Divider orientation="left" plain>
+            <Space>
+              <UserOutlined />
+              Tài khoản quản trị phòng khám
+            </Space>
+          </Divider>
+
+          <Form.Item
+            name="adminFullName"
+            label="Họ và tên quản trị"
+            rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+          >
+            <Input
+              prefix={<UserOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+              placeholder="VD: Nguyễn Văn A"
+            />
+          </Form.Item>
+
+          <Row gutter={16}>
+            <Col span={12}>
+              <Form.Item
+                name="adminEmail"
+                label="Email đăng nhập"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập email' },
+                  { type: 'email', message: 'Email không hợp lệ' },
+                ]}
+              >
+                <Input
+                  prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                  placeholder="admin@email.com"
+                />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item
+                name="adminPassword"
+                label="Mật khẩu"
+                rules={[
+                  { required: true, message: 'Vui lòng nhập mật khẩu' },
+                  { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
+                ]}
+              >
+                <Input.Password
+                  prefix={<LockOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                  placeholder="Tối thiểu 6 ký tự"
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        </Form>
+      </Modal>
     </div>
   )
 }
