@@ -10,6 +10,7 @@
 	background: #f5f7fb;
 }
 
+
 .topHeader {
 	height: 64px;
 	display: flex;
@@ -136,6 +137,20 @@
 	display: flex;
 	margin-left: 10px;
 	gap: 4px;
+}
+
+.viewDetailButton {
+	border-radius: 10px;
+	font-weight: 600;
+	box-shadow: 0 4px 10px rgba(22, 119, 255, 0.2);
+	background: #1677ff;
+	border-color: #1677ff;
+}
+
+.viewDetailButton:hover,
+.viewDetailButton:focus {
+	background: #4096ff !important;
+	border-color: #4096ff !important;
 }
 
 .paginationWrap {

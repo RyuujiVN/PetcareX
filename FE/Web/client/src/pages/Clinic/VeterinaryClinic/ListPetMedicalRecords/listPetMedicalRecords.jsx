@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
-import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, Tooltip, message } from 'antd'
+import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, message } from 'antd'
 import { CalendarOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
@@ -323,12 +323,14 @@ export default function ListPetMedicalRecords() {
 										</td>
 										<td>
 											<div className={styles.actionBtns}>
-												<Tooltip title="Xem sổ y tế">
-													<Button type="text" icon={<EyeOutlined />} onClick={() => onOpenMedicalRecord(row)} />
-												</Tooltip>
-												{/* <Tooltip title="Cập nhật sổ y tế">
-													<Button type="text" icon={<EditOutlined />} onClick={() => onOpenMedicalRecord(row)} />
-												</Tooltip> */}
+												<Button
+													type="primary"
+													icon={<EyeOutlined />}
+													className={styles.viewDetailButton}
+													onClick={() => onOpenMedicalRecord(row)}
+												>
+													Xem chi tiết
+												</Button>
 											</div>
 										</td>
 									</tr>

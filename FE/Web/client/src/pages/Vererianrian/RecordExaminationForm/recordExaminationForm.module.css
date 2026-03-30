@@ -160,7 +160,7 @@
 .dynamicHead,
 .dynamicRow {
 	display: grid;
-	grid-template-columns: 60px 2fr 2fr 80px;
+	grid-template-columns: 35px 2fr 2fr 80px;
 	gap: 8px;
 	align-items: center;
 	padding: 10px 12px;

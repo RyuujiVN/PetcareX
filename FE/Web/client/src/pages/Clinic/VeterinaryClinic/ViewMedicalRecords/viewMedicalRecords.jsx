@@ -27,7 +27,6 @@ const DEFAULT_PET_SUMMARY = {
 	breedName: 'Chưa cập nhật giống',
 	birthday: 'Chưa cập nhật',
 	gender: 'Chưa cập nhật',
-	// weight: 'Chưa cập nhật',
 }
 
 const EMPTY_TIMELINE_HINT =
@@ -95,7 +94,6 @@ const mapPetSummaryFromPet = (pet) => {
 		breedName: getBreedLabel(pet?.breed || pet?.breedName, pet?.species),
 		birthday: formatDate(pet?.dateOfBirth),
 		gender: formatGender(pet?.gender),
-		// weight: pet?.weight ? `${pet.weight} kg` : DEFAULT_PET_SUMMARY.weight,
 	}
 }
 
@@ -300,10 +298,6 @@ function ViewMedicalRecords() {
 				),
 				birthday: formatDate(firstRecord?.pet?.dateOfBirth || fallbackPet?.dateOfBirth),
 				gender: formatGender(firstRecord?.pet?.gender ?? fallbackPet?.gender),
-				// weight:
-				// 	firstRecord?.pet?.weight || firstRecord?.weight || fallbackPet?.weight
-				// 		? `${firstRecord?.pet?.weight || firstRecord?.weight || fallbackPet?.weight} kg`
-				// 		: DEFAULT_PET_SUMMARY.weight,
 			})
 		} catch (error) {
 			message.error(normalizeMedicalErrorMessage(error))
@@ -414,40 +408,6 @@ function ViewMedicalRecords() {
 							)}
 						</div>
 					</article>
-
-					<aside className={styles.reminderPanel}>
-						<h2 className={styles.panelTitle}>
-							<FaBell /> Nhắc nhở quan trọng
-						</h2>
-
-						<div className={styles.reminderList}>
-							{reminders.length === 0 ? (
-								<p className={styles.emptyStateText}>Chưa có nhắc nhở quan trọng.</p>
-							) : (
-								reminders.map((reminder) => (
-									<div
-										key={reminder.id}
-										className={`${styles.reminderCard} ${styles[reminder.type]}`}
-									>
-										<span className={styles.reminderIcon}>{getReminderIcon(reminder.type)}</span>
-										<span>
-											<strong>{reminder.title}</strong>
-											<small>{reminder.subtitle}</small>
-										</span>
-									</div>
-								))
-							)}
-						</div>
-
-						<button
-							type="button"
-							className={styles.bookNowButton}
-							disabled={loading}
-							onClick={() => handleBookNow('Đặt lịch khám')}
-						>
-							Đặt lịch ngay
-						</button>
-					</aside>
 				</section>
 			</main>
 		</div>

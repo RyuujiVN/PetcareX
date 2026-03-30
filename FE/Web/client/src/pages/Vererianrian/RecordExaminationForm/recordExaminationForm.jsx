@@ -70,6 +70,23 @@ const getMedicineOptionLabel = (item) => {
 	return strength ? `${name} (${strength})` : name
 }
 
+const toNumberOrUndefined = (value) => {
+	if (value === null || value === undefined || value === '') return undefined
+	const normalized = Number(value)
+	return Number.isFinite(normalized) ? normalized : undefined
+}
+
+const normalizePhone = (value) => String(value || '').replace(/\D/g, '')
+
+const buildErrorMessage = (error, fallback) => {
+	const responseMessage = error?.response?.data?.message
+	if (Array.isArray(responseMessage) && responseMessage.length > 0) {
+		return responseMessage.filter(Boolean).join(' | ')
+	}
+
+	return error?.message || fallback
+}
+
 const buildInitialValues = (appointment) => {
 	const pet = appointment?.petRaw || appointment?.pet || {}
 	const owner = pet?.owner || {}
@@ -79,11 +96,11 @@ const buildInitialValues = (appointment) => {
 		followUpDate: null,
 		customerName: appointment?.ownerName || owner?.fullName || '',
 		email: owner?.email || appointment?.ownerEmail || '',
-		phone: owner?.phone || '',
+		phone: normalizePhone(owner?.phone || ''),
 		petName: appointment?.petName || pet?.name || '',
 		species: pet?.species || undefined,
 		breed: pet?.breed || undefined,
-		weight: typeof pet?.weight === 'number' ? Number(pet.weight) : undefined,
+		weight: toNumberOrUndefined(pet?.weight),
 		temperature: undefined,
 		heartRate: undefined,
 		systolic: undefined,
@@ -315,20 +332,46 @@ export default function RecordExaminationForm() {
 		try {
 			setSaving(true)
 
+			const petId = appointment?.petRaw?.id
+			if (!petId) {
+				throw new Error('Không tìm thấy thú cưng từ lịch hẹn, vui lòng chọn lại lịch hẹn trước khi lưu')
+			}
+
+			const temperature = toNumberOrUndefined(values.temperature)
+			const heartRate = toNumberOrUndefined(values.heartRate)
+			const systolic = toNumberOrUndefined(values.systolic)
+			const diastolic = toNumberOrUndefined(values.diastolic)
+			const weight = toNumberOrUndefined(values.weight)
+			const normalizedPhone = normalizePhone(values.phone)
+
+			if (
+				temperature === undefined ||
+				heartRate === undefined ||
+				systolic === undefined ||
+				diastolic === undefined ||
+				weight === undefined
+			) {
+				throw new Error('Vui lòng nhập đầy đủ và đúng định dạng các chỉ số sinh tồn')
+			}
+
+			if (!/^\d{10}$/.test(normalizedPhone)) {
+				throw new Error('Số điện thoại phải gồm đúng 10 chữ số')
+			}
+
 			const createPayload = {
-				petId: appointment?.petRaw?.id,
+				petId,
 				species: values.species || appointment?.petRaw?.species,
 				breed: values.breed || appointment?.petRaw?.breed,
 				petName: values.petName,
 				name: values.formName,
 				customerName: values.customerName,
 				email: values.email,
-				phone: values.phone,
-				temperature: Number(values.temperature),
-				heartRate: Number(values.heartRate),
-				systolic: Number(values.systolic),
-				diastolic: Number(values.diastolic),
-				weight: Number(values.weight),
+				phone: normalizedPhone,
+				temperature,
+				heartRate,
+				systolic,
+				diastolic,
+				weight,
 				diagnosis: values.preliminaryDiagnosis,
 				symptoms: values.clinicalSymptoms,
 			}
@@ -395,7 +438,7 @@ export default function RecordExaminationForm() {
 			message.success('Lưu hồ sơ thành công')
 			goBackToList()
 		} catch (error) {
-			message.error(error?.message || 'Không thể lưu hồ sơ')
+			message.error(buildErrorMessage(error, 'Không thể lưu hồ sơ'))
 		} finally {
 			setSaving(false)
 		}
@@ -457,7 +500,7 @@ export default function RecordExaminationForm() {
 									format="DD/MM/YYYY"
 									placeholder="dd/mm/yyyy"
 									className={styles.fullWidth}
-									disabledDate={(current) => current && current < dayjs().startOf('day')}
+									disabledDate={(current) => current && current <= dayjs().startOf('day')}
 								/>
 							</Form.Item>
 						</Col>
@@ -491,7 +534,10 @@ export default function RecordExaminationForm() {
 							<Form.Item
 								label="SĐT"
 								name="phone"
-								rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
+								rules={[
+									{ required: true, message: 'Vui lòng nhập số điện thoại' },
+									{ pattern: /^\d{10}$/, message: 'Số điện thoại phải gồm đúng 10 chữ số' },
+								]}
 							>
 								<Input placeholder="Số điện thoại" />
 							</Form.Item>
@@ -544,6 +590,21 @@ export default function RecordExaminationForm() {
 
 				<Card className={styles.sectionCard} title={<span><HeartOutlined /> Chỉ số sinh tồn</span>}>
 					<div className={styles.vitalGrid}>
+						<div className={styles.vitalBox}>
+							<p className={styles.vitalLabel}>CÂN NẶNG (KG)</p>
+							<Form.Item
+								name="weight"
+								rules={[
+									{ required: true, message: 'Vui lòng nhập cân nặng' },
+									{ type: 'number', min: 0.1, message: 'Cân nặng phải lớn hơn 0' },
+									{ type: 'number', max: 99.9, message: 'Cân nặng không được vượt quá 99.9kg' },
+								]}
+								className={styles.noMargin}
+							>
+								<InputNumber min={0.1} max={99.9} step={0.1} className={styles.fullWidth} placeholder="Cân nặng" />
+							</Form.Item>
+						</div>
+
 						<div className={styles.vitalBox}>
 							<p className={styles.vitalLabel}>NHIỆT ĐỘ (°C)</p>
 							<Form.Item
@@ -641,9 +702,11 @@ export default function RecordExaminationForm() {
 											rules={[{ required: true, message: 'Chọn chỉ định' }]}
 											className={styles.noMargin}
 										>
-											<Input
+											<Select
 												size="large"
 												placeholder="Chọn loại chỉ định"
+												showSearch
+												optionFilterProp="label"
 												options={medicalOrderOptions.map((item) => ({
 													value: item.id,
 													label: getMedicalOrderOptionLabel(item),
@@ -703,9 +766,11 @@ export default function RecordExaminationForm() {
 											rules={[{ required: true, message: 'Chọn thuốc' }]}
 											className={styles.noMargin}
 										>
-											<Input
+											<Select
 												size="large"
 												placeholder="Chọn thuốc"
+												showSearch
+												optionFilterProp="label"
 												options={medicineOptions.map((item) => ({
 													value: item.id,
 													label: getMedicineOptionLabel(item),

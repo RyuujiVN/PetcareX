@@ -25,6 +25,7 @@ import AdminForgotPassword from '../pages/Clinic/Auth/ForgotPassword'
 import AdminReEnterPassword from '../pages/Clinic/Auth/ReEnterPassword'
 import AppointmentManagement from '../pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
 import AdminListPetMedicalRecords from '../pages/Clinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
+import ViewMedicalRecords from '../pages/Clinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords'
 import AdminClinicProfile from '../pages/Clinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
 import VererianrianManagement from '../pages/Clinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
 import AddNewVererianrian from '../pages/Clinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
@@ -63,6 +64,7 @@ export default function AppRoutes({ location }) {
         <Route path="/clinic/appointments" element={<AppointmentManagement />} />
         <Route path="/clinic/profile" element={<AdminClinicProfile />} />
         <Route path="/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
+        <Route path="/clinic/medical-records/view" element={<ViewMedicalRecords />} />
         <Route path="/clinic/revenue" element={<AppointmentManagement />} />
         <Route path="/clinic/veterinarians" element={<VererianrianManagement />} />
         <Route path="/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
@@ -80,6 +82,7 @@ export default function AppRoutes({ location }) {
       <Route element={<AdminVererianrianLayout/>}>
         <Route path="/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
         <Route path="/veterinarian/listRecords" element={<ListMedicalRecords />} />
+        <Route path="/veterinarian/medical-records/view" element={<ViewMedicalRecords />} />
         <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
         <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
         <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />

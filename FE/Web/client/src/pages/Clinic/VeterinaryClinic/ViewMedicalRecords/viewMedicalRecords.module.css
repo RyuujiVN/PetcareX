@@ -123,13 +123,12 @@
 .mainGrid {
 	margin-top: 18px;
 	display: grid;
-	grid-template-columns: minmax(0, 1.75fr) minmax(280px, 0.95fr);
+	grid-template-columns: minmax(0, 1.75fr);
 	gap: 16px;
 	align-items: start;
 }
 
-.timelinePanel,
-.reminderPanel {
+.timelinePanel {
 	background: #ffffff;
 	border: 1px solid #e8edf2;
 	border-radius: 14px;
@@ -140,9 +139,7 @@
 	padding: 14px;
 }
 
-.reminderPanel {
-	padding: 16px;
-}
+
 
 .panelTitle {
 	margin: 0 0 14px;
@@ -163,17 +160,6 @@
 	padding-left: 34px;
 }
 
-.emptyStateText {
-	margin: 0;
-	padding: 12px;
-	border: 1px dashed #d8e0e9;
-	border-radius: 10px;
-	background: #f9fbfd;
-	color: #62748a;
-	font-size: 14px;
-	font-weight: 600;
-	line-height: 1.5;
-}
 
 .timelineWrapper::before {
 	content: '';
@@ -308,45 +294,6 @@
 	font-weight: 900;
 }
 
-.reminderList {
-	display: flex;
-	flex-direction: column;
-	gap: 10px;
-}
-
-.reminderCard {
-	width: 100%;
-	border: none;
-	border-radius: 12px;
-	text-align: left;
-	padding: 12px;
-	display: grid;
-	grid-template-columns: 30px 1fr;
-	gap: 10px;
-	align-items: center;
-	transition: transform 0.2s ease, filter 0.2s ease;
-	cursor: default;
-}
-
-.reminderCard:hover {
-	transform: translateY(-1px);
-	filter: brightness(0.98);
-}
-
-.reminderCard strong {
-	color: #33455c;
-	display: block;
-	font-size: 16px;
-	font-weight: 800;
-}
-
-.reminderCard small {
-	color: #74849a;
-	display: block;
-	margin-top: 3px;
-	font-size: 14px;
-	font-weight: 600;
-}
 
 .reminderIcon {
 	width: 30px;
@@ -359,36 +306,6 @@
 	color: #f16f33;
 }
 
-.reminderCard.vaccine {
-	background: #fef3ee;
-}
-
-.reminderCard.deworm {
-	background: #ebf8f8;
-}
-
-.reminderCard.follow-up {
-	background: #edf1f6;
-}
-
-.bookNowButton {
-	width: 100%;
-	margin-top: 14px;
-	border-radius: 12px;
-	border: 2px solid var(--medical-primary);
-	background: #ffffff;
-	color: var(--medical-primary);
-	font-size: 16px;
-	font-weight: 900;
-	padding: 10px 12px;
-	cursor: pointer;
-	transition: all 0.2s ease;
-}
-
-.bookNowButton:hover {
-	background: var(--medical-primary-hover);
-	color: #ffffff;
-}
 
 @media (max-width: 1100px) {
 	.petInfo h1 {
