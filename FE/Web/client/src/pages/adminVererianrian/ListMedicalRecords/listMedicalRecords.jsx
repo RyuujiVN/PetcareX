@@ -119,9 +119,8 @@ export default function ListMedicalRecords() {
 	}, [currentPage, visibleRows])
 
 
-	const handleViewRecords = () => {
+	const handleViewRecords = (row) => {
 		if (!row?.petId) {
-			navigate('/viewRecords')
 			message.warning('Không tìm thấy thú cưng để xem chi tiết hồ sơ')
 			return
 		}
@@ -134,7 +133,7 @@ export default function ListMedicalRecords() {
 			searchParams.set('medicalId', String(row.medicalId))
 		}
 
-		navigate(`/admin/veterinarian/medical-records/view?${searchParams.toString()}`, {
+		navigate(`/admin/veterinarian/viewRecords?${searchParams.toString()}`, {
 			state: {
 				record: row,
 			},

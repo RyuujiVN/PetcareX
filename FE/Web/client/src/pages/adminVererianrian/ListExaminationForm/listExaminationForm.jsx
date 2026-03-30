@@ -144,13 +144,6 @@ export default function ListExaminationForm() {
 
 	return (
 		<div className={styles.pageRoot}>
-			<div className={styles.pageHeader}>
-				<Typography.Title className={styles.pageTitle}>Dashboard Bác sĩ</Typography.Title>
-				<Typography.Paragraph className={styles.pageSubtitle}>
-					Chào mừng trở lại, hôm nay bạn có {stats.today} lịch hẹn.
-				</Typography.Paragraph>
-			</div>
-
 			<div className={styles.summaryGrid}>
 				{summaryCardConfig.map((card) => (
 					<Card key={card.key} className={styles.summaryCard}>
@@ -161,7 +154,7 @@ export default function ListExaminationForm() {
 						</Typography.Title>
 					</Card>
 				))}
-			</div>
+	    	</div>
 
 			<section className={styles.tablePanel}>
 				<div className={styles.tablePanelHeader}>

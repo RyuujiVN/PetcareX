@@ -5,25 +5,6 @@
 	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-.pageHeader {
-	margin-bottom: 14px;
-}
-
-.pageTitle {
-	margin: 0 !important;
-	font-size: 36px !important;
-	font-weight: 800 !important;
-	color: #1f3352 !important;
-	line-height: 1.1 !important;
-}
-
-.pageSubtitle {
-	margin: 2px 0 0 !important;
-	color: #8d9cb0 !important;
-	font-size: 24px !important;
-	font-weight: 600 !important;
-}
-
 .summaryGrid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -250,13 +231,6 @@
 		font-size: 36px !important;
 	}
 
-	.pageTitle {
-		font-size: 30px !important;
-	}
-
-	.pageSubtitle {
-		font-size: 18px !important;
-	}
 }
 
 @media (max-width: 992px) {
