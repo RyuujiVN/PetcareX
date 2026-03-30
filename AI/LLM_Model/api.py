@@ -263,10 +263,10 @@ async def handle_chat(sid, data):
             if token is None:
                 break
             full_answer += token
-            await sio.emit('chat_response', {"type": "token", "token": token, "user_id": user_id}, to=sid)
+            await sio.emit('chat_response', {"type": "token", "token": token, "user_id": user_id, "room_id": room_id}, to=sid)
 
         answer = full_answer.strip()
-        await sio.emit('chat_response', {"type": "done", "answer": answer, "user_id": user_id}, to=sid)
+        await sio.emit('chat_response', {"type": "done", "answer": answer, "user_id": user_id, "room_id": room_id}, to=sid)
     except Exception as exc:
         await sio.emit(
             'chat_response',
@@ -287,7 +287,7 @@ async def handle_default_message_event(sid, data):
         await handle_chat(sid, data)
 
 @sio.on('stop_chat')
-async def handle_stop_chat(sid, data):
+async def handle_stop_chat(sid, *args):
     global_stop_criteria.stop_event.set()   
     await sio.emit('chat_response', {"type": "status", "status": "Stopped"}, to=sid)
 
