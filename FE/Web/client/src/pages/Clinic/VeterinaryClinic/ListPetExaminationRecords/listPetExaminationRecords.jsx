@@ -74,8 +74,8 @@ const getStatusLabel = (status) => APPOINTMENT_STATUS_LABEL[status] || status ||
 export default function ListPetExaminationRecords() {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
-	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
+	const isVeterinarianPortal = location.pathname.startsWith('/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/veterinarian' : '/clinic'
 	const [records, setRecords] = useState([])
 	const [loading, setLoading] = useState(false)
 	const [loadingSpecies, setLoadingSpecies] = useState(false)

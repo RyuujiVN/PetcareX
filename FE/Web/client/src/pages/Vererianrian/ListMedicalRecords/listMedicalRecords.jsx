@@ -4,7 +4,7 @@ import { EyeOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { useNavigate } from 'react-router-dom'
 import { Typography } from 'antd'
-import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
+import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
 	getVeterinarianAppointmentsApi,
@@ -15,7 +15,7 @@ const PAGE_SIZE = 4
 
 const getCurrentVeterinarianUserId = () => {
 	try {
-		const raw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+		const raw = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
 		if (!raw) return ''
 
 		const profile = JSON.parse(raw)
@@ -119,7 +119,7 @@ export default function ListMedicalRecords() {
 			searchParams.set('medicalId', String(row.medicalId))
 		}
 
-		navigate(`/admin/veterinarian/viewRecords?${searchParams.toString()}`, {
+		navigate(`/veterinarian/viewRecords?${searchParams.toString()}`, {
 			state: {
 				record: row,
 			},

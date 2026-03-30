@@ -64,8 +64,8 @@ function Field({ label, value, placeholder = '', isSelect = false }) {
 export default function PetMedicalRecords() {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
-	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
+	const isVeterinarianPortal = location.pathname.startsWith('/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/veterinarian' : '/clinic'
 	const { appointmentId } = useParams()
 	const handleMedicalRecord = () => {
 		navigate(`${routePrefix}/exam-slips/${appointmentId}/bill`)

@@ -4,22 +4,22 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { changePasswordApi } from '../../data/Clinic/api/auth'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
-import { getPrimaryRole } from '../../constants/authRole'
+import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import styles from './AdminClinicLayout.module.css'
 
 const menuItems = [
-  { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/admin/clinic/appointments' },
-  { key: 'records', label: 'Sổ y tế điện tử', icon: MedicineBoxOutlined, path: '/admin/clinic/medical-records' },
-  { key: 'revenue', label: 'Doanh thu', icon: LineChartOutlined, path: '/admin/clinic/revenue' },
-  { key: 'doctors', label: 'Bác sĩ', icon: TeamOutlined, path: '/admin/clinic/veterinarians' },
-  { key: 'forms', label: 'Xem phiếu khám', icon: FileSearchOutlined, path: '/admin/clinic/exam-slips' },
+  { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/clinic/appointments' },
+  { key: 'records', label: 'Sổ y tế điện tử', icon: MedicineBoxOutlined, path: '/clinic/medical-records' },
+  { key: 'revenue', label: 'Doanh thu', icon: LineChartOutlined, path: '/clinic/revenue' },
+  { key: 'doctors', label: 'Bác sĩ', icon: TeamOutlined, path: '/clinic/veterinarians' },
+  { key: 'forms', label: 'Xem phiếu khám', icon: FileSearchOutlined, path: '/clinic/exam-slips' },
 ]
 
 const isMenuActive = (pathname, path) => {
-  if (path === '/admin/clinic/appointments') {
-    return pathname === '/admin/home' || pathname === '/admin/clinic/appointments'
+  if (path === '/clinic/appointments') {
+    return pathname === '/admin/home' || pathname === '/clinic/appointments'
   }
 
   return pathname === path || pathname.startsWith(`${path}/`)
@@ -44,6 +44,8 @@ export default function AdminClinicLayout() {
   const location = useLocation()
   const { token, userProfile, logout, login, activeRole } = useAuth()
   const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
+  const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
+  const hasClinicRole = normalizedRoles.includes(RoleEnum.ADMIN_CLINIC)
   const clinicDisplayName = getClinicDisplayName(userProfile)
 
   useEffect(() => {
@@ -54,15 +56,16 @@ export default function AdminClinicLayout() {
 
     if (!effectiveRole) return
 
-    if (effectiveRole === RoleEnum.VETERINARIAN) {
-      navigate('/admin/veterinarian/appointments', { replace: true })
+    // If user has both roles, keep current clinic portal instead of forcing veterinarian portal.
+    if (effectiveRole === RoleEnum.VETERINARIAN && !hasClinicRole) {
+      navigate('/veterinarian/appointments', { replace: true })
       return
     }
 
     if (effectiveRole === RoleEnum.ADMIN) {
       navigate('/admin/home', { replace: true })
     }
-  }, [token, effectiveRole, navigate])
+  }, [token, effectiveRole, hasClinicRole, navigate])
 
   const handleLogout = () => {
     logout()
@@ -107,7 +110,7 @@ export default function AdminClinicLayout() {
       key: 'profile',
       icon: <UserOutlined />,
       label: 'Thông tin',
-      onClick: () => navigate('/admin/clinic/profile'),
+      onClick: () => navigate('/clinic/profile'),
     },
     {
       key: 'change-password',
@@ -164,7 +167,7 @@ export default function AdminClinicLayout() {
         >
           <button
             type="button"
-            className={`${styles.profileBox} ${isMenuActive(location.pathname, '/admin/clinic/profile') ? styles.profileBoxActive : ''}`}
+            className={`${styles.profileBox} ${isMenuActive(location.pathname, '/clinic/profile') ? styles.profileBoxActive : ''}`}
           >
             <div className={styles.profileInfo}>
               <Avatar size={42} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />

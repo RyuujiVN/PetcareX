@@ -235,7 +235,7 @@ export default function ViewPetMedicalRecords() {
 
 				<Button
 					className={styles.backButton}
-					onClick={() => navigate('/admin/veterinarian/listRecords')}
+					onClick={() => navigate('/veterinarian/listRecords')}
 				>
 					<ArrowLeftOutlined /> Quay lại
 				</Button>

@@ -27,7 +27,7 @@ import {
 } from 'antd'
 import dayjs from 'dayjs'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
+import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
 	getVeterinarianAppointmentsApi,
@@ -261,7 +261,7 @@ export default function RecordExaminationForm() {
 		if (location?.state?.doctorName) return location.state.doctorName
 
 		try {
-			const rawProfile = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+			const rawProfile = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
 			if (!rawProfile) return 'Bác sĩ phụ trách'
 
 			const profile = JSON.parse(rawProfile)
@@ -293,7 +293,7 @@ export default function RecordExaminationForm() {
 	}
 
 	const goBackToList = () => {
-		navigate('/admin/veterinarian/exam-forms')
+		navigate('/veterinarian/exam-forms')
 	}
 
 	const handleCancel = () => {

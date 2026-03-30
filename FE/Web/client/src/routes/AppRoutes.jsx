@@ -60,30 +60,30 @@ export default function AppRoutes({ location }) {
 
       {/* ── Admin Clinic (role ADMIN_CLINIC) ── */}
       <Route element={<AdminClinicLayout />}>
-        <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
-        <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
-        <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
-        <Route path="/admin/clinic/revenue" element={<AppointmentManagement />} />
-        <Route path="/admin/clinic/veterinarians" element={<VererianrianManagement />} />
-        <Route path="/admin/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
-        <Route path="/admin/clinic/veterinarians/information" element={<InformationVererianrian />} />
-        <Route path="/admin/clinic/exam-slips" element={<ListPetExaminationRecords />} />
-        <Route path="/admin/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
+        <Route path="/clinic/appointments" element={<AppointmentManagement />} />
+        <Route path="/clinic/profile" element={<AdminClinicProfile />} />
+        <Route path="/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
+        <Route path="/clinic/revenue" element={<AppointmentManagement />} />
+        <Route path="/clinic/veterinarians" element={<VererianrianManagement />} />
+        <Route path="/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
+        <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
+        <Route path="/clinic/exam-slips" element={<ListPetExaminationRecords />} />
+        <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
       </Route>
 
-      <Route path="/admin/veterinarian/login" element={<Navigate to="/login" replace />} />
-      <Route path="/admin/veterinarian/register" element={<AdminRegister />} />
-      <Route path="/admin/veterinarian/forgot-password" element={<AdminForgotPassword />} />
-      <Route path="/admin/veterinarian/reEnterPassword" element={<AdminReEnterPassword />} />
-      <Route path="/admin/veterinarian/confirm-password" element={<Navigate to="/admin/veterinarian/reEnterPassword" replace />}
+      <Route path="/veterinarian/login" element={<Navigate to="/login" replace />} />
+      <Route path="/veterinarian/register" element={<AdminRegister />} />
+      <Route path="/veterinarian/forgot-password" element={<AdminForgotPassword />} />
+      <Route path="/veterinarian/reEnterPassword" element={<AdminReEnterPassword />} />
+      <Route path="/veterinarian/confirm-password" element={<Navigate to="/veterinarian/reEnterPassword" replace />}
       />
 
       <Route element={<AdminVererianrianLayout/>}>
-        <Route path="/admin/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
-        <Route path="/admin/veterinarian/listRecords" element={<ListMedicalRecords />} />
-        <Route path="/admin/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
-        <Route path="/admin/veterinarian/exam-forms" element={<ListExaminationForm />} />
-        <Route path="/admin/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
+        <Route path="/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
+        <Route path="/veterinarian/listRecords" element={<ListMedicalRecords />} />
+        <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
+        <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
+        <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
       </Route>
 
 
@@ -122,6 +122,8 @@ export default function AppRoutes({ location }) {
         />
       </Route>
 
+      <Route path="/admin/clinic/*" element={<Navigate to="/clinic/appointments" replace />} />
+      <Route path="/admin/veterinarian/*" element={<Navigate to="/veterinarian/appointments" replace />} />
       <Route path="/admin/*" element={<Navigate to="/login" replace />} />
     </Routes>
   );

@@ -43,11 +43,11 @@ export default function AdminLayout() {
     if (!effectiveRole || effectiveRole === RoleEnum.ADMIN) return
 
     if (effectiveRole === RoleEnum.ADMIN_CLINIC) {
-      navigate('/admin/clinic/appointments', { replace: true })
+      navigate('/clinic/appointments', { replace: true })
       return
     }
 
-    navigate('/admin/veterinarian/appointments', { replace: true })
+    navigate('/veterinarian/appointments', { replace: true })
   }, [token, effectiveRole, navigate])
 
   const handleLogout = () => {

@@ -2,6 +2,7 @@ import {
   ADMIN_AUTH_STORAGE,
   CLIENT_AUTH_STORAGE,
   LEGACY_AUTH_STORAGE,
+  getAdminAuthItem,
 } from '../../../constants/authStorage';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/+$/, '');
@@ -39,7 +40,7 @@ const normalizeErrorMessage = (payload, fallbackMessage) => {
 const getAuthToken = () => {
   return (
     localStorage.getItem(CLIENT_AUTH_STORAGE.tokenKey) ||
-    localStorage.getItem(ADMIN_AUTH_STORAGE.tokenKey) ||
+    getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey) ||
     localStorage.getItem(LEGACY_AUTH_STORAGE.tokenKey) ||
     ''
   );

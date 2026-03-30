@@ -3,15 +3,18 @@ import { getUserProfileApi } from "../../data/Clinic/api/user";
 import { getPrimaryRole } from "../../constants/authRole";
 import {
 	ADMIN_AUTH_STORAGE,
-	clearAuthStorage,
+	clearAdminAuthStorage,
 	clearLegacyAuthStorage,
+	getAdminAuthItem,
+	removeAdminAuthItem,
+	setAdminAuthItem,
 } from "../../constants/authStorage";
 
 const AuthContext = createContext();
 
 const readStoredAdminProfile = () => {
 	try {
-		const raw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey);
+		const raw = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey);
 		return raw ? JSON.parse(raw) : null;
 	} catch {
 		return null;
@@ -49,10 +52,10 @@ const mergeClinicMetadata = (profile, fallbackProfile = null) => {
 };
 
 export const AuthProvider = ({ children }) => {
-	const [token, setToken] = useState(localStorage.getItem(ADMIN_AUTH_STORAGE.tokenKey));
+	const [token, setToken] = useState(getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey));
 	const [userProfile, setUserProfile] = useState(null);
 	const [activeRole, setActiveRole] = useState(
-		localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey) || null,
+		getAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey) || null,
 	);
 
 	useEffect(() => {
@@ -62,23 +65,23 @@ export const AuthProvider = ({ children }) => {
 	useEffect(() => {
 		if (token) {
 			const cachedProfile = readStoredAdminProfile();
-			const storedRole = localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey);
+			const storedRole = getAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey);
 			if (!storedRole && cachedProfile) {
 				const cachedRole = getPrimaryRole(cachedProfile);
 				setActiveRole(cachedRole);
-				localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, cachedRole);
+				setAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey, cachedRole);
 			}
 
 			getUserProfileApi()
 				.then((res) => {
 					const mergedProfile = mergeClinicMetadata(res.data, cachedProfile);
 					setUserProfile(mergedProfile);
-					localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+					setAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
 
-					if (!localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey)) {
+					if (!getAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey)) {
 						const resolvedRole = getPrimaryRole(mergedProfile);
 						setActiveRole(resolvedRole);
-						localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
+						setAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
 					}
 				})
 				.catch(() => {
@@ -87,18 +90,18 @@ export const AuthProvider = ({ children }) => {
 		} else {
 			setUserProfile(null);
 			setActiveRole(null);
-			localStorage.removeItem(ADMIN_AUTH_STORAGE.activeRoleKey);
+			removeAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey);
 		}
 	}, [token]);
 
 	const login = (accessToken, profile = null) => {
 		clearLegacyAuthStorage();
-		localStorage.setItem(ADMIN_AUTH_STORAGE.tokenKey, accessToken);
+		setAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey, accessToken);
 		if (profile) {
 			const mergedProfile = mergeClinicMetadata(profile, readStoredAdminProfile());
 			const resolvedRole = getPrimaryRole(mergedProfile);
-			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
-			localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
+			setAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+			setAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
 			setUserProfile(mergedProfile);
 			setActiveRole(resolvedRole);
 		}
@@ -106,9 +109,8 @@ export const AuthProvider = ({ children }) => {
 	};
 
 	const logout = () => {
-		clearAuthStorage(ADMIN_AUTH_STORAGE);
+		clearAdminAuthStorage();
 		clearLegacyAuthStorage();
-		localStorage.removeItem(ADMIN_AUTH_STORAGE.activeRoleKey);
 		setToken(null);
 		setUserProfile(null);
 		setActiveRole(null);
@@ -120,11 +122,11 @@ export const AuthProvider = ({ children }) => {
 			const res = await getUserProfileApi();
 			const mergedProfile = mergeClinicMetadata(res.data, readStoredAdminProfile());
 			setUserProfile(mergedProfile);
-			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
-			if (!localStorage.getItem(ADMIN_AUTH_STORAGE.activeRoleKey)) {
+			setAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+			if (!getAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey)) {
 				const resolvedRole = getPrimaryRole(mergedProfile);
 				setActiveRole(resolvedRole);
-				localStorage.setItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
+				setAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey, resolvedRole);
 			}
 			return mergedProfile;
 		} catch {

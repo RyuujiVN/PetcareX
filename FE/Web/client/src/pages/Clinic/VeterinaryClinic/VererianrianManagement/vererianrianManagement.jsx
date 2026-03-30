@@ -74,7 +74,7 @@ export default function VeterinarianManagement() {
 
 	const handleOpenInformation = (doctor) => {
 		sessionStorage.setItem('selectedVeterinarian', JSON.stringify(doctor.raw))
-		navigate('/admin/clinic/veterinarians/information', {
+		navigate('/clinic/veterinarians/information', {
 			state: { veterinarian: doctor.raw },
 		})
 	}
@@ -105,7 +105,7 @@ export default function VeterinarianManagement() {
 						<button
 							type="button"
 							className={styles.addButton}
-							onClick={() => navigate('/admin/clinic/veterinarians/add-new')}
+							onClick={() => navigate('/clinic/veterinarians/add-new')}
 						>
 							<FaPlus /> Thêm bác sĩ mới
 						</button>

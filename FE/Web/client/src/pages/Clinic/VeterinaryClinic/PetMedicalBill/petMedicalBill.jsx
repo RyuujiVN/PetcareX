@@ -31,8 +31,8 @@ const billData = {
 export default function PetMedicalBill() {
 	const navigate = useNavigate()
 	const location = useLocation()
-	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
-	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
+	const isVeterinarianPortal = location.pathname.startsWith('/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/veterinarian' : '/clinic'
 	const { appointmentId } = useParams()
 	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
 	const [isConfirmingPayment, setIsConfirmingPayment] = useState(false)

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage';
+import { ADMIN_AUTH_STORAGE, getAdminAuthItem, setAdminAuthItem } from '../../../constants/authStorage';
 import { getUserProfileApi } from './user';
 import {
   createVeterinarian,
@@ -33,7 +33,7 @@ const decodeJwtPayload = (token) => {
 
 const getClinicIdFromStorage = () => {
   try {
-    const rawProfile = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey);
+    const rawProfile = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey);
     if (!rawProfile) return '';
 
     const profile = JSON.parse(rawProfile);
@@ -44,7 +44,7 @@ const getClinicIdFromStorage = () => {
 };
 
 const getClinicIdFromToken = () => {
-  const token = localStorage.getItem(ADMIN_AUTH_STORAGE.tokenKey);
+  const token = getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey);
   const payload = decodeJwtPayload(token);
   return payload?.clinicId || '';
 };
@@ -79,9 +79,9 @@ export default function useVeterinarians(options = {}) {
         if (clinicId) {
           setResolvedClinicId(clinicId);
 
-          const existingRaw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey);
+          const existingRaw = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey);
           const existing = existingRaw ? JSON.parse(existingRaw) : {};
-          localStorage.setItem(
+          setAdminAuthItem(
             ADMIN_AUTH_STORAGE.userInfoKey,
             JSON.stringify({ ...existing, ...profile, clinicId }),
           );

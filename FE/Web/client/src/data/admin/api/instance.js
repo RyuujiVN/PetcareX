@@ -1,8 +1,9 @@
 import axios from "axios";
 import {
   ADMIN_AUTH_STORAGE,
-  clearAuthStorage,
+  clearAdminAuthStorage,
   clearLegacyAuthStorage,
+  getAdminAuthItem,
 } from "../../../constants/authStorage";
 
 const instance = axios.create({
@@ -11,7 +12,7 @@ const instance = axios.create({
 
 instance.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem(ADMIN_AUTH_STORAGE.tokenKey);
+    const token = getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey);
 
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -39,7 +40,7 @@ instance.interceptors.response.use(
 
     if (error.response?.status === 401) {
       if (window.location.pathname !== "/login") {
-        clearAuthStorage(ADMIN_AUTH_STORAGE);
+        clearAdminAuthStorage();
         clearLegacyAuthStorage();
 
         window.location.href = "/login";

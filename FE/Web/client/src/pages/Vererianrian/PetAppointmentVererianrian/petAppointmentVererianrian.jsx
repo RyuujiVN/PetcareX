@@ -7,7 +7,7 @@ import {
 } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Flex, Row, Segmented, Space, Spin, Tag, Typography, message, Modal } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
+import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
   APPOINTMENT_STATUS,
   getVeterinarianAppointmentsApi,
@@ -26,7 +26,7 @@ const tableTabs = [
 
 const getCurrentVeterinarianUserId = () => {
   try {
-    const raw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+    const raw = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
     if (!raw) return ''
 
     const profile = JSON.parse(raw)

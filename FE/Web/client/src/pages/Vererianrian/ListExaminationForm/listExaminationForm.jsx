@@ -7,7 +7,7 @@ import {
 import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
 import { useNavigate } from 'react-router-dom'
-import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
+import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
 	getVeterinarianAppointmentsApi,
@@ -19,7 +19,7 @@ const PAGE_SIZE = 4
 
 const getCurrentVeterinarianUserId = () => {
 	try {
-		const raw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey)
+		const raw = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
 		if (!raw) return ''
 
 		const profile = JSON.parse(raw)
@@ -115,7 +115,7 @@ export default function ListExaminationForm() {
 			return
 		}
 
-		navigate(`/admin/veterinarian/exam-forms/create?appointmentId=${row.appointmentId}`, {
+		navigate(`/veterinarian/exam-forms/create?appointmentId=${row.appointmentId}`, {
 			state: {
 				appointment: row,
 			},

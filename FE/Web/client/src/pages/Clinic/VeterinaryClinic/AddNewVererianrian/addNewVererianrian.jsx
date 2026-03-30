@@ -51,7 +51,7 @@ export default function AddNewVererianrian() {
 
 	const navigateToListWithFlash = (text) => {
 		sessionStorage.setItem('veterinarianFlashMessage', text)
-		navigate('/admin/clinic/veterinarians')
+		navigate('/clinic/veterinarians')
 	}
 
 	const handleSubmit = async (values) => {
@@ -110,7 +110,7 @@ export default function AddNewVererianrian() {
 
 	const handleCancel = () => {
 		if (!hasPendingChanges()) {
-			navigate('/admin/clinic/veterinarians')
+			navigate('/clinic/veterinarians')
 			return
 		}
 
@@ -121,7 +121,7 @@ export default function AddNewVererianrian() {
 			cancelText: 'Thoát không lưu',
 			onOk: saveProfileWithValidation,
 			onCancel: () => {
-				navigate('/admin/clinic/veterinarians')
+				navigate('/clinic/veterinarians')
 			},
 		})
 	}

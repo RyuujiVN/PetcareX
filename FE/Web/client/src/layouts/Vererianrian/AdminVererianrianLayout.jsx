@@ -11,15 +11,15 @@ import { Avatar, Button, Input } from 'antd'
 import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
-import { getPrimaryRole } from '../../constants/authRole'
+import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import styles from './AdminVererianrianLayout.module.css'
 
 const menuItems = [
-  { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/admin/veterinarian/appointments' },
-  { key: 'records', label: 'Hồ sơ bệnh án', icon: FileTextOutlined, path: '/admin/veterinarian/listRecords' },
-  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/admin/veterinarian/exam-forms' },
+  { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/veterinarian/appointments' },
+  { key: 'records', label: 'Hồ sơ bệnh án', icon: FileTextOutlined, path: '/veterinarian/listRecords' },
+  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/veterinarian/exam-forms' },
 ]
 
 const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
@@ -40,9 +40,11 @@ export default function AdminVererianrianLayout() {
   const navigate = useNavigate()
   const { token, userProfile, logout, activeRole } = useAuth()
   const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
+  const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
+  const hasVeterinarianRole = normalizedRoles.includes(RoleEnum.VETERINARIAN)
   const clinicDisplayName = getClinicDisplayName(userProfile)
   const hideSearchRoutes = [
-    '/admin/veterinarian/exam-forms/create',
+    '/veterinarian/exam-forms/create',
   ]
 
   const shouldHideSearch = hideSearchRoutes.includes(location.pathname)
@@ -59,15 +61,16 @@ export default function AdminVererianrianLayout() {
 
     if (!effectiveRole) return
 
-    if (effectiveRole === RoleEnum.ADMIN_CLINIC) {
-      navigate('/admin/clinic/appointments', { replace: true })
+    // If user has both roles, keep current veterinarian portal instead of forcing clinic portal.
+    if (effectiveRole === RoleEnum.ADMIN_CLINIC && !hasVeterinarianRole) {
+      navigate('/clinic/appointments', { replace: true })
       return
     }
 
     if (effectiveRole === RoleEnum.ADMIN) {
       navigate('/admin/home', { replace: true })
     }
-  }, [token, effectiveRole, navigate])
+  }, [token, effectiveRole, hasVeterinarianRole, navigate])
 
   return (
     <div className={styles.layout}>
