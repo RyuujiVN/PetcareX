@@ -144,18 +144,6 @@ export default function ListExaminationForm() {
 
 	return (
 		<div className={styles.pageRoot}>
-			<div className={styles.summaryGrid}>
-				{summaryCardConfig.map((card) => (
-					<Card key={card.key} className={styles.summaryCard}>
-						<div className={`${styles.summaryIcon} ${styles[card.iconClass]}`}>{card.icon}</div>
-						<Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
-						<Typography.Title className={styles.summaryValue} level={2}>
-							{stats[card.key]}
-						</Typography.Title>
-					</Card>
-				))}
-	    	</div>
-
 			<section className={styles.tablePanel}>
 				<div className={styles.tablePanelHeader}>
 					<Typography.Title level={3} className={styles.panelTitle}>

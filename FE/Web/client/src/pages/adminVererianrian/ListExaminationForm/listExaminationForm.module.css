@@ -1,68 +1,11 @@
 .pageRoot {
 	max-width: 1220px;
-	margin: 0 auto;
-	padding: 6px 6px 18px;
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-
-.summaryGrid {
-	display: grid;
-	grid-template-columns: repeat(3, minmax(0, 1fr));
-	gap: 16px;
-	margin-bottom: 16px;
-}
-
-.summaryCard {
-	border-radius: 18px;
-	border: 1px solid #dfe7ef;
-	box-shadow: 0 4px 16px rgba(40, 62, 92, 0.05);
-}
-
-.summaryIcon {
-	width: 44px;
-	height: 44px;
-	border-radius: 14px;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	font-size: 22px;
-	margin-bottom: 12px;
-}
-
-.summaryIconGreen {
-	color: #22b75e;
-	background: #e7f8ee;
-}
-
-.summaryIconOrange {
-	color: #f28f2c;
-	background: #fff4e7;
-}
-
-.summaryIconBlue {
-	color: #4f81ff;
-	background: #eaf0ff;
-}
-
-.summaryTitle {
-	display: block;
-	font-size: 26px;
-	font-weight: 700;
-	color: #6f8099;
-	margin-bottom: 8px;
-}
-
-.summaryValue {
-	margin: 0 !important;
-	font-size: 48px !important;
-	line-height: 1 !important;
-	font-weight: 800 !important;
-	color: #1e314d !important;
+	gap: 10;
 }
 
 .tablePanel {
 	background: #fff;
-	border-radius: 18px;
+	border-radius: 16px;
 	border: 1px solid #dde5ee;
 	overflow: hidden;
 	box-shadow: 0 4px 18px rgba(32, 53, 81, 0.06);
@@ -76,17 +19,21 @@
 	border-bottom: 1px solid #ebf0f5;
 }
 
+.tablePanelHeader h2 {
+	margin: 0;
+	font-size: 24px;
+	font-weight: 800;
+	color: #233952;
+}
+
 .panelTitle {
 	margin: 0 !important;
-	font-size: 32px !important;
-	font-weight: 800 !important;
+	font-size: 20px !important;
 	color: #1d2f4f !important;
 }
 
 .datePicker {
-	width: 190px;
-	height: 44px;
-	border-radius: 12px;
+	width: 170px;
 }
 
 .tableWrap {
@@ -222,21 +169,7 @@
 	background: #fff;
 }
 
-@media (max-width: 1200px) {
-	.summaryTitle {
-		font-size: 18px;
-	}
-
-	.summaryValue {
-		font-size: 36px !important;
-	}
-
-}
-
 @media (max-width: 992px) {
-	.summaryGrid {
-		grid-template-columns: 1fr;
-	}
 
 	.tablePanelHeader {
 		flex-direction: column;
