@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-	CalendarOutlined,
 	DeleteOutlined,
 	ExperimentOutlined,
 	HeartOutlined,
@@ -24,7 +23,6 @@ import {
 	Row,
 	Select,
 	Spin,
-	Typography,
 	message,
 } from 'antd'
 import dayjs from 'dayjs'
@@ -378,7 +376,7 @@ export default function RecordExaminationForm() {
 								name="formName"
 								rules={[{ required: true, message: 'Vui lòng nhập tên phiếu khám' }]}
 							>
-								<Input placeholder="HIHI" />
+								<Input placeholder="Tên phiếu khám" />
 							</Form.Item>
 						</Col>
 						<Col xs={24} md={12}>
@@ -405,7 +403,7 @@ export default function RecordExaminationForm() {
 								name="customerName"
 								rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng' }]}
 							>
-								<Input placeholder="Trương Công Thành" />
+								<Input placeholder="Tên khách hàng" />
 							</Form.Item>
 						</Col>
 						<Col xs={24} md={8}>
@@ -417,7 +415,7 @@ export default function RecordExaminationForm() {
 									{ type: 'email', message: 'Email không hợp lệ' },
 								]}
 							>
-								<Input placeholder="example@mail.com" />
+								<Input placeholder="Email khách hàng" />
 							</Form.Item>
 						</Col>
 						<Col xs={24} md={8}>
@@ -426,7 +424,7 @@ export default function RecordExaminationForm() {
 								name="phone"
 								rules={[{ required: true, message: 'Vui lòng nhập số điện thoại' }]}
 							>
-								<Input placeholder="0901 234 567" />
+								<Input placeholder="Số điện thoại" />
 							</Form.Item>
 						</Col>
 
@@ -436,7 +434,7 @@ export default function RecordExaminationForm() {
 								name="petName"
 								rules={[{ required: true, message: 'Vui lòng nhập tên thú cưng' }]}
 							>
-								<Input placeholder="Lulu" />
+								<Input placeholder="Tên thú cưng" />
 							</Form.Item>
 						</Col>
 						<Col xs={24} md={8}>
@@ -445,8 +443,8 @@ export default function RecordExaminationForm() {
 								name="breed"
 								rules={[{ required: true, message: 'Vui lòng chọn giống loài' }]}
 							>
-								<Select
-									placeholder="Mèo Anh lông ngắn"
+								<Select size = "large"
+									placeholder="Giống loài"
 									options={breedOptions.map((breed) => ({
 										value: breed,
 										label: getBreedLabel(breed, selectedSpecies),
@@ -460,7 +458,7 @@ export default function RecordExaminationForm() {
 								name="weight"
 								rules={[{ required: true, message: 'Vui lòng nhập cân nặng' }]}
 							>
-								<InputNumber className={styles.fullWidth} min={0.1} max={99.9} step={0.1} placeholder="5.5" />
+								<InputNumber className={styles.fullWidth} min={0.1} max={99.9} step={0.1} placeholder="Cân nặng" />
 							</Form.Item>
 						</Col>
 
@@ -476,7 +474,7 @@ export default function RecordExaminationForm() {
 								rules={[{ required: true, message: 'Vui lòng nhập nhiệt độ' }]}
 								className={styles.noMargin}
 							>
-								<InputNumber min={20} max={50} step={0.1} className={styles.fullWidth} placeholder="38.5" />
+								<InputNumber min={20} max={50} step={0.1} className={styles.fullWidth} placeholder="Nhiệt độ" />
 							</Form.Item>
 						</div>
 
@@ -487,7 +485,7 @@ export default function RecordExaminationForm() {
 								rules={[{ required: true, message: 'Vui lòng nhập nhịp tim' }]}
 								className={styles.noMargin}
 							>
-								<InputNumber min={1} className={styles.fullWidth} placeholder="110" />
+								<InputNumber min={1} className={styles.fullWidth} placeholder="Nhịp tim" />
 							</Form.Item>
 						</div>
 
@@ -499,14 +497,14 @@ export default function RecordExaminationForm() {
 									rules={[{ required: true, message: 'Nhập huyết áp trên' }]}
 									className={styles.noMargin}
 								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder="120" />
+									<InputNumber min={1} className={styles.fullWidth} placeholder="Huyết áp trên" />
 								</Form.Item>
 								<Form.Item
 									name="diastolic"
 									rules={[{ required: true, message: 'Nhập huyết áp dưới' }]}
 									className={styles.noMargin}
 								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder="80" />
+									<InputNumber min={1} className={styles.fullWidth} placeholder="Huyết áp dưới" />
 								</Form.Item>
 							</div>
 						</div>
@@ -514,19 +512,19 @@ export default function RecordExaminationForm() {
 				</Card>
 
 				<Card className={styles.sectionCard} title={<span><WarningOutlined /> Thông tin lâm sàng</span>}>
-					<Form.Item
+					<Form.Item 
 						label="TRIỆU CHỨNG & TÌNH TRẠNG"
 						name="clinicalSymptoms"
 						rules={[{ required: true, message: 'Vui lòng nhập triệu chứng' }]}
 					>
-						<Input.TextArea rows={3} placeholder="Bỏ ăn, mệt mỏi, nôn mửa..." />
+						<Input.TextArea rows={3} placeholder="Mô tả triệu chứng và tình trạng" />
 					</Form.Item>
 					<Form.Item
 						label="CHẨN ĐOÁN SƠ BỘ"
 						name="preliminaryDiagnosis"
 						rules={[{ required: true, message: 'Vui lòng nhập chẩn đoán sơ bộ' }]}
 					>
-						<Input.TextArea rows={2} placeholder="Nghi nhiễm Parvo..." />
+						<Input.TextArea rows={2} placeholder="Chuẩn đoán sơ bộ" />
 					</Form.Item>
 				</Card>
 
@@ -566,7 +564,7 @@ export default function RecordExaminationForm() {
 											rules={[{ required: true, message: 'Chọn chỉ định' }]}
 											className={styles.noMargin}
 										>
-											<Select
+											<Select size = "large"
 												placeholder="Chọn loại chỉ định"
 												options={medicalOrderOptions.map((item) => ({
 													value: item.id,
@@ -613,19 +611,21 @@ export default function RecordExaminationForm() {
 						{(fields, { remove }) => (
 							<div className={styles.dynamicTable}>
 								<div className={styles.dynamicHeadMedicine}>
+									<span>STT</span>
 									<span>TÊN THUỐC / HÀM LƯỢNG</span>
 									<span>LIỀU DÙNG</span>
 									<span>GHI CHÚ</span>
 									<span>THAO TÁC</span>
 								</div>
-								{fields.map((field) => (
+								{fields.map((field, index) => (
 									<div key={field.key} className={styles.dynamicRowMedicine}>
+										<span>{index + 1}</span>
 										<Form.Item
 											name={[field.name, 'medicineId']}
 											rules={[{ required: true, message: 'Chọn thuốc' }]}
 											className={styles.noMargin}
 										>
-											<Select
+											<Select size = "large"
 												placeholder="Chọn thuốc"
 												options={medicineOptions.map((item) => ({
 													value: item.id,
@@ -641,7 +641,7 @@ export default function RecordExaminationForm() {
 											<InputNumber min={1} className={styles.fullWidth} placeholder="1" />
 										</Form.Item>
 										<Form.Item name={[field.name, 'note']} className={styles.noMargin}>
-											<Input placeholder="Uống trong 7 ngày" />
+											<Input placeholder="Tần suất và trong bao nhiêu ngày" />
 										</Form.Item>
 										<Button
 											type="text"
