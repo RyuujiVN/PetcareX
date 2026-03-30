@@ -1,0 +1,54 @@
+:root {
+  /* ── Brand ── */
+  --admin-color-brand-primary: #4672b4;
+  --admin-color-brand-primary-hover: #3a62a0;
+  --admin-color-brand-primary-active: #2e528c;
+  --admin-color-brand-strong: #4672b4;
+  --admin-color-brand-muted: #4672b4;
+
+  /* ── Surface ── */
+  --admin-color-surface-page: #f3f6fb;
+  --admin-color-surface-card: #ffffff;
+  --admin-color-surface-soft: #fafafa;
+  --admin-color-surface-muted: #f8f9fa;
+
+  /* ── Border ── */
+  --admin-color-border: #f0f0f0;
+  --admin-color-border-soft: #eeeeee;
+  --admin-color-border-strong: #d9d9d9;
+
+  /* ── Text ── */
+  --admin-color-text-primary: #262626;
+  --admin-color-text-secondary: #8c8c8c;
+  --admin-color-text-muted: #666666;
+  --admin-color-text-disabled: #999999;
+
+  /* ── Status ── */
+  --admin-color-info: #1890ff;
+  --admin-color-success: #52c41a;
+  --admin-color-warning: #faad14;
+  --admin-color-danger: #ff4d4f;
+
+  /* ── Shadow ── */
+  --admin-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --admin-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --admin-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  /* ── Sidebar (light theme — giống AdminClinic) ── */
+  --admin-sidebar-bg: #f6f7fb;
+  --admin-sidebar-border: #e6ebf4;
+  --admin-sidebar-text: #1e1f23;
+  --admin-sidebar-text-muted: #7c8ca3;
+  --admin-sidebar-item-hover: #eff4fb;
+  --admin-sidebar-item-active-bg: #d9e9fb;
+  --admin-sidebar-item-active-text: #4672b4;
+  --admin-sidebar-brand-icon: linear-gradient(145deg, #4672b4, #3a62a0);
+
+  /* ── Stat cards ── */
+  --admin-stat-clinic-bg: #e8f4fd;
+  --admin-stat-clinic-icon: #4672b4;
+  --admin-stat-user-bg: #e6f7f0;
+  --admin-stat-user-icon: #52c41a;
+  --admin-stat-post-bg: #fef3e6;
+  --admin-stat-post-icon: #faad14;
+}

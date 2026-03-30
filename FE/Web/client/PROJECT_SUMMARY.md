@@ -36,8 +36,10 @@ Entry tại `src/main.jsx`:
 - Client routes:
   - `MainLayout`: `/`, `/home`, `/clinic`, `/choose-clinic`, `/booking`, `/appointments`, `/success-booking`.
   - `HeaderLayout`: `/add-pet`, `/chatbot`, `/chat`, `/user/profile`, `/listPet`, `/medical-records`, `/forum`, ...
-- Admin clinic routes:
-  - `AdminClinicLayout` cho `/admin/clinic/*` và `/admin/home`.
+- Super Admin routes (role ADMIN):
+  - `AdminLayout` cho `/admin/home`, `/admin/dashboard/*`.
+- Admin clinic routes (role ADMIN_CLINIC):
+  - `AdminClinicLayout` cho `/admin/clinic/*`.
 - Veterinarian routes:
   - `AdminVererianrianLayout` cho `/admin/veterinarian/*`.
 - Redirect compatibility:
@@ -83,7 +85,8 @@ Mỗi context quản lý:
   - phân portal (`client` hoặc `admin`)
   - route đích sau login:
     - `CUSTOMER` -> `/home`
-    - `ADMIN`/`ADMIN_CLINIC` -> `/admin/home`
+    - `ADMIN` -> `/admin/home` (super admin dashboard)
+    - `ADMIN_CLINIC` -> `/admin/clinic/appointments` (quản lý phòng khám)
     - `VETERINARIAN` -> `/admin/veterinarian/appointments`
 
 ### 4) Google Login/Register
@@ -227,6 +230,31 @@ Luồng đang chạy:
 - Lấy profile `/user/profile`.
 - Cho sửa phone/address và đồng bộ lại context.
 
+## Super Admin Portal (ADMIN) - Trạng thái tính năng
+
+### 1) Layout & Routing
+- `AdminLayout` (`src/layouts/admin/AdminLayout.jsx`):
+  - Sidebar dark theme (navy) + header "Dashboard Admin" + search + notification.
+  - Menu: Tổng quan, Quản lý phòng khám, Quản lý người dùng, Quản lý bài đăng.
+  - Profile box + logout ở bottom sidebar.
+  - Dùng auth context chung từ `hooks/adminClinic/AuthContext`.
+- Routes đã khai báo:
+  - `/admin/home` → `Clinics` (trang chính khi ADMIN đăng nhập).
+  - `/admin/dashboard/clinics` → `Clinics`.
+- CSS: `styles/admin/colorsToken.css` (biến màu riêng cho admin, sidebar dark theme, stat cards).
+- `authRole.js` đã tách: `ADMIN` → `/admin/home`, `ADMIN_CLINIC` → `/admin/clinic/appointments`.
+
+### 2) Clinics Management (pages/admin/Dashboard/Clinics)
+- UI hoàn chỉnh: 3 stat cards (nền màu + icon trong hộp vuông) + bảng danh sách + phân trang.
+- Stat cards: phòng khám (nền xanh lá nhạt), người dùng (nền xanh dương nhạt), bài đăng (nền cam nhạt).
+- Cột bảng: tên (kèm Avatar viết tắt), SĐT, vị trí, ngày thành lập (dd/MM/yyyy), email, trạng thái (Tag), thao tác (xem/xóa).
+- Nút "Thêm phòng khám" màu teal (#2dd4a8) theo theme admin.
+- Trạng thái phòng khám: dùng local constant `CLINIC_STATUS` (ACTIVE/INACTIVE) — TODO: chuyển sang enum khi backend cung cấp.
+- Toàn bộ dữ liệu đang mock (useState rỗng), các handler đều là TODO chờ nối API.
+
+### 3) Các màn chưa có nội dung
+- `Overview/`, `Users/`, `Posts/`: thư mục đã tạo sẵn, chưa có file component.
+
 ## Veterinarian Portal - Trạng thái tính năng
 
 ### 1) Lịch hẹn bác sĩ
@@ -250,8 +278,10 @@ Luồng đang chạy:
 ### 1) Token CSS
 - `src/styles/client/colorsToken.css`
 - `src/styles/adminClinic/colorsToken.css`
+- `src/styles/admin/colorsToken.css` (biến màu riêng cho super admin: sidebar dark, stat cards, brand)
 
-Hai file gần như đồng nhất, cùng semantic variables cho brand/surface/text/border/shadow.
+Thư mục `styles/admin/colorsToken.css` chứa thêm biến sidebar dark theme (`--admin-sidebar-*`) và stat cards (`--admin-stat-*`).
+Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 
 ### 2) Global style
 - `src/index.css` chứa:
@@ -263,6 +293,7 @@ Hai file gần như đồng nhất, cùng semantic variables cho brand/surface/t
 ### 3) Layout components
 - Client header/footer riêng trong `src/components/layouts/client`.
 - Admin clinic và veterinarian dùng layout riêng trong `src/layouts`.
+- Super admin dùng `AdminLayout` (`src/layouts/admin/`) với sidebar dark navy + header.
 
 ## Luồng dữ liệu chính
 
@@ -290,7 +321,7 @@ Hai file gần như đồng nhất, cùng semantic variables cho brand/surface/t
 4. Đồng bộ trạng thái appointment sang `COMPLETED`.
 
 ## Điểm mạnh hiện tại
-- Tách rõ 3 portal client/admin clinic/veterinarian theo route + layout.
+- Tách rõ 4 portal client/admin clinic/veterinarian/super admin theo route + layout.
 - RBAC hậu đăng nhập rõ ràng, login chung dễ vận hành.
 - Booking flow đã có validation tốt và tích hợp AI diagnosis.
 - Forum đã là module tương tác đầy đủ, không còn chỉ demo.
@@ -309,11 +340,13 @@ Hai file gần như đồng nhất, cùng semantic variables cho brand/surface/t
 - `adminClinic/PetMedicalRecords`
 - `adminClinic/PetMedicalBill`
 - `adminVererianrian/PetAppointmentVererianrian`
+- `admin/Dashboard/Clinics` (UI hoàn chỉnh, dữ liệu mock — chờ API)
 
 ### 4) Một số route điều hướng chưa khớp route khai báo
 - Điều hướng tới `/admin/clinic/medical-records/view` nhưng chưa có route tương ứng.
 - Điều hướng tới `/admin/clinic/exam-slips/:appointmentId/bill` nhưng chưa có route tương ứng.
 - `PetAppointmentVererianrian` điều hướng tới `/admin/veterinarian/exam-slips/:id` nhưng route hiện có là `/admin/veterinarian/exam-forms/*`.
+- Super admin routes (`/admin/dashboard/users`, `/admin/dashboard/posts`) chưa có component tương ứng.
 
 ### 5) Socket URL đang hardcoded
 - `src/socket/socket.js` dùng cố định `http://localhost:3000/chat`, chưa đưa vào env.
@@ -354,6 +387,10 @@ Ghi chú:
 4. `npm run dev`
 5. Build production: `npm run build`
 
+### 8) Chưa có clinic status enum
+- Enum folder chưa có `clinic-status.enum.ts`. Trang Clinics dùng local constant `CLINIC_STATUS` tạm thời.
+- Cần backend cung cấp enum clinic status để đồng bộ FE.
+
 ## Backlog ưu tiên đề xuất (Web)
 1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.
@@ -362,3 +399,6 @@ Ghi chú:
 5. Đưa `SOCKET_URL` vào env (`VITE_SOCKET_URL`) thay vì hardcoded.
 6. Gộp token CSS thành single-source để giảm duplicate.
 7. Tiếp tục chuẩn hóa i18n và giảm hardcoded text tiếng Việt trong UI.
+8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
+9. Hoàn thiện các trang super admin còn lại: Overview, Users, Posts.
+10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).

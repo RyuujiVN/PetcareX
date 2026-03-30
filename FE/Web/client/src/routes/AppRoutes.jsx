@@ -38,6 +38,8 @@ import ListMedicalRecords from './../pages/adminVererianrian/ListMedicalRecords/
 import ViewPetMedicalRecords from './../pages/adminVererianrian/ViewPetMedicalRecords/viewPetMedicalRecords';
 import ListExaminationForm from './../pages/adminVererianrian/ListExaminationForm/listExaminationForm';
 import RecordExaminationForm from './../pages/adminVererianrian/RecordExaminationForm/recordExaminationForm';
+import AdminLayout from '../layouts/admin/AdminLayout';
+import Clinics from '../pages/admin/Dashboard/Clinics';
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
@@ -49,8 +51,15 @@ export default function AppRoutes({ location }) {
       <Route path="/admin/confirm-password" element={<Navigate to="/admin/reEnterPassword" replace />}
       />
 
+      {/* ── Super Admin (role ADMIN) ── */}
+      <Route element={<AdminLayout />}>
+        <Route path="/admin/home" element={<Clinics />} />
+        <Route path="/admin/dashboard/clinics" element={<Clinics />} />
+        {/* TODO: thêm route cho Overview, Users, Posts khi có component */}
+      </Route>
+
+      {/* ── Admin Clinic (role ADMIN_CLINIC) ── */}
       <Route element={<AdminClinicLayout />}>
-        <Route path="/admin/home" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/appointments" element={<AppointmentManagement />} />
         <Route path="/admin/clinic/profile" element={<AdminClinicProfile />} />
         <Route path="/admin/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
