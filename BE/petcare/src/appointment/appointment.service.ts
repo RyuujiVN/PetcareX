@@ -12,23 +12,18 @@ import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
-import { ConfigService } from '@nestjs/config';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import { QueueNameEnum } from 'src/common/enums/queue.enum';
 
 @Injectable()
 export class AppointmentService {
-  private linkConnectAI;
-
   constructor(
-    @InjectQueue('appointment')
+    @InjectQueue(QueueNameEnum.APPOINTMENT)
     private readonly analyzeSymptomsQueue: Queue,
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
-    private readonly configService: ConfigService,
-  ) {
-    this.linkConnectAI = this.configService.get<string>('LINK_CONNECT_AI');
-  }
+  ) {}
 
   async findOneById(appointmentId: string) {
     return await this.appointmentRepository
@@ -187,6 +182,10 @@ export class AppointmentService {
         attempts: 3,
         removeOnComplete: true,
         removeOnFail: true,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
       },
     );
 

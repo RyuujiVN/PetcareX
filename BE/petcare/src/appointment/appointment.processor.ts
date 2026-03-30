@@ -8,7 +8,7 @@ import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 import { Repository } from 'typeorm';
 
 @Processor(QueueNameEnum.APPOINTMENT, { concurrency: 5 })
-export class AnalyzeSymptomsProcessor extends WorkerHost {
+export class AppointmentProcessor extends WorkerHost {
   constructor(
     @InjectRepository(AiDiagnosis)
     private readonly aiDiagnosisRepo: Repository<AiDiagnosis>,
@@ -25,20 +25,25 @@ export class AnalyzeSymptomsProcessor extends WorkerHost {
     switch (job.name) {
       case JobNameEnum.ANALYZE_SYMPTOMS: {
         console.log('Đang chạy job AI phân tích bệnh');
-        // Gửi triệu chứng tới AI để phân tích
-        const response = await axios.post(`${linkConnectAI}/api/triage`, {
-          symptoms: appointment.note,
-        });
+        try {
+          // Gửi triệu chứng tới AI để phân tích
+          const response = await axios.post(`${linkConnectAI}/api/triage`, {
+            symptoms: appointment.note,
+          });
 
-        const aiDiagnosis = new AiDiagnosis();
-        aiDiagnosis.petId = appointment.petId;
-        aiDiagnosis.userId = appointment.userId;
-        aiDiagnosis.diagnosis = response.data.analysis;
-        aiDiagnosis.appointmentDate = appointment.appointmentDate;
-        aiDiagnosis.appointmentTime = appointment.appointmentTime;
+          const aiDiagnosis = new AiDiagnosis();
+          aiDiagnosis.petId = appointment.petId;
+          aiDiagnosis.userId = appointment.userId;
+          aiDiagnosis.diagnosis = response.data.analysis;
+          aiDiagnosis.appointmentDate = appointment.appointmentDate;
+          aiDiagnosis.appointmentTime = appointment.appointmentTime;
 
-        await this.aiDiagnosisRepo.save(aiDiagnosis);
-        console.log('Hoàn thành job AI phân tích bệnh');
+          await this.aiDiagnosisRepo.save(aiDiagnosis);
+          console.log('Hoàn thành job AI phân tích bệnh');
+        } catch (error) {
+          console.log(error.message);
+          throw error;
+        }
         break;
       }
     }

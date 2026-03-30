@@ -6,7 +6,7 @@ import { Appointment } from './entities/appointment.entity';
 import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import { BullModule } from '@nestjs/bullmq';
-import { AnalyzeSymptomsProcessor } from './appointment.processor';
+import { AppointmentProcessor } from './appointment.processor';
 import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 
 @Module({
@@ -21,7 +21,7 @@ import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
       name: 'appointment',
     }),
   ],
-  providers: [AppointmentService, AnalyzeSymptomsProcessor],
+  providers: [AppointmentService, AppointmentProcessor],
   controllers: [AppointmentController],
 })
 export class AppointmentModule {}
