@@ -23,6 +23,17 @@ const isMenuActive = (pathname, path) => {
   return pathname === path || pathname.startsWith(`${path}/`)
 }
 
+const getClinicDisplayName = (profile) => {
+  return (
+    profile?.clinicName ||
+    profile?.clinicInfo?.name ||
+    profile?.clinic?.name ||
+    profile?.veterinarian?.clinic?.name ||
+    profile?.adminClinic?.clinic?.name ||
+    'PetCareX'
+  )
+}
+
 export default function AdminClinicLayout() {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
@@ -30,6 +41,7 @@ export default function AdminClinicLayout() {
   const navigate = useNavigate()
   const location = useLocation()
   const { userProfile, logout, login } = useAuth()
+  const clinicDisplayName = getClinicDisplayName(userProfile)
 
   const handleLogout = () => {
     logout()
@@ -100,7 +112,7 @@ export default function AdminClinicLayout() {
               <MedicineBoxOutlined />
             </div>
             <div>
-              <h2>Petcar</h2>
+              <h2>{clinicDisplayName}</h2>
               <p>PetcareX</p>
             </div>
           </div>

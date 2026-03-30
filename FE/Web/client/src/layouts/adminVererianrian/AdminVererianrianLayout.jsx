@@ -1,13 +1,13 @@
 import {
-  BellOutlined,
   CalendarOutlined,
   FileTextOutlined,
   FormOutlined,
   LogoutOutlined,
+  MedicineBoxOutlined,
   SearchOutlined,
   UserOutlined,
 } from '@ant-design/icons'
-import { Avatar, Badge, Button, Input } from 'antd'
+import { Avatar, Button, Input } from 'antd'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/adminClinic/AuthContext'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
@@ -21,10 +21,22 @@ const menuItems = [
 
 const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
 
+const getClinicDisplayName = (profile) => {
+  return (
+    profile?.clinicName ||
+    profile?.clinicInfo?.name ||
+    profile?.clinic?.name ||
+    profile?.veterinarian?.clinic?.name ||
+    profile?.adminClinic?.clinic?.name ||
+    'PetCareX'
+  )
+}
+
 export default function AdminVererianrianLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { userProfile, logout } = useAuth()
+  const clinicDisplayName = getClinicDisplayName(userProfile)
   const hideSearchRoutes = [
     '/admin/veterinarian/exam-forms/create',
   ]
@@ -41,11 +53,11 @@ export default function AdminVererianrianLayout() {
         <div>
           <div className={styles.brandWrap}>
             <div className={styles.brandIcon}>
-              <UserOutlined />
+              <MedicineBoxOutlined />
             </div>
             <div>
-              <h2>PetCar</h2>
-              <p>Hệ thống quản lý thú y</p>
+              <h2>{clinicDisplayName}</h2>
+              <p>PetcareX</p>
             </div>
           </div>
 

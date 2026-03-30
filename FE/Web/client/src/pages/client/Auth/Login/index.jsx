@@ -25,6 +25,18 @@ export default function Login() {
   const hasGoogleAuth = isFirebaseGoogleAuthReady();
   const googleConfigError = getFirebaseConfigError();
 
+  const normalizeAdminProfile = (userInfo, clinicInfo) => {
+    if (!userInfo) return userInfo;
+    if (!clinicInfo) return userInfo;
+
+    return {
+      ...userInfo,
+      clinicId: userInfo?.clinicId || clinicInfo?.id,
+      clinicName: userInfo?.clinicName || clinicInfo?.name || '',
+      clinicInfo,
+    };
+  };
+
   const handleSuccessfulAuth = ({ accessToken, userInfo }) => {
     const portal = getAuthPortalByRole(userInfo);
     const redirectPath = getPostLoginPathByRole(userInfo);
@@ -64,8 +76,11 @@ export default function Login() {
         return;
       }
 
-      const { accessToken, userInfo } = data;
-      handleSuccessfulAuth({ accessToken, userInfo });
+      const { accessToken, userInfo, clinicInfo } = data;
+      handleSuccessfulAuth({
+        accessToken,
+        userInfo: normalizeAdminProfile(userInfo, clinicInfo),
+      });
 
     } catch (err) {
       const errorMsg =

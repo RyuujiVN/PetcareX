@@ -45,8 +45,30 @@ import {
 	getVeterinarianPetBreedsApi,
 	getVeterinarianPetSpeciesApi,
 } from '../../../data/adminVererianrian/api/petApi'
+import { getVeterinarianUserByIdApi } from '../../../data/adminVererianrian/api/userApi'
 import { getBreedLabel, getSpeciesLabel } from '../../../data/client/api/petApi'
 import styles from './recordExaminationForm.module.css'
+
+const normalizeCollection = (payload) => {
+	if (Array.isArray(payload)) return payload
+	if (Array.isArray(payload?.items)) return payload.items
+	if (Array.isArray(payload?.data)) return payload.data
+	return []
+}
+
+const getMedicalOrderOptionLabel = (item) => {
+	const label = item?.nameVn || item?.name || item?.nameEng || item?.title || item?.code
+	if (label) return label
+	if (item?.id) return `Chi dinh #${String(item.id).slice(0, 6).toUpperCase()}`
+	return 'Chua cap nhat'
+}
+
+const getMedicineOptionLabel = (item) => {
+	const name = item?.name || item?.nameVn || item?.nameEng || item?.tradeName || item?.code || 'Chua cap nhat'
+	const strength = item?.strength || item?.concentration || item?.unit || item?.dosage || ''
+
+	return strength ? `${name} (${strength})` : name
+}
 
 const buildInitialValues = (appointment) => {
 	const pet = appointment?.petRaw || appointment?.pet || {}
@@ -56,7 +78,7 @@ const buildInitialValues = (appointment) => {
 		formName: appointment?.formName || appointment?.service || '',
 		followUpDate: null,
 		customerName: appointment?.ownerName || owner?.fullName || '',
-		email: owner?.email || '',
+		email: owner?.email || appointment?.ownerEmail || '',
 		phone: owner?.phone || '',
 		petName: appointment?.petName || pet?.name || '',
 		species: pet?.species || undefined,
@@ -94,6 +116,8 @@ const toAppointmentViewModel = (item) => {
 		service: item?.service,
 		petName: pet?.name,
 		ownerName: owner?.fullName,
+		ownerId: owner?.id,
+		ownerEmail: owner?.email || '',
 		formName: item?.service,
 		petRaw: pet,
 	}
@@ -118,6 +142,8 @@ export default function RecordExaminationForm() {
 	const initialSnapshotRef = useRef('')
 
 	const appointmentId = searchParams.get('appointmentId')
+	const appointmentOwnerId = appointment?.ownerId || appointment?.petRaw?.owner?.id
+	const appointmentOwnerEmail = appointment?.ownerEmail || appointment?.petRaw?.owner?.email
 
 	const hydrateByAppointmentId = useCallback(async () => {
 		if (!appointmentId || location?.state?.appointment?.appointmentId === appointmentId) return
@@ -141,9 +167,9 @@ export default function RecordExaminationForm() {
 				getVeterinarianPetSpeciesApi(),
 			])
 
-			setMedicalOrderOptions(Array.isArray(medicalOrders) ? medicalOrders : [])
-			setMedicineOptions(Array.isArray(medicines) ? medicines : [])
-			setSpeciesOptions(Array.isArray(species) ? species : [])
+			setMedicalOrderOptions(normalizeCollection(medicalOrders))
+			setMedicineOptions(normalizeCollection(medicines))
+			setSpeciesOptions(normalizeCollection(species))
 		} catch (error) {
 			message.error(error?.message || 'Không thể tải dữ liệu phiếu khám')
 		} finally {
@@ -162,6 +188,44 @@ export default function RecordExaminationForm() {
 		initialSnapshotRef.current = snapshot
 		setIsDirty(false)
 	}, [appointment, form])
+
+	useEffect(() => {
+		let active = true
+
+		const hydrateOwnerEmail = async () => {
+			if (!appointmentOwnerId || appointmentOwnerEmail) return
+
+			try {
+				const owner = await getVeterinarianUserByIdApi(appointmentOwnerId)
+				const resolvedEmail = owner?.email || owner?.data?.email || ''
+				if (!resolvedEmail || !active) return
+
+				setAppointment((prev) => {
+					if (!prev) return prev
+
+					return {
+						...prev,
+						ownerEmail: resolvedEmail,
+						petRaw: {
+							...prev.petRaw,
+							owner: {
+								...(prev.petRaw?.owner || {}),
+								email: resolvedEmail,
+							},
+						},
+					}
+				})
+			} catch {
+				// Ignore owner email hydration failure and keep form editable.
+			}
+		}
+
+		hydrateOwnerEmail()
+
+		return () => {
+			active = false
+		}
+	}, [appointmentOwnerId, appointmentOwnerEmail])
 
 	const selectedSpecies = Form.useWatch('species', form)
 
@@ -347,7 +411,13 @@ export default function RecordExaminationForm() {
 
 	return (
 		<div className={styles.pageRoot}>
-			<Form form={form} layout="vertical" onValuesChange={handleValuesChange} onFinish={onFinish}>
+			<Form
+				form={form}
+				layout="vertical"
+				onValuesChange={handleValuesChange}
+				onFinish={onFinish}
+				className={styles.formRoot}
+			>
 				<header className={styles.formHeader}>
 					<div>
 						<div className={styles.brandRow}>
@@ -367,6 +437,8 @@ export default function RecordExaminationForm() {
 						<span>Ngày khám: {prescriptionDate}</span>
 					</div>
 				</header>
+
+				<div className={styles.formScrollableContent}>
 
 				<Card className={styles.sectionCard}>
 					<Row gutter={12}>
@@ -393,9 +465,6 @@ export default function RecordExaminationForm() {
 				</Card>
 
 				<Card className={styles.sectionCard} title={<span><UserOutlined /> Thông tin khách hàng & Thú cưng</span>}>
-					<Form.Item name="species" hidden>
-						<Input />
-					</Form.Item>
 					<Row gutter={12}>
 						<Col xs={24} md={8}>
 							<Form.Item
@@ -439,11 +508,29 @@ export default function RecordExaminationForm() {
 						</Col>
 						<Col xs={24} md={8}>
 							<Form.Item
+								label="LOÀI"
+								name="species"
+								rules={[{ required: true, message: 'Vui lòng chọn loài' }]}
+							>
+								<Select
+									size="large"
+									placeholder="Chọn loài"
+									onChange={() => form.setFieldValue('breed', undefined)}
+									options={speciesOptions.map((species) => ({
+										value: species,
+										label: getSpeciesLabel(species),
+									}))}
+								/>
+							</Form.Item>
+						</Col>
+						<Col xs={24} md={8}>
+							<Form.Item
 								label="GIỐNG LOÀI"
 								name="breed"
 								rules={[{ required: true, message: 'Vui lòng chọn giống loài' }]}
 							>
-								<Select size = "large"
+								<Select
+									size="large"
 									placeholder="Giống loài"
 									options={breedOptions.map((breed) => ({
 										value: breed,
@@ -452,16 +539,6 @@ export default function RecordExaminationForm() {
 								/>
 							</Form.Item>
 						</Col>
-						<Col xs={24} md={8}>
-							<Form.Item
-								label="CÂN NẶNG (KG)"
-								name="weight"
-								rules={[{ required: true, message: 'Vui lòng nhập cân nặng' }]}
-							>
-								<InputNumber className={styles.fullWidth} min={0.1} max={99.9} step={0.1} placeholder="Cân nặng" />
-							</Form.Item>
-						</Col>
-
 					</Row>
 				</Card>
 
@@ -564,11 +641,12 @@ export default function RecordExaminationForm() {
 											rules={[{ required: true, message: 'Chọn chỉ định' }]}
 											className={styles.noMargin}
 										>
-											<Select size = "large"
+											<Input
+												size="large"
 												placeholder="Chọn loại chỉ định"
 												options={medicalOrderOptions.map((item) => ({
 													value: item.id,
-													label: item.nameVn || item.nameEng,
+													label: getMedicalOrderOptionLabel(item),
 												}))}
 											/>
 										</Form.Item>
@@ -625,11 +703,12 @@ export default function RecordExaminationForm() {
 											rules={[{ required: true, message: 'Chọn thuốc' }]}
 											className={styles.noMargin}
 										>
-											<Select size = "large"
+											<Input
+												size="large"
 												placeholder="Chọn thuốc"
 												options={medicineOptions.map((item) => ({
 													value: item.id,
-													label: `${item.name} ${item.unit ? `(${item.unit})` : ''}`,
+													label: getMedicineOptionLabel(item),
 												}))}
 											/>
 										</Form.Item>
@@ -677,8 +756,9 @@ export default function RecordExaminationForm() {
 						Hủy
 					</Button>
 					<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
-						LƯU HỒ SƠ
+						LƯU PHIẾU KHÁM
 					</Button>
+				</div>
 				</div>
 			</Form>
 		</div>

@@ -51,6 +51,8 @@ const toRecordRow = (item) => {
 		petName: pet?.name || 'Chưa cập nhật',
 		petAvatar: pet?.avatar || '',
 		ownerName: owner?.fullName || 'Chưa cập nhật',
+		ownerId: owner?.id || '',
+		ownerEmail: owner?.email || '',
 		petBreedLabel: getBreedLabel(pet?.breed, pet?.species),
 		petRaw: pet,
 	}

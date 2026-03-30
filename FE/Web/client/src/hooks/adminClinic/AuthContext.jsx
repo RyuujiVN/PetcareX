@@ -8,6 +8,45 @@ import {
 
 const AuthContext = createContext();
 
+const readStoredAdminProfile = () => {
+	try {
+		const raw = localStorage.getItem(ADMIN_AUTH_STORAGE.userInfoKey);
+		return raw ? JSON.parse(raw) : null;
+	} catch {
+		return null;
+	}
+};
+
+const deriveClinicInfo = (profile) => {
+	if (!profile) return null;
+
+	return (
+		profile?.clinicInfo ||
+		profile?.clinic ||
+		profile?.veterinarian?.clinic ||
+		profile?.adminClinic?.clinic ||
+		null
+	);
+};
+
+const mergeClinicMetadata = (profile, fallbackProfile = null) => {
+	if (!profile && !fallbackProfile) return null;
+
+	const baseProfile = profile || fallbackProfile;
+	const clinicInfo = deriveClinicInfo(profile) || deriveClinicInfo(fallbackProfile);
+	const clinicName =
+		baseProfile?.clinicName ||
+		clinicInfo?.name ||
+		fallbackProfile?.clinicName ||
+		'';
+
+	return {
+		...baseProfile,
+		...(clinicInfo ? { clinicInfo } : {}),
+		...(clinicName ? { clinicName } : {}),
+	};
+};
+
 export const AuthProvider = ({ children }) => {
 	const [token, setToken] = useState(localStorage.getItem(ADMIN_AUTH_STORAGE.tokenKey));
 	const [userProfile, setUserProfile] = useState(null);
@@ -18,13 +57,16 @@ export const AuthProvider = ({ children }) => {
 
 	useEffect(() => {
 		if (token) {
+			const cachedProfile = readStoredAdminProfile();
+
 			getUserProfileApi()
 				.then((res) => {
-					setUserProfile(res.data);
-					localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(res.data));
+					const mergedProfile = mergeClinicMetadata(res.data, cachedProfile);
+					setUserProfile(mergedProfile);
+					localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
 				})
 				.catch(() => {
-					setUserProfile(null);
+					setUserProfile(cachedProfile || null);
 				});
 		} else {
 			setUserProfile(null);
@@ -35,8 +77,9 @@ export const AuthProvider = ({ children }) => {
 		clearLegacyAuthStorage();
 		localStorage.setItem(ADMIN_AUTH_STORAGE.tokenKey, accessToken);
 		if (profile) {
-			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(profile));
-			setUserProfile(profile);
+			const mergedProfile = mergeClinicMetadata(profile, readStoredAdminProfile());
+			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+			setUserProfile(mergedProfile);
 		}
 		setToken(accessToken);
 	};
@@ -52,9 +95,10 @@ export const AuthProvider = ({ children }) => {
 		if (!token) return;
 		try {
 			const res = await getUserProfileApi();
-			setUserProfile(res.data);
-			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(res.data));
-			return res.data;
+			const mergedProfile = mergeClinicMetadata(res.data, readStoredAdminProfile());
+			setUserProfile(mergedProfile);
+			localStorage.setItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));
+			return mergedProfile;
 		} catch {
 			setUserProfile(null);
 		}
