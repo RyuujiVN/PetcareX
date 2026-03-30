@@ -1,0 +1,138 @@
+.clinics-page {
+  padding: 24px;
+}
+
+/* ── Stat Cards ── */
+.stat-card {
+  border-radius: 12px;
+  border: none;
+}
+
+.stat-card .ant-card-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-card--clinic {
+  background: var(--admin-stat-clinic-bg);
+}
+
+.stat-card__icon--clinic {
+  background: var(--admin-stat-clinic-icon);
+  color: #fff;
+}
+
+.stat-card--user {
+  background: var(--admin-stat-user-bg);
+}
+
+.stat-card__icon--user {
+  background: var(--admin-stat-user-icon);
+  color: #fff;
+}
+
+.stat-card--post {
+  background: var(--admin-stat-post-bg);
+}
+
+.stat-card__icon--post {
+  background: var(--admin-stat-post-icon);
+  color: #fff;
+}
+
+/* ── Table Card ── */
+.table-card {
+  border-radius: 12px;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.pagination-bar {
+  margin-top: 16px;
+  padding: 0 8px;
+}
+
+/* ── Table row spacing ── */
+.clinics-page .ant-table-wrapper .ant-table-tbody > tr > td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--admin-color-border);
+}
+
+.clinics-page .ant-table-wrapper .ant-table-thead > tr > th {
+  background: var(--admin-color-surface-soft);
+  color: var(--admin-color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Add button blue style ── */
+.clinics-page .ant-btn-primary {
+  background: var(--admin-color-brand-primary);
+  border-color: var(--admin-color-brand-primary);
+}
+
+.clinics-page .ant-btn-primary:hover {
+  background: var(--admin-color-brand-primary-hover);
+  border-color: var(--admin-color-brand-primary-hover);
+}
+
+/* ── Add Clinic Modal ── */
+.add-clinic-modal .ant-modal-header {
+  padding: 20px 24px 12px;
+  border-bottom: none;
+}
+
+.add-clinic-modal .ant-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-color-text-primary);
+}
+
+.add-clinic-modal .ant-modal-body {
+  padding: 0 24px 8px;
+}
+
+.add-clinic-modal .ant-modal-footer {
+  padding: 12px 24px 20px;
+  border-top: none;
+}
+
+.add-clinic-modal .ant-modal-footer .ant-btn-primary {
+  background: var(--admin-color-brand-primary);
+  border-color: var(--admin-color-brand-primary);
+}
+
+.add-clinic-modal .ant-modal-footer .ant-btn-primary:hover {
+  background: var(--admin-color-brand-primary-hover);
+  border-color: var(--admin-color-brand-primary-hover);
+}
+
+.add-clinic-form .ant-divider-inner-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.add-clinic-form .ant-form-item-label > label {
+  font-weight: 500;
+  color: var(--admin-color-text-primary);
+}
