@@ -32,7 +32,7 @@ export default function ForgotPassword() {
   };
 
   const handleGoBack = () => {
-    navigate('/admin/login');
+    navigate('/login');
   };
 
   return (

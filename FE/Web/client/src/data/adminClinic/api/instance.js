@@ -42,12 +42,12 @@ instance.interceptors.response.use(
 
     if (error.response?.status === 401) {
 
-      if (window.location.pathname !== "/admin/login") {
+      if (window.location.pathname !== "/login") {
 
         clearAuthStorage(ADMIN_AUTH_STORAGE);
         clearLegacyAuthStorage();
 
-        window.location.href = "/admin/login";
+        window.location.href = "/login";
 
       }
 

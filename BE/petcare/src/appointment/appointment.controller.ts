@@ -89,8 +89,8 @@ export class AppointmentController {
   @ApiBody({
     type: CreateAppointmentDTO,
   })
-  createAppointment(@Body() createDTO: CreateAppointmentDTO) {
-    return this.appointmentService.createAppointment(createDTO);
+  createAppointment(@Body() createDTO: CreateAppointmentDTO, @Req() req) {
+    return this.appointmentService.createAppointment(createDTO, req?.user?.id);
   }
 
   @Put(':id')

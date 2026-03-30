@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, Tooltip, message } from 'antd'
-import { CalendarOutlined, EditOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
-import { useNavigate } from 'react-router-dom'
+import { CalendarOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/adminClinic/api/appointmentApi'
 import { getClinicPetSpeciesApi } from '../../../../data/adminClinic/api/petApi'
 import styles from './listPetMedicalRecords.module.css'
@@ -66,6 +66,9 @@ const sortByTimeAsc = (a, b) => {
 
 export default function ListPetMedicalRecords() {
 	const navigate = useNavigate()
+	const location = useLocation()
+	const isVeterinarianPortal = location.pathname.startsWith('/admin/veterinarian')
+	const routePrefix = isVeterinarianPortal ? '/admin/veterinarian' : '/admin/clinic'
 	const [loading, setLoading] = useState(false)
 	const [loadingSpecies, setLoadingSpecies] = useState(false)
 	const [searchText, setSearchText] = useState('')
@@ -119,11 +122,16 @@ export default function ListPetMedicalRecords() {
 				return {
 					key: String(petId),
 					appointmentId: firstAppointment?.id || '',
+					medicalId: firstAppointment?.medical?.id || '',
 					petId: String(petId),
 					name: pet?.name || 'Không rõ tên',
 					avatar: pet?.avatar || '',
+					breed: pet?.breed || '',
 					species: pet?.species || '',
 					speciesLabel: formatSpeciesLabel(pet?.species, pet?.breed),
+					dateOfBirth: pet?.dateOfBirth || '',
+					gender: pet?.gender,
+					weight: pet?.weight,
 					ownerName: owner?.fullName || 'Không rõ chủ nuôi',
 					ownerPhone: owner?.phone || 'Chưa cập nhật',
 					appointmentSummary: sortedAppointments
@@ -201,12 +209,20 @@ export default function ListPetMedicalRecords() {
 	}, [searchText, selectedSpecies, selectedDate])
 
 	const onOpenMedicalRecord = (row) => {
-		if (!row?.appointmentId) {
-			message.warning('Không tìm thấy lịch khám để mở sổ y tế')
+		if (!row?.petId) {
+			message.warning('Không tìm thấy thú cưng để mở sổ y tế')
 			return
 		}
 
-		navigate(`/admin/clinic/exam-slips/${row.appointmentId}`, {
+		const searchParams = new URLSearchParams({
+			petId: row.petId,
+		})
+
+		if (row.medicalId) {
+			searchParams.set('medicalId', row.medicalId)
+		}
+
+		navigate(`${routePrefix}/medical-records/view?${searchParams.toString()}`, {
 			state: {
 				record: row,
 			},

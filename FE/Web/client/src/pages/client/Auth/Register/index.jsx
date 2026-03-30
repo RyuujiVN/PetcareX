@@ -11,7 +11,9 @@ import {
 import React from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
+import { getAuthPortalByRole, getPostLoginPathByRole } from "../../../../constants/authRole";
 import { registerApi } from "../../../../data/client/api/auth";
+import { useAuth as useAdminAuth } from "../../../../hooks/adminClinic/AuthContext";
 import { useAuth } from "../../../../hooks/client/AuthContext";
 import { authenticateClientWithGoogle } from "../../../../utils/clientGoogleAuth";
 import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from "../../../../utils/firebaseClient";
@@ -24,9 +26,24 @@ export default function Register() {
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
   const [googleLoading, setGoogleLoading] = React.useState(false);
-  const { login } = useAuth();
+  const { login: clientLogin } = useAuth();
+  const { login: adminLogin } = useAdminAuth();
   const hasGoogleAuth = isFirebaseGoogleAuthReady();
   const googleConfigError = getFirebaseConfigError();
+
+  const handleSuccessfulAuth = ({ accessToken, userInfo }) => {
+    const portal = getAuthPortalByRole(userInfo);
+    const redirectPath = getPostLoginPathByRole(userInfo);
+
+    if (portal === "admin") {
+      adminLogin(accessToken, userInfo);
+    } else {
+      clientLogin(accessToken, userInfo);
+    }
+
+    message.success("Đăng nhập bằng Google thành công!");
+    navigate(redirectPath, { replace: true });
+  };
 
   const validatePassword = (_, value) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -97,16 +114,10 @@ export default function Register() {
       setGoogleLoading(true);
 
       const authResult = await authenticateClientWithGoogle();
-
-      if (authResult.status === "admin-account") {
-        message.warning("Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.");
-        navigate("/admin/login", { replace: true });
-        return;
-      }
-
-      login(authResult.accessToken, authResult.userInfo);
-      message.success("Đăng nhập bằng Google thành công!");
-      navigate("/home");
+      handleSuccessfulAuth({
+        accessToken: authResult.accessToken,
+        userInfo: authResult.userInfo,
+      });
     } catch (error) {
       message.error(error?.response?.data?.message || error?.message || "Đăng nhập bằng Google thất bại.");
     } finally {

@@ -1,4 +1,3 @@
-import { isAdminClinicAccount } from '../constants/authRole'
 import { loginGoogleApi } from '../data/client/api/auth'
 import { signInWithGooglePopupToken } from './firebaseClient'
 
@@ -11,14 +10,7 @@ export const authenticateClientWithGoogle = async () => {
     throw new Error(data?.message || 'Đăng nhập bằng Google thất bại.')
   }
 
-  if (isAdminClinicAccount(data.userInfo)) {
-    return {
-      status: 'admin-account',
-    }
-  }
-
   return {
-    status: 'success',
     accessToken: data.accessToken,
     userInfo: data.userInfo,
   }

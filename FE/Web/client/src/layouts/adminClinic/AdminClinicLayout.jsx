@@ -33,7 +33,7 @@ export default function AdminClinicLayout() {
 
   const handleLogout = () => {
     logout()
-    navigate('/admin/login')
+    navigate('/login')
   }
 
   const openChangePasswordModal = () => {

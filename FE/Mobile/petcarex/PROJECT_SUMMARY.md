@@ -43,6 +43,85 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - Chưa thêm cơ chế “hủy ảnh đã pre-upload trên cloud khi user xóa khỏi draft” do cần contract backend riêng; hiện tại ưu tiên tốc độ và UX phía mobile.
 - Thiết kế hiện tại ưu tiên ổn định và khả dụng ngay, có thể mở rộng retry ảnh lỗi theo từng item ở iteration tiếp theo.
 
+### 5) Community Comment/Reply Image Composer Sync (2026-03-27)
+- **Vấn đề cũ:**
+    - Comment có ảnh vẫn upload khi bấm `Gửi`, làm thao tác gửi dễ bị chờ lâu.
+    - Luồng `Trả lời` chưa có trải nghiệm upload ảnh rõ ràng như tạo bài, gây cảm giác reply chỉ gửi text.
+- **Giải pháp triển khai:**
+    - Chuẩn hóa composer ảnh ở bottom sheet comment/reply sang **pre-upload ngay khi chọn ảnh**.
+    - Mỗi ảnh có state riêng: `isUploading`, `isUploadFailed`, `uploadedUrl` (tương tự Create Post).
+    - Nút `Gửi` chỉ submit khi:
+        - Không còn ảnh đang upload.
+        - Không có ảnh lỗi upload.
+        - Có ít nhất text hoặc ảnh đã upload thành công.
+    - Payload gửi comment/reply ưu tiên `uploadedImageUrls` đã có sẵn; provider vẫn giữ fallback upload bằng `imagePaths` để tương thích ngược.
+- **Tối ưu UX UI:**
+    - Ảnh đang upload hiển thị **mờ (opacity)** + spinner để tạo cảm giác “đang xử lý” kiểu feed social.
+    - Ảnh lỗi có overlay đỏ + icon lỗi, cho phép xóa từng ảnh trước khi gửi.
+    - Hiển thị bộ đếm `uploaded/total` trong composer để người dùng biết ảnh nào đã sẵn sàng.
+- **Kết quả:**
+    - Comment có ảnh gửi nhanh và ổn định hơn do URL ảnh đã sẵn trước khi submit.
+    - Reply đã hỗ trợ upload ảnh đầy đủ và dùng chung một flow nhất quán với comment.
+
+### 6) Community Self Comment Edit/Delete (2026-03-27)
+- **Nhu cầu:** Người dùng cần sửa/xóa bình luận của chính mình khi gõ sai nội dung hoặc đăng nhầm.
+- **API backend đã có sẵn:**
+    - `PUT /api/comment/{id}`: sửa `content`.
+    - `DELETE /api/comment/{id}`: xóa bình luận.
+- **Triển khai FE mobile:**
+    - Trong bottom sheet comment, mỗi comment/reply của **chính chủ** (`comment.author.id == currentUser.id`) hiển thị menu thao tác (`...`) gồm `Cập nhật` và `Xóa`.
+    - Luồng sửa comment mở dialog nhập lại text; ảnh cũ trong content HTML được giữ nguyên để tránh mất dữ liệu media khi người dùng chỉ sửa chữ.
+    - Luồng xóa comment có confirm dialog trước khi gọi API.
+    - Sau khi API thành công, Provider cập nhật local state ngay cho list comment/reply + đồng bộ giảm `commentCount` ở card bài viết.
+- **Phản biện UX/tech:**
+    - Giữ quyền thao tác trực tiếp trong từng item comment giúp giảm số bước, đúng kỳ vọng social feed.
+    - Dùng check quyền ở FE để ẩn thao tác với comment người khác; quyền thực tế vẫn do BE xác thực để đảm bảo an toàn.
+
+### 7) Community Edit Comment With Images (2026-03-27)
+- **Vấn đề cũ:** Dialog `Cập nhật` bình luận chỉ sửa được text, không cho quản lý ảnh nên người dùng không thể xóa ảnh cũ hoặc thêm ảnh mới khi sửa comment.
+- **Giải pháp triển khai:** Đồng bộ luồng `Edit Comment` theo đúng pattern đã dùng ở `Edit Post`.
+    - Parse comment HTML thành `text` + `existingImageUrls` để hiển thị đúng ngữ nghĩa.
+    - Cho phép xóa từng ảnh cũ ngay trong dialog trước khi bấm `Cập nhật`.
+    - Cho phép thêm ảnh mới và **pre-upload ngay khi chọn ảnh** (không đợi tới lúc submit).
+    - Ảnh mới có state per-item: `isUploading`, `isUploadFailed`, `uploadedUrl`.
+    - Khi submit, FE build lại HTML từ `text + existingImageUrls còn lại + uploadedImageUrls mới`.
+- **Guard khi submit:**
+    - Chặn `Cập nhật` nếu còn ảnh đang upload.
+    - Chặn `Cập nhật` nếu có ảnh upload lỗi.
+    - Chỉ gửi payload khi nội dung cuối cùng không rỗng (text và ảnh đều trống thì báo lỗi).
+- **Kết quả:**
+    - Người dùng có thể chỉnh sửa comment có ảnh một cách đầy đủ: giữ/xóa ảnh cũ + thêm ảnh mới + cập nhật text trong cùng một luồng nhất quán.
+
+### 8) Edit Comment Dialog Premature Close Fix (2026-03-27)
+- **Vấn đề phát sinh:** Khi người dùng bấm `Cập nhật` trong lúc ảnh mới vẫn đang upload, dialog bị đóng trước rồi mới báo lỗi `Đang tải ảnh lên, vui lòng đợi...`, làm mất ngữ cảnh chỉnh sửa.
+- **Root cause:** Validate trạng thái upload được đặt **sau** `Navigator.pop(...)` (sau khi dialog đã đóng).
+- **Sửa triệt để:**
+    - Chuyển validate upload/failed/empty-content vào ngay trong `onPressed` của nút `Cập nhật` trong dialog.
+    - Nếu chưa hợp lệ thì chỉ hiển thị thông báo lỗi và **giữ nguyên dialog đang mở**.
+    - Chỉ `Navigator.pop(true)` khi toàn bộ điều kiện hợp lệ.
+- **Kết quả UX:** Người dùng không còn bị đá ra khỏi dialog khi bấm cập nhật quá sớm; có thể chờ upload xong rồi tiếp tục chỉnh sửa trong cùng ngữ cảnh.
+
+## 🐾 Pet Avatar Fullscreen Fix (2026-03-27)
+
+### Bối cảnh lỗi
+- Khi người dùng vào màn xem/sửa thú cưng và chạm vào avatar để xem ảnh lớn, có trường hợp ảnh không tải được dù thumbnail avatar vẫn hiển thị bình thường.
+
+### Phân tích nguyên nhân
+- Thumbnail đang dùng URL Cloudinary đã transform qua helper (`w,h,c_fill,q_auto`) là hợp lý cho danh sách/avatar nhỏ.
+- Nhưng popup xem ảnh lớn trước đó cũng tiếp tục dùng URL transform, làm tăng rủi ro fail do khác biệt policy/giới hạn transform giữa môi trường backend-cloud (ví dụ rule strict transform, giới hạn biến thể, hoặc edge-case URL dẫn xuất).
+
+### Quyết định triển khai (Mobile-only)
+- Giữ nguyên cơ chế thumbnail cho avatar nhỏ để tối ưu băng thông.
+- Đổi riêng luồng **xem ảnh fullscreen** của pet avatar sang dùng **URL gốc Cloudinary** (không ép transform) để tăng tính tương thích và độ ổn định.
+
+### Trade-off đã phản biện
+- Dùng URL gốc ở màn fullscreen có thể tải nặng hơn một chút so với URL đã resize.
+- Tuy nhiên đây là hành vi người dùng chủ động xem ảnh lớn, nên ưu tiên đúng trải nghiệm và tỷ lệ tải thành công cao hơn tối ưu băng thông tuyệt đối.
+
+### Phạm vi thay đổi
+- `lib/features/pet/presentation/edit_pet_page.dart`: popup preview avatar dùng `imageUrl: _uploadedAvatarUrl!` thay vì URL thumbnail transform.
+- Không thay đổi backend.
+
 ## 📂 Workspace chuẩn khi thao tác
 - **Mobile root path chuẩn:** `F:\capstone 2\code\PetcareX\FE\Mobile\petcarex`.
 - **Quy ước chạy lệnh:** Tất cả lệnh Flutter/i18n/analyze cho mobile phải chạy từ đúng root path trên để tránh sai ngữ cảnh workspace.
@@ -337,6 +416,11 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Đã bổ sung key i18n mới cho cả VI/EN:
         - `viewMedicalProfile`
         - `medicalProfileComingSoon`
+    - **Tinh chỉnh UX ảnh thú cưng ở chế độ xem (2026-03-27):**
+        - Đã bỏ icon `pets` đứng cạnh tiêu đề section `Thông tin thú cưng` để giao diện gọn hơn, tránh trùng ngữ nghĩa thị giác.
+        - Ở **view mode**, avatar thú cưng hỗ trợ thao tác **tap để mở preview phóng to** (overlay nền tối + `InteractiveViewer` để pinch zoom), thay vì chỉ hiển thị ảnh tròn kích thước cố định.
+        - Ở **edit mode**, hành vi upload ảnh giữ nguyên (nút camera và luồng pick/upload không đổi).
+        - Quy tắc maintain: chỉ cho phép đổi ảnh khi `_isEditMode = true`; khi `_isEditMode = false` thì ưu tiên hành vi xem ảnh (preview) để tối ưu trải nghiệm người dùng cuối.
 - **Mở rộng hồ sơ y tế cho Pet (2026-03-23):**
     - Nút `Xem hồ sơ y tế` trong `EditPetPage` đã chuyển từ placeholder sang điều hướng thực tế đến màn mới `PetMedicalRecordsPage`.
     - UX mobile của hồ sơ y tế được thiết kế theo mô hình **summary-first**:

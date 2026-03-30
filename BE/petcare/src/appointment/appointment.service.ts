@@ -12,13 +12,23 @@ import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
+import { ConfigService } from '@nestjs/config';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class AppointmentService {
+  private linkConnectAI;
+
   constructor(
+    @InjectQueue('appointment')
+    private readonly analyzeSymptomsQueue: Queue,
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.linkConnectAI = this.configService.get<string>('LINK_CONNECT_AI');
+  }
 
   async findOneById(appointmentId: string) {
     return await this.appointmentRepository
@@ -162,9 +172,23 @@ export class AppointmentService {
   }
 
   // Tạo mới lịch hẹn
-  async createAppointment(createDTO: CreateAppointmentDTO) {
+  async createAppointment(createDTO: CreateAppointmentDTO, userId: string) {
     const appointment = this.appointmentRepository.create(createDTO);
     appointment.status = AppointmentStatusEnum.BOOKED;
+
+    // Gửi triệu chứng về cho AI phân tích
+    await this.analyzeSymptomsQueue.add(
+      'analyzeSymptoms',
+      {
+        ...appointment,
+        userId: userId,
+      },
+      {
+        attempts: 3,
+        removeOnComplete: true,
+        removeOnFail: true,
+      },
+    );
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
 

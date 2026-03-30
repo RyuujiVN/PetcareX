@@ -5,9 +5,10 @@ import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
-import { isAdminClinicAccount } from '../../../../constants/authRole';
 import { loginApi } from '../../../../data/client/api/auth';
-import { useAuth } from '../../../../hooks/client/AuthContext';
+import { getAuthPortalByRole, getPostLoginPathByRole } from '../../../../constants/authRole';
+import { useAuth as useAdminAuth } from '../../../../hooks/adminClinic/AuthContext';
+import { useAuth as useClientAuth } from '../../../../hooks/client/AuthContext';
 import { authenticateClientWithGoogle } from '../../../../utils/clientGoogleAuth';
 import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from '../../../../utils/firebaseClient';
 
@@ -18,10 +19,25 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [form] = Form.useForm();
-  const { login } = useAuth();
+  const { login: clientLogin } = useClientAuth();
+  const { login: adminLogin } = useAdminAuth();
   const navigate = useNavigate();
   const hasGoogleAuth = isFirebaseGoogleAuthReady();
   const googleConfigError = getFirebaseConfigError();
+
+  const handleSuccessfulAuth = ({ accessToken, userInfo }) => {
+    const portal = getAuthPortalByRole(userInfo);
+    const redirectPath = getPostLoginPathByRole(userInfo);
+
+    if (portal === 'admin') {
+      adminLogin(accessToken, userInfo);
+    } else {
+      clientLogin(accessToken, userInfo);
+    }
+
+    message.success('Đăng nhập thành công!');
+    navigate(redirectPath, { replace: true });
+  };
 
   const handleLogin = async (values) => {
 
@@ -49,20 +65,7 @@ export default function Login() {
       }
 
       const { accessToken, userInfo } = data;
-
-      const adminAccount = isAdminClinicAccount(userInfo);
-
-      if (adminAccount) {
-        message.warning('Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.');
-        navigate('/admin/login', { replace: true });
-        return;
-      }
-
-      login(accessToken, userInfo);
-
-      message.success("Đăng nhập thành công!");
-
-      navigate('/home');
+      handleSuccessfulAuth({ accessToken, userInfo });
 
     } catch (err) {
       const errorMsg =
@@ -89,16 +92,10 @@ export default function Login() {
       setGoogleLoading(true);
 
       const authResult = await authenticateClientWithGoogle();
-
-      if (authResult.status === 'admin-account') {
-        message.warning('Tài khoản phòng khám vui lòng đăng nhập tại cổng quản trị.');
-        navigate('/admin/login', { replace: true });
-        return;
-      }
-
-      login(authResult.accessToken, authResult.userInfo);
-      message.success('Đăng nhập bằng Google thành công!');
-      navigate('/home');
+      handleSuccessfulAuth({
+        accessToken: authResult.accessToken,
+        userInfo: authResult.userInfo,
+      });
     } catch (error) {
       message.error(error?.response?.data?.message || error?.message || 'Đăng nhập bằng Google thất bại.');
     } finally {
