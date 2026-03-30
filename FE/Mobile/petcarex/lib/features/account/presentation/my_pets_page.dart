@@ -13,6 +13,10 @@ import '../../pet/presentation/edit_pet_page.dart';
 import '../../pet/presentation/provider/pet_provider.dart';
 import '../../pet/presentation/widgets/pet_form_fields.dart';
 
+const double myPetsAvatarSize = 100;
+const int myPetsAvatarThumbnailSize = 320;
+const double myPetsFallbackIconSize = 200;
+
 class MyPetsPage extends StatefulWidget {
   const MyPetsPage({super.key});
 
@@ -159,8 +163,8 @@ class _MyPetsPageState extends State<MyPetsPage> {
             child: Row(
               children: [
                 Container(
-                  width: 65,
-                  height: 65,
+                  width: myPetsAvatarSize,
+                  height: myPetsAvatarSize,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -172,7 +176,11 @@ class _MyPetsPageState extends State<MyPetsPage> {
                     child:
                         (pet.avatar != null && pet.avatar!.startsWith('http'))
                         ? CachedNetworkImage(
-                            imageUrl: ImageHelper.getThumbnailUrl(pet.avatar!),
+                            imageUrl: ImageHelper.getThumbnailUrl(
+                              pet.avatar!,
+                              width: myPetsAvatarThumbnailSize,
+                              height: myPetsAvatarThumbnailSize,
+                            ),
                             fit: BoxFit.cover,
                             placeholder: (context, url) => const Padding(
                               padding: EdgeInsets.all(8.0),
@@ -188,7 +196,7 @@ class _MyPetsPageState extends State<MyPetsPage> {
                             child: const Icon(
                               Icons.pets,
                               color: AppColors.iconGrey,
-                              size: 30,
+                              size: myPetsFallbackIconSize,
                             ),
                           ),
                   ),

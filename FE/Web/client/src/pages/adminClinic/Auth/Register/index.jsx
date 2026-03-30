@@ -60,7 +60,7 @@ export default function Register() {
 
       message.success("Đăng ký thành công");
       setTimeout(() => {
-        navigate("/admin/login");
+        navigate("/login");
       }, 1000);
     } catch (error) {
       if (error.response?.status === 409) {
@@ -197,7 +197,7 @@ export default function Register() {
 
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
           <Text type="secondary">
-            Bạn đã có tài khoản? <a style={{ color: 'var(--auth-primary)', fontWeight: 'bold' }} onClick={() => navigate("/admin/login")}>Đăng nhập ngay</a>
+            Bạn đã có tài khoản? <a style={{ color: 'var(--auth-primary)', fontWeight: 'bold' }} onClick={() => navigate("/login")}>Đăng nhập ngay</a>
           </Text>
         </div>
 

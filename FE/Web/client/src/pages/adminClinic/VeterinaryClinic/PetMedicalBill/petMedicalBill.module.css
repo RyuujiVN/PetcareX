@@ -1,0 +1,356 @@
+.page {
+	min-height: 100vh;
+	background: #edf1f2;
+}
+
+.topBar {
+   height: 64px;
+	border-bottom: 1px solid #dfe5ee;
+	background: #f6f7fb;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 0 22px;
+}
+
+.searchBox {
+	width: min(520px, 100%);
+	height: 40px;
+	border-radius: 10px;
+	background: #f1f3f7;
+	border: 1px solid #e2e8ee;
+	color: #94a0b2;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 14px;
+	font-size: 14px;
+}
+
+.contentWrap {
+	width: min(1060px, calc(100% - 48px));
+	margin: 0 auto;
+	padding: 8px 0 30px;
+}
+
+.pageTitleBlock h1 {
+	margin: 0;
+	color: #1b2234;
+	font-size: 42px;
+	font-weight: 800;
+	line-height: 1.18;
+}
+
+.pageTitleBlock p {
+	margin: 6px 0 0;
+	color: #7f8a9f;
+	font-size: 22px;
+	font-weight: 600;
+}
+
+.card {
+	margin-top: 20px;
+	background: #ffffff85;
+	border-radius: 24px;
+	border: 1px solid #dbe3e8;
+	box-shadow: 0 18px 34px rgba(15, 33, 62, 0.06);
+	padding: 26px 28px;
+}
+
+.sectionBlock + .sectionBlock {
+	margin-top: 26px;
+}
+
+.sectionBlock h2 {
+	margin: 0 0 16px;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	font-size: 23px;
+	color: #1e2436;
+	font-weight: 800;
+}
+
+.sectionBlock h2 :global(svg) {
+	color: #4672b4;
+}
+
+.vitalGrid {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 14px;
+}
+
+.vitalField label,
+.textGroup label {
+	display: block;
+	margin-bottom: 8px;
+	color: #354059;
+	font-size: 16px;
+	font-weight: 700;
+}
+
+.readonlyValue {
+	height: 56px;
+	border-radius: 16px;
+	border: 1px solid #c9eef1;
+	background: #ecf4f5;
+	color: #283149;
+	display: flex;
+	align-items: center;
+	padding: 0 14px;
+	font-size: 18px;
+	font-weight: 500;
+}
+
+.textGroup + .textGroup {
+	margin-top: 14px;
+}
+
+.multilineValue {
+	min-height: 96px;
+	border-radius: 16px;
+	border: 1px solid #c9eef1;
+	background: #ecf4f5;
+	color: #283149;
+	padding: 14px;
+	font-size: 18px;
+	line-height: 1.45;
+}
+
+.actionRow {
+	margin-top: 16px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 12px;
+}
+
+.actionButton {
+	height: 46px;
+	min-width: 158px;
+	border: none !important;
+	border-radius: 24px !important;
+	background: var(--color-brand-primary);
+	color: #ffffff !important;
+	font-weight: 700;
+	font-size: 20px;
+	box-shadow: 0 8px 16px var(--color-brand-primary);
+}
+
+.actionButton:hover {
+	filter: brightness(1.03);
+}
+
+.paymentModal :global(.ant-modal-content) {
+	border-radius: 28px;
+	border: 2px solid #c1f2dc;
+	overflow: hidden;
+	padding: 0;
+}
+
+.paymentModal :global(.ant-modal-body) {
+	padding: 0;
+}
+
+.modalBody {
+	padding: 30px;
+	background: #ffffff;
+}
+
+.modalBody h3 {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	color: #1d2434;
+	font-size: 30px;
+	font-weight: 800;
+}
+
+.modalBody h3 :global(svg) {
+	color: #4672b4;
+}
+
+.billCode {
+	margin: 16px 0 18px;
+	text-align: center;
+	color: #4f5b75;
+	font-size: 20px;
+	font-weight: 800;
+}
+
+.modalSectionTitle {
+	margin: 14px 0 10px;
+	color: #98a3ba;
+	font-size: 20px;
+	font-weight: 800;
+}
+
+.modalList {
+	display: grid;
+	gap: 8px;
+}
+
+.modalRow {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	font-size: 20px;
+	color: #2f3850;
+}
+
+.modalRow strong {
+	color: #1c2233;
+	font-weight: 800;
+	white-space: nowrap;
+}
+
+.divider {
+	margin: 16px 0;
+	border-top: 2px dashed #d6f1dc;
+}
+
+.provisionalLabel {
+	color: #707a90;
+}
+
+.modalRowTotal {
+	margin-top: 4px;
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	color: #3d3e40;
+	font-size: 20px;
+	font-weight: 800;
+}
+
+.modalRowTotal strong {
+	font-size: 20px;
+	color: #3d3e40;
+}
+
+.confirmButton {
+	margin-top: 35px;
+	width: 100%;
+	height: 60px;
+	border: none;
+	border-radius: 34px;
+	background: var(--color-brand-primary);
+	color: #ffffff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	font-size: 20px;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.confirmButton:hover {
+	filter: brightness(1.03);
+}
+
+@media (max-width: 1200px) {
+	.pageTitleBlock h1 {
+		font-size: 34px;
+	}
+
+	.pageTitleBlock p {
+		font-size: 18px;
+	}
+
+	.sectionBlock h2 {
+		font-size: 24px;
+	}
+
+	.vitalField label,
+	.textGroup label {
+		font-size: 17px;
+	}
+
+	.readonlyValue {
+		font-size: 20px;
+	}
+
+	.multilineValue {
+		font-size: 17px;
+	}
+
+	.actionButton {
+		font-size: 16px;
+	}
+
+	.modalBody h3 {
+		font-size: 30px;
+	}
+
+	.billCode {
+		font-size: 28px;
+	}
+
+	.modalSectionTitle {
+		font-size: 22px;
+	}
+
+	.modalRow {
+		font-size: 24px;
+	}
+
+	.modalRowTotal {
+		font-size: 32px;
+	}
+
+	.modalRowTotal strong {
+		font-size: 34px;
+	}
+}
+
+@media (max-width: 768px) {
+	.topBar {
+		padding: 14px 16px 8px;
+	}
+
+	.contentWrap {
+		width: calc(100% - 24px);
+		padding-bottom: 20px;
+	}
+
+	.card {
+		padding: 18px 14px;
+		border-radius: 18px;
+	}
+
+	.vitalGrid {
+		grid-template-columns: 1fr;
+	}
+
+	.actionRow {
+		justify-content: stretch;
+		flex-direction: column;
+	}
+
+	.actionButton {
+		width: 100%;
+	}
+
+	.paymentModal :global(.ant-modal) {
+		max-width: calc(100vw - 20px);
+	}
+
+	.modalBody {
+		padding: 20px 14px;
+	}
+
+	.modalRow {
+		font-size: 19px;
+	}
+
+	.modalRowTotal {
+		font-size: 26px;
+	}
+
+	.modalRowTotal strong {
+		font-size: 30px;
+	}
+}

@@ -88,7 +88,7 @@ function Header() {
                                         className="dropdown-item logout"
                                         onClick={() => {
                                             logout();
-                                            navigate("/admin/login");
+                                            navigate("/login");
                                         }}
                                     >
                                         <span className="icon">🚪</span>
@@ -102,7 +102,7 @@ function Header() {
                             <Link to="/admin/register" className="btns register-btn">
                                 Đăng ký
                             </Link>
-                            <Link to="/admin/login" className="btns login-btn">
+                            <Link to="/login" className="btns login-btn">
                                 Đăng nhập
                             </Link>
                         </div>

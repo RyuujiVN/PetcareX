@@ -14,11 +14,7 @@ Dự án được phát triển bằng React + Vite, tổ chức theo kiến tr�
 - **Icons**: Ant Design Icons, React Icons, Lucide.
 - **HTTP**: Axios (chính) + Fetch wrapper (một số module).
 - **Date handling**: `dayjs`.
-<<<<<<< HEAD
-- **OAuth**: `@react-oauth/google` (client portal).
-=======
 - **Auth social login**: Firebase Web SDK (`firebase/auth`) + backend endpoint `/auth/login-google`.
->>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 - **Styling**: CSS modules + page CSS + token CSS variables.
 
 ## 🧩 Kiến trúc ứng dụng
@@ -30,11 +26,7 @@ Dự án được phát triển bằng React + Vite, tổ chức theo kiến tr�
   - Bọc **2 auth context song song**:
     - `ClientAuthProvider`
     - `AdminAuthProvider`
-<<<<<<< HEAD
-  - Chỉ bọc `GoogleOAuthProvider` khi `VITE_GOOGLE_CLIENT_ID` hợp lệ.
-=======
   - Khởi tạo Firebase Analytics an toàn (nếu browser hỗ trợ và có `measurementId`), không làm crash app khi bị chặn analytics.
->>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 
 ### 2) Routing & Layout phân tầng
 - Định tuyến tập trung tại `src/routes/AppRoutes.jsx`.
@@ -67,21 +59,19 @@ Mỗi context quản lý riêng:
   - `adminUserInfo`
 - Legacy key (`accessToken`, `userInfo`) luôn được clear để tránh nhiễu phiên cũ.
 
-### 3) Role guard theo cổng đăng nhập
-- Hàm `isAdminClinicAccount(...)` tại `src/constants/authRole.js`.
-- Client login sẽ chặn role admin/clinic/vet và điều hướng sang `/admin/login`.
-- Admin login sẽ chặn role user thường và điều hướng sang `/login`.
+### 3) Login chung + RBAC hậu đăng nhập
+- Chỉ còn **1 màn login chung** tại `/login` cho tất cả role: `ADMIN`, `ADMIN_CLINIC`, `VETERINARIAN`, `CUSTOMER`.
+- File `src/constants/authRole.js` chịu trách nhiệm normalize role và phân luồng:
+  - `getAuthPortalByRole(...)` -> xác định portal `client` hoặc `admin`.
+  - `getPostLoginPathByRole(...)` -> route đích sau login theo role.
+- Alias route cũ `/admin/login` và `/admin/veterinarian/login` được giữ lại dạng redirect về `/login` để tương thích ngược.
 
-<<<<<<< HEAD
-=======
-### 4) Google Login/Register (Client) - kiến trúc mới gọn hơn
+### 4) Google Login/Register (Client)
 - Firebase config tập trung tại `src/utils/firebaseClient.js`.
 - Luồng Google auth cho client gom tại `src/utils/clientGoogleAuth.js` để tái sử dụng cho cả màn Login và Register.
 - Login/Register không còn parse token thủ công bằng `atob`; thay bằng `signInWithPopup` + `GoogleAuthProvider.credentialFromResult(...)` để lấy `googleIdToken`.
 - Sau khi lấy token Google từ Firebase, FE gọi API `/auth/login-google` như cũ để backend thống nhất cấp `accessToken` nội bộ.
-- Nếu account thuộc role admin/clinic/vet thì vẫn redirect về `/admin/login` (đảm bảo không lẫn phiên giữa 2 portal).
-
->>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
+- Google login hiện cũng đi qua cùng luồng RBAC như login thường, nên account thuộc mọi role đều đăng nhập được và vào đúng trang đích.
 ## 🌐 API Layer & Networking
 
 ## 1) Base URL & env
@@ -97,7 +87,7 @@ Tính năng chung:
 - Normalize lỗi backend (`message` array -> lấy phần tử đầu).
 - Xử lý `401`:
   - Client redirect `/login`.
-  - Admin redirect `/admin/login`.
+  - Admin/Veterinarian redirect `/login` (login chung).
 
 ### 3) Fetch wrappers (song song với Axios)
 - `src/data/client/api/medicalApi.js`
@@ -124,11 +114,7 @@ Hiện tại codebase đang tồn tại song song 2 phong cách gọi API:
 
 ### 1) Auth (Login/Register/Forgot/Reset)
 - Đầy đủ form validation và thông báo lỗi.
-<<<<<<< HEAD
-- Google login/register dùng `login-google` + decode token để lấy `fullName/avatarUrl`.
-=======
 - Google login/register dùng Firebase popup auth + helper dùng chung, sau đó gọi `login-google` để nhận token hệ thống.
->>>>>>> eee3bfd9178250eeddb5e73e9ebbd217738f6ec5
 - OTP reset password có:
   - Countdown hết hạn OTP (300s).
   - Cooldown resend (60s).
@@ -201,8 +187,9 @@ Hiện tại codebase đang tồn tại song song 2 phong cách gọi API:
 ## 🏥 Admin Clinic Portal - Trạng thái tính năng
 
 ### 1) Auth
-- Bộ màn login/register/forgot/reset riêng cho admin path.
-- Xác thực role trước khi cho vào cổng quản trị.
+- Dùng chung màn login `/login` cho cả client và admin-role.
+- Các màn admin `register/forgot/reset` vẫn nằm ở `admin/*` path, nhưng điểm quay về đăng nhập dùng route chung.
+- Sau đăng nhập, role admin/veterinarian được điều hướng vào cổng quản trị tương ứng bằng RBAC.
 
 ### 2) Layout quản trị
 - Sidebar điều hướng:
