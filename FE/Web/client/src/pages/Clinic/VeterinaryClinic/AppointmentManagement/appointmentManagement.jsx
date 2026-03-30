@@ -314,7 +314,6 @@ export default function AppointmentManagement() {
 			const petBreed = getByPaths(item, ['pet.breed', 'petBreed', 'pet_breed'], null)
 			const petGender = getByPaths(item, ['pet.gender', 'petGender', 'pet_gender'], null)
 			const petDateOfBirth = getByPaths(item, ['pet.dateOfBirth', 'pet.date_of_birth', 'petDateOfBirth', 'pet_date_of_birth'], null)
-			// const petWeight = getByPaths(item, ['pet.weight', 'petWeight', 'pet_weight'], null)
 			const petFeature = getByPaths(item, ['pet.note', 'pet.featureNote', 'pet_note', 'featureNote', 'feature_note'], null)
 			const ownerId = getByPaths(item, ['pet.owner.id', 'owner.id', 'ownerId', 'owner_id', 'pet.ownerId'], '')
 			const ownerName = getByPaths(item, ['pet.owner.fullName', 'owner.fullName', 'ownerName', 'owner_name'], 'Không rõ')
@@ -349,10 +348,6 @@ export default function AppointmentManagement() {
 				dateOfBirthLabel: petDateOfBirth
 					? new Date(petDateOfBirth).toLocaleDateString('vi-VN')
 					: MISSING_APPOINTMENT_FIELD,
-				// weightLabel:
-				// 	petWeight !== null && petWeight !== undefined && petWeight !== ''
-				// 		? `${petWeight} kg`
-				// 		: MISSING_APPOINTMENT_FIELD,
 				featureNote: petFeature || MISSING_APPOINTMENT_FIELD,
 				appointmentNote: item.note || 'Không có ghi chú',
 				clinicName: item.clinic?.name || 'Không rõ',
@@ -595,14 +590,6 @@ export default function AppointmentManagement() {
 								</Avatar>
 								<div>
 									<Title level={3} className={styles.petTitle}>{selectedAppointment.petName}</Title>
-									{/* <Text className={styles.petSubMeta}>
-										{`${selectedAppointment.breedLabel} · ${selectedAppointment.ageLabel}`}
-									</Text>
-									<div className={styles.petMetaLine}>
-										<span className={styles.metaDot} />
-										<span>{selectedAppointment.genderLabel}</span>
-										<span>Ngày sinh: {selectedAppointment.dateOfBirthLabel}</span>
-									</div> */}
 								</div>
 							</div>
 

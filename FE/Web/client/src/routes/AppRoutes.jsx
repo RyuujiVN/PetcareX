@@ -75,8 +75,7 @@ export default function AppRoutes({ location }) {
       <Route path="/veterinarian/register" element={<AdminRegister />} />
       <Route path="/veterinarian/forgot-password" element={<AdminForgotPassword />} />
       <Route path="/veterinarian/reEnterPassword" element={<AdminReEnterPassword />} />
-      <Route path="/veterinarian/confirm-password" element={<Navigate to="/veterinarian/reEnterPassword" replace />}
-      />
+      <Route path="/veterinarian/confirm-password" element={<Navigate to="/veterinarian/reEnterPassword" replace />}/>
 
       <Route element={<AdminVererianrianLayout/>}>
         <Route path="/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
