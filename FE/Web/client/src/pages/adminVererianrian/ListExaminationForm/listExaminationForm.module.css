@@ -1,31 +1,9 @@
 .pageRoot {
-	max-height: 100%;
+	max-width: 1220px;
 	gap: 10;
-	
-}
-
-.todayIcon {
-	color: #32bf77;
-	background: #e6f8ee;
-}
-
-.waitingIcon {
-	color: #f89b36;
-	background: #fff3e6;
-}
-
-.doneIcon {
-	color: #638dff;
-	background: #ebf0ff;
-}
-.panelTitle {
-  margin: 0 !important;
-  font-size: 20px !important;
-  color: #1d2f4f !important;
 }
 
 .tablePanel {
-	margin-top: 14px;
 	background: #fff;
 	border-radius: 16px;
 	border: 1px solid #dde5ee;
@@ -48,6 +26,12 @@
 	color: #233952;
 }
 
+.panelTitle {
+	margin: 0 !important;
+	font-size: 20px !important;
+	color: #1d2f4f !important;
+}
+
 .datePicker {
 	width: 170px;
 }
@@ -59,7 +43,7 @@
 .tableWrap table {
 	width: 100%;
 	border-collapse: collapse;
-	min-width: 920px;
+	min-width: 980px;
 }
 
 .tableWrap thead {
@@ -67,10 +51,10 @@
 }
 
 .tableWrap th {
-	padding: 13px 16px;
-	font-size: 12px;
-	font-weight: 700;
-	color: #72839a;
+	padding: 14px 16px;
+	font-size: 14px;
+	font-weight: 800;
+	color: #74859d;
 	text-align: left;
 	letter-spacing: 0.02em;
 	white-space: nowrap;
@@ -78,7 +62,7 @@
 
 .tableWrap td {
 	padding: 12px 16px;
-	font-size: 14px;
+	font-size: 16px;
 	font-weight: 600;
 	color: #243a54;
 	border-top: 1px solid #edf1f5;
@@ -92,23 +76,13 @@
 }
 
 .petAvatar {
-	width: 34px;
-	height: 34px;
+	width: 48px;
+	height: 48px;
 	border-radius: 50%;
-	overflow: hidden;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
 	background: #eff4fa;
 	color: #5d7591;
 	font-weight: 800;
 	border: 1px solid #d8e2ed;
-}
-
-.petAvatar img {
-	width: 100%;
-	height: 100%;
-	object-fit: cover;
 }
 
 .petInfo {
@@ -118,30 +92,31 @@
 }
 
 .petInfo strong {
-	font-size: 14px;
+	font-size: 18px;
 	color: #1f344e;
 	line-height: 1.2;
+	font-weight: 800;
 }
 
 .petInfo p {
 	margin: 0;
-	font-size: 12px;
-	font-weight: 500;
+	font-size: 16px;
+	font-weight: 600;
 	color: #8a99ad;
 }
 
 .actionWrap {
 	display: flex;
-	gap: 8px;
+	gap: 10px;
 	align-items: center;
 }
 
-.viewBtn,
+.createBtn,
 .deleteBtn {
-	height: 30px;
-	padding: 0 10px;
+	height: 34px;
+	padding: 0 14px;
 	border-radius: 999px;
-	font-size: 12px;
+	font-size: 14px;
 	font-weight: 700;
 	border: none;
 	display: inline-flex;
@@ -149,13 +124,15 @@
 	gap: 6px;
 }
 
-.viewBtn {
-	background: var(--color-brand-primary);
-	color: #fff;
+.createBtn {
+	background: #22d6ca !important;
+	color: #fff !important;
+	box-shadow: none;
 }
 
-.viewBtn:hover {
-	background: var(--color-brand-primary-hover);
+.createBtn:hover {
+	background: #16c2b6 !important;
+	color: #fff !important;
 }
 
 .deleteBtn {
@@ -170,7 +147,7 @@
 
 .footerRow {
 	display: flex;
-	justify-content: space-between;
+	justify-content: flex-start;
 	align-items: center;
 	padding: 12px 16px;
 	border-top: 1px solid #edf1f5;
@@ -179,38 +156,24 @@
 
 .footerRow p {
 	margin: 0;
-	font-size: 13px;
-	font-weight: 500;
+	font-size: 16px;
+	font-weight: 600;
 	color: #788aa0;
 }
 
 .loadingWrap,
 .emptyWrap {
-	min-height: 380px;
+	min-height: 320px;
 	display: grid;
 	place-items: center;
 	background: #fff;
 }
 
-:global(.ant-picker) {
-	border-radius: 10px;
-	height: 38px;
-}
-
-@media (max-width: 768px) {
-	.pageRoot {
-		padding: 10px;
-	}
+@media (max-width: 992px) {
 
 	.tablePanelHeader {
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 10px;
-	}
-
-	.footerRow {
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 8px;
 	}
 }

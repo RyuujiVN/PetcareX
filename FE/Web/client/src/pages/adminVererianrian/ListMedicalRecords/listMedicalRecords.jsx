@@ -9,13 +9,14 @@ import {
 	EyeOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
+import { Typography } from 'antd'
 import {
 	APPOINTMENT_STATUS,
 	getVeterinarianAppointmentsApi,
 } from '../../../data/adminVererianrian/api/appointmentApi'
 import styles from './listMedicalRecords.module.css'
 
-const PAGE_SIZE = 4
+const PAGE_SIZE = 6
 
 const formatDate = (value) => {
 	if (!value) return 'Chưa cập nhật'
@@ -117,7 +118,8 @@ export default function ListMedicalRecords() {
 		return visibleRows.slice(startIndex, startIndex + PAGE_SIZE)
 	}, [currentPage, visibleRows])
 
-	const onViewDetail = (row) => {
+
+	const handleViewRecords = (row) => {
 		if (!row?.petId) {
 			message.warning('Không tìm thấy thú cưng để xem chi tiết hồ sơ')
 			return
@@ -131,7 +133,7 @@ export default function ListMedicalRecords() {
 			searchParams.set('medicalId', String(row.medicalId))
 		}
 
-		navigate(`/admin/veterinarian/medical-records/view?${searchParams.toString()}`, {
+		navigate(`/admin/veterinarian/viewRecords?${searchParams.toString()}`, {
 			state: {
 				record: row,
 			},
@@ -144,40 +146,11 @@ export default function ListMedicalRecords() {
 
 	return (
 		<div className={styles.pageRoot}>
-			<div className={styles.headerBlock}>
-				<h1>Dashboard Bác sĩ</h1>
-				<p>Chào mừng trở lại, hôm nay bạn có {stats.today} lịch hẹn.</p>
-			</div>
-
-			<section className={styles.metricGrid}>
-				<article className={styles.metricCard}>
-					<div className={`${styles.metricIcon} ${styles.todayIcon}`}>
-						<CalendarOutlined />
-					</div>
-					<p className={styles.metricLabel}>Lịch hôm nay</p>
-					<strong>{stats.today}</strong>
-				</article>
-
-				<article className={styles.metricCard}>
-					<div className={`${styles.metricIcon} ${styles.waitingIcon}`}>
-						<ClockCircleOutlined />
-					</div>
-					<p className={styles.metricLabel}>Đang chờ</p>
-					<strong>{stats.waiting}</strong>
-				</article>
-
-				<article className={styles.metricCard}>
-					<div className={`${styles.metricIcon} ${styles.doneIcon}`}>
-						<CheckCircleOutlined />
-					</div>
-					<p className={styles.metricLabel}>Đã hoàn thành</p>
-					<strong>{stats.completed}</strong>
-				</article>
-			</section>
-
 			<section className={styles.tablePanel}>
 				<div className={styles.tablePanelHeader}>
-					<h2>Hồ sơ bệnh án thú cưng</h2>
+					<Typography.Title className={styles.panelTitle}>
+            			Hồ sơ bệnh án thú cưng
+          			</Typography.Title>
 					<DatePicker
 						value={selectedDate}
 						onChange={(value) => setSelectedDate(value || dayjs())}
@@ -231,7 +204,7 @@ export default function ListMedicalRecords() {
 											<td>{row.revisitDate}</td>
 											<td>
 												<div className={styles.actionWrap}>
-													<Button className={styles.viewBtn} onClick={() => onViewDetail(row)}>
+													<Button className={styles.viewBtn} onClick={() => handleViewRecords(row)}>
 														<EyeOutlined /> Xem chi tiết
 													</Button>
 													<Button className={styles.deleteBtn} onClick={() => onHideRow(row.id)}>

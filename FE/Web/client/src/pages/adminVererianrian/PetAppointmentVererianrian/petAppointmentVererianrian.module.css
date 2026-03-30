@@ -1,7 +1,7 @@
 .pageWrap {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 10px;
 }
 
 .titleBlock :global(.ant-typography) {
@@ -72,7 +72,7 @@
 
 .panelTitle {
   margin: 0 !important;
-  font-size: 28px !important;
+  font-size: 20px !important;
   color: #1d2f4f !important;
 }
 
@@ -194,7 +194,7 @@
 }
 
 .tableFooter {
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .tableFooter :global(.ant-typography) {
