@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form, Input } from "antd";
-import { Send } from "lucide-react";
+import { Pause, Send } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   addMessage,
@@ -30,22 +30,43 @@ const MessageBox = () => {
   const inputRef = useRef(null);
 
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAiWaitingFirstToken, setIsAiWaitingFirstToken] = useState(false);
 
   const handleSendMessage = (value) => {
+    if (isAiLoading) return;
+
     const content = value?.content?.trim();
     value.sendBy = "USER";
     if (!content) return;
 
     setIsAiLoading(true);
+    setIsAiWaitingFirstToken(true);
     socket.emit("message", { ...value, roomId, content });
     form.resetFields(["content"]);
     scrollToBottom();
-
-    inputRef.current?.focus(); // focus lại input
   };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const handleStopStream = () => {
+    if (!roomId || !isAiLoading) return;
+
+    const lastMessage = messages[messages.length - 1];
+
+    const payload = {
+      roomId: roomId,
+      content: lastMessage.content,
+      sendBy: "AI",
+    };
+
+    socket.emit("stopStream", payload);
+
+    setIsAiLoading(false);
+    setIsAiWaitingFirstToken(false);
+
+    inputRef.current?.focus(); // focus lại input
   };
 
   // Chạy lần đầy
@@ -71,14 +92,19 @@ const MessageBox = () => {
 
     // Lắng nghe AI response stream về
     const onAiResponse = (data) => {
-      if (data?.type === "done") return;
+      if (data?.type === "done" || data?.type === "stopped") {
+        setIsAiLoading(false);
+        return;
+      }
+
+      // Đã bắt đầu stream token => tắt loading chờ phản hồi ban đầu
+      setIsAiWaitingFirstToken(false);
 
       const payload = {
         type: "AI_STREAMING",
         data: data?.token,
       };
 
-      setIsAiLoading(false);
       dispatch(editAiMessage(payload));
     };
 
@@ -191,7 +217,7 @@ const MessageBox = () => {
               ),
             )}
 
-            {isAiLoading && (
+            {isAiWaitingFirstToken && (
               <div className="message ai">
                 <div className="message-content">
                   <div className="message-bubble loading">
@@ -217,13 +243,26 @@ const MessageBox = () => {
               ref={inputRef}
               placeholder="Nhập câu hỏi..."
               className="message-input"
+              disabled={isAiLoading}
             />
           </Form.Item>
 
           <Form.Item>
-            <button type="submit" className="send-btn" style={{ padding: 0 }}>
-              <Send size={20} />
-            </button>
+            {isAiLoading ? (
+              <button
+                type="button"
+                className="send-btn"
+                style={{ padding: 0 }}
+                title="AI đang trả lời"
+                onClick={handleStopStream}
+              >
+                <Pause size={20} />
+              </button>
+            ) : (
+              <button type="submit" className="send-btn" style={{ padding: 0 }}>
+                <Send size={20} />
+              </button>
+            )}
           </Form.Item>
         </Form>
 

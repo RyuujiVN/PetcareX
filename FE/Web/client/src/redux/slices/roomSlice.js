@@ -70,7 +70,6 @@ export const roomSlice = createSlice({
     })
 
     builder.addCase(fetchDeleteRoom.fulfilled, (state, action) => {
-      console.log(action.payload);
       state.rooms = state.rooms.filter((item) => item.id !== action.payload.roomId)
     })
   }
