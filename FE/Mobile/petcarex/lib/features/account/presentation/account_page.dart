@@ -83,7 +83,7 @@ class _AccountPageState extends State<AccountPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Text('🇻🇳', style: TextStyle(fontSize: 24)),
+              leading: Image.asset('assets/images/vn.png', width: 24, height: 24),
               title: const Text('Tiếng Việt'),
               onTap: () async {
                 await context.read<LanguageProvider>().setLocale(
@@ -93,7 +93,7 @@ class _AccountPageState extends State<AccountPage> {
               },
             ),
             ListTile(
-              leading: const Text('🇺🇸', style: TextStyle(fontSize: 24)),
+              leading: Image.asset('assets/images/eng.png', width: 24, height: 24),
               title: const Text('English'),
               onTap: () async {
                 await context.read<LanguageProvider>().setLocale(

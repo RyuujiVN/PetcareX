@@ -195,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
           value: 'vi',
           child: Row(
             children: [
-              const Text('🇻🇳', style: TextStyle(fontSize: 20)),
+              Image.asset('assets/images/vn.png', width: 20, height: 20),
               const SizedBox(width: 12),
               Text(
                 'Tiếng Việt', 
@@ -215,7 +215,7 @@ class _LoginPageState extends State<LoginPage> {
           value: 'en',
           child: Row(
             children: [
-              const Text('🇺🇸', style: TextStyle(fontSize: 20)),
+              Image.asset('assets/images/eng.png', width: 20, height: 20),
               const SizedBox(width: 12),
               Text(
                 'English', 
