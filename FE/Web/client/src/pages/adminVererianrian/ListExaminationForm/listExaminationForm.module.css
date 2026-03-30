@@ -1,5 +1,6 @@
 .pageRoot {
-	max-width: 1220px;
+	max-height: 100%;
+	gap: 10;
 }
 
 .tablePanel {

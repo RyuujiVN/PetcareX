@@ -150,7 +150,8 @@ export default function ListExaminationForm() {
 							<table>
 								<thead>
 									<tr>
-										<th>THÚ CƯNG & CHỦ NUÔI</th>
+										<th>THÚ CƯNG</th>
+										<th>CHỦ NUÔI</th>
 										<th>NGÀY TẠO</th>
 										<th>TÊN PHIẾU KHÁM</th>
 										<th>THAO TÁC</th>
@@ -166,10 +167,10 @@ export default function ListExaminationForm() {
 													</Avatar>
 													<div className={styles.petInfo}>
 														<strong>{row.petName}</strong>
-														<p>{row.ownerName}</p>
 													</div>
 												</div>
 											</td>
+											<td>{row.ownerName}</td>
 											<td>{row.createdDate}</td>
 											<td>{row.formName}</td>
 											<td>
