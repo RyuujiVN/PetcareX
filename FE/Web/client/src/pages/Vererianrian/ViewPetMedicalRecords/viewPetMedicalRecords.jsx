@@ -232,13 +232,6 @@ export default function ViewPetMedicalRecords() {
 						</p>
 					</div>
 				</div>
-
-				<Button
-					className={styles.backButton}
-					onClick={() => navigate('/veterinarian/listRecords')}
-				>
-					<ArrowLeftOutlined /> Quay lại
-				</Button>
 			</section>
 
 			<section className={styles.timelinePanel}>

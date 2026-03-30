@@ -129,9 +129,8 @@
 	align-items: center;
 }
 
-.viewBtn,
-.deleteBtn {
-	height: 30px;
+.viewBtn{
+	height: 40px;
 	padding: 0 10px;
 	border-radius: 999px;
 	font-size: 12px;
@@ -139,7 +138,7 @@
 	border: none;
 	display: inline-flex;
 	align-items: center;
-	gap: 6px;
+	gap: 10;
 }
 
 .viewBtn {
@@ -149,16 +148,6 @@
 
 .viewBtn:hover {
 	background: var(--color-brand-primary-hover);
-}
-
-.deleteBtn {
-	background: #e7edf4;
-	color: #7d8ca1;
-}
-
-.deleteBtn:hover {
-	background: #d5dfea;
-	color: #4f5f76 !important;
 }
 
 .footerRow {

@@ -1,8 +1,5 @@
 .pageRoot {
-	min-height: 100%;
-	background: #eef2f5;
-	padding: 0 18px 20px;
-	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	max-height: 100%;
 }
 
 .pageHeader {
@@ -11,8 +8,7 @@
 	align-items: center;
 	border-bottom: 1px solid #dde5ee;
 	background: #fff;
-	padding: 0 16px;
-	margin: 0 -18px;
+	padding: 0 24px;
 }
 
 .pageHeader h1 {

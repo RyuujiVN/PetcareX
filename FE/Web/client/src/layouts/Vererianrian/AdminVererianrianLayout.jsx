@@ -45,6 +45,7 @@ export default function AdminVererianrianLayout() {
   const clinicDisplayName = getClinicDisplayName(userProfile)
   const hideSearchRoutes = [
     '/veterinarian/exam-forms/create',
+    '/veterinarian/viewRecords',
   ]
 
   const shouldHideSearch = hideSearchRoutes.includes(location.pathname)

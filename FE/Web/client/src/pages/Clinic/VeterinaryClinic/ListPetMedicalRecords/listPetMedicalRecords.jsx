@@ -302,7 +302,6 @@ export default function ListPetMedicalRecords() {
 												</div>
 												<div className={styles.infoBlock}>
 													<strong>{row.name}</strong>
-													<p>#{row.petId}</p>
 												</div>
 											</div>
 										</td>

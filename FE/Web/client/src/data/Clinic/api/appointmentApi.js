@@ -10,20 +10,20 @@ export const APPOINTMENT_STATUS = {
 export const APPOINTMENT_PAYMENT_SYNC_EVENT_KEY = 'adminClinic:appointmentPaymentSync';
 
 export const APPOINTMENT_STATUS_LABEL = {
-  [APPOINTMENT_STATUS.BOOKED]: 'Ch? kh?m',
-  [APPOINTMENT_STATUS.IN_PROGRESS]: '?ang kh?m',
-  [APPOINTMENT_STATUS.COMPLETED]: '?? thanh to?n',
-  [APPOINTMENT_STATUS.CANCELLED]: '?? h?y',
+  [APPOINTMENT_STATUS.BOOKED]: 'Chờ khám',
+  [APPOINTMENT_STATUS.IN_PROGRESS]: 'Đang khám',
+  [APPOINTMENT_STATUS.COMPLETED]: 'Đã thanh toán',
+  [APPOINTMENT_STATUS.CANCELLED]: 'Đã hủy',
 };
 
 export const SERVICE_OPTIONS = {
-  PERIODIC_HEALTH_CHECK: 'Kh?m s?c kh?e d?nh k?',
-  MEDICAL_EXAMINATION: 'Kh?m b?nh',
-  VACCINATION: 'Ti?m ch?ng',
-  DEWORMING: 'T?y giun',
-  ULTRASOUND_AND_TEST: 'Si?u ?m x?t nghi?m',
-  SURGERY: 'Ph?u thu?t',
-  EMERGENCY: 'C?p c?u',
+  PERIODIC_HEALTH_CHECK: 'Khám sức khỏe định kỳ',
+  MEDICAL_EXAMINATION: 'Khám bệnh',
+  VACCINATION: 'Tiêm chủng',
+  DEWORMING: 'Tẩy giun',
+  ULTRASOUND_AND_TEST: 'Siêu âm xét nghiệm',
+  SURGERY: 'Phẫu thuật',
+  EMERGENCY: 'Cấp cứu',
 };
 
 const normalizeTime = (timeValue) => (timeValue || '').slice(0, 5);
