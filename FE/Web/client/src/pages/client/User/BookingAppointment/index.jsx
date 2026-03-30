@@ -420,17 +420,6 @@ export default function BookingAppointment() {
     try {
       setSubmitting(true);
       const created = await createAppointmentApi(payload);
-      await fetchAppointments();
-
-      if (created?.id) {
-        await generateAndStoreDiagnosisReport({
-          appointmentId: created.id,
-          symptomsText: values.symptoms.trim(),
-          petName: created?.pet?.name || selectedPet?.name,
-          species: created?.pet?.species || selectedPet?.species,
-          appointmentDate: values.selectedDate,
-        });
-      }
 
       const appointmentData = {
         petName: created?.pet?.name || selectedPet.name,
@@ -441,10 +430,24 @@ export default function BookingAppointment() {
         appointmentId: created?.id,
       };
 
+      setShowSummary(false);
+      setSubmitting(false);
       navigate('/success-booking', { state: { appointmentData } });
+
+      // Run auxiliary tasks in the background so success navigation is immediate.
+      void fetchAppointments().catch(() => undefined);
+
+      if (created?.id) {
+        void generateAndStoreDiagnosisReport({
+          appointmentId: created.id,
+          symptomsText: values.symptoms.trim(),
+          petName: created?.pet?.name || selectedPet?.name,
+          species: created?.pet?.species || selectedPet?.species,
+          appointmentDate: values.selectedDate,
+        }).catch(() => undefined);
+      }
     } catch (error) {
       message.error(error.message || 'Đặt lịch thất bại');
-    } finally {
       setSubmitting(false);
     }
   };
@@ -455,7 +458,7 @@ export default function BookingAppointment() {
         <h1 style={{marginRight: '46%', paddingTop: 30}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
         <p style={{marginRight: '48%', paddingTop: 20}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
       </header>
-      <Spin spinning={loading || submitting}>
+      <Spin spinning={loading}>
         <div className="booking-content">
           <div className="form-column">
             <section className="step">
@@ -729,6 +732,8 @@ export default function BookingAppointment() {
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
           <button
             className="btn-confirm"
+            type="button"
+            disabled={submitting || loading}
             onClick={handleOpenSummary}
             style={{ width: '200px', border: '1px solid var(--color-brand-primary)' , padding: '10px', borderRadius:'10px', backgroundColor: 'var(--color-brand-primary)', color: 'var(--color-surface-card)' }}
           >
@@ -803,6 +808,8 @@ export default function BookingAppointment() {
       <div className="modal-actions">
         <button
           className="btn-cancels"
+          type="button"
+          disabled={submitting}
           onClick={() => setShowSummary(false)}
         >
           Quay lại
@@ -810,9 +817,11 @@ export default function BookingAppointment() {
 
         <button
           className="btn-confirms"
+          type="button"
+          disabled={submitting}
           onClick={handleConfirm}
         >
-          Xác nhận đặt lịch
+          {submitting ? 'Đang đặt lịch...' : 'Xác nhận đặt lịch'}
         </button>
       </div>
     </div>

@@ -25,7 +25,11 @@ export default function AdminVererianrianLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { userProfile, logout } = useAuth()
+  const hideSearchRoutes = [
+    '/admin/veterinarian/exam-forms/create',
+  ]
 
+  const shouldHideSearch = hideSearchRoutes.includes(location.pathname)
   const handleLogout = () => {
     logout()
     navigate('/login', { replace: true })
@@ -82,11 +86,13 @@ export default function AdminVererianrianLayout() {
 
       <main className={styles.main}>
         <header className={styles.header}>
-          <Input
-            className={styles.searchInput}
-            prefix={<SearchOutlined />}
-            placeholder="Tìm kiếm thú cưng, chủ nuôi..."
-          />
+          {!shouldHideSearch && (
+            <Input
+              className={styles.searchInput}
+              prefix={<SearchOutlined />}
+              placeholder="Tìm kiếm thú cưng, chủ nuôi..."
+            />
+          )}
         </header>
 
         <section className={styles.content}>

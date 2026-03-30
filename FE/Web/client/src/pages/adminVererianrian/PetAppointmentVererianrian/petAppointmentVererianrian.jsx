@@ -6,7 +6,7 @@ import {
   RightOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Flex, Row, Segmented, Space, Spin, Tag, Typography, message, Modal } from 'antd'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE } from '../../../constants/authStorage'
 import {
   APPOINTMENT_STATUS,
@@ -75,15 +75,37 @@ const toRow = (item) => {
   }
 }
 
+const buildAppointmentsSignature = (items) =>
+  items
+    .map((item) => `${item.id || ''}:${item.status || ''}:${item.time || ''}:${item.ownerName || ''}`)
+    .join('|')
+
 export default function PetAppointmentVererianrian() {
   const [activeTab, setActiveTab] = useState('all')
   const [loading, setLoading] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [allAppointments, setAllAppointments] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
+  const inFlightRef = useRef(false)
+  const hasLoadedOnceRef = useRef(false)
+  const lastDataSignatureRef = useRef('')
 
-  const fetchTodayAppointments = useCallback(async () => {
+  const fetchTodayAppointments = useCallback(async ({ silent = false } = {}) => {
+    if (inFlightRef.current) {
+      return
+    }
+
+    inFlightRef.current = true
+
     try {
-      setLoading(true)
+      if (!hasLoadedOnceRef.current && !silent) {
+        setLoading(true)
+      }
+
+      if (hasLoadedOnceRef.current && silent) {
+        setIsRefreshing(true)
+      }
+
       const response = await getVeterinarianAppointmentsApi({
         page: 1,
         limit: 500,
@@ -103,22 +125,30 @@ export default function PetAppointmentVererianrian() {
         .map(toRow)
         .sort((a, b) => String(a.time).localeCompare(String(b.time)))
 
-      setAllAppointments(filtered)
+      const nextSignature = buildAppointmentsSignature(filtered)
+      if (nextSignature !== lastDataSignatureRef.current) {
+        lastDataSignatureRef.current = nextSignature
+        setAllAppointments(filtered)
+      }
+
+      hasLoadedOnceRef.current = true
     } catch (error) {
       setAllAppointments([])
       message.error(error?.message || 'Không thể tải lịch hẹn hôm nay')
     } finally {
+      inFlightRef.current = false
       setLoading(false)
+      setIsRefreshing(false)
     }
   }, [])
 
   useEffect(() => {
     fetchTodayAppointments()
 
-    const intervalId = window.setInterval(fetchTodayAppointments, 30000)
-    const onFocus = () => fetchTodayAppointments()
+    const intervalId = window.setInterval(() => fetchTodayAppointments({ silent: true }), 10000)
+    const onFocus = () => fetchTodayAppointments({ silent: true })
     const onVisibilityChange = () => {
-      if (!document.hidden) fetchTodayAppointments()
+      if (!document.hidden) fetchTodayAppointments({ silent: true })
     }
 
     window.addEventListener('focus', onFocus)
@@ -293,7 +323,12 @@ export default function PetAppointmentVererianrian() {
       <Card className={styles.tablePanel}>
         <Flex justify="space-between" align="center" className={styles.tableHeader}>
           <Typography.Title className={styles.panelTitle}>Danh sách lịch hẹn hôm nay</Typography.Title>
-          <Segmented options={tableTabs} value={activeTab} onChange={setActiveTab} className={styles.segmented} />
+          <Space size={12}>
+            <Typography.Text type="secondary">
+              {isRefreshing ? 'Đang đồng bộ...' : ''}
+            </Typography.Text>
+            <Segmented options={tableTabs} value={activeTab} onChange={setActiveTab} className={styles.segmented} />
+          </Space>
         </Flex>
 
         <div className={styles.tableHeadRow}>

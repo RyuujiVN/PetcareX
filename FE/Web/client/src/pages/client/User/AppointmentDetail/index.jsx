@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as antd from 'antd';
 import * as icons from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
@@ -17,6 +17,13 @@ import './styles.css';
 
 const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
 const formatTime = (timeValue) => (timeValue || '').slice(0, 5);
+const buildAppointmentsSignature = (items) =>
+  items
+    .map(
+      (item) =>
+        `${item?.id || ''}:${item?.status || ''}:${item?.appointmentDate || ''}:${item?.appointmentTime || ''}:${item?.updatedAt || ''}`,
+    )
+    .join('|');
 
 const calcDaysAgo = (dateValue) => {
   const now = new Date();
@@ -40,15 +47,36 @@ const AppointmentDetail = () => {
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [diagnosisData, setDiagnosisData] = useState(null);
   const [diagnosisAppointment, setDiagnosisAppointment] = useState(null);
+  const inFlightRef = useRef(false);
+  const hasLoadedOnceRef = useRef(false);
+  const lastDataSignatureRef = useRef('');
 
-  const fetchAppointments = useCallback(async () => {
+  const fetchAppointments = useCallback(async ({ silent = false } = {}) => {
+    if (inFlightRef.current) {
+      return;
+    }
+
+    inFlightRef.current = true;
+
     try {
-      setLoading(true);
+      if (!hasLoadedOnceRef.current && !silent) {
+        setLoading(true);
+      }
+
       const res = await getMyAppointmentsApi(1, 200);
-      setAppointments(Array.isArray(res?.items) ? res.items : []);
+      const nextItems = Array.isArray(res?.items) ? res.items : [];
+      const nextSignature = buildAppointmentsSignature(nextItems);
+
+      if (nextSignature !== lastDataSignatureRef.current) {
+        lastDataSignatureRef.current = nextSignature;
+        setAppointments(nextItems);
+      }
+
+      hasLoadedOnceRef.current = true;
     } catch (error) {
       antd.message.error(error.message || 'Không thể tải lịch hẹn');
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
   }, []);
@@ -59,12 +87,12 @@ const AppointmentDetail = () => {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      fetchAppointments();
+      fetchAppointments({ silent: true });
     }, 20000);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        fetchAppointments();
+        fetchAppointments({ silent: true });
       }
     };
 
@@ -111,7 +139,7 @@ const AppointmentDetail = () => {
       const isDone = item.status === APPOINTMENT_STATUS.DONE;
       const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
       return isFuture && !isDone && !isCanceled;
-    });
+    }).sort((a, b) => new Date(`${a.rawDate}T${a.time}:00`).getTime() - new Date(`${b.rawDate}T${b.time}:00`).getTime());
   }, [mappedAppointments]);
 
   const medicalHistory = useMemo(() => {
@@ -122,7 +150,7 @@ const AppointmentDetail = () => {
       const isDone = item.status === APPOINTMENT_STATUS.DONE;
       const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
       return isPast || isDone || isCanceled;
-    });
+    }).sort((a, b) => new Date(`${b.rawDate}T${b.time}:00`).getTime() - new Date(`${a.rawDate}T${a.time}:00`).getTime());
   }, [mappedAppointments]);
 
   const handleCancelAppointment = (appointmentId) => {
@@ -137,7 +165,7 @@ const AppointmentDetail = () => {
         try {
           await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELED);
           antd.message.success('Hủy lịch khám thành công');
-          await fetchAppointments();
+          await fetchAppointments({ silent: true });
         } catch (error) {
           antd.message.error(error.message || 'Không thể hủy lịch khám');
         }
