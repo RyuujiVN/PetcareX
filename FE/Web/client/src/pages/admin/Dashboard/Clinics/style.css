@@ -92,3 +92,47 @@
   background: var(--admin-color-brand-primary-hover);
   border-color: var(--admin-color-brand-primary-hover);
 }
+
+/* ── Add Clinic Modal ── */
+.add-clinic-modal .ant-modal-header {
+  padding: 20px 24px 12px;
+  border-bottom: none;
+}
+
+.add-clinic-modal .ant-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-color-text-primary);
+}
+
+.add-clinic-modal .ant-modal-body {
+  padding: 0 24px 8px;
+}
+
+.add-clinic-modal .ant-modal-footer {
+  padding: 12px 24px 20px;
+  border-top: none;
+}
+
+.add-clinic-modal .ant-modal-footer .ant-btn-primary {
+  background: var(--admin-color-brand-primary);
+  border-color: var(--admin-color-brand-primary);
+}
+
+.add-clinic-modal .ant-modal-footer .ant-btn-primary:hover {
+  background: var(--admin-color-brand-primary-hover);
+  border-color: var(--admin-color-brand-primary-hover);
+}
+
+.add-clinic-form .ant-divider-inner-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.add-clinic-form .ant-form-item-label > label {
+  font-weight: 500;
+  color: var(--admin-color-text-primary);
+}

@@ -246,11 +246,15 @@ Luồng đang chạy:
 
 ### 2) Clinics Management (pages/admin/Dashboard/Clinics)
 - UI hoàn chỉnh: 3 stat cards (nền màu + icon trong hộp vuông) + bảng danh sách + phân trang.
-- Stat cards: phòng khám (nền xanh lá nhạt), người dùng (nền xanh dương nhạt), bài đăng (nền cam nhạt).
-- Cột bảng: tên (kèm Avatar viết tắt), SĐT, vị trí, ngày thành lập (dd/MM/yyyy), email, trạng thái (Tag), thao tác (xem/xóa).
-- Nút "Thêm phòng khám" màu teal (#2dd4a8) theo theme admin.
-- Trạng thái phòng khám: dùng local constant `CLINIC_STATUS` (ACTIVE/INACTIVE) — TODO: chuyển sang enum khi backend cung cấp.
-- Toàn bộ dữ liệu đang mock (useState rỗng), các handler đều là TODO chờ nối API.
+- Stat cards: phòng khám (nền xanh dương nhạt), người dùng (nền xanh lá nhạt), bài đăng (nền cam nhạt).
+- Cột bảng: tên (kèm Avatar viết tắt), SĐT, địa chỉ, ngày tạo (dd/MM/yyyy), email, trạng thái (Tag theo field `deleted`), thao tác (xem/xóa).
+- Nút "Thêm phòng khám" màu xanh (#4672b4) theo theme admin.
+- **Đã nối API thật:**
+  - `GET /api/clinic?page&limit&search` — phân trang danh sách phòng khám.
+  - `DELETE /api/clinic/:id` — xóa phòng khám (có Popconfirm).
+  - `POST /api/clinic` — thêm phòng khám mới qua Modal (thông tin phòng khám + tài khoản admin clinic).
+- Modal "Thêm phòng khám mới": 2 section (thông tin phòng khám: tên, email, SĐT, địa chỉ, mô tả; tài khoản quản trị: họ tên, email, mật khẩu). Có validation form đầy đủ.
+- API layer riêng: `src/data/admin/api/` (instance.js dùng `ADMIN_AUTH_STORAGE`, clinicApi.js có 5 hàm CRUD).
 
 ### 3) Các màn chưa có nội dung
 - `Overview/`, `Users/`, `Posts/`: thư mục đã tạo sẵn, chưa có file component.
