@@ -86,7 +86,7 @@
 
 .tableHeadRow {
   display: grid;
-  grid-template-columns: 2.4fr 1.2fr 1fr 1.6fr;
+  grid-template-columns: 1.6fr 1.6fr 1.6fr 1.6fr 1.6fr;
   gap: 12px;
   background: #f3f6fb;
   border: 1px solid #e0e7f3;
@@ -100,7 +100,7 @@
 
 .tableRow {
   display: grid;
-  grid-template-columns: 2.4fr 1.2fr 1fr 1.6fr;
+  grid-template-columns: 1.6fr 1.6fr 1.6fr 1.6fr 1.6fr;
   gap: 12px;
   align-items: center;
   border-bottom: 1px solid #edf2fb;
@@ -125,6 +125,8 @@
 .petAvatar {
   background: #eaf0fb;
   color: #344f81;
+  width: 50px;
+  height: 50px;
 }
 
 .petName {
@@ -136,7 +138,8 @@
 
 .ownerName {
   display: block;
-  color: #71819d;
+  color: #000000;
+  font-size: 14px;
 }
 
 .serviceTag,

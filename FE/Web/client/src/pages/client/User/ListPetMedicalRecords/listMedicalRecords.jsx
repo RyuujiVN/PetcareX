@@ -18,7 +18,7 @@ const ListPetMedicalRecords = () => {
         setLoading(true);
         const petData = await getMyPetsApi();
         setPets(Array.isArray(petData) ? petData : []);
-      } catch (error) {
+      } catch (error) { 
         message.error(error.message || 'Lỗi khi tải danh sách thú cưng');
       } finally {
         setLoading(false);

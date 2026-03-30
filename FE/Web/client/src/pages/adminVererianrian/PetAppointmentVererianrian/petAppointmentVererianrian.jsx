@@ -20,7 +20,6 @@ const TODAY_DATE = new Date().toISOString().slice(0, 10)
 
 const tableTabs = [
   { label: 'Tất cả', value: 'all' },
-  { label: 'Sắp tới', value: 'upcoming' },
   { label: 'Đang khám', value: 'inProgress' },
   { label: 'Đã hoàn thành', value: 'completed' },
 ]
@@ -40,14 +39,12 @@ const getCurrentVeterinarianUserId = () => {
 const normalizeTime = (value) => (value ? String(value).slice(0, 5) : '--:--')
 
 const mapStatusToLabel = (status) => {
-  if (status === APPOINTMENT_STATUS.BOOKED) return 'Sắp tới'
   if (status === APPOINTMENT_STATUS.IN_PROGRESS) return 'Đang khám'
   if (status === APPOINTMENT_STATUS.COMPLETED) return 'Đã hoàn thành'
   return status || 'Chưa cập nhật'
 }
 
 const mapStatusClass = (status) => {
-  if (status === APPOINTMENT_STATUS.BOOKED) return 'statusUpcoming'
   if (status === APPOINTMENT_STATUS.IN_PROGRESS) return 'statusInProgress'
   if (status === APPOINTMENT_STATUS.COMPLETED) return 'statusConfirmed'
   return 'statusUpcoming'
@@ -205,10 +202,6 @@ export default function PetAppointmentVererianrian() {
   )
 
   const filteredAppointments = useMemo(() => {
-    if (activeTab === 'upcoming') {
-      return allAppointments.filter((item) => item.status === APPOINTMENT_STATUS.BOOKED)
-    }
-
     if (activeTab === 'inProgress') {
       return allAppointments.filter((item) => item.status === APPOINTMENT_STATUS.IN_PROGRESS)
     }
@@ -325,14 +318,15 @@ export default function PetAppointmentVererianrian() {
           <Typography.Title className={styles.panelTitle}>Danh sách lịch hẹn hôm nay</Typography.Title>
           <Space size={12}>
             <Typography.Text type="secondary">
-              {isRefreshing ? 'Đang đồng bộ...' : ''}
+              {isRefreshing ? '' : ''}
             </Typography.Text>
             <Segmented options={tableTabs} value={activeTab} onChange={setActiveTab} className={styles.segmented} />
           </Space>
         </Flex>
 
         <div className={styles.tableHeadRow}>
-          <span>THÚ CƯNG & CHỦ NUÔI</span>
+          <span>THÚ CƯNG</span>
+          <span>CHỦ NUÔI</span>
           <span>DỊCH VỤ</span>
           <span>THỜI GIAN</span>
           <span>THAO TÁC</span>
@@ -356,13 +350,9 @@ export default function PetAppointmentVererianrian() {
                   </Avatar>
                   <div>
                     <Typography.Text className={styles.petName}>{item.petName}</Typography.Text>
-                    <Typography.Text className={styles.ownerName}>{item.ownerName}</Typography.Text>
-                    <Tag className={`${styles.statusTag} ${styles[mapStatusClass(item.status)]}`}>
-                      {mapStatusToLabel(item.status)}
-                    </Tag>
                   </div>
                 </div>
-
+                <Typography.Text className={styles.ownerName}>{item.ownerName}</Typography.Text>
                 <Tag className={`${styles.serviceTag} ${styles[mapServiceClass(item.service)]}`}>{item.service}</Tag>
                 <Typography.Text className={styles.timeText}>{item.time}</Typography.Text>
 
@@ -372,7 +362,7 @@ export default function PetAppointmentVererianrian() {
                     className={styles.primaryActionBtn}
                     onClick={actions.onPrimary}
                     disabled={actions.disablePrimary}
-                    style={{ backgroundColor: '#4672b4', borderColor: '#4672b4' }}
+                    style={{ backgroundColor: '#4672b4', borderColor: '#4672b4'}}
                   >
                     {actions.primaryLabel}
                   </Button>
