@@ -524,21 +524,10 @@ export default function RecordExaminationForm() {
 				className={styles.formRoot}
 			>
 				<header className={styles.formHeader}>
-					<div>
-						<div className={styles.brandRow}>
-							<div className={styles.brandIcon}>
-								<SmileOutlined />
-							</div>
-							<div>
-								<h2 style={{fontSize: 20}}>Hệ thống thú y chuyên nghiệp</h2>
-							</div>
-						</div>
-					</div>
-
 					<div className={styles.headerMeta}>
 						<p>PHIẾU KHÁM BỆNH & CHỈ ĐỊNH</p>
-						<span>Mã hồ sơ: {examinationCode}</span>
-						<span>Ngày khám: {prescriptionDate}</span>
+						<span style={{marginRight: 135}}>Mã hồ sơ: {examinationCode}</span>
+						<span style={{marginRight: 135}}>Ngày khám: {prescriptionDate}</span>
 					</div>
 				</header>
 
@@ -727,16 +716,16 @@ export default function RecordExaminationForm() {
 					</Form.Item>
 				</Card>
 
-					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Ket luan kham benh</span>}>
+					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Kết luận khám bệnh</span>}>
 						<div className={styles.conclusionGrid}>
 							<Form.Item
-								label="KET LUAN CHUYEN MON"
+								label="KẾT LUẬN CHUYÊN MÔN"
 								name="conclusionSummary"
 								rules={[{ required: true, message: 'Vui long nhap ket luan chuyen mon' }]}
 							>
 								<Input.TextArea
 									rows={3}
-									placeholder="Tong ket tinh trang benh ly va muc do"
+									placeholder="Tổng kết tình trạng bệnh lý và mức độ"
 								/>
 							</Form.Item>
 
