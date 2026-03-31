@@ -235,7 +235,7 @@ export default function Users() {
           </div>
           <Input.Search
             className="users-search"
-            placeholder="Tìm kiếm theo tên, email hoặc số điện thoại"
+            placeholder="Tìm kiếm theo tên hoặc email"
             allowClear
             enterButton={false}
             value={search}

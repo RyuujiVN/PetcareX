@@ -4,6 +4,7 @@ import AdminClinicLayout from '../layouts/adminClinic/AdminClinicLayout'
 import HeaderLayout from '../layouts/client/HeaderLayout'
 import MainLayout from '../layouts/client/MainLayout'
 import Clinics from '../pages/admin/Dashboard/Clinics'
+import Posts from '../pages/admin/Dashboard/Posts'
 import Users from '../pages/admin/Dashboard/Users'
 import AdminForgotPassword from '../pages/adminClinic/Auth/ForgotPassword'
 import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
@@ -57,7 +58,8 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/home" element={<Clinics />} />
         <Route path="/admin/dashboard/clinics" element={<Clinics />} />
         <Route path="/admin/dashboard/users" element={<Users />} />
-        {/* TODO: thêm route cho Overview, Posts khi có component */}
+        <Route path="/admin/dashboard/posts" element={<Posts />} />
+        {/* TODO: thêm route cho Overview khi có component */}
       </Route>
 
       {/* ── Admin Clinic (role ADMIN_CLINIC) ── */}
