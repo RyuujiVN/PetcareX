@@ -1,4 +1,5 @@
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import { FaPaw } from "react-icons/fa";
 import { Button, Divider, Form, Input, Typography, message } from 'antd';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
@@ -122,7 +123,7 @@ export default function Login() {
     <div className="login-container">
       <div className="login-card" style={{ padding: '40px 30px', background: 'var(--color-surface-card)', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <LockOutlined style={{ fontSize: '48px', color: 'var(--auth-primary)' }} />
+          <FaPaw style={{ fontSize: '48px', color: 'var(--auth-primary)', marginLeft: 'auto', marginRight: 'auto' }} />
           <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng nhập</Title>
           <Text type="secondary">Chào mừng bạn đến với cộng đồng PetcareX</Text>
         </div>
