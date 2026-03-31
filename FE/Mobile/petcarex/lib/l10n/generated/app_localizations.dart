@@ -866,6 +866,12 @@ abstract class AppLocalizations {
   /// **'Chưa có thuốc'**
   String get medicalRecordNoMedicines;
 
+  /// No description provided for @viewDetails.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xem chi tiết'**
+  String get viewDetails;
+
   /// No description provided for @profileUpdateSuccess.
   ///
   /// In vi, this message translates to:
