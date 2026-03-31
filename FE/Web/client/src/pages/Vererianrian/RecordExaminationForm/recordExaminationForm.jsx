@@ -128,7 +128,7 @@ const buildInitialValues = (appointment, latestMedical) => {
 			{
 				medicineId: undefined,
 				quantity: undefined,
-				note: '',
+				frequency: '',
 			},
 		],
 	}
@@ -485,7 +485,7 @@ export default function RecordExaminationForm() {
 							medicalRecordId: medicalId,
 							medicineId: item.medicineId,
 							quantity: Number(item.quantity),
-							note: item.note || undefined,
+							note: item.frequency || undefined,
 							priceAtTime: Number(selectedMedicine?.price || 0),
 						})
 					}),
@@ -530,8 +530,7 @@ export default function RecordExaminationForm() {
 								<SmileOutlined />
 							</div>
 							<div>
-								<h2>PETCAR</h2>
-								<p>Hệ thống thú y chuyên nghiệp</p>
+								<h2 style={{fontSize: 20}}>Hệ thống thú y chuyên nghiệp</h2>
 							</div>
 						</div>
 					</div>
@@ -818,7 +817,7 @@ export default function RecordExaminationForm() {
 								const current = form.getFieldValue('medicines') || []
 								form.setFieldValue('medicines', [
 									...current,
-									{ medicineId: undefined, quantity: undefined, note: '' },
+									{ medicineId: undefined, quantity: undefined, frequency: '' },
 								])
 							}}
 						>
@@ -833,7 +832,7 @@ export default function RecordExaminationForm() {
 									<span>STT</span>
 									<span>TÊN THUỐC / HÀM LƯỢNG</span>
 									<span>LIỀU DÙNG</span>
-									<span>GHI CHÚ</span>
+									<span>TẦN SUẤT</span>
 									<span>THAO TÁC</span>
 								</div>
 								{fields.map((field, index) => (
@@ -862,7 +861,7 @@ export default function RecordExaminationForm() {
 										>
 											<InputNumber min={1} className={styles.fullWidth} placeholder="1" />
 										</Form.Item>
-										<Form.Item name={[field.name, 'note']} className={styles.noMargin}>
+										<Form.Item name={[field.name, 'frequency']} className={styles.noMargin}>
 											<Input placeholder="Tần suất và trong bao nhiêu ngày" />
 										</Form.Item>
 										<Button

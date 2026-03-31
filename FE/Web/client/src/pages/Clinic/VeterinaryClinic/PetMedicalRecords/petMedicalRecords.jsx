@@ -1,25 +1,39 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Spin, message } from 'antd'
+import {
+	Button,
+	Card,
+	Col,
+	Divider,
+	Form,
+	Input,
+	Row,
+	Spin,
+	Table,
+	Tag,
+	Typography,
+	message,
+} from 'antd'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
-	FaHeartbeat,
-	FaPaw,
-	FaPills,
-	FaStethoscope,
-	FaThermometerHalf,
-	FaTint,
-	FaUserMd,
-	FaVial,
-} from 'react-icons/fa'
+	CalendarOutlined,
+	ExperimentOutlined,
+	FileTextOutlined,
+	HeartOutlined,
+	MedicineBoxOutlined,
+	SmileOutlined,
+	UserOutlined,
+	WarningOutlined,
+} from '@ant-design/icons'
 import { getClinicAppointmentByIdApi } from '../../../../data/Clinic/api/appointmentApi'
 import {
-	getLatestMedicalByPetId,
+	getMedicalByPetId,
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../../data/Clinic/api/medicalApi'
 import styles from './petMedicalRecords.module.css'
 
 const FALLBACK_TEXT = 'Chua cap nhat'
+const { TextArea } = Input
 
 const formatDateLabel = (value, fallback = FALLBACK_TEXT) => {
 	if (!value) return fallback
@@ -49,20 +63,83 @@ const parseConclusionSummary = (conclusionText, fallback = FALLBACK_TEXT) => {
 	return summaryMatch?.[1]?.trim() || raw
 }
 
-function Field({ label, value, placeholder = '', isSelect = false }) {
-	const displayValue = value ?? ''
+const normalizeCollection = (payload) => {
+	if (Array.isArray(payload)) return payload
+	if (Array.isArray(payload?.items)) return payload.items
+	if (Array.isArray(payload?.data)) return payload.data
+	return []
+}
 
+const toDayStamp = (value) => {
+	if (!value) return ''
+	const date = new Date(value)
+	if (Number.isNaN(date.getTime())) return ''
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+	const day = String(date.getDate()).padStart(2, '0')
+	return `${year}-${month}-${day}`
+}
+
+const toDateTime = (appointmentDate, appointmentTime) => {
+	if (!appointmentDate) return null
+	const datePart = toDayStamp(appointmentDate)
+	if (!datePart) return null
+	const timePart = (appointmentTime || '00:00').slice(0, 5)
+	const candidate = new Date(`${datePart}T${timePart}:00`)
+	return Number.isNaN(candidate.getTime()) ? null : candidate
+}
+
+const selectMedicalRecordByAppointment = (records, appointment) => {
+	if (!Array.isArray(records) || records.length === 0) return null
+
+	const appointmentDay = toDayStamp(appointment?.appointmentDate)
+	const appointmentDateTime = toDateTime(appointment?.appointmentDate, appointment?.appointmentTime)
+	const appointmentClinicId = appointment?.clinic?.id || appointment?.clinicId
+	const appointmentPetName = String(appointment?.pet?.name || '').trim().toLowerCase()
+
+	const ranked = records
+		.map((record) => {
+			let score = 0
+
+			if (appointmentDay && toDayStamp(record?.createdAt) === appointmentDay) {
+				score += 100
+			}
+
+			if (appointmentClinicId && String(record?.clinicId || record?.clinic?.id || '') === String(appointmentClinicId)) {
+				score += 60
+			}
+
+			const recordPetName = String(record?.petName || record?.pet?.name || '').trim().toLowerCase()
+			if (appointmentPetName && recordPetName && appointmentPetName === recordPetName) {
+				score += 30
+			}
+
+			const recordCreatedAt = new Date(record?.createdAt || 0)
+			const recordCreatedTime = recordCreatedAt.getTime()
+			if (appointmentDateTime && Number.isFinite(recordCreatedTime) && recordCreatedTime > 0) {
+				const diffHours = Math.abs(recordCreatedTime - appointmentDateTime.getTime()) / (1000 * 60 * 60)
+				score += Math.max(0, 25 - diffHours)
+			}
+
+			return {
+				record,
+				score,
+				createdAt: recordCreatedTime,
+			}
+		})
+		.sort((a, b) => {
+			if (b.score !== a.score) return b.score - a.score
+			return b.createdAt - a.createdAt
+		})
+
+	return ranked[0]?.record || null
+}
+
+function ReadonlyField({ label, value }) {
 	return (
-		<label className={styles.fieldGroup}>
-			<span>{label}</span>
-			{isSelect ? (
-				<select value={displayValue} disabled>
-					<option>{displayValue || placeholder || FALLBACK_TEXT}</option>
-				</select>
-			) : (
-				<input value={displayValue} placeholder={placeholder} readOnly />
-			)}
-		</label>
+		<Form.Item label={label} className={styles.readonlyField}>
+			<Input value={value || FALLBACK_TEXT} readOnly />
+		</Form.Item>
 	)
 }
 
@@ -106,18 +183,21 @@ export default function PetMedicalRecords() {
 				return
 			}
 
-			const latestMedical = await getLatestMedicalByPetId(resolvedPetId)
-			setMedicalRecord(latestMedical || null)
+			const medicalPayload = await getMedicalByPetId(resolvedPetId, 1, 200)
+			const medicalRecords = normalizeCollection(medicalPayload)
+			const matchedMedical = selectMedicalRecordByAppointment(medicalRecords, resolvedAppointment)
 
-			if (!latestMedical?.id) {
+			setMedicalRecord(matchedMedical || null)
+
+			if (!matchedMedical?.id) {
 				setMedicalOrders([])
 				setMedicines([])
 				return
 			}
 
 			const [ordersPayload, medicinesPayload] = await Promise.all([
-				getMedicalOrdersByMedicalId(latestMedical.id).catch(() => []),
-				getMedicinesByMedicalId(latestMedical.id).catch(() => []),
+				getMedicalOrdersByMedicalId(matchedMedical.id).catch(() => []),
+				getMedicinesByMedicalId(matchedMedical.id).catch(() => []),
 			])
 
 			setMedicalOrders(Array.isArray(ordersPayload) ? ordersPayload : [])
@@ -156,6 +236,58 @@ export default function PetMedicalRecords() {
 			: FALLBACK_TEXT
 	const conclusionSummary = parseConclusionSummary(medicalRecord?.conclusion)
 
+	const orderColumns = [
+		{
+			title: 'STT',
+			dataIndex: 'index',
+			width: 70,
+			render: (_, __, index) => index + 1,
+		},
+		{
+			title: 'LOAI XET NGHIEM / CHAN DOAN HINH ANH',
+			dataIndex: 'medicalOrder',
+			render: (medicalOrder) => medicalOrder?.nameVn || medicalOrder?.nameEng || FALLBACK_TEXT,
+		},
+		{
+			title: 'GHI CHU YEU CAU',
+			dataIndex: 'note',
+			render: (value) => value || FALLBACK_TEXT,
+		},
+		{
+			title: 'TRANG THAI',
+			key: 'status',
+			width: 150,
+			render: () => <Tag color="blue">Da chi dinh</Tag>,
+		},
+	]
+
+	const medicineColumns = [
+		{
+			title: 'TEN THUOC / HAM LUONG',
+			dataIndex: 'medicine',
+			render: (medicine) => {
+				const name = medicine?.name || FALLBACK_TEXT
+				const strength = medicine?.strength || medicine?.unit || medicine?.dosage || ''
+				return strength ? `${name} (${strength})` : name
+			},
+		},
+		{
+			title: 'LIEU DUNG',
+			dataIndex: 'quantity',
+			render: (value) => (value ? String(value) : FALLBACK_TEXT),
+		},
+		{
+			title: 'TAN SUAT',
+			dataIndex: 'note',
+			render: (value) => value || FALLBACK_TEXT,
+		},
+		{
+			title: 'GHI CHU',
+			dataIndex: 'medicine',
+			render: (medicine) => medicine?.note || FALLBACK_TEXT,
+		},
+	]
+
 	const handleMedicalBill = () => {
 		navigate(`${routePrefix}/exam-slips/${appointmentId}/bill`, {
 			state: {
@@ -169,203 +301,110 @@ export default function PetMedicalRecords() {
 	}
 
 	return (
-		<div className={styles.page}>
+		<div className={styles.pageRoot}>
 			<div className={styles.pageWrap}>
-				<header className={styles.headerCard}>
-					<div className={styles.brandBox}>
+				<header className={styles.formHeader}>
+					<div className={styles.brandRow}>
 						<div className={styles.brandIcon}>
-							<FaPaw />
+							<SmileOutlined />
 						</div>
 						<div>
-							<h1>PETCAR</h1>
-							<p>He thong thu y chuyen nghiep</p>
+							<Typography.Title level={3} className={styles.titleText}>
+								He thong thu y chuyen nghiep
+							</Typography.Title>
 						</div>
 					</div>
 
 					<div className={styles.headerMeta}>
-						<h2>PHIEU KHAM BENH &amp; CHI DINH</h2>
-						<p>Ma ho so: {buildExamCode(medicalRecord?.id)}</p>
-						<p>Ngay kham: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</p>
+						<p>PHIEU KHAM BENH & CHI DINH</p>
+						<span>Ma ho so: {buildExamCode(medicalRecord?.id)}</span>
+						<span>Ngay kham: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</span>
 					</div>
 				</header>
 
-				{loading ? (
-					<div className={styles.card}>
-						<div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
-							<Spin size="large" />
+				<Spin spinning={loading}>
+					<Card className={styles.sectionCard}>
+						<Row gutter={12}>
+							<Col xs={24} md={12}>
+								<ReadonlyField label="TEN PHIEU KHAM" value={examName} />
+							</Col>
+							<Col xs={24} md={12}>
+								<ReadonlyField label="NGAY TAI KHAM" value={followUpDateText} />
+							</Col>
+						</Row>
+					</Card>
+
+					<Card className={styles.sectionCard} title={<span><UserOutlined /> Thong tin khach hang & Thu cung</span>}>
+						<Row gutter={12}>
+							<Col xs={24} md={8}><ReadonlyField label="TEN KHACH HANG" value={ownerName} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="EMAIL" value={ownerEmail} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="SDT" value={ownerPhone} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="TEN THU CUNG" value={petName} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="LOAI" value={speciesLabel} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="GIONG LOAI" value={breedLabel} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="CAN NANG (KG)" value={weightText} /></Col>
+						</Row>
+					</Card>
+
+					<Card className={styles.sectionCard} title={<span><HeartOutlined /> Chi so sinh ton</span>}>
+						<Row gutter={12}>
+							<Col xs={24} md={8}><ReadonlyField label="NHIET DO (DEG C)" value={temperatureText} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="NHIP TIM (L/P/M)" value={heartRateText} /></Col>
+							<Col xs={24} md={8}><ReadonlyField label="HUYET AP (MMHG)" value={bloodPressureText} /></Col>
+						</Row>
+					</Card>
+
+					<Card className={styles.sectionCard} title={<span><WarningOutlined /> Thong tin lam sang</span>}>
+						<Form.Item label="TRIEU CHUNG & TINH TRANG" className={styles.readonlyField}>
+							<TextArea value={medicalRecord?.symptoms || FALLBACK_TEXT} rows={3} readOnly />
+						</Form.Item>
+						<Form.Item label="CHAN DOAN SO BO" className={styles.readonlyField}>
+							<TextArea value={medicalRecord?.diagnosis || FALLBACK_TEXT} rows={2} readOnly />
+						</Form.Item>
+						<Form.Item label="KET LUAN" className={styles.readonlyField}>
+							<TextArea value={conclusionSummary} rows={3} readOnly />
+						</Form.Item>
+					</Card>
+
+					<Card className={styles.sectionCard} title={<span><ExperimentOutlined /> Phieu chi dinh xet nghiem/X-Quang</span>}>
+						<Table
+							rowKey={(row, index) => row?.id || `order-${index}`}
+							columns={orderColumns}
+							dataSource={medicalOrders}
+							pagination={false}
+							locale={{ emptyText: 'Chua co chi dinh xet nghiem' }}
+						/>
+					</Card>
+
+					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Don thuoc chi dinh</span>}>
+						<Table
+							rowKey={(row, index) => row?.id || `medicine-${index}`}
+							columns={medicineColumns}
+							dataSource={medicines}
+							pagination={false}
+							locale={{ emptyText: 'Chua co don thuoc' }}
+						/>
+
+						<Divider className={styles.noteDivider} />
+						<Form.Item label="LOI DAN BAC SI" className={styles.readonlyField}>
+							<TextArea value={medicalRecord?.note || 'Khong co ghi chu them tu bac si.'} rows={3} readOnly />
+						</Form.Item>
+
+						<div className={styles.doctorSign}>
+							<p>
+								<CalendarOutlined /> Ngay tao: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}
+							</p>
+							<strong>BAC SI DIEU TRI</strong>
+							<span>{medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || FALLBACK_TEXT}</span>
 						</div>
+					</Card>
+
+					<div className={styles.actionRow}>
+						<Button type="primary" className={styles.saveBtn} icon={<FileTextOutlined />} onClick={handleMedicalBill}>
+							Hoa don benh an
+						</Button>
 					</div>
-				) : null}
-
-				<section className={styles.card}>
-					<div className={styles.twoColumns}>
-						<Field label="TEN PHIEU KHAM" value={examName} />
-						<Field label="NGAY TAI KHAM" value={followUpDateText} placeholder="dd/mm/yyyy" />
-					</div>
-				</section>
-
-				<section className={styles.card}>
-					<h3>
-						<FaUserMd /> Thong tin khach hang &amp; Thu cung
-					</h3>
-
-					<div className={styles.threeColumns}>
-						<Field label="TEN KHACH HANG" value={ownerName} />
-						<Field label="EMAIL" value={ownerEmail} />
-						<Field label="SDT" value={ownerPhone} />
-						<Field label="TEN THU CUNG" value={petName} />
-						<Field label="GIONG LOAI" value={`${speciesLabel} - ${breedLabel}`} isSelect />
-						<Field label="CAN NANG (KG)" value={weightText} />
-					</div>
-				</section>
-
-				<section className={styles.card}>
-					<h3>
-						<FaStethoscope /> Chi so sinh ton
-					</h3>
-
-					<div className={styles.vitalsGrid}>
-						<article className={styles.vitalItem}>
-							<div className={styles.vitalTitle}>
-								<FaThermometerHalf /> NHIET DO (DEG C)
-							</div>
-							<strong>{temperatureText}</strong>
-						</article>
-
-						<article className={styles.vitalItem}>
-							<div className={styles.vitalTitle}>
-								<FaHeartbeat /> NHIP TIM (L/P/M)
-							</div>
-							<strong>{heartRateText}</strong>
-						</article>
-
-						<article className={styles.vitalItem}>
-							<div className={styles.vitalTitle}>
-								<FaTint /> HUYET AP (MMHG)
-							</div>
-							<strong>{bloodPressureText}</strong>
-						</article>
-					</div>
-				</section>
-
-				<section className={styles.card}>
-					<h3>
-						<FaStethoscope /> Thong tin lam sang
-					</h3>
-
-					<label className={styles.fieldGroup}>
-						<span>TRIEU CHUNG &amp; TINH TRANG</span>
-						<textarea value={medicalRecord?.symptoms || FALLBACK_TEXT} readOnly />
-					</label>
-
-					<label className={styles.fieldGroup}>
-						<span>CHAN DOAN SO BO</span>
-						<input value={medicalRecord?.diagnosis || FALLBACK_TEXT} readOnly />
-					</label>
-
-					<label className={styles.fieldGroup}>
-						<span>KET LUAN</span>
-						<textarea value={conclusionSummary} readOnly />
-					</label>
-				</section>
-
-				<section className={styles.card}>
-					<div className={styles.sectionHeader}>
-						<h3>
-							<FaVial /> Phieu chi dinh xet nghiem/X-Quang
-						</h3>
-					</div>
-
-					<div className={styles.tableWrap}>
-						<table>
-							<thead>
-								<tr>
-									<th>STT</th>
-									<th>LOAI XET NGHIEM / CHAN DOAN HINH ANH</th>
-									<th>GHI CHU YEU CAU</th>
-									<th>TRANG THAI</th>
-								</tr>
-							</thead>
-							<tbody>
-								{medicalOrders.length > 0 ? (
-									medicalOrders.map((item, index) => (
-										<tr key={item?.id || `order-${index}`}>
-											<td>{index + 1}</td>
-											<td>{item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || FALLBACK_TEXT}</td>
-											<td>{item?.note || FALLBACK_TEXT}</td>
-											<td>
-												<span className={styles.waitingTag}>Da chi dinh</span>
-											</td>
-										</tr>
-									))
-								) : (
-									<tr>
-										<td colSpan={4}>Chua co chi dinh xet nghiem</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
-					</div>
-				</section>
-
-				<section className={styles.card}>
-					<div className={styles.sectionHeader}>
-						<h3>
-							<FaPills /> Don thuoc chi dinh
-						</h3>
-					</div>
-
-					<div className={styles.tableWrap}>
-						<table>
-							<thead>
-								<tr>
-									<th>TEN THUOC / HAM LUONG</th>
-									<th>LIEU DUNG</th>
-									<th>TAN SUAT</th>
-									<th>GHI CHU</th>
-								</tr>
-							</thead>
-							<tbody>
-								{medicines.length > 0 ? (
-									medicines.map((item, index) => (
-										<tr key={item?.id || `medicine-${index}`}>
-											<td>
-												<strong>{item?.medicine?.name || FALLBACK_TEXT}</strong>
-												<p>{item?.medicine?.unit || FALLBACK_TEXT}</p>
-											</td>
-											<td>{item?.quantity || FALLBACK_TEXT}</td>
-											<td>{item?.note || FALLBACK_TEXT}</td>
-											<td>{item?.medicine?.note || FALLBACK_TEXT}</td>
-										</tr>
-									))
-								) : (
-									<tr>
-										<td colSpan={4}>Chua co don thuoc</td>
-									</tr>
-								)}
-							</tbody>
-						</table>
-					</div>
-				</section>
-
-				<footer className={styles.footerCard}>
-					<div className={styles.noteBox}>
-						<h4>Loi dan bac si:</h4>
-						<p>{medicalRecord?.note || 'Khong co ghi chu them tu bac si.'}</p>
-					</div>
-
-					<div className={styles.signatureBlock}>
-						<p>Ngay tao: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</p>
-						<h5>BAC SI DIEU TRI</h5>
-						<strong>{medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || FALLBACK_TEXT}</strong>
-					</div>
-				</footer>
-
-				<div className={styles.actionRow}>
-					<button type="button" className={styles.saveBtn} onClick={handleMedicalBill}>
-						Hoa don benh an
-					</button>
-				</div>
+				</Spin>
 			</div>
 		</div>
 	)
