@@ -7,7 +7,7 @@ const ROLE_PRIORITY = [
   RoleEnum.CUSTOMER,
 ]
 
-const normalizeRoleValue = (roleValue) => String(roleValue).toUpperCase()
+const normalizeRoleValue = (roleValue) => String(roleValue).trim().toUpperCase()
 
 const mapToKnownRole = (roleValue) => {
   const normalizedRole = normalizeRoleValue(roleValue)
@@ -36,6 +36,13 @@ export const getNormalizedRoles = (userInfo) => {
 
   if (typeof userInfo?.role === 'string') {
     roleTokens.push(userInfo.role)
+  }
+
+  if (userInfo?.role && typeof userInfo.role === 'object') {
+    const value = userInfo.role.name || userInfo.role.code || userInfo.role.role
+    if (value) {
+      roleTokens.push(value)
+    }
   }
 
   if (Array.isArray(userInfo?.roles)) {

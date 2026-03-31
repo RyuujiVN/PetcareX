@@ -256,8 +256,14 @@ Luồng đang chạy:
 - Modal "Thêm phòng khám mới": 2 section (thông tin phòng khám: tên, email, SĐT, địa chỉ, mô tả; tài khoản quản trị: họ tên, email, mật khẩu). Có validation form đầy đủ.
 - API layer riêng: `src/data/admin/api/` (instance.js dùng `ADMIN_AUTH_STORAGE`, clinicApi.js có 5 hàm CRUD).
 
-### 3) Các màn chưa có nội dung
-- `Overview/`, `Users/`, `Posts/`: thư mục đã tạo sẵn, chưa có file component.
+### 3) Users Management (pages/admin/Dashboard/Users)
+- UI dùng cùng token màu admin (`styles/admin/colorsToken.css`), layout thống nhất với Clinics.
+- Danh sách người dùng phân trang + tìm kiếm theo tên/email.
+- Cột hiển thị: avatar/tên, SĐT, địa chỉ, ngày tạo, email, vai trò, trạng thái.
+- API: `GET /api/user?page&limit&search` qua `src/data/admin/api/userApi.js`.
+
+### 4) Các màn chưa có nội dung
+- `Overview/`, `Posts/`: thư mục đã tạo sẵn, chưa có file component.
 
 ## Veterinarian Portal - Trạng thái tính năng
 
