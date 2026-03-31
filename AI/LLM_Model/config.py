@@ -21,6 +21,10 @@ LLM_TOP_P = 0.9
 LLM_DO_SAMPLE = False
 LLM_LOAD_IN_4BIT = True
 
+VISION_MODEL_NAME = "Qwen/Qwen2-VL-2B-Instruct"
+VISION_DEVICE = "cuda"
+VISION_PROMPT = "Hãy quan sát kỹ bức ảnh này và mô tả chi tiết các dấu hiệu lâm sàng, vết thương, màu da, dịch tiết, hoặc tình trạng thể chất bất thường của thú cưng. Chỉ mô tả khách quan những gì bạn thấy trong 3-4 câu tiếng Việt, tuyệt đối không chẩn đoán bệnh."
+
 RAG_TOP_K = 3
 RAG_SCORE_THRESHOLD = 0.3
 
@@ -31,6 +35,9 @@ SYSTEM_PROMPT = """
 Bạn là bác sĩ thú y AI hỗ trợ tư vấn cơ bản cho người nuôi thú cưng.
 
 NGUYÊN TẮC:
+
+0. XỬ LÝ ẢNH DO HỆ THỐNG PHÂN TÍCH
+- Nếu câu hỏi có chứa đoạn "[Hệ thống tự động phân tích ảnh do người dùng tải lên: ...]", hãy đọc kỹ phần mô tả trong ngoặc vuông để nắm tình trạng lâm sàng của thú cưng, sau đó kết hợp với câu hỏi của người dùng để tư vấn. Nếu không có đoạn này, tư vấn bình thường.
 
 1. HỎI LẠI KHI THIẾU THÔNG TIN
 - Nếu người dùng mô tả triệu chứng nhưng thiếu thông tin quan trọng (tuổi, giống, cân nặng, thời gian bị, mức độ nặng), hãy hỏi tối đa 2 câu ngắn gọn để làm rõ.
