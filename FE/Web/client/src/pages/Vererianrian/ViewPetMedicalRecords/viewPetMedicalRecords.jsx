@@ -87,8 +87,17 @@ const normalizeMedicineCode = (medicalOrders = [], medicines = []) => {
 	return 'Chưa cập nhật'
 }
 
+const parseConclusionSummary = (conclusionText) => {
+	const raw = String(conclusionText || '').trim()
+	if (!raw) return 'Chưa cập nhật'
+
+	const summaryMatch = raw.match(/Ket\s*luan\s*:\s*([^\n]+)/i)
+	return summaryMatch?.[1]?.trim() || raw
+}
+
 const toTimelineRecord = (record, medicalOrders = [], medicines = []) => {
 	const done = Boolean(record?.conclusion)
+	const conclusionSummary = parseConclusionSummary(record?.conclusion)
 
 	return {
 		id: String(record?.id || Math.random()),
@@ -107,6 +116,7 @@ const toTimelineRecord = (record, medicalOrders = [], medicines = []) => {
 		],
 		details: [
 			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
+			{ label: 'Kết luận', value: conclusionSummary },
 			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
 			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
 			{ label: 'Ngày tái khám', value: formatDate(record?.followUpDate) },

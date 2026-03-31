@@ -88,6 +88,12 @@ const buildErrorMessage = (error, fallback) => {
 	return error?.message || fallback
 }
 
+const buildConclusionText = (summary) => {
+	const normalizedSummary = String(summary || '').trim()
+	if (!normalizedSummary) return undefined
+	return normalizedSummary
+}
+
 const buildInitialValues = (appointment, latestMedical) => {
 	const pet = appointment?.petRaw || appointment?.pet || {}
 	const owner = pet?.owner || {}
@@ -110,6 +116,7 @@ const buildInitialValues = (appointment, latestMedical) => {
 		diastolic: undefined,
 		clinicalSymptoms: '',
 		preliminaryDiagnosis: '',
+		conclusionSummary: '',
 		note: '',
 		medicalOrders: [
 			{
@@ -438,11 +445,12 @@ export default function RecordExaminationForm() {
 			}
 
 			const updatePayload = {
+				conclusion: buildConclusionText(values.conclusionSummary),
 				note: values.note || undefined,
 				followUpDate: values.followUpDate ? values.followUpDate.format('YYYY-MM-DD') : undefined,
 			}
 
-			if (updatePayload.note || updatePayload.followUpDate) {
+			if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
 				await updateMedicalRecordApi(medicalId, updatePayload)
 			}
 
@@ -719,6 +727,22 @@ export default function RecordExaminationForm() {
 						<Input.TextArea rows={2} placeholder="Chuẩn đoán sơ bộ" />
 					</Form.Item>
 				</Card>
+
+					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Ket luan kham benh</span>}>
+						<div className={styles.conclusionGrid}>
+							<Form.Item
+								label="KET LUAN CHUYEN MON"
+								name="conclusionSummary"
+								rules={[{ required: true, message: 'Vui long nhap ket luan chuyen mon' }]}
+							>
+								<Input.TextArea
+									rows={3}
+									placeholder="Tong ket tinh trang benh ly va muc do"
+								/>
+							</Form.Item>
+
+						</div>
+					</Card>
 
 				<Card
 					className={styles.sectionCard}

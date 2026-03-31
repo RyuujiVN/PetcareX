@@ -41,6 +41,14 @@ const buildExamCode = (medicalId) => {
 	return `#PC-${String(medicalId).slice(0, 8).toUpperCase()}`
 }
 
+const parseConclusionSummary = (conclusionText, fallback = FALLBACK_TEXT) => {
+	const raw = String(conclusionText || '').trim()
+	if (!raw) return fallback
+
+	const summaryMatch = raw.match(/Ket\s*luan\s*:\s*([^\n]+)/i)
+	return summaryMatch?.[1]?.trim() || raw
+}
+
 function Field({ label, value, placeholder = '', isSelect = false }) {
 	const displayValue = value ?? ''
 
@@ -146,6 +154,7 @@ export default function PetMedicalRecords() {
 		medicalRecord?.systolic && medicalRecord?.diastolic
 			? `${medicalRecord.systolic}/${medicalRecord.diastolic}`
 			: FALLBACK_TEXT
+	const conclusionSummary = parseConclusionSummary(medicalRecord?.conclusion)
 
 	const handleMedicalBill = () => {
 		navigate(`${routePrefix}/exam-slips/${appointmentId}/bill`, {
@@ -252,6 +261,11 @@ export default function PetMedicalRecords() {
 					<label className={styles.fieldGroup}>
 						<span>CHAN DOAN SO BO</span>
 						<input value={medicalRecord?.diagnosis || FALLBACK_TEXT} readOnly />
+					</label>
+
+					<label className={styles.fieldGroup}>
+						<span>KET LUAN</span>
+						<textarea value={conclusionSummary} readOnly />
 					</label>
 				</section>
 

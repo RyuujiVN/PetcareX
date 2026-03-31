@@ -137,7 +137,16 @@ const normalizeMedicalErrorMessage = (error) => {
 	return rawMessage
 }
 
+const parseConclusionSummary = (conclusionText) => {
+	const raw = String(conclusionText || '').trim()
+	if (!raw) return 'Chưa cập nhật'
+
+	const summaryMatch = raw.match(/Ket\s*luan\s*:\s*([^\n]+)/i)
+	return summaryMatch?.[1]?.trim() || raw
+}
+
 const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) => {
+	const conclusionSummary = parseConclusionSummary(record?.conclusion)
 	const medicineSummary =
 		medicines.length > 0
 			? medicines.map((medicine, index) => {
@@ -181,7 +190,7 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 		detailRows: [
 			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
 			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
-			{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
+			{ label: 'Kết luận', value: conclusionSummary },
 			{ label: 'Thuốc', value: medicineSummary },
 			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
 		],

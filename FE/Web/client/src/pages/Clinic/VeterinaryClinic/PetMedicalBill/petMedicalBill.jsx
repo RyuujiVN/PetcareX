@@ -41,6 +41,14 @@ const buildInvoiceCode = (medicalRecordId) => {
 
 const normalizeRows = (payload) => (Array.isArray(payload) ? payload : [])
 
+const parseConclusionSummary = (conclusionText) => {
+	const raw = String(conclusionText || '').trim()
+	if (!raw) return 'Chua cap nhat'
+
+	const summaryMatch = raw.match(/Ket\s*luan\s*:\s*([^\n]+)/i)
+	return summaryMatch?.[1]?.trim() || raw
+}
+
 export default function PetMedicalBill() {
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -139,6 +147,10 @@ export default function PetMedicalBill() {
 			grandTotal: toCurrencyVnd(subtotal),
 		}
 	}, [medicalOrders, medicalRecord?.id, medicines])
+	const conclusionSummary = useMemo(
+		() => parseConclusionSummary(medicalRecord?.conclusion),
+		[medicalRecord?.conclusion],
+	)
 
 	const handlePrintInvoice = () => {
 		window.print()
@@ -253,6 +265,11 @@ export default function PetMedicalBill() {
 						<div className={styles.textGroup}>
 							<label>Chan doan xac dinh</label>
 							<div className={styles.multilineValue}>{medicalRecord?.diagnosis || 'Chua cap nhat'}</div>
+						</div>
+
+						<div className={styles.textGroup}>
+							<label>Ket luan</label>
+							<div className={styles.multilineValue}>{conclusionSummary}</div>
 						</div>
 					</section>
 
