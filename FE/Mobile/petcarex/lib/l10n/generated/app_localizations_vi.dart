@@ -399,6 +399,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get medicalRecordNoMedicines => 'Chưa có thuốc';
 
   @override
+  String get viewDetails => 'Xem chi tiết';
+
+  @override
   String get profileUpdateSuccess => 'Cập nhật thông tin thành công!';
 
   @override

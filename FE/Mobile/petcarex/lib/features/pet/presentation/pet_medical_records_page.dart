@@ -28,6 +28,7 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
   List<PetMedicalRecordSummary> _records = const [];
 
   final Map<String, _RecordDetailState> _detailById = {};
+  final Map<String, bool> _detailExpandedById = {};
 
   @override
   void initState() {
@@ -315,8 +316,9 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
   }
 
   Widget _buildRecordDetail(PetMedicalRecordDetail detail, AppLocalizations l10n) {
-    final detailRows = <Widget>[
-      _buildDetailRow(l10n.medicalRecordCode, detail.id),
+    final isDetailExpanded = _detailExpandedById[detail.id] ?? false;
+
+    final basicRows = <Widget>[
       _buildDetailRow(
         l10n.medicalRecordClinicName,
         detail.clinicName,
@@ -333,6 +335,9 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
         l10n.medicalRecordWeightAtExam,
         detail.weight.isEmpty ? '--' : '${detail.weight} kg',
       ),
+    ];
+
+    final detailRows = <Widget>[
       _buildRichDetail(l10n.medicalRecordDiagnosis, detail.diagnosis),
       _buildRichDetail(l10n.medicalRecordSymptoms, detail.symptoms),
       _buildRichDetail(l10n.medicalRecordConclusion, detail.conclusion),
@@ -341,7 +346,59 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
       _buildMedicinesSection(detail.medicines, l10n),
     ];
 
-    return Column(children: detailRows);
+    return Column(
+      children: [
+        ...basicRows,
+        const SizedBox(height: 12),
+        Theme(
+          data: Theme.of(context).copyWith(dividerColor: AppColors.transparent),
+          child: ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: EdgeInsets.zero,
+            initiallyExpanded: isDetailExpanded,
+            onExpansionChanged: (expanded) {
+              setState(() {
+                _detailExpandedById[detail.id] = expanded;
+              });
+            },
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryAlpha(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.primaryAlpha(0.2)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  l10n.viewDetails,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+            trailing: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Icon(
+                isDetailExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: AppColors.primary,
+              ),
+            ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Column(children: detailRows),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildDetailRow(String label, String value) {
