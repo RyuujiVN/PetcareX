@@ -35,6 +35,8 @@ import {
 	getClinicAppointmentsApi,
 	updateAppointmentStatusApi,
 } from '../../../../data/Clinic/api/appointmentApi'
+import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../../data/Clinic/api/invoiceApi'
+import { getLatestMedicalByPetId } from '../../../../data/Clinic/api/medicalApi'
 import { getUserByIdApi } from '../../../../data/Clinic/api/user'
 
 const { Title, Text } = Typography
@@ -239,6 +241,7 @@ export default function AppointmentManagement() {
 	const [selectedAppointment, setSelectedAppointment] = useState(null)
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [ownerDetailsById, setOwnerDetailsById] = useState({})
+	const [paymentStatusByAppointmentId, setPaymentStatusByAppointmentId] = useState({})
 
 	const fetchAppointments = useCallback(async () => {
 		try {
@@ -265,6 +268,69 @@ export default function AppointmentManagement() {
 	}, [fetchAppointments])
 
 	useEffect(() => {
+		let active = true
+
+		const hydratePaymentStatus = async () => {
+			const completedAppointments = appointments.filter(
+				(item) => item?.status === APPOINTMENT_STATUS.COMPLETED,
+			)
+
+			if (completedAppointments.length === 0) {
+				if (active) {
+					setPaymentStatusByAppointmentId({})
+				}
+				return
+			}
+
+			const entries = await Promise.all(
+				completedAppointments.map(async (item) => {
+					const appointmentId = item?.id
+					const petId = item?.pet?.id
+
+					if (!appointmentId || !petId) {
+						return [appointmentId, INVOICE_STATUS.UNPAID]
+					}
+
+					try {
+						const latestMedical = await getLatestMedicalByPetId(petId)
+						if (!latestMedical?.id) {
+							return [appointmentId, INVOICE_STATUS.UNPAID]
+						}
+
+						const invoice = await getInvoiceByMedicalRecordIdApi(latestMedical.id)
+						return [
+							appointmentId,
+							invoice?.status === INVOICE_STATUS.PAID ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
+						]
+					} catch (error) {
+						if (error?.response?.status === 404) {
+							return [appointmentId, INVOICE_STATUS.UNPAID]
+						}
+
+						return [appointmentId, INVOICE_STATUS.UNPAID]
+					}
+				}),
+			)
+
+			if (!active) return
+
+			const nextPaymentMap = {}
+			entries.forEach(([appointmentId, paymentStatus]) => {
+				if (!appointmentId) return
+				nextPaymentMap[appointmentId] = paymentStatus
+			})
+
+			setPaymentStatusByAppointmentId(nextPaymentMap)
+		}
+
+		hydratePaymentStatus()
+
+		return () => {
+			active = false
+		}
+	}, [appointments])
+
+	useEffect(() => {
 		const syncAppointmentsOnFocus = () => {
 			fetchAppointments()
 		}
@@ -287,6 +353,13 @@ export default function AppointmentManagement() {
 						item.id === payload.appointmentId ? { ...item, status: payload.status } : item,
 					),
 				)
+
+				if (payload?.paymentStatus) {
+					setPaymentStatusByAppointmentId((prev) => ({
+						...prev,
+						[payload.appointmentId]: payload.paymentStatus,
+					}))
+				}
 			} catch {
 			}
 		}
@@ -325,11 +398,27 @@ export default function AppointmentManagement() {
 				[APPOINTMENT_STATUS.COMPLETED]: 'success',
 			}
 
+			const paymentStatus = paymentStatusByAppointmentId[item.id]
+			const isCompletedUnpaid =
+				item.status === APPOINTMENT_STATUS.COMPLETED && paymentStatus !== INVOICE_STATUS.PAID
+			const isCompletedPaid =
+				item.status === APPOINTMENT_STATUS.COMPLETED && paymentStatus === INVOICE_STATUS.PAID
+
+			const statusLabel = isCompletedPaid
+				? 'Đã thanh toán'
+				: isCompletedUnpaid
+					? 'Chưa thanh toán'
+					: normalizeClinicText(APPOINTMENT_STATUS_LABEL[item.status] || item.status)
+
+			const badgeStatus = isCompletedUnpaid
+				? 'warning'
+				: badgeByStatus[item.status] || 'default'
+
 			return {
 				id: item.id,
 				status: item.status,
-				statusLabel: normalizeClinicText(APPOINTMENT_STATUS_LABEL[item.status] || item.status),
-				badgeStatus: badgeByStatus[item.status] || 'default',
+				statusLabel,
+				badgeStatus,
 				date: formatDisplayDate(item.appointmentDate),
 				time: getTimeValue(item.appointmentTime),
 				appointmentDateRaw: item.appointmentDate,
@@ -356,6 +445,7 @@ export default function AppointmentManagement() {
 					getByPaths(item, ['veterinarian.user.fullName', 'veterinarianName'], 'Chưa phân công'),
 				ownerRaw: ownerSource,
 				petRaw: petSource,
+				paymentStatus,
 			}
 		})
 

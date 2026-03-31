@@ -116,6 +116,8 @@ export default function ListPetExaminationRecords() {
 
 					return {
 						id: item?.id,
+						petId: item?.pet?.id || '',
+						ownerId: item?.pet?.owner?.id || '',
 						appointmentDate: item?.appointmentDate,
 						appointmentTime: item?.appointmentTime,
 						status: item?.status,

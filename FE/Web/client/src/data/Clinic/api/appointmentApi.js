@@ -12,7 +12,7 @@ export const APPOINTMENT_PAYMENT_SYNC_EVENT_KEY = 'adminClinic:appointmentPaymen
 export const APPOINTMENT_STATUS_LABEL = {
   [APPOINTMENT_STATUS.BOOKED]: 'Chờ khám',
   [APPOINTMENT_STATUS.IN_PROGRESS]: 'Đang khám',
-  [APPOINTMENT_STATUS.COMPLETED]: 'Đã thanh toán',
+  [APPOINTMENT_STATUS.COMPLETED]: 'Hoàn tất',
   [APPOINTMENT_STATUS.CANCELLED]: 'Đã hủy',
 };
 
@@ -80,4 +80,13 @@ export const updateAppointmentStatusApi = (appointmentId, status) => {
   return instance
     .patch(`/appointment/${appointmentId}`, { status })
     .then((response) => response.data);
+};
+
+export const getClinicAppointmentByIdApi = async (appointmentId) => {
+  if (!appointmentId) return null;
+
+  const response = await getClinicAppointmentsApi({ page: 1, limit: 500 });
+  const items = Array.isArray(response?.items) ? response.items : [];
+
+  return items.find((item) => String(item?.id) === String(appointmentId)) || null;
 };

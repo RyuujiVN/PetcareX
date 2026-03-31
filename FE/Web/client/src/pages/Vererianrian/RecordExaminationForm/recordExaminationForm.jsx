@@ -37,6 +37,7 @@ import {
 	createMedicalMedicineApi,
 	createMedicalOrderApi,
 	createMedicalRecordApi,
+	getMedicalByPetId,
 	getMedicalOrderCatalogApi,
 	getMedicineCatalogApi,
 	updateMedicalRecordApi,
@@ -87,9 +88,11 @@ const buildErrorMessage = (error, fallback) => {
 	return error?.message || fallback
 }
 
-const buildInitialValues = (appointment) => {
+const buildInitialValues = (appointment, latestMedical) => {
 	const pet = appointment?.petRaw || appointment?.pet || {}
 	const owner = pet?.owner || {}
+	const latestWeight = toNumberOrUndefined(latestMedical?.weight)
+	const petWeight = toNumberOrUndefined(pet?.weight)
 
 	return {
 		formName: appointment?.formName || appointment?.service || '',
@@ -100,7 +103,7 @@ const buildInitialValues = (appointment) => {
 		petName: appointment?.petName || pet?.name || '',
 		species: pet?.species || undefined,
 		breed: pet?.breed || undefined,
-		weight: toNumberOrUndefined(pet?.weight),
+		weight: latestWeight ?? petWeight,
 		temperature: undefined,
 		heartRate: undefined,
 		systolic: undefined,
@@ -155,6 +158,7 @@ export default function RecordExaminationForm() {
 	const [medicineOptions, setMedicineOptions] = useState([])
 	const [speciesOptions, setSpeciesOptions] = useState([])
 	const [breedOptions, setBreedOptions] = useState([])
+	const [latestMedicalRecord, setLatestMedicalRecord] = useState(null)
 	const [isDirty, setIsDirty] = useState(false)
 	const initialSnapshotRef = useRef('')
 
@@ -199,12 +203,62 @@ export default function RecordExaminationForm() {
 	}, [loadMetaData])
 
 	useEffect(() => {
-		const initialValues = buildInitialValues(appointment)
+		const initialValues = buildInitialValues(appointment, latestMedicalRecord)
 		form.setFieldsValue(initialValues)
 		const snapshot = JSON.stringify(initialValues)
 		initialSnapshotRef.current = snapshot
 		setIsDirty(false)
-	}, [appointment, form])
+	}, [appointment, form, latestMedicalRecord])
+
+	useEffect(() => {
+		let active = true
+
+		const hydrateLatestMedicalRecord = async () => {
+			const petId = appointment?.petRaw?.id
+			if (!petId) {
+				if (active) {
+					setLatestMedicalRecord(null)
+				}
+				return
+			}
+
+			try {
+				const payload = await getMedicalByPetId(petId, 1, 200)
+				const records = Array.isArray(payload?.items)
+					? payload.items
+					: Array.isArray(payload?.data)
+						? payload.data
+						: Array.isArray(payload)
+							? payload
+							: []
+
+				if (!active) return
+
+				if (records.length === 0) {
+					setLatestMedicalRecord(null)
+					return
+				}
+
+				const latestRecord = [...records].sort((a, b) => {
+					const aTime = new Date(a?.createdAt || 0).getTime()
+					const bTime = new Date(b?.createdAt || 0).getTime()
+					return bTime - aTime
+				})[0]
+
+				setLatestMedicalRecord(latestRecord || null)
+			} catch {
+				if (active) {
+					setLatestMedicalRecord(null)
+				}
+			}
+		}
+
+		hydrateLatestMedicalRecord()
+
+		return () => {
+			active = false
+		}
+	}, [appointment?.petRaw?.id])
 
 	useEffect(() => {
 		let active = true

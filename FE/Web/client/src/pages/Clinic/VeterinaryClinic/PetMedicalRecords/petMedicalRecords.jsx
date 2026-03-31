@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Spin, message } from 'antd'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { message } from 'antd'
 import {
 	FaHeartbeat,
 	FaPaw,
@@ -11,51 +11,48 @@ import {
 	FaUserMd,
 	FaVial,
 } from 'react-icons/fa'
-import { APPOINTMENT_STATUS, updateAppointmentStatusApi } from '../../../../data/Clinic/api/appointmentApi'
+import { getClinicAppointmentByIdApi } from '../../../../data/Clinic/api/appointmentApi'
+import {
+	getLatestMedicalByPetId,
+	getMedicalOrdersByMedicalId,
+	getMedicinesByMedicalId,
+} from '../../../../data/Clinic/api/medicalApi'
 import styles from './petMedicalRecords.module.css'
 
-const testRows = [
-	{
-		order: 1,
-		test: 'Tổng phân tích tế bào máu (CBC)',
-		note: 'Kiểm tra bạch cầu',
-		status: 'Chờ kết quả',
-	},
-	{
-		order: 2,
-		test: 'Chụp X-Quang lồng ngực',
-		note: '2 tư thế',
-		status: 'Chờ kết quả',
-	},
-]
+const FALLBACK_TEXT = 'Chua cap nhat'
 
-const medicineRows = [
-	{
-		medicine: 'Amoxicillin 250mg',
-		form: 'Viên nén',
-		dosage: '1/2 viên',
-		frequency: 'Sáng - Tối (Sau ăn)',
-		note: 'Uống trong 7 ngày',
-	},
-	{
-		medicine: 'Nutri-Plus Gel',
-		form: 'Tuýp 120g',
-		dosage: '2cm gel',
-		frequency: 'Sáng - Trưa - Tối',
-		note: 'Hỗ trợ dinh dưỡng',
-	},
-]
+const formatDateLabel = (value, fallback = FALLBACK_TEXT) => {
+	if (!value) return fallback
+	const date = new Date(value)
+	if (Number.isNaN(date.getTime())) return fallback
+	return date.toLocaleDateString('vi-VN')
+}
+
+const formatEnumLabel = (value, fallback = FALLBACK_TEXT) => {
+	if (!value) return fallback
+	return String(value)
+		.replace(/_/g, ' ')
+		.toLowerCase()
+		.replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
+const buildExamCode = (medicalId) => {
+	if (!medicalId) return '#PC-TEMP'
+	return `#PC-${String(medicalId).slice(0, 8).toUpperCase()}`
+}
 
 function Field({ label, value, placeholder = '', isSelect = false }) {
+	const displayValue = value ?? ''
+
 	return (
 		<label className={styles.fieldGroup}>
 			<span>{label}</span>
 			{isSelect ? (
-				<select value={value} disabled>
-					<option>{value}</option>
+				<select value={displayValue} disabled>
+					<option>{displayValue || placeholder || FALLBACK_TEXT}</option>
 				</select>
 			) : (
-				<input value={value} placeholder={placeholder} readOnly />
+				<input value={displayValue} placeholder={placeholder} readOnly />
 			)}
 		</label>
 	)
@@ -64,12 +61,104 @@ function Field({ label, value, placeholder = '', isSelect = false }) {
 export default function PetMedicalRecords() {
 	const navigate = useNavigate()
 	const location = useLocation()
+	const { appointmentId } = useParams()
 	const isVeterinarianPortal = location.pathname.startsWith('/veterinarian')
 	const routePrefix = isVeterinarianPortal ? '/veterinarian' : '/clinic'
-	const { appointmentId } = useParams()
-	const handleMedicalRecord = () => {
-		navigate(`${routePrefix}/exam-slips/${appointmentId}/bill`)
+
+	const stateRecord = location?.state?.record || null
+	const [loading, setLoading] = useState(false)
+	const [appointment, setAppointment] = useState(stateRecord)
+	const [medicalRecord, setMedicalRecord] = useState(null)
+	const [medicalOrders, setMedicalOrders] = useState([])
+	const [medicines, setMedicines] = useState([])
+
+	const loadExamDetail = useCallback(async () => {
+		if (!appointmentId) return
+
+		try {
+			setLoading(true)
+
+			let resolvedAppointment = stateRecord
+			if (!resolvedAppointment || String(resolvedAppointment?.id) !== String(appointmentId)) {
+				resolvedAppointment = await getClinicAppointmentByIdApi(appointmentId)
+			}
+
+			setAppointment(resolvedAppointment || null)
+
+			const resolvedPetId =
+				resolvedAppointment?.petId ||
+				resolvedAppointment?.pet?.id ||
+				stateRecord?.petId ||
+				''
+
+			if (!resolvedPetId) {
+				setMedicalRecord(null)
+				setMedicalOrders([])
+				setMedicines([])
+				return
+			}
+
+			const latestMedical = await getLatestMedicalByPetId(resolvedPetId)
+			setMedicalRecord(latestMedical || null)
+
+			if (!latestMedical?.id) {
+				setMedicalOrders([])
+				setMedicines([])
+				return
+			}
+
+			const [ordersPayload, medicinesPayload] = await Promise.all([
+				getMedicalOrdersByMedicalId(latestMedical.id).catch(() => []),
+				getMedicinesByMedicalId(latestMedical.id).catch(() => []),
+			])
+
+			setMedicalOrders(Array.isArray(ordersPayload) ? ordersPayload : [])
+			setMedicines(Array.isArray(medicinesPayload) ? medicinesPayload : [])
+		} catch (error) {
+			message.error(error?.message || 'Khong the tai du lieu phieu kham')
+			setMedicalRecord(null)
+			setMedicalOrders([])
+			setMedicines([])
+		} finally {
+			setLoading(false)
+		}
+	}, [appointmentId, stateRecord])
+
+	useEffect(() => {
+		loadExamDetail()
+	}, [loadExamDetail])
+
+	const pet = useMemo(() => medicalRecord?.pet || appointment?.pet || {}, [appointment?.pet, medicalRecord?.pet])
+	const owner = useMemo(() => pet?.owner || {}, [pet])
+
+	const ownerName = medicalRecord?.customerName || owner?.fullName || appointment?.ownerName || FALLBACK_TEXT
+	const ownerEmail = medicalRecord?.email || owner?.email || appointment?.ownerEmail || FALLBACK_TEXT
+	const ownerPhone = medicalRecord?.phone || owner?.phone || FALLBACK_TEXT
+	const petName = medicalRecord?.petName || pet?.name || appointment?.petName || FALLBACK_TEXT
+	const speciesLabel = formatEnumLabel(medicalRecord?.species || pet?.species)
+	const breedLabel = formatEnumLabel(medicalRecord?.breed || pet?.breed)
+	const weightText = medicalRecord?.weight ? String(medicalRecord.weight) : pet?.weight ? String(pet.weight) : FALLBACK_TEXT
+	const examName = medicalRecord?.name || appointment?.service || FALLBACK_TEXT
+	const followUpDateText = formatDateLabel(medicalRecord?.followUpDate)
+	const temperatureText = medicalRecord?.temperature ? String(medicalRecord.temperature) : FALLBACK_TEXT
+	const heartRateText = medicalRecord?.heartRate ? String(medicalRecord.heartRate) : FALLBACK_TEXT
+	const bloodPressureText =
+		medicalRecord?.systolic && medicalRecord?.diastolic
+			? `${medicalRecord.systolic}/${medicalRecord.diastolic}`
+			: FALLBACK_TEXT
+
+	const handleMedicalBill = () => {
+		navigate(`${routePrefix}/exam-slips/${appointmentId}/bill`, {
+			state: {
+				appointmentId,
+				appointment,
+				medicalRecord,
+				medicalOrders,
+				medicines,
+			},
+		})
 	}
+
 	return (
 		<div className={styles.page}>
 			<div className={styles.pageWrap}>
@@ -80,88 +169,96 @@ export default function PetMedicalRecords() {
 						</div>
 						<div>
 							<h1>PETCAR</h1>
-							<p>Hệ thống thú y chuyên nghiệp</p>
+							<p>He thong thu y chuyen nghiep</p>
 						</div>
 					</div>
 
 					<div className={styles.headerMeta}>
-						<h2>PHIẾU KHÁM BỆNH &amp; CHỈ ĐỊNH</h2>
-						<p>Mã hồ sơ: #PC-20231024-001</p>
-						<p>Ngày khám: 24/10/2023</p>
+						<h2>PHIEU KHAM BENH &amp; CHI DINH</h2>
+						<p>Ma ho so: {buildExamCode(medicalRecord?.id)}</p>
+						<p>Ngay kham: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</p>
 					</div>
 				</header>
 
+				{loading ? (
+					<div className={styles.card}>
+						<div style={{ display: 'flex', justifyContent: 'center', padding: 24 }}>
+							<Spin size="large" />
+						</div>
+					</div>
+				) : null}
+
 				<section className={styles.card}>
 					<div className={styles.twoColumns}>
-						<Field label="TÊN PHIẾU KHÁM" value="HIHI" />
-						<Field label="NGÀY TÁI KHÁM" value="" placeholder="dd/mm/yyyy" />
+						<Field label="TEN PHIEU KHAM" value={examName} />
+						<Field label="NGAY TAI KHAM" value={followUpDateText} placeholder="dd/mm/yyyy" />
 					</div>
 				</section>
 
 				<section className={styles.card}>
 					<h3>
-						<FaUserMd /> Thông tin khách hàng &amp; Thú cưng
+						<FaUserMd /> Thong tin khach hang &amp; Thu cung
 					</h3>
 
 					<div className={styles.threeColumns}>
-						<Field label="TÊN KHÁCH HÀNG" value="Trương Công Thành" />
-						<Field label="EMAIL" value="example@gmail.com" />
-						<Field label="SĐT" value="0901 234 567" />
-						<Field label="TÊN THÚ CƯNG" value="Lulu" />
-						<Field label="GIỐNG LOÀI" value="Mèo Anh lông ngắn" isSelect />
-						<Field label="CÂN NẶNG (KG)" value="5.5" />
+						<Field label="TEN KHACH HANG" value={ownerName} />
+						<Field label="EMAIL" value={ownerEmail} />
+						<Field label="SDT" value={ownerPhone} />
+						<Field label="TEN THU CUNG" value={petName} />
+						<Field label="GIONG LOAI" value={`${speciesLabel} - ${breedLabel}`} isSelect />
+						<Field label="CAN NANG (KG)" value={weightText} />
 					</div>
 				</section>
 
 				<section className={styles.card}>
 					<h3>
-						<FaStethoscope /> Chỉ số sinh tồn
+						<FaStethoscope /> Chi so sinh ton
 					</h3>
 
 					<div className={styles.vitalsGrid}>
 						<article className={styles.vitalItem}>
 							<div className={styles.vitalTitle}>
-								<FaThermometerHalf /> NHIỆT ĐỘ (°C)
+								<FaThermometerHalf /> NHIET DO (DEG C)
 							</div>
-							<strong>38.5</strong>
+							<strong>{temperatureText}</strong>
 						</article>
 
 						<article className={styles.vitalItem}>
 							<div className={styles.vitalTitle}>
-								<FaHeartbeat /> NHỊP TIM (B/P/O)
+								<FaHeartbeat /> NHIP TIM (L/P/M)
 							</div>
-							<strong>110</strong>
+							<strong>{heartRateText}</strong>
 						</article>
 
 						<article className={styles.vitalItem}>
 							<div className={styles.vitalTitle}>
-								<FaTint /> HUYẾT ÁP (MMHG)
+								<FaTint /> HUYET AP (MMHG)
 							</div>
-							<strong>120/80</strong>
+							<strong>{bloodPressureText}</strong>
 						</article>
 					</div>
 				</section>
 
 				<section className={styles.card}>
 					<h3>
-						<FaStethoscope /> Thông tin lâm sàng
+						<FaStethoscope /> Thong tin lam sang
 					</h3>
 
 					<label className={styles.fieldGroup}>
-						<span>TRIỆU CHỨNG &amp; TÌNH TRẠNG</span>
-						<textarea value="Bỏ ăn, mệt mỏi, nôn mửa..." readOnly />
+						<span>TRIEU CHUNG &amp; TINH TRANG</span>
+						<textarea value={medicalRecord?.symptoms || FALLBACK_TEXT} readOnly />
 					</label>
 
 					<label className={styles.fieldGroup}>
-						<span>CHẨN ĐOÁN SƠ BỘ</span>
-						<input value="Nghi nhiễm Parvo..." readOnly />
+						<span>CHAN DOAN SO BO</span>
+						<input value={medicalRecord?.diagnosis || FALLBACK_TEXT} readOnly />
 					</label>
 				</section>
 
 				<section className={styles.card}>
 					<div className={styles.sectionHeader}>
 						<h3>
-							<FaVial /> Phiếu chỉ định xét nghiệm/X-Quang
+							<FaVial /> Phieu chi dinh xet nghiem/X-Quang
 						</h3>
 					</div>
 
@@ -170,22 +267,28 @@ export default function PetMedicalRecords() {
 							<thead>
 								<tr>
 									<th>STT</th>
-									<th>LOẠI XÉT NGHIỆM / CHẨN ĐOÁN HÌNH ẢNH</th>
-									<th>GHI CHÚ YÊU CẦU</th>
-									<th>TRẠNG THÁI</th>
+									<th>LOAI XET NGHIEM / CHAN DOAN HINH ANH</th>
+									<th>GHI CHU YEU CAU</th>
+									<th>TRANG THAI</th>
 								</tr>
 							</thead>
 							<tbody>
-								{testRows.map((item) => (
-									<tr key={item.order}>
-										<td>{item.order}</td>
-										<td>{item.test}</td>
-										<td>{item.note}</td>
-										<td>
-											<span className={styles.waitingTag}>{item.status}</span>
-										</td>
+								{medicalOrders.length > 0 ? (
+									medicalOrders.map((item, index) => (
+										<tr key={item?.id || `order-${index}`}>
+											<td>{index + 1}</td>
+											<td>{item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || FALLBACK_TEXT}</td>
+											<td>{item?.note || FALLBACK_TEXT}</td>
+											<td>
+												<span className={styles.waitingTag}>Da chi dinh</span>
+											</td>
+										</tr>
+									))
+								) : (
+									<tr>
+										<td colSpan={4}>Chua co chi dinh xet nghiem</td>
 									</tr>
-								))}
+								)}
 							</tbody>
 						</table>
 					</div>
@@ -194,7 +297,7 @@ export default function PetMedicalRecords() {
 				<section className={styles.card}>
 					<div className={styles.sectionHeader}>
 						<h3>
-							<FaPills /> Đơn thuốc chỉ định
+							<FaPills /> Don thuoc chi dinh
 						</h3>
 					</div>
 
@@ -202,24 +305,30 @@ export default function PetMedicalRecords() {
 						<table>
 							<thead>
 								<tr>
-									<th>TÊN THUỐC / HÀM LƯỢNG</th>
-									<th>LIỀU DÙNG</th>
-									<th>TẦN SUẤT</th>
-									<th>GHI CHÚ</th>
+									<th>TEN THUOC / HAM LUONG</th>
+									<th>LIEU DUNG</th>
+									<th>TAN SUAT</th>
+									<th>GHI CHU</th>
 								</tr>
 							</thead>
 							<tbody>
-								{medicineRows.map((item) => (
-									<tr key={item.medicine}>
-										<td>
-											<strong>{item.medicine}</strong>
-											<p>{item.form}</p>
-										</td>
-										<td>{item.dosage}</td>
-										<td>{item.frequency}</td>
-										<td>{item.note}</td>
+								{medicines.length > 0 ? (
+									medicines.map((item, index) => (
+										<tr key={item?.id || `medicine-${index}`}>
+											<td>
+												<strong>{item?.medicine?.name || FALLBACK_TEXT}</strong>
+												<p>{item?.medicine?.unit || FALLBACK_TEXT}</p>
+											</td>
+											<td>{item?.quantity || FALLBACK_TEXT}</td>
+											<td>{item?.note || FALLBACK_TEXT}</td>
+											<td>{item?.medicine?.note || FALLBACK_TEXT}</td>
+										</tr>
+									))
+								) : (
+									<tr>
+										<td colSpan={4}>Chua co don thuoc</td>
 									</tr>
-								))}
+								)}
 							</tbody>
 						</table>
 					</div>
@@ -227,27 +336,20 @@ export default function PetMedicalRecords() {
 
 				<footer className={styles.footerCard}>
 					<div className={styles.noteBox}>
-						<h4>Lời dặn bác sĩ:</h4>
-						<p>
-							Theo dõi nhiệt độ tại nhà mỗi 4 tiếng. Nếu có dấu hiệu co giật hoặc nôn ra máu, vui lòng đưa bé
-							đến cấp cứu ngay lập tức.
-						</p>
+						<h4>Loi dan bac si:</h4>
+						<p>{medicalRecord?.note || 'Khong co ghi chu them tu bac si.'}</p>
 					</div>
 
 					<div className={styles.signatureBlock}>
-						<p>Đà Nẵng, ngày 24 tháng 10 năm 2024</p>
-						<h5>BÁC SĨ ĐIỀU TRỊ</h5>
-						<strong>BS. Đặng Hoàng Nam</strong>
+						<p>Ngay tao: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</p>
+						<h5>BAC SI DIEU TRI</h5>
+						<strong>{medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || FALLBACK_TEXT}</strong>
 					</div>
 				</footer>
 
 				<div className={styles.actionRow}>
-					<button
-						type="button"
-						className={styles.saveBtn}
-						onClick={handleMedicalRecord}
-					>
-						Hồ sơ bệnh án
+					<button type="button" className={styles.saveBtn} onClick={handleMedicalBill}>
+						Hoa don benh an
 					</button>
 				</div>
 			</div>

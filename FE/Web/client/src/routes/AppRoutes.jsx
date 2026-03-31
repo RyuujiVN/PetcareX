@@ -31,6 +31,7 @@ import VererianrianManagement from '../pages/Clinic/VeterinaryClinic/Vererianria
 import AddNewVererianrian from '../pages/Clinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
 import InformationVererianrian from '../pages/Clinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
 import PetMedicalRecords from '../pages/Clinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
+import PetMedicalBill from '../pages/Clinic/VeterinaryClinic/PetMedicalBill/petMedicalBill'
 import ListPetExaminationRecords from '../pages/Clinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
 import AdminVererianrianLayout from './../layouts/Vererianrian/AdminVererianrianLayout';
@@ -71,6 +72,7 @@ export default function AppRoutes({ location }) {
         <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
         <Route path="/clinic/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
+        <Route path="/clinic/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
       </Route>
 
       <Route path="/veterinarian/login" element={<Navigate to="/login" replace />} />
@@ -86,6 +88,7 @@ export default function AppRoutes({ location }) {
         <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
         <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
         <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
+        <Route path="/veterinarian/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
       </Route>
 
 
