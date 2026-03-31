@@ -49,7 +49,9 @@ export const roomSlice = createSlice({
   name: 'room',
   initialState,
   reducers: {
-
+    addRoom: (state, action) => {
+      state.rooms.unshift(action.payload)
+    },
   },
 
   extraReducers: (builder) => {
@@ -70,10 +72,12 @@ export const roomSlice = createSlice({
     })
 
     builder.addCase(fetchDeleteRoom.fulfilled, (state, action) => {
-      console.log(action.payload);
       state.rooms = state.rooms.filter((item) => item.id !== action.payload.roomId)
     })
   }
 })
+
+// Action creators are generated for each case reducer function
+export const { addRoom } = roomSlice.actions
 
 export default roomSlice.reducer

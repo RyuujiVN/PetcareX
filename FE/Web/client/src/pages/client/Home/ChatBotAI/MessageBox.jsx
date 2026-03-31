@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form, Input } from "antd";
-import { Send } from "lucide-react";
+import { Pause, Send } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   addMessage,
@@ -14,6 +14,7 @@ import { Spin } from "antd";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "github-markdown-css/github-markdown-light.css";
+import { addRoom } from "../../../../redux/slices/roomSlice";
 
 const MessageBox = () => {
   const messages = useSelector((state) => state.message.messages);
@@ -30,25 +31,46 @@ const MessageBox = () => {
   const inputRef = useRef(null);
 
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [isAiWaitingFirstToken, setIsAiWaitingFirstToken] = useState(false);
 
   const handleSendMessage = (value) => {
-    const content = value?.content?.trim();
+    value.content = value.content?.trim();
+    if (isAiLoading || !value.content) return;
+
     value.sendBy = "USER";
-    if (!content) return;
+    value.roomId = roomId;
 
     setIsAiLoading(true);
-    socket.emit("message", { ...value, roomId, content });
+    setIsAiWaitingFirstToken(true);
+    socket.emit("message", value);
     form.resetFields(["content"]);
     scrollToBottom();
-
-    inputRef.current?.focus(); // focus lại input
   };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Chạy lần đầy
+  const handleStopStream = () => {
+    if (!roomId || !isAiLoading) return;
+
+    const lastMessage = messages[messages.length - 1];
+
+    const payload = {
+      roomId: roomId,
+      content: lastMessage.content,
+      sendBy: "AI",
+    };
+
+    socket.emit("stopStream", payload);
+
+    setIsAiLoading(false);
+    setIsAiWaitingFirstToken(false);
+
+    inputRef.current?.focus(); // focus lại input
+  };
+
+  // Chạy lần đầu
   useEffect(() => {
     const init = async () => {
       if (roomId) {
@@ -71,14 +93,19 @@ const MessageBox = () => {
 
     // Lắng nghe AI response stream về
     const onAiResponse = (data) => {
-      if (data?.type === "done") return;
+      if (data?.type === "done" || data?.type === "stopped") {
+        setIsAiLoading(false);
+        return;
+      }
+
+      // Đã bắt đầu stream token => tắt loading chờ phản hồi ban đầu
+      setIsAiWaitingFirstToken(false);
 
       const payload = {
         type: "AI_STREAMING",
         data: data?.token,
       };
 
-      setIsAiLoading(false);
       dispatch(editAiMessage(payload));
     };
 
@@ -107,16 +134,25 @@ const MessageBox = () => {
       dispatch(editAiMessage(payload));
     };
 
+    // Lắng nghe server trả room khi nhắn lần đầu chưa có room
+    const serverResponseNewRoom = (data) => {
+      dispatch(addRoom(data));
+      navigate(`/chatbot/${data.id}`);
+    };
+
     socket.on("aiResponse", onAiResponse);
     socket.on("serverResponseAIMessage", serverResponseAIMessage);
     socket.on("serverResponseMessage", onServerResponseMessage);
     socket.on("serverResponseRoom", onServerResponseRoom);
+    socket.on("serverResponseNewRoom", serverResponseNewRoom);
 
     return () => {
       socket.off("aiResponse", onAiResponse);
       socket.off("serverResponseMessage", onServerResponseMessage);
       socket.off("serverResponseAIMessage", serverResponseAIMessage);
       socket.off("serverResponseRoom", onServerResponseRoom);
+      socket.off("serverResponseNewRoom", serverResponseNewRoom);
+
       if (roomId) {
         socket.emit("leaveRoom", { roomId });
       }
@@ -191,7 +227,7 @@ const MessageBox = () => {
               ),
             )}
 
-            {isAiLoading && (
+            {isAiWaitingFirstToken && (
               <div className="message ai">
                 <div className="message-content">
                   <div className="message-bubble loading">
@@ -217,13 +253,26 @@ const MessageBox = () => {
               ref={inputRef}
               placeholder="Nhập câu hỏi..."
               className="message-input"
+              disabled={isAiLoading}
             />
           </Form.Item>
 
           <Form.Item>
-            <button type="submit" className="send-btn" style={{ padding: 0 }}>
-              <Send size={20} />
-            </button>
+            {isAiLoading ? (
+              <button
+                type="button"
+                className="send-btn"
+                style={{ padding: 0 }}
+                title="AI đang trả lời"
+                onClick={handleStopStream}
+              >
+                <Pause size={20} />
+              </button>
+            ) : (
+              <button type="submit" className="send-btn" style={{ padding: 0 }}>
+                <Send size={20} />
+              </button>
+            )}
           </Form.Item>
         </Form>
 

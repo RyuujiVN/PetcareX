@@ -20,6 +20,7 @@ export class RoomService {
     @InjectRepository(ChatbotMessage)
     private readonly messageRepository: Repository<ChatbotMessage>,
   ) {}
+
   // Lấy danh sách đoạn chat
   async findAllRoomPagination(options: RoomPagination, userId: string) {
     const queryBuilder = this.roomRepository

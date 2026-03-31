@@ -23,6 +23,7 @@ import { InvoiceModule } from './invoice/invoice.module';
 import { ChatbotModule } from './chatbot/chatbot.module';
 import { AiDiagnosisModule } from './ai-diagnosis/ai-diagnosis.module';
 import { NotificationModule } from './notification/notification.module';
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
@@ -31,6 +32,12 @@ import { NotificationModule } from './notification/notification.module';
     TypeOrmModule.forRoot(dataSourceOptions),
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379,
+      },
     }),
     ClinicModule,
     MailModule,
