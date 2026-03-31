@@ -195,7 +195,7 @@ export default function Login() {
               icon={<FcGoogle />}
               loading={googleLoading}
               size="large"
-              style={{ width: 360, height: 44, borderRadius: 999, fontWeight: 600 }}
+              style={{ width: 590, height: 46, borderRadius: 15, fontWeight: 600 }}
             >
               Tiếp tục với Google
             </Button>

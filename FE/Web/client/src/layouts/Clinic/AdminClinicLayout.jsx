@@ -1,4 +1,4 @@
-import { CalendarOutlined, FileSearchOutlined, KeyOutlined, LineChartOutlined, LogoutOutlined, MedicineBoxOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
+import { CalendarOutlined, FileSearchOutlined, KeyOutlined, LineChartOutlined, LogoutOutlined, MedicineBoxOutlined, TeamOutlined, UserOutlined, HomeOutlined } from '@ant-design/icons'
 import { Avatar, Button, Dropdown, Form, Input, Modal, message } from 'antd'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -15,6 +15,7 @@ const menuItems = [
   { key: 'revenue', label: 'Doanh thu', icon: LineChartOutlined, path: '/clinic/revenue' },
   { key: 'doctors', label: 'Bác sĩ', icon: TeamOutlined, path: '/clinic/veterinarians' },
   { key: 'forms', label: 'Xem phiếu khám', icon: FileSearchOutlined, path: '/clinic/exam-slips' },
+  {key: 'homepage', label: 'Chỉnh sửa trang chủ', icon: HomeOutlined , path: '/admin/home' },
 ]
 
 const isMenuActive = (pathname, path) => {

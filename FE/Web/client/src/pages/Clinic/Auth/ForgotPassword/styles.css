@@ -1,4 +1,4 @@
-:root {
+/* :root {
   --primary-color: var(--auth-primary);
   --text-color: var(--auth-text-primary);
   --text-light: var(--auth-text-light);
@@ -88,7 +88,6 @@ body::-webkit-scrollbar {
   height: 80px;
 }
 
-/* Header */
 .forgot-password-header {
   margin-bottom: 30px;
 }
@@ -108,7 +107,6 @@ body::-webkit-scrollbar {
   margin: 0;
 }
 
-/* Form */
 .forgot-password-card .ant-form {
   margin-bottom: 0;
 }
@@ -166,7 +164,6 @@ body::-webkit-scrollbar {
   border-color: var(--auth-primary-hover) !important;
 }
 
-/* Back to login */
 .back-to-login {
   margin-bottom: 30px;
 }
@@ -189,7 +186,6 @@ body::-webkit-scrollbar {
   color: var(--auth-primary-hover) !important;
 }
 
-/* Support link */
 .contact-support-link {
   font-size: 13px;
   color: var(--text-light);
@@ -206,7 +202,6 @@ body::-webkit-scrollbar {
   text-decoration: underline;
 }
 
-/* Footer */
 .forgot-password-footer {
   margin-top: 60px;
   text-align: center;
@@ -219,7 +214,6 @@ body::-webkit-scrollbar {
   margin: 0;
 }
 
-/* Responsive Design */
 @media (max-width: 768px) {
   .forgot-password-card {
     padding: 50px 30px;
@@ -279,4 +273,4 @@ body::-webkit-scrollbar {
     margin-top: 40px;
     font-size: 11px;
   }
-}
+} */

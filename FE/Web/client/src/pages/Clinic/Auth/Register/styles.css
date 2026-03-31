@@ -1,4 +1,4 @@
-* {
+/* * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -40,7 +40,6 @@ body::-webkit-scrollbar {
   }
 
 
-/* Media Queries */
 @media (max-width: 768px) {
   .register-container {
     padding: 0;
@@ -145,4 +144,4 @@ body::-webkit-scrollbar {
     height: 38px;
     font-size: 13px;
   }
-}
+} */
