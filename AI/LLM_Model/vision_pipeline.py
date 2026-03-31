@@ -8,7 +8,7 @@ class VisionAnalyzer:
     def __init__(self):
         print("Loading model and processor...")
         self.processor = AutoProcessor.from_pretrained(VISION_MODEL_NAME)
-        self.model = Qwen2VLForConditionalGeneration.from_pretrained(VISION_MODEL_NAME, torch_type="auto", device_map=VISION_DEVICE)
+        self.model = Qwen2VLForConditionalGeneration.from_pretrained(VISION_MODEL_NAME, torch_dtype="auto", device_map=VISION_DEVICE)
         self.lock = threading.Lock()  
 
     def describe_image(self, base64_image: str) -> str:
@@ -23,7 +23,7 @@ class VisionAnalyzer:
                 ],
             }
         ]
-        text = self.processor.apply_chat_template(messages, tokenizer=False, add_generation_prompt=True)
+        text = self.processor.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
         image_inputs, video_inputs = process_vision_info(messages)
         inputs = self.processor(
             text=[text],
