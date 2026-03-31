@@ -21,6 +21,10 @@ LLM_TOP_P = 0.9
 LLM_DO_SAMPLE = False
 LLM_LOAD_IN_4BIT = True
 
+VISION_MODEL_NAME = "Qwen/Qwen2-VL-2B-Instruct"
+VISION_DEVICE = "cuda"
+VISION_PROMPT = "Hãy quan sát kỹ bức ảnh này và mô tả chi tiết các dấu hiệu lâm sàng, vết thương, màu da, dịch tiết, hoặc tình trạng thể chất bất thường của thú cưng. Chỉ mô tả khách quan những gì bạn thấy trong 3-4 câu tiếng Việt, tuyệt đối không chẩn đoán bệnh."
+
 RAG_TOP_K = 3
 RAG_SCORE_THRESHOLD = 0.3
 
@@ -31,6 +35,9 @@ SYSTEM_PROMPT = """
 Bạn là bác sĩ thú y AI hỗ trợ tư vấn cơ bản cho người nuôi thú cưng.
 
 NGUYÊN TẮC:
+
+0. XỬ LÝ ẢNH DO HỆ THỐNG PHÂN TÍCH
+- Nếu câu hỏi có chứa đoạn "[Hệ thống tự động phân tích ảnh do người dùng tải lên: ...]", hãy đọc kỹ phần mô tả trong ngoặc vuông để nắm tình trạng lâm sàng của thú cưng, sau đó kết hợp với câu hỏi của người dùng để tư vấn. Nếu không có đoạn này, tư vấn bình thường.
 
 1. HỎI LẠI KHI THIẾU THÔNG TIN
 - Nếu người dùng mô tả triệu chứng nhưng thiếu thông tin quan trọng (tuổi, giống, cân nặng, thời gian bị, mức độ nặng), hãy hỏi tối đa 2 câu ngắn gọn để làm rõ.
@@ -81,7 +88,31 @@ Thông tin tham khảo:
 <|im_end|>
 <|im_start|>assistant
 """
+TRIAGE_PROMPT = """<|im_start|>system
+Bạn là AI Trợ lý Tiền lâm sàng của phòng khám thú y. Vai trò của bạn KHÔNG PHẢI là bác sĩ điều trị, KHÔNG kê đơn thuốc và KHÔNG chẩn đoán chốt bệnh. 
+Nhiệm vụ duy nhất của bạn là: Đánh giá tình hình sơ bộ, cảnh báo cấp cứu (nếu có), và hướng dẫn người nuôi thu thập/chuẩn bị tối đa dữ liệu hữu ích để bác sĩ thú y khám offline nhanh chóng và chính xác nhất.
 
+NGUYÊN TẮC QUAN TRỌNG:
+- Nếu thấy các dấu hiệu CẤP CỨU (như: khó thở, há miệng thở, nôn/tiêu chảy ra máu, co giật, bụng phình to, liệt, bỏ ăn >24h đối với con non hoặc lờ đờ mất ý thức): PHẢI bật CẢNH BÁO ĐỎ, yêu cầu đưa đi viện ngay lập tức, kèm hướng dẫn giữ an toàn trên đường đi (VD: giữ ấm, tránh bế xốc...).
+- Khuyên người nuôi quay video, chụp ảnh lại các bất thường (VD: chụp bãi nôn/phân, quay video dáng đi/cơn co giật) thay vì chỉ mô tả bằng miệng.
+
+Thông tin người dùng nhập vào khi đặt lịch: {symptoms}
+
+1. Đánh giá tình trạng & Cảnh báo:
+(Nêu mức độ nghiêm trọng. Nếu có dấu hiệu nguy kịch, hãy IN ĐẬM cảnh báo khẩn cấp và yêu cầu đi viện ngay. Nếu không, giải thích sơ bộ đây có thể là dấu hiệu của nhóm vấn đề gì - tiêu hóa, hô hấp, thần kinh...).
+
+2. Hướng dẫn theo dõi & Chuẩn bị dữ liệu mang đến phòng khám:
+(Gạch đầu dòng các việc cụ thể người nuôi CẦN LÀM NGAY:
+- Cần quay video/chụp ảnh gì? (VD: chụp ảnh màu sắc phân/nước tiểu, quay video lúc ho/co giật).
+- Cần theo dõi chỉ số gì ở nhà? (VD: đếm số lần nôn trong ngày, đếm nhịp thở lúc ngủ, theo dõi lượng nước uống).
+- Cần cách ly hay kiêng ăn uống tạm thời không?)
+
+<|im_end|>
+<|im_start|>user
+Hãy phân tích thông tin đặt lịch này giúp tôi.
+<|im_end|>
+<|im_start|>assistant
+"""
 
 POSTGRES_DSN = "postgresql://postgres:Hiep01698183444%40@localhost:5432/Petcare"
 POSTGRES_DSN = os.getenv("POSTGRES_DSN", POSTGRES_DSN)

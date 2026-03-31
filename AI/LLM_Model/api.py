@@ -12,7 +12,7 @@ from typing import Optional, List, Tuple, Set
 import torch
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from transformers import TextIteratorStreamer
+from transformers import TextIteratorStreamer, StoppingCriteria, StoppingCriteriaList
 from rag_pipeline import Retriever, LLMGenerator
 from structured_retriever import StructuredDBRetriever
 from database import engine, SessionLocal
@@ -24,6 +24,7 @@ from config import (
     LLM_MAX_NEW_TOKENS,
     LLM_DO_SAMPLE,
     SYSTEM_PROMPT,
+    TRIAGE_PROMPT,
     PROMPT_TEMPLATE,
     POSTGRES_DSN,
 )
@@ -37,6 +38,13 @@ llm: LLMGenerator = None
 structured_retriever: StructuredDBRetriever = None
 llm_lock = threading.Lock()
 
+class StopGenerationCreteria(StoppingCriteria):
+    def __init__(self):
+        self.stop_event = threading.Event()
+
+    def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
+        return self.stop_event.is_set()
+global_stop_criteria = StopGenerationCreteria()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -175,6 +183,7 @@ async def handle_chat(sid, data):
             return
     message = data.get("message", "").strip()
     room_id = data.get("room_id", "")
+    user_id = data.get("user_id", "")
 
     if not message:
         return
@@ -221,6 +230,7 @@ async def handle_chat(sid, data):
             llm.tokenizer, skip_prompt=True, skip_special_tokens=True, timeout=120.0
         )
         inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
+        global_stop_criteria.stop_event.clear()
         generate_kwargs = dict(
             **inputs,
             max_new_tokens=LLM_MAX_NEW_TOKENS,
@@ -228,6 +238,7 @@ async def handle_chat(sid, data):
             pad_token_id=llm.tokenizer.pad_token_id,
             repetition_penalty=1.1,
             streamer=streamer,
+            stopping_criteria=StoppingCriteriaList([global_stop_criteria]),
         )
 
         loop = asyncio.get_running_loop()
@@ -252,10 +263,10 @@ async def handle_chat(sid, data):
             if token is None:
                 break
             full_answer += token
-            await sio.emit('chat_response', {"type": "token", "token": token}, to=sid)
+            await sio.emit('chat_response', {"type": "token", "token": token, "user_id": user_id}, to=sid)
 
         answer = full_answer.strip()
-        await sio.emit('chat_response', {"type": "done", "answer": answer}, to=sid)
+        await sio.emit('chat_response', {"type": "done", "answer": answer, "user_id": user_id}, to=sid)
     except Exception as exc:
         await sio.emit(
             'chat_response',
@@ -274,6 +285,32 @@ async def handle_chat(sid, data):
 async def handle_default_message_event(sid, data):
     if isinstance(data, dict) and "message" in data:
         await handle_chat(sid, data)
+
+@sio.on('stop_chat')
+async def handle_stop_chat(sid, data):
+    global_stop_criteria.stop_event.set()   
+    await sio.emit('chat_response', {"type": "status", "status": "Stopped"}, to=sid)
+
+@app.post("/api/triage")
+def create_triage(data: dict):
+    symptoms = data.get("symptoms", "")
+    if not symptoms:
+        return {"error": "Missing 'symptoms' in request body."}
+    
+    prompt = TRIAGE_PROMPT.format(symptoms=symptoms)
+    with llm_lock:
+        inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
+        outputs = llm.model.generate(**inputs, max_new_tokens=512, pad_token_id=llm.tokenizer.pad_token_id)
+
+        input_len = inputs.input_ids.shape[1]
+        answer = llm.tokenizer.decode(outputs[0][input_len:], skip_special_tokens=True)
+
+    return {
+        "status": "success",
+        "analysis": answer.strip(),
+    }
+
+
 
 if __name__ == "__main__":
     import uvicorn
