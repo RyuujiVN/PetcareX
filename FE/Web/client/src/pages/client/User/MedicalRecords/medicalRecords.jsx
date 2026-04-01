@@ -1,14 +1,14 @@
+import { message } from 'antd'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	FaBell,
-	FaCalendarCheck,
 	FaCakeCandles,
+	FaCalendarCheck,
 	FaDog,
 	FaMars,
 	FaShieldDog,
 	FaSyringe,
 } from 'react-icons/fa6'
-import { message } from 'antd'
-import { useCallback, useEffect, useState } from 'react'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -17,7 +17,8 @@ import {
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../../data/client/api/medicalApi'
-import { getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi'
+import { getBreedLabel, getMyPetsApi } from '../../../../data/client/api/petApi'
+import { getMedicalRecordStatusLabel } from '../../../../utils/enumLabel'
 import styles from './medicalRecords.module.css'
 
 const EMPTY_TIMELINE = []
@@ -98,7 +99,7 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 		: 'Chưa kê thuốc'
 
 	const hasConclusion = Boolean(record?.conclusion)
-	const status = hasConclusion ? 'ĐÃ HOÀN THÀNH' : 'CHƯA HOÀN THÀNH'
+	const status = getMedicalRecordStatusLabel(hasConclusion, { uppercase: true })
 	const statusType = hasConclusion ? 'done' : 'pending'
 
 	let markerType = 'checkup'

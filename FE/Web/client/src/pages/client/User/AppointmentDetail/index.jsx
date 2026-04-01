@@ -1,18 +1,19 @@
-﻿import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+﻿import * as icons from '@ant-design/icons';
 import * as antd from 'antd';
-import * as icons from '@ant-design/icons';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   APPOINTMENT_STATUS,
   getMyAppointmentsApi,
   updateAppointmentStatusApi,
-} from '../../../../data/client/api/appointmentApi'; 
-import { getBreedLabel } from '../../../../data/client/api/petApi';
-import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
+} from '../../../../data/client/api/appointmentApi';
 import {
   generateAndStoreDiagnosisReport,
   getStoredDiagnosisReport,
 } from '../../../../data/client/api/appointmentDiagnosis';
+import { getBreedLabel } from '../../../../data/client/api/petApi';
+import { getAppointmentStatusLabel, getServiceLabel } from '../../../../utils/enumLabel';
+import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
 import './styles.css';
 
 const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
@@ -118,7 +119,7 @@ const AppointmentDetail = () => {
         avatar: item.pet?.avatar || '/gaugau.png',
         clinic: item.clinic?.name || 'Không rõ',
         clinicAddress: item.clinic?.address || 'Không rõ',
-        service: `${item.service}`,
+        service: getServiceLabel(item.service, `${item.service}`),
         date: dateText,
         time: timeText,
         veterinarian: item.veterinarian?.user?.fullName || 'Không rõ',
@@ -126,6 +127,7 @@ const AppointmentDetail = () => {
         notes: item.note,
         rawDate: date,
         status: item.status,
+        statusLabel: getAppointmentStatusLabel(item.status, item.status),
         daysAgo: calcDaysAgo(date),
       };
     });
@@ -232,7 +234,7 @@ const handleViewDetails = (appointment) => {
                 {appointment.petName} - {appointment.breed}
               </h3>
               {isHistory && <antd.Tag color="blue">{appointment.daysAgo}</antd.Tag>}
-              {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: 'var(--color-info)' }} />}
+              {!isHistory && <antd.Badge count={appointment.statusLabel} style={{ backgroundColor: 'var(--color-info)' }} />}
             </div>
 
             <div className="appointment-info">

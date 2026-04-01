@@ -1,26 +1,27 @@
 import {
-    DeleteOutlined,
-    SearchOutlined,
-    UserOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import {
-    Avatar,
-    Button,
-    Card,
-    Col,
-    Flex,
-    Input,
-    Pagination,
-    Popconfirm,
-    Row,
-    Space,
-    Statistic,
-    Table,
-    Tag,
-    Typography,
-    message,
+  Avatar,
+  Button,
+  Card,
+  Col,
+  Flex,
+  Input,
+  Pagination,
+  Popconfirm,
+  Row,
+  Space,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+  message,
 } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
+import { getRoleLabel } from '../../../../constants/veterinaryLabels'
 import { deleteUserApi, getUserListApi } from '../../../../data/admin/api/userApi'
 import './style.css'
 
@@ -42,13 +43,6 @@ const formatDate = (date) => {
   const month = String(d.getMonth() + 1).padStart(2, '0')
   const year = d.getFullYear()
   return `${day}/${month}/${year}`
-}
-
-const ROLE_LABELS = {
-  ADMIN: 'Quản trị hệ thống',
-  ADMIN_CLINIC: 'Admin phòng khám',
-  VETERINARIAN: 'Bác sĩ thú y',
-  CUSTOMER: 'Khách hàng',
 }
 
 const ROLE_CLASSNAMES = {
@@ -174,7 +168,7 @@ export default function Users() {
       key: 'role',
       render: (role) => (
         <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
-          {ROLE_LABELS[role] || role}
+          {getRoleLabel(role)}
         </Tag>
       ),
     },

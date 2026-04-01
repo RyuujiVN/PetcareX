@@ -1,26 +1,27 @@
 import {
-    FileTextOutlined,
-    LikeOutlined,
-    MessageOutlined,
-    SearchOutlined,
-    UserOutlined,
+  FileTextOutlined,
+  LikeOutlined,
+  MessageOutlined,
+  SearchOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import {
-    Avatar,
-    Button,
-    Card,
-    Col,
-    Flex,
-    Input,
-    Row,
-    Space,
-    Statistic,
-    Table,
-    Tag,
-    Typography,
-    message,
+  Avatar,
+  Button,
+  Card,
+  Col,
+  Flex,
+  Input,
+  Row,
+  Space,
+  Statistic,
+  Table,
+  Tag,
+  Typography,
+  message,
 } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { getRoleLabel } from '../../../../constants/veterinaryLabels'
 import { getPostListApi } from '../../../../data/admin/api/postApi'
 import './style.css'
 
@@ -53,13 +54,6 @@ const cleanContent = (content) => {
     .replace(/\[\[title:.*?\]\]/gi, '')
     .replace(/\[\[img:.*?\]\]/gi, '')
     .trim()
-}
-
-const ROLE_LABELS = {
-  ADMIN: 'Quản trị hệ thống',
-  ADMIN_CLINIC: 'Admin phòng khám',
-  VETERINARIAN: 'Bác sĩ thú y',
-  CUSTOMER: 'Khách hàng',
 }
 
 const ROLE_CLASSNAMES = {
@@ -182,7 +176,7 @@ export default function Posts() {
                 {displayName}
               </Typography.Text>
               <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
-                {ROLE_LABELS[role] || role || '—'}
+                {role ? getRoleLabel(role) : '—'}
               </Tag>
             </div>
           </Space>

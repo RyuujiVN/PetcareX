@@ -1,10 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import dayjs from 'dayjs'
 import { FileTextOutlined } from '@ant-design/icons'
 import { Button, DatePicker, Empty, Select, Spin, message } from 'antd'
+import dayjs from 'dayjs'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, APPOINTMENT_STATUS_LABEL, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
+import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
 import { getClinicPetSpeciesApi } from '../../../../data/Clinic/api/petApi'
+import {
+	getAppointmentStatusLabel,
+	getPetBreedLabel,
+	getPetSpeciesLabel,
+} from '../../../../utils/enumLabel'
 import styles from './listPetExaminationRecords.module.css'
 
 const normalizeDate = (dateValue) => {
@@ -20,33 +25,6 @@ const normalizeDate = (dateValue) => {
 	return `${year}-${month}-${day}`
 }
 
-const formatEnumLabel = (value) => {
-	if (!value) return 'Không xác định'
-
-	return String(value)
-		.replace(/_/g, ' ')
-		.toLowerCase()
-		.replace(/\b\w/g, (char) => char.toUpperCase())
-}
-
-const formatBreedLabel = (breed, species) => {
-	const rawBreed = typeof breed === 'object' && breed !== null ? breed.name || breed.id || '' : breed || ''
-	if (!rawBreed) return ''
-
-	const rawValue = String(rawBreed).trim()
-	const speciesPrefix = species ? `${String(species).trim()}_` : ''
-
-	if (speciesPrefix && rawValue.startsWith(speciesPrefix)) {
-		return formatEnumLabel(rawValue.slice(speciesPrefix.length))
-	}
-
-	const matchedPrefix = rawValue.match(/^[A-Z]+_/)
-	if (matchedPrefix) {
-		return formatEnumLabel(rawValue.slice(matchedPrefix[0].length))
-	}
-
-	return formatEnumLabel(rawValue)
-}
 
 const getAgeLabel = (dateOfBirth) => {
 	if (!dateOfBirth) return 'Chưa rõ tuổi'
@@ -69,7 +47,7 @@ const getAgeLabel = (dateOfBirth) => {
 	return `${years} tuổi`
 }
 
-const getStatusLabel = (status) => APPOINTMENT_STATUS_LABEL[status] || status || 'Không xác định'
+const getStatusLabel = (status) => getAppointmentStatusLabel(status, status || 'Không xác định')
 
 export default function ListPetExaminationRecords() {
 	const navigate = useNavigate()
@@ -111,8 +89,8 @@ export default function ListPetExaminationRecords() {
 				.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
 				.map((item) => {
 					const speciesRaw = item?.pet?.species || ''
-					const speciesLabel = formatEnumLabel(speciesRaw)
-					const breedLabel = formatBreedLabel(item?.pet?.breed, speciesRaw)
+					const speciesLabel = getPetSpeciesLabel(speciesRaw, 'Không xác định')
+					const breedLabel = getPetBreedLabel(item?.pet?.breed, speciesRaw, '')
 
 					return {
 						id: item?.id,
@@ -164,7 +142,7 @@ export default function ListPetExaminationRecords() {
 
 		return [
 			{ style: {height: 30, display: 'flex', alignItems: 'center'}, label: 'Tất cả loài', value: 'ALL'},
-			...availableSpecies.map((item) => ({ label: formatEnumLabel(item), value: item })),
+				...availableSpecies.map((item) => ({ label: getPetSpeciesLabel(item, 'Không xác định'), value: item })),
 		]
 	}, [records, speciesList])
 

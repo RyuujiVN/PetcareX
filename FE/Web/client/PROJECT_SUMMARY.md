@@ -410,6 +410,46 @@ Ghi chú:
 - Enum folder chưa có `clinic-status.enum.ts`. Trang Clinics dùng local constant `CLINIC_STATUS` tạm thời.
 - Cần backend cung cấp enum clinic status để đồng bộ FE.
 
+## Chuẩn hóa Enum Label Tiếng Việt (2026-04)
+
+### Mục tiêu
+- Loại bỏ hiển thị raw enum như `BOOKED`, `IN_PROGRESS`, `PERIODIC_HEALTH_CHECK` trên UI.
+- Loại bỏ mapping rải rác/hardcode trùng lặp trong nhiều component.
+- Đảm bảo toàn bộ web client dùng **một nguồn dịch enum tiếng Việt duy nhất**.
+
+### Nguồn dịch tập trung (single source of truth)
+- `src/constants/enumLabels.js`
+  - Chứa toàn bộ mapping enum -> nhãn tiếng Việt theo domain:
+    - Appointment status, service, role, veterinary specialty
+    - Pet species, pet breed
+    - Invoice status, sender, medicine unit
+    - Medical record completion status
+
+### Utility dùng chung
+- `src/utils/enumLabel.js`
+  - Cung cấp API chuẩn để lấy nhãn:
+    - `getEnumLabel(enumKey, value)`
+    - `getAppointmentStatusLabel(...)`
+    - `getServiceLabel(...)`
+    - `getRoleLabel(...)`
+    - `getVeterinarySpecialtyLabel(...)`
+    - `getPetSpeciesLabel(...)`
+    - `getPetBreedLabel(...)`
+    - `getInvoiceStatusLabel(...)`
+    - `getMedicalRecordStatusLabel(...)`
+  - Có fallback an toàn (`Chưa cập nhật`) và chuẩn hóa key (`trim`, uppercase, normalize `_`).
+
+### Tương thích ngược
+- `src/constants/veterinaryLabels.js` giữ nguyên tên hàm public (`getRoleLabel`, `getSpecialtyLabel`, `getSpecialtyOptions`) nhưng delegate sang `src/utils/enumLabel.js`.
+- `src/data/client/api/appointmentApi.js` và `src/data/Clinic/api/appointmentApi.js` giữ export cũ (`SERVICE_OPTIONS`, `APPOINTMENT_STATUS_LABEL`) nhưng dữ liệu lấy từ `src/constants/enumLabels.js`.
+- `src/data/client/api/petApi.js` giữ API cũ (`getSpeciesLabel`, `getBreedLabel`) nhưng dùng mapping tập trung.
+
+### Quy tắc maintain bắt buộc
+1. Không hardcode nhãn enum tiếng Việt trực tiếp trong page/component.
+2. Không tạo thêm mapping enum cục bộ trong component (object/switch/ternary) nếu đã có trong `enumLabels.js`.
+3. Mọi enum mới từ backend phải bổ sung vào `src/constants/enumLabels.js` trước khi render UI.
+4. Component chỉ gọi helper từ `src/utils/enumLabel.js` (hoặc wrapper tương thích) để hiển thị label.
+
 ## Backlog ưu tiên đề xuất (Web)
 1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.

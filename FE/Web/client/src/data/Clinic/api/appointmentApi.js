@@ -1,3 +1,7 @@
+import {
+  APPOINTMENT_STATUS_LABELS,
+  SERVICE_LABELS,
+} from '../../../constants/enumLabels';
 import instance from './instance';
 
 export const APPOINTMENT_STATUS = {
@@ -9,22 +13,9 @@ export const APPOINTMENT_STATUS = {
 
 export const APPOINTMENT_PAYMENT_SYNC_EVENT_KEY = 'adminClinic:appointmentPaymentSync';
 
-export const APPOINTMENT_STATUS_LABEL = {
-  [APPOINTMENT_STATUS.BOOKED]: 'Chờ khám',
-  [APPOINTMENT_STATUS.IN_PROGRESS]: 'Đang khám',
-  [APPOINTMENT_STATUS.COMPLETED]: 'Hoàn tất',
-  [APPOINTMENT_STATUS.CANCELLED]: 'Đã hủy',
-};
+export const APPOINTMENT_STATUS_LABEL = APPOINTMENT_STATUS_LABELS;
 
-export const SERVICE_OPTIONS = {
-  PERIODIC_HEALTH_CHECK: 'Khám sức khỏe định kỳ',
-  MEDICAL_EXAMINATION: 'Khám bệnh',
-  VACCINATION: 'Tiêm chủng',
-  DEWORMING: 'Tẩy giun',
-  ULTRASOUND_AND_TEST: 'Siêu âm xét nghiệm',
-  SURGERY: 'Phẫu thuật',
-  EMERGENCY: 'Cấp cứu',
-};
+export const SERVICE_OPTIONS = SERVICE_LABELS;
 
 const normalizeTime = (timeValue) => (timeValue || '').slice(0, 5);
 

@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Button, Spin, message } from 'antd'
 import {
-	ArrowLeftOutlined,
 	CalendarOutlined,
 	MedicineBoxOutlined,
-	UserOutlined,
+	UserOutlined
 } from '@ant-design/icons'
+import { Spin, message } from 'antd'
+import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
 	getMedicalById,
@@ -13,6 +12,7 @@ import {
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../data/Vererianrian/api/medicalApi'
+import { getMedicalRecordStatusLabel, getPetBreedLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
 
 const DEFAULT_PET = {
@@ -40,14 +40,6 @@ const formatGender = (gender) => {
 	return String(gender)
 }
 
-const formatEnumLabel = (value) => {
-	if (!value) return 'Chưa cập nhật'
-	return String(value)
-		.toLowerCase()
-		.replace(/_/g, ' ')
-		.replace(/\b\w/g, (letter) => letter.toUpperCase())
-}
-
 const getAgeText = (birthday) => {
 	if (!birthday) return 'Chưa cập nhật tuổi'
 	const birthDate = new Date(birthday)
@@ -72,7 +64,7 @@ const toPetSummary = (pet) => {
 	return {
 		name: pet?.name || DEFAULT_PET.name,
 		avatar: pet?.avatar || '',
-		breedText: formatEnumLabel(pet?.breed || pet?.breedName || pet?.species),
+		breedText: getPetBreedLabel(pet?.breed || pet?.breedName, pet?.species, 'Chưa cập nhật giống'),
 		birthday: formatDate(pet?.dateOfBirth),
 		gender: formatGender(pet?.gender),
 		weight: pet?.weight ? `${pet.weight} kg` : DEFAULT_PET.weight,
@@ -102,7 +94,7 @@ const toTimelineRecord = (record, medicalOrders = [], medicines = []) => {
 	return {
 		id: String(record?.id || Math.random()),
 		title: record?.name || 'Phiếu khám',
-		status: done ? 'ĐÃ HOÀN THÀNH' : 'CHƯA HOÀN THÀNH',
+		status: getMedicalRecordStatusLabel(done, { uppercase: true }),
 		statusType: done ? 'done' : 'pending',
 		leftInfo: [
 			{ label: 'Mã hồ sơ', value: record?.id || 'Chưa cập nhật' },

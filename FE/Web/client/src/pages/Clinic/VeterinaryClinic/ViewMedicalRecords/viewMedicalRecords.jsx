@@ -1,14 +1,13 @@
+import { message } from 'antd'
+import { useCallback, useEffect, useState } from 'react'
 import {
-	FaBell,
-	FaCalendarCheck,
 	FaCakeCandles,
+	FaCalendarCheck,
 	FaDog,
 	FaMars,
 	FaShieldDog,
-	FaSyringe,
+	FaSyringe
 } from 'react-icons/fa6'
-import { message } from 'antd'
-import { useCallback, useEffect, useState } from 'react'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -17,6 +16,10 @@ import {
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../../data/Clinic/api/medicalApi'
+import {
+	getMedicalRecordStatusLabel,
+	getPetBreedLabel,
+} from '../../../../utils/enumLabel'
 import styles from './viewMedicalRecords.module.css'
 
 const EMPTY_TIMELINE = []
@@ -32,66 +35,13 @@ const DEFAULT_PET_SUMMARY = {
 const EMPTY_TIMELINE_HINT =
 	'Chưa có hồ sơ để hiển thị. Hãy chọn thú cưng từ danh sách để xem đúng hồ sơ riêng.'
 
-const BREED_LABELS = {
-	DOG: {
-		PUG: 'Pug',
-		POODLE: 'Poodle',
-		MONGREL_DOG: 'Chó ta',
-		CHIHUAHUA: 'Chihuahua',
-		POMERANIAN: 'Phốc sóc',
-		SAMOYED: 'Samoyed',
-		CORGI: 'Corgi',
-		SHIBA_INU: 'Shiba Inu',
-		BULLDOG: 'Bulldog',
-	},
-	CAT: {
-		PERSIAN: 'Ba Tư',
-		MUNCHKIN: 'Munchkin',
-		SPHYNX: 'Sphynx',
-		BRITISH_SHORTHAIR: 'Mèo Anh lông ngắn',
-		BENGAL: 'Bengal',
-		MAINE_COON: 'Maine Coon',
-		RAGDOLL: 'Ragdoll',
-		SIAMESE: 'Xiêm',
-		MONGREL_CAT: 'Mèo ta',
-	},
-}
-
-const formatEnumLabel = (value) => {
-	if (!value) return 'Chưa cập nhật giống'
-
-	return String(value)
-		.replace(/_/g, ' ')
-		.toLowerCase()
-		.replace(/\b\w/g, (char) => char.toUpperCase())
-}
-
-const getBreedLabel = (breedValue, speciesValue) => {
-	if (!breedValue) return 'Chưa cập nhật giống'
-
-	const normalizedBreed = String(breedValue).toUpperCase()
-	const normalizedSpecies = String(speciesValue || '').toUpperCase()
-
-	if (normalizedSpecies && BREED_LABELS[normalizedSpecies]?.[normalizedBreed]) {
-		return BREED_LABELS[normalizedSpecies][normalizedBreed]
-	}
-
-	for (const speciesBreeds of Object.values(BREED_LABELS)) {
-		if (speciesBreeds?.[normalizedBreed]) {
-			return speciesBreeds[normalizedBreed]
-		}
-	}
-
-	return formatEnumLabel(normalizedBreed)
-}
-
 const mapPetSummaryFromPet = (pet) => {
 	if (!pet) return null
 
 	return {
 		name: pet?.name || DEFAULT_PET_SUMMARY.name,
 		avatar: pet?.avatar || DEFAULT_PET_SUMMARY.avatar,
-		breedName: getBreedLabel(pet?.breed || pet?.breedName, pet?.species),
+		breedName: getPetBreedLabel(pet?.breed || pet?.breedName, pet?.species),
 		birthday: formatDate(pet?.dateOfBirth),
 		gender: formatGender(pet?.gender),
 	}
@@ -163,7 +113,7 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 			: 'Chưa kê thuốc'
 
 	const hasConclusion = Boolean(record?.conclusion)
-	const status = hasConclusion ? 'ĐÃ HOÀN THÀNH' : 'CHƯA HOÀN THÀNH'
+	const status = getMedicalRecordStatusLabel(hasConclusion, { uppercase: true })
 	const statusType = hasConclusion ? 'done' : 'pending'
 
 	let markerType = 'checkup'
@@ -301,7 +251,7 @@ function ViewMedicalRecords() {
 					fallbackPet?.name ||
 					DEFAULT_PET_SUMMARY.name,
 				avatar: firstRecord?.pet?.avatar || fallbackPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
-				breedName: getBreedLabel(
+				breedName: getPetBreedLabel(
 					firstRecord?.pet?.breed || firstRecord?.pet?.breedName || fallbackPet?.breed,
 					firstRecord?.pet?.species || fallbackPet?.species,
 				),

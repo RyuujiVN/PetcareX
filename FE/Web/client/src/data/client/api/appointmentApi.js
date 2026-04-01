@@ -1,3 +1,4 @@
+import { SERVICE_LABELS } from '../../../constants/enumLabels';
 import instance from './instance';
 
 export const APPOINTMENT_STATUS = {
@@ -10,15 +11,7 @@ export const APPOINTMENT_STATUS = {
   CANCELED: 'CANCELLED',
 };
 
-export const SERVICE_OPTIONS = {
-  PERIODIC_HEALTH_CHECK: 'Khám sức khỏe định kỳ',
-  MEDICAL_EXAMINATION: 'Khám bệnh',
-  VACCINATION: 'Tiêm chủng',
-  DEWORMING: 'Tẩy giun',
-  ULTRASOUND_AND_TEST: 'Siêu âm xét nghiệm',
-  SURGERY: 'Phẫu thuật',
-  EMERGENCY: 'Cấp cứu',
-};
+export const SERVICE_OPTIONS = SERVICE_LABELS;
 
 export const getMyAppointmentsApi = (page = 1, limit = 100) => {
   return instance.get('/appointment/my', {

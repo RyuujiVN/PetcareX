@@ -1,43 +1,47 @@
-import { useCallback, useEffect, useState } from 'react'
-import dayjs from 'dayjs'
 import {
-	Avatar,
-	Badge,
-	Button,
-	Card,
-	Col,
-	DatePicker,
-	Empty,
-	Input,
-	Modal,
-	Row,
-	Select,
-	Spin,
-	Tag,
-	Typography,
-	message,
-} from 'antd'
-import {
-	CalendarOutlined,
-	CheckCircleOutlined,
-	ClockCircleOutlined,
-	DollarCircleOutlined,
-	MedicineBoxOutlined,
-	NotificationOutlined,
-	SearchOutlined,
+    CalendarOutlined,
+    CheckCircleOutlined,
+    ClockCircleOutlined,
+    DollarCircleOutlined,
+    MedicineBoxOutlined,
+    NotificationOutlined,
+    SearchOutlined,
 } from '@ant-design/icons'
-import styles from './appointmentManagement.module.css'
 import {
-	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-	APPOINTMENT_STATUS,
-	APPOINTMENT_STATUS_LABEL,
-	SERVICE_OPTIONS,
-	getClinicAppointmentsApi,
-	updateAppointmentStatusApi,
+    Avatar,
+    Badge,
+    Button,
+    Card,
+    Col,
+    DatePicker,
+    Empty,
+    Input,
+    message,
+    Modal,
+    Row,
+    Select,
+    Spin,
+    Tag,
+    Typography,
+} from 'antd'
+import dayjs from 'dayjs'
+import { useCallback, useEffect, useState } from 'react'
+import {
+    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+    APPOINTMENT_STATUS,
+    getClinicAppointmentsApi,
+    updateAppointmentStatusApi,
 } from '../../../../data/Clinic/api/appointmentApi'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../../data/Clinic/api/invoiceApi'
 import { getLatestMedicalByPetId } from '../../../../data/Clinic/api/medicalApi'
 import { getUserByIdApi } from '../../../../data/Clinic/api/user'
+import {
+    getAppointmentStatusLabel,
+    getPetBreedLabel,
+    getPetSpeciesLabel,
+    getServiceLabel,
+} from '../../../../utils/enumLabel'
+import styles from './appointmentManagement.module.css'
 
 const { Title, Text } = Typography
 
@@ -46,37 +50,23 @@ const TIME_SLOTS = ['08:00', '08:30','09:00', '09:30', '10:00', '10:30', '14:00'
 const STATUS_COLUMNS = [
 	{
 		key: APPOINTMENT_STATUS.BOOKED,
-		title: 'Chờ khám',
+		title: getAppointmentStatusLabel(APPOINTMENT_STATUS.BOOKED),
 		dotClass: styles.grayDot,
 		badgeStatus: 'default',
 	},
 	{
 		key: APPOINTMENT_STATUS.IN_PROGRESS,
-		title: 'Đang khám',
+		title: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
 		dotClass: styles.greenDot,
 		badgeStatus: 'processing',
 	},
 	{
 		key: APPOINTMENT_STATUS.COMPLETED,
-		title: 'Hoàn tất',
+		title: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED),
 		dotClass: styles.blueDot,
 		badgeStatus: 'success',
 	},
 ]
-
-const LEGACY_TEXT_MAP = {
-	'Chờ khám': 'Chờ khám',
-	'Đang khám': 'Đang khám',
-	'Đã thanh toán': 'Đã thanh toán',
-	'Đã hủy': 'Đã hủy',
-	'Khám sức khỏe định kỳ': 'Khám sức khỏe định kỳ',
-	'Khám bệnh': 'Khám bệnh',
-	'Tiêm chủng': 'Tiêm chủng',
-	'Tẩy giun': 'Tẩy giun',
-	'Siêu âm xét nghiệm': 'Siêu âm xét nghiệm',
-	'Phẫu thuật': 'Phẫu thuật',
-	'Cấp cứu': 'Cấp cứu',
-}
 
 const MISSING_APPOINTMENT_FIELD = 'Không có trong dữ liệu lịch hẹn'
 
@@ -100,41 +90,6 @@ const getByPaths = (source, paths, fallback) => {
 	}
 
 	return fallback
-}
-
-const normalizeClinicText = (value) => {
-	if (!value) return value
-
-	return LEGACY_TEXT_MAP[value] || value
-}
-
-const getEnumLabel = (value) => {
-	if (!value) return 'Chưa cập nhật'
-
-	return String(value)
-		.replace(/_/g, ' ')
-		.toLowerCase()
-		.replace(/\b\w/g, (char) => char.toUpperCase())
-}
-
-const getBreedLabel = (breed, species) => {
-	const rawBreed = typeof breed === 'object' && breed !== null ? breed.name || breed.id || '' : breed || ''
-
-	if (!rawBreed) return 'Chưa cập nhật giống'
-
-	const rawValue = String(rawBreed).trim()
-	const speciesPrefix = species ? `${String(species).trim()}_` : ''
-
-	if (speciesPrefix && rawValue.startsWith(speciesPrefix)) {
-		return getEnumLabel(rawValue.slice(speciesPrefix.length))
-	}
-
-	const matchedPrefix = rawValue.match(/^[A-Z]+_/)
-	if (matchedPrefix) {
-		return getEnumLabel(rawValue.slice(matchedPrefix[0].length))
-	}
-
-	return getEnumLabel(rawValue)
 }
 
 const getAgeLabel = (dateOfBirth) => {
@@ -408,7 +363,7 @@ export default function AppointmentManagement() {
 				? 'Đã thanh toán'
 				: isCompletedUnpaid
 					? 'Chưa thanh toán'
-					: normalizeClinicText(APPOINTMENT_STATUS_LABEL[item.status] || item.status)
+					: getAppointmentStatusLabel(item.status, item.status)
 
 			const badgeStatus = isCompletedUnpaid
 				? 'warning'
@@ -423,15 +378,15 @@ export default function AppointmentManagement() {
 				time: getTimeValue(item.appointmentTime),
 				appointmentDateRaw: item.appointmentDate,
 				service: item.service,
-				serviceLabel: normalizeClinicText(SERVICE_OPTIONS[item.service] || item.service),
+				serviceLabel: getServiceLabel(item.service, item.service),
 				petName,
 				petAvatar,
 				avatarText: (petName || 'P').charAt(0).toUpperCase(),
 				ownerId,
 				ownerName,
 				ownerPhone,
-				speciesLabel: petSpecies ? getEnumLabel(petSpecies) : MISSING_APPOINTMENT_FIELD,
-				breedLabel: getBreedLabel(petBreed, petSpecies),
+				speciesLabel: petSpecies ? getPetSpeciesLabel(petSpecies) : MISSING_APPOINTMENT_FIELD,
+				breedLabel: getPetBreedLabel(petBreed, petSpecies),
 				genderLabel: getGenderLabel(petGender),
 				ageLabel: getAgeLabel(petDateOfBirth),
 				dateOfBirthLabel: petDateOfBirth
@@ -490,7 +445,7 @@ export default function AppointmentManagement() {
 		try {
 			setUpdatingId(appointmentId)
 			await updateAppointmentStatusApi(appointmentId, nextStatus)
-			message.success(`Đã cập nhật trạng thái thành ${APPOINTMENT_STATUS_LABEL[nextStatus]}`)
+			message.success(`Đã cập nhật trạng thái thành ${getAppointmentStatusLabel(nextStatus, nextStatus)}`)
 		} catch (error) {
 			setAppointments((prev) =>
 				prev.map((item) =>

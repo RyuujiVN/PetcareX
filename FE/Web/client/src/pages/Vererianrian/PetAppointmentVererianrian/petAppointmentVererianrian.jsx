@@ -5,7 +5,7 @@ import {
   LeftOutlined,
   RightOutlined,
 } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Flex, Row, Segmented, Space, Spin, Tag, Typography, message, Modal } from 'antd'
+import { Avatar, Button, Card, Col, Flex, message, Modal, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
@@ -13,6 +13,7 @@ import {
   getVeterinarianAppointmentsApi,
   updateVeterinarianAppointmentStatusApi,
 } from '../../../data/Vererianrian/api/appointmentApi'
+import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './petAppointmentVererianrian.module.css'
 
 const PAGE_SIZE = 4
@@ -20,8 +21,8 @@ const TODAY_DATE = new Date().toISOString().slice(0, 10)
 
 const tableTabs = [
   { label: 'Tất cả', value: 'all' },
-  { label: 'Đang khám', value: 'inProgress' },
-  { label: 'Đã hoàn thành', value: 'completed' },
+  { label: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS), value: 'inProgress' },
+  { label: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED), value: 'completed' },
 ]
 
 const getCurrentVeterinarianUserId = () => {
@@ -37,12 +38,6 @@ const getCurrentVeterinarianUserId = () => {
 }
 
 const normalizeTime = (value) => (value ? String(value).slice(0, 5) : '--:--')
-
-const mapStatusToLabel = (status) => {
-  if (status === APPOINTMENT_STATUS.IN_PROGRESS) return 'Đang khám'
-  if (status === APPOINTMENT_STATUS.COMPLETED) return 'Đã hoàn thành'
-  return status || 'Chưa cập nhật'
-}
 
 const mapStatusClass = (status) => {
   if (status === APPOINTMENT_STATUS.IN_PROGRESS) return 'statusInProgress'
@@ -67,7 +62,7 @@ const toRow = (item) => {
     petName: pet?.name || 'Chưa cập nhật',
     ownerName: owner?.fullName || 'Chưa cập nhật',
     petAvatar: pet?.avatar || '',
-    service: item?.service || 'Chưa cập nhật',
+    service: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),
     time: normalizeTime(item?.appointmentTime),
   }
 }
@@ -186,14 +181,14 @@ export default function PetAppointmentVererianrian() {
       {
         key: 'inProgress',
         icon: <ClockCircleOutlined />,
-        title: 'Đang khám',
+        title: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
         value: stats.inProgress,
         iconClassName: 'summaryIconOrange',
       },
       {
         key: 'completed',
         icon: <CheckCircleOutlined />,
-        title: 'Đã hoàn thành',
+        title: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED),
         value: stats.completed,
         iconClassName: 'summaryIconBlue',
       },
@@ -270,7 +265,7 @@ export default function PetAppointmentVererianrian() {
   const getActionButtons = (appointment) => {
     if (appointment.status === APPOINTMENT_STATUS.IN_PROGRESS) {
       return {
-        primaryLabel: 'Đang khám',
+        primaryLabel: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
         secondaryLabel: 'Xong',
         onPrimary: () => undefined,
         onSecondary: () => handleFinish(appointment),
@@ -280,7 +275,7 @@ export default function PetAppointmentVererianrian() {
 
     if (appointment.status === APPOINTMENT_STATUS.COMPLETED) {
       return {
-        primaryLabel: 'Đã hoàn thành',
+        primaryLabel: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED),
         secondaryLabel: '',
         onPrimary: () => undefined,
         onSecondary: () => undefined,
