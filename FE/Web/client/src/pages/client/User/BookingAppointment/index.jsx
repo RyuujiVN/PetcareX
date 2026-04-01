@@ -1,6 +1,3 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { message, Spin } from 'antd';
-import { Select, Card, Avatar, Row, Col, Input, Form } from 'antd';
 import {
   ClockCircleOutlined,
   EnvironmentOutlined,
@@ -10,21 +7,22 @@ import {
   SunOutlined,
   UserOutlined,
 } from '@ant-design/icons';
+import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './styles.css';
-import { useAuth } from '../../../../hooks/client/AuthContext';
-import { getMyPetsApi } from '../../../../data/client/api/petApi';
-import { getClinicByIdApi, getClinicListApi } from '../../../../data/client/api/clinicApi';
-import { getVeterinarianByClinicApi } from '../../../../data/client/api/veterinarianApi';
+import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import {
   APPOINTMENT_STATUS,
   createAppointmentApi,
   getMyAppointmentsApi,
   SERVICE_OPTIONS,
 } from '../../../../data/client/api/appointmentApi';
-import { getBreedLabel } from '../../../../data/client/api/petApi';
-import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import { generateAndStoreDiagnosisReport } from '../../../../data/client/api/appointmentDiagnosis';
+import { getClinicByIdApi, getClinicListApi } from '../../../../data/client/api/clinicApi';
+import { getBreedLabel, getMyPetsApi } from '../../../../data/client/api/petApi';
+import { getVeterinarianByClinicApi } from '../../../../data/client/api/veterinarianApi';
+import { useAuth } from '../../../../hooks/client/AuthContext';
+import './styles.css';
 
 const TIME_SLOT_GROUPS = [
   {
