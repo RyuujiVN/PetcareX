@@ -18,7 +18,6 @@ export const APPOINTMENT_STATUS_LABELS = {
   COMPLETED: 'Đã hoàn thành',
   DONE: 'Đã hoàn thành',
   CANCELLED: 'Đã hủy',
-  CANCELED: 'Đã hủy',
 }
 
 export const SERVICE_LABELS = {

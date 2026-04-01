@@ -26,15 +26,11 @@ const buildAppointmentsSignature = (items) =>
     )
     .join('|');
 
-const calcDaysAgo = (dateValue) => {
-  const now = new Date();
-  const date = new Date(dateValue);
-  const ms = now.getTime() - date.getTime();
-  const days = Math.max(Math.floor(ms / (1000 * 60 * 60 * 24)), 0);
-
-  if (days === 0) return 'Hôm nay';
-  if (days < 7) return `${days} ngày`;
-  return `${Math.floor(days / 7)} tuần`;
+const APPOINTMENT_STATUS_TAG_COLOR = {
+  [APPOINTMENT_STATUS.BOOKED]: 'blue',
+  [APPOINTMENT_STATUS.IN_PROGRESS]: 'processing',
+  [APPOINTMENT_STATUS.COMPLETED]: 'success',
+  [APPOINTMENT_STATUS.CANCELLED]: 'error',
 };
 
 const AppointmentDetail = () => {
@@ -128,7 +124,6 @@ const AppointmentDetail = () => {
         rawDate: date,
         status: item.status,
         statusLabel: getAppointmentStatusLabel(item.status, item.status),
-        daysAgo: calcDaysAgo(date),
       };
     });
   }, [appointments]);
@@ -138,8 +133,8 @@ const AppointmentDetail = () => {
     return mappedAppointments.filter((item) => {
       const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
       const isFuture = dateTime >= now;
-      const isDone = item.status === APPOINTMENT_STATUS.DONE;
-      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      const isDone = item.status === APPOINTMENT_STATUS.COMPLETED;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELLED;
       return isFuture && !isDone && !isCanceled;
     }).sort((a, b) => new Date(`${a.rawDate}T${a.time}:00`).getTime() - new Date(`${b.rawDate}T${b.time}:00`).getTime());
   }, [mappedAppointments]);
@@ -149,8 +144,8 @@ const AppointmentDetail = () => {
     return mappedAppointments.filter((item) => {
       const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
       const isPast = dateTime < now;
-      const isDone = item.status === APPOINTMENT_STATUS.DONE;
-      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      const isDone = item.status === APPOINTMENT_STATUS.COMPLETED;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELLED;
       return isPast || isDone || isCanceled;
     }).sort((a, b) => new Date(`${b.rawDate}T${b.time}:00`).getTime() - new Date(`${a.rawDate}T${a.time}:00`).getTime());
   }, [mappedAppointments]);
@@ -165,7 +160,7 @@ const AppointmentDetail = () => {
       centered: true,
       async onOk() {
         try {
-          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELED);
+          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELLED);
           antd.message.success('Hủy lịch khám thành công');
           await fetchAppointments({ silent: true });
         } catch (error) {
@@ -233,8 +228,7 @@ const handleViewDetails = (appointment) => {
               <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
                 {appointment.petName} - {appointment.breed}
               </h3>
-              {isHistory && <antd.Tag color="blue">{appointment.daysAgo}</antd.Tag>}
-              {!isHistory && <antd.Badge count={appointment.statusLabel} style={{ backgroundColor: 'var(--color-info)' }} />}
+              <antd.Tag color={APPOINTMENT_STATUS_TAG_COLOR[appointment.status] || 'default'}>{appointment.statusLabel}</antd.Tag>
             </div>
 
             <div className="appointment-info">

@@ -135,7 +135,7 @@ export default function BookingAppointment() {
     const booked = myAppointments
       .filter((item) => item.veterinarian?.user?.id === selectedDoctor.userId)
       .filter((item) => formatDate(new Date(item.appointmentDate)) === selectedDate)
-      .filter((item) => item.status !== APPOINTMENT_STATUS.CANCELED)
+      .filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
       .map((item) => (item.appointmentTime || '').slice(0, 5));
 
     return new Set(booked);

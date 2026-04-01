@@ -156,6 +156,7 @@ Luồng đang chạy:
 ### 4) Appointment Detail
 - Lấy `GET /appointment/my`.
 - Tab `Lịch sắp tới` và `Lịch sử khám`.
+- Cả 2 tab đều hiển thị **trạng thái lịch hẹn** (Chờ khám/Đang khám/Đã hoàn thành/Đã hủy) thay vì badge thời gian kiểu `Hôm nay`, `x ngày`.
 - Auto refresh 20 giây + refresh khi tab active lại.
 - Hủy lịch (PATCH status).
 - Xem chi tiết lịch.
@@ -449,6 +450,11 @@ Ghi chú:
 2. Không tạo thêm mapping enum cục bộ trong component (object/switch/ternary) nếu đã có trong `enumLabels.js`.
 3. Mọi enum mới từ backend phải bổ sung vào `src/constants/enumLabels.js` trước khi render UI.
 4. Component chỉ gọi helper từ `src/utils/enumLabel.js` (hoặc wrapper tương thích) để hiển thị label.
+
+### Chuẩn canonical cho Appointment Status
+- Canonical frontend chỉ dùng: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`.
+- Không dùng biến thể sai chính tả của `CANCELLED` trong hằng số public hoặc mapping label.
+- `src/data/client/api/appointmentApi.js` có bước normalize dữ liệu cũ (`SUCCESS`, `DONE`, và biến thể CANCEL*ED) về canonical status trước khi render UI.
 
 ## Backlog ưu tiên đề xuất (Web)
 1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
