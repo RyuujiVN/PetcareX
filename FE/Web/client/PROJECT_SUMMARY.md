@@ -105,6 +105,7 @@ Mỗi context quản lý:
 
 ### 2) Axios instances
 - `src/data/client/api/instance.js`
+- `src/data/admin/api/instance.js`
 - `src/data/adminClinic/api/instance.js`
 - `src/data/adminVererianrian/api/instance.js`
 
@@ -241,6 +242,7 @@ Luồng đang chạy:
 - Routes đã khai báo:
   - `/admin/home` → `Clinics` (trang chính khi ADMIN đăng nhập).
   - `/admin/dashboard/clinics` → `Clinics`.
+  - `/admin/dashboard/posts` → `Posts`.
 - CSS: `styles/admin/colorsToken.css` (biến màu riêng cho admin, sidebar dark theme, stat cards).
 - `authRole.js` đã tách: `ADMIN` → `/admin/home`, `ADMIN_CLINIC` → `/admin/clinic/appointments`.
 
@@ -248,7 +250,7 @@ Luồng đang chạy:
 - UI hoàn chỉnh: 3 stat cards (nền màu + icon trong hộp vuông) + bảng danh sách + phân trang.
 - Stat cards: phòng khám (nền xanh dương nhạt), người dùng (nền xanh lá nhạt), bài đăng (nền cam nhạt).
 - Cột bảng: tên (kèm Avatar viết tắt), SĐT, địa chỉ, ngày tạo (dd/MM/yyyy), email, trạng thái (Tag theo field `deleted`), thao tác (xem/xóa).
-- Nút "Thêm phòng khám" màu xanh (#4672b4) theo theme admin.
+- Nút "Thêm phòng khám" dùng màu brand theo token admin.
 - **Đã nối API thật:**
   - `GET /api/clinic?page&limit&search` — phân trang danh sách phòng khám.
   - `DELETE /api/clinic/:id` — xóa phòng khám (có Popconfirm).
@@ -256,8 +258,20 @@ Luồng đang chạy:
 - Modal "Thêm phòng khám mới": 2 section (thông tin phòng khám: tên, email, SĐT, địa chỉ, mô tả; tài khoản quản trị: họ tên, email, mật khẩu). Có validation form đầy đủ.
 - API layer riêng: `src/data/admin/api/` (instance.js dùng `ADMIN_AUTH_STORAGE`, clinicApi.js có 5 hàm CRUD).
 
-### 3) Các màn chưa có nội dung
-- `Overview/`, `Users/`, `Posts/`: thư mục đã tạo sẵn, chưa có file component.
+### 3) Users Management (pages/admin/Dashboard/Users)
+- UI dùng cùng token màu admin (`styles/admin/colorsToken.css`), layout thống nhất với Clinics.
+- Danh sách người dùng phân trang + tìm kiếm theo tên/email.
+- Cột hiển thị: avatar/tên, SĐT, địa chỉ, ngày tạo, email, vai trò, trạng thái.
+- API: `GET /api/user?page&limit&search` qua `src/data/admin/api/userApi.js`.
+
+### 4) Posts Management (pages/admin/Dashboard/Posts)
+- UI thống nhất với Clinics/Users (stat cards + bảng + thanh tìm kiếm).
+- API: `GET /api/post?limit&lastPostTime` (phân trang theo thời gian).
+- Cột hiển thị: tác giả, chủ đề, nội dung, bình luận, lượt thích, ngày đăng.
+- Tìm kiếm client-side trên dữ liệu đã tải (tác giả/chủ đề/nội dung).
+
+### 5) Các màn chưa có nội dung
+- `Overview/`: thư mục đã tạo sẵn, chưa có file component.
 
 ## Veterinarian Portal - Trạng thái tính năng
 
@@ -344,13 +358,11 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 - `adminClinic/PetMedicalRecords`
 - `adminClinic/PetMedicalBill`
 - `adminVererianrian/PetAppointmentVererianrian`
-- `admin/Dashboard/Clinics` (UI hoàn chỉnh, dữ liệu mock — chờ API)
 
 ### 4) Một số route điều hướng chưa khớp route khai báo
 - Điều hướng tới `/admin/clinic/medical-records/view` nhưng chưa có route tương ứng.
 - Điều hướng tới `/admin/clinic/exam-slips/:appointmentId/bill` nhưng chưa có route tương ứng.
 - `PetAppointmentVererianrian` điều hướng tới `/admin/veterinarian/exam-slips/:id` nhưng route hiện có là `/admin/veterinarian/exam-forms/*`.
-- Super admin routes (`/admin/dashboard/users`, `/admin/dashboard/posts`) chưa có component tương ứng.
 
 ### 5) Socket URL đang hardcoded
 - `src/socket/socket.js` dùng cố định `http://localhost:3000/chat`, chưa đưa vào env.
@@ -360,6 +372,9 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 
 ### 7) Một số dữ liệu UI vẫn hardcoded
 - Nhiều block marketing và thông tin clinic (rating/time/demo content).
+
+### 8) Admin posts dùng cursor pagination
+- `GET /api/post` chỉ trả về danh sách theo `limit` + `lastPostTime`, nên FE hiển thị “Tải thêm” thay vì phân trang số.
 
 ## Workspace chuẩn khi thao tác
 - Web client root path chuẩn: `F:\capstone 2\code\PetcareX\FE\Web\client`
@@ -391,7 +406,7 @@ Ghi chú:
 4. `npm run dev`
 5. Build production: `npm run build`
 
-### 8) Chưa có clinic status enum
+### 9) Chưa có clinic status enum
 - Enum folder chưa có `clinic-status.enum.ts`. Trang Clinics dùng local constant `CLINIC_STATUS` tạm thời.
 - Cần backend cung cấp enum clinic status để đồng bộ FE.
 
@@ -404,5 +419,5 @@ Ghi chú:
 6. Gộp token CSS thành single-source để giảm duplicate.
 7. Tiếp tục chuẩn hóa i18n và giảm hardcoded text tiếng Việt trong UI.
 8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
-9. Hoàn thiện các trang super admin còn lại: Overview, Users, Posts.
+9. Hoàn thiện trang super admin còn lại: Overview.
 10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).

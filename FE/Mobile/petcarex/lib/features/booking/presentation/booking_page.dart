@@ -244,7 +244,7 @@ class _BookingPageState extends State<BookingPage> {
       slivers: [
         _buildStepHeaderSliver(l10n),
         _buildStepContentSliver(),
-        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+        const SliverToBoxAdapter(child: SizedBox(height: 50)),
       ],
     );
   }
@@ -406,7 +406,7 @@ class _BookingPageState extends State<BookingPage> {
     final isSuccess = _currentStep == 6;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 5, 20, 0),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.divider)),

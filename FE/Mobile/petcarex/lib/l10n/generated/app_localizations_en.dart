@@ -400,6 +400,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get medicalRecordNoMedicines => 'No medicines';
 
   @override
+  String get viewDetails => 'View Details';
+
+  @override
   String get profileUpdateSuccess => 'Profile updated successfully!';
 
   @override

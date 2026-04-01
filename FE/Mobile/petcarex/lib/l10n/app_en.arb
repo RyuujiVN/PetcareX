@@ -128,6 +128,7 @@
   "medicalRecordMedicines": "Medicines",
   "medicalRecordNoOrders": "No medical orders",
   "medicalRecordNoMedicines": "No medicines",
+  "viewDetails": "View Details",
   "profileUpdateSuccess": "Profile updated successfully!",
   "petCreateSuccess": "Pet added successfully!",
   "petUpdateSuccess": "Pet updated successfully!",

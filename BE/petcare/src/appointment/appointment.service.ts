@@ -12,10 +12,15 @@ import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { QueueNameEnum } from 'src/common/enums/queue.enum';
 
 @Injectable()
 export class AppointmentService {
   constructor(
+    @InjectQueue(QueueNameEnum.APPOINTMENT)
+    private readonly analyzeSymptomsQueue: Queue,
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
   ) {}
@@ -162,9 +167,27 @@ export class AppointmentService {
   }
 
   // Tạo mới lịch hẹn
-  async createAppointment(createDTO: CreateAppointmentDTO) {
+  async createAppointment(createDTO: CreateAppointmentDTO, userId: string) {
     const appointment = this.appointmentRepository.create(createDTO);
     appointment.status = AppointmentStatusEnum.BOOKED;
+
+    // Gửi triệu chứng về cho AI phân tích
+    await this.analyzeSymptomsQueue.add(
+      'analyzeSymptoms',
+      {
+        ...appointment,
+        userId: userId,
+      },
+      {
+        attempts: 3,
+        removeOnComplete: true,
+        removeOnFail: true,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      },
+    );
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
 

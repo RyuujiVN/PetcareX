@@ -24,6 +24,9 @@ import bcrypt from 'bcryptjs';
 import { MailService } from 'src/mail/mail.service';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
+import { InjectQueue } from '@nestjs/bullmq';
+import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
+import { Queue } from 'bullmq';
 
 @Injectable()
 export class MedicalService {
@@ -36,6 +39,8 @@ export class MedicalService {
     private readonly medicalRecordMedicineRepo: Repository<MedicalRecordMedicine>,
     @InjectRepository(Invoice)
     private readonly invoiceRepository: Repository<Invoice>,
+    @InjectQueue(QueueNameEnum.EMAIL)
+    private readonly emailQueue: Queue,
     private readonly userService: UserService,
     private readonly mailService: MailService,
     private readonly dataSource: DataSource,
@@ -431,6 +436,23 @@ export class MedicalService {
 
             <p>Trân trọng,<br/>PetcareX</p>
           </div>`;
+
+        const payload = {
+          email: createDTO.email,
+          subject: subject,
+          html: html,
+        };
+
+        // Thêm job vào emailQueue
+        await this.emailQueue.add(JobNameEnum.SEND_MAIL, payload, {
+          attempts: 3,
+          removeOnComplete: true,
+          removeOnFail: true,
+          backoff: {
+            type: 'fixed',
+            delay: 2000,
+          },
+        });
 
         await this.mailService.sendMail(createDTO.email, subject, html);
       }

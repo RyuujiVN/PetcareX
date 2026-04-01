@@ -1,10 +1,15 @@
 import React, { useEffect, useState } from "react";
 import "./styles.css";
 import { MessageCircle, Plus } from "lucide-react";
-import { DeleteOutlined, EditOutlined, EllipsisOutlined } from "@ant-design/icons";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  EllipsisOutlined,
+} from "@ant-design/icons";
 import { Dropdown, Input, Modal, message } from "antd";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
+import socket from "../../../../socket/socket";
 import {
   fetchCreateRoom,
   fetchDeleteRoom,
@@ -29,6 +34,10 @@ export default function ChatBotAI() {
   };
 
   useEffect(() => {
+    if (!socket.connected) {
+      socket.connect();
+    }
+
     const fetchRoomsData = async () => {
       try {
         await dispatch(fetchRooms()).unwrap();
@@ -38,12 +47,18 @@ export default function ChatBotAI() {
     };
 
     fetchRoomsData();
+
+    return () => {
+      if (socket.connected) {
+        socket.disconnect();
+      }
+    };
   }, [dispatch]);
 
   const handleCreateNewConversation = async () => {
     try {
       const created = await dispatch(
-        fetchCreateRoom({ name: "Cuộc trò chuyện mới" })
+        fetchCreateRoom({ name: "Cuộc trò chuyện mới" }),
       ).unwrap();
       if (created?.id) {
         navigate(`/chatbot/${created.id}`);
@@ -71,7 +86,7 @@ export default function ChatBotAI() {
         fetchRenameRoom({
           id: renameRoomId,
           data: { name },
-        })
+        }),
       ).unwrap();
       setIsRenameOpen(false);
       setRenameRoomId(null);
@@ -131,13 +146,25 @@ export default function ChatBotAI() {
                 <p className="conversation-title">{conv.name}</p>
               </div>
 
-              <div className="conversation-actions" onClick={(e) => e.stopPropagation()}>
+              <div
+                className="conversation-actions"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <Dropdown
                   trigger={["click"]}
                   menu={{
                     items: [
-                      { key: "rename", icon: <EditOutlined />, label: "Sửa tên" },
-                      { key: "delete", icon: <DeleteOutlined />, label: "Xoá", danger: true },
+                      {
+                        key: "rename",
+                        icon: <EditOutlined />,
+                        label: "Sửa tên",
+                      },
+                      {
+                        key: "delete",
+                        icon: <DeleteOutlined />,
+                        label: "Xoá",
+                        danger: true,
+                      },
                     ],
                     onClick: ({ key }) => {
                       if (key === "rename") openRenameModal(conv);
@@ -145,7 +172,11 @@ export default function ChatBotAI() {
                     },
                   }}
                 >
-                  <button type="button" className="conversation-more-btn" aria-label="Tùy chọn">
+                  <button
+                    type="button"
+                    className="conversation-more-btn"
+                    aria-label="Tùy chọn"
+                  >
                     <EllipsisOutlined />
                   </button>
                 </Dropdown>

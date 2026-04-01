@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -13,6 +15,8 @@ import { forwardRef, Inject } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { SenderEnum } from 'src/common/enums/sender.enum';
 import { ChatbotRoom } from './entities/chatbot-room.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -26,6 +30,8 @@ export class ChatBotGateway
 
   constructor(
     private readonly messageService: MessageService,
+    @InjectRepository(ChatbotRoom)
+    private readonly roomRepository: Repository<ChatbotRoom>,
     private readonly authService: AuthService,
     @Inject(forwardRef(() => AiClientService))
     private readonly aiClientService: AiClientService,
@@ -52,21 +58,36 @@ export class ChatBotGateway
 
   @SubscribeMessage('message')
   async handleMessage(client: Socket, payload: CreateMessageDTO) {
+    // Phải lưu trước khi createMessage — service sẽ gán payload.roomId khi tạo room mới,
+    // nên sau đó `!payload.roomId` sẽ luôn false và không emit serverResponseNewRoom.
+    const isFirstMessageNewRoom = !payload.roomId;
+
     // Tạo mới message
     const userId = client.data.user?.id;
     const message = await this.messageService.createMessage(payload, userId);
 
     // Nếu client chưa có `roomId` (tin nhắn đầu tiên) thì sẽ tạo room mới và sau đó để client join room lại.
-    const roomId = message?.roomId;
-    if (roomId) {
+    if (isFirstMessageNewRoom) {
+      const roomId = message.roomId;
+      const room = await this.roomRepository.findOne({
+        where: { id: roomId },
+      });
+
       client.join(roomId);
+      client.emit('serverResponseNewRoom', room);
     }
 
     // Gửi lại message về client
     client.emit('serverResponseMessage', message);
 
+    const messageSend = {
+      message: payload.content,
+      user_id: userId,
+      room_id: payload.roomId,
+    };
+
     // Gửi message cho AI
-    this.aiClientService.sendMessage(payload);
+    this.aiClientService.sendMessage(messageSend);
   }
 
   @SubscribeMessage('joinRoom')
@@ -79,6 +100,11 @@ export class ChatBotGateway
   handleLeaveRoom(client: Socket, payload: any) {
     if (!payload?.roomId) return;
     client.leave(payload.roomId);
+  }
+
+  @SubscribeMessage('stopStream')
+  handleStopStream() {
+    this.aiClientService.stopStream();
   }
 
   async sendMessageToClient(roomId: string, data: any) {

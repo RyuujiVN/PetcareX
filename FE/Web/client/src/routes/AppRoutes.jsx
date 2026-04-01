@@ -1,47 +1,47 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import AdminLayout from '../layouts/admin/AdminLayout'
+import AdminClinicLayout from '../layouts/adminClinic/AdminClinicLayout'
+import HeaderLayout from '../layouts/client/HeaderLayout'
+import MainLayout from '../layouts/client/MainLayout'
+import Clinics from '../pages/admin/Dashboard/Clinics'
+import Posts from '../pages/admin/Dashboard/Posts'
+import Users from '../pages/admin/Dashboard/Users'
+import AdminForgotPassword from '../pages/adminClinic/Auth/ForgotPassword'
+import AdminReEnterPassword from '../pages/adminClinic/Auth/ReEnterPassword'
+import AdminRegister from '../pages/adminClinic/Auth/Register'
+import AddNewVererianrian from '../pages/adminClinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
+import AppointmentManagement from '../pages/adminClinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
+import InformationVererianrian from '../pages/adminClinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
+import ListPetExaminationRecords from '../pages/adminClinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
+import AdminListPetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
+import PetMedicalRecords from '../pages/adminClinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
+import AdminClinicProfile from '../pages/adminClinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
+import VererianrianManagement from '../pages/adminClinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
+import ForgotPassword from '../pages/client/Auth/ForgotPassword'
+import Login from '../pages/client/Auth/Login'
+import ReEnterPassword from '../pages/client/Auth/ReEnterPassword'
+import Register from '../pages/client/Auth/Register'
+import ChatBotAI from '../pages/client/Home/ChatBotAI'
+import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox"
+import ClinicSelection from '../pages/client/Home/ClinicSelection'
 import HomePage from '../pages/client/Home/HomePage'
 import HomePageClinic from '../pages/client/Home/HomePageClinic'
-import Login from '../pages/client/Auth/Login'
-import Register from '../pages/client/Auth/Register'
-import ForgotPassword from '../pages/client/Auth/ForgotPassword'
-import ReEnterPassword from '../pages/client/Auth/ReEnterPassword'
-import ClinicSelection from '../pages/client/Home/ClinicSelection'
-import BookingAppointment from '../pages/client/User/BookingAppointment'
 import AddPet from '../pages/client/User/AddPet'
-import ChatBotAI from '../pages/client/Home/ChatBotAI'
-import ProfileUser from '../pages/client/User/ProfileUser'
 import AppointmentDetail from '../pages/client/User/AppointmentDetail'
-import SuccessBooking from '../pages/client/User/SuccessBooking'
-import PetProfile from '../pages/client/User/PetProfile'
-import ListPet from '../pages/client/User/ListPet'
-import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
+import BookingAppointment from '../pages/client/User/BookingAppointment'
 import Forum from '../pages/client/User/Forum/forum'
+import ListPet from '../pages/client/User/ListPet'
 import ListPetMedicalRecords from '../pages/client/User/ListPetMedicalRecords/listMedicalRecords'
-import MainLayout from '../layouts/client/MainLayout'
-import HeaderLayout from '../layouts/client/HeaderLayout'
-import AdminClinicLayout from '../layouts/Clinic/AdminClinicLayout'
-import AdminRegister from '../pages/Clinic/Auth/Register'
-import AdminForgotPassword from '../pages/Clinic/Auth/ForgotPassword'
-import AdminReEnterPassword from '../pages/Clinic/Auth/ReEnterPassword'
-import AppointmentManagement from '../pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
-import AdminListPetMedicalRecords from '../pages/Clinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
-import ViewMedicalRecords from '../pages/Clinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords'
-import AdminClinicProfile from '../pages/Clinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
-import VererianrianManagement from '../pages/Clinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
-import AddNewVererianrian from '../pages/Clinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
-import InformationVererianrian from '../pages/Clinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
-import PetMedicalRecords from '../pages/Clinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
-import PetMedicalBill from '../pages/Clinic/VeterinaryClinic/PetMedicalBill/petMedicalBill'
-import ListPetExaminationRecords from '../pages/Clinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
-import MessageBox from "../pages/client/Home/ChatBotAI/MessageBox";
-import AdminVererianrianLayout from './../layouts/Vererianrian/AdminVererianrianLayout';
-import PetAppointmentVererianrian from './../pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian';
-import ListMedicalRecords from './../pages/Vererianrian/ListMedicalRecords/listMedicalRecords';
-import ViewPetMedicalRecords from './../pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords';
-import ListExaminationForm from './../pages/Vererianrian/ListExaminationForm/listExaminationForm';
-import RecordExaminationForm from './../pages/Vererianrian/RecordExaminationForm/recordExaminationForm';
-import AdminLayout from '../layouts/admin/AdminLayout';
-import Clinics from '../pages/admin/Dashboard/Clinics';
+import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
+import PetProfile from '../pages/client/User/PetProfile'
+import ProfileUser from '../pages/client/User/ProfileUser'
+import SuccessBooking from '../pages/client/User/SuccessBooking'
+import AdminVererianrianLayout from './../layouts/adminVererianrian/AdminVererianrianLayout'
+import ListExaminationForm from './../pages/adminVererianrian/ListExaminationForm/listExaminationForm'
+import ListMedicalRecords from './../pages/adminVererianrian/ListMedicalRecords/listMedicalRecords'
+import PetAppointmentVererianrian from './../pages/adminVererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
+import RecordExaminationForm from './../pages/adminVererianrian/RecordExaminationForm/recordExaminationForm'
+import ViewPetMedicalRecords from './../pages/adminVererianrian/ViewPetMedicalRecords/viewPetMedicalRecords'
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
@@ -57,7 +57,9 @@ export default function AppRoutes({ location }) {
       <Route element={<AdminLayout />}>
         <Route path="/admin/home" element={<Clinics />} />
         <Route path="/admin/dashboard/clinics" element={<Clinics />} />
-        {/* TODO: thêm route cho Overview, Users, Posts khi có component */}
+        <Route path="/admin/dashboard/users" element={<Users />} />
+        <Route path="/admin/dashboard/posts" element={<Posts />} />
+        {/* TODO: thêm route cho Overview khi có component */}
       </Route>
 
       {/* ── Admin Clinic (role ADMIN_CLINIC) ── */}
