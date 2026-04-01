@@ -26,11 +26,21 @@ export const humanizeEnumValue = (value, fallback = UNKNOWN_ENUM_LABEL) => {
 }
 
 export const getEnumLabel = (enumKey, value, fallback = UNKNOWN_ENUM_LABEL) => {
+  const rawValue = String(value || '').trim()
   const normalized = normalizeEnumValue(value)
   if (!normalized) return fallback
 
   const dictionary = ENUM_LABEL_MAPS[enumKey] || {}
-  return dictionary[normalized] || humanizeEnumValue(normalized, fallback)
+  if (dictionary[normalized]) {
+    return dictionary[normalized]
+  }
+
+  // If value is already a readable localized phrase, keep it unchanged.
+  if (rawValue && !/^[A-Z0-9_]+$/.test(rawValue)) {
+    return rawValue
+  }
+
+  return humanizeEnumValue(normalized, fallback)
 }
 
 export const getAppointmentStatusLabel = (value, fallback = UNKNOWN_ENUM_LABEL) =>

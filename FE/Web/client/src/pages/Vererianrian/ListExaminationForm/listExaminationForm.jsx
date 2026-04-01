@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	FileAddOutlined,
 	LeftOutlined,
@@ -6,6 +5,7 @@ import {
 } from '@ant-design/icons'
 import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
@@ -13,6 +13,7 @@ import {
 	getVeterinarianAppointmentsApi,
 } from '../../../data/Vererianrian/api/appointmentApi'
 import { getBreedLabel } from '../../../data/client/api/petApi'
+import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './listExaminationForm.module.css'
 
 const PAGE_SIZE = 4
@@ -43,11 +44,12 @@ const toRecordRow = (item) => {
 	return {
 		id: String(item?.id || Math.random()),
 		appointmentId: item?.id,
+		service: item?.service,
 		status: item?.status,
 		hasMedicalRecord: Boolean(item?.medical?.id),
 		createdDate: formatDate(item?.appointmentDate),
 		appointmentTime: String(item?.appointmentTime || '').slice(0, 5),
-		formName: item?.service || 'Chưa cập nhật',
+		formName: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),
 		petName: pet?.name || 'Chưa cập nhật',
 		petAvatar: pet?.avatar || '',
 		ownerName: owner?.fullName || 'Chưa cập nhật',

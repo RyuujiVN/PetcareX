@@ -1,4 +1,3 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DeleteOutlined,
 	ExperimentOutlined,
@@ -6,9 +5,8 @@ import {
 	MedicineBoxOutlined,
 	PlusCircleOutlined,
 	SaveOutlined,
-	SmileOutlined,
 	UserOutlined,
-	WarningOutlined,
+	WarningOutlined
 } from '@ant-design/icons'
 import {
 	Button,
@@ -26,6 +24,7 @@ import {
 	message,
 } from 'antd'
 import dayjs from 'dayjs'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
@@ -48,6 +47,7 @@ import {
 } from '../../../data/Vererianrian/api/petApi'
 import { getVeterinarianUserByIdApi } from '../../../data/Vererianrian/api/userApi'
 import { getBreedLabel, getSpeciesLabel } from '../../../data/client/api/petApi'
+import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
 const normalizeCollection = (payload) => {
@@ -99,9 +99,12 @@ const buildInitialValues = (appointment, latestMedical) => {
 	const owner = pet?.owner || {}
 	const latestWeight = toNumberOrUndefined(latestMedical?.weight)
 	const petWeight = toNumberOrUndefined(pet?.weight)
+	const serviceLabel = appointment?.service
+		? getServiceLabel(appointment.service, appointment.service)
+		: appointment?.formName || ''
 
 	return {
-		formName: appointment?.formName || appointment?.service || '',
+		formName: serviceLabel,
 		followUpDate: null,
 		customerName: appointment?.ownerName || owner?.fullName || '',
 		email: owner?.email || appointment?.ownerEmail || '',
@@ -145,7 +148,7 @@ const toAppointmentViewModel = (item) => {
 		ownerName: owner?.fullName,
 		ownerId: owner?.id,
 		ownerEmail: owner?.email || '',
-		formName: item?.service,
+		formName: getServiceLabel(item?.service, item?.service),
 		petRaw: pet,
 	}
 }
