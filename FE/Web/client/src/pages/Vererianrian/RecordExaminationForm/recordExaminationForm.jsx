@@ -117,6 +117,71 @@ const formatRemainingTime = (seconds) => {
 	return `${String(minutes).padStart(2, '0')}:${String(remainSeconds).padStart(2, '0')}`
 }
 
+const toDayStamp = (value) => {
+	if (!value) return ''
+	const date = new Date(value)
+	if (Number.isNaN(date.getTime())) return ''
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, '0')
+	const day = String(date.getDate()).padStart(2, '0')
+	return `${year}-${month}-${day}`
+}
+
+const toDateTime = (appointmentDate, appointmentTime) => {
+	if (!appointmentDate) return null
+	const dayStamp = toDayStamp(appointmentDate)
+	if (!dayStamp) return null
+	const timeStamp = String(appointmentTime || '00:00').slice(0, 5)
+	const candidate = new Date(`${dayStamp}T${timeStamp}:00`)
+	return Number.isNaN(candidate.getTime()) ? null : candidate
+}
+
+const selectMedicalRecordByAppointment = (records, appointment) => {
+	if (!Array.isArray(records) || records.length === 0 || !appointment) return null
+
+	const appointmentDay = toDayStamp(appointment?.appointmentDate)
+	const appointmentDateTime = toDateTime(appointment?.appointmentDate, appointment?.appointmentTime)
+	const appointmentClinicId = String(appointment?.clinicId || appointment?.clinic?.id || '')
+
+	const ranked = records
+		.map((record) => {
+			let score = 0
+
+			if (appointmentDay && toDayStamp(record?.createdAt) === appointmentDay) {
+				score += 100
+			}
+
+			if (appointmentClinicId && String(record?.clinicId || record?.clinic?.id || '') === appointmentClinicId) {
+				score += 40
+			}
+
+			const recordCreatedTime = new Date(record?.createdAt || 0).getTime()
+			if (appointmentDateTime && Number.isFinite(recordCreatedTime) && recordCreatedTime > 0) {
+				const diffHours = Math.abs(recordCreatedTime - appointmentDateTime.getTime()) / (1000 * 60 * 60)
+				score += Math.max(0, 24 - diffHours)
+			}
+
+			return {
+				record,
+				score,
+				createdAt: recordCreatedTime,
+			}
+		})
+		.sort((a, b) => {
+			if (b.score !== a.score) return b.score - a.score
+			return b.createdAt - a.createdAt
+		})
+
+	const best = ranked[0]
+	if (!best) return null
+
+	if (appointmentDay && best.score < 90) {
+		return null
+	}
+
+	return best.record || null
+}
+
 const buildInitialValues = (appointment, latestMedical, editableMedicalRecord, editableOrders, editableMedicines) => {
 	const pet = appointment?.petRaw || appointment?.pet || {}
 	const owner = pet?.owner || {}
@@ -184,6 +249,9 @@ const toAppointmentViewModel = (item) => {
 	return {
 		appointmentId: item?.id,
 		service: item?.service,
+		appointmentDate: item?.appointmentDate || null,
+		appointmentTime: item?.appointmentTime || '',
+		clinicId: item?.clinic?.id || item?.clinicId || '',
 		petName: pet?.name,
 		ownerName: owner?.fullName,
 		ownerId: owner?.id,
@@ -330,15 +398,18 @@ export default function RecordExaminationForm() {
 
 				setLatestMedicalRecord(latestRecord || null)
 
-				if (!appointmentMedicalId) {
+				const matchedMedicalById = appointmentMedicalId
+					? records.find((record) => String(record?.id || '') === String(appointmentMedicalId)) || null
+					: null
+
+				const matchedMedical = matchedMedicalById || selectMedicalRecordByAppointment(records, appointment)
+
+				if (!matchedMedical && !appointmentMedicalId) {
 					setEditableMedicalRecord(null)
 					setEditableMedicalOrders([])
 					setEditableMedicines([])
 					return
 				}
-
-				const matchedMedical =
-					records.find((record) => String(record?.id || '') === String(appointmentMedicalId)) || null
 
 				const resolvedMedical = matchedMedical || (await getMedicalById(appointmentMedicalId).catch(() => null))
 				if (!resolvedMedical || !active) {
@@ -373,7 +444,7 @@ export default function RecordExaminationForm() {
 		return () => {
 			active = false
 		}
-	}, [appointment?.medical?.id, appointment?.petRaw?.id])
+	}, [appointment, appointment?.medical?.id, appointment?.petRaw?.id])
 
 	useEffect(() => {
 		if (!editableMedicalId || !editableMedicalCreatedAtMs) {

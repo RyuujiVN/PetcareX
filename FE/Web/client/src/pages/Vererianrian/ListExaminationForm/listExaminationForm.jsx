@@ -46,10 +46,12 @@ const toRecordRow = (item) => {
 		appointmentId: item?.id,
 		service: item?.service,
 		status: item?.status,
-		hasMedicalRecord: Boolean(item?.medical?.id),
+		hasMedicalRecord: Boolean(item?.medical?.id) || item?.status === APPOINTMENT_STATUS.COMPLETED,
 		medical: item?.medical || null,
+		appointmentDate: item?.appointmentDate || null,
 		createdDate: formatDate(item?.appointmentDate),
 		appointmentTime: String(item?.appointmentTime || '').slice(0, 5),
+		clinicId: item?.clinic?.id || item?.clinicId || '',
 		formName: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),
 		petName: pet?.name || 'Chưa cập nhật',
 		petAvatar: pet?.avatar || '',
@@ -187,7 +189,7 @@ export default function ListExaminationForm() {
 														icon={<FileAddOutlined />}
 														style={{ backgroundColor: '#4672b4', borderColor: '#4672b4' }}
 													>
-														{row.hasMedicalRecord ? 'Tạo lại phiếu khám' : 'Tạo phiếu khám'}
+														{row.hasMedicalRecord ? 'Mở phiếu khám' : 'Tạo phiếu khám'}
 													</Button>
 												</div>
 											</td>
