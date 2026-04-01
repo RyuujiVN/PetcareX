@@ -1,39 +1,55 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart';
+import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/account/presentation/account_page.dart';
 import '../../../../features/appointment/presentation/appointment_page.dart';
+import '../../../../features/appointment/presentation/provider/appointment_provider.dart';
 import '../../../../features/booking/presentation/booking_page.dart';
 import '../../../../features/community/presentation/community_page.dart';
 import '../../../../features/home/presentation/home_page.dart';
+import '../../../l10n/generated/app_localizations.dart';
 
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({super.key});
 
-  static _MainNavigationWrapperState? of(BuildContext context) =>
-      context.findAncestorStateOfType<_MainNavigationWrapperState>();
+  static MainNavigationWrapperState? of(BuildContext context) =>
+      context.findAncestorStateOfType<MainNavigationWrapperState>();
 
   @override
-  State<MainNavigationWrapper> createState() => _MainNavigationWrapperState();
+  State<MainNavigationWrapper> createState() => MainNavigationWrapperState();
 }
 
-class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
+class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _selectedIndex = 0;
+  final HomeChatbotHintController _homeChatbotHintController =
+      HomeChatbotHintController();
 
-  final Set<int> _initializedPages = {0}; 
+  final Set<int> _initializedPages = {0};
   final List<Widget?> _pages = List<Widget?>.filled(5, null);
 
   void setSelectedIndex(int index) {
+    final wasInitialized = _initializedPages.contains(index);
+
     setState(() {
       _selectedIndex = index;
       _initializedPages.add(index);
     });
+
+    if (index == 0) {
+      _homeChatbotHintController.restartCountdown();
+    }
+
+    if (index == 2 && wasInitialized) {
+      unawaited(context.read<AppointmentProvider>().fetchAppointments());
+    }
   }
 
   Widget _buildPage(int index) {
     return switch (index) {
-      0 => const HomePage(),
+      0 => HomePage(chatbotHintController: _homeChatbotHintController),
       1 => const BookingPage(),
       2 => const AppointmentPage(),
       3 => const CommunityPage(),
@@ -43,17 +59,23 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
   }
 
   void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-    setState(() {
-      _selectedIndex = index;
-      _initializedPages.add(index);
-    });
+    if (index == _selectedIndex) {
+      if (index == 0) {
+        _homeChatbotHintController.restartCountdown();
+      }
+      if (index == 2) {
+        unawaited(context.read<AppointmentProvider>().fetchAppointments());
+      }
+      return;
+    }
+
+    setSelectedIndex(index);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    
+
     for (final i in _initializedPages) {
       _pages[i] ??= _buildPage(i);
     }
@@ -64,6 +86,9 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         children: _pages.map((page) => page ?? const SizedBox()).toList(),
       ),
       bottomNavigationBar: BottomAppBar(
+        color: AppColors.secondary,
+        surfaceTintColor: AppColors.transparent,
+        elevation: 0,
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
         child: SizedBox(
@@ -84,8 +109,18 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
                 l10n.navAppointments,
                 2,
               ),
-              _buildNavItem(Icons.forum_outlined, Icons.forum, l10n.navCommunity, 3),
-              _buildNavItem(Icons.person_outline, Icons.person, l10n.navProfile, 4),
+              _buildNavItem(
+                Icons.forum_outlined,
+                Icons.forum,
+                l10n.navCommunity,
+                3,
+              ),
+              _buildNavItem(
+                Icons.person_outline,
+                Icons.person,
+                l10n.navProfile,
+                4,
+              ),
             ],
           ),
         ),
@@ -108,7 +143,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
         children: [
           Icon(
             isSelected ? activeIcon : icon,
-            color: isSelected ? AppColors.primary : Colors.grey[400],
+            color: isSelected ? AppColors.primary : AppColors.navInactive,
             size: 24,
           ),
           const SizedBox(height: 4),
@@ -117,7 +152,7 @@ class _MainNavigationWrapperState extends State<MainNavigationWrapper> {
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.bold,
-              color: isSelected ? AppColors.primary : Colors.grey[400],
+              color: isSelected ? AppColors.primary : AppColors.navInactive,
             ),
           ),
         ],

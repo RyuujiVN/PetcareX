@@ -1,0 +1,449 @@
+.pageRoot {
+	--medical-primary: var(--user-primary);
+	--medical-primary-hover: var(--user-primary-hover);
+	--medical-primary-soft: white;
+
+	
+	min-height: 100vh;
+	background: #f3f5f7;
+	padding-top: 70px;
+}
+
+.pageContent {
+	max-width: 1140px;
+	margin: 0 auto;
+	padding: 10px 16px 40px;
+	background: white;
+}
+.petNameRow {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.switchPetBtn {
+	border: none;
+	background: #f1f5f9;
+	color: var(--medical-primary);
+	width: 34px;
+	height: 34px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	transition: all 0.25s ease;
+}
+
+.switchPetBtn:hover {
+	background: var(--medical-primary);
+	color: #fff;
+	transform: rotate(180deg);
+}
+
+.switchPetBtn .anticon {
+	font-size: 16px;
+}
+.petCard {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	background: #ffffff;
+	border: 1px solid #ebeff3;
+	border-radius: 14px;
+	padding: 14px 18px;
+	box-shadow: 0 4px 16px rgba(37, 55, 70, 0.05);
+}
+
+.petAvatar {
+	width: 74px;
+	height: 74px;
+	object-fit: cover;
+	border-radius: 16px;
+	border: 2px solid #f7dac9;
+}
+
+.petAvatarFallback {
+	width: 74px;
+	height: 74px;
+	border-radius: 16px;
+	border: 2px solid #f7dac9;
+	background: #fff4ed;
+	color: #f16f33;
+	font-size: 30px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.petInfo h1 {
+	margin: 0;
+	color: #243247;
+	font-size: 26px;
+	font-weight: 800;
+	line-height: 1.1;
+}
+
+.petMeta {
+	margin: 4px 0 8px;
+	color: #607086;
+	font-size: 20px;
+	font-weight: 700;
+}
+
+.petSubMeta {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	color: #7d8fa4;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.petSubMeta span {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.mainGrid {
+	margin-top: 18px;
+	display: grid;
+	grid-template-columns: minmax(0, 1.75fr) minmax(280px, 0.95fr);
+	gap: 16px;
+	align-items: start;
+}
+
+.timelinePanel,
+.reminderPanel {
+	background: #ffffff;
+	border: 1px solid #e8edf2;
+	border-radius: 14px;
+	box-shadow: 0 5px 18px rgba(16, 40, 60, 0.05);
+}
+
+.timelinePanel {
+	padding: 14px;
+}
+
+.reminderPanel {
+	padding: 16px;
+}
+
+.panelTitle {
+	margin: 0 0 14px;
+	color: #2b3b50;
+	font-size: 18px;
+	font-weight: 800;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.panelTitle svg {
+	color: var(--medical-primary);
+}
+
+.timelineWrapper {
+	position: relative;
+	padding-left: 34px;
+}
+
+.emptyStateText {
+	margin: 0;
+	padding: 12px;
+	border: 1px dashed #d8e0e9;
+	border-radius: 10px;
+	background: #f9fbfd;
+	color: #62748a;
+	font-size: 14px;
+	font-weight: 600;
+	line-height: 1.5;
+}
+
+.timelineWrapper::before {
+	content: '';
+	position: absolute;
+	left: 14px;
+	top: 14px;
+	bottom: 18px;
+	width: 2px;
+	background: #dce4eb;
+}
+
+.timelineItem {
+	position: relative;
+	margin-bottom: 14px;
+}
+
+.timelineItem:last-child {
+	margin-bottom: 0;
+}
+
+.timelineMarker {
+	position: absolute;
+	left: -34px;
+	top: 14px;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	color: #ffffff;
+	border: 2px solid #ffffff;
+	box-shadow: 0 2px 9px rgba(31, 46, 65, 0.16);
+}
+
+.timelineMarker.vaccine {
+	background: #f26522;
+}
+
+.timelineMarker.checkup {
+	background: var(--medical-primary);
+}
+
+.timelineMarker.skin {
+	background: #9ba9b8;
+}
+
+.recordCard {
+	width: 100%;
+	text-align: left;
+	border: 1px solid #e5ebf2;
+	border-radius: 12px;
+	background: #f9fbfd;
+	padding: 14px;
+	cursor: default;
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+
+.recordHeader {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+}
+
+.recordHeader h3 {
+	margin: 0;
+	color: #2d3c50;
+	font-size: 28px;
+	font-weight: 800;
+}
+
+.statusTag {
+	border-radius: 999px;
+	padding: 4px 10px;
+	font-size: 10px;
+	font-weight: 800;
+	white-space: nowrap;
+}
+
+.statusTag.done {
+	color: #1f9f59;
+	background: #d9f5e5;
+}
+
+.statusTag.pending {
+	color: #2d9b58;
+	background: #ddf4e6;
+}
+
+.recordMetaGrid {
+	margin-top: 8px;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px 24px;
+}
+
+.recordMetaGrid p {
+	margin: 0 0 4px;
+	color: #f17a3f;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.recordMetaGrid p strong {
+	color: #f17a3f;
+}
+
+.recordMetaGrid p:last-child {
+	margin-bottom: 0;
+}
+
+.recordDivider {
+	margin: 10px 0;
+	border-top: 1px solid #e4ebf3;
+}
+
+.recordDetails p {
+	margin: 0 0 6px;
+	color: #51637a;
+	font-size: 17px;
+	font-weight: 600;
+}
+
+.recordDetails p:last-child {
+	margin-bottom: 0;
+}
+
+.recordDetails p span {
+	color: var(--medical-primary);
+	font-weight: 900;
+}
+
+.reminderList {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.reminderCard {
+	width: 100%;
+	border: none;
+	border-radius: 12px;
+	text-align: left;
+	padding: 12px;
+	display: grid;
+	grid-template-columns: 30px 1fr;
+	gap: 10px;
+	align-items: center;
+	transition: transform 0.2s ease, filter 0.2s ease;
+	cursor: default;
+}
+
+.reminderCard:hover {
+	transform: translateY(-1px);
+	filter: brightness(0.98);
+}
+
+.reminderCard strong {
+	color: #33455c;
+	display: block;
+	font-size: 16px;
+	font-weight: 800;
+}
+
+.reminderCard small {
+	color: #74849a;
+	display: block;
+	margin-top: 3px;
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.reminderIcon {
+	width: 30px;
+	height: 30px;
+	border-radius: 8px;
+	background: rgba(255, 255, 255, 0.72);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	color: #f16f33;
+}
+
+.reminderCard.vaccine {
+	background: #fef3ee;
+}
+
+.reminderCard.deworm {
+	background: #ebf8f8;
+}
+
+.reminderCard.follow-up {
+	background: #edf1f6;
+}
+
+.bookNowButton {
+	width: 100%;
+	margin-top: 14px;
+	border-radius: 12px;
+	border: 2px solid var(--medical-primary);
+	background: #ffffff;
+	color: var(--medical-primary);
+	font-size: 16px;
+	font-weight: 900;
+	padding: 10px 12px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.bookNowButton:hover {
+	background: var(--medical-primary-hover);
+	color: #ffffff;
+}
+
+@media (max-width: 1100px) {
+	.petInfo h1 {
+		font-size: 30px;
+	}
+
+	.petMeta {
+		font-size: 16px;
+	}
+
+	.mainGrid {
+		grid-template-columns: 1fr;
+	}
+}
+
+@media (max-width: 780px) {
+	.pageContent {
+		padding: 20px 12px 28px;
+	}
+
+	.petCard {
+		padding: 12px;
+	}
+
+	.petAvatar {
+		width: 66px;
+		height: 66px;
+	}
+
+	.petAvatarFallback {
+		width: 66px;
+		height: 66px;
+		font-size: 26px;
+	}
+
+	.petInfo h1 {
+		font-size: 26px;
+	}
+
+	.petMeta {
+		font-size: 14px;
+	}
+
+	.petSubMeta {
+		flex-wrap: wrap;
+		gap: 8px 14px;
+		font-size: 13px;
+	}
+
+	.recordHeader {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.recordHeader h3 {
+		font-size: 22px;
+	}
+
+	.recordMetaGrid {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.recordMetaGrid p {
+		font-size: 13px;
+	}
+
+	.recordDetails p {
+		font-size: 16px;
+	}
+}

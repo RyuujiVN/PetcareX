@@ -1,0 +1,53 @@
+﻿:root {
+  --color-brand-primary: #4672b4;
+  --color-brand-primary-hover: #4672b4;
+  --color-brand-primary-active: #4672b4;
+  --color-brand-primary-rgb: 70, 114, 180;
+  --color-brand-strong: #4672b4;
+  --color-brand-muted: #4672b4;
+
+  --color-surface-page: #f5f5f5;
+  --color-surface-card: #ffffff;
+  --color-surface-soft: #fafafa;
+  --color-surface-muted: #f8f9fa;
+
+  --color-border: #f0f0f0;
+  --color-border-soft: #eeeeee;
+  --color-border-strong: #d9d9d9;
+
+  --color-text-primary: #262626;
+  --color-text-secondary: #8c8c8c;
+  --color-text-muted: #666666;
+  --color-text-disabled: #999999;
+
+  --color-info: #1890ff;
+  --color-success: #52c41a;
+  --color-warning: #faad14;
+  --color-danger: #ff4d4f;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+  --page-header-primary: var(--color-brand-primary);
+  --page-header-primary-hover: var(--color-brand-primary-hover);
+  --page-header-contrast: #ffffff;
+
+  --page-booking-primary: #4672b4;
+  --page-booking-primary-hover: #4672b4;
+  --page-booking-primary-soft: #e8fbfa;
+
+  --page-appointment-primary: var(--color-brand-strong);
+  --page-appointment-primary-hover: var(--color-brand-primary-hover);
+  --page-appointment-accent: var(--color-brand-primary);
+
+  --page-listpet-primary: var(--color-brand-primary);
+  --page-listpet-primary-hover: #4672b4;
+  --page-listpet-primary-active: var(--color-brand-primary-active);
+
+  --page-success-primary: var(--color-brand-primary);
+  --page-success-primary-hover: var(--color-brand-primary-hover);
+  
+
+}
+

@@ -9,18 +9,20 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import bcrypt from 'bcryptjs';
+import { LoginTicket, OAuth2Client } from 'google-auth-library';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { MailService } from 'src/mail/mail.service';
 import { OtpService } from 'src/otp/otp.service';
+import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { User } from 'src/user/entities/user.entity';
 import { UserService } from 'src/user/user.service';
+import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import { Repository } from 'typeorm';
 import { ChangePasswordDTO } from './dtos/change-password.dto';
 import { ForgotPasswordDTO } from './dtos/forgot-password.dto';
+import { LoginGoogleDTO } from './dtos/login-google.dto';
 import { LoginDTO } from './dtos/login.dto';
 import { ResetPasswordDTO } from './dtos/reset-password.dto';
-import { LoginTicket, OAuth2Client } from 'google-auth-library';
-import { LoginGoogleDTO } from './dtos/login-google.dto';
 
 @Injectable()
 export class AuthService {
@@ -29,12 +31,22 @@ export class AuthService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(AdminClinic)
+    private readonly adminClinicRepository: Repository<AdminClinic>,
+    @InjectRepository(Veterinarian)
+    private readonly veterinarianRepository: Repository<Veterinarian>,
     private readonly userService: UserService,
     private readonly configService: ConfigService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
     private readonly otpService: OtpService,
   ) {}
+
+  async verifyToken(token) {
+    return await this.jwtService.verify(token, {
+      secret: this.configService.get<string>('ACCESS_TOKEN'),
+    });
+  }
 
   async login(loginDTO: LoginDTO) {
     const user = await this.userService.findOneByEmail(loginDTO.email);
@@ -58,18 +70,44 @@ export class AuthService {
       avatarUrl: user.avatarUrl,
     };
 
+    // Nếu user là admin clinic hoặc veterinarian thì lấy thông tin clinic
+    let clinicInfo: any = null;
+
     if (user.role === RoleEnum.ADMIN_CLINIC) {
-      const adminClinic = await this.userService.findOneAdminClinicById(
-        user.id,
-      );
+      const adminClinic = await this.adminClinicRepository
+        .createQueryBuilder('adminClinic')
+        .leftJoinAndSelect('adminClinic.clinic', 'clinic')
+        .where('adminClinic.userId = :userId', { userId: user.id })
+        .select([
+          'adminClinic.userId',
+          'adminClinic.clinicId',
+
+          'clinic.id',
+          'clinic.name',
+          'clinic.avatarUrl',
+        ])
+        .getOne();
       payload.clinicId = adminClinic?.clinicId;
+      clinicInfo = adminClinic?.clinic || null;
     }
 
     if (user.role === RoleEnum.VETERINARIAN) {
-      const veterinarian = await this.userService.findOneVeterinarianById(
-        user.id,
-      );
+      const veterinarian = await this.veterinarianRepository
+        .createQueryBuilder('veterinarian')
+        .leftJoinAndSelect('veterinarian.clinic', 'clinic')
+        .where('veterinarian.userId = :userId', { userId: user.id })
+        .select([
+          'veterinarian.userId',
+          'veterinarian.clinicId',
+          'veterinarian.specialty',
+
+          'clinic.id',
+          'clinic.name',
+          'clinic.avatarUrl',
+        ])
+        .getOne();
       payload.clinicId = veterinarian?.clinicId;
+      clinicInfo = veterinarian?.clinic || null;
     }
 
     const accessToken = this.jwtService.sign(payload, {
@@ -77,10 +115,16 @@ export class AuthService {
       expiresIn: '7d',
     });
 
-    return {
+    const response: any = {
       userInfo: payload,
       accessToken: accessToken,
     };
+
+    if (clinicInfo) {
+      response.clinicInfo = clinicInfo;
+    }
+
+    return response;
   }
 
   async validateGoogleIdToken(idToken: string) {
@@ -154,6 +198,7 @@ export class AuthService {
     if (!user) throw new NotFoundException('Không tồn tại tài khoản');
 
     // Gửi mail
+    const otpExpireMinutes = this.otpService.getOtpExpireMinutes();
     const code = await this.otpService.createOtp(forgot.email);
     const subject = 'Mã OTP xác thực đăng nhập';
     const html = `
@@ -174,7 +219,7 @@ export class AuthService {
             ${code}
           </div>
 
-          <p>Mã OTP có hiệu lực trong <b>5 phút</b>. Tuyệt đối không chia sẻ cho người khác.</p>
+          <p>Mã OTP có hiệu lực trong <b>${otpExpireMinutes} phút</b>. Tuyệt đối không chia sẻ cho người khác.</p>
           <hr/>
           <p style="font-size:12px; color:#888;">© 2025 TasteBite. All rights reserved.</p>
         </div>

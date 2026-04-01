@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/utils/app_notifier.dart';
+import '../../../../core/utils/error_handler.dart';
+import '../../../l10n/generated/app_localizations.dart';
 import 'providers/auth_provider.dart';
 import 'reset_password_page.dart';
 
@@ -36,7 +38,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     if (!mounted) return;
 
     if (success) {
-      _showQuickSnackBar('OTP Sent Successfully', isError: false);
+      _showQuickSnackBar(l10n.otpSent, isError: false);
       
       Navigator.push(
         context,
@@ -45,19 +47,23 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         ),
       );
     } else {
-      _showQuickSnackBar(authProvider.errorMessage ?? 'Error', isError: true);
+      _showQuickSnackBar(ErrorHandler.getLocalizedError(authProvider.errorMessage, context), isError: true);
     }
   }
 
   void _showQuickSnackBar(String message, {bool isError = true}) {
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+    if (isError) {
+      AppNotifier.showError(
+        context,
+        message,
         duration: const Duration(milliseconds: 1500),
-        behavior: SnackBarBehavior.floating,
-      ),
+      );
+      return;
+    }
+    AppNotifier.showSuccess(
+      context,
+      message,
+      duration: const Duration(milliseconds: 1500),
     );
   }
 
@@ -80,7 +86,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                 ),
               ),
             ),
-            _buildFooter(),
+            _buildFooter(l10n),
           ],
         ),
       ),
@@ -91,29 +97,24 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
       decoration: const BoxDecoration(
-        color: AppColors.white,
-        border: Border(bottom: BorderSide(color: Color(0xFFEEF2F3))),
+        color: AppColors.appBarBackground,
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(6),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Image.asset('assets/images/icon.png', width: 30, height: 30),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                l10n.appName,
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              border: Border.all(color: AppColors.textDark, width: 1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Image.asset('assets/images/icon.png', width: 30, height: 30),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            l10n.appName,
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textDark),
           ),
         ],
       ),
@@ -124,10 +125,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 20, offset: const Offset(0, 10)),
+          BoxShadow(color: AppColors.black.withValues(alpha: 0.03), blurRadius: 20, offset: const Offset(0, 10)),
         ],
       ),
       child: Form(
@@ -138,17 +139,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(color: AppColors.primary.withOpacity(0.1), shape: BoxShape.circle),
+                decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
                 child: const Icon(Icons.restart_alt, size: 40, color: AppColors.primary),
               ),
             ),
             const SizedBox(height: 24),
             Text(l10n.forgotPassword, textAlign: TextAlign.center, style: AppTextStyles.title),
             const SizedBox(height: 12),
-            const Text(
-              'Enter your email and we will send you an OTP code to reset your password.',
+            Text(
+              l10n.forgotPasswordSubtitle,
               textAlign: TextAlign.center,
-              style: TextStyle(color: AppColors.grey, fontSize: 14, height: 1.5),
+              style: const TextStyle(color: AppColors.textGrey, fontSize: 14, height: 1.5),
             ),
             const SizedBox(height: 32),
             _buildEmailField(isLoading, l10n),
@@ -166,21 +167,25 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(l10n.email, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textDark)),
         const SizedBox(height: 8),
         TextFormField(
           controller: emailController,
+          style: const TextStyle(color: AppColors.textDark),
           keyboardType: TextInputType.emailAddress,
           enabled: !isLoading,
           decoration: InputDecoration(
             hintText: l10n.emailHint,
-            prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.grey),
+            prefixIcon: const Icon(Icons.email_outlined, size: 20, color: AppColors.iconGrey),
             filled: true,
-            fillColor: const Color(0xFFF8F9FA),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            fillColor: AppColors.formFill,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.formBorder)),
           ),
           validator: (value) {
             if (value == null || value.isEmpty) return l10n.enterEmail;
+            final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+            if (!emailRegex.hasMatch(value)) return l10n.invalidEmail;
             return null;
           },
         ),
@@ -193,8 +198,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       height: 54,
       child: ElevatedButton(
         onPressed: isLoading ? null : _sendResetLink,
-        style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: AppColors.white),
-        child: isLoading ? const CircularProgressIndicator(color: Colors.white) : const Text('Send OTP'),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary, 
+          foregroundColor: AppColors.onPrimary,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: isLoading 
+          ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: AppColors.onPrimary, strokeWidth: 2)) 
+          : Text(l10n.sendOTP, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
       ),
     );
   }
@@ -202,11 +214,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   Widget _buildBackToLogin(bool isLoading, AppLocalizations l10n) {
     return GestureDetector(
       onTap: isLoading ? null : () => Navigator.pop(context),
-      child: Center(child: Text(l10n.loginNow, style: const TextStyle(color: AppColors.grey, fontSize: 14))),
+      child: Center(child: Text(l10n.loginNow, style: const TextStyle(color: AppColors.textGrey, fontSize: 14, fontWeight: FontWeight.w600))),
     );
   }
 
-  Widget _buildFooter() {
-    return const Padding(padding: EdgeInsets.all(24.0), child: Text('© 2026 PETCAREX INC.', style: TextStyle(color: AppColors.grey, fontSize: 10)));
+  Widget _buildFooter(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.all(24.0), 
+      child: Text(l10n.footerCopyright, style: const TextStyle(color: AppColors.textGrey, fontSize: 10))
+    );
   }
 }

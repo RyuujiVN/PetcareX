@@ -1,0 +1,115 @@
+.users-page {
+  padding: 24px;
+}
+
+/* ── Stat Cards ── */
+.stat-card {
+  border-radius: 12px;
+  border: none;
+}
+
+.stat-card .ant-card-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-card--user {
+  background: var(--admin-stat-user-bg);
+}
+
+.stat-card__icon--user {
+  background: var(--admin-stat-user-icon);
+  color: var(--admin-color-surface-card);
+}
+
+/* ── Table Card ── */
+.table-card {
+  border-radius: 12px;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.users-search {
+  width: 280px;
+}
+
+.pagination-bar {
+  margin-top: 16px;
+  padding: 0 8px;
+}
+
+/* ── Table row spacing ── */
+.users-page .ant-table-wrapper .ant-table-tbody > tr > td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--admin-color-border);
+}
+
+.users-page .ant-table-wrapper .ant-table-tbody > tr > td,
+.users-page .ant-table-wrapper .ant-table-thead > tr > th {
+  vertical-align: middle;
+}
+
+.users-page .ant-table-wrapper .ant-table-thead > tr > th {
+  background: var(--admin-color-surface-soft);
+  color: var(--admin-color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ── Tags ── */
+.role-tag,
+.status-tag {
+  background: var(--admin-color-surface-soft);
+  border: 1px solid var(--admin-color-border);
+  color: var(--admin-color-text-secondary);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  line-height: 1;
+}
+
+.role-tag--admin {
+  color: var(--admin-color-brand-primary);
+}
+
+.role-tag--clinic {
+  color: var(--admin-color-info);
+}
+
+.role-tag--vet {
+  color: var(--admin-color-warning);
+}
+
+.role-tag--customer {
+  color: var(--admin-color-success);
+}
+
+.status-tag--active {
+  color: var(--admin-color-success);
+}
+
+.status-tag--inactive {
+  color: var(--admin-color-danger);
+}

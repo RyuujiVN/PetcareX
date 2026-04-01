@@ -48,6 +48,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get enterPassword => 'Vui lòng nhập mật khẩu';
 
   @override
+  String get enterConfirmPassword => 'Vui lòng nhập xác nhận mật khẩu';
+
+  @override
   String get loginFailed => 'Đăng nhập thất bại';
 
   @override
@@ -64,6 +67,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get birthDate => 'Ngày sinh';
+
+  @override
+  String get age => 'Tuổi';
 
   @override
   String get weight => 'Cân nặng (kg)';
@@ -156,6 +162,21 @@ class AppLocalizationsVi extends AppLocalizations {
       'Vui lòng nhập mật khẩu cũ và mật khẩu mới để bảo mật tài khoản của bạn.';
 
   @override
+  String get changePasswordSuccess => 'Thay đổi mật khẩu thành công';
+
+  @override
+  String get loginSuccess => 'Đăng nhập thành công!';
+
+  @override
+  String get loginGoogleSuccess => 'Đăng nhập Google thành công!';
+
+  @override
+  String get registerSuccess => 'Đăng ký thành công!';
+
+  @override
+  String get resetPasswordSuccess => 'Thiết lập lại mật khẩu thành công!';
+
+  @override
   String get oldPassword => 'Mật khẩu cũ';
 
   @override
@@ -169,6 +190,17 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get aboutAppName => 'Về PetCareX';
+
+  @override
+  String get aboutProjectHeadline =>
+      'Đồ án Capstone 2 - Hệ thống chăm sóc thú cưng toàn diện.';
+
+  @override
+  String get aboutDevelopedBy => 'Phát triển bởi: Nhóm PetCareX';
+
+  @override
+  String get aboutProjectDescription =>
+      'Ứng dụng này giúp bạn quản lý sức khỏe thú cưng, lịch hẹn và kết nối nhanh chóng với các bác sĩ thú y uy tín.';
 
   @override
   String get personalInfoSubtitle => 'Xem và chỉnh sửa thông tin cá nhân';
@@ -196,6 +228,9 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get navAppointments => 'LỊCH HẸN';
+
+  @override
+  String get appointmentsTitle => 'Lịch hẹn';
 
   @override
   String get navCommunity => 'CỘNG ĐỒNG';
@@ -240,6 +275,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get viewAll => 'Xem tất cả';
 
   @override
+  String get viewDetail => 'Xem chi tiết';
+
+  @override
+  String get retry => 'Thử lại';
+
+  @override
   String get petCareForum => 'Diễn đàn PetCareX';
 
   @override
@@ -264,6 +305,33 @@ class AppLocalizationsVi extends AppLocalizations {
   String get cancelAppointment => 'Hủy';
 
   @override
+  String get confirmCancel => 'Xác nhận hủy lịch';
+
+  @override
+  String get cancelMessage => 'Bạn có chắc chắn muốn hủy lịch hẹn này không?';
+
+  @override
+  String get appointmentCancelSuccess => 'Hủy lịch thành công!';
+
+  @override
+  String get yes => 'Có';
+
+  @override
+  String get no => 'Không';
+
+  @override
+  String get statusUpcoming => 'Hẹn thành công';
+
+  @override
+  String get statusInProgress => 'Đang khám';
+
+  @override
+  String get statusCompleted => 'Đã khám xong';
+
+  @override
+  String get statusCancelled => 'Đã huỷ';
+
+  @override
   String get success => 'Thành công!';
 
   @override
@@ -285,6 +353,67 @@ class AppLocalizationsVi extends AppLocalizations {
   String get saveChanges => 'Lưu thay đổi';
 
   @override
+  String get viewMedicalProfile => 'Xem hồ sơ y tế';
+
+  @override
+  String get medicalProfileComingSoon =>
+      'Tính năng hồ sơ y tế sẽ sớm được cập nhật.';
+
+  @override
+  String get medicalRecordEmptyTitle => 'Chưa có hồ sơ y tế cho thú cưng này';
+
+  @override
+  String get medicalRecordCode => 'Mã hồ sơ';
+
+  @override
+  String get medicalRecordClinicName => 'Tên phòng khám';
+
+  @override
+  String get medicalRecordVeterinarianName => 'Tên bác sĩ';
+
+  @override
+  String get medicalRecordExamDate => 'Ngày khám';
+
+  @override
+  String get medicalRecordWeightAtExam => 'Cân nặng lúc khám';
+
+  @override
+  String get medicalRecordDiagnosis => 'Chẩn đoán';
+
+  @override
+  String get medicalRecordSymptoms => 'Triệu chứng';
+
+  @override
+  String get medicalRecordConclusion => 'Kết luận';
+
+  @override
+  String get medicalRecordOrders => 'Phiếu chỉ định';
+
+  @override
+  String get medicalRecordMedicines => 'Thuốc';
+
+  @override
+  String get medicalRecordNoOrders => 'Chưa có phiếu chỉ định';
+
+  @override
+  String get medicalRecordNoMedicines => 'Chưa có thuốc';
+
+  @override
+  String get viewDetails => 'Xem chi tiết';
+
+  @override
+  String get profileUpdateSuccess => 'Cập nhật thông tin thành công!';
+
+  @override
+  String get petCreateSuccess => 'Thêm thú cưng thành công!';
+
+  @override
+  String get petUpdateSuccess => 'Chỉnh sửa thú cưng thành công!';
+
+  @override
+  String get petDeleteSuccess => 'Xóa thú cưng thành công!';
+
+  @override
   String get profile => 'Hồ sơ cá nhân';
 
   @override
@@ -304,6 +433,18 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get choosePetSub => 'Chọn thú cưng cần được thăm khám hôm nay';
+
+  @override
+  String get bookingClinicSub => 'Chọn phòng khám phù hợp cho thú cưng';
+
+  @override
+  String get bookingServiceSub => 'Chọn dịch vụ và nhập triệu chứng bắt buộc';
+
+  @override
+  String get bookingDoctorSub => 'Chọn bác sĩ thú y phù hợp';
+
+  @override
+  String get bookingTimeSub => 'Chọn ngày và khung giờ khám';
 
   @override
   String get stepPet => 'Thú cưng';
@@ -328,6 +469,23 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get history => 'Lịch sử';
+
+  @override
+  String get appointmentEmptyUpcomingTitle => 'Chưa có lịch hẹn sắp tới';
+
+  @override
+  String get appointmentEmptyUpcomingDescription =>
+      'Bạn chưa có lịch hẹn nào. Hãy đặt lịch để theo dõi sức khỏe thú cưng.';
+
+  @override
+  String get appointmentBookNow => 'Đặt lịch ngay';
+
+  @override
+  String get appointmentEmptyHistoryTitle => 'Chưa có lịch sử khám';
+
+  @override
+  String get appointmentEmptyHistoryDescription =>
+      'Các lịch đã hoàn thành hoặc đã hủy sẽ xuất hiện tại đây.';
 
   @override
   String get appointmentDetail => 'Chi tiết lịch hẹn';
@@ -363,6 +521,32 @@ class AppLocalizationsVi extends AppLocalizations {
   String get shareSomething => 'Bạn muốn chia sẻ điều gì về thú cưng hôm nay?';
 
   @override
+  String get chooseTopic => 'Chọn chủ đề';
+
+  @override
+  String get pleaseChooseTopic => 'Vui lòng chọn một chủ đề';
+
+  @override
+  String get noCommentsYet => 'Chưa có bình luận nào';
+
+  @override
+  String replyingTo(Object name) {
+    return 'Đang trả lời $name';
+  }
+
+  @override
+  String get commentHint => 'Viết bình luận...';
+
+  @override
+  String get replyHint => 'Viết câu trả lời...';
+
+  @override
+  String get reply => 'Trả lời';
+
+  @override
+  String get viewReplies => 'Xem câu trả lời';
+
+  @override
   String get post => 'Đăng bài';
 
   @override
@@ -378,6 +562,19 @@ class AppLocalizationsVi extends AppLocalizations {
   String get featuredPosts => 'Bài viết nổi bật';
 
   @override
+  String get editPost => 'Chỉnh sửa bài viết';
+
+  @override
+  String get update => 'Cập nhật';
+
+  @override
+  String get deletePostConfirm =>
+      'Bạn có chắc chắn muốn xóa bài viết này không?';
+
+  @override
+  String get deletePostSuccess => 'Xóa bài viết thành công';
+
+  @override
   String get handbook => 'CẨM NANG';
 
   @override
@@ -387,31 +584,117 @@ class AppLocalizationsVi extends AppLocalizations {
   String get delete => 'Xóa';
 
   @override
-  String get connectionError => 'Lỗi kết nối tới máy chủ';
+  String get confirmDelete => 'Xác nhận xóa';
+
+  @override
+  String deletePetMessage(String name) {
+    return 'Bạn có chắc chắn muốn xóa thú cưng \"$name\" không?';
+  }
+
+  @override
+  String ageYears(int count) {
+    return '$count tuổi';
+  }
+
+  @override
+  String ageMonths(int count) {
+    return '$count tháng';
+  }
+
+  @override
+  String ageDays(int count) {
+    return '$count ngày';
+  }
+
+  @override
+  String ageYearsMonths(int years, int months) {
+    return '$years tuổi $months tháng';
+  }
+
+  @override
+  String get ageDisplayMinimumOneMonth => '1 tháng tuổi';
+
+  @override
+  String ageDisplayYearsMonths(int years, int months) {
+    return '$years năm $months tháng';
+  }
+
+  @override
+  String ageDisplayYearsOnly(int count) {
+    return '$count năm';
+  }
+
+  @override
+  String get ageUnavailable => 'Chưa có';
+
+  @override
+  String get forgotPasswordSubtitle =>
+      'Nhập email của bạn và chúng tôi sẽ gửi mã OTP để đặt lại mật khẩu.';
+
+  @override
+  String get sendOTP => 'Gửi mã OTP';
+
+  @override
+  String get otpLabel => 'Mã OTP';
+
+  @override
+  String pleaseEnter(String field) {
+    return 'Vui lòng nhập $field';
+  }
+
+  @override
+  String pleaseSelect(String field) {
+    return 'Vui lòng chọn $field';
+  }
+
+  @override
+  String get selectSpeciesFirst => 'Chọn loài trước';
+
+  @override
+  String get invalidWeight => 'Vui lòng nhập cân nặng hợp lệ lớn hơn 0';
+
+  @override
+  String get invalidWeightMax => 'Cân nặng tối đa là 99.9 kg';
+
+  @override
+  String get uploadPhoto => 'Tải ảnh';
+
+  @override
+  String get uploadingImage => 'Đang tải ảnh lên, vui lòng đợi...';
+
+  @override
+  String get uploadImageSuccess => 'Tải ảnh thành công!';
+
+  @override
+  String get uploadImageFailed => 'Tải ảnh thất bại. Vui lòng thử lại.';
+
+  @override
+  String get footerCopyright => '© 2026 PetCareX Vietnam';
 
   @override
   String get invalidEmail => 'Email không hợp lệ';
 
   @override
-  String get passwordTooShort => 'Mật khẩu phải từ 6 ký tự trở lên';
+  String get passwordComplexityError =>
+      'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số';
+
+  @override
+  String get otpSent => 'Mã OTP đã được gửi thành công';
+
+  @override
+  String get invalidOtp => 'Mã OTP không đúng';
+
+  @override
+  String get otpExpired => 'Mã OTP đã hết hạn';
+
+  @override
+  String get connectionError => 'Lỗi kết nối tới máy chủ';
 
   @override
   String get passwordsNotMatch => 'Mật khẩu không khớp';
 
   @override
   String get agreeToTermsError => 'Bạn cần đồng ý với điều khoản dịch vụ';
-
-  @override
-  String get uploadSuccess => 'Tải lên thành công';
-
-  @override
-  String get uploadFailed => 'Tải lên thất bại';
-
-  @override
-  String get otpSent => 'Mã OTP đã được gửi thành công';
-
-  @override
-  String get otpError => 'Mã OTP không hợp lệ hoặc đã hết hạn';
 
   @override
   String get validChoosePet => 'Vui lòng chọn một thú cưng để đặt lịch!';
@@ -431,4 +714,221 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get validChooseTime => 'Vui lòng chọn khung giờ khám!';
+
+  @override
+  String get errorUnknown => 'Đã có lỗi xảy ra';
+
+  @override
+  String get errorNetwork =>
+      'Lỗi mạng: Vui lòng kiểm tra lại kết nối Internet.';
+
+  @override
+  String get errorFirebase => 'Lỗi cấu hình hệ thống (Firebase).';
+
+  @override
+  String get errorGoogleAuth => 'Không thể lấy thông tin xác thực từ Google.';
+
+  @override
+  String get servicePeriodicHealthCheck => 'Khám sức khoẻ định kỳ';
+
+  @override
+  String get serviceMedicalExamination => 'Khám bệnh';
+
+  @override
+  String get serviceVaccination => 'Tiêm chủng';
+
+  @override
+  String get serviceDeworming => 'Tẩy giun';
+
+  @override
+  String get serviceUltrasoundAndTest => 'Siêu âm xét nghiệm';
+
+  @override
+  String get serviceSurgery => 'Phẫu thuật';
+
+  @override
+  String get serviceEmergency => 'Cấp cứu';
+
+  @override
+  String get bookingErrorCompleteAllSteps =>
+      'Vui lòng hoàn thành tất cả các bước!';
+
+  @override
+  String get bookingServiceQualityDescription =>
+      'Dịch vụ chăm sóc chất lượng cao';
+
+  @override
+  String get bookingPetSymptomsLabel => 'Triệu chứng của thú cưng ';
+
+  @override
+  String get bookingSymptomsRequiredHelper =>
+      'Bắt buộc nhập để bác sĩ nắm tình trạng trước khi khám.';
+
+  @override
+  String get bookingSymptomsHint =>
+      'Ghi rõ triệu chứng hoặc tình trạng bệnh...';
+
+  @override
+  String get bookingDoctorNotFoundBySpecialty =>
+      'Không tìm thấy bác sĩ cho chuyên môn này';
+
+  @override
+  String get bookingInfo => 'Thông tin';
+
+  @override
+  String get bookingSelectExamDate => 'Chọn ngày khám';
+
+  @override
+  String get bookingMorning => 'Buổi sáng';
+
+  @override
+  String get bookingAfternoon => 'Buổi chiều';
+
+  @override
+  String get bookingTimeMinAdvanceNotice =>
+      'Chỉ được đặt lịch cách thời điểm hiện tại ít nhất 3 tiếng';
+
+  @override
+  String get bookingSummaryInstruction =>
+      'Vui lòng kiểm tra lại thông tin trước khi xác nhận đặt lịch';
+
+  @override
+  String get bookingSummaryTitle => 'Tóm tắt lịch hẹn';
+
+  @override
+  String get bookingSuccessTitle => 'Đặt lịch thành công';
+
+  @override
+  String get bookingSuccessSubtitle =>
+      'Lịch hẹn của bạn đã được đặt! Vui lòng kiểm tra lại thông tin bên dưới';
+
+  @override
+  String get bookingCheckinQrTitle => 'Mã QR check-in';
+
+  @override
+  String get bookingQrInstruction =>
+      'Vui lòng xuất trình mã QR này tại quầy lễ tân khi bạn đến\nđể làm thủ tục check-in nhanh chóng.';
+
+  @override
+  String get specialtyGeneralExamination => 'Khám tổng quát';
+
+  @override
+  String get specialtyInternalMedicine => 'Nội khoa';
+
+  @override
+  String get specialtySurgery => 'Phẫu thuật';
+
+  @override
+  String get specialtyUltrasound => 'Siêu âm';
+
+  @override
+  String get specialtyVaccinationAndPrevention => 'Tiêm phòng & phòng ngừa';
+
+  @override
+  String get invoiceStatusPaid => 'Đã thanh toán';
+
+  @override
+  String get invoiceStatusUnpaid => 'Chưa thanh toán';
+
+  @override
+  String get roleAdmin => 'Quản trị viên';
+
+  @override
+  String get roleAdminClinic => 'Quản trị phòng khám';
+
+  @override
+  String get roleVeterinarian => 'Bác sĩ thú y';
+
+  @override
+  String get roleCustomer => 'Khách hàng';
+
+  @override
+  String get medicineUnitPill => 'Viên nén';
+
+  @override
+  String get medicineUnitBlister => 'Vỉ';
+
+  @override
+  String get medicineUnitCapsule => 'Viên nang';
+
+  @override
+  String get medicineUnitSachet => 'Gói';
+
+  @override
+  String get medicineUnitBottle => 'Chai';
+
+  @override
+  String get medicineUnitVial => 'Lọ';
+
+  @override
+  String get medicineUnitAmpoule => 'Ống';
+
+  @override
+  String get medicineUnitMl => 'ml';
+
+  @override
+  String get medicineUnitMg => 'mg';
+
+  @override
+  String get petSpeciesDog => 'Chó';
+
+  @override
+  String get petSpeciesCat => 'Mèo';
+
+  @override
+  String get petSpeciesBird => 'Chim';
+
+  @override
+  String get petSpeciesRabbit => 'Thỏ';
+
+  @override
+  String get petBreedDogGoldenRetriever => 'Chó Golden Retriever';
+
+  @override
+  String get petBreedDogPoodle => 'Chó Poodle';
+
+  @override
+  String get petBreedDogPomeranian => 'Chó Pomeranian';
+
+  @override
+  String get petBreedDogCorgi => 'Chó Corgi';
+
+  @override
+  String get petBreedDogHusky => 'Chó Husky';
+
+  @override
+  String get petBreedDogLabrador => 'Chó Labrador';
+
+  @override
+  String get petBreedDogShibaInu => 'Chó Shiba Inu';
+
+  @override
+  String get petBreedCatBritishShorthair => 'Mèo Anh lông ngắn';
+
+  @override
+  String get petBreedCatBritishLonghair => 'Mèo Anh lông dài';
+
+  @override
+  String get petBreedCatPersian => 'Mèo Ba Tư';
+
+  @override
+  String get petBreedCatSiamese => 'Mèo Xiêm';
+
+  @override
+  String get petBreedCatBengal => 'Mèo Bengal';
+
+  @override
+  String get petBreedBirdRedWhiskeredBulbul => 'Chào mào';
+
+  @override
+  String get petBreedBirdParrot => 'Vẹt';
+
+  @override
+  String get petBreedBirdBudgerigar => 'Yến phụng';
+
+  @override
+  String get petBreedRabbitDutch => 'Thỏ Dutch';
+
+  @override
+  String get petBreedRabbitLionhead => 'Thỏ Lionhead';
 }

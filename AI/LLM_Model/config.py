@@ -98,6 +98,8 @@ NGUYÊN TẮC QUAN TRỌNG:
 
 Thông tin người dùng nhập vào khi đặt lịch: {symptoms}
 
+Hãy trả lời với 3 phần rõ ràng sau:
+
 1. Đánh giá tình trạng & Cảnh báo:
 (Nêu mức độ nghiêm trọng. Nếu có dấu hiệu nguy kịch, hãy IN ĐẬM cảnh báo khẩn cấp và yêu cầu đi viện ngay. Nếu không, giải thích sơ bộ đây có thể là dấu hiệu của nhóm vấn đề gì - tiêu hóa, hô hấp, thần kinh...).
 
@@ -114,7 +116,7 @@ Hãy phân tích thông tin đặt lịch này giúp tôi.
 <|im_start|>assistant
 """
 
-POSTGRES_DSN = "postgresql://postgres:Hiep01698183444%40@localhost:5432/Petcare"
+POSTGRES_DSN = "postgresql://postgres:123456@localhost:5432/Petcare"
 POSTGRES_DSN = os.getenv("POSTGRES_DSN", POSTGRES_DSN)
 STRUCTURED_DB_TIMEOUT_MS = int(os.getenv("STRUCTURED_DB_TIMEOUT_MS", "800"))
 STRUCTURED_TOP_CLINICS = int(os.getenv("STRUCTURED_TOP_CLINICS", "5"))

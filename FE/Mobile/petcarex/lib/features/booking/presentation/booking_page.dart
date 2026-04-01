@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../core/enums/service_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/app_notifier.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
-import '../../../common/service_enum.dart';
-import '../../../l10n/generated/app_localizations.dart'; // Import mới
+import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
@@ -26,8 +27,8 @@ class BookingPage extends StatefulWidget {
 class _BookingPageState extends State<BookingPage> {
   int _currentStep = 0;
 
-  final List<String> _services = ServiceEnum.values.map((e) => e.value).toList();
-  
+  final List<ServiceEnum> _services = ServiceEnum.values;
+
   late final List<DateTime> _availableDates;
 
   @override
@@ -37,13 +38,15 @@ class _BookingPageState extends State<BookingPage> {
       7,
       (index) => DateTime.now().add(Duration(days: index)),
     );
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PetProvider>().fetchMyPets();
-      final bp = context.read<BookingProvider>();
-      bp.fetchClinics();
-      if (bp.selectedDate == null) {
-        bp.selectDate(_availableDates[0]);
+      if (mounted) {
+        context.read<PetProvider>().fetchMyPets();
+        final bp = context.read<BookingProvider>();
+        bp.fetchClinics();
+        if (bp.selectedDate == null) {
+          bp.selectDate(_availableDates[0]);
+        }
       }
     });
   }
@@ -51,12 +54,12 @@ class _BookingPageState extends State<BookingPage> {
   void _nextStep(AppLocalizations l10n) async {
     final bookingProvider = context.read<BookingProvider>();
 
-    if (_currentStep == 0 && bookingProvider.selectedPetId == null) {
-      _showError(l10n.validChoosePet);
+    if (_currentStep == 0 && bookingProvider.selectedClinic == null) {
+      _showError(l10n.validChooseClinic);
       return;
     }
-    if (_currentStep == 1 && bookingProvider.selectedClinic == null) {
-      _showError(l10n.validChooseClinic);
+    if (_currentStep == 1 && bookingProvider.selectedPetId == null) {
+      _showError(l10n.validChoosePet);
       return;
     }
     if (_currentStep == 2) {
@@ -64,7 +67,8 @@ class _BookingPageState extends State<BookingPage> {
         _showError(l10n.validChooseService);
         return;
       }
-      if (bookingProvider.symptomsNote == null || bookingProvider.symptomsNote!.trim().isEmpty) {
+      if (bookingProvider.symptomsNote == null ||
+          bookingProvider.symptomsNote!.trim().isEmpty) {
         _showError(l10n.validEnterNote);
         return;
       }
@@ -90,20 +94,26 @@ class _BookingPageState extends State<BookingPage> {
       if (success) {
         setState(() => _currentStep = 6);
       } else {
-        _showError(bookingProvider.errorMessage ?? l10n.failed);
+        _showError(_resolveBookingError(bookingProvider.errorMessage, l10n));
       }
+    }
+  }
+
+  String _resolveBookingError(String? errorKey, AppLocalizations l10n) {
+    switch (errorKey) {
+      case 'bookingErrorCompleteAllSteps':
+        return l10n.bookingErrorCompleteAllSteps;
+      default:
+        return errorKey ?? l10n.failed;
     }
   }
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).clearSnackBars();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        duration: const Duration(milliseconds: 2500),
-        behavior: SnackBarBehavior.floating,
-      ),
+    AppNotifier.showError(
+      context,
+      msg,
+      duration: const Duration(milliseconds: 2500),
     );
   }
 
@@ -122,8 +132,8 @@ class _BookingPageState extends State<BookingPage> {
     final l10n = AppLocalizations.of(context)!;
     final isSuccess = _currentStep == 6;
     final List<String> steps = [
-      l10n.stepPet,
       l10n.stepClinic,
+      l10n.stepPet,
       l10n.stepService,
       l10n.stepDoctor,
       l10n.stepTime,
@@ -138,7 +148,7 @@ class _BookingPageState extends State<BookingPage> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.appBarBackground,
           elevation: 0,
           centerTitle: true,
           automaticallyImplyLeading: false,
@@ -169,9 +179,7 @@ class _BookingPageState extends State<BookingPage> {
                 }
               },
             ),
-            Expanded(
-              child: _buildMainContent(l10n),
-            ),
+            Expanded(child: _buildMainContent(l10n)),
           ],
         ),
         bottomNavigationBar: _buildBottomSection(l10n),
@@ -185,31 +193,45 @@ class _BookingPageState extends State<BookingPage> {
 
     if (_currentStep == 6) {
       final res = bookingProvider.appointmentResult;
+      final rawService = res?['service'] ?? '';
+      final translatedService =
+          ServiceEnum.fromValue(rawService)?.getTranslatedName(context) ??
+          rawService;
+      final rawAppointmentTime = (res?['appointmentTime'] ?? '').toString();
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSuccess(
           petName: res?['pet']?['name'] ?? '',
           clinicName: res?['clinic']?['name'] ?? '',
-          serviceName: res?['service'] ?? '',
+          serviceName: translatedService,
           doctorName: res?['veterinarian']?['user']?['fullName'] ?? '',
-          time: (res?['appointmentTime'] ?? '').toString().substring(0, 5),
+          time: _formatAppointmentTime(rawAppointmentTime),
           date:
-              DateTime.tryParse(res?['appointmentDate'] ?? '') ?? DateTime.now(),
+              DateTime.tryParse(res?['appointmentDate'] ?? '') ??
+              DateTime.now(),
         ),
       );
     }
 
     if (_currentStep == 5) {
-      final pet = petProvider.myPets.any((p) => p.id == bookingProvider.selectedPetId)
-          ? petProvider.myPets.firstWhere((p) => p.id == bookingProvider.selectedPetId)
+      final pet =
+          petProvider.myPets.any((p) => p.id == bookingProvider.selectedPetId)
+          ? petProvider.myPets.firstWhere(
+              (p) => p.id == bookingProvider.selectedPetId,
+            )
           : null;
+
+      final rawService = bookingProvider.selectedServiceName ?? '';
+      final translatedService =
+          ServiceEnum.fromValue(rawService)?.getTranslatedName(context) ??
+          rawService;
 
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSummary(
           petName: pet?.name ?? l10n.stepPet,
           clinicName: bookingProvider.selectedClinic?.name ?? '',
-          serviceName: bookingProvider.selectedServiceName ?? '',
+          serviceName: translatedService,
           doctorName: bookingProvider.selectedDoctor?.user.fullName ?? '',
           time: bookingProvider.selectedTime ?? '',
           date: bookingProvider.selectedDate ?? DateTime.now(),
@@ -222,9 +244,38 @@ class _BookingPageState extends State<BookingPage> {
       slivers: [
         _buildStepHeaderSliver(l10n),
         _buildStepContentSliver(),
-        const SliverToBoxAdapter(child: SizedBox(height: 20)),
+        const SliverToBoxAdapter(child: SizedBox(height: 50)),
       ],
     );
+  }
+
+  String _formatAppointmentTime(String rawTime) {
+    final normalized = rawTime.trim();
+    if (normalized.isEmpty) {
+      return '';
+    }
+
+    final parts = normalized.split(':');
+    if (parts.length >= 2) {
+      final hour = int.tryParse(parts[0].trim());
+      final minute = int.tryParse(parts[1].trim());
+
+      if (hour != null && minute != null) {
+        return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      }
+    }
+
+    return normalized;
+  }
+
+  void _closeSuccessAndGoToAppointments(BookingProvider bookingProvider) {
+    bookingProvider.reset();
+
+    if (mounted) {
+      setState(() => _currentStep = 0);
+    }
+
+    MainNavigationWrapper.of(context)?.setSelectedIndex(2);
   }
 
   Widget _buildStepContentSliver() {
@@ -234,20 +285,11 @@ class _BookingPageState extends State<BookingPage> {
     Widget content;
     switch (_currentStep) {
       case 0:
-        if (petProvider.isLoading) {
-          content = const Center(child: CircularProgressIndicator());
-        } else {
-          content = StepPetSelector(
-            selectedPetId: bookingProvider.selectedPetId,
-            onSelected: (pet) => bookingProvider.selectPet(pet.id),
-            pets: petProvider.myPets,
-          );
-        }
-        break;
-      case 1:
         if (bookingProvider.isLoading && bookingProvider.clinics.isEmpty) {
           return const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           );
         }
         content = StepClinicSelector(
@@ -255,6 +297,19 @@ class _BookingPageState extends State<BookingPage> {
           onSelected: (clinic) => bookingProvider.selectClinic(clinic),
           clinics: bookingProvider.clinics,
         );
+        break;
+      case 1:
+        if (petProvider.isLoading) {
+          content = const Center(
+            child: CircularProgressIndicator(color: AppColors.primary),
+          );
+        } else {
+          content = StepPetSelector(
+            selectedPetId: bookingProvider.selectedPetId,
+            onSelected: (pet) => bookingProvider.selectPet(pet.id),
+            pets: petProvider.myPets,
+          );
+        }
         break;
       case 2:
         content = StepServiceSelector(
@@ -268,7 +323,9 @@ class _BookingPageState extends State<BookingPage> {
       case 3:
         if (bookingProvider.isDoctorsLoading) {
           return const SliverFillRemaining(
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary),
+            ),
           );
         }
         content = StepDoctorSelector(
@@ -279,8 +336,9 @@ class _BookingPageState extends State<BookingPage> {
         break;
       case 4:
         int dateIdx = bookingProvider.selectedDate != null
-            ? _availableDates
-                .indexWhere((d) => d.day == bookingProvider.selectedDate!.day)
+            ? _availableDates.indexWhere(
+                (d) => d.day == bookingProvider.selectedDate!.day,
+              )
             : 0;
         if (dateIdx == -1) dateIdx = 0;
 
@@ -304,18 +362,18 @@ class _BookingPageState extends State<BookingPage> {
 
   Widget _buildStepHeaderSliver(AppLocalizations l10n) {
     final titles = [
-      l10n.choosePet,
       l10n.stepClinic,
+      l10n.choosePet,
       l10n.stepService,
-      l10n.doctor,
+      l10n.stepDoctor,
       l10n.stepTime,
     ];
     final subs = [
+      l10n.bookingClinicSub,
       l10n.choosePetSub,
-      l10n.stepClinic,
-      l10n.stepService,
-      l10n.doctor,
-      l10n.stepTime,
+      l10n.bookingServiceSub,
+      l10n.bookingDoctorSub,
+      l10n.bookingTimeSub,
     ];
 
     return SliverPadding(
@@ -326,12 +384,16 @@ class _BookingPageState extends State<BookingPage> {
           children: [
             Text(
               titles[_currentStep],
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textDark,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               subs[_currentStep],
-              style: TextStyle(fontSize: 13, color: Colors.grey.shade500),
+              style: const TextStyle(fontSize: 13, color: AppColors.textGrey),
             ),
           ],
         ),
@@ -344,10 +406,10 @@ class _BookingPageState extends State<BookingPage> {
     final isSuccess = _currentStep == 6;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+      padding: const EdgeInsets.fromLTRB(20, 5, 20, 0),
       decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFF1F1F1))),
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.divider)),
       ),
       child: SizedBox(
         width: double.infinity,
@@ -356,15 +418,13 @@ class _BookingPageState extends State<BookingPage> {
           onPressed: bookingProvider.isLoading
               ? null
               : (isSuccess
-                  ? () {
-                      bookingProvider.reset();
-                      setState(() => _currentStep = 0);
-                      MainNavigationWrapper.of(context)?.setSelectedIndex(2);
-                    }
-                  : () => _nextStep(l10n)),
+                    ? () => _closeSuccessAndGoToAppointments(bookingProvider)
+                    : () => _nextStep(l10n)),
           style: ElevatedButton.styleFrom(
-            backgroundColor: isSuccess ? Colors.white : AppColors.primary,
-            foregroundColor: isSuccess ? AppColors.primary : Colors.white,
+            backgroundColor: isSuccess ? AppColors.surface : AppColors.primary,
+            foregroundColor: isSuccess
+                ? AppColors.primary
+                : AppColors.onPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(27),
             ),
@@ -375,10 +435,13 @@ class _BookingPageState extends State<BookingPage> {
           ),
           child: bookingProvider.isLoading
               ? const SizedBox(
-                  height: 20,
-                  width: 20,
+                  height: 24,
+                  width: 24,
                   child: CircularProgressIndicator(
-                      color: Colors.white, strokeWidth: 2))
+                    color: AppColors.onPrimary,
+                    strokeWidth: 2,
+                  ),
+                )
               : Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -386,8 +449,8 @@ class _BookingPageState extends State<BookingPage> {
                       isSuccess
                           ? l10n.close
                           : (_currentStep == 5
-                              ? l10n.confirmAppointment
-                              : l10n.continueBtn),
+                                ? l10n.confirmAppointment
+                                : l10n.continueBtn),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -396,7 +459,7 @@ class _BookingPageState extends State<BookingPage> {
                     if (!isSuccess && _currentStep < 5) ...[
                       const SizedBox(width: 8),
                       const Icon(Icons.arrow_forward, size: 20),
-                    ]
+                    ],
                   ],
                 ),
         ),

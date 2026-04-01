@@ -1,7 +1,8 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../common/veterinary_specialty_enum.dart';
+import '../../../../core/enums/veterinary_specialty_enum.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/models/booking_models.dart';
 
 class StepDoctorSelector extends StatefulWidget {
@@ -21,15 +22,16 @@ class StepDoctorSelector extends StatefulWidget {
 }
 
 class _StepDoctorSelectorState extends State<StepDoctorSelector> {
-  String _selectedSpecialty = 'Tất cả';
+  String? _selectedSpecialty;
 
   @override
   Widget build(BuildContext context) {
-    final filteredDoctors = _selectedSpecialty == 'Tất cả'
+    final l10n = AppLocalizations.of(context)!;
+    final filteredDoctors = _selectedSpecialty == null
         ? widget.doctors
         : widget.doctors
-            .where((d) => d.specialty == _selectedSpecialty)
-            .toList();
+              .where((d) => d.specialty == _selectedSpecialty)
+              .toList();
 
     return Column(
       children: [
@@ -38,20 +40,23 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: [
-              _buildFilterChip('Tất cả'),
+              _buildFilterChip(label: l10n.all, value: null),
               ...VeterinarySpecialtyEnum.values.map(
-                (specialty) => _buildFilterChip(specialty.value),
+                (specialty) => _buildFilterChip(
+                  label: specialty.getTranslatedName(context),
+                  value: specialty.value,
+                ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
         if (filteredDoctors.isEmpty)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
             child: Text(
-              'Không tìm thấy bác sĩ cho chuyên môn này',
-              style: TextStyle(color: Colors.grey),
+              l10n.bookingDoctorNotFoundBySpecialty,
+              style: const TextStyle(color: AppColors.textGrey),
             ),
           )
         else
@@ -71,12 +76,12 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    bool isSelected = _selectedSpecialty == label;
+  Widget _buildFilterChip({required String label, required String? value}) {
+    bool isSelected = _selectedSpecialty == value;
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedSpecialty = label;
+          _selectedSpecialty = value;
         });
       },
       child: Container(
@@ -155,8 +160,14 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Text(
-                    sub,
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                    VeterinarySpecialtyEnum.fromValue(
+                          sub,
+                        )?.getTranslatedName(context) ??
+                        sub,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textGrey,
+                    ),
                   ),
                 ],
               ),
@@ -164,14 +175,17 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
             if (isSel) const Icon(Icons.check_circle, color: AppColors.primary),
             if (!isSel)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
+                  color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  'Thông tin',
-                  style: TextStyle(
+                child: Text(
+                  AppLocalizations.of(context)!.bookingInfo,
+                  style: const TextStyle(
                     color: AppColors.primary,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,

@@ -8,6 +8,8 @@ import { MedicalRecordOrder } from './entities/medical-record-order.entity';
 import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
 import { MailModule } from 'src/mail/mail.module';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { BullModule } from '@nestjs/bullmq';
+import { QueueNameEnum } from 'src/common/enums/queue.enum';
 
 @Module({
   imports: [
@@ -17,6 +19,9 @@ import { Invoice } from 'src/invoice/entities/invoice.entity';
       MedicalRecordMedicine,
       Invoice,
     ]),
+    BullModule.registerQueue({
+      name: QueueNameEnum.EMAIL,
+    }),
     UserModule,
     MailModule,
   ],

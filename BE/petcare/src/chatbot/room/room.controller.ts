@@ -1,4 +1,9 @@
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+} from '@nestjs/swagger';
 import { RoomService } from './room.service';
 import {
   Body,
@@ -86,24 +91,21 @@ export class RoomController {
   @ApiBody({
     type: UpdateRoomDTO,
   })
-  async updateRoom(
+  updateRoom(
     @Body() updateDTO: UpdateRoomDTO,
     @Req() req,
-    @Param(':id') id: string,
+    @Param('id') id: string,
   ) {
-    await this.roomService.updateRoom(updateDTO, id, req?.user?.id);
-
-    return {
-      message: 'Sửa tên đoạn chat thành công',
-    };
+    return this.roomService.updateRoom(updateDTO, id, req?.user?.id);
   }
 
   @Delete(':id')
   @ApiOperation({ summary: 'Xoá đoạn chat' })
-  async deleteRoom(@Req() req, @Param(':id') id: string) {
+  async deleteRoom(@Req() req, @Param('id') id: string) {
     await this.roomService.deleteRoom(id, req?.user?.id);
 
     return {
+      roomId: id,
       message: 'Xoá đoạn chat thành công',
     };
   }

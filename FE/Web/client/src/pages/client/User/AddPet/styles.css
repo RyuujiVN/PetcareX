@@ -1,0 +1,361 @@
+﻿body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body::-webkit-scrollbar {
+  display: none;
+}
+
+.addPets-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: white;
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding-top: 80px;
+}
+
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-name-small {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.addPets-card {
+  background: linear-gradient(white);
+  border: 1px solid  var(--border-color);
+  border-radius: 12px;
+  box-shadow: none;
+  padding: 30px 50px;
+  width: 200%;
+  max-width: 800px;
+  animation: fadeIn 0.5s ease-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-top: 1px solid var(--c-ffffff);
+}
+
+.addPets-header {
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.addPets-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.addPets-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.addPets-form {
+  width: 100%;
+  max-width: 750px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.upload-group {
+  margin-bottom: 30px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-0f172a);
+  margin-bottom: 8px;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.form-input {
+  width: 100%;
+  height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--c-cbd5e1);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--c-0f172a);
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+select.form-input,
+input.form-input[type="number"],
+input.form-input[type="text"] {
+  height: 44px;
+}
+
+.form-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--auto-rgba-131-197-206-0-1);
+}
+
+.form-input::placeholder {
+  color: var(--c-cbd5e1);
+}
+
+.basic-info-section {
+  background: var(--color-surface-card);
+  padding: 20px 25px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.section-title-small {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin-bottom: 15px;
+}
+
+.grid-two-column {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 30px;
+}
+
+.form-groups {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-input-wrapper {
+  position: relative;
+}
+
+.date-input {
+  padding-right: 40px;
+}
+
+.date-picker-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--c-475569);
+}
+
+.age-display {
+  background: var(--c-f8fafc);
+  cursor: not-allowed;
+}
+
+.gender-radio-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.gender-radio {
+  width: 100%;
+  height: 40px;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px !important;
+  font-size: 16px;
+}
+
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  width: 100%;
+  max-width: 750px;
+}
+
+.cancel-button {
+  padding: 12px 20px;
+  background: transparent;
+  border: 1px solid var(--primary);
+  border-radius: 6px;
+  color: var(--c-475569);
+  font-size: 14px;
+  cursor: pointer;
+  margin-left: 60%;
+}
+.cancel-button:hover {
+  background: var(--color-surface-soft);
+  color: var(--primary);
+}
+
+.cancel-button:disabled,
+.submit-button:disabled,
+.choose-file-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.submit-button {
+  padding: 12px 20px;
+  background: var(--primary);
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.upload-group .upload-box {
+  border: 2px dashed var(--c-cbd5e1);
+  background-color: aliceblue;
+  border-radius: 6px;
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  text-align: center;
+}
+
+.date-age-input-wrapper {
+  position: relative;
+}
+
+.date-age-display {
+  padding-right: 44px;
+}
+
+.date-picker-button {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  color: var(--c-475569);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.hidden-date-input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.upload-box:hover {
+  background: var(--color-surface-soft);
+}
+
+.upload-text {
+  margin-top: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.choose-file-button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.hidden-file-input {
+  display: none;
+}
+
+.avatar-preview {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 900px) {
+  .addPets-card {
+    padding: 60px 40px;
+    max-width: 100%;
+  }
+
+  .grid-two-column {
+    grid-template-columns: 1fr;
+  }
+}
+
+.error-text {
+  color: var(--color-danger);
+  font-size: 13px;
+  margin-top: 5px;
+}
+.spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid white;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 8px;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.date-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
+
+.date-input::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+ .ant-select {
+  width: 100% !important;
+}
+
+

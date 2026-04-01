@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/app_notifier.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class StepTimeSelector extends StatelessWidget {
   final int selectedDateIndex;
@@ -20,8 +23,16 @@ class StepTimeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final morningSlots = ["08:00", "08:30", "09:00", "09:30", "10:00", "10:30"];
-    final afternoonSlots = ["14:00", "14:30", "15:00", "15:30", "16:00", "16:30"];
+    final afternoonSlots = [
+      "14:00",
+      "14:30",
+      "15:00",
+      "15:30",
+      "16:00",
+      "16:30",
+    ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -29,20 +40,23 @@ class StepTimeSelector extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text(
-              "Chọn ngày khám",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Text(
+              l10n.bookingSelectExamDate,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             Row(
               children: [
                 const Icon(Icons.chevron_left, size: 20),
                 Text(
-                  "Tháng ${availableDates[selectedDateIndex].month}, ${availableDates[selectedDateIndex].year}",
+                  DateFormat(
+                    'MMMM, y',
+                    l10n.localeName,
+                  ).format(availableDates[selectedDateIndex]),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const Icon(Icons.chevron_right, size: 20),
               ],
-            )
+            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -51,18 +65,21 @@ class StepTimeSelector extends StatelessWidget {
           child: Row(
             children: List.generate(
               availableDates.length,
-              (index) => _dateItem(index),
+              (index) => _dateItem(context, index),
             ),
           ),
         ),
         const SizedBox(height: 32),
-        const Row(
+        Row(
           children: [
-            Icon(Icons.wb_sunny_outlined, color: Colors.orange, size: 20),
-            SizedBox(width: 8),
+            const Icon(Icons.wb_sunny_outlined, color: Colors.orange, size: 20),
+            const SizedBox(width: 8),
             Text(
-              "Buổi sáng",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
+              l10n.bookingMorning,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.orange,
+              ),
             ),
           ],
         ),
@@ -70,16 +87,21 @@ class StepTimeSelector extends StatelessWidget {
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: morningSlots.map((time) => _timeSlot(context, time)).toList(),
+          children: morningSlots
+              .map((time) => _timeSlot(context, time))
+              .toList(),
         ),
         const SizedBox(height: 24),
-        const Row(
+        Row(
           children: [
-            Icon(Icons.nightlight_round, color: Colors.indigo, size: 20),
-            SizedBox(width: 8),
+            const Icon(Icons.nightlight_round, color: Colors.indigo, size: 20),
+            const SizedBox(width: 8),
             Text(
-              "Buổi chiều",
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.indigo),
+              l10n.bookingAfternoon,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                color: Colors.indigo,
+              ),
             ),
           ],
         ),
@@ -87,15 +109,18 @@ class StepTimeSelector extends StatelessWidget {
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: afternoonSlots.map((time) => _timeSlot(context, time)).toList(),
+          children: afternoonSlots
+              .map((time) => _timeSlot(context, time))
+              .toList(),
         ),
       ],
     );
   }
 
-  Widget _dateItem(int index) {
+  Widget _dateItem(BuildContext context, int index) {
     DateTime date = availableDates[index];
     bool isSel = selectedDateIndex == index;
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => onDateSelected(index),
       child: Container(
@@ -111,17 +136,17 @@ class StepTimeSelector extends StatelessWidget {
           boxShadow: isSel
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withOpacity(0.3),
+                    color: AppColors.primary.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ]
               : null,
         ),
         child: Column(
           children: [
             Text(
-              date.weekday == 7 ? "CN" : "T${date.weekday + 1}",
+              DateFormat('EEE', l10n.localeName).format(date),
               style: TextStyle(
                 fontSize: 12,
                 color: isSel ? Colors.white70 : Colors.grey,
@@ -144,6 +169,7 @@ class StepTimeSelector extends StatelessWidget {
   }
 
   Widget _timeSlot(BuildContext context, String time) {
+    final l10n = AppLocalizations.of(context)!;
     DateTime now = DateTime.now();
     DateTime selectedD = availableDates[selectedDateIndex];
     int hour = int.parse(time.split(':')[0]);
@@ -163,16 +189,15 @@ class StepTimeSelector extends StatelessWidget {
 
     bool isSel = selectedTime == time;
     return GestureDetector(
-      onTap: isPast ? () {
-        ScaffoldMessenger.of(context).clearSnackBars();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Chỉ được đặt lịch cách thời điểm hiện tại ít nhất 3 tiếng'),
-            duration: Duration(milliseconds: 2500), 
-            behavior: SnackBarBehavior.floating, 
-          ),
-        );
-      } : () => onTimeSelected(time),
+      onTap: isPast
+          ? () {
+              AppNotifier.showError(
+                context,
+                l10n.bookingTimeMinAdvanceNotice,
+                duration: const Duration(milliseconds: 2500),
+              );
+            }
+          : () => onTimeSelected(time),
       child: Container(
         width: (MediaQuery.of(context).size.width - 64) / 3,
         padding: const EdgeInsets.symmetric(vertical: 14),
