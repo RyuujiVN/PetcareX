@@ -61,6 +61,34 @@ export const updateVeterinarianAppointmentStatusApi = (appointmentId, payload) =
 	return instance.patch(`/appointment/${appointmentId}`, payload).then((response) => response.data)
 }
 
+export const getVeterinarianServerNowApi = async () => {
+	const response = await instance.get('/appointment', {
+		params: {
+			page: 1,
+			limit: 1,
+		},
+	})
+
+	const headerDate = response?.headers?.date
+	if (headerDate) {
+		const parsedHeader = Date.parse(headerDate)
+		if (!Number.isNaN(parsedHeader)) {
+			return parsedHeader
+		}
+	}
+
+	const payloadNow =
+		response?.data?.serverTime || response?.data?.now || response?.data?.timestamp || response?.data?.currentTime
+	if (payloadNow) {
+		const parsedPayload = Date.parse(String(payloadNow))
+		if (!Number.isNaN(parsedPayload)) {
+			return parsedPayload
+		}
+	}
+
+	return null
+}
+
 export const deleteVeterinarianAppointmentApi = (appointmentId) => {
 	return instance.delete(`/appointment/${appointmentId}`).then((response) => response.data)
 }

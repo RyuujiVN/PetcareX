@@ -18,6 +18,10 @@
 	padding-right: 4px;
 }
 
+.editLockAlert {
+	margin-bottom: 12px;
+}
+
 .loadingWrap {
 	min-height: 420px;
 	display: grid;

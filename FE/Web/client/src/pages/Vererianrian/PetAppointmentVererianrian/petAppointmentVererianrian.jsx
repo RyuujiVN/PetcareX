@@ -5,13 +5,12 @@ import {
   LeftOutlined,
   RightOutlined,
 } from '@ant-design/icons'
-import { Avatar, Button, Card, Col, Flex, message, Modal, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
+import { Avatar, Button, Card, Col, Flex, message, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
   APPOINTMENT_STATUS,
   getVeterinarianAppointmentsApi,
-  updateVeterinarianAppointmentStatusApi,
 } from '../../../data/Vererianrian/api/appointmentApi'
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './petAppointmentVererianrian.module.css'
@@ -64,6 +63,7 @@ const toRow = (item) => {
     petAvatar: pet?.avatar || '',
     service: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),
     time: normalizeTime(item?.appointmentTime),
+    medicalId: item?.medical?.id || '',
   }
 }
 
@@ -215,61 +215,26 @@ export default function PetAppointmentVererianrian() {
 
   const totalPages = Math.max(1, Math.ceil(filteredAppointments.length / PAGE_SIZE))
 
-  const syncStatus = async (appointmentId, nextStatus) => {
-    await updateVeterinarianAppointmentStatusApi(appointmentId, { status: nextStatus })
-    await fetchTodayAppointments()
+  const openExamFormInNewTab = (appointmentId) => {
+    if (!appointmentId) return
+    const url = `/veterinarian/exam-forms/create?appointmentId=${encodeURIComponent(String(appointmentId))}`
+    window.open(url, '_blank')
   }
 
   const handleStart = async (appointment) => {
     if (!appointment?.id) return
 
-    try {
-      await syncStatus(appointment.id, APPOINTMENT_STATUS.IN_PROGRESS)
-      message.success('Đã bắt đầu khám')
-    } catch (error) {
-      message.error(error?.message || 'Không thể bắt đầu khám')
-    }
-  }
-
-  const handleCancel = (appointment) => {
-    if (!appointment?.id) return
-
-    Modal.confirm({
-      title: 'Bạn có muốn hủy lịch hẹn này không?',
-      content: 'Lịch hẹn sẽ được chuyển sang trạng thái đã hủy.',
-      okText: 'Xác nhận hủy',
-      cancelText: 'Không',
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await syncStatus(appointment.id, APPOINTMENT_STATUS.CANCELLED)
-          message.success('Đã hủy lịch hẹn')
-        } catch (error) {
-          message.error(error?.message || 'Không thể hủy lịch hẹn')
-        }
-      },
-    })
-  }
-
-  const handleFinish = async (appointment) => {
-    if (!appointment?.id) return
-
-    try {
-      await syncStatus(appointment.id, APPOINTMENT_STATUS.COMPLETED)
-      message.success('Đã hoàn tất lịch khám, trạng thái thanh toán do Admin Clinic xử lý')
-    } catch (error) {
-      message.error(error?.message || 'Không thể hoàn tất lịch khám')
-    }
+    openExamFormInNewTab(appointment.id)
   }
 
   const getActionButtons = (appointment) => {
     if (appointment.status === APPOINTMENT_STATUS.IN_PROGRESS) {
       return {
-        primaryLabel: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
-        secondaryLabel: 'Xong',
-        onPrimary: () => undefined,
-        onSecondary: () => handleFinish(appointment),
-        disablePrimary: true,
+        primaryLabel: 'Bắt đầu khám',
+        secondaryLabel: '',
+        onPrimary: () => handleStart(appointment),
+        onSecondary: () => undefined,
+        disablePrimary: false,
       }
     }
 
@@ -285,9 +250,9 @@ export default function PetAppointmentVererianrian() {
 
     return {
       primaryLabel: 'Bắt đầu khám',
-      secondaryLabel: 'Hủy',
+      secondaryLabel: '',
       onPrimary: () => handleStart(appointment),
-      onSecondary: () => handleCancel(appointment),
+      onSecondary: () => undefined,
       disablePrimary: false,
     }
   }

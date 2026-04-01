@@ -9,6 +9,7 @@ import {
 	WarningOutlined
 } from '@ant-design/icons'
 import {
+	Alert,
 	Button,
 	Card,
 	Col,
@@ -30,15 +31,21 @@ import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authSto
 import {
 	APPOINTMENT_STATUS,
 	getVeterinarianAppointmentsApi,
+	getVeterinarianServerNowApi,
 	updateVeterinarianAppointmentStatusApi,
 } from '../../../data/Vererianrian/api/appointmentApi'
 import {
 	createMedicalMedicineApi,
 	createMedicalOrderApi,
 	createMedicalRecordApi,
+	deleteMedicalOrder,
+	deleteMedicine,
+	getMedicalById,
 	getMedicalByPetId,
 	getMedicalOrderCatalogApi,
+	getMedicalOrdersByMedicalId,
 	getMedicineCatalogApi,
+	getMedicinesByMedicalId,
 	updateMedicalRecordApi,
 } from '../../../data/Vererianrian/api/medicalApi'
 import {
@@ -49,6 +56,8 @@ import { getVeterinarianUserByIdApi } from '../../../data/Vererianrian/api/userA
 import { getBreedLabel, getSpeciesLabel } from '../../../data/client/api/petApi'
 import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
+
+const EDITABLE_DURATION_SECONDS = 15 * 60
 
 const normalizeCollection = (payload) => {
 	if (Array.isArray(payload)) return payload
@@ -94,18 +103,49 @@ const buildConclusionText = (summary) => {
 	return normalizedSummary
 }
 
-const buildInitialValues = (appointment, latestMedical) => {
+const parseDateToMs = (value) => {
+	if (!value) return null
+	const parsed = Date.parse(String(value))
+	if (Number.isNaN(parsed)) return null
+	return parsed
+}
+
+const formatRemainingTime = (seconds) => {
+	const safeSeconds = Math.max(0, Number(seconds) || 0)
+	const minutes = Math.floor(safeSeconds / 60)
+	const remainSeconds = safeSeconds % 60
+	return `${String(minutes).padStart(2, '0')}:${String(remainSeconds).padStart(2, '0')}`
+}
+
+const buildInitialValues = (appointment, latestMedical, editableMedicalRecord, editableOrders, editableMedicines) => {
 	const pet = appointment?.petRaw || appointment?.pet || {}
 	const owner = pet?.owner || {}
-	const latestWeight = toNumberOrUndefined(latestMedical?.weight)
+	const latestWeight = toNumberOrUndefined(editableMedicalRecord?.weight ?? latestMedical?.weight)
 	const petWeight = toNumberOrUndefined(pet?.weight)
 	const serviceLabel = appointment?.service
 		? getServiceLabel(appointment.service, appointment.service)
 		: appointment?.formName || ''
+	const medicalOrders = Array.isArray(editableOrders)
+		? editableOrders
+				.map((item) => ({
+					medicalOrderId: item?.medicalOrderId || item?.medicalOrder?.id || undefined,
+					note: item?.note || '',
+				}))
+				.filter((item) => item.medicalOrderId || item.note)
+		: []
+	const medicines = Array.isArray(editableMedicines)
+		? editableMedicines
+				.map((item) => ({
+					medicineId: item?.medicineId || item?.medicine?.id || undefined,
+					quantity: toNumberOrUndefined(item?.quantity),
+					frequency: item?.note || '',
+				}))
+				.filter((item) => item.medicineId || item.quantity || item.frequency)
+		: []
 
 	return {
 		formName: serviceLabel,
-		followUpDate: null,
+		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
 		customerName: appointment?.ownerName || owner?.fullName || '',
 		email: owner?.email || appointment?.ownerEmail || '',
 		phone: normalizePhone(owner?.phone || ''),
@@ -113,21 +153,21 @@ const buildInitialValues = (appointment, latestMedical) => {
 		species: pet?.species || undefined,
 		breed: pet?.breed || undefined,
 		weight: latestWeight ?? petWeight,
-		temperature: undefined,
-		heartRate: undefined,
-		systolic: undefined,
-		diastolic: undefined,
-		clinicalSymptoms: '',
-		preliminaryDiagnosis: '',
-		conclusionSummary: '',
-		note: '',
-		medicalOrders: [
+		temperature: toNumberOrUndefined(editableMedicalRecord?.temperature),
+		heartRate: toNumberOrUndefined(editableMedicalRecord?.heartRate),
+		systolic: toNumberOrUndefined(editableMedicalRecord?.systolic),
+		diastolic: toNumberOrUndefined(editableMedicalRecord?.diastolic),
+		clinicalSymptoms: editableMedicalRecord?.symptoms || '',
+		preliminaryDiagnosis: editableMedicalRecord?.diagnosis || '',
+		conclusionSummary: editableMedicalRecord?.conclusion || '',
+		note: editableMedicalRecord?.note || '',
+		medicalOrders: medicalOrders.length > 0 ? medicalOrders : [
 			{
 				medicalOrderId: undefined,
 				note: '',
 			},
 		],
-		medicines: [
+		medicines: medicines.length > 0 ? medicines : [
 			{
 				medicineId: undefined,
 				quantity: undefined,
@@ -149,6 +189,7 @@ const toAppointmentViewModel = (item) => {
 		ownerId: owner?.id,
 		ownerEmail: owner?.email || '',
 		formName: getServiceLabel(item?.service, item?.service),
+		medical: item?.medical || null,
 		petRaw: pet,
 	}
 }
@@ -169,12 +210,22 @@ export default function RecordExaminationForm() {
 	const [speciesOptions, setSpeciesOptions] = useState([])
 	const [breedOptions, setBreedOptions] = useState([])
 	const [latestMedicalRecord, setLatestMedicalRecord] = useState(null)
+	const [editableMedicalRecord, setEditableMedicalRecord] = useState(null)
+	const [editableMedicalOrders, setEditableMedicalOrders] = useState([])
+	const [editableMedicines, setEditableMedicines] = useState([])
+	const [serverTimeOffsetMs, setServerTimeOffsetMs] = useState(0)
+	const [serverTimeSynced, setServerTimeSynced] = useState(false)
+	const [remainingEditableSeconds, setRemainingEditableSeconds] = useState(EDITABLE_DURATION_SECONDS)
 	const [isDirty, setIsDirty] = useState(false)
 	const initialSnapshotRef = useRef('')
 
 	const appointmentId = searchParams.get('appointmentId')
 	const appointmentOwnerId = appointment?.ownerId || appointment?.petRaw?.owner?.id
 	const appointmentOwnerEmail = appointment?.ownerEmail || appointment?.petRaw?.owner?.email
+	const editableMedicalId = editableMedicalRecord?.id || appointment?.medical?.id || ''
+	const editableMedicalCreatedAtMs = parseDateToMs(editableMedicalRecord?.createdAt)
+	const missingServerCreatedAt = Boolean(editableMedicalId) && !editableMedicalCreatedAtMs
+	const isLockedByTime = Boolean(editableMedicalId) && Boolean(editableMedicalCreatedAtMs) && remainingEditableSeconds <= 0
 
 	const hydrateByAppointmentId = useCallback(async () => {
 		if (!appointmentId || location?.state?.appointment?.appointmentId === appointmentId) return
@@ -192,15 +243,24 @@ export default function RecordExaminationForm() {
 		try {
 			await hydrateByAppointmentId()
 
-			const [medicalOrders, medicines, species] = await Promise.all([
+			const [medicalOrders, medicines, species, serverNowMs] = await Promise.all([
 				getMedicalOrderCatalogApi(),
 				getMedicineCatalogApi(),
 				getVeterinarianPetSpeciesApi(),
+				getVeterinarianServerNowApi().catch(() => null),
 			])
 
 			setMedicalOrderOptions(normalizeCollection(medicalOrders))
 			setMedicineOptions(normalizeCollection(medicines))
 			setSpeciesOptions(normalizeCollection(species))
+
+			if (typeof serverNowMs === 'number' && Number.isFinite(serverNowMs)) {
+				setServerTimeOffsetMs(serverNowMs - Date.now())
+				setServerTimeSynced(true)
+			} else {
+				setServerTimeOffsetMs(0)
+				setServerTimeSynced(false)
+			}
 		} catch (error) {
 			message.error(error?.message || 'Không thể tải dữ liệu phiếu khám')
 		} finally {
@@ -213,21 +273,31 @@ export default function RecordExaminationForm() {
 	}, [loadMetaData])
 
 	useEffect(() => {
-		const initialValues = buildInitialValues(appointment, latestMedicalRecord)
+		const initialValues = buildInitialValues(
+			appointment,
+			latestMedicalRecord,
+			editableMedicalRecord,
+			editableMedicalOrders,
+			editableMedicines,
+		)
 		form.setFieldsValue(initialValues)
 		const snapshot = JSON.stringify(initialValues)
 		initialSnapshotRef.current = snapshot
 		setIsDirty(false)
-	}, [appointment, form, latestMedicalRecord])
+	}, [appointment, editableMedicalOrders, editableMedicalRecord, editableMedicines, form, latestMedicalRecord])
 
 	useEffect(() => {
 		let active = true
 
 		const hydrateLatestMedicalRecord = async () => {
 			const petId = appointment?.petRaw?.id
+			const appointmentMedicalId = appointment?.medical?.id
 			if (!petId) {
 				if (active) {
 					setLatestMedicalRecord(null)
+					setEditableMedicalRecord(null)
+					setEditableMedicalOrders([])
+					setEditableMedicines([])
 				}
 				return
 			}
@@ -246,6 +316,9 @@ export default function RecordExaminationForm() {
 
 				if (records.length === 0) {
 					setLatestMedicalRecord(null)
+					setEditableMedicalRecord(null)
+					setEditableMedicalOrders([])
+					setEditableMedicines([])
 					return
 				}
 
@@ -256,9 +329,41 @@ export default function RecordExaminationForm() {
 				})[0]
 
 				setLatestMedicalRecord(latestRecord || null)
+
+				if (!appointmentMedicalId) {
+					setEditableMedicalRecord(null)
+					setEditableMedicalOrders([])
+					setEditableMedicines([])
+					return
+				}
+
+				const matchedMedical =
+					records.find((record) => String(record?.id || '') === String(appointmentMedicalId)) || null
+
+				const resolvedMedical = matchedMedical || (await getMedicalById(appointmentMedicalId).catch(() => null))
+				if (!resolvedMedical || !active) {
+					setEditableMedicalRecord(null)
+					setEditableMedicalOrders([])
+					setEditableMedicines([])
+					return
+				}
+
+				const [orders, medicines] = await Promise.all([
+					getMedicalOrdersByMedicalId(resolvedMedical.id).catch(() => []),
+					getMedicinesByMedicalId(resolvedMedical.id).catch(() => []),
+				])
+
+				if (!active) return
+
+				setEditableMedicalRecord(resolvedMedical)
+				setEditableMedicalOrders(Array.isArray(orders) ? orders : [])
+				setEditableMedicines(Array.isArray(medicines) ? medicines : [])
 			} catch {
 				if (active) {
 					setLatestMedicalRecord(null)
+					setEditableMedicalRecord(null)
+					setEditableMedicalOrders([])
+					setEditableMedicines([])
 				}
 			}
 		}
@@ -268,7 +373,30 @@ export default function RecordExaminationForm() {
 		return () => {
 			active = false
 		}
-	}, [appointment?.petRaw?.id])
+	}, [appointment?.medical?.id, appointment?.petRaw?.id])
+
+	useEffect(() => {
+		if (!editableMedicalId || !editableMedicalCreatedAtMs) {
+			setRemainingEditableSeconds(EDITABLE_DURATION_SECONDS)
+			return
+		}
+
+		const getRemainingSeconds = () => {
+			const nowByServerClock = Date.now() + serverTimeOffsetMs
+			const elapsedSeconds = Math.floor((nowByServerClock - editableMedicalCreatedAtMs) / 1000)
+			return Math.max(0, EDITABLE_DURATION_SECONDS - elapsedSeconds)
+		}
+
+		setRemainingEditableSeconds(getRemainingSeconds())
+
+		const intervalId = window.setInterval(() => {
+			setRemainingEditableSeconds(getRemainingSeconds())
+		}, 1000)
+
+		return () => {
+			window.clearInterval(intervalId)
+		}
+	}, [editableMedicalCreatedAtMs, editableMedicalId, serverTimeOffsetMs])
 
 	useEffect(() => {
 		let active = true
@@ -364,6 +492,10 @@ export default function RecordExaminationForm() {
 		return `AP-${dayjs().format('YYYYMMDDHHmm')}`
 	}, [appointmentId])
 
+	const hasCreatedMedical = Boolean(editableMedicalId)
+	const canShowCountdown = hasCreatedMedical && Boolean(editableMedicalCreatedAtMs) && !isLockedByTime
+	const editableCountdownText = formatRemainingTime(remainingEditableSeconds)
+
 	const handleValuesChange = (_, allValues) => {
 		const normalized = {
 			...allValues,
@@ -393,6 +525,11 @@ export default function RecordExaminationForm() {
 	}
 
 	const onFinish = async (values) => {
+		if (isLockedByTime) {
+			message.warning('Phiếu khám đã quá thời gian chỉnh sửa 15 phút')
+			return
+		}
+
 		try {
 			setSaving(true)
 
@@ -440,22 +577,42 @@ export default function RecordExaminationForm() {
 				symptoms: values.clinicalSymptoms,
 			}
 
-			const createdMedical = await createMedicalRecordApi(createPayload)
-			const medicalId = createdMedical?.id
-
-			if (!medicalId) {
-				throw new Error('Không nhận được mã phiếu khám từ hệ thống')
-			}
-
 			const updatePayload = {
 				conclusion: buildConclusionText(values.conclusionSummary),
 				note: values.note || undefined,
 				followUpDate: values.followUpDate ? values.followUpDate.format('YYYY-MM-DD') : undefined,
 			}
 
-			if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
-				await updateMedicalRecordApi(medicalId, updatePayload)
+			let medicalId = editableMedicalId
+
+			if (medicalId) {
+				await updateMedicalRecordApi(medicalId, {
+					...createPayload,
+					...updatePayload,
+				})
+
+				const existingOrderIds = editableMedicalOrders
+					.map((item) => item?.id)
+					.filter(Boolean)
+				const existingMedicineIds = editableMedicines
+					.map((item) => item?.id)
+					.filter(Boolean)
+
+				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrder(id)))
+				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicine(id)))
+			} else {
+				const createdMedical = await createMedicalRecordApi(createPayload)
+				medicalId = createdMedical?.id
+
+				if (!medicalId) {
+					throw new Error('Không nhận được mã phiếu khám từ hệ thống')
+				}
+
+				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
+					await updateMedicalRecordApi(medicalId, updatePayload)
+				}
 			}
+
 
 			const medicalOrders = normalizeRowsPayload(values.medicalOrders)
 			await Promise.all(
@@ -500,7 +657,7 @@ export default function RecordExaminationForm() {
 				}).catch(() => undefined)
 			}
 
-			message.success('Lưu hồ sơ thành công')
+			message.success(editableMedicalId ? 'Cập nhật phiếu khám thành công' : 'Lưu hồ sơ thành công')
 			goBackToList()
 		} catch (error) {
 			message.error(buildErrorMessage(error, 'Không thể lưu hồ sơ'))
@@ -522,6 +679,7 @@ export default function RecordExaminationForm() {
 			<Form
 				form={form}
 				layout="vertical"
+				disabled={isLockedByTime}
 				onValuesChange={handleValuesChange}
 				onFinish={onFinish}
 				className={styles.formRoot}
@@ -535,6 +693,55 @@ export default function RecordExaminationForm() {
 				</header>
 
 				<div className={styles.formScrollableContent}>
+					{!hasCreatedMedical ? (
+						<Alert
+							className={styles.editLockAlert}
+							type="info"
+							showIcon
+							message="Phiếu khám chưa được tạo"
+							description="Sau khi tạo phiếu khám, bác sĩ chỉ có 15 phút để chỉnh sửa phiếu khám nếu có sai sót."
+						/>
+					) : null}
+
+					{canShowCountdown ? (
+						<Alert
+							className={styles.editLockAlert}
+							type="success"
+							showIcon
+							message="Đang trong thời gian chỉnh sửa"
+							description={`Thời gian còn lại: ${editableCountdownText} (tính từ thời điểm createdAt của server).`}
+						/>
+					) : null}
+
+					{isLockedByTime ? (
+						<Alert
+							className={styles.editLockAlert}
+							type="warning"
+							showIcon
+							message="Đã hết thời gian chỉnh sửa"
+							description="Phiếu khám đã vượt quá 15 phút kể từ lúc tạo, hệ thống đã chuyển sang chế độ chỉ đọc."
+						/>
+					) : null}
+
+					{hasCreatedMedical && !serverTimeSynced ? (
+						<Alert
+							className={styles.editLockAlert}
+							type="warning"
+							showIcon
+							message="Không đồng bộ được giờ server"
+							description="Cần backend expose Date header hoặc serverTime để khóa chỉnh sửa theo đồng hồ server chính xác tuyệt đối."
+						/>
+					) : null}
+
+					{missingServerCreatedAt ? (
+						<Alert
+							className={styles.editLockAlert}
+							type="error"
+							showIcon
+							message="Thiếu createdAt của phiếu khám"
+							description="Backend cần trả về createdAt trong dữ liệu medical của appointment hoặc endpoint chi tiết medical để tính khóa 15 phút."
+						/>
+					) : null}
 
 				<Card className={styles.sectionCard}>
 					<Row gutter={12}>
@@ -742,6 +949,7 @@ export default function RecordExaminationForm() {
 						<Button
 							type="link"
 							icon={<PlusCircleOutlined />}
+							disabled={isLockedByTime}
 							onClick={() => {
 								const current = form.getFieldValue('medicalOrders') || []
 								form.setFieldValue('medicalOrders', [
@@ -789,7 +997,7 @@ export default function RecordExaminationForm() {
 											type="text"
 											icon={<DeleteOutlined />}
 											onClick={() => remove(field.name)}
-											disabled={fields.length <= 1}
+											disabled={isLockedByTime || fields.length <= 1}
 										/>
 									</div>
 								))}
@@ -805,6 +1013,7 @@ export default function RecordExaminationForm() {
 						<Button
 							type="link"
 							icon={<PlusCircleOutlined />}
+							disabled={isLockedByTime}
 							onClick={() => {
 								const current = form.getFieldValue('medicines') || []
 								form.setFieldValue('medicines', [
@@ -860,7 +1069,7 @@ export default function RecordExaminationForm() {
 											type="text"
 											icon={<DeleteOutlined />}
 											onClick={() => remove(field.name)}
-											disabled={fields.length <= 1}
+											disabled={isLockedByTime || fields.length <= 1}
 										/>
 									</div>
 								))}
@@ -889,9 +1098,11 @@ export default function RecordExaminationForm() {
 					<Button className={styles.cancelBtn} onClick={handleCancel}>
 						Hủy
 					</Button>
-					<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
-						LƯU PHIẾU KHÁM
-					</Button>
+					{!isLockedByTime ? (
+						<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
+							LƯU PHIẾU KHÁM
+						</Button>
+					) : null}
 				</div>
 				</div>
 			</Form>

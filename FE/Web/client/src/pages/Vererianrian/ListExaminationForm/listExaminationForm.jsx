@@ -47,6 +47,7 @@ const toRecordRow = (item) => {
 		service: item?.service,
 		status: item?.status,
 		hasMedicalRecord: Boolean(item?.medical?.id),
+		medical: item?.medical || null,
 		createdDate: formatDate(item?.appointmentDate),
 		appointmentTime: String(item?.appointmentTime || '').slice(0, 5),
 		formName: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),

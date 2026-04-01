@@ -277,20 +277,45 @@ Luồng đang chạy:
 ## Veterinarian Portal - Trạng thái tính năng
 
 ### 1) Lịch hẹn bác sĩ
-- `PetAppointmentVererianrian` hiện chủ yếu dùng dữ liệu mock cứng (summary card + danh sách lịch).
+- `PetAppointmentVererianrian` đã dùng API thật theo ngày hiện tại.
+- Nút **"Bắt đầu khám"**:
+  - Mở tab mới tới `/veterinarian/exam-forms/create?appointmentId=<id>`.
+  - Lần đầu nhấn (khi `BOOKED`) sẽ cập nhật lịch hẹn sang `IN_PROGRESS`.
+  - Khi đã `IN_PROGRESS`, nút vẫn bấm được để mở lại tab phiếu khám (không bị disable/làm mờ).
+- Việc chuyển `COMPLETED` không làm thủ công ở màn danh sách lịch nữa; trạng thái hoàn tất đồng bộ sau khi lưu phiếu khám.
 
 ### 2) Hồ sơ bệnh án
 - `ListMedicalRecords`: lấy từ API appointment theo ngày, xem chi tiết hồ sơ.
 - `ViewPetMedicalRecords`: lấy medical records thật theo `petId/medicalId`, render timeline.
 
 ### 3) Phiếu khám
-- `ListExaminationForm`: lấy lịch hẹn theo ngày, tạo phiếu khám hoặc xóa lịch.
+- `ListExaminationForm`: lấy lịch hẹn theo ngày, điều hướng vào phiếu khám theo `appointmentId`.
 - `RecordExaminationForm`: đã nối API thật:
-  - tạo medical record,
-  - cập nhật follow-up/note,
-  - tạo medical orders,
-  - tạo medicines,
-  - tự cập nhật appointment sang `COMPLETED`.
+  - tạo medical record ở lần lưu đầu,
+  - cập nhật lại chính medical record đó ở các lần sau,
+  - đồng bộ lại medical orders + medicines theo lần lưu mới,
+  - tự cập nhật appointment sang `COMPLETED` khi lưu thành công.
+- Cơ chế khóa chỉnh sửa 15 phút:
+  - Mốc thời gian tính từ `medical.createdAt` (server).
+  - Trong 15 phút: cho phép chỉnh sửa, có hiển thị đếm ngược thời gian còn lại.
+  - Hết 15 phút: form chuyển read-only, input và nút chỉnh sửa bị disable/ẩn.
+  - Nếu thiếu `createdAt`: UI hiển thị cảnh báo yêu cầu backend trả `createdAt` cho medical.
+
+### 4) Vị trí file chính cho luồng "Bắt đầu khám" + khóa 15 phút
+- `src/pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian.jsx`:
+  - Handler mở tab mới khi bấm "Bắt đầu khám".
+  - Logic chuyển `BOOKED -> IN_PROGRESS` và giữ nút bấm lại được ở trạng thái `IN_PROGRESS`.
+- `src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx`:
+  - Điều hướng tới trang phiếu khám theo `appointmentId`.
+  - Mang theo dữ liệu `medical` của appointment để hydrate form.
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:
+  - Cơ chế lock chỉnh sửa 15 phút.
+  - Hiển thị countdown + cảnh báo hết hạn.
+  - Chế độ read-only sau khi hết hạn.
+- `src/data/Vererianrian/api/appointmentApi.js`:
+  - `getVeterinarianServerNowApi()` dùng đồng bộ clock server cho countdown.
+- `src/data/Vererianrian/api/medicalApi.js`:
+  - API create/update medical record và CRUD medical orders/medicines phục vụ lưu/cập nhật phiếu khám.
 
 ## Styling & Design System
 
@@ -334,10 +359,11 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 3. Patch trạng thái lên backend.
 
 ### 4) Veterinarian exam workflow
-1. Chọn lịch hẹn từ danh sách phiếu khám.
-2. Điền form khám.
-3. Lưu medical record + chỉ định + thuốc.
-4. Đồng bộ trạng thái appointment sang `COMPLETED`.
+1. Bác sĩ bấm "Bắt đầu khám" từ danh sách lịch hẹn.
+2. Hệ thống mở tab mới vào phiếu khám theo `appointmentId` (có thể mở lại tab nếu lỡ đóng).
+3. Bác sĩ điền/lưu phiếu khám.
+4. Sau lần tạo đầu tiên, bác sĩ chỉ được chỉnh sửa trong 15 phút kể từ `createdAt`.
+5. Lưu thành công sẽ đồng bộ trạng thái appointment sang `COMPLETED`.
 
 ## Điểm mạnh hiện tại
 - Tách rõ 4 portal client/admin clinic/veterinarian/super admin theo route + layout.
@@ -361,9 +387,8 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 - `adminVererianrian/PetAppointmentVererianrian`
 
 ### 4) Một số route điều hướng chưa khớp route khai báo
-- Điều hướng tới `/admin/clinic/medical-records/view` nhưng chưa có route tương ứng.
-- Điều hướng tới `/admin/clinic/exam-slips/:appointmentId/bill` nhưng chưa có route tương ứng.
-- `PetAppointmentVererianrian` điều hướng tới `/admin/veterinarian/exam-slips/:id` nhưng route hiện có là `/admin/veterinarian/exam-forms/*`.
+- Route thực tế đang dùng là nhóm `/clinic/*` và `/veterinarian/*`; các đường dẫn legacy `/admin/clinic/*`, `/admin/veterinarian/*` được redirect.
+- Cần tiếp tục rà soát các link cũ có prefix `/admin/*` để tránh nhầm lẫn khi maintain.
 
 ### 5) Socket URL đang hardcoded
 - `src/socket/socket.js` dùng cố định `http://localhost:3000/chat`, chưa đưa vào env.
@@ -459,7 +484,7 @@ Ghi chú:
 ## Backlog ưu tiên đề xuất (Web)
 1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.
-3. Sửa các route điều hướng chưa khớp khai báo (medical-records/view, bill, exam-slips).
+3. Rà soát và dọn các đường dẫn legacy `/admin/*` còn sót trong code/component để thống nhất route canonical.
 4. Thay mock bằng API thật cho các màn admin/veterinarian còn template.
 5. Đưa `SOCKET_URL` vào env (`VITE_SOCKET_URL`) thay vì hardcoded.
 6. Gộp token CSS thành single-source để giảm duplicate.
