@@ -18,11 +18,11 @@ import {
 	Form,
 	Input,
 	InputNumber,
+	message,
 	Modal,
 	Row,
 	Select,
 	Spin,
-	message,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -49,15 +49,23 @@ import {
 	updateMedicalRecordApi,
 } from '../../../data/Vererianrian/api/medicalApi'
 import {
+	createVeterinarianPetApi,
 	getVeterinarianPetBreedsApi,
+	getVeterinarianPetsByOwnerApi,
 	getVeterinarianPetSpeciesApi,
 } from '../../../data/Vererianrian/api/petApi'
-import { getVeterinarianUserByIdApi } from '../../../data/Vererianrian/api/userApi'
+import {
+	getVeterinarianUserByIdApi,
+	registerVeterinarianUserApi,
+	searchVeterinarianUsersApi,
+} from '../../../data/Vererianrian/api/userApi'
 import { getBreedLabel, getSpeciesLabel } from '../../../data/client/api/petApi'
 import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
 const EDITABLE_DURATION_SECONDS = 15 * 60
+const EMERGENCY_FORM_NAME = 'Phiếu khám khẩn cấp'
+const EMERGENCY_TEMP_PASSWORD = 'Baophan1234'
 
 const normalizeCollection = (payload) => {
 	if (Array.isArray(payload)) return payload
@@ -87,6 +95,23 @@ const toNumberOrUndefined = (value) => {
 }
 
 const normalizePhone = (value) => String(value || '').replace(/\D/g, '')
+
+const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
+
+const normalizeGenderValue = (value) => {
+	if (value === true || value === false) return value
+	if (value === 'male') return true
+	if (value === 'female') return false
+	return undefined
+}
+
+const resolveDateOfBirth = (dateValue, ageValue) => {
+	if (dateValue) return dayjs(dateValue).format('YYYY-MM-DD')
+	if (ageValue) {
+		return dayjs().subtract(Number(ageValue), 'year').format('YYYY-MM-DD')
+	}
+	return undefined
+}
 
 const buildErrorMessage = (error, fallback) => {
 	const responseMessage = error?.response?.data?.message
@@ -182,7 +207,15 @@ const selectMedicalRecordByAppointment = (records, appointment) => {
 	return best.record || null
 }
 
-const buildInitialValues = (appointment, latestMedical, editableMedicalRecord, editableOrders, editableMedicines) => {
+const buildInitialValues = (
+	appointment,
+	latestMedical,
+	editableMedicalRecord,
+	editableOrders,
+	editableMedicines,
+	options = {},
+) => {
+	const isWalkIn = Boolean(options.isWalkIn)
 	const pet = appointment?.petRaw || appointment?.pet || {}
 	const owner = pet?.owner || {}
 	const latestWeight = toNumberOrUndefined(editableMedicalRecord?.weight ?? latestMedical?.weight)
@@ -209,14 +242,27 @@ const buildInitialValues = (appointment, latestMedical, editableMedicalRecord, e
 		: []
 
 	return {
-		formName: serviceLabel,
+		formName: isWalkIn ? EMERGENCY_FORM_NAME : serviceLabel,
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
-		customerName: appointment?.ownerName || owner?.fullName || '',
-		email: owner?.email || appointment?.ownerEmail || '',
-		phone: normalizePhone(owner?.phone || ''),
-		petName: appointment?.petName || pet?.name || '',
-		species: pet?.species || undefined,
-		breed: pet?.breed || undefined,
+		customerName: isWalkIn ? '' : appointment?.ownerName || owner?.fullName || '',
+		email: isWalkIn ? '' : owner?.email || appointment?.ownerEmail || '',
+		phone: isWalkIn ? '' : normalizePhone(owner?.phone || ''),
+		petName: isWalkIn ? '' : appointment?.petName || pet?.name || '',
+		species: isWalkIn ? undefined : pet?.species || undefined,
+		breed: isWalkIn ? undefined : pet?.breed || undefined,
+		petGender: !isWalkIn
+			? pet?.gender === true
+				? 'male'
+				: pet?.gender === false
+					? 'female'
+					: undefined
+			: undefined,
+		petDateOfBirth: isWalkIn
+			? null
+			: pet?.dateOfBirth
+				? dayjs(pet.dateOfBirth)
+				: null,
+		petAge: undefined,
 		weight: latestWeight ?? petWeight,
 		temperature: toNumberOrUndefined(editableMedicalRecord?.temperature),
 		heartRate: toNumberOrUndefined(editableMedicalRecord?.heartRate),
@@ -287,6 +333,7 @@ export default function RecordExaminationForm() {
 	const [isDirty, setIsDirty] = useState(false)
 	const initialSnapshotRef = useRef('')
 
+	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
 	const appointmentId = searchParams.get('appointmentId')
 	const appointmentOwnerId = appointment?.ownerId || appointment?.petRaw?.owner?.id
 	const appointmentOwnerEmail = appointment?.ownerEmail || appointment?.petRaw?.owner?.email
@@ -296,6 +343,7 @@ export default function RecordExaminationForm() {
 	const isLockedByTime = Boolean(editableMedicalId) && Boolean(editableMedicalCreatedAtMs) && remainingEditableSeconds <= 0
 
 	const hydrateByAppointmentId = useCallback(async () => {
+		if (isWalkIn) return
 		if (!appointmentId || location?.state?.appointment?.appointmentId === appointmentId) return
 
 		const response = await getVeterinarianAppointmentsApi({ page: 1, limit: 500 })
@@ -304,7 +352,7 @@ export default function RecordExaminationForm() {
 		if (found) {
 			setAppointment(toAppointmentViewModel(found))
 		}
-	}, [appointmentId, location?.state?.appointment])
+	}, [appointmentId, isWalkIn, location?.state?.appointment])
 
 	const loadMetaData = useCallback(async () => {
 		setLoading(true)
@@ -347,12 +395,13 @@ export default function RecordExaminationForm() {
 			editableMedicalRecord,
 			editableMedicalOrders,
 			editableMedicines,
+			{ isWalkIn },
 		)
 		form.setFieldsValue(initialValues)
 		const snapshot = JSON.stringify(initialValues)
 		initialSnapshotRef.current = snapshot
 		setIsDirty(false)
-	}, [appointment, editableMedicalOrders, editableMedicalRecord, editableMedicines, form, latestMedicalRecord])
+	}, [appointment, editableMedicalOrders, editableMedicalRecord, editableMedicines, form, latestMedicalRecord, isWalkIn])
 
 	useEffect(() => {
 		let active = true
@@ -556,12 +605,13 @@ export default function RecordExaminationForm() {
 	}, [])
 
 	const examinationCode = useMemo(() => {
+		const prefix = isWalkIn ? 'EMG' : 'AP'
 		if (appointmentId) {
-			return `AP-${String(appointmentId).slice(0, 8).toUpperCase()}`
+			return `${prefix}-${String(appointmentId).slice(0, 8).toUpperCase()}`
 		}
 
-		return `AP-${dayjs().format('YYYYMMDDHHmm')}`
-	}, [appointmentId])
+		return `${prefix}-${dayjs().format('YYYYMMDDHHmm')}`
+	}, [appointmentId, isWalkIn])
 
 	const hasCreatedMedical = Boolean(editableMedicalId)
 	const canShowCountdown = hasCreatedMedical && Boolean(editableMedicalCreatedAtMs) && !isLockedByTime
@@ -595,7 +645,236 @@ export default function RecordExaminationForm() {
 		})
 	}
 
+	const showWalkInStep = (content, type = 'loading') => {
+		message[type]({
+			content,
+			key: 'walkin-step',
+			duration: type === 'loading' ? 0 : 2,
+		})
+	}
+
+	const findUserByEmail = async (email) => {
+		try {
+			const payload = await searchVeterinarianUsersApi({ search: email, page: 1, limit: 50 })
+			const users = normalizeCollection(payload)
+			return users.find((user) => normalizeEmail(user?.email) === email) || null
+		} catch {
+			throw new Error('Không thể tra cứu khách hàng theo email. Backend cần hỗ trợ GET /user?search= hoặc GET /user/by-email.')
+		}
+	}
+
+	const findPetByOwnerAndName = async (ownerId, petName) => {
+		try {
+			const payload = await getVeterinarianPetsByOwnerApi({ ownerId, page: 1, limit: 200 })
+			const pets = normalizeCollection(payload)
+			const normalizedName = String(petName || '').trim().toLowerCase()
+			return pets.find((pet) => String(pet?.name || '').trim().toLowerCase() === normalizedName) || null
+		} catch {
+			throw new Error('Không thể tra cứu thú cưng theo chủ nuôi. Backend cần hỗ trợ GET /pet?ownerId= hoặc GET /pet/owner/:id.')
+		}
+	}
+
+	const handleWalkInSubmit = async (values) => {
+		if (isLockedByTime) {
+			message.warning('Phiếu khám đã quá thời gian chỉnh sửa 15 phút')
+			return
+		}
+
+		const normalizedEmail = normalizeEmail(values.email)
+		const normalizedPhone = normalizePhone(values.phone)
+		const temperature = toNumberOrUndefined(values.temperature)
+		const heartRate = toNumberOrUndefined(values.heartRate)
+		const systolic = toNumberOrUndefined(values.systolic)
+		const diastolic = toNumberOrUndefined(values.diastolic)
+		const weight = toNumberOrUndefined(values.weight)
+		const genderValue = normalizeGenderValue(values.petGender)
+		const dateOfBirth = resolveDateOfBirth(values.petDateOfBirth, values.petAge)
+
+		if (
+			temperature === undefined ||
+			heartRate === undefined ||
+			systolic === undefined ||
+			diastolic === undefined ||
+			weight === undefined
+		) {
+			message.error('Vui lòng nhập đầy đủ và đúng định dạng các chỉ số sinh tồn')
+			return
+		}
+
+		if (!/^\d{10}$/.test(normalizedPhone)) {
+			message.error('Số điện thoại phải gồm đúng 10 chữ số')
+			return
+		}
+
+		if (!normalizedEmail) {
+			message.error('Vui lòng nhập email khách hàng')
+			return
+		}
+
+		if (!dateOfBirth) {
+			message.error('Vui lòng nhập tuổi hoặc ngày sinh của thú cưng')
+			return
+		}
+
+		if (genderValue === undefined) {
+			message.error('Vui lòng chọn giới tính thú cưng')
+			return
+		}
+
+		try {
+			setSaving(true)
+			showWalkInStep('Đang kiểm tra tài khoản khách hàng...')
+
+			let owner = await findUserByEmail(normalizedEmail)
+			if (!owner) {
+				showWalkInStep('Đang tạo tài khoản khách hàng...')
+				// Placeholder password; backend should replace with random password + email notification.
+				await registerVeterinarianUserApi({
+					fullName: values.customerName,
+					email: normalizedEmail,
+					password: EMERGENCY_TEMP_PASSWORD,
+				})
+				owner = await findUserByEmail(normalizedEmail)
+			}
+
+			if (!owner) {
+				throw new Error('Không thể xác định tài khoản khách hàng sau khi tạo')
+			}
+
+			showWalkInStep('Đã sẵn sàng tài khoản khách hàng', 'success')
+
+			const ownerId = owner?.id || owner?.user?.id
+			if (!ownerId) {
+				throw new Error('Thiếu mã khách hàng, vui lòng kiểm tra API user')
+			}
+
+			showWalkInStep('Đang kiểm tra thú cưng...')
+			let pet = await findPetByOwnerAndName(ownerId, values.petName)
+			if (!pet) {
+				showWalkInStep('Đang tạo thú cưng mới...')
+				pet = await createVeterinarianPetApi({
+					ownerId,
+					name: values.petName,
+					species: values.species,
+					breed: values.breed,
+					gender: genderValue,
+					dateOfBirth,
+					weight,
+				})
+			}
+
+			if (!pet?.id) {
+				throw new Error('Không thể xác định thú cưng, vui lòng kiểm tra API pet')
+			}
+
+			showWalkInStep('Đã sẵn sàng thú cưng', 'success')
+
+			showWalkInStep('Đang lưu phiếu khám...')
+			const createPayload = {
+				petId: pet.id,
+				species: values.species,
+				breed: values.breed,
+				petName: values.petName,
+				name: values.formName,
+				customerName: values.customerName,
+				email: normalizedEmail,
+				phone: normalizedPhone,
+				temperature,
+				heartRate,
+				systolic,
+				diastolic,
+				weight,
+				diagnosis: values.preliminaryDiagnosis,
+				symptoms: values.clinicalSymptoms,
+			}
+
+			const updatePayload = {
+				conclusion: buildConclusionText(values.conclusionSummary),
+				note: values.note || undefined,
+				followUpDate: values.followUpDate ? values.followUpDate.format('YYYY-MM-DD') : undefined,
+			}
+
+			let medicalId = editableMedicalId
+			if (medicalId) {
+				await updateMedicalRecordApi(medicalId, {
+					...createPayload,
+					...updatePayload,
+				})
+
+				const existingOrderIds = editableMedicalOrders
+					.map((item) => item?.id)
+					.filter(Boolean)
+				const existingMedicineIds = editableMedicines
+					.map((item) => item?.id)
+					.filter(Boolean)
+
+				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrder(id)))
+				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicine(id)))
+			} else {
+				const createdMedical = await createMedicalRecordApi(createPayload)
+				medicalId = createdMedical?.id
+
+				if (!medicalId) {
+					throw new Error('Không nhận được mã phiếu khám từ hệ thống')
+				}
+
+				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
+					await updateMedicalRecordApi(medicalId, updatePayload)
+				}
+			}
+
+			const medicalOrders = normalizeRowsPayload(values.medicalOrders)
+			await Promise.all(
+				medicalOrders
+					.filter((item) => item?.medicalOrderId)
+					.map((item) => {
+						const selectedOrder = medicalOrderOptions.find(
+							(order) => String(order.id) === String(item.medicalOrderId),
+						)
+
+						return createMedicalOrderApi({
+							medicalRecordId: medicalId,
+							medicalOrderId: item.medicalOrderId,
+							note: item.note || undefined,
+							priceAtTime: Number(selectedOrder?.price || 0),
+						})
+					}),
+			)
+
+			const medicines = normalizeRowsPayload(values.medicines)
+			await Promise.all(
+				medicines
+					.filter((item) => item?.medicineId && item?.quantity)
+					.map((item) => {
+						const selectedMedicine = medicineOptions.find(
+							(medicine) => String(medicine.id) === String(item.medicineId),
+						)
+
+						return createMedicalMedicineApi({
+							medicalRecordId: medicalId,
+							medicineId: item.medicineId,
+							quantity: Number(item.quantity),
+							note: item.frequency || undefined,
+							priceAtTime: Number(selectedMedicine?.price || 0),
+						})
+					}),
+			)
+
+			showWalkInStep('Lưu phiếu khám khẩn cấp thành công', 'success')
+			goBackToList()
+		} catch (error) {
+			message.error(buildErrorMessage(error, 'Không thể tạo phiếu khám khẩn cấp'))
+		} finally {
+			setSaving(false)
+		}
+	}
+
 	const onFinish = async (values) => {
+		if (isWalkIn) {
+			await handleWalkInSubmit(values)
+			return
+		}
+
 		if (isLockedByTime) {
 			message.warning('Phiếu khám đã quá thời gian chỉnh sửa 15 phút')
 			return
@@ -614,7 +893,14 @@ export default function RecordExaminationForm() {
 			const systolic = toNumberOrUndefined(values.systolic)
 			const diastolic = toNumberOrUndefined(values.diastolic)
 			const weight = toNumberOrUndefined(values.weight)
-			const normalizedPhone = normalizePhone(values.phone)
+			const resolvedCustomerName =
+				values.customerName || appointment?.ownerName || appointment?.petRaw?.owner?.fullName || ''
+			const resolvedEmail = normalizeEmail(
+				values.email || appointment?.ownerEmail || appointment?.petRaw?.owner?.email || '',
+			)
+			const resolvedPhone = normalizePhone(
+				values.phone || appointment?.petRaw?.owner?.phone || '',
+			)
 
 			if (
 				temperature === undefined ||
@@ -626,7 +912,7 @@ export default function RecordExaminationForm() {
 				throw new Error('Vui lòng nhập đầy đủ và đúng định dạng các chỉ số sinh tồn')
 			}
 
-			if (!/^\d{10}$/.test(normalizedPhone)) {
+			if (!/^\d{10}$/.test(resolvedPhone)) {
 				throw new Error('Số điện thoại phải gồm đúng 10 chữ số')
 			}
 
@@ -636,9 +922,9 @@ export default function RecordExaminationForm() {
 				breed: values.breed || appointment?.petRaw?.breed,
 				petName: values.petName,
 				name: values.formName,
-				customerName: values.customerName,
-				email: values.email,
-				phone: normalizedPhone,
+				customerName: resolvedCustomerName,
+				email: resolvedEmail,
+				phone: resolvedPhone,
 				temperature,
 				heartRate,
 				systolic,
@@ -838,86 +1124,157 @@ export default function RecordExaminationForm() {
 					</Row>
 				</Card>
 
-				<Card className={styles.sectionCard} title={<span><UserOutlined /> Thông tin khách hàng & Thú cưng</span>}>
-					<Row gutter={12}>
-						<Col xs={24} md={8}>
-							<Form.Item
-								label="TÊN KHÁCH HÀNG"
-								name="customerName"
-								rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng' }]}
-							>
-								<Input placeholder="Tên khách hàng" />
-							</Form.Item>
-						</Col>
-						<Col xs={24} md={8}>
-							<Form.Item
-								label="EMAIL"
-								name="email"
-								rules={[
-									{ required: true, message: 'Vui lòng nhập email' },
-									{ type: 'email', message: 'Email không hợp lệ' },
-								]}
-							>
-								<Input placeholder="Email khách hàng" />
-							</Form.Item>
-						</Col>
-						<Col xs={24} md={8}>
-							<Form.Item
-								label="SĐT"
-								name="phone"
-								rules={[
-									{ required: true, message: 'Vui lòng nhập số điện thoại' },
-									{ pattern: /^\d{10}$/, message: 'Số điện thoại phải gồm đúng 10 chữ số' },
-								]}
-							>
-								<Input placeholder="Số điện thoại" />
-							</Form.Item>
-						</Col>
+				{!isWalkIn ? (
+					<div>
+						<Form.Item name="customerName" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="email" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="phone" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="petName" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="species" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="breed" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="petGender" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="petDateOfBirth" hidden>
+							<Input />
+						</Form.Item>
+						<Form.Item name="petAge" hidden>
+							<Input />
+						</Form.Item>
+					</div>
+				) : null}
 
-						<Col xs={24} md={8}>
-							<Form.Item
-								label="TÊN THÚ CƯNG"
-								name="petName"
-								rules={[{ required: true, message: 'Vui lòng nhập tên thú cưng' }]}
-							>
-								<Input placeholder="Tên thú cưng" />
-							</Form.Item>
-						</Col>
-						<Col xs={24} md={8}>
-							<Form.Item
-								label="LOÀI"
-								name="species"
-								rules={[{ required: true, message: 'Vui lòng chọn loài' }]}
-							>
-								<Select
-									size="large"
-									placeholder="Chọn loài"
-									onChange={() => form.setFieldValue('breed', undefined)}
-									options={speciesOptions.map((species) => ({
-										value: species,
-										label: getSpeciesLabel(species),
-									}))}
-								/>
-							</Form.Item>
-						</Col>
-						<Col xs={24} md={8}>
-							<Form.Item
-								label="GIỐNG LOÀI"
-								name="breed"
-								rules={[{ required: true, message: 'Vui lòng chọn giống loài' }]}
-							>
-								<Select
-									size="large"
-									placeholder="Giống loài"
-									options={breedOptions.map((breed) => ({
-										value: breed,
-										label: getBreedLabel(breed, selectedSpecies),
-									}))}
-								/>
-							</Form.Item>
-						</Col>
-					</Row>
-				</Card>
+				{isWalkIn ? (
+					<Card className={styles.sectionCard} title={<span><UserOutlined /> Thông tin khách hàng & Thú cưng</span>}>
+						<Row gutter={12}>
+							<Col xs={24} md={8}>
+								<Form.Item
+									label="TÊN KHÁCH HÀNG"
+									name="customerName"
+									rules={isWalkIn ? [{ required: true, message: 'Vui lòng nhập tên khách hàng' }] : []}
+								>
+									<Input placeholder="Tên khách hàng" />
+								</Form.Item>
+							</Col>
+							<Col xs={24} md={8}>
+								<Form.Item
+									label="EMAIL"
+									name="email"
+									rules={isWalkIn ? [
+										{ required: true, message: 'Vui lòng nhập email' },
+										{ type: 'email', message: 'Email không hợp lệ' },
+									] : []}
+								>
+									<Input placeholder="Email khách hàng" />
+								</Form.Item>
+							</Col>
+							<Col xs={24} md={8}>
+								<Form.Item
+									label="SĐT"
+									name="phone"
+									rules={isWalkIn ? [
+										{ required: true, message: 'Vui lòng nhập số điện thoại' },
+										{ pattern: /^\d{10}$/, message: 'Số điện thoại phải gồm đúng 10 chữ số' },
+									] : []}
+								>
+									<Input placeholder="Số điện thoại" />
+								</Form.Item>
+							</Col>
+
+							<Col xs={24} md={8}>
+								<Form.Item
+									label="TÊN THÚ CƯNG"
+									name="petName"
+									rules={isWalkIn ? [{ required: true, message: 'Vui lòng nhập tên thú cưng' }] : []}
+								>
+									<Input placeholder="Tên thú cưng" />
+								</Form.Item>
+							</Col>
+							<Col xs={24} md={8}>
+								<Form.Item
+									label="LOÀI"
+									name="species"
+									rules={isWalkIn ? [{ required: true, message: 'Vui lòng chọn loài' }] : []}
+								>
+									<Select
+										size="large"
+										placeholder="Chọn loài"
+										onChange={() => form.setFieldValue('breed', undefined)}
+										options={speciesOptions.map((species) => ({
+											value: species,
+											label: getSpeciesLabel(species),
+										}))}
+									/>
+								</Form.Item>
+							</Col>
+							<Col xs={24} md={8}>
+								<Form.Item
+									label="GIỐNG LOÀI"
+									name="breed"
+									rules={isWalkIn ? [{ required: true, message: 'Vui lòng chọn giống loài' }] : []}
+								>
+									<Select
+										size="large"
+										placeholder="Giống loài"
+										options={breedOptions.map((breed) => ({
+											value: breed,
+											label: getBreedLabel(breed, selectedSpecies),
+										}))}
+									/>
+								</Form.Item>
+							</Col>
+
+							<Col xs={24} md={8}>
+								<Form.Item
+									label="GIỚI TÍNH"
+									name="petGender"
+									rules={isWalkIn ? [{ required: true, message: 'Vui lòng chọn giới tính' }] : []}
+								>
+									<Select
+										size="large"
+										placeholder="Chọn giới tính"
+										options={[
+											{ value: 'male', label: 'Đực' },
+											{ value: 'female', label: 'Cái' },
+										]}
+									/>
+								</Form.Item>
+							</Col>
+							<Col xs={24} md={8}>
+								<Form.Item label="NGÀY SINH" name="petDateOfBirth">
+									<DatePicker
+										format="DD/MM/YYYY"
+										placeholder="dd/mm/yyyy"
+										className={styles.fullWidth}
+										disabledDate={(current) => current && current > dayjs().endOf('day')}
+									/>
+								</Form.Item>
+							</Col>
+							<Col xs={24} md={8}>
+								<Form.Item label="TUỔI (NĂM)" name="petAge">
+									<InputNumber
+										min={0}
+										max={50}
+										className={styles.fullWidth}
+										placeholder="Nhập tuổi"
+									/>
+								</Form.Item>
+							</Col>
+						</Row>
+					</Card>
+				) : null}
 
 				<Card className={styles.sectionCard} title={<span><HeartOutlined /> Chỉ số sinh tồn</span>}>
 					<div className={styles.vitalGrid}>

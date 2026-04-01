@@ -145,6 +145,16 @@ Chức năng chính:
 
 ### 3) Booking Appointment
 Luồng đang chạy:
+
+### 4) Walk-in Emergency (Tạo phiếu khám khẩn cấp)
+- Nút **"Tạo Phiếu Khám Khẩn Cấp"** ở trang danh sách phiếu khám, mở form tạo mới không cần lịch hẹn.
+- Luồng xử lý:
+  - Tra cứu khách hàng theo email (cần backend hỗ trợ search email hoặc endpoint riêng).
+  - Nếu chưa có tài khoản: tự tạo với password tạm `Baophan1234` (placeholder, backend sẽ thay bằng random + gửi email).
+  - Tra cứu thú cưng theo tên + chủ nhân (cần backend hỗ trợ filter theo ownerId).
+  - Nếu chưa có: tạo thú cưng mới rồi mới tạo phiếu khám.
+- Hiển thị loading state và thông báo kết quả theo từng bước.
+- **Phiếu khám có lịch hẹn**: ẩn toàn bộ phần thông tin khách hàng & thú cưng trên UI (không ảnh hưởng payload gửi API).
 1. Chọn pet.
 2. Chọn dịch vụ + clinic.
 3. Chọn bác sĩ + nhập triệu chứng.
@@ -156,10 +166,16 @@ Luồng đang chạy:
 ### 4) Appointment Detail
 - Lấy `GET /appointment/my`.
 - Tab `Lịch sắp tới` và `Lịch sử khám`.
+  - Walk-in Emergency flow: tạo user/pet trước khi tạo phiếu khám.
+  - Ẩn UI khách hàng/thú cưng khi có lịch hẹn.
 - Cả 2 tab đều hiển thị **trạng thái lịch hẹn** (Chờ khám/Đang khám/Đã hoàn thành/Đã hủy) thay vì badge thời gian kiểu `Hôm nay`, `x ngày`.
 - Auto refresh 20 giây + refresh khi tab active lại.
 - Hủy lịch (PATCH status).
 - Xem chi tiết lịch.
+- `src/data/Vererianrian/api/userApi.js`:
+  - Tra cứu user theo email và tạo user tạm.
+- `src/data/Vererianrian/api/petApi.js`:
+  - Tra cứu pet theo owner và tạo pet mới cho walk-in.
 - Mở modal chẩn đoán AI (`PetDiagnosisContent`).
 
 ### 5) PetDiagnosis (AI report)
@@ -301,7 +317,7 @@ Luồng đang chạy:
   - Hết 15 phút: form chuyển read-only, input và nút chỉnh sửa bị disable/ẩn.
   - Nếu thiếu `createdAt`: UI hiển thị cảnh báo yêu cầu backend trả `createdAt` cho medical.
 
-### 4) Vị trí file chính cho luồng "Bắt đầu khám" + khóa 15 phút
+### 5) Vị trí file chính cho luồng "Bắt đầu khám" + khóa 15 phút
 - `src/pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian.jsx`:
   - Handler mở tab mới khi bấm "Bắt đầu khám".
   - Logic chuyển `BOOKED -> IN_PROGRESS` và giữ nút bấm lại được ở trạng thái `IN_PROGRESS`.

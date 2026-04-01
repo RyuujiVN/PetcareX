@@ -1,6 +1,7 @@
 import {
 	FileAddOutlined,
 	LeftOutlined,
+	PlusCircleOutlined,
 	RightOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
@@ -127,6 +128,10 @@ export default function ListExaminationForm() {
 		})
 	}
 
+	const handleCreateWalkIn = () => {
+		navigate('/veterinarian/exam-forms/create?mode=walkin')
+	}
+
 	return (
 		<div className={styles.pageRoot}>
 			<section className={styles.tablePanel}>
@@ -134,13 +139,23 @@ export default function ListExaminationForm() {
 					<Typography.Title level={3} className={styles.panelTitle}>
 						Danh sách phiếu khám
 					</Typography.Title>
-					<DatePicker
-						value={selectedDate}
-						onChange={(value) => setSelectedDate(value || dayjs())}
-						format="DD/MM/YYYY"
-						allowClear={false}
-						className={styles.datePicker}
-					/>
+					<div className={styles.headerActions}>
+						<DatePicker
+							value={selectedDate}
+							onChange={(value) => setSelectedDate(value || dayjs())}
+							format="DD/MM/YYYY"
+							allowClear={false}
+							className={styles.datePicker}
+						/>
+						<Button
+							type="primary"
+							icon={<PlusCircleOutlined />}
+							className={styles.emergencyBtn}
+							onClick={handleCreateWalkIn}
+						>
+							Tạo Phiếu Khám Khẩn Cấp
+						</Button>
+					</div>
 				</div>
 
 				{loading ? (

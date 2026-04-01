@@ -19,6 +19,12 @@
 	border-bottom: 1px solid #ebf0f5;
 }
 
+.headerActions {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
 .tablePanelHeader h2 {
 	margin: 0;
 	font-size: 24px;
@@ -34,6 +40,21 @@
 
 .datePicker {
 	width: 170px;
+}
+
+.emergencyBtn {
+	height: 36px;
+	padding: 0 16px;
+	border-radius: 999px;
+	font-weight: 700;
+	background: #e76b3c !important;
+	border-color: #e76b3c !important;
+	color: #fff !important;
+}
+
+.emergencyBtn:hover {
+	background: #d65f34 !important;
+	border-color: #d65f34 !important;
 }
 
 .tableWrap {
@@ -180,5 +201,15 @@
 		flex-direction: column;
 		align-items: flex-start;
 		gap: 10px;
+	}
+
+	.headerActions {
+		width: 100%;
+		flex-wrap: wrap;
+	}
+
+	.emergencyBtn {
+		width: 100%;
+		justify-content: center;
 	}
 }
