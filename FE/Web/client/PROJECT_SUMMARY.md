@@ -349,6 +349,9 @@ Luồng đang chạy:
 
 ### 3) Phiếu khám
 - `ListExaminationForm`: lấy lịch hẹn theo ngày, điều hướng vào phiếu khám theo `appointmentId`.
+  - Có auto-refresh khi tab được focus lại (focus + visibilitychange listener) để đồng bộ trạng thái sau khi phiếu khám được tạo ở tab khác.
+  - Dùng `inFlightRef` chống duplicate request khi tab focus nhanh liên tục.
+  - Silent refresh không hiển thị loading spinner hoặc error toast.
 - `RecordExaminationForm`: đã nối API thật:
   - tạo medical record ở lần lưu đầu,
   - cập nhật lại chính medical record đó ở các lần sau,
@@ -357,6 +360,11 @@ Luồng đang chạy:
   - Tab "Hồ sơ y tế": lấy toàn bộ medical history theo `petId`, sắp xếp mới nhất trước và hiển thị đơn thuốc + chỉ định.
   - Walk-in: ẩn tab Hồ sơ y tế, chỉ hiển thị ở phiếu khám có lịch hẹn.
   - TODO bảo mật: cần kiểm tra quyền chia sẻ hồ sơ của chủ nuôi trước khi hiển thị (đánh dấu trực tiếp trong code).
+- **Lưu ý quan trọng về hydrate medical record khi mở lại phiếu khám**:
+  - Backend Appointment entity **KHÔNG có relation** tới MedicalRecord → `appointment.medical` luôn null từ API.
+  - Khi mở lại phiếu khám, hệ thống dùng `getMedicalByPetId` (list API) để tìm record, sau đó **luôn gọi `getMedicalById`** (detail API) để lấy đầy đủ dữ liệu bao gồm vital signs (`temperature`, `heartRate`, `systolic`, `diastolic`, `weight`).
+  - List API (`GET /medical/pet/{petId}`) **KHÔNG trả về** vital signs — chỉ detail API (`GET /medical/{id}`) mới trả đầy đủ.
+  - Nếu detail API fail → fallback về data từ list API (vital signs sẽ trống nhưng form không crash).
 - Cơ chế khóa chỉnh sửa 15 phút:
   - Mốc thời gian tính từ `medical.createdAt` (server).
   - Trong 15 phút: cho phép chỉnh sửa, có hiển thị đếm ngược thời gian còn lại.
@@ -560,6 +568,35 @@ Ghi chú:
 - Canonical frontend chỉ dùng: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`.
 - Không dùng biến thể sai chính tả của `CANCELLED` trong hằng số public hoặc mapping label.
 - `src/data/client/api/appointmentApi.js` có bước normalize dữ liệu cũ (`SUCCESS`, `DONE`, và biến thể CANCEL*ED) về canonical status trước khi render UI.
+
+## Bug Fix Log: Đồng bộ dữ liệu sau tạo phiếu khám (2026-04)
+
+### Vấn đề gốc
+1. Sau khi bác sĩ tạo phiếu khám → danh sách phiếu khám không cập nhật trạng thái mới.
+2. Mở lại phiếu khám vừa tạo → vital signs (nhiệt độ, nhịp tim, huyết áp, cân nặng) bị trống.
+
+### Nguyên nhân đã xác định
+1. **List API trả thiếu dữ liệu**: `GET /medical/pet/{petId}` (findAllPaginationByPet) chỉ select `id, name, diagnosis, symptoms, conclusion, note, createdAt, followUpDate`. KHÔNG select `temperature, heartRate, systolic, diastolic, weight`. Code cũ dùng trực tiếp data từ list API mà không gọi detail API để lấy đầy đủ.
+2. **ListExaminationForm không có cơ chế refresh**: Phiếu khám mở trong tab mới, nhưng tab gốc (danh sách) không có focus/visibility listener nên không biết phiếu khám đã được tạo.
+3. **Appointment entity không có relation tới MedicalRecord**: Backend `appointment.entity.ts` không có field `medical`, nên `item?.medical?.id` luôn null từ API appointment. Phát hiện phiếu khám chỉ dựa vào `status === COMPLETED`.
+
+### Cách fix đã áp dụng
+1. **RecordExaminationForm** (`hydrateLatestMedicalRecord`): Khi tìm được medical record match từ list API → luôn gọi `getMedicalById(id)` để lấy record đầy đủ vital signs. Fallback về data list nếu detail API fail.
+2. **ListExaminationForm**: Thêm focus + visibilitychange listener với silent refresh + inFlightRef chống duplicate. Khi bác sĩ quay lại tab danh sách → tự refetch → nút đổi từ "Tạo phiếu khám" sang "Mở phiếu khám".
+
+### Luồng hoàn chỉnh sau fix
+1. Bác sĩ bấm "Tạo phiếu khám" → mở tab mới `/veterinarian/exam-forms/create?appointmentId=...`
+2. Điền form → lưu → `POST /medical` tạo record → extract `medicalId` từ response
+3. `POST /medical/medical-order` và `POST /medical/medicine` dùng `medicalId` vừa nhận
+4. `PATCH /appointment/:id` cập nhật status → `COMPLETED`
+5. Navigate về `/veterinarian/exam-forms` (trong tab phiếu khám)
+6. Khi quay lại tab danh sách gốc → focus listener trigger silent refetch → UI đồng bộ
+7. Mở lại phiếu khám → `getMedicalByPetId` tìm record → `getMedicalById` lấy đầy đủ → form populate vital signs đúng
+
+### Điểm cần chú ý để không tái phát
+- **Không dùng data từ list API cho form edit**: List API chỉ phục vụ danh sách, thiếu nhiều field. Luôn gọi detail API khi cần dữ liệu đầy đủ.
+- **Cross-tab sync**: Mọi màn mở phiếu khám bằng `window.open` đều cần focus/visibility listener ở tab gốc.
+- **Backend chưa có appointment→medical relation**: Phát hiện medical record chỉ dựa vào status COMPLETED và fuzzy scoring theo ngày/clinic. Nếu backend thêm relation sau, cần cập nhật logic `hasMedicalRecord` và `hydrateLatestMedicalRecord`.
 
 ## Backlog ưu tiên đề xuất (Web)
 1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
