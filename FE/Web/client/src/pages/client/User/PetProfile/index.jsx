@@ -11,6 +11,7 @@ import {
   InputNumber,
   Select,
   message,
+  Modal,
   Card,
   Avatar,
   Space,
@@ -52,6 +53,7 @@ export default function PetProfile() {
   const [breedList, setBreedList] = useState([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState("");
   const [currentPetId, setCurrentPetId] = useState("");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const navigate = useNavigate();
 
@@ -184,6 +186,7 @@ export default function PetProfile() {
       setImagePreview(mappedPetData.avatar);
       setAvatarFile(null);
       setUploadedAvatarUrl(mappedPetData.avatar || '');
+      setHasUnsavedChanges(false);
     } catch (error) {
       message.error(error.message || "Không thể tải thông tin thú cưng!");
     } finally {
@@ -280,6 +283,7 @@ export default function PetProfile() {
       }));
 
       setAvatarFile(null);
+      setHasUnsavedChanges(false);
 
       message.success("Cập nhật thông tin thú cưng thành công!");
       navigate(-1);
@@ -291,9 +295,22 @@ export default function PetProfile() {
   };
 
   const handleCancel = () => {
-    fetchPetData();
-    message.info("Đã hủy thay đổi");
-    navigate(-1);
+    if (!hasUnsavedChanges) {
+      navigate(-1);
+      return;
+    }
+
+    Modal.confirm({
+      title: 'Hủy thay đổi chưa lưu',
+      content: 'Bạn đang chỉnh sửa dở. Bạn có chắc muốn hủy các thay đổi chưa lưu và quay lại không?',
+      okText: 'Hủy và quay lại',
+      cancelText: 'Tiếp tục chỉnh sửa',
+      centered: true,
+      onOk: () => {
+        message.info('Đã hủy thay đổi chưa lưu');
+        navigate(-1);
+      },
+    });
   };
 
   if (loading && !petData) {
@@ -377,6 +394,7 @@ export default function PetProfile() {
             form={form}
             layout="vertical"
             onFinish={handleSubmit}
+            onValuesChange={() => setHasUnsavedChanges(true)}
             autoComplete="off"
             requiredMark={false}
           >

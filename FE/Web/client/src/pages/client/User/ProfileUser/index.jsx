@@ -153,7 +153,7 @@ export default function ProfileUser() {
   return (
     <div className="profile-containers">
       <div className="profile-wrapper">
-        <div className="profile-header">
+        <div className="profile-headers">
         <h2 className="profile-titles">Thông tin cá nhân</h2>
 
           <div className="profile-avatar-section">

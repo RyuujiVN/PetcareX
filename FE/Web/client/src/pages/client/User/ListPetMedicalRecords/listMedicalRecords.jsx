@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Spin, Empty, message } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Button, Spin, Empty, message, Modal } from 'antd';
+import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
 import { createSearchParams, useNavigate } from 'react-router-dom';
-import { getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi';
+import { deletePetApi, getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi';
 import styles from './listMedicalRecords.module.css';
 
 const ListPetMedicalRecords = () => {
   const navigate = useNavigate();
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -28,10 +29,37 @@ const ListPetMedicalRecords = () => {
     fetchPets();
   }, []);
 
-  const handleViewDetails = (petId) => {
+  const handleViewMedicalRecords = (petId) => {
     navigate({
       pathname: '/medical-records',
       search: createSearchParams({ petId: String(petId) }).toString(),
+    });
+  };
+
+  const handleEditPetInfo = (petId) => {
+    navigate(`/petProfile?id=${petId}`);
+  };
+
+  const handleDelete = (petId) => {
+    Modal.confirm({
+      title: 'Xóa thú cưng',
+      content: 'Bạn có chắc muốn xóa thú cưng này?',
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okType: 'danger',
+      centered: true,
+      onOk: async () => {
+        try {
+          setDeletingId(petId);
+          await deletePetApi(petId);
+          setPets((prev) => prev.filter((pet) => pet.id !== petId));
+          message.success('Xóa thú cưng thành công');
+        } catch (error) {
+          message.error(error.message || 'Xóa thất bại');
+        } finally {
+          setDeletingId(null);
+        }
+      },
     });
   };
 
@@ -45,46 +73,68 @@ const ListPetMedicalRecords = () => {
           <p className={styles['list-pet-subtitle']}>
             Chọn 1 trong các thú cưng của bạn
           </p>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            className={styles['add-pet-btn']}
+            onClick={() => navigate('/add-pet')}
+          >
+            Thêm thú cưng mới
+          </Button>
         </div>
 
         <Spin spinning={loading}>
           {pets.length > 0 ? (
-            <div className={styles['pet-lists']}>
+            <div className={styles['cards-grid']}>
               {pets.map((pet) => (
-                <div key={pet.id} className={styles['pet-item']}>
-                  <Row gutter={[16, 16]} align="middle">
-                    <Col xs={24} sm={6} className={styles['pet-avatar-col']}>
-                      <img
-                        src={pet.avatar || '/gaugau.png'}
-                        alt={pet.name}
-                        className={styles['pet-avatar']}
-                      />
-                    </Col>
+                <article key={pet.id} className={styles['pet-card']}>
+                  <div className={styles['pet-image-wrap']}>
+                    <img
+                      src={pet.avatar || '/gaugau.png'}
+                      alt={pet.name}
+                      className={styles['pet-image']}
+                    />
+                  </div>
 
-                    <Col xs={24} sm={12} className={styles['pet-info-col']}>
-                      <div className={styles['pet-info']}>
-                        <h3 className={styles['pet-name']}>
-                          {pet.name} <br />
-                          {getBreedLabel(pet.breed, pet.species)}
-                        </h3>
-                      </div>
-                    </Col>
+                  <div className={styles['card-body']}>
+                    <h3 className={styles['pet-name']}>Tên: {pet.name}</h3>
+                    <p className={styles['pet-breed']}>Loài: {getBreedLabel(pet.breed, pet.species)}</p>
 
-                    <Col xs={24} sm={6} className={styles['pet-action-col']}>
-                      <div className={styles['pet-action-group']}>
-                        <Button
-                          type="primary"
-                          className={styles['view-detail-btn']}
-                          icon={<EyeOutlined />}
-                          block
-                          onClick={() => handleViewDetails(pet.id)}
-                        >
-                          Xem chi tiết
-                        </Button>                       
-                      </div>
-                    </Col>
-                  </Row>
-                </div>
+                    <div className={styles['pet-action-group']}>
+                      <Button
+                        type="primary"
+                        className={styles['view-detail-btn']}
+                        icon={<EyeOutlined />}
+                        block
+                        onClick={() => handleViewMedicalRecords(pet.id)}
+                      >
+                        Xem hồ sơ y tế
+                      </Button>
+
+                      <Button
+                        type="primary"
+                        ghost
+                        className={styles['view-record-btn']}
+                        icon={<EditOutlined />}
+                        block
+                        onClick={() => handleEditPetInfo(pet.id)}
+                      >
+                        Chỉnh sửa thông tin
+                      </Button>
+
+                      <Button
+                        danger
+                        className={styles['delete-btn']}
+                        icon={<DeleteOutlined />}
+                        loading={deletingId === pet.id}
+                        block
+                        onClick={() => handleDelete(pet.id)}
+                      >
+                        Xóa
+                      </Button>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
           ) : (

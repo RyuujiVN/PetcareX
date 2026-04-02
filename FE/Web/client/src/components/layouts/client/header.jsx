@@ -38,7 +38,7 @@ function Header() {
                         to="/listPetMedicalRecords" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Hồ sơ y tế
+                        Thú cưng của tôi
                     </NavLink>
                     <NavLink 
                         to="/forum" 
@@ -70,19 +70,6 @@ function Header() {
                                     <Link to="/user/profile" className="dropdown-item">
                                         <span className="icon">👤</span>
                                         <span>Trang cá nhân</span>
-                                    </Link>
-                                    <Link to="/listPet" className="dropdown-item">
-                                        <span className="icon">🐶</span>
-                                        <span>Thú cưng của tôi</span>
-                                    </Link>
-                                    <Link to="/appointments" className="dropdown-item">
-                                        <span className="icon">📅</span>
-                                        <span>Lịch hẹn của tôi</span>
-                                    </Link>
-                                    <hr className="dropdown-divider" />
-                                    <Link to="/settings" className="dropdown-item">
-                                        <span className="icon">⚙️</span>
-                                        <span>Cài đặt</span>
                                     </Link>
                                     <div 
                                         className="dropdown-item logout"

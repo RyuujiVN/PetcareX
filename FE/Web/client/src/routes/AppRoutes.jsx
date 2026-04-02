@@ -20,7 +20,6 @@ import AddPet from '../pages/client/User/AddPet'
 import AppointmentDetail from '../pages/client/User/AppointmentDetail'
 import BookingAppointment from '../pages/client/User/BookingAppointment'
 import Forum from '../pages/client/User/Forum/forum'
-import ListPet from '../pages/client/User/ListPet'
 import ListPetMedicalRecords from '../pages/client/User/ListPetMedicalRecords/listMedicalRecords'
 import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
 import PetProfile from '../pages/client/User/PetProfile'
@@ -61,7 +60,6 @@ export default function AppRoutes({ location }) {
         <Route path="/admin/dashboard/clinics" element={<Clinics />} />
         <Route path="/admin/dashboard/users" element={<Users />} />
         <Route path="/admin/dashboard/posts" element={<Posts />} />
-        {/* TODO: thêm route cho Overview khi có component */}
       </Route>
 
       {/* ── Admin Clinic (role ADMIN_CLINIC) ── */}
@@ -124,7 +122,6 @@ export default function AppRoutes({ location }) {
         <Route path="/profile" element={<ProfileUser />} />
         <Route path="/user/profile" element={<ProfileUser />} />
         <Route path="/petProfile" element={<PetProfile />} />
-        <Route path="/listPet" element={<ListPet />} />
         <Route path="/medical-records" element={<MedicalRecords />} />
         <Route path="/forum" element={<Forum />} />
         <Route path="/listPetMedicalRecords" element={<ListPetMedicalRecords />}

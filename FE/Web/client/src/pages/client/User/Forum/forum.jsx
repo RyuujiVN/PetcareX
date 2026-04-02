@@ -10,7 +10,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { createComment, getReplies } from '../../../../data/client/api/commentApi'
 import { CLIENT_AUTH_STORAGE } from '../../../../constants/authStorage'
-import { uploadUserImageApi } from '../../../../data/client/api/user'
+import { uploadUserImagesApi, uploadUserImageApi } from '../../../../data/client/api/user'
 import {
 	createPost,
 	deletePost,
@@ -29,6 +29,7 @@ const TITLE_TOKEN_REGEX = /^\s*\[\[title:(.*?)\]\]\s*/i
 const NO_TOPIC_VALUE = 'no-topic'
 const NO_TOPIC_FILTER_VALUE = 'none'
 const FEATURED_POST_LIMIT = 3
+const MAX_POST_IMAGES = 10
 
 const formatTimeAgo = (dateValue) => {
 	if (!dateValue) return 'Vừa xong'
@@ -65,7 +66,10 @@ const getPostEngagementScore = (post = {}) => Number(post.likes || 0) + Number(p
 
 const extractMediaFromContent = (rawContent = '') => {
 	const matches = [...rawContent.matchAll(IMAGE_TOKEN_REGEX)]
-	const firstImage = matches[0]?.[1]?.trim() || null
+	const images = matches
+		.map((match) => match?.[1]?.trim())
+		.filter((url) => Boolean(url))
+	const firstImage = images[0] || null
 	const withoutImageToken = rawContent.replace(IMAGE_TOKEN_REGEX, '').trim()
 	const titleMatch = withoutImageToken.match(TITLE_TOKEN_REGEX)
 	const title = titleMatch?.[1]?.trim() || ''
@@ -75,10 +79,11 @@ const extractMediaFromContent = (rawContent = '') => {
 		title,
 		text: cleanContent,
 		image: firstImage,
+		images,
 	}
 }
 
-const attachPostToContent = ({ title, text, imageUrl }) => {
+const attachPostToContent = ({ title, text, imageUrls = [] }) => {
 	const normalizedTitle = title?.trim()
 	const normalizedText = text.trim() || 'Hình ảnh'
 	const lines = []
@@ -89,8 +94,12 @@ const attachPostToContent = ({ title, text, imageUrl }) => {
 
 	lines.push(normalizedText)
 
-	if (imageUrl) {
+	imageUrls.filter(Boolean).forEach((imageUrl) => {
 		lines.push(`[[img:${imageUrl}]]`)
+	})
+
+	if (lines.length === 0) {
+		lines.push('Hình ảnh')
 	}
 
 	return lines.join('\n')
@@ -142,6 +151,7 @@ const mapPostToUi = (post) => {
 		title: media.title,
 		content: media.text,
 		image: media.image,
+		images: media.images,
 		time: formatTimeAgo(post.createdAt),
 		tag: (topicName || 'Bài viết').toUpperCase(),
 		tagType: normalizeTagType(topicName),
@@ -172,9 +182,8 @@ function Forum() {
 	const [composerText, setComposerText] = useState('')
 	const [composerTitle, setComposerTitle] = useState('')
 	const [composerTopicId, setComposerTopicId] = useState(NO_TOPIC_VALUE)
-	const [composerImageFile, setComposerImageFile] = useState(null)
-	const [composerImagePreview, setComposerImagePreview] = useState('')
-	const [composerImageUrl, setComposerImageUrl] = useState('')
+	const [composerImageFiles, setComposerImageFiles] = useState([])
+	const [composerImagePreviews, setComposerImagePreviews] = useState([])
 	const [uploadingComposerImage, setUploadingComposerImage] = useState(false)
 	const [submittingPost, setSubmittingPost] = useState(false)
 	const [editingPost, setEditingPost] = useState(null)
@@ -397,34 +406,40 @@ function Forum() {
 			return
 		}
 
-		if (!composerTitle.trim() && !composerText.trim() && !composerImageFile) {
+		if (!composerTitle.trim() && !composerText.trim() && composerImageFiles.length === 0) {
 			message.warning('Vui lòng nhập nội dung hoặc chọn ảnh trước khi đăng')
 			return
 		}
 
 		try {
 			setSubmittingPost(true)
-			const imageUrl = composerImageUrl || null
+			let imageUrls = []
+
+			if (composerImageFiles.length > 0) {
+				setUploadingComposerImage(true)
+				imageUrls = await uploadUserImagesApi(composerImageFiles)
+			}
+
 			await createPost({
 				topicId: composerTopicId === NO_TOPIC_VALUE ? null : composerTopicId,
 				content: attachPostToContent({
 					title: composerTitle,
 					text: composerText,
-					imageUrl,
+					imageUrls,
 				}),
 			})
 			message.success('Đăng bài thành công')
 			setComposerText('')
 			setComposerTitle('')
 			setComposerTopicId(NO_TOPIC_VALUE)
-			setComposerImageFile(null)
-			setComposerImagePreview('')
-			setComposerImageUrl('')
+			setComposerImageFiles([])
+			setComposerImagePreviews([])
 			setIsComposerModalOpen(false)
 			await loadPosts()
 		} catch (error) {
 			message.error(error.message || 'Đăng bài thất bại')
 		} finally {
+			setUploadingComposerImage(false)
 			setSubmittingPost(false)
 		}
 	}
@@ -566,24 +581,27 @@ function Forum() {
 	}
 
 	const handlePickComposerImage = async (event) => {
-		const file = event.target.files?.[0]
-		if (!file) return
+		const selectedFiles = Array.from(event.target.files || []).filter(Boolean)
+		if (selectedFiles.length === 0) return
 
-		setComposerImageFile(file)
-		setUploadingComposerImage(true)
+		const remainingSlots = MAX_POST_IMAGES - composerImageFiles.length
+		if (remainingSlots <= 0) {
+			message.warning(`Bạn chỉ có thể chọn tối đa ${MAX_POST_IMAGES} ảnh`)
+			event.target.value = ''
+			return
+		}
+
+		const acceptedFiles = selectedFiles.slice(0, remainingSlots)
+		if (acceptedFiles.length < selectedFiles.length) {
+			message.warning(`Chỉ nhận tối đa ${MAX_POST_IMAGES} ảnh cho mỗi bài viết`)
+		}
+
 		try {
-			const preview = await toDataUrl(file)
-			setComposerImagePreview(preview)
-			const uploadedUrl = await uploadImage(file)
-			setComposerImageUrl(uploadedUrl)
-			message.success('Tải ảnh bài viết thành công')
+			const previews = await Promise.all(acceptedFiles.map((file) => toDataUrl(file)))
+			setComposerImageFiles((prev) => [...prev, ...acceptedFiles])
+			setComposerImagePreviews((prev) => [...prev, ...previews])
 		} catch (error) {
-			setComposerImageFile(null)
-			setComposerImagePreview('')
-			setComposerImageUrl('')
 			message.error(error.message || 'Không thể đọc ảnh đã chọn')
-		} finally {
-			setUploadingComposerImage(false)
 		}
 
 		event.target.value = ''
@@ -1017,19 +1035,27 @@ function Forum() {
 
 								{post.content ? <p className={styles.postContent}>{post.content}</p> : null}
 
-								{post.image ? (
-									<div
-										className={styles.postImageFrame}
-										onClick={(event) => {
-											event.stopPropagation()
-											handlePreviewPostImage(post.image)
-										}}
-									>
-										<img
-											src={post.image}
-											alt="Bài viết"
-											className={styles.postImage}
-										/>
+								{post.images?.length ? (
+									<div className={styles.postImageGrid}>
+										{post.images.map((imageUrl, index) => (
+											<button
+												key={`${post.id}-${imageUrl}-${index}`}
+												type="button"
+												className={styles.postImageFrame}
+												onClick={(event) => {
+													event.stopPropagation()
+													handlePreviewPostImage(imageUrl)
+												}}
+											>
+												<img
+													src={imageUrl}
+													alt={`Bài viết ${index + 1}`}
+													className={styles.postImage}
+													loading="lazy"
+													decoding="async"
+												/>
+											</button>
+										))}
 									</div>
 								) : null}
 
@@ -1316,21 +1342,24 @@ function Forum() {
 						placeholder="Bạn muốn chia sẻ điều gì về thú cưng hôm nay?"
 					/>
 
-					{composerImagePreview ? (
+					{composerImagePreviews.length > 0 ? (
 						<div className={styles.previewImageWrap}>
-							<img src={composerImagePreview} alt="post preview" className={styles.previewImage} />
-							<button
-								type="button"
-								onClick={() => {
-									setComposerImageFile(null)
-									setComposerImagePreview('')
-									setComposerImageUrl('')
-								}}
-								className={styles.removeImageBtn}
-								disabled={uploadingComposerImage}
-							>
-								Gỡ ảnh
-							</button>
+							{composerImagePreviews.map((preview, index) => (
+								<div key={`${preview}-${index}`} className={styles.previewImageItem}>
+									<img src={preview} alt={`post preview ${index + 1}`} className={styles.previewImage} />
+									<button
+										type="button"
+										onClick={() => {
+											setComposerImageFiles((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+											setComposerImagePreviews((prev) => prev.filter((_, itemIndex) => itemIndex !== index))
+										}}
+										className={styles.removeImageBtn}
+										disabled={uploadingComposerImage || submittingPost}
+									>
+										Gỡ ảnh
+									</button>
+								</div>
+							))}
 						</div>
 					) : null}
 
@@ -1339,6 +1368,7 @@ function Forum() {
 							ref={postImageInputRef}
 							type="file"
 							accept="image/*"
+							multiple
 							onChange={handlePickComposerImage}
 							hidden
 						/>
