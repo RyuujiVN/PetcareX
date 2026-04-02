@@ -10,7 +10,7 @@ import './index.css'
 import { store } from './redux/store.js'
 import './styles/Clinic/colorsToken.css'
 import './styles/client/colorsToken.css'
-import { initFirebaseAnalytics } from './utils/firebaseClient'
+import { initFirebaseAnalytics } from './data/client/utils/firebaseClient'
 
 initFirebaseAnalytics().catch(() => undefined);
 

@@ -1,0 +1,38 @@
+.clinic-home-editor-page {
+  padding: 20px;
+}
+
+.clinic-home-editor-header {
+  margin-bottom: 16px;
+}
+
+.clinic-home-editor-content {
+  width: 100%;
+}
+
+.editor-full-width {
+  width: 100%;
+}
+
+.clinic-home-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.clinic-home-preview-block {
+  margin-top: 20px;
+  padding-bottom: 32px;
+}
+
+@media (max-width: 768px) {
+  .clinic-home-editor-page {
+    padding: 14px;
+  }
+
+  .clinic-home-editor-actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+}

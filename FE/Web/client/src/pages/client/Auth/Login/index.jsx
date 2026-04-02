@@ -10,8 +10,8 @@ import { loginApi } from '../../../../data/client/api/auth';
 import { getAuthPortalByRole, getPostLoginPathByRole } from '../../../../constants/authRole';
 import { useAuth as useAdminAuth } from '../../../../hooks/Clinic/AuthContext';
 import { useAuth as useClientAuth } from '../../../../hooks/client/AuthContext';
-import { authenticateClientWithGoogle } from '../../../../utils/clientGoogleAuth';
-import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from '../../../../utils/firebaseClient';
+import { authenticateClientWithGoogle } from '../../../../data/client/utils/clientGoogleAuth';
+import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from '../../../../data/client/utils/firebaseClient';
 
 const { Title, Text, Link } = Typography;
 
