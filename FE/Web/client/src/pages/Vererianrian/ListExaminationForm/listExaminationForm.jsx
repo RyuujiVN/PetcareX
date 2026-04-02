@@ -147,8 +147,10 @@ export default function ListExaminationForm() {
 							icon={<PlusCircleOutlined />}
 							className={styles.emergencyBtn}
 							onClick={handleCreateWalkIn}
+							aria-label="Tạo phiếu khám Vãng Lai"
+							title="Tạo phiếu khám Vãng Lai"
 						>
-							Tạo Phiếu Khám Khẩn Cấp
+							Tạo phiếu khám Vãng Lai
 						</Button>
 					</div>
 				</div>

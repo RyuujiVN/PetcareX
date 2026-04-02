@@ -146,15 +146,17 @@ Chức năng chính:
 ### 3) Booking Appointment
 Luồng đang chạy:
 
-### 4) Walk-in Emergency (Tạo phiếu khám khẩn cấp)
-- Nút **"Tạo Phiếu Khám Khẩn Cấp"** ở trang danh sách phiếu khám, mở form tạo mới không cần lịch hẹn.
+### 4) Walk-in (Phiếu khám vãng lai)
+- Nút **"Tạo phiếu khám Vãng Lai"** ở trang danh sách phiếu khám, mở form tạo mới không cần lịch hẹn.
 - Luồng xử lý:
   - Tra cứu khách hàng theo email (cần backend hỗ trợ search email hoặc endpoint riêng).
   - Nếu chưa có tài khoản: tự tạo với password tạm `Baophan1234` (placeholder, backend sẽ thay bằng random + gửi email).
   - Tra cứu thú cưng theo tên + chủ nhân (cần backend hỗ trợ filter theo ownerId).
   - Nếu chưa có: tạo thú cưng mới rồi mới tạo phiếu khám.
+- Loại phiếu khám (walk-in): dropdown bắt buộc lấy từ `ServiceEnum`, label tiếng Việt qua `getServiceLabel`.
 - Hiển thị loading state và thông báo kết quả theo từng bước.
 - **Phiếu khám có lịch hẹn**: ẩn toàn bộ phần thông tin khách hàng & thú cưng trên UI (không ảnh hưởng payload gửi API).
+- **Walk-in**: ẩn tab Hồ sơ y tế vì chưa có pet lịch sử rõ ràng.
 1. Chọn pet.
 2. Chọn dịch vụ + clinic.
 3. Chọn bác sĩ + nhập triệu chứng.
@@ -312,6 +314,7 @@ Luồng đang chạy:
   - đồng bộ lại medical orders + medicines theo lần lưu mới,
   - tự cập nhật appointment sang `COMPLETED` khi lưu thành công.
   - Tab "Hồ sơ y tế": lấy toàn bộ medical history theo `petId`, sắp xếp mới nhất trước và hiển thị đơn thuốc + chỉ định.
+  - Walk-in: ẩn tab Hồ sơ y tế, chỉ hiển thị ở phiếu khám có lịch hẹn.
   - TODO bảo mật: cần kiểm tra quyền chia sẻ hồ sơ của chủ nuôi trước khi hiển thị (đánh dấu trực tiếp trong code).
 - Cơ chế khóa chỉnh sửa 15 phút:
   - Mốc thời gian tính từ `medical.createdAt` (server).
@@ -325,6 +328,7 @@ Luồng đang chạy:
   - Logic chuyển `BOOKED -> IN_PROGRESS` và giữ nút bấm lại được ở trạng thái `IN_PROGRESS`.
 - `src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx`:
   - Điều hướng tới trang phiếu khám theo `appointmentId`.
+  - Nút "Tạo phiếu khám Vãng Lai" mở form walk-in.
   - Mang theo dữ liệu `medical` của appointment để hydrate form.
 - `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:
   - Cơ chế lock chỉnh sửa 15 phút.

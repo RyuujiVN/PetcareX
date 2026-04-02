@@ -18,12 +18,12 @@ import {
 	Form,
 	Input,
 	InputNumber,
+	message,
 	Modal,
 	Row,
 	Select,
 	Spin,
 	Tabs,
-	message,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -61,11 +61,11 @@ import {
 	searchVeterinarianUsersApi,
 } from '../../../data/Vererianrian/api/userApi'
 import { getBreedLabel, getSpeciesLabel } from '../../../data/client/api/petApi'
+import { ServiceEnum } from '../../../enum/service.enum'
 import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
 const EDITABLE_DURATION_SECONDS = 15 * 60
-const EMERGENCY_FORM_NAME = 'Phiếu khám khẩn cấp'
 const EMERGENCY_TEMP_PASSWORD = 'Baophan1234'
 
 const normalizeCollection = (payload) => {
@@ -177,6 +177,15 @@ const getAgeLabel = (birthday) => {
 	return `${years} tuổi`
 }
 
+const resolveServiceTypeFromName = (name) => {
+	const trimmedName = String(name || '').trim()
+	if (!trimmedName) return undefined
+
+	return Object.values(ServiceEnum).find(
+		(service) => getServiceLabel(service, '') === trimmedName,
+	)
+}
+
 const toDayStamp = (value) => {
 	if (!value) return ''
 	const date = new Date(value)
@@ -276,8 +285,13 @@ const buildInitialValues = (
 				.filter((item) => item.medicineId || item.quantity || item.frequency)
 		: []
 
+	const resolvedServiceType = isWalkIn
+		? resolveServiceTypeFromName(editableMedicalRecord?.name || appointment?.formName)
+		: undefined
+
 	return {
-		formName: isWalkIn ? EMERGENCY_FORM_NAME : serviceLabel,
+		formName: isWalkIn ? '' : serviceLabel,
+		serviceType: resolvedServiceType,
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
 		customerName: isWalkIn ? '' : appointment?.ownerName || owner?.fullName || '',
 		email: isWalkIn ? '' : owner?.email || appointment?.ownerEmail || '',
@@ -547,6 +561,14 @@ export default function RecordExaminationForm() {
 		let active = true
 
 		const loadHistoryRecords = async () => {
+			if (isWalkIn) {
+				if (active) {
+					setHistoryRecords([])
+					setHistoryPet(null)
+				}
+				return
+			}
+
 			if (!historyPetId) {
 				if (active) {
 					setHistoryRecords([])
@@ -610,7 +632,7 @@ export default function RecordExaminationForm() {
 		return () => {
 			active = false
 		}
-	}, [appointment?.pet, appointment?.petRaw, appointment?.pet?.id, appointment?.petRaw?.id, historyPetId])
+	}, [appointment?.pet, appointment?.petRaw, appointment?.pet?.id, appointment?.petRaw?.id, historyPetId, isWalkIn])
 
 	useEffect(() => {
 		if (!editableMedicalId || !editableMedicalCreatedAtMs) {
@@ -752,6 +774,13 @@ export default function RecordExaminationForm() {
 		}
 	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight])
 
+	const serviceOptions = useMemo(() => {
+		return Object.values(ServiceEnum).map((service) => ({
+			value: service,
+			label: getServiceLabel(service),
+		}))
+	}, [])
+
 	const handleValuesChange = (_, allValues) => {
 		const normalized = {
 			...allValues,
@@ -824,6 +853,8 @@ export default function RecordExaminationForm() {
 		const weight = toNumberOrUndefined(values.weight)
 		const genderValue = normalizeGenderValue(values.petGender)
 		const dateOfBirth = resolveDateOfBirth(values.petDateOfBirth, values.petAge)
+		const selectedServiceType = values.serviceType
+		const resolvedServiceName = selectedServiceType ? getServiceLabel(selectedServiceType, '') : ''
 
 		if (
 			temperature === undefined ||
@@ -853,6 +884,11 @@ export default function RecordExaminationForm() {
 
 		if (genderValue === undefined) {
 			message.error('Vui lòng chọn giới tính thú cưng')
+			return
+		}
+
+		if (!selectedServiceType || !resolvedServiceName) {
+			message.error('Vui lòng chọn loại phiếu khám')
 			return
 		}
 
@@ -910,7 +946,7 @@ export default function RecordExaminationForm() {
 				species: values.species,
 				breed: values.breed,
 				petName: values.petName,
-				name: values.formName,
+				name: resolvedServiceName,
 				customerName: values.customerName,
 				email: normalizedEmail,
 				phone: normalizedPhone,
@@ -1240,13 +1276,27 @@ export default function RecordExaminationForm() {
 				<Card className={styles.sectionCard}>
 					<Row gutter={12}>
 						<Col xs={24} md={12}>
-							<Form.Item
-								label="TÊN PHIẾU KHÁM"
-								name="formName"
-								rules={[{ required: true, message: 'Vui lòng nhập tên phiếu khám' }]}
-							>
-								<Input placeholder="Tên phiếu khám" />
-							</Form.Item>
+							{isWalkIn ? (
+								<Form.Item
+									label="LOẠI PHIẾU KHÁM"
+									name="serviceType"
+									rules={[{ required: true, message: 'Vui lòng chọn loại phiếu khám' }]}
+								>
+									<Select
+										size="large"
+										placeholder="Chọn loại phiếu khám"
+										options={serviceOptions}
+									/>
+								</Form.Item>
+							) : (
+								<Form.Item
+									label="TÊN PHIẾU KHÁM"
+									name="formName"
+									rules={[{ required: true, message: 'Vui lòng nhập tên phiếu khám' }]}
+								>
+									<Input placeholder="Tên phiếu khám" />
+								</Form.Item>
+							)}
 						</Col>
 						<Col xs={24} md={12}>
 							<Form.Item label="NGÀY TÁI KHÁM" name="followUpDate">
@@ -1671,8 +1721,9 @@ export default function RecordExaminationForm() {
 						</div>
 					</div>
 				</Tabs.TabPane>
-				<Tabs.TabPane tab="Hồ sơ y tế" key="history">
-					<div className={styles.historyPanel}>
+				{!isWalkIn ? (
+					<Tabs.TabPane tab="Hồ sơ y tế" key="history">
+						<div className={styles.historyPanel}>
 						{historySummary ? (
 							<Card className={styles.sectionCard}>
 								<div className={styles.historySummary}>
@@ -1792,8 +1843,9 @@ export default function RecordExaminationForm() {
 								))}
 							</div>
 						)}
-					</div>
-				</Tabs.TabPane>
+						</div>
+					</Tabs.TabPane>
+				) : null}
 			</Tabs>
 			</Form>
 		</div>
