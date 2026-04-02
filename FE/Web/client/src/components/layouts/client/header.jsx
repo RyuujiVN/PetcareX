@@ -1,6 +1,6 @@
 import { EyeInvisibleOutlined, EyeOutlined, LockOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
 import { message } from "antd";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaPaw } from "react-icons/fa";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { changePasswordApi } from "../../../data/client/api/auth";
@@ -39,12 +39,41 @@ function Header() {
         confirmPassword: false,
     });
     const [passwordVisible, setPasswordVisible] = useState(INITIAL_PASSWORD_VISIBILITY);
+    const accountMenuRef = useRef(null);
     const navigate = useNavigate();
     const { logout, token, userProfile } = useAuth();
 
     const handleAccountClick = () => {
-        setIsAccountDropdownOpen(!isAccountDropdownOpen);
+        setIsAccountDropdownOpen((prev) => !prev);
     };
+
+    useEffect(() => {
+        if (!isAccountDropdownOpen) {
+            return;
+        }
+
+        const handleOutsideClick = (event) => {
+            if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
+                setIsAccountDropdownOpen(false);
+            }
+        };
+
+        const handleEscapeKey = (event) => {
+            if (event.key === "Escape") {
+                setIsAccountDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+        document.addEventListener("touchstart", handleOutsideClick);
+        document.addEventListener("keydown", handleEscapeKey);
+
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+            document.removeEventListener("touchstart", handleOutsideClick);
+            document.removeEventListener("keydown", handleEscapeKey);
+        };
+    }, [isAccountDropdownOpen]);
 
     const resetPasswordPopup = () => {
         setPasswordForm(INITIAL_PASSWORD_FORM);
@@ -214,7 +243,7 @@ function Header() {
 
                 <div className="auth-section">
                     {token ? (
-                        <div className="user-section">
+                        <div className="user-section" ref={accountMenuRef}>
                             <div className="user-profile" onClick={handleAccountClick}>
                                 <div className="user-avatar">
                                     <img src={userProfile?.avatarUrl || '/bs1.png'} alt="User Avatar" />
@@ -237,7 +266,7 @@ function Header() {
                                         <span className="icon"><LockOutlined /></span>
                                         <span>Đổi mật khẩu</span>
                                     </button>
-                                    <div 
+                                    <div
                                         className="dropdown-item logout"
                                         onClick={() => {
                                             logout();

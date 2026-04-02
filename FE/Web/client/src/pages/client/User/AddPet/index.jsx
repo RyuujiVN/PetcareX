@@ -4,6 +4,7 @@ import './styles.css';
 
 import { FaPaw } from "react-icons/fa";
 import { FiCamera } from "react-icons/fi";
+import { ManOutlined, WomanOutlined } from "@ant-design/icons";
 import { message, Modal, Radio, Select } from 'antd';
 import {
   createPetApi,
@@ -330,11 +331,17 @@ export default function AddPet() {
                 className="gender-radio-group"
               >
                 <Radio.Button value="male" className="gender-radio">
-                  Đực
+                  <span className="gender-radio-content">
+                    <ManOutlined />
+                    <span>Đực</span>
+                  </span>
                 </Radio.Button>
 
                 <Radio.Button value="female" className="gender-radio">
-                  Cái
+                  <span className="gender-radio-content">
+                    <WomanOutlined />
+                    <span>Cái</span>
+                  </span>
                 </Radio.Button>
               </Radio.Group>
             </div>

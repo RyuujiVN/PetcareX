@@ -12,7 +12,7 @@
     width: 100%;
     z-index: 100;
     height: var(--petcare-header-height);
-    /* border: 1px solid var(--color-border-soft); */
+    border: 1px solid var(--color-border-soft);
 }
 
 .client-layout-content {

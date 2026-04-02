@@ -2,11 +2,13 @@ import {
 	DeleteOutlined,
 	ExperimentOutlined,
 	HeartOutlined,
+	ManOutlined,
 	MedicineBoxOutlined,
 	PlusCircleOutlined,
 	SaveOutlined,
 	UserOutlined,
-	WarningOutlined
+	WarningOutlined,
+	WomanOutlined,
 } from '@ant-design/icons'
 import {
 	Alert,
@@ -784,6 +786,30 @@ export default function RecordExaminationForm() {
 		}))
 	}, [])
 
+	const genderSelectOptions = useMemo(
+		() => [
+			{
+				value: 'male',
+				label: (
+					<span>
+						<ManOutlined style={{ marginRight: 8 }} />
+						Đực
+					</span>
+				),
+			},
+			{
+				value: 'female',
+				label: (
+					<span>
+						<WomanOutlined style={{ marginRight: 8 }} />
+						Cái
+					</span>
+				),
+			},
+		],
+		[],
+	)
+
 	const handleValuesChange = (_, allValues) => {
 		const normalized = {
 			...allValues,
@@ -1441,10 +1467,7 @@ export default function RecordExaminationForm() {
 									<Select
 										size="large"
 										placeholder="Chọn giới tính"
-										options={[
-											{ value: 'male', label: 'Đực' },
-											{ value: 'female', label: 'Cái' },
-										]}
+										options={genderSelectOptions}
 									/>
 								</Form.Item>
 							</Col>
