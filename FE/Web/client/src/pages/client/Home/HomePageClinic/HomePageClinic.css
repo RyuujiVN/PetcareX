@@ -99,6 +99,14 @@
 .about-right .btn-secondary {
   padding: 10px 24px;
   font-size: 14px;
+  text-transform: none;
+}
+
+.about-modal-text {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--color-text-primary);
+  white-space: pre-wrap;
 }
 
 .about-highlight {

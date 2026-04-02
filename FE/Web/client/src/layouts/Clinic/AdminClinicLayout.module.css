@@ -71,6 +71,14 @@
   font-weight: 500;
 }
 
+.menuButton {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
 .menuItem:hover {
   background: #eff4fb;
 }

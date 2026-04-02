@@ -141,7 +141,9 @@ Chức năng chính:
 ### 2) Home & chọn phòng khám
 - `/home`: landing/marketing.
 - `/choose-clinic`: lấy clinic từ API, lưu `selectedClinicId` vào sessionStorage, điều hướng `/clinic`.
-- `/clinic`: nội dung marketing + CTA đẩy sang `/booking`.
+- `/clinic`: load nội dung HomePageClinic theo phòng khám được chọn (`selectedClinicId`) và CTA đẩy sang `/booking`.
+- Dữ liệu HomePageClinic được tách theo key localStorage `homePage_{clinicId}` (fallback về default content nếu chưa có dữ liệu lưu).
+- Phần giới thiệu bệnh viện chỉ hiển thị ~100 từ đầu + nút `Đọc thêm`; bấm `Đọc thêm` mở popup hiển thị toàn bộ nội dung, đóng bằng nút `X`.
 
 ### 3) Booking Appointment
 Luồng đang chạy:
@@ -221,6 +223,7 @@ Luồng đang chạy:
 ### 1) Auth & layout
 - Dùng login chung `/login`.
 - Sidebar quản trị + profile menu + đổi mật khẩu trong layout.
+- Sidebar có nút `Chỉnh Sửa Trang Chủ` ngay dưới `Xem phiếu khám`; nút mở tab mới tới route editor của chính phòng khám đang đăng nhập.
 
 ### 2) Appointment Management
 - Lấy lịch khám từ API, có filter ngày/giờ/search.
@@ -249,6 +252,20 @@ Luồng đang chạy:
 ### 6) Admin Clinic Profile
 - Lấy profile `/user/profile`.
 - Cho sửa phone/address và đồng bộ lại context.
+
+### 7) HomePageClinic Editor (ADMIN_CLINIC)
+- Route editor: `/clinic/home-editor/:clinicId` (nằm trong `AdminClinicLayout`).
+- Editor chỉ cho phép sửa **nội dung bên trong** HomePageClinic (banner, giới thiệu, tính năng, đội ngũ bác sĩ, dịch vụ, community), không chỉnh Header/Footer.
+- Cơ chế phân quyền chỉnh sửa:
+  - Chỉ admin clinic đăng nhập mới mở được editor qua sidebar.
+  - Chỉ được sửa dữ liệu của clinic hiện tại; nếu `clinicId` trên URL khác clinic đang đăng nhập thì bị chặn và điều hướng về trang quản trị lịch hẹn.
+- Cơ chế lưu dữ liệu:
+  - Lưu theo từng clinic bằng localStorage key `homePage_{clinicId}`.
+  - Dữ liệu giữa các phòng khám độc lập hoàn toàn, không ghi đè chéo.
+- Nút cuối trang:
+  - `Lưu thay đổi`: lưu theo `clinicId`, toast `Lưu thành công`, sau đó reload trang.
+  - `Hủy`: nếu có thay đổi chưa lưu thì hiện confirm `Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?`.
+- Có khối `Xem trước trang chủ sau khi lưu`; phần giới thiệu trong preview cũng áp dụng logic 100 từ + popup `Đọc thêm` tương tự chế độ xem người dùng.
 
 ## Super Admin Portal (ADMIN) - Trạng thái tính năng
 
@@ -382,6 +399,12 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 1. Tải danh sách appointment theo ngày/giờ.
 2. Kéo thả card giữa các trạng thái.
 3. Patch trạng thái lên backend.
+
+### 3.1) HomePageClinic personalization
+1. Admin clinic mở `Chỉnh Sửa Trang Chủ` từ sidebar (new tab theo `clinicId` hiện tại).
+2. Chỉnh nội dung, lưu vào localStorage key `homePage_{clinicId}`.
+3. Người dùng chọn phòng khám ở `/choose-clinic` sẽ xem `/clinic` theo đúng dữ liệu đã lưu của clinic đó.
+4. Ở chế độ xem người dùng chỉ có CTA `Đặt lịch khám ngay`; không có nút quản trị `Lưu/Hủy`.
 
 ### 4) Veterinarian exam workflow
 1. Bác sĩ bấm "Bắt đầu khám" từ danh sách lịch hẹn.

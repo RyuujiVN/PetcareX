@@ -1,4 +1,4 @@
-import { loginGoogleApi } from '../data/client/api/auth'
+import { loginGoogleApi } from '../api/auth'
 import { signInWithGooglePopupToken } from './firebaseClient'
 
 export const authenticateClientWithGoogle = async () => {

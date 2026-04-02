@@ -5,8 +5,10 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { changePasswordApi } from '../../data/Clinic/api/auth'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
+import { ADMIN_AUTH_STORAGE } from '../../constants/authStorage'
 import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
+import { getCurrentAdminClinicId } from '../../utils/clinicIdentity'
 import styles from './AdminClinicLayout.module.css'
 
 const menuItems = [
@@ -15,7 +17,6 @@ const menuItems = [
   { key: 'revenue', label: 'Doanh thu', icon: LineChartOutlined, path: '/clinic/revenue' },
   { key: 'doctors', label: 'Bác sĩ', icon: TeamOutlined, path: '/clinic/veterinarians' },
   { key: 'forms', label: 'Xem phiếu khám', icon: FileSearchOutlined, path: '/clinic/exam-slips' },
-  {key: 'homepage', label: 'Chỉnh sửa trang chủ', icon: HomeOutlined , path: '/admin/home' },
 ]
 
 const isMenuActive = (pathname, path) => {
@@ -37,6 +38,25 @@ const getClinicDisplayName = (profile) => {
   )
 }
 
+const handoffAdminAuthToNewTab = () => {
+  const authKeys = [
+    ADMIN_AUTH_STORAGE.tokenKey,
+    ADMIN_AUTH_STORAGE.userInfoKey,
+    ADMIN_AUTH_STORAGE.activeRoleKey,
+  ]
+
+  try {
+    authKeys.forEach((key) => {
+      const value = window.sessionStorage.getItem(key)
+      if (value !== null) {
+        window.localStorage.setItem(key, value)
+      }
+    })
+  } catch {
+    // Ignore storage access failures and let existing auth flow handle fallback.
+  }
+}
+
 export default function AdminClinicLayout() {
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
   const [changingPassword, setChangingPassword] = useState(false)
@@ -48,6 +68,7 @@ export default function AdminClinicLayout() {
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
   const hasClinicRole = normalizedRoles.includes(RoleEnum.ADMIN_CLINIC)
   const clinicDisplayName = getClinicDisplayName(userProfile)
+  const clinicId = getCurrentAdminClinicId(userProfile)
 
   useEffect(() => {
     if (!token) {
@@ -71,6 +92,18 @@ export default function AdminClinicLayout() {
   const handleLogout = () => {
     logout()
     navigate('/login')
+  }
+
+  const openHomePageEditor = () => {
+    if (!clinicId) {
+      message.error('Không xác định được clinicId của phòng khám hiện tại')
+      return
+    }
+
+    handoffAdminAuthToNewTab()
+
+    const editorUrl = `${window.location.origin}/clinic/home-editor/${clinicId}`
+    window.open(editorUrl, '_blank', 'noopener,noreferrer')
   }
 
   const openChangePasswordModal = () => {
@@ -157,6 +190,15 @@ export default function AdminClinicLayout() {
                 </NavLink>
               )
             })}
+
+            <button
+              type="button"
+              onClick={openHomePageEditor}
+              className={`${styles.menuItem} ${styles.menuButton} ${location.pathname.startsWith('/clinic/home-editor/') ? styles.menuItemActive : ''}`}
+            >
+              <HomeOutlined />
+              <span>Chỉnh Sửa Trang Chủ</span>
+            </button>
           </nav>
         </div>
 
