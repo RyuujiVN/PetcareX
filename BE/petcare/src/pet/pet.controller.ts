@@ -40,6 +40,12 @@ export class PetController {
     return this.petService.findAllBreed(species);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Lấy thông tin chi tiết của thú cưng' })
+  getInfoPet(@Param('id') id: string) {
+    return this.petService.findOneById(id);
+  }
+
   @Post()
   @ApiOperation({ summary: 'Tạo mới thú cưng' })
   @ApiBody({
