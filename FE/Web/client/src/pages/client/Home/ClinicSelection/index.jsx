@@ -30,10 +30,8 @@ export default function ClinicSelection() {
           return {
             ...clinic,
             ...clinicInfo,
-            time: clinicInfo.timeDisplay || "8:00 - 20:00 (Thứ 2 - Chủ nhật)",
+            time: clinicInfo.timeDisplay || "8:00 - 20:00",
             image: clinicInfo.avatarUrl || clinic.avatarUrl || "/miniPet.png",
-            rating: clinic.rating ?? 5,
-            reviews: clinic.reviews ?? 0,
           };
         });
 
@@ -149,18 +147,11 @@ useEffect(() => {
                 </p>
 
                 {clinic.phone ? (
-                  <p className="clinic-phone" title={clinic.phone}>
-                    {clinic.phone}
+                  <p className="clinic-phone" title={clinic.phone}> 
+                   <p>SĐT: {clinic.phone}</p>
                   </p>
                 ) : null}
               </div>
-
-              <div className="clinic-meta">
-                <span className="rating">
-                  {clinic.rating} ⭐ ({clinic.reviews})
-                </span>
-              </div>
-
               <button
                 className="btn-choose"
                 onClick={() => handleChoose(clinic)}

@@ -144,15 +144,6 @@
   margin-top: 8px !important;
 }
 
-.clinic-meta {
-  padding: 0 20px 16px;
-}
-
-.rating {
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
 .clinic-address {
   -webkit-line-clamp: 2;
 }

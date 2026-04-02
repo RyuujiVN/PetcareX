@@ -168,7 +168,6 @@ export default function ClinicSelectionEditor() {
     <div className="clinic-selection-editor-page">
       <div className="clinic-selection-editor-header">
         <Title level={2}>Chỉnh Sửa Thông Tin Phòng Khám</Title>
-        <Text type="secondary">Clinic ID: {targetClinicId}</Text>
       </div>
 
       <Card loading={loadingInit}>
@@ -214,7 +213,7 @@ export default function ClinicSelectionEditor() {
                 </Form.Item>
 
                 <Row gutter={12}>
-                  <Col xs={24} md={12}>
+                  {/* <Col xs={24} md={12}>
                     <Form.Item
                       label="Ngày mở cửa"
                       name="openingDays"
@@ -225,7 +224,20 @@ export default function ClinicSelectionEditor() {
                     >
                       <Input placeholder="Ví dụ: Thứ 2 - Chủ nhật" maxLength={80} />
                     </Form.Item>
-                  </Col>
+                  </Col> */}
+                <Col xs={24} md={6}>
+                <Upload 
+                    style={{marginTop: 30}}
+                  accept="image/*"
+                  showUploadList={false}
+                  beforeUpload={handleUploadAvatar}
+                  disabled={uploadingAvatar}
+                >
+                  <Button icon={<UploadOutlined />} loading={uploadingAvatar}>
+                    Tải ảnh đại diện
+                  </Button>
+                </Upload>
+                   </Col>
                   <Col xs={24} md={6}>
                     <Form.Item
                       label="Giờ mở cửa"
@@ -244,26 +256,19 @@ export default function ClinicSelectionEditor() {
                       <Input type="time" />
                     </Form.Item>
                   </Col>
+                  
+                   
                 </Row>
 
-                <Form.Item
+                {/* <Form.Item
                   label="URL ảnh đại diện"
                   name="avatarUrl"
                   rules={[{ required: true, message: 'Vui lòng tải ảnh đại diện phòng khám' }]}
                 >
                   <Input placeholder="URL ảnh đại diện phòng khám" />
-                </Form.Item>
+                </Form.Item> */}
 
-                <Upload
-                  accept="image/*"
-                  showUploadList={false}
-                  beforeUpload={handleUploadAvatar}
-                  disabled={uploadingAvatar}
-                >
-                  <Button icon={<UploadOutlined />} loading={uploadingAvatar}>
-                    Tải ảnh đại diện
-                  </Button>
-                </Upload>
+          
               </Space>
             </Col>
 
@@ -280,7 +285,7 @@ export default function ClinicSelectionEditor() {
                 <div className="clinic-preview-content">
                   <h3>{draftSnapshot.name || 'Tên phòng khám'}</h3>
                   <p>{draftSnapshot.address || 'Địa chỉ phòng khám'}</p>
-                  <p>{previewTime || '08:00 - 20:00 (Thứ 2 - Chủ nhật)'}</p>
+                  <p>{previewTime || '08:00 - 20:00'}</p>
                   <p>{draftSnapshot.phone || 'Số điện thoại'}</p>
                 </div>
               </Card>
@@ -297,10 +302,6 @@ export default function ClinicSelectionEditor() {
       </div>
 
       <Divider />
-
-      <Text type="secondary">
-        Dữ liệu được lưu riêng theo clinicId với key localStorage clinicInfo_{'{'}clinicId{'}'}.
-      </Text>
     </div>
   )
 }
