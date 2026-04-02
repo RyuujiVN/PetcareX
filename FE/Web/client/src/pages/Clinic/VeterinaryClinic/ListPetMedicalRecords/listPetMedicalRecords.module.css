@@ -143,14 +143,14 @@
 	border-radius: 10px;
 	font-weight: 600;
 	box-shadow: 0 4px 10px rgba(22, 119, 255, 0.2);
-	background: #1677ff;
-	border-color: #1677ff;
+	background: #4672b4;
+	border-color: #4672b4;
 }
 
 .viewDetailButton:hover,
 .viewDetailButton:focus {
-	background: #4096ff !important;
-	border-color: #4096ff !important;
+	background: #4672b4 !important;
+	border-color: #4672b4 !important;
 }
 
 .paginationWrap {
