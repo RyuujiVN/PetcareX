@@ -39,6 +39,7 @@ import AdminClinicProfile from '../pages/Clinic/VeterinaryClinic/ProfileAdminCli
 import VererianrianManagement from '../pages/Clinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
 import ViewMedicalRecords from '../pages/Clinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords'
 import HomePageClinicEditor from '../pages/Clinic/VeterinaryClinic/HomePageClinicEditor'
+import ClinicSelectionEditor from '../pages/Clinic/VeterinaryClinic/ClinicSelectionEditor'
 import ListExaminationForm from '../pages/Vererianrian/ListExaminationForm/listExaminationForm'
 import ListMedicalRecords from '../pages/Vererianrian/ListMedicalRecords/listMedicalRecords'
 import PetAppointmentVererianrian from '../pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
@@ -77,6 +78,7 @@ export default function AppRoutes({ location }) {
         <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
         <Route path="/clinic/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
         <Route path="/clinic/home-editor/:clinicId" element={<HomePageClinicEditor />} />
+        <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicSelectionEditor />} />
       </Route>
 
       <Route path="/veterinarian/login" element={<Navigate to="/login" replace />} />

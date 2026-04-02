@@ -1,4 +1,4 @@
-import { CalendarOutlined, FileSearchOutlined, KeyOutlined, LineChartOutlined, LogoutOutlined, MedicineBoxOutlined, TeamOutlined, UserOutlined, HomeOutlined } from '@ant-design/icons'
+import { CalendarOutlined, EditOutlined, FileSearchOutlined, HomeOutlined, KeyOutlined, LineChartOutlined, LogoutOutlined, MedicineBoxOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
 import { Avatar, Button, Dropdown, Form, Input, Modal, message } from 'antd'
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
@@ -106,6 +106,18 @@ export default function AdminClinicLayout() {
     window.open(editorUrl, '_blank', 'noopener,noreferrer')
   }
 
+  const openClinicSelectionEditor = () => {
+    if (!clinicId) {
+      message.error('Không xác định được clinicId của phòng khám hiện tại')
+      return
+    }
+
+    handoffAdminAuthToNewTab()
+
+    const editorUrl = `${window.location.origin}/clinic/clinic-editor/${clinicId}`
+    window.open(editorUrl, '_blank', 'noopener,noreferrer')
+  }
+
   const openChangePasswordModal = () => {
     passwordForm.resetFields()
     setIsChangePasswordOpen(true)
@@ -198,6 +210,15 @@ export default function AdminClinicLayout() {
             >
               <HomeOutlined />
               <span>Chỉnh Sửa Trang Chủ</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={openClinicSelectionEditor}
+              className={`${styles.menuItem} ${styles.menuButton} ${location.pathname.startsWith('/clinic/clinic-editor/') ? styles.menuItemActive : ''}`}
+            >
+              <EditOutlined />
+              <span>Chỉnh Sửa Phòng Khám</span>
             </button>
           </nav>
         </div>
