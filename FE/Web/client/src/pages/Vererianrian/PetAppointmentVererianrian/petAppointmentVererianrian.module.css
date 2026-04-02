@@ -200,6 +200,11 @@
   border-color: #4672b4 !important;
 }
 
+.inProgressActionBtn {
+  background: #f08b3b !important;
+  border-color: #f08b3b !important;
+}
+
 .ghostActionBtn {
   color: #7b8cab;
   border: 1px solid #d5dff0;

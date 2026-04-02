@@ -1,16 +1,18 @@
 import {
-  CalendarOutlined,
-  CheckCircleOutlined,
-  ClockCircleOutlined,
-  LeftOutlined,
-  RightOutlined,
+    CalendarOutlined,
+    CheckCircleOutlined,
+    ClockCircleOutlined,
+    LeftOutlined,
+    PlayCircleOutlined,
+    RightOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Flex, message, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
-  APPOINTMENT_STATUS,
-  getVeterinarianAppointmentsApi,
+    APPOINTMENT_STATUS,
+    getVeterinarianAppointmentsApi,
+    updateVeterinarianAppointmentStatusApi,
 } from '../../../data/Vererianrian/api/appointmentApi'
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './petAppointmentVererianrian.module.css'
@@ -81,6 +83,7 @@ export default function PetAppointmentVererianrian() {
   const inFlightRef = useRef(false)
   const hasLoadedOnceRef = useRef(false)
   const lastDataSignatureRef = useRef('')
+  const updatingIdsRef = useRef(new Set())
 
   const fetchTodayAppointments = useCallback(async ({ silent = false } = {}) => {
     if (inFlightRef.current) {
@@ -225,12 +228,52 @@ export default function PetAppointmentVererianrian() {
     if (!appointment?.id) return
 
     openExamFormInNewTab(appointment.id)
+
+    if (appointment.status === APPOINTMENT_STATUS.IN_PROGRESS) {
+      return
+    }
+
+    if (updatingIdsRef.current.has(appointment.id)) {
+      return
+    }
+
+    const previousStatus = appointment.status
+
+    setAllAppointments((prev) =>
+      prev.map((item) =>
+        item.id === appointment.id
+          ? { ...item, status: APPOINTMENT_STATUS.IN_PROGRESS }
+          : item,
+      ),
+    )
+
+    updatingIdsRef.current.add(appointment.id)
+
+    try {
+      await updateVeterinarianAppointmentStatusApi(appointment.id, {
+        status: APPOINTMENT_STATUS.IN_PROGRESS,
+      })
+      await fetchTodayAppointments({ silent: true })
+    } catch (error) {
+      setAllAppointments((prev) =>
+        prev.map((item) =>
+          item.id === appointment.id
+            ? { ...item, status: previousStatus }
+            : item,
+        ),
+      )
+      message.error(error?.message || 'Không thể cập nhật trạng thái lịch hẹn')
+    } finally {
+      updatingIdsRef.current.delete(appointment.id)
+    }
   }
 
   const getActionButtons = (appointment) => {
     if (appointment.status === APPOINTMENT_STATUS.IN_PROGRESS) {
       return {
-        primaryLabel: 'Bắt đầu khám',
+        primaryLabel: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
+        primaryIcon: <ClockCircleOutlined />,
+        primaryClassName: 'inProgressActionBtn',
         secondaryLabel: '',
         onPrimary: () => handleStart(appointment),
         onSecondary: () => undefined,
@@ -250,6 +293,8 @@ export default function PetAppointmentVererianrian() {
 
     return {
       primaryLabel: 'Bắt đầu khám',
+      primaryIcon: <PlayCircleOutlined />,
+      primaryClassName: 'primaryActionBtn',
       secondaryLabel: '',
       onPrimary: () => handleStart(appointment),
       onSecondary: () => undefined,
@@ -319,10 +364,10 @@ export default function PetAppointmentVererianrian() {
                 <Space className={styles.actionsCol} size={8}>
                   <Button
                     type="primary"
-                    className={styles.primaryActionBtn}
+                    className={styles[actions.primaryClassName] || styles.primaryActionBtn}
                     onClick={actions.onPrimary}
                     disabled={actions.disablePrimary}
-                    style={{ backgroundColor: '#4672b4', borderColor: '#4672b4'}}
+                    icon={actions.primaryIcon}
                   >
                     {actions.primaryLabel}
                   </Button>
