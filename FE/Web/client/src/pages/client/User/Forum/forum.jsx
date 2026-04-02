@@ -21,6 +21,7 @@ import {
 	updatePost,
 } from '../../../../data/client/api/postApi'
 import { getAllTopics } from '../../../../data/client/api/topicApi'
+import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import styles from './forum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
@@ -168,6 +169,7 @@ function Forum() {
 	const navigate = useNavigate()
 	const [searchParams] = useSearchParams()
 	const composerRef = useRef(null)
+	const feedScrollRef = useRef(null)
 	const postImageInputRef = useRef(null)
 	const commentImageInputRef = useRef(null)
 	const replyImageInputRef = useRef(null)
@@ -938,7 +940,7 @@ function Forum() {
 	return (
 		<div className={styles.pageRoot}>
 			<main className={styles.pageWrap}>
-				<section className={styles.leftColumn}>
+				<section ref={feedScrollRef} className={styles.leftColumn}>
 					<div className={styles.composeCard}>
 						<div className={styles.composeTop}>
 							<img src={composerAvatar} alt="avatar" className={styles.composeAvatar} />
@@ -1479,6 +1481,8 @@ function Forum() {
 			>
 				<img src={previewImageSrc} alt="preview" className={styles.previewModalImage} />
 			</Modal>
+
+			<ScrollToTopButton threshold={300} containerRef={feedScrollRef} />
 		</div>
 	)
 }

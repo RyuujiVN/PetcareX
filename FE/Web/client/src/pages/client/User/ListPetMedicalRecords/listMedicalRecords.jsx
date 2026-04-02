@@ -1,15 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Spin, Empty, message, Modal } from 'antd';
-import { DeleteOutlined, EditOutlined, EyeOutlined, PlusOutlined } from '@ant-design/icons';
+import { Button, Spin, Empty, message, Modal, Dropdown } from 'antd';
+import { EyeOutlined, PlusOutlined, MoreOutlined } from '@ant-design/icons';
 import { createSearchParams, useNavigate } from 'react-router-dom';
 import { deletePetApi, getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi';
+import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import styles from './listMedicalRecords.module.css';
+
+const getPetAgeLabel = (dateOfBirth) => {
+  if (!dateOfBirth) {
+    return 'Chưa rõ tuổi';
+  }
+
+  const birthDate = new Date(dateOfBirth);
+  if (Number.isNaN(birthDate.getTime())) {
+    return 'Chưa rõ tuổi';
+  }
+
+  const now = new Date();
+  let totalMonths =
+    (now.getFullYear() - birthDate.getFullYear()) * 12 +
+    (now.getMonth() - birthDate.getMonth());
+
+  if (now.getDate() < birthDate.getDate()) {
+    totalMonths -= 1;
+  }
+
+  totalMonths = Math.max(totalMonths, 0);
+
+  if (totalMonths >= 12) {
+    return `${Math.floor(totalMonths / 12)} tuổi`;
+  }
+
+  return `${totalMonths} tháng tuổi`;
+};
 
 const ListPetMedicalRecords = () => {
   const navigate = useNavigate();
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [deletingId, setDeletingId] = useState(null);
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
@@ -43,24 +71,32 @@ const ListPetMedicalRecords = () => {
   const handleDelete = (petId) => {
     Modal.confirm({
       title: 'Xóa thú cưng',
-      content: 'Bạn có chắc muốn xóa thú cưng này?',
+      content: 'Bạn có chắc muốn xóa thú cưng này không?',
       okText: 'Xóa',
       cancelText: 'Hủy',
       okType: 'danger',
       centered: true,
       onOk: async () => {
         try {
-          setDeletingId(petId);
           await deletePetApi(petId);
           setPets((prev) => prev.filter((pet) => pet.id !== petId));
           message.success('Xóa thú cưng thành công');
         } catch (error) {
           message.error(error.message || 'Xóa thất bại');
-        } finally {
-          setDeletingId(null);
         }
       },
     });
+  };
+
+  const handleCardAction = (actionKey, petId) => {
+    if (actionKey === 'edit') {
+      handleEditPetInfo(petId);
+      return;
+    }
+
+    if (actionKey === 'delete') {
+      handleDelete(petId);
+    }
   };
 
 
@@ -97,7 +133,33 @@ const ListPetMedicalRecords = () => {
                   </div>
 
                   <div className={styles['card-body']}>
-                    <h3 className={styles['pet-name']}>Tên: {pet.name}</h3>
+                    <div className={styles['card-header']}>
+                      <h3 className={styles['pet-name']}>{pet.name}</h3>
+                      <div className={styles['card-header-actions']}>
+                        <span className={styles['pet-age-badge']}>
+                          Tuổi: {getPetAgeLabel(pet.dateOfBirth)}
+                        </span>
+                        <Dropdown
+                          trigger={['click']}
+                          placement="bottomRight"
+                          menu={{
+                            items: [
+                              { key: 'edit', label: 'Chỉnh sửa thông tin thú cưng' },
+                              { key: 'delete', label: 'Xóa thú cưng', danger: true },
+                            ],
+                            onClick: ({ key }) => handleCardAction(key, pet.id),
+                          }}
+                        >
+                          <button
+                            type="button"
+                            className={styles['card-menu-btn']}
+                            aria-label="Tùy chọn thú cưng"
+                          >
+                            <MoreOutlined />
+                          </button>
+                        </Dropdown>
+                      </div>
+                    </div>
                     <p className={styles['pet-breed']}>Loài: {getBreedLabel(pet.breed, pet.species)}</p>
 
                     <div className={styles['pet-action-group']}>
@@ -109,28 +171,6 @@ const ListPetMedicalRecords = () => {
                         onClick={() => handleViewMedicalRecords(pet.id)}
                       >
                         Xem hồ sơ y tế
-                      </Button>
-
-                      <Button
-                        type="primary"
-                        ghost
-                        className={styles['view-record-btn']}
-                        icon={<EditOutlined />}
-                        block
-                        onClick={() => handleEditPetInfo(pet.id)}
-                      >
-                        Chỉnh sửa thông tin
-                      </Button>
-
-                      <Button
-                        danger
-                        className={styles['delete-btn']}
-                        icon={<DeleteOutlined />}
-                        loading={deletingId === pet.id}
-                        block
-                        onClick={() => handleDelete(pet.id)}
-                      >
-                        Xóa
                       </Button>
                     </div>
                   </div>
@@ -145,6 +185,7 @@ const ListPetMedicalRecords = () => {
           )}
         </Spin>
       </div>
+      <ScrollToTopButton threshold={300} />
     </div>
   );
 };

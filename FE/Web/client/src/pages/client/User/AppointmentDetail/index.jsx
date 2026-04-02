@@ -12,6 +12,7 @@ import {
   getStoredDiagnosisReport,
 } from '../../../../data/client/api/appointmentDiagnosis';
 import { getBreedLabel } from '../../../../data/client/api/petApi';
+import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../../utils/enumLabel';
 import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
 import './styles.css';
@@ -488,6 +489,7 @@ const handleViewDetails = (appointment) => {
           </div>
         </antd.Modal>
       </div>
+      <ScrollToTopButton threshold={300} />
     </div>
   );
 };

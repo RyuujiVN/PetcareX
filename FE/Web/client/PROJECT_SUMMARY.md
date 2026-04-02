@@ -48,6 +48,10 @@ Entry tại `src/main.jsx`:
 
 ### 3) Scroll behavior
 - `src/ScrollToTop.jsx` reset vị trí cuộn mỗi lần đổi `pathname`.
+- Có component dùng chung `src/components/common/ScrollToTopButton/ScrollToTopButton.jsx`:
+  - Chỉ hiện khi cuộn quá ngưỡng (mặc định 300px), hỗ trợ animation fade/slide.
+  - Dùng cho cả `ListPetMedicalRecords`, `Forum` và `AppointmentDetail`.
+  - `Forum` gắn vào scroll container nội bộ (`leftColumn`) thay vì chỉ theo window scroll.
 
 ### 4) State và realtime
 - Redux store:
@@ -137,6 +141,10 @@ Chức năng chính:
 - Login/register thường + Google login/register.
 - Role-based redirect sau đăng nhập.
 - Validation form đầy đủ.
+- Header client có popup `Đổi mật khẩu` trong dropdown tài khoản:
+  - Field: mật khẩu hiện tại, mật khẩu mới, xác nhận mật khẩu mới.
+  - Có toggle hiện/ẩn ký tự cho từng field.
+  - Validate inline (required, độ dài tối thiểu, confirm khớp) và gọi API `POST /auth/change-password`.
 
 ### 2) Home & chọn phòng khám
 - `/home`: landing/marketing.
@@ -182,6 +190,7 @@ Luồng đang chạy:
 - `src/data/Vererianrian/api/petApi.js`:
   - Tra cứu pet theo owner và tạo pet mới cho walk-in.
 - Mở modal chẩn đoán AI (`PetDiagnosisContent`).
+- Đã tích hợp `ScrollToTopButton` dùng chung cho trang lịch hẹn (áp dụng cho cả 2 tab section).
 
 ### 5) PetDiagnosis (AI report)
 - Module `appointmentDiagnosis.js`:
@@ -192,7 +201,11 @@ Luồng đang chạy:
 
 ### 6) Pet Management
 - Add pet: species/breed theo API, upload avatar rồi tạo pet.
-- List pet: xem + xóa pet.
+- List pet (`ListPetMedicalRecords`):
+  - Hiển thị thêm tuổi thú cưng ở góc phải trên card, tính từ `dateOfBirth`.
+  - Format tuổi: `X tuổi` (>= 1 năm) hoặc `X tháng tuổi` (< 1 năm).
+  - Thêm menu ba chấm (`...`) trên card: chỉnh sửa thông tin thú cưng + xóa thú cưng (kèm confirm dialog).
+  - Giữ nút `Xem hồ sơ y tế` hiển thị độc lập ngoài dropdown.
 - Pet profile: xem/sửa thông tin pet, cập nhật ảnh.
 
 ### 7) Medical Records
@@ -211,6 +224,7 @@ Luồng đang chạy:
   - `[[title:...]]`
   - `[[img:...]]`
 - Có lọc chủ đề, ranking contributor, featured post theo engagement.
+- Đã tích hợp `ScrollToTopButton` dùng chung, bám theo scroll của cột feed (`leftColumn`).
 
 ### 9) ChatBot AI
 - Không còn là UI mock thuần.

@@ -79,9 +79,53 @@
   padding: 14px;
 }
 
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pet-age-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #4672b4;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.card-menu-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d7e1ef;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #5f6f86;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-menu-btn:hover {
+  background: #f3f7fd;
+  color: #3f67a3;
+}
+
 .pet-name {
   margin: 0;
-  font-size: 30px;
+  font-size: 23px;
   color: #162336;
   line-height: 1.2;
 }
@@ -97,7 +141,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 12px;
+  margin-top: 10px;
 }
 
 .view-detail-btn {

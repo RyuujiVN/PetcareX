@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import "./styles.css";
-
+import { ScheduleOutlined, LaptopOutlined, RobotOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { TbCircleCheck } from "react-icons/tb";
 import { IoCloseCircle } from "react-icons/io5";
 import { MdPets } from "react-icons/md";
@@ -29,28 +29,28 @@ export default function HomePage() {
     {
       id: 1,
       title: "Đặt lịch khám trực tuyến",
-      icon: "??",
+      icon: <ScheduleOutlined />,
       description:
         "Kết nối chủ nuôi và bác sĩ nhanh chóng, giảm thời gian chờ đợi tại phòng khám."
     },
     {
       id: 2,
       title: "Sổ y tế điện tử",
-      icon: "??",
+      icon: <LaptopOutlined />,
       description:
         "Lưu trữ lịch sử khám, phẫu thuật, tiêm phòng trọn đời cho từng thú cưng."
     },
     {
       id: 3,
       title: "Hỗ trợ ChatBot AI",
-      icon: "??",
+      icon: <RobotOutlined />,
       description:
         "Tư vấn sức khỏe sơ bộ 24/7, nhắc lịch tiêm chủng thông minh."
     },
     {
       id: 4,
       title: "Diễn đàn cộng đồng",
-      icon: "??",
+      icon: <UsergroupAddOutlined />,
       description:
         "Nơi chia sẻ kinh nghiệm chăm sóc, tìm kiếm thú cưng lạc và kết nối yêu thương."
     }
