@@ -91,7 +91,7 @@ export default function AdminClinicLayout() {
 
   const handleLogout = () => {
     logout()
-    navigate('/login')
+    navigate('/login', { replace: true })
   }
 
   const openHomePageEditor = () => {
@@ -164,13 +164,6 @@ export default function AdminClinicLayout() {
       label: 'Đổi mật khẩu',
       onClick: openChangePasswordModal,
     },
-    {
-      key: 'logout',
-      icon: <LogoutOutlined />,
-      danger: true,
-      label: 'Đăng xuất',
-      onClick: handleLogout,
-    },
   ]
 
   return (
@@ -223,93 +216,40 @@ export default function AdminClinicLayout() {
           </nav>
         </div>
 
-        <Dropdown
-          menu={{ items: profileMenuItems }}
-          trigger={['click']}
-          placement="topLeft"
-          overlayClassName={styles.profileMenuOverlay}
-        >
-          <button
-            type="button"
-            className={`${styles.profileBox} ${isMenuActive(location.pathname, '/clinic/profile') ? styles.profileBoxActive : ''}`}
+        <div className={styles.profileBox}>
+          <Dropdown
+            menu={{ items: profileMenuItems }}
+            trigger={['click']}
+            placement="topLeft"
+            overlayClassName={styles.profileMenuOverlay}
           >
-            <div className={styles.profileInfo}>
-              <Avatar size={42} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
-              <div>
-                <h4>{userProfile?.fullName || 'Người dùng'}</h4>
-                <p>{getRoleLabel(userProfile?.role || 'ADMIN_CLINIC', 'vi')}</p>
+            <button
+              type="button"
+              className={`${styles.profileTrigger} ${isMenuActive(location.pathname, '/clinic/profile') ? styles.profileTriggerActive : ''}`}
+            >
+              <div className={styles.profileInfo}>
+                <Avatar size={42} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
+                <div>
+                  <h4>{userProfile?.fullName || 'Người dùng'}</h4>
+                  <p>{getRoleLabel(userProfile?.role || 'ADMIN_CLINIC', 'vi')}</p>
+                </div>
               </div>
-            </div>
-          </button>
-        </Dropdown>
+            </button>
+          </Dropdown>
+
+          <Button
+            type="text"
+            icon={<LogoutOutlined />}
+            className={styles.logoutBtn}
+            onClick={handleLogout}
+            aria-label="Đăng xuất"
+          />
+        </div>
       </aside>
 
       <main className={styles.main}>
         <Outlet />
       </main>
-
-      <Modal
-        title="Đổi mật khẩu"
-        open={isChangePasswordOpen}
-        onCancel={closeChangePasswordModal}
-        footer={null}
-        destroyOnClose
-      >
-        <Form
-          form={passwordForm}
-          layout="vertical"
-          onFinish={handleChangePassword}
-          autoComplete="off"
-        >
-          <Form.Item
-            label="Mật khẩu cũ"
-            name="oldPassword"
-            rules={[{ required: true, message: 'Vui lòng nhập mật khẩu cũ' }]}
-          >
-            <Input.Password placeholder="Nhập mật khẩu cũ" />
-          </Form.Item>
-
-          <Form.Item
-            label="Mật khẩu mới"
-            name="newPassword"
-            rules={[
-              { required: true, message: 'Vui lòng nhập mật khẩu mới' },
-              {
-                pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
-                message: 'Mật khẩu phải có chữ hoa, chữ thường và số',
-              },
-            ]}
-          >
-            <Input.Password placeholder="Nhập mật khẩu mới" />
-          </Form.Item>
-
-          <Form.Item
-            label="Xác nhận mật khẩu mới"
-            name="confirmPassword"
-            dependencies={['newPassword']}
-            rules={[
-              { required: true, message: 'Vui lòng xác nhận mật khẩu mới' },
-              ({ getFieldValue }) => ({
-                validator(_, value) {
-                  if (!value || getFieldValue('newPassword') === value) {
-                    return Promise.resolve()
-                  }
-                  return Promise.reject(new Error('Mật khẩu xác nhận không khớp'))
-                },
-              }),
-            ]}
-          >
-            <Input.Password placeholder="Nhập lại mật khẩu mới" />
-          </Form.Item>
-
-          <div className={styles.passwordActions}>
-            <Button onClick={closeChangePasswordModal}>Hủy</Button>
-            <Button type="primary" htmlType="submit" loading={changingPassword}>
-              Lưu mật khẩu
-            </Button>
-          </div>
-        </Form>
-      </Modal>
     </div>
   )
 }

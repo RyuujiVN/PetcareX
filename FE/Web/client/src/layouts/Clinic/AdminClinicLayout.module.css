@@ -91,6 +91,13 @@
 .profileBox {
   border-top: 1px solid #e6ebf4;
   padding: 14px 4px 0;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.profileTrigger {
   text-decoration: none;
   border-radius: 12px;
   width: 100%;
@@ -98,6 +105,14 @@
   border: 0;
   background: transparent;
   cursor: pointer;
+}
+
+.profileTrigger:hover {
+  background: #eff4fb;
+}
+
+.profileTriggerActive {
+  background: #d9e9fb;
 }
 
 :global(.ant-dropdown).profileMenuOverlay :global(.ant-dropdown-menu) {
@@ -138,6 +153,14 @@
   margin: 3px 0 0;
   color: #7f8ea5;
   font-size: 12px;
+}
+
+.logoutBtn {
+  color: #5d6f8f;
+}
+
+.logoutBtn:hover {
+  color: #2f4f86 !important;
 }
 
 .main {
