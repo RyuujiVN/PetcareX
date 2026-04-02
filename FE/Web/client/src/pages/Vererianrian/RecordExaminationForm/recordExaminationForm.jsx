@@ -1215,8 +1215,14 @@ export default function RecordExaminationForm() {
 				<header className={styles.formHeader}>
 					<div className={styles.headerMeta}>
 						<p>PHIẾU KHÁM BỆNH & CHỈ ĐỊNH</p>
-						<span style={{marginRight: 135}}>Mã hồ sơ: {examinationCode}</span>
-						<span style={{marginRight: 135}}>Ngày khám: {prescriptionDate}</span>
+						<div className={styles.headerLine}>
+							<span className={styles.headerLabel}>Mã hồ sơ:</span>
+							<strong className={styles.headerValue}>{examinationCode}</strong>
+						</div>
+						<div className={styles.headerLine}>
+							<span className={styles.headerLabel}>Ngày khám:</span>
+							<strong className={styles.headerValue}>{prescriptionDate}</strong>
+						</div>
 					</div>
 				</header>
 

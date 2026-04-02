@@ -44,9 +44,11 @@
 }
 
 .headerMeta {
-	text-align: right;
-	display: grid;
-	gap: 2px;
+	text-align: left;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	align-items: flex-start;
 }
 
 .headerMeta p {
@@ -54,6 +56,25 @@
 	font-size: 18px;
 	font-weight: 800;
 	color: #4672b4;
+}
+
+.headerLine {
+	display: flex;
+	gap: 6px;
+	align-items: baseline;
+	font-size: 13px;
+	font-weight: 600;
+	color: #5b6f8f;
+}
+
+.headerLabel {
+	font-weight: 700;
+	color: #7a8ca6;
+}
+
+.headerValue {
+	font-weight: 700;
+	color: #1d2f4f;
 }
 
 .tabsRoot {
