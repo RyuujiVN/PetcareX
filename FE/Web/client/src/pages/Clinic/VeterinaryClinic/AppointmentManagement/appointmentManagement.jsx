@@ -99,22 +99,17 @@ const getAgeLabel = (dateOfBirth) => {
 	if (Number.isNaN(birthDate.getTime())) return 'Chưa cập nhật'
 
 	const now = new Date()
-	let years = now.getFullYear() - birthDate.getFullYear()
-	const monthDiff = now.getMonth() - birthDate.getMonth()
+	let totalMonths =
+		(now.getFullYear() - birthDate.getFullYear()) * 12 +
+		(now.getMonth() - birthDate.getMonth())
 
-	if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
-		years -= 1
+	if (now.getDate() < birthDate.getDate()) {
+		totalMonths -= 1
 	}
 
-	if (years <= 0) {
-		const months = Math.max(
-			(now.getFullYear() - birthDate.getFullYear()) * 12 + now.getMonth() - birthDate.getMonth(),
-			1,
-		)
-		return `${months} tháng`
-	}
-
-	return `${years} tuổi`
+	if (totalMonths < 0) return 'Chưa cập nhật'
+	if (totalMonths < 24) return `${totalMonths} tháng`
+	return `${Math.floor(totalMonths / 12)} tuổi`
 }
 
 const formatDisplayDate = (dateValue) => {

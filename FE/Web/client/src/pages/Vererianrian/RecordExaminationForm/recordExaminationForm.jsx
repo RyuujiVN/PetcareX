@@ -54,6 +54,7 @@ import {
 import {
 	createVeterinarianPetApi,
 	getVeterinarianPetBreedsApi,
+	getVeterinarianPetByIdApi,
 	getVeterinarianPetsByOwnerApi,
 	getVeterinarianPetSpeciesApi,
 } from '../../../data/Vererianrian/api/petApi'
@@ -167,16 +168,17 @@ const getAgeLabel = (birthday) => {
 	if (Number.isNaN(birthDate.getTime())) return 'Chưa cập nhật tuổi'
 
 	const now = new Date()
-	let years = now.getFullYear() - birthDate.getFullYear()
-	let months = now.getMonth() - birthDate.getMonth()
+	let totalMonths =
+		(now.getFullYear() - birthDate.getFullYear()) * 12 +
+		(now.getMonth() - birthDate.getMonth())
 
-	if (months < 0) {
-		years -= 1
-		months += 12
+	if (now.getDate() < birthDate.getDate()) {
+		totalMonths -= 1
 	}
 
-	if (years <= 0) return `${months} tháng`
-	return `${years} tuổi`
+	if (totalMonths < 0) return 'Chưa cập nhật tuổi'
+	if (totalMonths < 24) return `${totalMonths} tháng`
+	return `${Math.floor(totalMonths / 12)} tuổi`
 }
 
 const resolveServiceTypeFromName = (name) => {
@@ -385,6 +387,7 @@ export default function RecordExaminationForm() {
 	const [historyLoading, setHistoryLoading] = useState(false)
 	const [historyRecords, setHistoryRecords] = useState([])
 	const [historyPet, setHistoryPet] = useState(null)
+	const [petDetail, setPetDetail] = useState(null)
 	const initialSnapshotRef = useRef('')
 
 	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
@@ -400,11 +403,36 @@ export default function RecordExaminationForm() {
 		return (
 			appointment?.petRaw?.id ||
 			appointment?.pet?.id ||
+			appointment?.petId ||
 			editableMedicalRecord?.pet?.id ||
 			latestMedicalRecord?.pet?.id ||
 			''
 		)
-	}, [appointment?.pet?.id, appointment?.petRaw?.id, editableMedicalRecord?.pet?.id, latestMedicalRecord?.pet?.id])
+	}, [appointment?.pet?.id, appointment?.petRaw?.id, appointment?.petId, editableMedicalRecord?.pet?.id, latestMedicalRecord?.pet?.id])
+
+	useEffect(() => {
+		let active = true
+
+		const loadPetDetail = async () => {
+			if (!historyPetId) {
+				if (active) setPetDetail(null)
+				return
+			}
+
+			try {
+				const payload = await getVeterinarianPetByIdApi(historyPetId)
+				if (active) setPetDetail(payload || null)
+			} catch {
+				if (active) setPetDetail(null)
+			}
+		}
+
+		loadPetDetail()
+
+		return () => {
+			active = false
+		}
+	}, [historyPetId])
 
 	const hydrateByAppointmentId = useCallback(async () => {
 		if (isWalkIn) return
@@ -471,7 +499,7 @@ export default function RecordExaminationForm() {
 		let active = true
 
 		const hydrateLatestMedicalRecord = async () => {
-			const petId = appointment?.petRaw?.id
+			const petId = appointment?.petRaw?.id || appointment?.pet?.id || appointment?.petId
 			const appointmentMedicalId = appointment?.medical?.id
 			if (!petId) {
 				if (active) {
@@ -761,23 +789,24 @@ export default function RecordExaminationForm() {
 	const canShowCountdown = hasCreatedMedical && Boolean(editableMedicalCreatedAtMs) && !isLockedByTime
 	const editableCountdownText = formatRemainingTime(remainingEditableSeconds)
 	const historySummary = useMemo(() => {
-		if (!historyPet) return null
+		const sourcePet = petDetail || historyPet
+		if (!sourcePet) return null
 		const weightValue =
-			historyPet?.weight ??
+			sourcePet?.weight ??
 			latestMedicalRecord?.weight ??
 			editableMedicalRecord?.weight ??
 			null
 
 		return {
-			name: historyPet?.name || 'Chưa cập nhật',
-			species: getSpeciesLabel(historyPet?.species),
-			breed: getBreedLabel(historyPet?.breed, historyPet?.species),
-			birthday: formatDateLabel(historyPet?.dateOfBirth),
-			age: getAgeLabel(historyPet?.dateOfBirth),
-			gender: formatGenderLabel(historyPet?.gender),
+			name: sourcePet?.name || 'Chưa cập nhật',
+			species: getSpeciesLabel(sourcePet?.species),
+			breed: getBreedLabel(sourcePet?.breed, sourcePet?.species),
+			birthday: formatDateLabel(sourcePet?.dateOfBirth),
+			age: getAgeLabel(sourcePet?.dateOfBirth),
+			gender: formatGenderLabel(sourcePet?.gender),
 			weight: weightValue ? `${weightValue} kg` : 'Chưa cập nhật',
 		}
-	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight])
+	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight, petDetail])
 
 	const serviceOptions = useMemo(() => {
 		return Object.values(ServiceEnum).map((service) => ({

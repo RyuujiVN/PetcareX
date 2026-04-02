@@ -1,16 +1,16 @@
 import {
-	CalendarOutlined,
-	MedicineBoxOutlined,
-	UserOutlined
+    CalendarOutlined,
+    MedicineBoxOutlined,
+    UserOutlined
 } from '@ant-design/icons'
 import { Spin, message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-	getMedicalById,
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
+    getMedicalById,
+    getMedicalByPetId,
+    getMedicalOrdersByMedicalId,
+    getMedicinesByMedicalId,
 } from '../../../data/Vererianrian/api/medicalApi'
 import { getMedicalRecordStatusLabel, getPetBreedLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
@@ -46,16 +46,17 @@ const getAgeText = (birthday) => {
 	if (Number.isNaN(birthDate.getTime())) return 'Chưa cập nhật tuổi'
 
 	const now = new Date()
-	let years = now.getFullYear() - birthDate.getFullYear()
-	let months = now.getMonth() - birthDate.getMonth()
+	let totalMonths =
+		(now.getFullYear() - birthDate.getFullYear()) * 12 +
+		(now.getMonth() - birthDate.getMonth())
 
-	if (months < 0) {
-		years -= 1
-		months += 12
+	if (now.getDate() < birthDate.getDate()) {
+		totalMonths -= 1
 	}
 
-	if (years <= 0) return `${months} tháng`
-	return `${years} tuổi`
+	if (totalMonths < 0) return 'Chưa cập nhật tuổi'
+	if (totalMonths < 24) return `${totalMonths} tháng`
+	return `${Math.floor(totalMonths / 12)} tuổi`
 }
 
 const toPetSummary = (pet) => {

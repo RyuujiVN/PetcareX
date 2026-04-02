@@ -259,9 +259,9 @@ Luồng đang chạy:
 - `ListPetExaminationRecords`: đã dùng API appointment để liệt kê thú cưng theo lịch khám.
 - `ListPetMedicalRecords`: đã dùng API appointment để nhóm hồ sơ theo pet.
 - `ViewMedicalRecords`: đã dùng API medical thật để xem timeline chi tiết.
+- `PetMedicalRecords`: ưu tiên hydrate thông tin thú cưng bằng `GET /pet/:id` khi chỉ có `petId` từ phiếu khám hoặc appointment.
 
 ### 5) Các màn còn template/mock trong admin clinic
-- `PetMedicalRecords`: dữ liệu cứng (template phiếu khám).
 - `PetMedicalBill`: dữ liệu tiền thuốc/xét nghiệm cứng; chỉ phần xác nhận thanh toán có gọi API cập nhật status appointment.
 
 ### 6) Admin Clinic Profile
@@ -372,6 +372,7 @@ Luồng đang chạy:
   - đồng bộ lại medical orders + medicines theo lần lưu mới,
   - tự cập nhật appointment sang `COMPLETED` khi lưu thành công.
   - Tab "Hồ sơ y tế": lấy toàn bộ medical history theo `petId`, sắp xếp mới nhất trước và hiển thị đơn thuốc + chỉ định.
+  - Tab "Hồ sơ y tế": ưu tiên hydrate thông tin thú cưng bằng `GET /pet/:id` khi chỉ có `petId`.
   - Walk-in: ẩn tab Hồ sơ y tế, chỉ hiển thị ở phiếu khám có lịch hẹn.
   - TODO bảo mật: cần kiểm tra quyền chia sẻ hồ sơ của chủ nuôi trước khi hiển thị (đánh dấu trực tiếp trong code).
 - **Lưu ý quan trọng về hydrate medical record khi mở lại phiếu khám**:

@@ -126,21 +126,13 @@ String formatPetAgeFromBirthdate({
     return l10n.ageUnavailable;
   }
 
-  if (totalMonths < 1) {
-    return l10n.ageDisplayMinimumOneMonth;
-  }
-
   final years = totalMonths ~/ 12;
-  final months = totalMonths % 12;
 
   if (totalMonths < 24) {
-    if (years == 0) {
-      return l10n.ageMonths(months);
-    }
-    return l10n.ageDisplayYearsMonths(years, months);
+    return l10n.ageMonths(totalMonths);
   }
 
-  return l10n.ageDisplayYearsOnly(years);
+  return l10n.ageYears(years);
 }
 
 int? calculatePetAgeTotalMonths({

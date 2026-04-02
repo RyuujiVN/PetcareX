@@ -1,15 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
-import { FaPaw } from "react-icons/fa";
-import { FiCamera } from "react-icons/fi";
 import { ManOutlined, WomanOutlined } from "@ant-design/icons";
 import { message, Modal, Radio, Select } from 'antd';
+import { FiCamera } from "react-icons/fi";
 import {
   createPetApi,
-  getBreedsBySpeciesApi,
   getBreedLabel,
+  getBreedsBySpeciesApi,
   getPetSpeciesApi,
   getSpeciesLabel,
   uploadPetAvatarApi,
@@ -44,14 +43,27 @@ export default function AddPet() {
     const today = new Date();
     const birthDate = new Date(dateValue);
 
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age -= 1;
+    if (Number.isNaN(birthDate.getTime())) {
+      return '';
     }
 
-    return `${Math.max(age, 0)} tuổi`;
+    let totalMonths =
+      (today.getFullYear() - birthDate.getFullYear()) * 12 +
+      (today.getMonth() - birthDate.getMonth());
+
+    if (today.getDate() < birthDate.getDate()) {
+      totalMonths -= 1;
+    }
+
+    if (totalMonths < 0) {
+      return '';
+    }
+
+    if (totalMonths < 24) {
+      return `${totalMonths} tháng`;
+    }
+
+    return `${Math.floor(totalMonths / 12)} tuổi`;
   };
 
   const handleFileChange = async (e) => {

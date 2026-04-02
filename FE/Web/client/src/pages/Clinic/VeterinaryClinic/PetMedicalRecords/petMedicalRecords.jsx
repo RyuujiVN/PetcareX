@@ -1,4 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+	CalendarOutlined,
+	ExperimentOutlined,
+	FileTextOutlined,
+	HeartOutlined,
+	MedicineBoxOutlined,
+	SmileOutlined,
+	UserOutlined,
+	WarningOutlined,
+} from '@ant-design/icons'
 import {
 	Button,
 	Card,
@@ -13,23 +22,15 @@ import {
 	Typography,
 	message,
 } from 'antd'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import {
-	CalendarOutlined,
-	ExperimentOutlined,
-	FileTextOutlined,
-	HeartOutlined,
-	MedicineBoxOutlined,
-	SmileOutlined,
-	UserOutlined,
-	WarningOutlined,
-} from '@ant-design/icons'
 import { getClinicAppointmentByIdApi } from '../../../../data/Clinic/api/appointmentApi'
 import {
 	getMedicalByPetId,
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../../data/Clinic/api/medicalApi'
+import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
 import styles from './petMedicalRecords.module.css'
 
 const FALLBACK_TEXT = 'Chua cap nhat'
@@ -154,6 +155,7 @@ export default function PetMedicalRecords() {
 	const [loading, setLoading] = useState(false)
 	const [appointment, setAppointment] = useState(stateRecord)
 	const [medicalRecord, setMedicalRecord] = useState(null)
+	const [petDetail, setPetDetail] = useState(null)
 	const [medicalOrders, setMedicalOrders] = useState([])
 	const [medicines, setMedicines] = useState([])
 
@@ -178,6 +180,7 @@ export default function PetMedicalRecords() {
 
 			if (!resolvedPetId) {
 				setMedicalRecord(null)
+				setPetDetail(null)
 				setMedicalOrders([])
 				setMedicines([])
 				return
@@ -186,25 +189,34 @@ export default function PetMedicalRecords() {
 			const medicalPayload = await getMedicalByPetId(resolvedPetId, 1, 200)
 			const medicalRecords = normalizeCollection(medicalPayload)
 			const matchedMedical = selectMedicalRecordByAppointment(medicalRecords, resolvedAppointment)
+			const petIdForDetail =
+				matchedMedical?.petId || matchedMedical?.pet?.id || resolvedPetId
 
 			setMedicalRecord(matchedMedical || null)
 
 			if (!matchedMedical?.id) {
+				const petPayload = petIdForDetail
+					? await getClinicPetByIdApi(petIdForDetail).catch(() => null)
+					: null
+				setPetDetail(petPayload || null)
 				setMedicalOrders([])
 				setMedicines([])
 				return
 			}
 
-			const [ordersPayload, medicinesPayload] = await Promise.all([
+			const [ordersPayload, medicinesPayload, petPayload] = await Promise.all([
 				getMedicalOrdersByMedicalId(matchedMedical.id).catch(() => []),
 				getMedicinesByMedicalId(matchedMedical.id).catch(() => []),
+				petIdForDetail ? getClinicPetByIdApi(petIdForDetail).catch(() => null) : null,
 			])
 
+			setPetDetail(petPayload || null)
 			setMedicalOrders(Array.isArray(ordersPayload) ? ordersPayload : [])
 			setMedicines(Array.isArray(medicinesPayload) ? medicinesPayload : [])
 		} catch (error) {
 			message.error(error?.message || 'Khong the tai du lieu phieu kham')
 			setMedicalRecord(null)
+			setPetDetail(null)
 			setMedicalOrders([])
 			setMedicines([])
 		} finally {
@@ -216,7 +228,10 @@ export default function PetMedicalRecords() {
 		loadExamDetail()
 	}, [loadExamDetail])
 
-	const pet = useMemo(() => medicalRecord?.pet || appointment?.pet || {}, [appointment?.pet, medicalRecord?.pet])
+	const pet = useMemo(
+		() => petDetail || medicalRecord?.pet || appointment?.pet || {},
+		[appointment?.pet, medicalRecord?.pet, petDetail],
+	)
 	const owner = useMemo(() => pet?.owner || {}, [pet])
 
 	const ownerName = medicalRecord?.customerName || owner?.fullName || appointment?.ownerName || FALLBACK_TEXT
