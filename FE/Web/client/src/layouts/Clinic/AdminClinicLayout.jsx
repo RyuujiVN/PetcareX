@@ -1,8 +1,7 @@
-import { CalendarOutlined, EditOutlined, FileSearchOutlined, HomeOutlined, KeyOutlined, LineChartOutlined, LogoutOutlined, MedicineBoxOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
-import { Avatar, Button, Dropdown, Form, Input, Modal, message } from 'antd'
-import { useEffect, useState } from 'react'
+import { CalendarOutlined, EditOutlined, FileSearchOutlined, HomeOutlined, LineChartOutlined, LogoutOutlined, MedicineBoxOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons'
+import { Avatar, Button, message } from 'antd'
+import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { changePasswordApi } from '../../data/Clinic/api/auth'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { ADMIN_AUTH_STORAGE } from '../../constants/authStorage'
@@ -58,12 +57,9 @@ const handoffAdminAuthToNewTab = () => {
 }
 
 export default function AdminClinicLayout() {
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false)
-  const [changingPassword, setChangingPassword] = useState(false)
-  const [passwordForm] = Form.useForm()
   const navigate = useNavigate()
   const location = useLocation()
-  const { token, userProfile, logout, login, activeRole } = useAuth()
+  const { token, userProfile, logout, activeRole } = useAuth()
   const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
   const hasClinicRole = normalizedRoles.includes(RoleEnum.ADMIN_CLINIC)
@@ -118,54 +114,6 @@ export default function AdminClinicLayout() {
     window.open(editorUrl, '_blank', 'noopener,noreferrer')
   }
 
-  const openChangePasswordModal = () => {
-    passwordForm.resetFields()
-    setIsChangePasswordOpen(true)
-  }
-
-  const closeChangePasswordModal = () => {
-    setIsChangePasswordOpen(false)
-    passwordForm.resetFields()
-  }
-
-  const handleChangePassword = async (values) => {
-    try {
-      setChangingPassword(true)
-      const response = await changePasswordApi({
-        oldPassword: values.oldPassword,
-        newPassword: values.newPassword,
-        confirmPassword: values.confirmPassword,
-      })
-
-      const newAccessToken = response?.data?.accessToken
-      if (newAccessToken) {
-        login(newAccessToken, userProfile || undefined)
-      }
-
-      message.success(response?.data?.message || 'Đổi mật khẩu thành công')
-      closeChangePasswordModal()
-    } catch (error) {
-      message.error(error?.response?.data?.message || error?.message || 'Không thể đổi mật khẩu')
-    } finally {
-      setChangingPassword(false)
-    }
-  }
-
-  const profileMenuItems = [
-    {
-      key: 'profile',
-      icon: <UserOutlined />,
-      label: 'Thông tin',
-      onClick: () => navigate('/clinic/profile'),
-    },
-    {
-      key: 'change-password',
-      icon: <KeyOutlined />,
-      label: 'Đổi mật khẩu',
-      onClick: openChangePasswordModal,
-    },
-  ]
-
   return (
     <div className={styles.layout}>
       <aside className={styles.sidebar}>
@@ -217,25 +165,13 @@ export default function AdminClinicLayout() {
         </div>
 
         <div className={styles.profileBox}>
-          <Dropdown
-            menu={{ items: profileMenuItems }}
-            trigger={['click']}
-            placement="topLeft"
-            overlayClassName={styles.profileMenuOverlay}
-          >
-            <button
-              type="button"
-              className={`${styles.profileTrigger} ${isMenuActive(location.pathname, '/clinic/profile') ? styles.profileTriggerActive : ''}`}
-            >
-              <div className={styles.profileInfo}>
-                <Avatar size={42} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
-                <div>
-                  <h4>{userProfile?.fullName || 'Người dùng'}</h4>
-                  <p>{getRoleLabel(userProfile?.role || 'ADMIN_CLINIC', 'vi')}</p>
-                </div>
-              </div>
-            </button>
-          </Dropdown>
+          <div className={styles.profileInfo}>
+            <Avatar size={42} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
+            <div>
+              <h4>{userProfile?.fullName || 'Người dùng'}</h4>
+              <p>{getRoleLabel(userProfile?.role || 'ADMIN_CLINIC', 'vi')}</p>
+            </div>
+          </div>
 
           <Button
             type="text"
@@ -243,7 +179,9 @@ export default function AdminClinicLayout() {
             className={styles.logoutBtn}
             onClick={handleLogout}
             aria-label="Đăng xuất"
-          />
+          >
+            {/* <span className={styles.logoutText}>Đăng xuất</span> */}
+          </Button>
         </div>
       </aside>
 
