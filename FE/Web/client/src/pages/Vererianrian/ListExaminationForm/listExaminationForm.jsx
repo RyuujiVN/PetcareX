@@ -121,15 +121,12 @@ export default function ListExaminationForm() {
 			return
 		}
 
-		navigate(`/veterinarian/exam-forms/create?appointmentId=${row.appointmentId}`, {
-			state: {
-				appointment: row,
-			},
-		})
+		const url = `/veterinarian/exam-forms/create?appointmentId=${encodeURIComponent(String(row.appointmentId))}`
+		window.open(url, '_blank')
 	}
 
 	const handleCreateWalkIn = () => {
-		navigate('/veterinarian/exam-forms/create?mode=walkin')
+		window.open('/veterinarian/exam-forms/create?mode=walkin', '_blank')
 	}
 
 	return (
