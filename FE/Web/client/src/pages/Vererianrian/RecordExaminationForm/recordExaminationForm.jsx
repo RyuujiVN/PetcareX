@@ -18,11 +18,12 @@ import {
 	Form,
 	Input,
 	InputNumber,
-	message,
 	Modal,
 	Row,
 	Select,
 	Spin,
+	Tabs,
+	message,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -140,6 +141,40 @@ const formatRemainingTime = (seconds) => {
 	const minutes = Math.floor(safeSeconds / 60)
 	const remainSeconds = safeSeconds % 60
 	return `${String(minutes).padStart(2, '0')}:${String(remainSeconds).padStart(2, '0')}`
+}
+
+const formatDateLabel = (value, fallback = 'Chưa cập nhật') => {
+	if (!value) return fallback
+	const date = new Date(value)
+	if (Number.isNaN(date.getTime())) return fallback
+	return date.toLocaleDateString('vi-VN')
+}
+
+const formatGenderLabel = (gender) => {
+	if (typeof gender === 'boolean') return gender ? 'Đực' : 'Cái'
+	if (!gender) return 'Chưa cập nhật'
+	const normalizedGender = String(gender).trim().toLowerCase()
+	if (normalizedGender === 'male') return 'Đực'
+	if (normalizedGender === 'female') return 'Cái'
+	return String(gender)
+}
+
+const getAgeLabel = (birthday) => {
+	if (!birthday) return 'Chưa cập nhật tuổi'
+	const birthDate = new Date(birthday)
+	if (Number.isNaN(birthDate.getTime())) return 'Chưa cập nhật tuổi'
+
+	const now = new Date()
+	let years = now.getFullYear() - birthDate.getFullYear()
+	let months = now.getMonth() - birthDate.getMonth()
+
+	if (months < 0) {
+		years -= 1
+		months += 12
+	}
+
+	if (years <= 0) return `${months} tháng`
+	return `${years} tuổi`
 }
 
 const toDayStamp = (value) => {
@@ -331,6 +366,9 @@ export default function RecordExaminationForm() {
 	const [serverTimeSynced, setServerTimeSynced] = useState(false)
 	const [remainingEditableSeconds, setRemainingEditableSeconds] = useState(EDITABLE_DURATION_SECONDS)
 	const [isDirty, setIsDirty] = useState(false)
+	const [historyLoading, setHistoryLoading] = useState(false)
+	const [historyRecords, setHistoryRecords] = useState([])
+	const [historyPet, setHistoryPet] = useState(null)
 	const initialSnapshotRef = useRef('')
 
 	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
@@ -341,6 +379,16 @@ export default function RecordExaminationForm() {
 	const editableMedicalCreatedAtMs = parseDateToMs(editableMedicalRecord?.createdAt)
 	const missingServerCreatedAt = Boolean(editableMedicalId) && !editableMedicalCreatedAtMs
 	const isLockedByTime = Boolean(editableMedicalId) && Boolean(editableMedicalCreatedAtMs) && remainingEditableSeconds <= 0
+
+	const historyPetId = useMemo(() => {
+		return (
+			appointment?.petRaw?.id ||
+			appointment?.pet?.id ||
+			editableMedicalRecord?.pet?.id ||
+			latestMedicalRecord?.pet?.id ||
+			''
+		)
+	}, [appointment?.pet?.id, appointment?.petRaw?.id, editableMedicalRecord?.pet?.id, latestMedicalRecord?.pet?.id])
 
 	const hydrateByAppointmentId = useCallback(async () => {
 		if (isWalkIn) return
@@ -496,6 +544,75 @@ export default function RecordExaminationForm() {
 	}, [appointment, appointment?.medical?.id, appointment?.petRaw?.id])
 
 	useEffect(() => {
+		let active = true
+
+		const loadHistoryRecords = async () => {
+			if (!historyPetId) {
+				if (active) {
+					setHistoryRecords([])
+					setHistoryPet(null)
+				}
+				return
+			}
+
+			try {
+				setHistoryLoading(true)
+				// TODO: Check pet owner's sharing permission before displaying medical records.
+				const payload = await getMedicalByPetId(historyPetId, 1, 200)
+				const records = normalizeCollection(payload)
+				if (!active) return
+
+				if (records.length === 0) {
+					setHistoryRecords([])
+					setHistoryPet(appointment?.petRaw || appointment?.pet || null)
+					return
+				}
+
+				records.sort((a, b) => {
+					const aTime = new Date(a?.createdAt || 0).getTime()
+					const bTime = new Date(b?.createdAt || 0).getTime()
+					return bTime - aTime
+				})
+
+				const enriched = await Promise.all(
+					records.map(async (record) => {
+						const [orders, medicines] = await Promise.all([
+							getMedicalOrdersByMedicalId(record.id).catch(() => []),
+							getMedicinesByMedicalId(record.id).catch(() => []),
+						])
+
+						return {
+							record,
+							orders: Array.isArray(orders) ? orders : [],
+							medicines: Array.isArray(medicines) ? medicines : [],
+						}
+					}),
+				)
+
+				if (!active) return
+				setHistoryRecords(enriched)
+				setHistoryPet(records[0]?.pet || appointment?.petRaw || appointment?.pet || null)
+			} catch (error) {
+				if (active) {
+					setHistoryRecords([])
+					setHistoryPet(appointment?.petRaw || appointment?.pet || null)
+					message.error(error?.message || 'Không thể tải hồ sơ y tế thú cưng')
+				}
+			} finally {
+				if (active) {
+					setHistoryLoading(false)
+				}
+			}
+		}
+
+		loadHistoryRecords()
+
+		return () => {
+			active = false
+		}
+	}, [appointment?.pet, appointment?.petRaw, appointment?.pet?.id, appointment?.petRaw?.id, historyPetId])
+
+	useEffect(() => {
 		if (!editableMedicalId || !editableMedicalCreatedAtMs) {
 			setRemainingEditableSeconds(EDITABLE_DURATION_SECONDS)
 			return
@@ -616,6 +733,24 @@ export default function RecordExaminationForm() {
 	const hasCreatedMedical = Boolean(editableMedicalId)
 	const canShowCountdown = hasCreatedMedical && Boolean(editableMedicalCreatedAtMs) && !isLockedByTime
 	const editableCountdownText = formatRemainingTime(remainingEditableSeconds)
+	const historySummary = useMemo(() => {
+		if (!historyPet) return null
+		const weightValue =
+			historyPet?.weight ??
+			latestMedicalRecord?.weight ??
+			editableMedicalRecord?.weight ??
+			null
+
+		return {
+			name: historyPet?.name || 'Chưa cập nhật',
+			species: getSpeciesLabel(historyPet?.species),
+			breed: getBreedLabel(historyPet?.breed, historyPet?.species),
+			birthday: formatDateLabel(historyPet?.dateOfBirth),
+			age: getAgeLabel(historyPet?.dateOfBirth),
+			gender: formatGenderLabel(historyPet?.gender),
+			weight: weightValue ? `${weightValue} kg` : 'Chưa cập nhật',
+		}
+	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight])
 
 	const handleValuesChange = (_, allValues) => {
 		const normalized = {
@@ -1049,7 +1184,9 @@ export default function RecordExaminationForm() {
 					</div>
 				</header>
 
-				<div className={styles.formScrollableContent}>
+				<Tabs className={styles.tabsRoot} destroyInactiveTabPane={false}>
+					<Tabs.TabPane tab="Phiếu khám hiện tại" key="exam">
+						<div className={styles.formScrollableContent}>
 					{!hasCreatedMedical ? (
 						<Alert
 							className={styles.editLockAlert}
@@ -1522,17 +1659,142 @@ export default function RecordExaminationForm() {
 					</div>
 				</Card>
 
-				<div className={styles.footerActions}>
-					<Button className={styles.cancelBtn} onClick={handleCancel}>
-						Hủy
-					</Button>
-					{!isLockedByTime ? (
-						<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
-							LƯU PHIẾU KHÁM
-						</Button>
-					) : null}
-				</div>
-				</div>
+						<div className={styles.footerActions}>
+							<Button className={styles.cancelBtn} onClick={handleCancel}>
+								Hủy
+							</Button>
+							{!isLockedByTime ? (
+								<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
+									LƯU PHIẾU KHÁM
+								</Button>
+							) : null}
+						</div>
+					</div>
+				</Tabs.TabPane>
+				<Tabs.TabPane tab="Hồ sơ y tế" key="history">
+					<div className={styles.historyPanel}>
+						{historySummary ? (
+							<Card className={styles.sectionCard}>
+								<div className={styles.historySummary}>
+									<div>
+										<p className={styles.historyLabel}>THÚ CƯNG</p>
+										<h3 className={styles.historyTitle}>{historySummary.name}</h3>
+										<p className={styles.historySub}>{historySummary.species} · {historySummary.breed}</p>
+									</div>
+									<div className={styles.historyMetaGrid}>
+										<div>
+											<span>Tuổi</span>
+											<strong>{historySummary.age}</strong>
+										</div>
+										<div>
+											<span>Giới tính</span>
+											<strong>{historySummary.gender}</strong>
+										</div>
+										<div>
+											<span>Cân nặng</span>
+											<strong>{historySummary.weight}</strong>
+										</div>
+										<div>
+											<span>Ngày sinh</span>
+											<strong>{historySummary.birthday}</strong>
+										</div>
+									</div>
+								</div>
+							</Card>
+						) : null}
+
+						{historyLoading ? (
+							<div className={styles.loadingWrap}>
+								<Spin size="large" />
+							</div>
+						) : historyRecords.length === 0 ? (
+							<div className={styles.historyEmpty}>
+								{historyPetId ? 'Không có hồ sơ y tế để hiển thị.' : 'Chưa có thú cưng để tải hồ sơ y tế.'}
+							</div>
+						) : (
+							<div className={styles.historyList}>
+								{historyRecords.map(({ record, orders, medicines }, index) => (
+									<div
+										key={record?.id || `${record?.createdAt || 'record'}-${index}`}
+										className={styles.historyRecord}
+									>
+										<div className={styles.historyRecordHeader}>
+											<div>
+												<h4>{record?.name || 'Phiếu khám'}</h4>
+												<p>{formatDateLabel(record?.createdAt)} · {record?.veterinarian?.fullName || 'Chưa cập nhật bác sĩ'}</p>
+											</div>
+											<span className={styles.historyStatus}>
+												{record?.conclusion ? 'Đã kết luận' : 'Chưa kết luận'}
+											</span>
+										</div>
+
+										<div className={styles.historyRecordBody}>
+											<div>
+												<span>Chẩn đoán:</span>
+												<strong>{record?.diagnosis || 'Chưa cập nhật'}</strong>
+											</div>
+											<div>
+												<span>Triệu chứng:</span>
+												<strong>{record?.symptoms || 'Chưa cập nhật'}</strong>
+											</div>
+											<div>
+												<span>Kết luận:</span>
+												<strong>{record?.conclusion || 'Chưa cập nhật'}</strong>
+											</div>
+											<div>
+												<span>Ngày tái khám:</span>
+												<strong>{formatDateLabel(record?.followUpDate)}</strong>
+											</div>
+										</div>
+
+										<div className={styles.historyRecordLists}>
+											<div>
+												<p>Đơn thuốc</p>
+												{medicines.length === 0 ? (
+													<span>Không có đơn thuốc</span>
+												) : (
+													<ul>
+														{medicines.map((item, medicineIndex) => (
+															<li
+																key={
+																	item?.id ||
+																	`${record?.id || 'record'}-medicine-${item?.medicine?.id || medicineIndex}`
+																}
+															>
+																{item?.medicine?.name || item?.medicine?.nameVn || 'Thuốc'}
+																{item?.quantity ? ` (${item.quantity})` : ''}
+															</li>
+														))}
+													</ul>
+												)}
+											</div>
+											<div>
+												<p>Chỉ định xét nghiệm</p>
+												{orders.length === 0 ? (
+													<span>Không có chỉ định</span>
+												) : (
+													<ul>
+														{orders.map((item, orderIndex) => (
+															<li
+																key={
+																	item?.id ||
+																	`${record?.id || 'record'}-order-${item?.medicalOrder?.id || orderIndex}`
+																}
+															>
+																{item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || item?.medicalOrder?.name || 'Chỉ định'}
+															</li>
+														))}
+													</ul>
+												)}
+											</div>
+										</div>
+									</div>
+								))}
+							</div>
+						)}
+					</div>
+				</Tabs.TabPane>
+			</Tabs>
 			</Form>
 		</div>
 	)

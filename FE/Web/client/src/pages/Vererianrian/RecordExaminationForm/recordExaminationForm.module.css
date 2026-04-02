@@ -56,6 +56,11 @@
 	color: #4672b4;
 }
 
+.tabsRoot {
+	flex: 1;
+	min-height: 0;
+}
+
 
 .sectionCard {
 	border-radius: 16px;
@@ -201,6 +206,161 @@
 	padding-bottom: 8px;
 }
 
+.historyPanel {
+	padding-bottom: 12px;
+}
+
+.historySummary {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+	align-items: center;
+}
+
+.historyLabel {
+	margin: 0;
+	font-size: 12px;
+	font-weight: 700;
+	color: #73859d;
+}
+
+.historyTitle {
+	margin: 0;
+	font-size: 20px;
+	font-weight: 800;
+	color: #1d304d;
+}
+
+.historySub {
+	margin: 4px 0 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: #7e8fa5;
+}
+
+.historyMetaGrid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 12px;
+	flex: 1;
+}
+
+.historyMetaGrid span {
+	font-size: 12px;
+	color: #7e8fa5;
+	font-weight: 600;
+}
+
+.historyMetaGrid strong {
+	display: block;
+	margin-top: 2px;
+	font-size: 14px;
+	color: #1d304d;
+	font-weight: 700;
+}
+
+.historyEmpty {
+	min-height: 280px;
+	display: grid;
+	place-items: center;
+	background: #fff;
+	border-radius: 16px;
+	border: 1px dashed #d9e2ec;
+	color: #7c8ea6;
+	font-weight: 600;
+}
+
+.historyList {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.historyRecord {
+	background: #fff;
+	border-radius: 16px;
+	border: 1px solid #e1e8f0;
+	padding: 14px 16px;
+	box-shadow: 0 3px 12px rgba(31, 54, 84, 0.05);
+}
+
+.historyRecordHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 12px;
+}
+
+.historyRecordHeader h4 {
+	margin: 0 0 4px;
+	font-size: 16px;
+	font-weight: 800;
+	color: #1d304d;
+}
+
+.historyRecordHeader p {
+	margin: 0;
+	font-size: 13px;
+	color: #7e8fa5;
+	font-weight: 600;
+}
+
+.historyStatus {
+	padding: 4px 10px;
+	border-radius: 999px;
+	background: #e7f3ff;
+	color: #2563eb;
+	font-size: 12px;
+	font-weight: 700;
+}
+
+.historyRecordBody {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px 16px;
+	margin-top: 12px;
+}
+
+.historyRecordBody span {
+	font-size: 12px;
+	font-weight: 700;
+	color: #73859d;
+	margin-right: 6px;
+}
+
+.historyRecordBody strong {
+	font-size: 14px;
+	font-weight: 600;
+	color: #1d304d;
+}
+
+.historyRecordLists {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid #edf1f5;
+}
+
+.historyRecordLists p {
+	margin: 0 0 6px;
+	font-size: 13px;
+	font-weight: 700;
+	color: #1d304d;
+}
+
+.historyRecordLists ul {
+	margin: 0;
+	padding-left: 18px;
+	color: #51627a;
+	font-size: 13px;
+}
+
+.historyRecordLists li {
+	margin-bottom: 4px;
+}
+
 .cancelBtn,
 .saveBtn {
 	height: 40px;
@@ -235,6 +395,18 @@
 
 	.headerMeta {
 		text-align: left;
+	}
+
+	.historyMetaGrid {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.historyRecordBody {
+		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.historyRecordLists {
+		grid-template-columns: minmax(0, 1fr);
 	}
 
 	.vitalGrid {

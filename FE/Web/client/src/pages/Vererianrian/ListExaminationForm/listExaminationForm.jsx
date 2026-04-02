@@ -7,7 +7,6 @@ import {
 import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
@@ -65,7 +64,6 @@ const toRecordRow = (item) => {
 }
 
 export default function ListExaminationForm() {
-	const navigate = useNavigate()
 	const [loading, setLoading] = useState(false)
 	const [selectedDate, setSelectedDate] = useState(dayjs())
 	const [rows, setRows] = useState([])

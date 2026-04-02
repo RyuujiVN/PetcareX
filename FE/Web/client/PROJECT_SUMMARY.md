@@ -311,6 +311,8 @@ Luồng đang chạy:
   - cập nhật lại chính medical record đó ở các lần sau,
   - đồng bộ lại medical orders + medicines theo lần lưu mới,
   - tự cập nhật appointment sang `COMPLETED` khi lưu thành công.
+  - Tab "Hồ sơ y tế": lấy toàn bộ medical history theo `petId`, sắp xếp mới nhất trước và hiển thị đơn thuốc + chỉ định.
+  - TODO bảo mật: cần kiểm tra quyền chia sẻ hồ sơ của chủ nuôi trước khi hiển thị (đánh dấu trực tiếp trong code).
 - Cơ chế khóa chỉnh sửa 15 phút:
   - Mốc thời gian tính từ `medical.createdAt` (server).
   - Trong 15 phút: cho phép chỉnh sửa, có hiển thị đếm ngược thời gian còn lại.
@@ -328,10 +330,13 @@ Luồng đang chạy:
   - Cơ chế lock chỉnh sửa 15 phút.
   - Hiển thị countdown + cảnh báo hết hạn.
   - Chế độ read-only sau khi hết hạn.
+  - Tab Hồ sơ y tế: appointment -> petId -> medical history.
+  - TODO: kiểm tra quyền chia sẻ hồ sơ trước khi hiển thị.
 - `src/data/Vererianrian/api/appointmentApi.js`:
   - `getVeterinarianServerNowApi()` dùng đồng bộ clock server cho countdown.
 - `src/data/Vererianrian/api/medicalApi.js`:
   - API create/update medical record và CRUD medical orders/medicines phục vụ lưu/cập nhật phiếu khám.
+  - `getMedicalByPetId`, `getMedicalOrdersByMedicalId`, `getMedicinesByMedicalId` dùng cho tab hồ sơ y tế.
 
 ## Styling & Design System
 
@@ -377,9 +382,10 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 ### 4) Veterinarian exam workflow
 1. Bác sĩ bấm "Bắt đầu khám" từ danh sách lịch hẹn.
 2. Hệ thống mở tab mới vào phiếu khám theo `appointmentId` (có thể mở lại tab nếu lỡ đóng).
-3. Bác sĩ điền/lưu phiếu khám.
-4. Sau lần tạo đầu tiên, bác sĩ chỉ được chỉnh sửa trong 15 phút kể từ `createdAt`.
-5. Lưu thành công sẽ đồng bộ trạng thái appointment sang `COMPLETED`.
+3. Tab Hồ sơ y tế: lấy `petId` từ lịch hẹn -> `getMedicalByPetId` -> đơn thuốc + chỉ định (TODO kiểm tra quyền chia sẻ).
+4. Bác sĩ điền/lưu phiếu khám.
+5. Sau lần tạo đầu tiên, bác sĩ chỉ được chỉnh sửa trong 15 phút kể từ `createdAt`.
+6. Lưu thành công sẽ đồng bộ trạng thái appointment sang `COMPLETED`.
 
 ## Điểm mạnh hiện tại
 - Tách rõ 4 portal client/admin clinic/veterinarian/super admin theo route + layout.
