@@ -166,10 +166,6 @@ export default function ClinicSelectionEditor() {
 
   return (
     <div className="clinic-selection-editor-page">
-      <div className="clinic-selection-editor-header">
-        <Title level={2}>Chỉnh Sửa Thông Tin Phòng Khám</Title>
-      </div>
-
       <Card loading={loadingInit}>
         <Form form={form} layout="vertical" autoComplete="off">
           <Row gutter={[16, 16]}>

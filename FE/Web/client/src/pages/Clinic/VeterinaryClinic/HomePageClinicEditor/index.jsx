@@ -119,11 +119,6 @@ export default function HomePageClinicEditor() {
 
   return (
     <div className="clinic-home-editor-page">
-      <div className="clinic-home-editor-header">
-        <Title level={2}>Chỉnh Sửa Trang Chủ Phòng Khám</Title>
-        <Text type="secondary">Clinic ID: {targetClinicId}</Text>
-      </div>
-
       <Space direction="vertical" size={16} className="clinic-home-editor-content">
         <Card title="Banner">
           <Space direction="vertical" size={12} className="editor-full-width">
