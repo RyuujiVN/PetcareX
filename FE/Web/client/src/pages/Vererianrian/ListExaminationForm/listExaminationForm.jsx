@@ -6,7 +6,7 @@ import {
 } from '@ant-design/icons'
 import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
@@ -68,10 +68,13 @@ export default function ListExaminationForm() {
 	const [selectedDate, setSelectedDate] = useState(dayjs())
 	const [rows, setRows] = useState([])
 	const [currentPage, setCurrentPage] = useState(1)
+	const inFlightRef = useRef(false)
 
-	const fetchAppointments = useCallback(async () => {
+	const fetchAppointments = useCallback(async ({ silent = false } = {}) => {
+		if (inFlightRef.current) return
+		inFlightRef.current = true
 		try {
-			setLoading(true)
+			if (!silent) setLoading(true)
 			const response = await getVeterinarianAppointmentsApi({
 				page: 1,
 				limit: 500,
@@ -92,14 +95,30 @@ export default function ListExaminationForm() {
 			setRows(mappedRows)
 		} catch (error) {
 			setRows([])
-			message.error(error?.message || 'Không thể tải danh sách phiếu khám')
+			if (!silent) message.error(error?.message || 'Không thể tải danh sách phiếu khám')
 		} finally {
+			inFlightRef.current = false
 			setLoading(false)
 		}
 	}, [selectedDate])
 
 	useEffect(() => {
 		fetchAppointments()
+	}, [fetchAppointments])
+
+	useEffect(() => {
+		const onFocus = () => fetchAppointments({ silent: true })
+		const onVisibilityChange = () => {
+			if (!document.hidden) fetchAppointments({ silent: true })
+		}
+
+		window.addEventListener('focus', onFocus)
+		document.addEventListener('visibilitychange', onVisibilityChange)
+
+		return () => {
+			window.removeEventListener('focus', onFocus)
+			document.removeEventListener('visibilitychange', onVisibilityChange)
+		}
 	}, [fetchAppointments])
 
 	useEffect(() => {

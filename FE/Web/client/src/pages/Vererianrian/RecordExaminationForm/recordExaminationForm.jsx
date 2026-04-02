@@ -522,7 +522,10 @@ export default function RecordExaminationForm() {
 					return
 				}
 
-				const resolvedMedical = matchedMedical || (await getMedicalById(appointmentMedicalId).catch(() => null))
+				const idToFetch = matchedMedical?.id || appointmentMedicalId
+				const resolvedMedical = idToFetch
+					? await getMedicalById(idToFetch).catch(() => matchedMedical || null)
+					: null
 				if (!resolvedMedical || !active) {
 					setEditableMedicalRecord(null)
 					setEditableMedicalOrders([])
