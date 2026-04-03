@@ -217,10 +217,12 @@ Luồng đang chạy:
 - Ngày tái khám không có dữ liệu hiển thị `Không` thay vì `Chưa cập nhật`.
 - Timeline chi tiết bổ sung các chỉ số sinh tồn (cân nặng, nhiệt độ, nhịp tim, huyết áp).
 - Đơn thuốc hiển thị thêm đơn vị (Viên, Gói, Ống...) nếu có.
-- View hồ sơ y tế bác sĩ chuyển sang dạng card thu gọn: chỉ hiển thị tên phiếu khám + ngày khám, ẩn tên phòng khám/bác sĩ.
+- Phía chủ nuôi đã bổ sung hiển thị `Chỉ định xét nghiệm`; nếu không có dữ liệu chỉ định sẽ hiện `Không có`.
+- Nhãn ngày trong timeline hồ sơ y tế đã thống nhất `Ngày khám` (không dùng `Ngày tạo hồ sơ`).
+- Thứ tự hiển thị phần nội dung chi tiết đã được thống nhất: `Chẩn đoán` -> `Kết luận` -> `Lời dặn bác sĩ` -> `Chỉ định xét nghiệm` -> `Đơn thuốc`.
 - Bấm `Xem chi tiết` để mở toàn bộ chỉ số sinh tồn và nội dung chẩn đoán/kết luận/triệu chứng/lời dặn.
 - Danh sách được sắp xếp mới nhất trước để giảm thao tác cuộn khi có nhiều hồ sơ.
-- Tab `Hồ sơ y tế` trong RecordExaminationForm dùng cơ chế thu gọn tương tự để tránh danh sách quá dài.
+- Tab `Hồ sơ y tế` trong RecordExaminationForm dùng cơ chế thu gọn tương tự; khi mở chi tiết, nhãn thông tin hiển thị tông xanh để đồng bộ trải nghiệm đọc.
 
 ### 8) Forum
 - Đã nối API thật:
@@ -368,7 +370,9 @@ Luồng đang chạy:
 ### 2) Hồ sơ bệnh án
 - `ListMedicalRecords`: lấy từ API appointment theo ngày, xem chi tiết hồ sơ.
 - `ViewPetMedicalRecords`: lấy medical records thật theo `petId/medicalId`, render timeline.
-  - Giao diện đã đồng bộ với client MedicalRecords: timeline marker, meta grid (phòng khám/bác sĩ/ngày tạo/ngày tái khám), icon pet giống nhau.
+  - Giao diện đã đồng bộ với client MedicalRecords: timeline marker, icon pet và nhịp bố cục giống nhau.
+  - Rule bảo mật ở màn bác sĩ: phần meta chỉ hiển thị `Ngày khám` và `Ngày tái khám`, ẩn tên phòng khám và tên bác sĩ khám.
+  - Layout phần mở chi tiết được tinh gọn để đọc liền mạch; nội dung được gom theo một luồng text duy nhất thay vì tách block dưới cùng.
   - Gọi trực tiếp `GET /api/pet/{id}` để lấy đầy đủ thông tin thú cưng (dateOfBirth, breed, gender, weight) thay vì chỉ dựa vào nested pet data trong medical record.
   - Enrich records với medical orders + medicines để hiển thị đơn thuốc trong chi tiết.
 - Timeline chi tiết hiển thị thêm chỉ số sinh tồn và map tên phiếu khám theo enum dịch vụ.
@@ -385,6 +389,8 @@ Luồng đang chạy:
   - đồng bộ lại medical orders + medicines theo lần lưu mới,
   - tự cập nhật appointment sang `COMPLETED` khi lưu thành công.
   - Tab "Hồ sơ y tế": lấy toàn bộ medical history theo `petId`, sắp xếp mới nhất trước và hiển thị đơn thuốc + chỉ định.
+  - Tab "Hồ sơ y tế" (màn bác sĩ) áp dụng rule bảo mật: meta chỉ còn `Ngày khám` và `Ngày tái khám`.
+  - Phần mở rộng card lịch sử đã bỏ block liệt kê riêng ở cuối, chuyển sang flow nội dung thống nhất để giao diện mượt và dễ đọc hơn.
   - Tab "Hồ sơ y tế": ưu tiên hydrate thông tin thú cưng bằng `GET /pet/:id` khi chỉ có `petId`.
   - Walk-in: ẩn tab Hồ sơ y tế, chỉ hiển thị ở phiếu khám có lịch hẹn.
   - TODO bảo mật: cần kiểm tra quyền chia sẻ hồ sơ của chủ nuôi trước khi hiển thị (đánh dấu trực tiếp trong code).
@@ -397,6 +403,7 @@ Luồng đang chạy:
   - Mốc thời gian tính từ `medical.createdAt` (server).
   - Trong 15 phút: cho phép chỉnh sửa, có hiển thị đếm ngược thời gian còn lại.
   - Hết 15 phút: form chuyển read-only, input và nút chỉnh sửa bị disable/ẩn.
+  - FE có fallback đồng hồ cục bộ (midpoint request) khi không đọc được `Date` header / `serverTime` do CORS, nhằm tránh cảnh báo sync sai trong khi vẫn giữ khóa 15 phút ổn định mà không cần sửa BE.
   - Nếu thiếu `createdAt`: UI hiển thị cảnh báo yêu cầu backend trả `createdAt` cho medical.
 
 ### 5) Vị trí file chính cho luồng "Bắt đầu khám" + khóa 15 phút

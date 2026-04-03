@@ -303,6 +303,13 @@
 	border: 1px solid var(--vet-color-border-soft);
 	padding: 14px 16px;
 	box-shadow: var(--vet-shadow-md);
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.historyRecord:hover {
+	transform: translateY(-1px);
+	border-color: #d6e1ed;
+	box-shadow: 0 6px 18px rgba(24, 45, 75, 0.08);
 }
 
 .historyRecordHeader {
@@ -338,13 +345,19 @@
 	align-items: center;
 	gap: 6px;
 	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.historyExpandButton:hover {
+	border-color: var(--vet-color-brand-primary);
+	color: var(--vet-color-brand-primary);
 }
 
 .historyRecordHeader h4 {
-	margin: 0 0 4px;
-	font-size: 16px;
+	margin: 0;
+	font-size: 28px;
 	font-weight: 800;
-	color: var(--vet-color-text-primary);
+	color: #2d3c50;
 }
 
 .historyRecordHeader p {
@@ -357,28 +370,63 @@
 .historyStatus {
 	padding: 4px 10px;
 	border-radius: 999px;
-	background: var(--vet-color-accent-soft);
-	color: var(--vet-color-brand-primary);
-	font-size: 12px;
+	font-size: 10px;
+	font-weight: 800;
+	white-space: nowrap;
+}
+
+.historyStatusDone {
+	color: #1f9f59;
+	background: #d9f5e5;
+}
+
+.historyStatusPending {
+	color: #2d9b58;
+	background: #ddf4e6;
+}
+
+.historyMetaInfoGrid {
+	margin-top: 8px;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px 24px;
+}
+
+.historyMetaInfoGrid p {
+	margin: 0 0 4px;
+	color: #f17a3f;
+	font-size: 14px;
 	font-weight: 700;
+}
+
+.historyMetaInfoGrid p strong {
+	color: #f17a3f;
+}
+
+.historyMetaInfoGrid p:last-child {
+	margin-bottom: 0;
+}
+
+.historyDivider {
+	margin: 10px 0;
+	border-top: 1px solid #e4ebf3;
 }
 
 .historyRecordBody {
 	display: grid;
-	gap: 12px;
-	margin-top: 12px;
+	gap: 10px;
 }
 
 .historyVitalGrid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 8px 16px;
+	gap: 6px 18px;
 }
 
 .historyDetailColumn {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr);
-	gap: 8px;
+	gap: 6px;
 }
 
 .historyField {
@@ -387,43 +435,16 @@
 }
 
 .historyRecordBody span {
-	font-size: 12px;
-	font-weight: 700;
-	color: var(--vet-color-text-muted);
+	font-size: 16px;
+	font-weight: 900;
+	color: var(--vet-color-brand-primary);
 	margin-right: 6px;
 }
 
 .historyRecordBody strong {
-	font-size: 14px;
+	font-size: 16px;
 	font-weight: 600;
-	color: var(--vet-color-text-primary);
-}
-
-.historyRecordLists {
-	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 16px;
-	margin-top: 12px;
-	padding-top: 12px;
-	border-top: 1px solid var(--vet-color-border-soft);
-}
-
-.historyRecordLists p {
-	margin: 0 0 6px;
-	font-size: 13px;
-	font-weight: 700;
-	color: var(--vet-color-text-primary);
-}
-
-.historyRecordLists ul {
-	margin: 0;
-	padding-left: 18px;
-	color: var(--vet-color-text-secondary);
-	font-size: 13px;
-}
-
-.historyRecordLists li {
-	margin-bottom: 4px;
+	color: #51637a;
 }
 
 .cancelBtn,
@@ -475,8 +496,18 @@
 		justify-content: space-between;
 	}
 
-	.historyRecordLists {
-		grid-template-columns: minmax(0, 1fr);
+	.historyMetaInfoGrid {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+	.historyMetaInfoGrid p {
+		font-size: 13px;
+	}
+
+	.historyRecordBody span,
+	.historyRecordBody strong {
+		font-size: 15px;
 	}
 
 	.vitalGrid {

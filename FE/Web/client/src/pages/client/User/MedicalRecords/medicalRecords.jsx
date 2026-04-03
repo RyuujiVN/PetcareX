@@ -74,6 +74,15 @@ const resolveRecordTitle = (name, fallback = 'Phiếu khám chưa đặt tên') 
 	return getServiceLabel(name, name) || fallback
 }
 
+const resolveExamDate = (record) =>
+	formatDate(
+		record?.appointment?.appointmentDate ||
+			record?.appointmentDate ||
+			record?.examDate ||
+			record?.visitDate ||
+			record?.createdAt,
+	)
+
 const formatVitalValue = (value, suffix = '') => {
 	if (value === null || value === undefined || value === '') return 'Chưa cập nhật'
 	return suffix ? `${value} ${suffix}` : String(value)
@@ -109,30 +118,32 @@ const normalizeMedicalErrorMessage = (error) => {
 }
 
 const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) => {
-	// const orderSummary =
-	// 	medicalOrders.length > 0
-	// 		? medicalOrders
-	// 				.map((order) => order.medicalOrder?.name)
-	// 				.filter(Boolean)
-	// 				.join(', ')
-	// 		: 'Chưa có chỉ định'
+	const orderSummary =
+		medicalOrders.length > 0
+			? medicalOrders
+					.map(
+						(order) =>
+							order?.medicalOrder?.nameVn ||
+							order?.medicalOrder?.nameEng ||
+							order?.medicalOrder?.name ||
+							'Chỉ định chưa xác định',
+					)
+					.join(', ')
+			: 'Không có'
 
 	const medicineSummary =
 		medicines.length > 0
-			? medicines.map((medicine, index) => {
+			? medicines.map((medicine) => {
 					const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
 					const unitLabel = resolveMedicineUnitLabel(medicine)
 					const quantity = medicine.quantity
 						? ` (${medicine.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
 						: ''
 
-					return (
-						<div key={index}>
-							{medicineName}{quantity}
-						</div>
-					)
+					return `${medicineName}${quantity}`
 				})
-			: 'Chưa kê thuốc'
+				.join(', ')
+			: 'Không có'
 
 	const hasConclusion = Boolean(record?.conclusion)
 	const status = getMedicalRecordStatusLabel(hasConclusion, { uppercase: true })
@@ -153,8 +164,9 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
 		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
 		{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
-		{ label: 'Thuốc', value: medicineSummary },
 		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
+		{ label: 'Chỉ định xét nghiệm', value: orderSummary },
+		{ label: 'Đơn thuốc', value: medicineSummary },
 	]
 
 	return {
@@ -165,7 +177,7 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 		statusType,
 		leftInfo: [
 			{ label: 'Tên phòng khám', value: record?.clinic?.name || 'Chưa cập nhật' },
-			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
+			{ label: 'Ngày khám', value: resolveExamDate(record) },
 		],
 		rightInfo: [
 			{
@@ -194,7 +206,7 @@ const mapMedicalToReminder = (record) => {
 		id: `reminder-medical-${record?.id || Date.now()}`,
 		type: 'vaccine',
 		title: resolveRecordTitle(record?.name, 'Nhắc lịch khám'),
-		subtitle: `Ngày tạo: ${formatDate(record?.createdAt)}`,
+		subtitle: `Ngày khám: ${resolveExamDate(record)}`,
 	}
 }
 

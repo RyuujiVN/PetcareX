@@ -6,6 +6,10 @@
   overflow: hidden;
 }
 
+.layoutFocus {
+  grid-template-columns: 1fr;
+}
+
 .sidebar {
   position: sticky;
   top: 0;
@@ -119,6 +123,11 @@
   padding: 20px 24px;
 }
 
+.mainFocus {
+  padding: 10px 14px 6px;
+  background: var(--vet-color-surface-page);
+}
+
 .header {
   position: sticky;
   top: 0;
@@ -146,6 +155,10 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
+}
+
+.contentFocus {
+  padding: 0 2px;
 }
 
 @media (max-width: 1024px) {

@@ -3,18 +3,17 @@ import {
   FileTextOutlined,
   FormOutlined,
   LogoutOutlined,
-  MedicineBoxOutlined,
   SearchOutlined,
-  UserOutlined,
+  UserOutlined
 } from '@ant-design/icons'
 import { Avatar, Button, Input } from 'antd'
 import { useEffect } from 'react'
+import { CiHospital1 } from "react-icons/ci"
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { useAuth } from '../../hooks/Clinic/AuthContext'
-import { CiHospital1 } from "react-icons/ci";
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
-import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
+import { RoleEnum } from '../../enum/role.enum'
+import { useAuth } from '../../hooks/Clinic/AuthContext'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
@@ -49,6 +48,7 @@ export default function AdminVererianrianLayout() {
     '/veterinarian/exam-forms/create',
     '/veterinarian/viewRecords',
   ]
+  const isExamFormFocusMode = location.pathname === '/veterinarian/exam-forms/create'
 
   const shouldHideSearch = hideSearchRoutes.includes(location.pathname)
   const handleLogout = () => {
@@ -76,66 +76,70 @@ export default function AdminVererianrianLayout() {
   }, [token, effectiveRole, hasVeterinarianRole, navigate])
 
   return (
-    <div className={styles.layout}>
-      <aside className={styles.sidebar}>
-        <div>
-          <div className={styles.brandWrap}>
-            <div className={styles.brandIcon}>
-              <CiHospital1 />
+    <div className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''}`}>
+      {!isExamFormFocusMode ? (
+        <aside className={styles.sidebar}>
+          <div>
+            <div className={styles.brandWrap}>
+              <div className={styles.brandIcon}>
+                <CiHospital1 />
+              </div>
+              <div>
+                <h2>{clinicDisplayName}</h2>
+                <p>PetcareX</p>
+              </div>
             </div>
-            <div>
-              <h2>{clinicDisplayName}</h2>
-              <p>PetcareX</p>
-            </div>
+
+            <nav className={styles.menu}>
+              {menuItems.map((item) => {
+                const Icon = item.icon
+                const active = isMenuActive(location.pathname, item.path)
+
+                return (
+                  <NavLink
+                    key={item.key}
+                    to={item.path}
+                    className={`${styles.menuItem} ${active ? styles.menuItemActive : ''}`}
+                  >
+                    <Icon />
+                    <span>{item.label}</span>
+                  </NavLink>
+                )
+              })}
+            </nav>
           </div>
 
-          <nav className={styles.menu}>
-            {menuItems.map((item) => {
-              const Icon = item.icon
-              const active = isMenuActive(location.pathname, item.path)
-
-              return (
-                <NavLink
-                  key={item.key}
-                  to={item.path}
-                  className={`${styles.menuItem} ${active ? styles.menuItemActive : ''}`}
-                >
-                  <Icon />
-                  <span>{item.label}</span>
-                </NavLink>
-              )
-            })}
-          </nav>
-        </div>
-
-        <div className={styles.profileCard}>
-          <Avatar size={44} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
-          <div className={styles.profileMeta}>
-            <h4>{userProfile?.fullName || 'Bác sĩ'}</h4>
-            <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN', 'vi')}</p>
-          </div>
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            className={styles.logoutBtn}
-            onClick={handleLogout}
-            aria-label="Đăng xuất"
-          />
-        </div>
-      </aside>
-
-      <main className={styles.main}>
-        <header className={styles.header}>
-          {!shouldHideSearch && (
-            <Input
-              className={styles.searchInput}
-              prefix={<SearchOutlined />}
-              placeholder="Tìm kiếm thú cưng, chủ nuôi..."
+          <div className={styles.profileCard}>
+            <Avatar size={44} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
+            <div className={styles.profileMeta}>
+              <h4>{userProfile?.fullName || 'Bác sĩ'}</h4>
+              <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN', 'vi')}</p>
+            </div>
+            <Button
+              type="text"
+              icon={<LogoutOutlined />}
+              className={styles.logoutBtn}
+              onClick={handleLogout}
+              aria-label="Đăng xuất"
             />
-          )}
-        </header>
+          </div>
+        </aside>
+      ) : null}
 
-        <section className={styles.content}>
+      <main className={`${styles.main} ${isExamFormFocusMode ? styles.mainFocus : ''}`}>
+        {!isExamFormFocusMode ? (
+          <header className={styles.header}>
+            {!shouldHideSearch && (
+              <Input
+                className={styles.searchInput}
+                prefix={<SearchOutlined />}
+                placeholder="Tìm kiếm thú cưng, chủ nuôi..."
+              />
+            )}
+          </header>
+        ) : null}
+
+        <section className={`${styles.content} ${isExamFormFocusMode ? styles.contentFocus : ''}`}>
           <Outlet />
         </section>
       </main>

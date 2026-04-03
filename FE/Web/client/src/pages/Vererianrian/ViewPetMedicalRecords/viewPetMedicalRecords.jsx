@@ -123,23 +123,34 @@ const resolveMedicineUnitLabel = (item) => {
 
 const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 	const done = Boolean(record?.conclusion)
+	const medicalOrders = Array.isArray(_medicalOrders) ? _medicalOrders : []
+
+	const orderSummary =
+		medicalOrders.length > 0
+			? medicalOrders
+					.map(
+						(order) =>
+							order?.medicalOrder?.nameVn ||
+							order?.medicalOrder?.nameEng ||
+							order?.medicalOrder?.name ||
+							'Chỉ định chưa xác định',
+					)
+					.join(', ')
+			: 'Không có'
 
 	const medicineSummary =
 		medicines.length > 0
-			? medicines.map((medicine, index) => {
+			? medicines.map((medicine) => {
 					const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
 					const unitLabel = resolveMedicineUnitLabel(medicine)
 					const quantity = medicine.quantity
 						? ` (${medicine.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
 						: ''
 
-					return (
-						<div key={index}>
-							{medicineName}{quantity}
-						</div>
-					)
+					return `${medicineName}${quantity}`
 				})
-			: 'Chưa kê thuốc'
+				.join(', ')
+			: 'Không có'
 
 	const vitalRows = [
 		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
@@ -152,8 +163,9 @@ const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
 		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
 		{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
-		{ label: 'Thuốc', value: medicineSummary },
 		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
+		{ label: 'Chỉ định xét nghiệm', value: orderSummary },
+		{ label: 'Đơn thuốc', value: medicineSummary },
 	]
 
 	return {
@@ -163,11 +175,9 @@ const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 		statusType: done ? 'done' : 'pending',
 		examDate: resolveExamDate(record),
 		leftInfo: [
-			{ label: 'Tên phòng khám', value: record?.clinic?.name || 'Chưa cập nhật' },
-			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
+			{ label: 'Ngày khám', value: resolveExamDate(record) },
 		],
 		rightInfo: [
-			{ label: 'Tên bác sĩ', value: record?.veterinarian?.fullName || 'Chưa cập nhật' },
 			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
 		],
 		vitalRows,

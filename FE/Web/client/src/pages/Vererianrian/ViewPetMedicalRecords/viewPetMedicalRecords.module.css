@@ -161,10 +161,17 @@
 .timelineCard {
 	width: 100%;
 	text-align: left;
-	background: var(--vet-color-surface-soft);
-	border: 1px solid var(--vet-color-border-soft);
+	background: #f9fbfd;
+	border: 1px solid #e5ebf2;
 	border-radius: 12px;
 	padding: 14px;
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.timelineCard:hover {
+	transform: translateY(-1px);
+	border-color: #d6e1ed;
+	box-shadow: 0 6px 18px rgba(24, 45, 75, 0.08);
 }
 
 .cardHeader {
@@ -183,9 +190,9 @@
 
 .cardTitle {
 	margin: 0;
-	font-size: 22px;
+	font-size: 28px;
 	font-weight: 800;
-	color: var(--vet-color-text-primary);
+	color: #2d3c50;
 }
 
 .recordDate {
@@ -221,6 +228,12 @@
 	align-items: center;
 	gap: 6px;
 	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.expandButton:hover {
+	border-color: var(--vet-color-brand-primary);
+	color: var(--vet-color-brand-primary);
 }
 
 .recordMetaGrid {
@@ -232,13 +245,13 @@
 
 .recordMetaGrid p {
 	margin: 0 0 4px;
-	color: var(--vet-record-meta-color);
+	color: #f17a3f;
 	font-size: 14px;
 	font-weight: 700;
 }
 
 .recordMetaGrid p strong {
-	color: var(--vet-record-meta-color);
+	color: #f17a3f;
 }
 
 .recordMetaGrid p:last-child {
@@ -284,7 +297,7 @@
 
 .divider {
 	margin: 10px 0;
-	border-top: 1px solid var(--vet-color-border-soft);
+	border-top: 1px solid #e4ebf3;
 }
 
 .detailsBlock {
@@ -296,7 +309,7 @@
 	margin: 0 0 6px;
 	font-size: 17px;
 	font-weight: 600;
-	color: var(--vet-color-text-secondary);
+	color: #51637a;
 	line-height: 1.45;
 }
 
@@ -362,7 +375,7 @@
 	}
 
 	.cardTitle {
-		font-size: 20px;
+		font-size: 22px;
 	}
 
 	.headerActions {
@@ -374,4 +387,5 @@
 		grid-template-columns: 1fr;
 		gap: 8px;
 	}
+
 }

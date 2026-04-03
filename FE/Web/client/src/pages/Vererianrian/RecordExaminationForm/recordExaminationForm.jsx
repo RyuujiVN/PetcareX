@@ -1,4 +1,4 @@
-import {
+﻿import {
 	DeleteOutlined,
 	DownOutlined,
 	ExperimentOutlined,
@@ -190,6 +190,31 @@ const formatMedicineQuantityLabel = (item) => {
 	if (!item?.quantity) return ''
 	const unitLabel = resolveMedicineUnitLabel(item)
 	return ` (${item.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
+}
+
+const formatHistoryMedicineSummary = (medicines) => {
+	if (!Array.isArray(medicines) || medicines.length === 0) return 'Không có'
+
+	return medicines
+		.map((item) => {
+			const medicineName = item?.medicine?.name || item?.medicine?.nameVn || 'Thuốc'
+			return `${medicineName}${formatMedicineQuantityLabel(item)}`
+		})
+		.join(', ')
+}
+
+const formatHistoryOrderSummary = (orders) => {
+	if (!Array.isArray(orders) || orders.length === 0) return 'Không có'
+
+	return orders
+		.map(
+			(item) =>
+				item?.medicalOrder?.nameVn ||
+				item?.medicalOrder?.nameEng ||
+				item?.medicalOrder?.name ||
+				'Chỉ định',
+		)
+		.join(', ')
 }
 
 const formatVitalValue = (value, suffix = '') => {
@@ -1909,12 +1934,11 @@ export default function RecordExaminationForm() {
 											<div className={styles.historyRecordHeader}>
 												<div className={styles.historyHeaderMain}>
 													<h4>{resolveRecordName(record?.name)}</h4>
-													<p>{resolveRecordExamDate(record)}</p>
 												</div>
 
 												<div className={styles.historyHeaderActions}>
-													<span className={styles.historyStatus}>
-														{record?.conclusion ? 'Đã kết luận' : 'Chưa kết luận'}
+													<span className={`${styles.historyStatus} ${record?.conclusion ? styles.historyStatusDone : styles.historyStatusPending}`}>
+														{record?.conclusion ? 'ĐÃ HOÀN THÀNH' : 'ĐANG CHỜ'}
 													</span>
 													<button
 														type="button"
@@ -1928,8 +1952,18 @@ export default function RecordExaminationForm() {
 												</div>
 											</div>
 
+											<div className={styles.historyMetaInfoGrid}>
+												<div>
+													<p><strong>Ngày khám:</strong> {resolveRecordExamDate(record)}</p>
+												</div>
+												<div>
+													<p><strong>Ngày tái khám:</strong> {formatFollowUpDateLabel(record?.followUpDate)}</p>
+												</div>
+											</div>
+
 											{isExpanded ? (
 												<>
+													<div className={styles.historyDivider} />
 													<div className={styles.historyRecordBody}>
 														<div className={styles.historyVitalGrid}>
 															<div className={styles.historyField}>
@@ -1967,51 +2001,13 @@ export default function RecordExaminationForm() {
 																<strong>{record?.note || 'Chưa cập nhật'}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Ngày tái khám:</span>
-																<strong>{formatFollowUpDateLabel(record?.followUpDate)}</strong>
+																<span>Chỉ định xét nghiệm:</span>
+																<strong>{formatHistoryOrderSummary(orders)}</strong>
 															</div>
-														</div>
-													</div>
-
-													<div className={styles.historyRecordLists}>
-														<div>
-															<p>Đơn thuốc</p>
-															{medicines.length === 0 ? (
-																<span>Không có đơn thuốc</span>
-															) : (
-																<ul>
-																	{medicines.map((item, medicineIndex) => (
-																		<li
-																			key={
-																				item?.id ||
-																				`${record?.id || 'record'}-medicine-${item?.medicine?.id || medicineIndex}`
-																			}
-																		>
-																			{item?.medicine?.name || item?.medicine?.nameVn || 'Thuốc'}
-																			{formatMedicineQuantityLabel(item)}
-																		</li>
-																	))}
-																</ul>
-															)}
-														</div>
-														<div>
-															<p>Chỉ định xét nghiệm</p>
-															{orders.length === 0 ? (
-																<span>Không có chỉ định</span>
-															) : (
-																<ul>
-																	{orders.map((item, orderIndex) => (
-																		<li
-																			key={
-																				item?.id ||
-																				`${record?.id || 'record'}-order-${item?.medicalOrder?.id || orderIndex}`
-																			}
-																		>
-																			{item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || item?.medicalOrder?.name || 'Chỉ định'}
-																		</li>
-																	))}
-																</ul>
-															)}
+															<div className={styles.historyField}>
+																<span>Đơn thuốc:</span>
+																<strong>{formatHistoryMedicineSummary(medicines)}</strong>
+															</div>
 														</div>
 													</div>
 												</>
