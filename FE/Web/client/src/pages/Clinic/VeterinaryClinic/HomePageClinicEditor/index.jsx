@@ -1,10 +1,10 @@
 import { CloseOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Divider, Input, Modal, Row, Space, Typography, message } from 'antd';
+import { Button, Card, Col, Divider, Input, Modal, Row, Space, Typography, message, Upload } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../../hooks/Clinic/AuthContext';
 import HomePageClinic from '../../../client/Home/HomePageClinic';
-import { uploadOneFileToCloudinary } from '../../../../data/shared/api/cloudinaryUploadFetch';
+import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../data/shared/api/cloudinaryUploadFetch';
 import { getClinicHomeContent, saveClinicHomeContent } from '../../../../data/client/utils/clinicHomeStorage';
 import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';
@@ -37,6 +37,7 @@ export default function HomePageClinicEditor() {
   const [saving, setSaving] = useState(false);
   const [uploadingField, setUploadingField] = useState('');
   const deniedRef = useRef(false);
+  const teamSectionRef = useRef(null);
 
   const currentClinicId = useMemo(() => getCurrentAdminClinicId(userProfile), [userProfile]);
   const targetClinicId = String(clinicIdParam || '').trim();
@@ -171,22 +172,45 @@ export default function HomePageClinicEditor() {
 
     const failedFiles = [];
     const uploadedUrls = [];
+    const uploadOneFile = async (file) => {
+      const payload = await uploadOneFileToCloudinary(file);
+      const imageUrl = payload?.url || payload?.file || '';
+
+      if (!imageUrl) {
+        throw new Error('Thiếu URL ảnh sau khi upload.');
+      }
+
+      return imageUrl;
+    };
 
     try {
       setUploadingField('gallery-images');
 
-      for (const file of imageFiles) {
+      if (imageFiles.length > 1) {
         try {
-          const payload = await uploadOneFileToCloudinary(file);
-          const imageUrl = payload?.url || payload?.file || '';
+          const batchResult = await uploadMultipleFilesToCloudinary(imageFiles);
+          const batchUrls = Array.isArray(batchResult?.urls) ? batchResult.urls.filter(Boolean) : [];
 
-          if (!imageUrl) {
-            throw new Error('Thiếu URL ảnh sau khi upload.');
+          uploadedUrls.push(...batchUrls);
+          if (batchUrls.length < imageFiles.length) {
+            failedFiles.push(...imageFiles.slice(batchUrls.length).map((file) => file.name || 'file không xác định'));
           }
-
+        } catch {
+          const settledResults = await Promise.allSettled(imageFiles.map((file) => uploadOneFile(file)));
+          settledResults.forEach((result, index) => {
+            if (result.status === 'fulfilled' && result.value) {
+              uploadedUrls.push(result.value);
+            } else {
+              failedFiles.push(imageFiles[index]?.name || 'file không xác định');
+            }
+          });
+        }
+      } else {
+        try {
+          const imageUrl = await uploadOneFile(imageFiles[0]);
           uploadedUrls.push(imageUrl);
         } catch {
-          failedFiles.push(file.name || 'file không xác định');
+          failedFiles.push(imageFiles[0]?.name || 'file không xác định');
         }
       }
     } finally {
@@ -201,6 +225,53 @@ export default function HomePageClinicEditor() {
     if (failedFiles.length) {
       message.warning(`Có ${failedFiles.length} ảnh tải lên thất bại.`);
     }
+  };
+
+  const addDoctor = () => {
+    setDraftContent((prev) => {
+      const currentDoctors = Array.isArray(prev.doctors) ? prev.doctors : [];
+      const nextDoctor = {
+        id: `doctor-${Date.now()}`,
+        name: '',
+        image: '',
+      };
+
+      return {
+        ...prev,
+        doctors: [nextDoctor, ...currentDoctors],
+      };
+    });
+
+    window.requestAnimationFrame(() => {
+      teamSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  };
+
+  const removeDoctor = (doctorIndex) => {
+    setDraftContent((prev) => {
+      const currentDoctors = Array.isArray(prev.doctors) ? prev.doctors : [];
+
+      return {
+        ...prev,
+        doctors: currentDoctors.filter((_, index) => index !== doctorIndex),
+      };
+    });
+  };
+
+  const confirmRemoveDoctor = (doctorIndex) => {
+    Modal.confirm({
+      title: 'Xóa bác sĩ',
+      content: 'Bạn có muốn xóa bác sĩ này không?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      centered: true,
+      onOk: () => removeDoctor(doctorIndex),
+    });
+  };
+
+  const removeDoctorImage = (doctorIndex) => {
+    updateListField('doctors', doctorIndex, 'image', '');
   };
 
   const handleSave = async () => {
@@ -236,6 +307,7 @@ export default function HomePageClinicEditor() {
       content: 'Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?',
       okText: 'Tiếp tục chỉnh sửa',
       cancelText: 'Hủy bỏ thay đổi',
+      centered: true,
       closable: false,
       maskClosable: false,
       onCancel: discardAndExit,
@@ -271,22 +343,21 @@ export default function HomePageClinicEditor() {
                 onChange={(event) => updateNestedField('hero', 'bannerImage', event.target.value)}
                 placeholder="Ảnh banner đầu trang (URL hoặc đường dẫn public)"
               />
-              <label className="ant-btn ant-btn-default editor-upload-button">
-                <UploadOutlined />
-                <span>{isFieldUploading('hero-banner') ? 'Đang tải...' : 'Tải banner'}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={Boolean(uploadingField) && !isFieldUploading('hero-banner')}
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    void handleImageUpload(file, 'hero-banner', (imageUrl) => {
-                      updateNestedField('hero', 'bannerImage', imageUrl);
-                    });
-                    event.target.value = '';
-                  }}
-                />
-              </label>
+
+              {/* Upload Photo Banner */}
+              <Upload
+                showUploadList={false}
+                beforeUpload={(file) => {
+                  handleImageUpload(file, 'hero-banner', (imageUrl) => {
+                    updateNestedField('hero', 'bannerImage', imageUrl);
+                  });
+                  return false;
+                }}
+              >
+                <Button icon={<UploadOutlined />}>
+                  Tải ảnh lên
+                </Button>
+              </Upload>
             </Space.Compact>
 
             {draftContent.hero.bannerImage ? (
@@ -346,6 +417,7 @@ export default function HomePageClinicEditor() {
               placeholder="Mô tả thư viện ảnh"
             />
 
+            {/* Upload Photo Library   */}
             <label className="ant-btn ant-btn-default editor-upload-button editor-gallery-upload-button">
               <UploadOutlined />
               <span>{isFieldUploading('gallery-images') ? 'Đang tải...' : 'Tải ảnh thư viện'}</span>
@@ -360,7 +432,6 @@ export default function HomePageClinicEditor() {
                 }}
               />
             </label>
-
             {Array.isArray(draftContent.galleryImages) && draftContent.galleryImages.length ? (
               <div className="editor-gallery-preview-grid">
                 {draftContent.galleryImages
@@ -386,7 +457,15 @@ export default function HomePageClinicEditor() {
           </Space>
         </Card>
 
-        <Card title="Đội ngũ bác sĩ">
+        <div ref={teamSectionRef}>
+          <Card
+            title="Đội ngũ bác sĩ"
+            extra={
+              <Button type="dashed" onClick={addDoctor}>
+                Thêm bác sĩ
+              </Button>
+            }
+          >
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.teamSection.title}
@@ -394,7 +473,16 @@ export default function HomePageClinicEditor() {
               placeholder="Tiêu đề khối đội ngũ"
             />
             {draftContent.doctors.map((doctor, index) => (
-              <Card key={doctor.id || index} size="small" title={`Bác sĩ ${index + 1}`}>
+              <Card
+                key={doctor.id || index}
+                size="small"
+                title={`Bác sĩ ${index + 1}`}
+                extra={
+                  <Button type="text" danger onClick={() => confirmRemoveDoctor(index)}>
+                    Xóa
+                  </Button>
+                }
+              >
                 <Space direction="vertical" size={8} className="editor-full-width">
                   <Input
                     value={doctor.name}
@@ -405,34 +493,45 @@ export default function HomePageClinicEditor() {
                     <Input
                       value={doctor.image}
                       onChange={(event) => updateListField('doctors', index, 'image', event.target.value)}
-                      placeholder="Ảnh bác sĩ (URL hoặc đường dẫn public)"
+                      placeholder="Ảnh bác sĩ"
                     />
-                    <label className="ant-btn ant-btn-default editor-upload-button">
-                      <UploadOutlined />
-                      <span>{isFieldUploading(`doctor-image-${index}`) ? 'Đang tải...' : 'Tải ảnh'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)}
-                        onChange={(event) => {
-                          const file = event.target.files?.[0];
-                          void handleImageUpload(file, `doctor-image-${index}`, (imageUrl) => {
-                            updateListField('doctors', index, 'image', imageUrl);
-                          });
-                          event.target.value = '';
-                        }}
-                      />
-                    </label>
+
+                    {/* Upload Image for Doctor */}
+                    <Upload
+                      showUploadList={false}
+                      beforeUpload={(file) => { 
+                        handleImageUpload(file, `doctor-image-${index}`, (imageUrl) => {  
+                          updateListField('doctors', index, 'image', imageUrl);
+                        });
+                        return false;
+                      } 
+                      }
+                    >
+                      <Button icon={<UploadOutlined />} disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)}>
+                        <span>{isFieldUploading(`doctor-image-${index}`) ? 'Đang tải...' : 'Tải ảnh'}</span>
+                      </Button>
+                    </Upload>
                   </Space.Compact>
 
                   {doctor.image ? (
-                    <img src={doctor.image} alt={doctor.name || `Bác sĩ ${index + 1}`} className="editor-image-preview" />
+                    <div className="editor-image-preview-wrapper">
+                      <button
+                        type="button"
+                        className="editor-remove-image-button"
+                        onClick={() => removeDoctorImage(index)}
+                        aria-label={`Xóa ảnh bác sĩ ${index + 1}`}
+                      >
+                        <CloseOutlined />
+                      </button>
+                      <img src={doctor.image} alt={doctor.name || `Bác sĩ ${index + 1}`} className="editor-image-preview" />
+                    </div>
                   ) : null}
                 </Space>
               </Card>
             ))}
           </Space>
-        </Card>
+          </Card>
+        </div>
 
         <Card title="Địa chỉ phòng khám (Google Maps)">
           <Space direction="vertical" size={12} className="editor-full-width">

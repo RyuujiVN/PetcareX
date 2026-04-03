@@ -32,6 +32,7 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  overflow: hidden;
 }
 
 .editor-upload-button input[type='file'] {
@@ -49,6 +50,11 @@
   object-fit: cover;
   border-radius: 8px;
   border: 1px solid var(--color-border-soft);
+}
+
+.editor-image-preview-wrapper {
+  position: relative;
+  width: fit-content;
 }
 
 .editor-banner-preview {
