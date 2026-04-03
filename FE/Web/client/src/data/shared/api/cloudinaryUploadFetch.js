@@ -101,6 +101,28 @@ export const uploadOneFileToCloudinary = async (file) => {
   };
 };
 
+export const uploadOneFileResize = async (file) => {
+  if (!file) {
+    throw new Error('Vui long chon file truoc khi tai len');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const payload = await postMultipartFormData('/cloudinary/upload/file-resize', formData);
+  const fileUrl = extractCloudinaryUrl(payload);
+
+  if (!fileUrl) {
+    throw new Error('Khong nhan duoc URL anh tu server');
+  }
+
+  return {
+    ...payload,
+    file: fileUrl,
+    url: fileUrl,
+  };
+};
+
 export const uploadMultipleFilesToCloudinary = async (files) => {
   const fileList = Array.from(files || []).filter(Boolean);
 
@@ -125,10 +147,10 @@ export const uploadMultipleFilesToCloudinary = async (files) => {
       const fileUrl = extractCloudinaryUrl(item);
       return fileUrl
         ? {
-            ...item,
-            file: fileUrl,
-            url: fileUrl,
-          }
+          ...item,
+          file: fileUrl,
+          url: fileUrl,
+        }
         : null;
     })
     .filter(Boolean);

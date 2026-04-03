@@ -15,7 +15,7 @@ export class CloudinaryController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
   @Post('upload/one-file')
-  @ApiOperation({ summary: 'Tải ảnh avatar thú cưng' })
+  @ApiOperation({ summary: 'Tải một ảnh' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -40,8 +40,34 @@ export class CloudinaryController {
     };
   }
 
+  @Post('upload/file-resize')
+  @ApiOperation({ summary: 'Tải ảnh avatar thú cưng' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadImageResize(
+    @UploadedFile(new FileValidationPipe())
+    file: Express.Multer.File,
+  ) {
+    const fileUrl = await this.cloudinaryService.uploadFileConvertWebp(file);
+
+    return {
+      file: fileUrl.secure_url,
+    };
+  }
+
   @Post('upload/multi-file')
-  @ApiOperation({ summary: 'Tải nhiều ảnh lên Cloudinary' })
+  @ApiOperation({ summary: 'Tải nhiều ảnh' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

@@ -14,72 +14,12 @@ import { Spin } from "antd";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "github-markdown-css/github-markdown-light.css";
-import { addRoom, fetchRenameRoom } from "../../../../redux/slices/roomSlice";
-import { uploadMultipleFilesToCloudinary } from "../../../../data/shared/api/cloudinaryUploadFetch";
-
-const IMAGE_LINE_PREFIX = "[image]:";
-const MAX_ROOM_NAME_LENGTH = 80;
-
-const deriveRoomNameFromMessage = (text, imageCount = 0) => {
-  const normalizedText = (text || "").replace(/\s+/g, " ").trim();
-
-  if (normalizedText) {
-    return normalizedText.slice(0, MAX_ROOM_NAME_LENGTH);
-  }
-
-  if (imageCount > 0) {
-    return imageCount === 1 ? "Ảnh người dùng đã gửi" : `${imageCount} ảnh người dùng đã gửi`;
-  }
-
-  return "Cuộc trò chuyện mới";
-};
-
-const composeMessageContent = (text, imageUrls = []) => {
-  const cleanText = text?.trim() || "";
-
-  if (!imageUrls.length) {
-    return cleanText;
-  }
-
-  const imageLines = imageUrls
-    .map((url) => `${IMAGE_LINE_PREFIX} ${url}`)
-    .join("\n");
-
-  if (!cleanText) {
-    return imageLines;
-  }
-
-  return `${cleanText}\n\n${imageLines}`;
-};
-
-const parseUserMessageContent = (content = "") => {
-  const lines = String(content).split("\n");
-  const imageUrls = [];
-  const textLines = [];
-
-  lines.forEach((line) => {
-    const trimmed = line.trim();
-    if (trimmed.toLowerCase().startsWith(IMAGE_LINE_PREFIX)) {
-      const url = trimmed.slice(IMAGE_LINE_PREFIX.length).trim();
-      if (url) {
-        imageUrls.push(url);
-      }
-      return;
-    }
-
-    textLines.push(line);
-  });
-
-  return {
-    text: textLines.join("\n").trim(),
-    imageUrls,
-  };
-};
+import { addRoom } from "../../../../redux/slices/roomSlice";
+import { uploadOneFileResize } from "../../../../data/shared/api/cloudinaryUploadFetch";
 
 const MessageBox = () => {
   const messages = useSelector((state) => state.message.messages);
   const hasMoreMessage = useSelector((state) => state.message.hasMoreMessage);
-  const rooms = useSelector((state) => state.room.rooms || []);
   const [isLoadingMore, setIsLoadingMore] = useState(true);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -93,27 +33,20 @@ const MessageBox = () => {
 
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [isAiWaitingFirstToken, setIsAiWaitingFirstToken] = useState(false);
-  const [pendingImages, setPendingImages] = useState([]);
+  const [pendingImages, setPendingImages] = useState(null);
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const fileInputRef = useRef(null);
-  const pendingImagesRef = useRef([]);
+  const pendingImageRef = useRef([]);
 
-  const revokePreviewUrls = (images) => {
-    images.forEach((item) => {
-      if (item?.previewUrl) {
-        URL.revokeObjectURL(item.previewUrl);
-      }
-    });
+  console.log();
+
+  const revokePreviewUrl = (image) => {
+    if (image?.previewUrl) {
+      URL.revokeObjectURL(image.previewUrl);
+    }
   };
 
-  const resetPendingImages = () => {
-    setPendingImages((prev) => {
-      revokePreviewUrls(prev);
-      return [];
-    });
-  };
-
-  const handleSelectImages = (event) => {
+  const handleSelectImages = async (event) => {
     const files = Array.from(event.target.files || []);
 
     if (!files.length) {
@@ -127,24 +60,44 @@ const MessageBox = () => {
       return;
     }
 
-    const mapped = files.map((file) => ({
-      id: `${file.name}-${file.lastModified}-${Math.random().toString(36).slice(2)}`,
-      file,
-      previewUrl: URL.createObjectURL(file),
-    }));
+    const file = files[0];
+    const previewUrl = URL.createObjectURL(file);
 
-    setPendingImages((prev) => [...prev, ...mapped]);
-    event.target.value = "";
+    const fileObj = {
+      id: "temp",
+      file,
+      previewUrl,
+      url: null,
+    };
+
+    setPendingImages(fileObj);
+
+    try {
+      setIsUploadingImages(true);
+      const uploadResult = await uploadOneFileResize(file);
+
+      setPendingImages((prev) =>
+        prev
+          ? {
+              ...prev,
+              url: uploadResult?.url || uploadResult?.file || null,
+            }
+          : prev,
+      );
+    } catch (error) {
+      revokePreviewUrl(fileObj);
+      setPendingImages(null);
+      message.error(error?.message || "Upload anh that bai");
+    } finally {
+      setIsUploadingImages(false);
+      event.target.value = "";
+    }
   };
 
-  const handleRemovePendingImage = (id) => {
+  const handleRemovePendingImage = () => {
     setPendingImages((prev) => {
-      const target = prev.find((item) => item.id === id);
-      if (target?.previewUrl) {
-        URL.revokeObjectURL(target.previewUrl);
-      }
-
-      return prev.filter((item) => item.id !== id);
+      revokePreviewUrl(prev);
+      return null;
     });
   };
 
@@ -155,61 +108,26 @@ const MessageBox = () => {
 
   const handleSendMessage = async (value) => {
     const textContent = value.content?.trim() || "";
-    const hasPendingImages = pendingImages.length > 0;
 
-    if (isAiLoading || isUploadingImages || (!textContent && !hasPendingImages)) {
-      return;
-    }
+    // if (isAiLoading || !textContent) {
+    //   return;
+    // }
 
-    let imageUrls = [];
-
-    if (hasPendingImages) {
-      try {
-        setIsUploadingImages(true);
-        const uploadResult = await uploadMultipleFilesToCloudinary(
-          pendingImages.map((item) => item.file),
-        );
-        imageUrls = uploadResult?.urls || [];
-      } catch (error) {
-        message.error(error?.message || "Upload anh that bai");
-        setIsUploadingImages(false);
-        return;
-      }
-    }
+    if (!textContent) return;
 
     const payload = {
-      content: composeMessageContent(textContent, imageUrls),
+      content: textContent,
       sendBy: "USER",
-      roomId,
+      roomId: roomId,
     };
 
-    const suggestedRoomName = deriveRoomNameFromMessage(textContent, imageUrls.length);
-    const currentRoom = rooms.find((room) => String(room.id) === String(roomId));
-
-    if (
-      roomId &&
-      suggestedRoomName &&
-      suggestedRoomName !== currentRoom?.name
-    ) {
-      dispatch(
-        fetchRenameRoom({
-          id: roomId,
-          data: { name: suggestedRoomName },
-        }),
-      ).catch(() => {});
-    }
-
-    if (!payload.content) {
-      setIsUploadingImages(false);
-      return;
-    }
+    if (pendingImages) payload.image = pendingImages.url;
 
     setIsAiLoading(true);
     setIsAiWaitingFirstToken(true);
-    setIsUploadingImages(false);
     socket.emit("message", payload);
     form.resetFields(["content"]);
-    resetPendingImages();
+    handleRemovePendingImage();
     scrollToBottom();
   };
 
@@ -298,6 +216,7 @@ const MessageBox = () => {
       };
 
       dispatch(editAiMessage(payload));
+      inputRef.current?.focus(); // focus lại input
     };
 
     // Lắng nghe server trả room khi nhắn lần đầu chưa có room
@@ -306,11 +225,21 @@ const MessageBox = () => {
       navigate(`/chatbot/${data.id}`);
     };
 
+    // Lắng nghe lỗi từ backend
+    const onServerResponseError = (errorData) => {
+      const errMsg =
+        errorData?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.";
+      message.error(errMsg);
+      setIsAiLoading(false);
+      setIsAiWaitingFirstToken(false);
+    };
+
     socket.on("aiResponse", onAiResponse);
     socket.on("serverResponseAIMessage", serverResponseAIMessage);
     socket.on("serverResponseMessage", onServerResponseMessage);
     socket.on("serverResponseRoom", onServerResponseRoom);
     socket.on("serverResponseNewRoom", serverResponseNewRoom);
+    socket.on("serverResponseError", onServerResponseError);
 
     return () => {
       socket.off("aiResponse", onAiResponse);
@@ -318,6 +247,7 @@ const MessageBox = () => {
       socket.off("serverResponseAIMessage", serverResponseAIMessage);
       socket.off("serverResponseRoom", onServerResponseRoom);
       socket.off("serverResponseNewRoom", serverResponseNewRoom);
+      socket.off("serverResponseError", onServerResponseError);
 
       if (roomId) {
         socket.emit("leaveRoom", { roomId });
@@ -355,12 +285,12 @@ const MessageBox = () => {
   }, [roomId, messages]);
 
   useEffect(() => {
-    pendingImagesRef.current = pendingImages;
+    pendingImageRef.current = pendingImages;
   }, [pendingImages]);
 
   useEffect(() => {
     return () => {
-      revokePreviewUrls(pendingImagesRef.current);
+      revokePreviewUrl(pendingImageRef.current);
     };
   }, []);
 
@@ -388,39 +318,31 @@ const MessageBox = () => {
               </div>
             )}
             {messages.map((message) =>
-              message?.sendBy === "USER" ? (() => {
-                const parsedMessage = parseUserMessageContent(message.content);
+              message?.sendBy === "USER" ? (
+                <div key={message.id} className={`message user`}>
+                  <div className="message-content">
+                    <div className="message-bubble">{message.content}</div>
 
-                return (
-                  <div key={message.id} className={`message user`}>
-                    <div className="message-content">
-                      {!!parsedMessage.text && (
-                        <div className="message-bubble">{parsedMessage.text}</div>
-                      )}
-                      {!!parsedMessage.imageUrls.length && (
-                        <div className="message-image-grid">
-                          {parsedMessage.imageUrls.map((url) => (
-                            <a
-                              key={`${message.id}-${url}`}
-                              href={url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="message-image-link"
-                            >
-                              <img
-                                src={url}
-                                alt="Anh nguoi dung da gui"
-                                loading="lazy"
-                                className="message-image"
-                              />
-                            </a>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {message.image && (
+                      <div className="message-image-grid">
+                        <a
+                          href={message.image}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="message-image-link"
+                        >
+                          <img
+                            src={message.image}
+                            alt="Anh nguoi dung da gui"
+                            loading="lazy"
+                            className="message-image"
+                          />
+                        </a>
+                      </div>
+                    )}
                   </div>
-                );
-              })() : (
+                </div>
+              ) : (
                 <div className="markdown-body" key={message.id}>
                   <Markdown remarkPlugins={[remarkGfm]}>
                     {message.content}
@@ -445,6 +367,37 @@ const MessageBox = () => {
       </div>
 
       <div className="chatbot-input-dock">
+        {pendingImages && (
+          <div style={{ marginBottom: 8 }}>
+            <div className="inline-image-preview-list">
+              <div
+                key={pendingImages?.id}
+                className="inline-image-preview-item"
+              >
+                <img
+                  src={pendingImages?.previewUrl}
+                  alt="Preview"
+                  className="inline-image-preview"
+                />
+                {isUploadingImages && (
+                  <div className="inline-image-upload-overlay">
+                    <Spin size="small" />
+                  </div>
+                )}
+                <button
+                  type="button"
+                  className="inline-image-remove"
+                  onClick={() => handleRemovePendingImage(pendingImages?.id)}
+                  aria-label="Xoa anh"
+                  disabled={isAiLoading || isUploadingImages}
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <Form
           form={form}
           className="input-container"
@@ -470,34 +423,18 @@ const MessageBox = () => {
             onChange={handleSelectImages}
           />
 
-          {!!pendingImages.length && (
-            <div className="inline-image-preview-list">
-              {pendingImages.slice(0, 3).map((item) => (
-                <div key={item.id} className="inline-image-preview-item">
-                  <img src={item.previewUrl} alt="Preview" className="inline-image-preview" />
-                  <button
-                    type="button"
-                    className="inline-image-remove"
-                    onClick={() => handleRemovePendingImage(item.id)}
-                    aria-label="Xoa anh"
-                    disabled={isAiLoading || isUploadingImages}
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              ))}
-              {pendingImages.length > 3 && (
-                <div className="inline-image-more">+{pendingImages.length - 3}</div>
-              )}
-            </div>
-          )}
-
-          <Form.Item name="content" style={{ flex: 1, marginBottom: 0}}>
+          <Form.Item name="content" style={{ flex: 1, marginBottom: 0 }}>
             <Input
               ref={inputRef}
               placeholder="Nhập câu hỏi..."
               className="message-input"
-              disabled={isAiLoading || isUploadingImages}
+              disabled={isAiLoading}
+              readOnly={isAiLoading}
+              onKeyDown={(e) => {
+                if (isAiLoading) {
+                  e.preventDefault();
+                }
+              }}
             />
           </Form.Item>
 
