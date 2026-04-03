@@ -149,6 +149,9 @@ export default function AdminClinicLayout() {
   const clinicDisplayName = getClinicDisplayName(userProfile)
   const clinicId = getCurrentAdminClinicId(userProfile)
   const notificationScopeKey = clinicId || userProfile?.id || 'default'
+  const shouldHideNotificationBell =
+    location.pathname.startsWith('/clinic/home-editor/') ||
+    location.pathname.startsWith('/clinic/clinic-editor/')
 
   const notificationItems = useMemo(
     () => buildMockClinicNotifications(clinicDisplayName),
@@ -430,34 +433,36 @@ export default function AdminClinicLayout() {
       </aside>
 
       <main className={styles.main}>
-        <div className={styles.mainActionBar}>
-          <Popover
-            trigger="click"
-            placement="bottomRight"
-            overlayClassName={styles.notificationPopoverOverlay}
-            content={notificationContent}
-            open={notificationPopoverOpen}
-            onOpenChange={setNotificationPopoverOpen}
-          >
-            <Button
-              type="text"
-              aria-label="Xem thông báo phòng khám"
-              className={styles.notificationBellButton}
-              icon={(
-                <Badge
-                  count={unreadNotificationCount}
-                  size="small"
-                  overflowCount={99}
-                  color="#1976ff"
-                >
-                  <span className={styles.notificationBellIcon}>
-                    <IoMdNotificationsOutline />
-                  </span>
-                </Badge>
-              )}
-            />
-          </Popover>
-        </div>
+        {!shouldHideNotificationBell ? (
+          <div className={styles.mainActionBar}>
+            <Popover
+              trigger="click"
+              placement="bottomRight"
+              overlayClassName={styles.notificationPopoverOverlay}
+              content={notificationContent}
+              open={notificationPopoverOpen}
+              onOpenChange={setNotificationPopoverOpen}
+            >
+              <Button
+                type="text"
+                aria-label="Xem thông báo phòng khám"
+                className={styles.notificationBellButton}
+                icon={(
+                  <Badge
+                    count={unreadNotificationCount}
+                    size="small"
+                    overflowCount={99}
+                    color="#1976ff"
+                  >
+                    <span className={styles.notificationBellIcon}>
+                      <IoMdNotificationsOutline />
+                    </span>
+                  </Badge>
+                )}
+              />
+            </Popover>
+          </div>
+        ) : null}
 
         <Outlet />
       </main>
