@@ -128,26 +128,6 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
           </div>
         </section>
 
-        {/* <section className="clinic-features">
-          <div className="section-container">
-            <h2 className="section-title">{content.featuresSection.title}</h2>
-            <p className="section-subtitle">{content.featuresSection.subtitle}</p>
-            <div className="features-grid compact">
-              {content.features.map((feature, index) => (
-                <div key={feature.id || index} className="feature-card compact">
-                  <div className={`feature-icon-wrapper ${feature.colorClass || 'blue-bg'}`}>
-                    {FEATURE_ICONS[index % FEATURE_ICONS.length]}
-                  </div>
-                  <div className="feature-content">
-                    <h4 className="feature-title">{feature.title}</h4>
-                    <p className="feature-desc">{feature.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section> */}
-
         <section className="team-section">
           <div className="section-container">
             <h2 className="section-title">{content.teamSection.title}</h2>
@@ -179,61 +159,6 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
             />
           </div>
         </section>
-
-        {/* <section className="services-section">
-          <div className="section-container services-layout">
-            <div className="services-column left">
-              {content.servicesLeft.map((service, index) => (
-                <div key={service.id || index} className="service-item">
-                  <h4 className="service-title">{service.title}</h4>
-                  <p className="service-desc">{service.description}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="services-center-image">
-              <img src={content.servicesSection.centerImage} alt="Dich vu phong kham" />
-            </div>
-
-            <div className="services-column right">
-              {content.servicesRight.map((service, index) => (
-                <div key={service.id || index} className="service-item">
-                  <h4 className="service-title">{service.title}</h4>
-                  <p className="service-desc">{service.description}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section> */}
-{/* 
-        <section className="community-section">
-          <div className="section-container">
-            <div className="community-header">
-              <span className="community-subtitle">{content.community.subtitle}</span>
-              <h2 className="section-title">{content.community.title}</h2>
-            </div>
-            <div className="community-grid">
-              {content.posts.map((post, index) => (
-                <div key={post.id || index} className="community-card">
-                  <img src={post.image} alt={post.title} />
-                  <p>{post.title}</p>
-                </div>
-              ))}
-            </div>
-            <div className="community-doctors">
-              <h3 className="doctors-heading">{content.community.doctorsHeading}</h3>
-              <div className="avatar-row">
-                {content.avatars.map((avatar, index) => (
-                  <div key={avatar.id || index} className="avatar-item">
-                    <img src={avatar.image} alt={avatar.name} />
-                    <span className="avatar-name">{avatar.name}</span>
-                    {avatar.subtitle ? <span className="avatar-subtitle">{avatar.subtitle}</span> : null}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section> */}
       </div>
 
       <Modal
