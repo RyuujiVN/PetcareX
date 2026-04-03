@@ -120,18 +120,18 @@ export default function HomePageClinicEditor() {
   return (
     <div className="clinic-home-editor-page">
       <Space direction="vertical" size={16} className="clinic-home-editor-content">
-        <Card title="Banner">
+        <Card title="Phần đầu trang">
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.hero.title}
               onChange={(event) => updateNestedField('hero', 'title', event.target.value)}
-              placeholder="Tiêu đề banner"
+              placeholder="Tên phòng khám và lời chào mừng"
             />
             <TextArea
               value={draftContent.hero.description}
               onChange={(event) => updateNestedField('hero', 'description', event.target.value)}
               rows={3}
-              placeholder="Mô tả banner"
+              placeholder="Slogan riêng cho phòng khám của bạn"
             />
             <Input
               value={draftContent.hero.ctaText}
@@ -164,21 +164,21 @@ export default function HomePageClinicEditor() {
                 <Input
                   value={draftContent.about.highlightNumber}
                   onChange={(event) => updateNestedField('about', 'highlightNumber', event.target.value)}
-                  placeholder="Số nổi bật"
+                  placeholder="Số năm thành lập phòng khám của bạn"
                 />
               </Col>
               <Col xs={24} md={12}>
                 <Input
                   value={draftContent.about.highlightLabel}
                   onChange={(event) => updateNestedField('about', 'highlightLabel', event.target.value)}
-                  placeholder="Nhãn nổi bật"
+                  placeholder="Số chi nhánh phòng khám của bạn"
                 />
               </Col>
             </Row>
           </Space>
         </Card>
 
-        <Card title="Khối tính năng">
+        {/* <Card title="Khối tính năng">
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.featuresSection.title}
@@ -210,7 +210,7 @@ export default function HomePageClinicEditor() {
               </Card>
             ))}
           </Space>
-        </Card>
+        </Card> */}
 
         <Card title="Đội ngũ bác sĩ">
           <Space direction="vertical" size={12} className="editor-full-width">
@@ -286,7 +286,7 @@ export default function HomePageClinicEditor() {
           </Space>
         </Card>
 
-        <Card title="Diễn đàn cộng đồng">
+        {/* <Card title="Diễn đàn cộng đồng">
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.community.subtitle}
@@ -345,7 +345,7 @@ export default function HomePageClinicEditor() {
               </Card>
             ))}
           </Space>
-        </Card>
+        </Card> */}
       </Space>
 
       <div className="clinic-home-editor-actions">
