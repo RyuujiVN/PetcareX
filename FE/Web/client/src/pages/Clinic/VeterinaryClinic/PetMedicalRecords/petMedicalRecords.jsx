@@ -1,39 +1,42 @@
 import {
-    CalendarOutlined,
-    ExperimentOutlined,
-    FileTextOutlined,
-    HeartOutlined,
-    MedicineBoxOutlined,
-    SmileOutlined,
-    UserOutlined,
-    WarningOutlined,
+	CalendarOutlined,
+	ExperimentOutlined,
+	FileTextOutlined,
+	HeartOutlined,
+	MedicineBoxOutlined,
+	SmileOutlined,
+	UserOutlined,
+	WarningOutlined,
 } from '@ant-design/icons'
 import {
-    Button,
-    Card,
-    Col,
-    Divider,
-    Input,
-    Row,
-    Spin,
-    Table,
-    Tag,
-    Typography,
-    message,
+	Button,
+	Card,
+	Col,
+	Divider,
+	Input,
+	Row,
+	Spin,
+	Table,
+	Tag,
+	Typography,
+	message,
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getClinicAppointmentByIdApi } from '../../../../data/Clinic/api/appointmentApi'
 import {
-    getMedicalByPetId,
-    getMedicalOrdersByMedicalId,
-    getMedicinesByMedicalId,
+	getMedicalById,
+	getMedicalByPetId,
+	getMedicalOrdersByMedicalId,
+	getMedicinesByMedicalId,
 } from '../../../../data/Clinic/api/medicalApi'
 import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
-import { getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
+import { getUserByIdApi } from '../../../../data/Clinic/api/user'
+import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './petMedicalRecords.module.css'
 
-const FALLBACK_TEXT = 'Chưa cập nhật'
+const FALLBACK_TEXT = 'Không'
+const CONTACT_FALLBACK_TEXT = 'Chưa cập nhật được'
 const { TextArea } = Input
 
 const formatDateLabel = (value, fallback = FALLBACK_TEXT) => {
@@ -86,6 +89,16 @@ const formatFieldValue = (value, fallback = FALLBACK_TEXT) => {
 	if (value === null || value === undefined) return fallback
 	if (typeof value === 'string' && !value.trim()) return fallback
 	return String(value)
+}
+
+const resolveMedicineLabel = (item) => {
+	const medicineName = item?.medicine?.name || FALLBACK_TEXT
+	const strength = item?.medicine?.strength || item?.medicine?.dosage || item?.medicine?.concentration || ''
+	const unitValue = item?.medicine?.unit || item?.medicine?.medicineUnit || item?.medicine?.unitType || ''
+	const unitLabel = unitValue ? getMedicineUnitLabel(unitValue, unitValue) : ''
+	const meta = strength && unitLabel ? `${strength} - ${unitLabel}` : strength || unitLabel
+
+	return meta ? `${medicineName} (${meta})` : medicineName
 }
 
 const selectMedicalRecordByAppointment = (records, appointment) => {
@@ -164,6 +177,7 @@ export default function PetMedicalRecords() {
 	const [appointment, setAppointment] = useState(stateRecord)
 	const [medicalRecord, setMedicalRecord] = useState(null)
 	const [petDetail, setPetDetail] = useState(null)
+	const [ownerDetail, setOwnerDetail] = useState(null)
 	const [medicalOrders, setMedicalOrders] = useState([])
 	const [medicines, setMedicines] = useState([])
 
@@ -189,6 +203,7 @@ export default function PetMedicalRecords() {
 			if (!resolvedPetId) {
 				setMedicalRecord(null)
 				setPetDetail(null)
+				setOwnerDetail(null)
 				setMedicalOrders([])
 				setMedicines([])
 				return
@@ -197,34 +212,63 @@ export default function PetMedicalRecords() {
 			const medicalPayload = await getMedicalByPetId(resolvedPetId, 1, 200)
 			const medicalRecords = normalizeCollection(medicalPayload)
 			const matchedMedical = selectMedicalRecordByAppointment(medicalRecords, resolvedAppointment)
-			const petIdForDetail =
-				matchedMedical?.petId || matchedMedical?.pet?.id || resolvedPetId
+			const detailedMedical = matchedMedical?.id
+				? await getMedicalById(matchedMedical.id).catch(() => matchedMedical)
+				: null
+			const finalMedical = detailedMedical || matchedMedical || null
+			const petIdForDetail = finalMedical?.petId || finalMedical?.pet?.id || matchedMedical?.petId || matchedMedical?.pet?.id || resolvedPetId
 
-			setMedicalRecord(matchedMedical || null)
+			setMedicalRecord(finalMedical)
 
-			if (!matchedMedical?.id) {
+			if (!finalMedical?.id) {
 				const petPayload = petIdForDetail
 					? await getClinicPetByIdApi(petIdForDetail).catch(() => null)
 					: null
+				const ownerId =
+					petPayload?.ownerId ||
+					petPayload?.owner?.id ||
+					resolvedAppointment?.ownerId ||
+					resolvedAppointment?.pet?.owner?.id
+				const ownerPayload = ownerId
+					? await getUserByIdApi(ownerId)
+						.then((response) => response?.data || null)
+						.catch(() => null)
+					: null
+
 				setPetDetail(petPayload || null)
+				setOwnerDetail(ownerPayload || null)
 				setMedicalOrders([])
 				setMedicines([])
 				return
 			}
 
 			const [ordersPayload, medicinesPayload, petPayload] = await Promise.all([
-				getMedicalOrdersByMedicalId(matchedMedical.id).catch(() => []),
-				getMedicinesByMedicalId(matchedMedical.id).catch(() => []),
+				getMedicalOrdersByMedicalId(finalMedical.id).catch(() => []),
+				getMedicinesByMedicalId(finalMedical.id).catch(() => []),
 				petIdForDetail ? getClinicPetByIdApi(petIdForDetail).catch(() => null) : null,
 			])
+			const ownerId =
+				petPayload?.ownerId ||
+				petPayload?.owner?.id ||
+				finalMedical?.customerId ||
+				finalMedical?.pet?.owner?.id ||
+				resolvedAppointment?.ownerId ||
+				resolvedAppointment?.pet?.owner?.id
+			const ownerPayload = ownerId
+				? await getUserByIdApi(ownerId)
+					.then((response) => response?.data || null)
+					.catch(() => null)
+				: null
 
 			setPetDetail(petPayload || null)
+			setOwnerDetail(ownerPayload || null)
 			setMedicalOrders(Array.isArray(ordersPayload) ? ordersPayload : [])
 			setMedicines(Array.isArray(medicinesPayload) ? medicinesPayload : [])
 		} catch (error) {
 			message.error(error?.message || 'Không thể tải dữ liệu phiếu khám')
 			setMedicalRecord(null)
 			setPetDetail(null)
+			setOwnerDetail(null)
 			setMedicalOrders([])
 			setMedicines([])
 		} finally {
@@ -240,11 +284,12 @@ export default function PetMedicalRecords() {
 		() => petDetail || medicalRecord?.pet || appointment?.pet || {},
 		[appointment?.pet, medicalRecord?.pet, petDetail],
 	)
-	const owner = useMemo(() => pet?.owner || {}, [pet])
+	const owner = useMemo(() => ownerDetail || pet?.owner || {}, [ownerDetail, pet])
 
 	const ownerName = medicalRecord?.customerName || owner?.fullName || appointment?.ownerName || FALLBACK_TEXT
 	const ownerEmail = medicalRecord?.email || owner?.email || appointment?.ownerEmail || FALLBACK_TEXT
-	const ownerPhone = medicalRecord?.phone || owner?.phone || appointment?.ownerPhone || FALLBACK_TEXT
+	const ownerPhone = medicalRecord?.phone || owner?.phone || appointment?.ownerPhone || CONTACT_FALLBACK_TEXT
+	const ownerAddress = medicalRecord?.address || owner?.address || appointment?.ownerAddress || CONTACT_FALLBACK_TEXT
 	const petName = medicalRecord?.petName || pet?.name || appointment?.petName || FALLBACK_TEXT
 	const speciesCode = medicalRecord?.species || pet?.species
 	const speciesLabel = getPetSpeciesLabel(speciesCode, FALLBACK_TEXT)
@@ -292,26 +337,22 @@ export default function PetMedicalRecords() {
 		{
 			title: 'TÊN THUỐC / HÀM LƯỢNG',
 			dataIndex: 'medicine',
-			render: (medicine) => {
-				const name = medicine?.name || FALLBACK_TEXT
-				const strength = medicine?.strength || medicine?.unit || medicine?.dosage || ''
-				return strength ? `${name} (${strength})` : name
-			},
+			render: (_, item) => resolveMedicineLabel(item),
 		},
 		{
 			title: 'LIỀU DÙNG',
 			dataIndex: 'quantity',
-			render: (value) => (value ? String(value) : FALLBACK_TEXT),
+			render: (value) => formatFieldValue(value),
 		},
 		{
 			title: 'TẦN SUẤT',
 			dataIndex: 'note',
-			render: (value) => value || FALLBACK_TEXT,
+			render: (value) => formatFieldValue(value),
 		},
 		{
 			title: 'GHI CHÚ',
 			dataIndex: 'medicine',
-			render: (medicine) => medicine?.note || FALLBACK_TEXT,
+			render: (medicine) => formatFieldValue(medicine?.note),
 		},
 	]
 
@@ -366,6 +407,7 @@ export default function PetMedicalRecords() {
 							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="TÊN KHÁCH HÀNG" value={ownerName} /></Col>
 							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="EMAIL" value={ownerEmail} /></Col>
 							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="SĐT" value={ownerPhone} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="ĐỊA CHỈ" value={ownerAddress} /></Col>
 							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="TÊN THÚ CƯNG" value={petName} /></Col>
 							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="LOÀI" value={speciesLabel} /></Col>
 							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="GIỐNG LOÀI" value={breedLabel} /></Col>
@@ -407,7 +449,7 @@ export default function PetMedicalRecords() {
 						/>
 
 						<Divider className={styles.noteDivider} />
-						<ReadonlyTextAreaField label="LỜI DẶN BÁC SĨ" value={medicalRecord?.note || 'Không có ghi chú thêm từ bác sĩ.'} rows={3} />
+						<ReadonlyTextAreaField label="LỜI DẶN BÁC SĨ" value={medicalRecord?.note || FALLBACK_TEXT} rows={3} />
 
 						<div className={styles.doctorSign}>
 							<p>

@@ -273,6 +273,13 @@ Luồng đang chạy:
 - `PetMedicalRecords` (màn xem phiếu khám phía phòng khám) đã được chuẩn hóa UI tiếng Việt có dấu, đồng bộ căn lề/spacing giữa label-input để bỏ lệch hàng.
 - Phần `Loài` và `Giống loài` trên `PetMedicalRecords` đã chuyển sang dùng helper tập trung `getPetSpeciesLabel` + `getPetBreedLabel` (không hiển thị enum thô).
 - Tên phiếu khám ở `PetMedicalRecords` ưu tiên map qua `getServiceLabel` để hiển thị nhãn dịch vụ thân thiện khi backend trả enum.
+- Đơn thuốc ở `PetMedicalRecords` đã map đơn vị thuốc enum bằng `getMedicineUnitLabel` (ví dụ `AMPOULE` -> `Ống`), không hiển thị enum thô.
+- Quy ước fallback cho nhóm màn hồ sơ y tế phía phòng khám:
+  - Mặc định dữ liệu trống hiển thị `Không`.
+  - Riêng `SĐT` và `Địa chỉ` chủ nuôi hiển thị `Chưa cập nhật được`.
+- `PetMedicalRecords` đã bổ sung hydrate dữ liệu đầy đủ theo chuỗi API: `GET /medical/pet/:petId` -> `GET /medical/:id` -> `GET /pet/:id` -> `GET /user/:id` để giảm thiếu dữ liệu ở phần chỉ số và thông tin chủ nuôi.
+- `ViewMedicalRecords` đã bổ sung gọi `GET /pet/:id` để điền đủ ngày sinh/giới tính thú cưng khi payload từ medical list thiếu trường chi tiết.
+- `ListPetMedicalRecords` đã đồng bộ nhãn loài/giống theo helper enum tập trung và áp dụng quy tắc fallback mới cho số điện thoại.
 
 ### 5) Các màn còn template/mock trong admin clinic
 - `PetMedicalBill`: dữ liệu tiền thuốc/xét nghiệm cứng; chỉ phần xác nhận thanh toán có gọi API cập nhật status appointment.

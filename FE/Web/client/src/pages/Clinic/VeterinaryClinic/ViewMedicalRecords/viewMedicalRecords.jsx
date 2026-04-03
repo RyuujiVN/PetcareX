@@ -1,35 +1,39 @@
 import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import {
-	FaCakeCandles,
-	FaCalendarCheck,
-	FaDog,
-	FaMars,
-	FaShieldDog,
-	FaSyringe
+    FaCakeCandles,
+    FaCalendarCheck,
+    FaDog,
+    FaMars,
+    FaShieldDog,
+    FaSyringe
 } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-	getMedicalById,
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
+    getMedicalById,
+    getMedicalByPetId,
+    getMedicalOrdersByMedicalId,
+    getMedicinesByMedicalId,
 } from '../../../../data/Clinic/api/medicalApi'
+import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
 import {
-	getMedicalRecordStatusLabel,
-	getPetBreedLabel,
+    getMedicalRecordStatusLabel,
+    getMedicineUnitLabel,
+    getPetBreedLabel,
+    getServiceLabel,
 } from '../../../../utils/enumLabel'
 import styles from './viewMedicalRecords.module.css'
 
 const EMPTY_TIMELINE = []
 const EMPTY_REMINDERS = []
+const FALLBACK_TEXT = 'Không'
 const DEFAULT_PET_SUMMARY = {
-	name: 'Chưa chọn thú cưng',
+	name: 'Không',
 	avatar: '',
-	breedName: 'Chưa cập nhật giống',
-	birthday: 'Chưa cập nhật',
-	gender: 'Chưa cập nhật',
+	breedName: FALLBACK_TEXT,
+	birthday: FALLBACK_TEXT,
+	gender: FALLBACK_TEXT,
 }
 
 const EMPTY_TIMELINE_HINT =
@@ -41,7 +45,7 @@ const mapPetSummaryFromPet = (pet) => {
 	return {
 		name: pet?.name || DEFAULT_PET_SUMMARY.name,
 		avatar: pet?.avatar || DEFAULT_PET_SUMMARY.avatar,
-		breedName: getPetBreedLabel(pet?.breed || pet?.breedName, pet?.species),
+		breedName: getPetBreedLabel(pet?.breed || pet?.breedName, pet?.species, FALLBACK_TEXT),
 		birthday: formatDate(pet?.dateOfBirth),
 		gender: formatGender(pet?.gender),
 	}
@@ -49,7 +53,7 @@ const mapPetSummaryFromPet = (pet) => {
 
 const formatGender = (gender) => {
 	if (typeof gender === 'boolean') return gender ? 'Đực' : 'Cái'
-	if (!gender) return 'Chưa cập nhật'
+	if (!gender) return FALLBACK_TEXT
 	const normalizedGender = String(gender).trim().toLowerCase()
 	if (normalizedGender === 'male') return 'Đực'
 	if (normalizedGender === 'female') return 'Cái'
@@ -68,10 +72,10 @@ const getReminderIcon = (type) => {
 }
 
 const formatDate = (value) => {
-	if (!value) return 'Chưa cập nhật'
+	if (!value) return FALLBACK_TEXT
 
 	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
+	if (Number.isNaN(date.getTime())) return FALLBACK_TEXT
 
 	return date.toLocaleDateString('vi-VN')
 }
@@ -89,9 +93,9 @@ const normalizeMedicalErrorMessage = (error) => {
 
 const parseConclusionSummary = (conclusionText) => {
 	const raw = String(conclusionText || '').trim()
-	if (!raw) return 'Chưa cập nhật'
+	if (!raw) return FALLBACK_TEXT
 
-	const summaryMatch = raw.match(/Ket\s*luan\s*:\s*([^\n]+)/i)
+	const summaryMatch = raw.match(/K(?:e|ế)t\s*lu(?:a|ậ)n\s*:\s*([^\n]+)/i)
 	return summaryMatch?.[1]?.trim() || raw
 }
 
@@ -100,13 +104,20 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 	const medicineSummary =
 		medicines.length > 0
 			? medicines.map((medicine, index) => {
-					const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
-					const quantity = medicine.quantity ? ` (${medicine.quantity})` : ''
+					const medicineName = medicine?.medicine?.name || FALLBACK_TEXT
+					const quantity = medicine?.quantity ? ` (${medicine.quantity})` : ''
+					const unitValue =
+						medicine?.medicine?.unit ||
+						medicine?.medicine?.medicineUnit ||
+						medicine?.medicine?.unitType ||
+						''
+					const unitLabel = unitValue ? getMedicineUnitLabel(unitValue, unitValue) : ''
 
 					return (
 						<div key={index}>
 							{medicineName}
 							{quantity}
+							{unitLabel ? ` - ${unitLabel}` : ''}
 						</div>
 					)
 			  })
@@ -123,26 +134,26 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 	return {
 		id: record?.id || `record-${Date.now()}`,
 		markerType,
-		title: record?.name || 'Phiếu khám chưa đặt tên',
+		title: getServiceLabel(record?.name, record?.name || 'Phiếu khám'),
 		status,
 		statusType,
 		leftInfo: [
-			{ label: 'Tên phòng khám', value: record?.clinic?.name || 'Chưa cập nhật' },
+			{ label: 'Tên phòng khám', value: record?.clinic?.name || FALLBACK_TEXT },
 			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
 		],
 		rightInfo: [
 			{
 				label: 'Tên bác sĩ',
-				value: record?.veterinarian?.fullName || 'Chưa cập nhật',
+				value: record?.veterinarian?.fullName || FALLBACK_TEXT,
 			},
 			{ label: 'Ngày tái khám', value: formatDate(record?.followUpDate) },
 		],
 		detailRows: [
-			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
-			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
+			{ label: 'Triệu chứng', value: record?.symptoms || FALLBACK_TEXT },
+			{ label: 'Chẩn đoán', value: record?.diagnosis || FALLBACK_TEXT },
 			{ label: 'Kết luận', value: conclusionSummary },
 			{ label: 'Thuốc', value: medicineSummary },
-			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
+			{ label: 'Ghi chú', value: record?.note || FALLBACK_TEXT },
 		],
 	}
 }
@@ -203,8 +214,14 @@ function ViewMedicalRecords() {
 							: []
 			}
 
+			const firstRecordPetId = records[0]?.pet?.id || records[0]?.petId
+			const petDetail =
+				resolvedPetId || firstRecordPetId
+					? await getClinicPetByIdApi(resolvedPetId || firstRecordPetId).catch(() => null)
+					: null
+
 			if (records.length === 0 && selectedRecord) {
-				const summaryFromState = mapPetSummaryFromPet(selectedRecord)
+				const summaryFromState = mapPetSummaryFromPet(petDetail || selectedRecord)
 				if (summaryFromState) {
 					setPetSummary(summaryFromState)
 				}
@@ -244,19 +261,22 @@ function ViewMedicalRecords() {
 
 			const firstRecord = enrichedRecords[0]?.record
 			const fallbackPet = selectedRecord || {}
+			const resolvedPet = petDetail || firstRecord?.pet || fallbackPet
 			setPetSummary({
 				name:
+					resolvedPet?.name ||
 					firstRecord?.pet?.name ||
 					firstRecord?.petName ||
 					fallbackPet?.name ||
 					DEFAULT_PET_SUMMARY.name,
-				avatar: firstRecord?.pet?.avatar || fallbackPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
+				avatar: resolvedPet?.avatar || firstRecord?.pet?.avatar || fallbackPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
 				breedName: getPetBreedLabel(
-					firstRecord?.pet?.breed || firstRecord?.pet?.breedName || fallbackPet?.breed,
-					firstRecord?.pet?.species || fallbackPet?.species,
+					resolvedPet?.breed || firstRecord?.pet?.breed || firstRecord?.pet?.breedName || fallbackPet?.breed,
+					resolvedPet?.species || firstRecord?.pet?.species || fallbackPet?.species,
+					FALLBACK_TEXT,
 				),
-				birthday: formatDate(firstRecord?.pet?.dateOfBirth || fallbackPet?.dateOfBirth),
-				gender: formatGender(firstRecord?.pet?.gender ?? fallbackPet?.gender),
+				birthday: formatDate(resolvedPet?.dateOfBirth || firstRecord?.pet?.dateOfBirth || fallbackPet?.dateOfBirth),
+				gender: formatGender(resolvedPet?.gender ?? firstRecord?.pet?.gender ?? fallbackPet?.gender),
 			})
 		} catch (error) {
 			message.error(normalizeMedicalErrorMessage(error))
