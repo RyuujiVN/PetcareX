@@ -4,6 +4,7 @@ export const DEFAULT_CLINIC_HOME_CONTENT = {
     description:
       'Vươn thương hiệu chăm sóc thú cưng số 1 Việt Nam, luôn đặt lợi ích của thú cưng và chủ nuôi lên hàng đầu.',
     ctaText: 'Đặt lịch khám ngay',
+    bannerImage: '/homePageClinic.png',
   },
   about: {
     label: 'Giới thiệu',

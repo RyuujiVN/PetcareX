@@ -65,6 +65,15 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
     return content.galleryImages.filter((item) => item?.image);
   }, [content?.galleryImages]);
   const mapEmbedUrl = normalizeMapEmbedValue(content?.locationSection?.mapEmbedUrl) || DEFAULT_MAP_EMBED_URL;
+  const heroBannerImage = String(content?.hero?.bannerImage || '').trim();
+  const heroBackgroundStyle = heroBannerImage
+    ? {
+        backgroundImage: `url('${heroBannerImage}')`,
+        backgroundPosition: 'center',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+      }
+    : undefined;
 
   const goToBookingAppointment = () => {
     navigate('/booking', {
@@ -77,7 +86,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
   return (
     <>
       <div className="home-page clinic-page">
-        <section className="hero-section clinic-hero">
+        <section className="hero-section clinic-hero" style={heroBackgroundStyle}>
           <div className="hero-content">
             <h1 className="hero-title">{content.hero.title}</h1>
             <p className="hero-description">{content.hero.description}</p>

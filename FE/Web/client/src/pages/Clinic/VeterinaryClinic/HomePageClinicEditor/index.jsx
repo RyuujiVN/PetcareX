@@ -1,4 +1,4 @@
-import { UploadOutlined } from '@ant-design/icons';
+import { CloseOutlined, UploadOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Divider, Input, Modal, Row, Space, Typography, message } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -127,6 +127,82 @@ export default function HomePageClinicEditor() {
 
   const isFieldUploading = (fieldKey) => uploadingField === fieldKey;
 
+  const appendGalleryImages = (imageUrls) => {
+    setDraftContent((prev) => {
+      const currentImages = Array.isArray(prev.galleryImages) ? prev.galleryImages : [];
+
+      const nextImages = imageUrls
+        .filter(Boolean)
+        .map((imageUrl, index) => ({
+          id: `gallery-${Date.now()}-${index}`,
+          image: imageUrl,
+          alt: `Ảnh thư viện ${currentImages.length + index + 1}`,
+        }));
+
+      return {
+        ...prev,
+        galleryImages: [...currentImages, ...nextImages],
+      };
+    });
+  };
+
+  const removeGalleryImage = (imageIndex) => {
+    setDraftContent((prev) => {
+      const currentImages = Array.isArray(prev.galleryImages) ? prev.galleryImages : [];
+
+      return {
+        ...prev,
+        galleryImages: currentImages.filter((_, index) => index !== imageIndex),
+      };
+    });
+  };
+
+  const handleGalleryImagesUpload = async (files) => {
+    const selectedFiles = Array.from(files || []);
+    if (!selectedFiles.length) {
+      return;
+    }
+
+    const imageFiles = selectedFiles.filter(isImageFile);
+    if (!imageFiles.length) {
+      message.error('Vui lòng chọn đúng file ảnh.');
+      return;
+    }
+
+    const failedFiles = [];
+    const uploadedUrls = [];
+
+    try {
+      setUploadingField('gallery-images');
+
+      for (const file of imageFiles) {
+        try {
+          const payload = await uploadOneFileToCloudinary(file);
+          const imageUrl = payload?.url || payload?.file || '';
+
+          if (!imageUrl) {
+            throw new Error('Thiếu URL ảnh sau khi upload.');
+          }
+
+          uploadedUrls.push(imageUrl);
+        } catch {
+          failedFiles.push(file.name || 'file không xác định');
+        }
+      }
+    } finally {
+      setUploadingField('');
+    }
+
+    if (uploadedUrls.length) {
+      appendGalleryImages(uploadedUrls);
+      message.success(`Đã tải lên ${uploadedUrls.length} ảnh thư viện.`);
+    }
+
+    if (failedFiles.length) {
+      message.warning(`Có ${failedFiles.length} ảnh tải lên thất bại.`);
+    }
+  };
+
   const handleSave = async () => {
     if (!targetClinicId) {
       message.error('Thiếu clinicId để lưu dữ liệu.');
@@ -188,6 +264,34 @@ export default function HomePageClinicEditor() {
               onChange={(event) => updateNestedField('hero', 'ctaText', event.target.value)}
               placeholder="Nội dung nút CTA"
             />
+
+            <Space.Compact className="editor-image-input-row">
+              <Input
+                value={draftContent.hero.bannerImage || ''}
+                onChange={(event) => updateNestedField('hero', 'bannerImage', event.target.value)}
+                placeholder="Ảnh banner đầu trang (URL hoặc đường dẫn public)"
+              />
+              <label className="ant-btn ant-btn-default editor-upload-button">
+                <UploadOutlined />
+                <span>{isFieldUploading('hero-banner') ? 'Đang tải...' : 'Tải banner'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={Boolean(uploadingField) && !isFieldUploading('hero-banner')}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    void handleImageUpload(file, 'hero-banner', (imageUrl) => {
+                      updateNestedField('hero', 'bannerImage', imageUrl);
+                    });
+                    event.target.value = '';
+                  }}
+                />
+              </label>
+            </Space.Compact>
+
+            {draftContent.hero.bannerImage ? (
+              <img src={draftContent.hero.bannerImage} alt="Banner đầu trang" className="editor-image-preview editor-banner-preview" />
+            ) : null}
           </Space>
         </Card>
 
@@ -242,86 +346,45 @@ export default function HomePageClinicEditor() {
               placeholder="Mô tả thư viện ảnh"
             />
 
-            {draftContent.galleryImages.map((item, index) => {
-              const uploadKey = `gallery-image-${index}`;
-              const lockByOtherUpload = Boolean(uploadingField) && !isFieldUploading(uploadKey);
+            <label className="ant-btn ant-btn-default editor-upload-button editor-gallery-upload-button">
+              <UploadOutlined />
+              <span>{isFieldUploading('gallery-images') ? 'Đang tải...' : 'Tải ảnh thư viện'}</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={Boolean(uploadingField) && !isFieldUploading('gallery-images')}
+                onChange={(event) => {
+                  void handleGalleryImagesUpload(event.target.files);
+                  event.target.value = '';
+                }}
+              />
+            </label>
 
-              return (
-                <Card key={item.id || index} size="small" title={`Ảnh thư viện ${index + 1}`}>
-                  <Space direction="vertical" size={8} className="editor-full-width">
-                    <Input
-                      value={item.alt || ''}
-                      onChange={(event) => updateListField('galleryImages', index, 'alt', event.target.value)}
-                      placeholder="Mô tả ảnh"
-                    />
-
-                    <Space.Compact className="editor-image-input-row">
-                      <Input
-                        value={item.image}
-                        onChange={(event) => updateListField('galleryImages', index, 'image', event.target.value)}
-                        placeholder="Ảnh thư viện (URL hoặc đường dẫn public)"
-                      />
-                      <label className="ant-btn ant-btn-default editor-upload-button">
-                        <UploadOutlined />
-                        <span>{isFieldUploading(uploadKey) ? 'Đang tải...' : 'Tải ảnh'}</span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          disabled={lockByOtherUpload}
-                          onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            void handleImageUpload(file, uploadKey, (imageUrl) => {
-                              updateListField('galleryImages', index, 'image', imageUrl);
-                            });
-                            event.target.value = '';
-                          }}
-                        />
-                      </label>
-                    </Space.Compact>
-
-                    {item.image ? (
-                      <img src={item.image} alt={item.alt || `Ảnh thư viện ${index + 1}`} className="editor-image-preview" />
-                    ) : null}
-                  </Space>
-                </Card>
-              );
-            })}
+            {Array.isArray(draftContent.galleryImages) && draftContent.galleryImages.length ? (
+              <div className="editor-gallery-preview-grid">
+                {draftContent.galleryImages
+                  .map((item, index) => ({ item, index }))
+                  .filter(({ item }) => item?.image)
+                  .map(({ item, index }) => (
+                    <div key={item.id || `${item.image}-${index}`} className="editor-gallery-preview-item">
+                      <button
+                        type="button"
+                        className="editor-remove-image-button"
+                        onClick={() => removeGalleryImage(index)}
+                        aria-label={`Xóa ảnh thư viện ${index + 1}`}
+                      >
+                        <CloseOutlined />
+                      </button>
+                      <img src={item.image} alt={item.alt || `Ảnh thư viện ${index + 1}`} className="editor-gallery-preview-image" />
+                    </div>
+                  ))}
+              </div>
+            ) : (
+              <div className="editor-gallery-empty">Chưa có ảnh thư viện. Hãy tải ảnh lên để hiển thị tại đây.</div>
+            )}
           </Space>
         </Card>
-
-        {/* <Card title="Khối tính năng">
-          <Space direction="vertical" size={12} className="editor-full-width">
-            <Input
-              value={draftContent.featuresSection.title}
-              onChange={(event) => updateNestedField('featuresSection', 'title', event.target.value)}
-              placeholder="Tiêu đề khối tính năng"
-            />
-            <TextArea
-              value={draftContent.featuresSection.subtitle}
-              onChange={(event) => updateNestedField('featuresSection', 'subtitle', event.target.value)}
-              rows={2}
-              placeholder="Mô tả khối tính năng"
-            />
-
-            {draftContent.features.map((feature, index) => (
-              <Card key={feature.id || index} size="small" title={`Tính năng ${index + 1}`}>
-                <Space direction="vertical" size={8} className="editor-full-width">
-                  <Input
-                    value={feature.title}
-                    onChange={(event) => updateListField('features', index, 'title', event.target.value)}
-                    placeholder="Tên tính năng"
-                  />
-                  <TextArea
-                    value={feature.description}
-                    onChange={(event) => updateListField('features', index, 'description', event.target.value)}
-                    rows={2}
-                    placeholder="Mô tả tính năng"
-                  />
-                </Space>
-              </Card>
-            ))}
-          </Space>
-        </Card> */}
 
         <Card title="Đội ngũ bác sĩ">
           <Space direction="vertical" size={12} className="editor-full-width">
@@ -398,141 +461,6 @@ export default function HomePageClinicEditor() {
             />
           </Space>
         </Card>
-
-        <Card title="Dịch vụ phòng khám">
-          <Space direction="vertical" size={12} className="editor-full-width">
-            <Space.Compact className="editor-image-input-row">
-              <Input
-                value={draftContent.servicesSection.centerImage}
-                onChange={(event) => updateNestedField('servicesSection', 'centerImage', event.target.value)}
-                placeholder="Ảnh trung tâm"
-              />
-              <label className="ant-btn ant-btn-default editor-upload-button">
-                <UploadOutlined />
-                <span>{isFieldUploading('services-center-image') ? 'Đang tải...' : 'Tải ảnh'}</span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  disabled={Boolean(uploadingField) && !isFieldUploading('services-center-image')}
-                  onChange={(event) => {
-                    const file = event.target.files?.[0];
-                    void handleImageUpload(file, 'services-center-image', (imageUrl) => {
-                      updateNestedField('servicesSection', 'centerImage', imageUrl);
-                    });
-                    event.target.value = '';
-                  }}
-                />
-              </label>
-            </Space.Compact>
-
-            {draftContent.servicesSection.centerImage ? (
-              <img
-                src={draftContent.servicesSection.centerImage}
-                alt="Ảnh trung tâm dịch vụ"
-                className="editor-image-preview"
-              />
-            ) : null}
-
-            <Divider orientation="left">Cột trái</Divider>
-            {draftContent.servicesLeft.map((service, index) => (
-              <Card key={service.id || index} size="small" title={`Dịch vụ trái ${index + 1}`}>
-                <Space direction="vertical" size={8} className="editor-full-width">
-                  <Input
-                    value={service.title}
-                    onChange={(event) => updateListField('servicesLeft', index, 'title', event.target.value)}
-                    placeholder="Tên dịch vụ"
-                  />
-                  <TextArea
-                    value={service.description}
-                    onChange={(event) => updateListField('servicesLeft', index, 'description', event.target.value)}
-                    rows={3}
-                    placeholder="Mô tả dịch vụ"
-                  />
-                </Space>
-              </Card>
-            ))}
-
-            <Divider orientation="left">Cột phải</Divider>
-            {draftContent.servicesRight.map((service, index) => (
-              <Card key={service.id || index} size="small" title={`Dịch vụ phải ${index + 1}`}>
-                <Space direction="vertical" size={8} className="editor-full-width">
-                  <Input
-                    value={service.title}
-                    onChange={(event) => updateListField('servicesRight', index, 'title', event.target.value)}
-                    placeholder="Tên dịch vụ"
-                  />
-                  <TextArea
-                    value={service.description}
-                    onChange={(event) => updateListField('servicesRight', index, 'description', event.target.value)}
-                    rows={3}
-                    placeholder="Mô tả dịch vụ"
-                  />
-                </Space>
-              </Card>
-            ))}
-          </Space>
-        </Card>
-
-        {/* <Card title="Diễn đàn cộng đồng">
-          <Space direction="vertical" size={12} className="editor-full-width">
-            <Input
-              value={draftContent.community.subtitle}
-              onChange={(event) => updateNestedField('community', 'subtitle', event.target.value)}
-              placeholder="Nhãn phụ"
-            />
-            <Input
-              value={draftContent.community.title}
-              onChange={(event) => updateNestedField('community', 'title', event.target.value)}
-              placeholder="Tiêu đề diễn đàn"
-            />
-            <Input
-              value={draftContent.community.doctorsHeading}
-              onChange={(event) => updateNestedField('community', 'doctorsHeading', event.target.value)}
-              placeholder="Tiêu đề bác sĩ nổi bật"
-            />
-
-            <Divider orientation="left">Bài viết nổi bật</Divider>
-            {draftContent.posts.map((post, index) => (
-              <Card key={post.id || index} size="small" title={`Bài viết ${index + 1}`}>
-                <Space direction="vertical" size={8} className="editor-full-width">
-                  <Input
-                    value={post.title}
-                    onChange={(event) => updateListField('posts', index, 'title', event.target.value)}
-                    placeholder="Tiêu đề bài viết"
-                  />
-                  <Input
-                    value={post.image}
-                    onChange={(event) => updateListField('posts', index, 'image', event.target.value)}
-                    placeholder="Ảnh bài viết"
-                  />
-                </Space>
-              </Card>
-            ))}
-
-            <Divider orientation="left">Bác sĩ cộng đồng</Divider>
-            {draftContent.avatars.map((avatar, index) => (
-              <Card key={avatar.id || index} size="small" title={`Bác sĩ cộng đồng ${index + 1}`}>
-                <Space direction="vertical" size={8} className="editor-full-width">
-                  <Input
-                    value={avatar.name}
-                    onChange={(event) => updateListField('avatars', index, 'name', event.target.value)}
-                    placeholder="Tên hiển thị"
-                  />
-                  <Input
-                    value={avatar.subtitle || ''}
-                    onChange={(event) => updateListField('avatars', index, 'subtitle', event.target.value)}
-                    placeholder="Chuyên môn (tùy chọn)"
-                  />
-                  <Input
-                    value={avatar.image}
-                    onChange={(event) => updateListField('avatars', index, 'image', event.target.value)}
-                    placeholder="Ảnh đại diện"
-                  />
-                </Space>
-              </Card>
-            ))}
-          </Space>
-        </Card> */}
       </Space>
 
       <div className="clinic-home-editor-actions">
