@@ -38,7 +38,8 @@ import {
 	getMedicinesByMedicalId,
 } from '../../../../data/Clinic/api/medicalApi'
 import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
-import { getUserByIdApi } from '../../../../data/Clinic/api/user'
+import { getUserByIdApi, getUserProfileApi } from '../../../../data/Clinic/api/user'
+import { getClinicInfoContent } from '../../../../data/client/utils/clinicInfoStorage'
 import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './petMedicalRecords.module.css'
 
@@ -127,6 +128,68 @@ const buildInvoiceCode = (medicalRecordId) => {
 	return `HD-${String(medicalRecordId).slice(0, 6).toUpperCase()}`
 }
 
+const escapeHtml = (value) =>
+	String(value ?? '')
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#039;')
+
+const buildPrintRowsMarkup = (rows = []) => {
+	if (!Array.isArray(rows) || rows.length === 0) {
+		return '<tr><td colspan="2" class="empty-row">Không có dữ liệu</td></tr>'
+	}
+
+	return rows
+		.map(
+			(row) =>
+				`<tr><td>${escapeHtml(row?.name || FALLBACK_TEXT)}</td><td class="price">${escapeHtml(row?.amount || '0 VND')}</td></tr>`,
+		)
+		.join('')
+}
+
+const printViaHiddenIframe = (html) => {
+	const iframe = document.createElement('iframe')
+	iframe.style.position = 'fixed'
+	iframe.style.right = '0'
+	iframe.style.bottom = '0'
+	iframe.style.width = '0'
+	iframe.style.height = '0'
+	iframe.style.border = '0'
+	iframe.setAttribute('aria-hidden', 'true')
+
+	document.body.appendChild(iframe)
+
+	const cleanup = () => {
+		if (iframe.parentNode) {
+			iframe.parentNode.removeChild(iframe)
+		}
+	}
+
+	const frameWindow = iframe.contentWindow
+	if (!frameWindow) {
+		cleanup()
+		return false
+	}
+
+	const frameDocument = frameWindow.document
+	frameDocument.open()
+	frameDocument.write(html)
+	frameDocument.close()
+
+	setTimeout(() => {
+		try {
+			frameWindow.focus()
+			frameWindow.print()
+		} finally {
+			setTimeout(cleanup, 1000)
+		}
+	}, 80)
+
+	return true
+}
+
 const selectMedicalRecordByAppointment = (records, appointment) => {
 	if (!Array.isArray(records) || records.length === 0) return null
 
@@ -204,6 +267,7 @@ export default function PetMedicalRecords() {
 	const [medicalRecord, setMedicalRecord] = useState(null)
 	const [petDetail, setPetDetail] = useState(null)
 	const [ownerDetail, setOwnerDetail] = useState(null)
+	const [clinicProfile, setClinicProfile] = useState(null)
 	const [medicalOrders, setMedicalOrders] = useState([])
 	const [medicines, setMedicines] = useState([])
 	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
@@ -219,6 +283,9 @@ export default function PetMedicalRecords() {
 			if (!resolvedAppointment || String(resolvedAppointment?.id) !== String(appointmentId)) {
 				resolvedAppointment = await getClinicAppointmentByIdApi(appointmentId)
 			}
+
+			const profilePayload = await getUserProfileApi().catch(() => null)
+			setClinicProfile(profilePayload?.data || profilePayload || null)
 
 			setAppointment(resolvedAppointment || null)
 
@@ -336,6 +403,18 @@ export default function PetMedicalRecords() {
 			: FALLBACK_TEXT
 	const conclusionSummary = parseConclusionSummary(medicalRecord?.conclusion)
 
+	const clinicPresentation = useMemo(() => {
+		const clinicId = appointment?.clinic?.id || appointment?.clinicId
+		const clinicInfo = getClinicInfoContent(clinicId, appointment?.clinic || null)
+
+		return {
+			name: clinicInfo?.name || appointment?.clinic?.name || 'Phòng khám thú y',
+			address: clinicInfo?.address || clinicProfile?.address || CONTACT_FALLBACK_TEXT,
+			phone: clinicInfo?.phone || clinicProfile?.phone || CONTACT_FALLBACK_TEXT,
+			openHours: clinicInfo?.timeDisplay || 'Chưa cập nhật được',
+		}
+	}, [appointment?.clinic, appointment?.clinicId, clinicProfile?.address, clinicProfile?.phone])
+
 	const orderColumns = [
 		{
 			title: 'STT',
@@ -419,7 +498,133 @@ export default function PetMedicalRecords() {
 	}, [medicalOrders, medicalRecord?.id, medicines])
 
 	const handlePrintInvoice = () => {
-		window.print()
+		if (!medicalRecord?.id) {
+			message.warning('Chưa có phiếu khám để in hóa đơn')
+			return
+		}
+
+		const invoiceCode = billData.code
+		const examCode = buildExamCode(medicalRecord?.id)
+		const examDate = formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)
+		const examTime = formatFieldValue(appointment?.appointmentTime || '', 'Không')
+
+		const medicineRows = buildPrintRowsMarkup(billData.medicineItems)
+		const testRows = buildPrintRowsMarkup(billData.testItems)
+
+		const html = `<!DOCTYPE html>
+<html lang="vi">
+<head>
+	<meta charset="UTF-8" />
+	<title>Hóa đơn ${escapeHtml(invoiceCode)}</title>
+	<style>
+		@page { size: A4; margin: 14mm; }
+		* { box-sizing: border-box; }
+		body { margin: 0; font-family: "Segoe UI", "Be Vietnam Pro", sans-serif; color: #1f2d44; background: #f3f6fb; }
+		.sheet { width: 100%; background: #fff; border: 1px solid #d8e1ee; border-radius: 14px; overflow: hidden; }
+		.header { padding: 20px 24px; background: linear-gradient(120deg, #eef4ff 0%, #f9fbff 42%, #fff 100%); border-bottom: 1px solid #dce6f3; display: flex; justify-content: space-between; gap: 16px; }
+		.brand h1 { margin: 0; font-size: 20px; color: #1b3e75; }
+		.brand p { margin: 6px 0 0; font-size: 13px; color: #5b7598; line-height: 1.45; }
+		.meta { text-align: right; }
+		.meta h2 { margin: 0; font-size: 22px; color: #234b86; letter-spacing: 0.5px; }
+		.meta p { margin: 6px 0 0; font-size: 13px; color: #637c9f; }
+		.body { padding: 20px 24px 24px; }
+		.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+		.box { border: 1px solid #dfe7f2; border-radius: 12px; padding: 12px 14px; }
+		.box h3 { margin: 0 0 8px; font-size: 13px; color: #5b7496; text-transform: uppercase; letter-spacing: 0.35px; }
+		.row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; margin-top: 4px; }
+		.label { color: #5e779a; font-weight: 600; }
+		.value { color: #1f2e46; font-weight: 700; text-align: right; }
+		.section { margin-top: 16px; }
+		.sectionTitle { margin: 0 0 8px; font-size: 14px; font-weight: 800; color: #2a4e84; }
+		table { width: 100%; border-collapse: collapse; border: 1px solid #e0e7f2; border-radius: 10px; overflow: hidden; }
+		th { text-align: left; font-size: 12px; letter-spacing: 0.25px; background: #f3f7fd; color: #4e698d; padding: 10px 12px; }
+		td { padding: 10px 12px; font-size: 13px; border-top: 1px solid #edf1f7; }
+		.price { text-align: right; font-weight: 700; color: #1f3557; white-space: nowrap; }
+		.empty-row { text-align: center; color: #6f84a4; font-style: italic; }
+		.summary { margin-top: 14px; margin-left: auto; width: min(320px, 100%); border: 1px solid #dbe5f2; border-radius: 10px; padding: 10px 12px; background: #f9fbff; }
+		.summary .line { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; margin: 4px 0; }
+		.summary .total { padding-top: 8px; border-top: 1px dashed #c8d7ea; margin-top: 6px; font-size: 16px; font-weight: 800; color: #1e3f73; }
+		.footer { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+		.note { border: 1px solid #dfe7f2; border-radius: 10px; padding: 10px 12px; min-height: 78px; font-size: 13px; line-height: 1.45; color: #2a3d5d; }
+		.sign { text-align: right; font-size: 13px; color: #37557f; }
+		.sign strong { display: block; margin-top: 36px; font-size: 15px; color: #1e375d; }
+		@media print {
+			body { background: #fff; }
+			.sheet { border: none; border-radius: 0; }
+		}
+	</style>
+</head>
+<body>
+	<article class="sheet">
+		<header class="header">
+			<div class="brand">
+				<h1>${escapeHtml(clinicPresentation.name)}</h1>
+				<p>${escapeHtml(clinicPresentation.address)}<br/>SĐT: ${escapeHtml(clinicPresentation.phone)}<br/>Giờ mở cửa: ${escapeHtml(clinicPresentation.openHours)}</p>
+			</div>
+			<div class="meta">
+				<h2>HÓA ĐƠN KHÁM BỆNH</h2>
+				<p>Mã hóa đơn: ${escapeHtml(invoiceCode)}</p>
+				<p>Mã hồ sơ: ${escapeHtml(examCode)}</p>
+				<p>Ngày khám: ${escapeHtml(examDate)} ${escapeHtml(examTime !== 'Không' ? `- ${examTime}` : '')}</p>
+			</div>
+		</header>
+		<section class="body">
+			<div class="grid">
+				<div class="box">
+					<h3>Khách hàng</h3>
+					<div class="row"><span class="label">Tên</span><span class="value">${escapeHtml(ownerName)}</span></div>
+					<div class="row"><span class="label">SĐT</span><span class="value">${escapeHtml(ownerPhone)}</span></div>
+					<div class="row"><span class="label">Địa chỉ</span><span class="value">${escapeHtml(ownerAddress)}</span></div>
+				</div>
+				<div class="box">
+					<h3>Thú cưng</h3>
+					<div class="row"><span class="label">Tên</span><span class="value">${escapeHtml(petName)}</span></div>
+					<div class="row"><span class="label">Loài / Giống</span><span class="value">${escapeHtml(`${speciesLabel} / ${breedLabel}`)}</span></div>
+					<div class="row"><span class="label">Cân nặng</span><span class="value">${escapeHtml(weightText)} kg</span></div>
+				</div>
+			</div>
+
+			<div class="section">
+				<h3 class="sectionTitle">Thuốc đã kê</h3>
+				<table>
+					<thead><tr><th>Nội dung</th><th class="price">Thành tiền</th></tr></thead>
+					<tbody>${medicineRows}</tbody>
+				</table>
+			</div>
+
+			<div class="section">
+				<h3 class="sectionTitle">Xét nghiệm & chỉ định</h3>
+				<table>
+					<thead><tr><th>Nội dung</th><th class="price">Thành tiền</th></tr></thead>
+					<tbody>${testRows}</tbody>
+				</table>
+			</div>
+
+			<div class="summary">
+				<div class="line"><span>Tạm tính</span><strong>${escapeHtml(billData.provisionalTotal)}</strong></div>
+				<div class="line total"><span>Tổng cộng</span><strong>${escapeHtml(billData.grandTotal)}</strong></div>
+			</div>
+
+			<div class="footer">
+				<div class="note">
+					<strong>Lời dặn bác sĩ:</strong><br/>
+					${escapeHtml(formatFieldValue(medicalRecord?.note))}
+				</div>
+				<div class="sign">
+					Ngày in: ${escapeHtml(formatDateLabel(new Date().toISOString()))}<br/>
+					Bác sĩ điều trị
+					<strong>${escapeHtml(medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || FALLBACK_TEXT)}</strong>
+				</div>
+			</div>
+		</section>
+	</article>
+</body>
+</html>`
+
+		const printed = printViaHiddenIframe(html)
+		if (!printed) {
+			message.error('Không thể khởi tạo chế độ in. Vui lòng thử lại.')
+		}
 	}
 
 	const openPaymentModal = () => {
@@ -602,6 +807,11 @@ export default function PetMedicalRecords() {
 							</h3>
 
 							<p className={styles.billCode}>MÃ HÓA ĐƠN: {billData.code}</p>
+							<div className={styles.modalClinicMeta}>
+								<span>{clinicPresentation.name}</span>
+								<span>Khách hàng: {ownerName}</span>
+								<span>Thú cưng: {petName}</span>
+							</div>
 
 							<div className={styles.modalSectionTitle}>THUỐC ĐÃ KÊ ĐƠN</div>
 							<div className={styles.modalList}>

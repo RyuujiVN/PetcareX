@@ -282,6 +282,10 @@ Luồng đang chạy:
 - `ListPetMedicalRecords` đã đồng bộ nhãn loài/giống theo helper enum tập trung và áp dụng quy tắc fallback mới cho số điện thoại.
 - Luồng hóa đơn phía phòng khám đã đổi: thao tác `In hóa đơn` và `Thanh toán` thực hiện trực tiếp tại `PetMedicalRecords` (không còn điều hướng qua màn `PetMedicalBill`).
 - Màn thanh toán trong `PetMedicalRecords` dùng modal tóm tắt chi phí thuốc + chỉ định xét nghiệm, sau đó gọi `upsertPaidInvoiceByMedicalApi` và phát `APPOINTMENT_PAYMENT_SYNC_EVENT_KEY` để đồng bộ trạng thái lịch hẹn.
+- Nút `In hóa đơn` ở `PetMedicalRecords` đã dùng template in A4 riêng (mở cửa sổ in chuyên biệt), không in toàn bộ màn hình hiện tại.
+- Template in hóa đơn gồm: thông tin phòng khám, thông tin khách hàng/thú cưng, bảng thuốc, bảng chỉ định, tạm tính/tổng cộng, lời dặn bác sĩ, chữ ký bác sĩ.
+- Nguồn dữ liệu phòng khám cho template in ưu tiên theo thứ tự: `clinicInfoStorage` (đã chỉnh ở ClinicSelectionEditor) -> dữ liệu `appointment.clinic` -> `GET /user/profile` (fallback phone/address).
+- Để tránh popup `about:blank` bị chặn, luồng in hiện tại ưu tiên in qua iframe ẩn trong cùng tab (không mở tab/cửa sổ mới).
 
 ### 5) Các màn còn template/mock trong admin clinic
 - Luồng `PetMedicalBill` đã được loại bỏ khỏi route để giảm thao tác lặp; nghiệp vụ thanh toán/in hóa đơn được dồn về `PetMedicalRecords`.
