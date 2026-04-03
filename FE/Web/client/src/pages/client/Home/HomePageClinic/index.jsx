@@ -1,6 +1,5 @@
 import { Modal } from 'antd';
 import { useMemo, useState } from 'react';
-import { FaHeartbeat, FaMobileAlt, FaRobot, FaStethoscope } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getClinicHomeContent, resolveSelectedClinicId } from '../../../../data/client/utils/clinicHomeStorage';
 import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
@@ -9,12 +8,22 @@ import './HomePageClinic.css';
 
 const INTRO_PREVIEW_WORDS = 100;
 
-const FEATURE_ICONS = [
-  <FaMobileAlt className="feature-icon" />,
-  <FaRobot className="feature-icon" />,
-  <FaStethoscope className="feature-icon" />,
-  <FaHeartbeat className="feature-icon" />,
-];
+const DEFAULT_MAP_EMBED_URL =
+  'https://www.google.com/maps?q=B%E1%BB%87nh%20vi%E1%BB%87n%20th%C3%BA%20y%20Procare&output=embed';
+
+const normalizeMapEmbedValue = (rawValue) => {
+  const normalizedRaw = String(rawValue || '').trim();
+  if (!normalizedRaw) {
+    return '';
+  }
+
+  const iframeSrcMatch = normalizedRaw.match(/src=(['"])(.*?)\1/i);
+  if (iframeSrcMatch?.[2]) {
+    return iframeSrcMatch[2].trim();
+  }
+
+  return normalizedRaw;
+};
 
 const getPreviewText = (text, wordLimit = INTRO_PREVIEW_WORDS) => {
   const source = String(text || '').trim();
@@ -48,6 +57,14 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
   }, [forcedContent, selectedClinicId]);
 
   const aboutPreview = useMemo(() => getPreviewText(content?.about?.description, INTRO_PREVIEW_WORDS), [content?.about?.description]);
+  const galleryImages = useMemo(() => {
+    if (!Array.isArray(content?.galleryImages)) {
+      return [];
+    }
+
+    return content.galleryImages.filter((item) => item?.image);
+  }, [content?.galleryImages]);
+  const mapEmbedUrl = normalizeMapEmbedValue(content?.locationSection?.mapEmbedUrl) || DEFAULT_MAP_EMBED_URL;
 
   const goToBookingAppointment = () => {
     navigate('/booking', {
@@ -96,7 +113,22 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
           </div>
         </section>
 
-        <section className="clinic-features">
+        <section className="clinic-gallery-section">
+          <div className="section-container">
+            <h2 className="section-title">{content.gallerySection.title}</h2>
+            <p className="section-subtitle">{content.gallerySection.subtitle}</p>
+
+            <div className="clinic-gallery-grid">
+              {galleryImages.map((galleryItem, index) => (
+                <div key={galleryItem.id || index} className="clinic-gallery-item">
+                  <img src={galleryItem.image} alt={galleryItem.alt || `Hình ảnh phòng khám ${index + 1}`} loading="lazy" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* <section className="clinic-features">
           <div className="section-container">
             <h2 className="section-title">{content.featuresSection.title}</h2>
             <p className="section-subtitle">{content.featuresSection.subtitle}</p>
@@ -114,7 +146,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
               ))}
             </div>
           </div>
-        </section>
+        </section> */}
 
         <section className="team-section">
           <div className="section-container">
@@ -130,7 +162,25 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
           </div>
         </section>
 
-        <section className="services-section">
+        <section className="clinic-location-section">
+          <div className="section-container clinic-location-header">
+            <h2 className="section-title">{content.locationSection.title}</h2>
+            <p className="section-subtitle">{content.locationSection.subtitle}</p>
+            <p className="clinic-address-text">{content.locationSection.address}</p>
+          </div>
+
+          <div className="clinic-map-wrapper">
+            <iframe
+              title="Google Maps địa chỉ phòng khám"
+              src={mapEmbedUrl}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+              allowFullScreen
+            />
+          </div>
+        </section>
+
+        {/* <section className="services-section">
           <div className="section-container services-layout">
             <div className="services-column left">
               {content.servicesLeft.map((service, index) => (
@@ -154,8 +204,8 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
               ))}
             </div>
           </div>
-        </section>
-
+        </section> */}
+{/* 
         <section className="community-section">
           <div className="section-container">
             <div className="community-header">
@@ -183,7 +233,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
               </div>
             </div>
           </div>
-        </section>
+        </section> */}
       </div>
 
       <Modal

@@ -22,6 +22,35 @@
   padding-bottom: 32px;
 }
 
+.editor-image-input-row {
+  width: 100%;
+}
+
+.editor-upload-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.editor-upload-button input[type='file'] {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.editor-image-preview {
+  width: 180px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-soft);
+}
+
 @media (max-width: 768px) {
   .clinic-home-editor-page {
     padding: 14px;
@@ -30,5 +59,11 @@
   .clinic-home-editor-actions {
     flex-direction: column-reverse;
     align-items: stretch;
+  }
+
+  .editor-image-preview {
+    width: 100%;
+    height: auto;
+    max-height: 220px;
   }
 }

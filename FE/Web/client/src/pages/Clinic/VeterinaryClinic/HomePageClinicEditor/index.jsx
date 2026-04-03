@@ -1,17 +1,32 @@
+import { UploadOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Divider, Input, Modal, Row, Space, Typography, message } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../../hooks/Clinic/AuthContext';
 import HomePageClinic from '../../../client/Home/HomePageClinic';
+import { uploadOneFileToCloudinary } from '../../../../data/shared/api/cloudinaryUploadFetch';
 import { getClinicHomeContent, saveClinicHomeContent } from '../../../../data/client/utils/clinicHomeStorage';
 import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';
 import './styles.css';
 
 const { TextArea } = Input;
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
 const cloneContent = (content) => buildClinicHomeContent(JSON.parse(JSON.stringify(content)));
+const normalizeMapEmbedValue = (rawValue) => {
+  const normalizedRaw = String(rawValue || '').trim();
+  if (!normalizedRaw) {
+    return '';
+  }
+
+  const iframeSrcMatch = normalizedRaw.match(/src=(['"])(.*?)\1/i);
+  if (iframeSrcMatch?.[2]) {
+    return iframeSrcMatch[2].trim();
+  }
+
+  return normalizedRaw;
+};
 
 export default function HomePageClinicEditor() {
   const { clinicId: clinicIdParam = '' } = useParams();
@@ -20,6 +35,7 @@ export default function HomePageClinicEditor() {
   const [draftContent, setDraftContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [savedContent, setSavedContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [saving, setSaving] = useState(false);
+  const [uploadingField, setUploadingField] = useState('');
   const deniedRef = useRef(false);
 
   const currentClinicId = useMemo(() => getCurrentAdminClinicId(userProfile), [userProfile]);
@@ -76,6 +92,40 @@ export default function HomePageClinicEditor() {
       };
     });
   };
+
+  const isImageFile = (file) => String(file?.type || '').startsWith('image/');
+
+  const handleImageUpload = async (file, uploadKey, onSuccess) => {
+    if (!file) {
+      return false;
+    }
+
+    if (!isImageFile(file)) {
+      message.error('Vui lòng chọn đúng file ảnh.');
+      return false;
+    }
+
+    try {
+      setUploadingField(uploadKey);
+      const payload = await uploadOneFileToCloudinary(file);
+      const imageUrl = payload?.url || payload?.file || '';
+
+      if (!imageUrl) {
+        throw new Error('Không nhận được URL ảnh sau khi upload.');
+      }
+
+      onSuccess(imageUrl);
+      message.success('Tải ảnh lên thành công.');
+    } catch (error) {
+      message.error(error?.message || 'Tải ảnh thất bại.');
+    } finally {
+      setUploadingField('');
+    }
+
+    return false;
+  };
+
+  const isFieldUploading = (fieldKey) => uploadingField === fieldKey;
 
   const handleSave = async () => {
     if (!targetClinicId) {
@@ -178,6 +228,67 @@ export default function HomePageClinicEditor() {
           </Space>
         </Card>
 
+        <Card title="Thư viện ảnh">
+          <Space direction="vertical" size={12} className="editor-full-width">
+            <Input
+              value={draftContent.gallerySection.title}
+              onChange={(event) => updateNestedField('gallerySection', 'title', event.target.value)}
+              placeholder="Tiêu đề thư viện ảnh"
+            />
+            <TextArea
+              value={draftContent.gallerySection.subtitle}
+              onChange={(event) => updateNestedField('gallerySection', 'subtitle', event.target.value)}
+              rows={2}
+              placeholder="Mô tả thư viện ảnh"
+            />
+
+            {draftContent.galleryImages.map((item, index) => {
+              const uploadKey = `gallery-image-${index}`;
+              const lockByOtherUpload = Boolean(uploadingField) && !isFieldUploading(uploadKey);
+
+              return (
+                <Card key={item.id || index} size="small" title={`Ảnh thư viện ${index + 1}`}>
+                  <Space direction="vertical" size={8} className="editor-full-width">
+                    <Input
+                      value={item.alt || ''}
+                      onChange={(event) => updateListField('galleryImages', index, 'alt', event.target.value)}
+                      placeholder="Mô tả ảnh"
+                    />
+
+                    <Space.Compact className="editor-image-input-row">
+                      <Input
+                        value={item.image}
+                        onChange={(event) => updateListField('galleryImages', index, 'image', event.target.value)}
+                        placeholder="Ảnh thư viện (URL hoặc đường dẫn public)"
+                      />
+                      <label className="ant-btn ant-btn-default editor-upload-button">
+                        <UploadOutlined />
+                        <span>{isFieldUploading(uploadKey) ? 'Đang tải...' : 'Tải ảnh'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          disabled={lockByOtherUpload}
+                          onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            void handleImageUpload(file, uploadKey, (imageUrl) => {
+                              updateListField('galleryImages', index, 'image', imageUrl);
+                            });
+                            event.target.value = '';
+                          }}
+                        />
+                      </label>
+                    </Space.Compact>
+
+                    {item.image ? (
+                      <img src={item.image} alt={item.alt || `Ảnh thư viện ${index + 1}`} className="editor-image-preview" />
+                    ) : null}
+                  </Space>
+                </Card>
+              );
+            })}
+          </Space>
+        </Card>
+
         {/* <Card title="Khối tính năng">
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
@@ -227,24 +338,100 @@ export default function HomePageClinicEditor() {
                     onChange={(event) => updateListField('doctors', index, 'name', event.target.value)}
                     placeholder="Tên bác sĩ"
                   />
-                  <Input
-                    value={doctor.image}
-                    onChange={(event) => updateListField('doctors', index, 'image', event.target.value)}
-                    placeholder="Ảnh bác sĩ (URL hoặc đường dẫn public)"
-                  />
+                  <Space.Compact className="editor-image-input-row">
+                    <Input
+                      value={doctor.image}
+                      onChange={(event) => updateListField('doctors', index, 'image', event.target.value)}
+                      placeholder="Ảnh bác sĩ (URL hoặc đường dẫn public)"
+                    />
+                    <label className="ant-btn ant-btn-default editor-upload-button">
+                      <UploadOutlined />
+                      <span>{isFieldUploading(`doctor-image-${index}`) ? 'Đang tải...' : 'Tải ảnh'}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)}
+                        onChange={(event) => {
+                          const file = event.target.files?.[0];
+                          void handleImageUpload(file, `doctor-image-${index}`, (imageUrl) => {
+                            updateListField('doctors', index, 'image', imageUrl);
+                          });
+                          event.target.value = '';
+                        }}
+                      />
+                    </label>
+                  </Space.Compact>
+
+                  {doctor.image ? (
+                    <img src={doctor.image} alt={doctor.name || `Bác sĩ ${index + 1}`} className="editor-image-preview" />
+                  ) : null}
                 </Space>
               </Card>
             ))}
           </Space>
         </Card>
 
-        <Card title="Dịch vụ phòng khám">
+        <Card title="Địa chỉ phòng khám (Google Maps)">
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
-              value={draftContent.servicesSection.centerImage}
-              onChange={(event) => updateNestedField('servicesSection', 'centerImage', event.target.value)}
-              placeholder="Ảnh trung tâm"
+              value={draftContent.locationSection.title}
+              onChange={(event) => updateNestedField('locationSection', 'title', event.target.value)}
+              placeholder="Tiêu đề phần địa chỉ"
             />
+            <TextArea
+              value={draftContent.locationSection.subtitle}
+              onChange={(event) => updateNestedField('locationSection', 'subtitle', event.target.value)}
+              rows={2}
+              placeholder="Mô tả ngắn"
+            />
+            <Input
+              value={draftContent.locationSection.address}
+              onChange={(event) => updateNestedField('locationSection', 'address', event.target.value)}
+              placeholder="Địa chỉ hiển thị"
+            />
+            <Input
+              value={draftContent.locationSection.mapEmbedUrl}
+              onChange={(event) =>
+                updateNestedField('locationSection', 'mapEmbedUrl', normalizeMapEmbedValue(event.target.value))
+              }
+              placeholder="Dán link nhúng Google Maps hoặc cả đoạn iframe"
+            />
+          </Space>
+        </Card>
+
+        <Card title="Dịch vụ phòng khám">
+          <Space direction="vertical" size={12} className="editor-full-width">
+            <Space.Compact className="editor-image-input-row">
+              <Input
+                value={draftContent.servicesSection.centerImage}
+                onChange={(event) => updateNestedField('servicesSection', 'centerImage', event.target.value)}
+                placeholder="Ảnh trung tâm"
+              />
+              <label className="ant-btn ant-btn-default editor-upload-button">
+                <UploadOutlined />
+                <span>{isFieldUploading('services-center-image') ? 'Đang tải...' : 'Tải ảnh'}</span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={Boolean(uploadingField) && !isFieldUploading('services-center-image')}
+                  onChange={(event) => {
+                    const file = event.target.files?.[0];
+                    void handleImageUpload(file, 'services-center-image', (imageUrl) => {
+                      updateNestedField('servicesSection', 'centerImage', imageUrl);
+                    });
+                    event.target.value = '';
+                  }}
+                />
+              </label>
+            </Space.Compact>
+
+            {draftContent.servicesSection.centerImage ? (
+              <img
+                src={draftContent.servicesSection.centerImage}
+                alt="Ảnh trung tâm dịch vụ"
+                className="editor-image-preview"
+              />
+            ) : null}
 
             <Divider orientation="left">Cột trái</Divider>
             {draftContent.servicesLeft.map((service, index) => (

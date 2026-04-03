@@ -13,6 +13,64 @@ export const DEFAULT_CLINIC_HOME_CONTENT = {
     highlightNumber: '20 NAM',
     highlightLabel: '5 CHI NHANH',
   },
+  gallerySection: {
+    title: 'THƯ VIỆN ẢNH',
+    subtitle: 'Hoạt động thường nhật của phòng khám.',
+  },
+  galleryImages: [
+    {
+      id: 1,
+      image: '/homePageClinic.png',
+      alt: 'Hoạt động phòng khám',
+    },
+    {
+      id: 2,
+      image: '/pageMainClinic.png',
+      alt: 'Đội ngũ tại phòng khám',
+    },
+    {
+      id: 3,
+      image: '/forum1.png',
+      alt: 'Sự kiện cộng đồng',
+    },
+    {
+      id: 4,
+      image: '/forum2.png',
+      alt: 'Hình ảnh thường ngày',
+    },
+    {
+      id: 5,
+      image: '/forum3.png',
+      alt: 'Hoạt động nội bộ',
+    },
+    {
+      id: 6,
+      image: '/bs1.png',
+      alt: 'Bác sĩ tại phòng khám',
+    },
+    {
+      id: 7,
+      image: '/bs2.png',
+      alt: 'Khoảnh khắc làm việc',
+    },
+    {
+      id: 8,
+      image: '/bs3.png',
+      alt: 'Đội ngũ chuyên môn',
+    },
+    {
+      id: 9,
+      image: '/bs4.png',
+      alt: 'Sinh hoạt phòng khám',
+    },
+  ],
+  locationSection: {
+    title: 'ĐỊA CHỈ PHÒNG KHÁM',
+    subtitle: 'Tìm đường đến phòng khám nhanh chóng qua Google Maps.',
+    address: '240 Phan Đăng Lưu, Phường 1, Quận Phú Nhuận, TP. Hồ Chí Minh',
+    mapEmbedUrl: 'https://www.google.com/maps?q=B%E1%BB%87nh%20vi%E1%BB%87n%20th%C3%BA%20y%20Procare&output=embed',
+    mapLink: 'https://www.google.com/maps/search/?api=1&query=B%E1%BB%87nh%20vi%E1%BB%87n%20th%C3%BA%20y%20Procare',
+  },
   featuresSection: {
     title: 'Mọi thứ mà người bạn nhỏ của bạn cần',
     subtitle: 'Bộ công cụ toàn diện để quản lý sức khỏe và hạnh phúc cho thú cưng của bạn.',
@@ -193,9 +251,17 @@ export const buildClinicHomeContent = (incoming = {}) => {
       ...base.featuresSection,
       ...incoming.featuresSection,
     },
+    gallerySection: {
+      ...base.gallerySection,
+      ...incoming.gallerySection,
+    },
     teamSection: {
       ...base.teamSection,
       ...incoming.teamSection,
+    },
+    locationSection: {
+      ...base.locationSection,
+      ...incoming.locationSection,
     },
     servicesSection: {
       ...base.servicesSection,
@@ -206,6 +272,7 @@ export const buildClinicHomeContent = (incoming = {}) => {
       ...incoming.community,
     },
     features: normalizeArray(incoming.features, base.features),
+    galleryImages: normalizeArray(incoming.galleryImages, base.galleryImages),
     doctors: normalizeArray(incoming.doctors, base.doctors),
     servicesLeft: normalizeArray(incoming.servicesLeft, base.servicesLeft),
     servicesRight: normalizeArray(incoming.servicesRight, base.servicesRight),
