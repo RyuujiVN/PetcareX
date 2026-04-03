@@ -5,6 +5,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { ADMIN_AUTH_STORAGE } from '../../constants/authStorage'
+import { CiHospital1 } from "react-icons/ci";
 import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import { getCurrentAdminClinicId } from '../../utils/clinicIdentity'
@@ -52,7 +53,6 @@ const handoffAdminAuthToNewTab = () => {
       }
     })
   } catch {
-    // Ignore storage access failures and let existing auth flow handle fallback.
   }
 }
 
@@ -74,7 +74,6 @@ export default function AdminClinicLayout() {
 
     if (!effectiveRole) return
 
-    // If user has both roles, keep current clinic portal instead of forcing veterinarian portal.
     if (effectiveRole === RoleEnum.VETERINARIAN && !hasClinicRole) {
       navigate('/veterinarian/appointments', { replace: true })
       return
@@ -120,7 +119,7 @@ export default function AdminClinicLayout() {
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
-              <MedicineBoxOutlined />
+             <CiHospital1 />
             </div>
             <div>
               <h2>{clinicDisplayName}</h2>
@@ -180,7 +179,6 @@ export default function AdminClinicLayout() {
             onClick={handleLogout}
             aria-label="Đăng xuất"
           >
-            {/* <span className={styles.logoutText}>Đăng xuất</span> */}
           </Button>
         </div>
       </aside>
