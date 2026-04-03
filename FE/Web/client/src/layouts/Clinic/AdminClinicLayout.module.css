@@ -31,7 +31,7 @@
   width: 100px;
   height: 60px;
   border-radius: 10px;
-  background: var(--color-brand-primary);
+  background: var(--admin-sidebar-brand-icon);
   color: #fff;
   display: grid;
   place-items: center;

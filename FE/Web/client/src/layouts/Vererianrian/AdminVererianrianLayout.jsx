@@ -11,6 +11,7 @@ import { Avatar, Button, Input } from 'antd'
 import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
+import { CiHospital1 } from "react-icons/ci";
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
@@ -79,7 +80,7 @@ export default function AdminVererianrianLayout() {
         <div>
           <div className={styles.brandWrap}>
             <div className={styles.brandIcon}>
-              <MedicineBoxOutlined />
+              <CiHospital1 />
             </div>
             <div>
               <h2>{clinicDisplayName}</h2>

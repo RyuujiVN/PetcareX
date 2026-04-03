@@ -13,6 +13,7 @@ import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import { getPrimaryRole } from '../../constants/authRole'
+import { CiHospital1 } from "react-icons/ci";
 import { RoleEnum } from '../../enum/role.enum'
 import '../../styles/admin/colorsToken.css'
 import styles from './AdminLayout.module.css'
@@ -62,7 +63,7 @@ export default function AdminLayout() {
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
-              <MedicineBoxOutlined />
+              <CiHospital1 />
             </div>
             <div>
               <h2>PetCareX</h2>
