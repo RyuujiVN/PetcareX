@@ -34,6 +34,15 @@
   color: var(--admin-color-surface-card);
 }
 
+.stat-card--vet {
+  background: var(--admin-stat-post-bg);
+}
+
+.stat-card__icon--vet {
+  background: var(--admin-stat-post-icon);
+  color: var(--admin-color-surface-card);
+}
+
 /* ── Table Card ── */
 .table-card {
   border-radius: 12px;
@@ -45,7 +54,22 @@
 }
 
 .users-search {
-  width: 280px;
+  margin-left: 750px;
+  width: 320px;
+}
+
+.users-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.users-role-filter-select {
+  width: 170px;
+}
+
+.users-role-filter {
+  width: 170px;
 }
 
 .pagination-bar {
@@ -71,11 +95,19 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.user-address-ellipsis {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Tags ── */
-.role-tag,
-.status-tag {
+.role-tag {
   background: var(--admin-color-surface-soft);
   border: 1px solid var(--admin-color-border);
   color: var(--admin-color-text-secondary);
@@ -83,11 +115,31 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 90px;
-  height: 28px;
-  padding: 0 10px;
+  min-width: 118px;
+  height: 30px;
+  padding: 0 12px;
   border-radius: 999px;
-  line-height: 1;
+  line-height: normal;
+  white-space: nowrap;
+}
+.status-tag{
+  background: var(--admin-color-surface-soft);
+  border: 1px solid var(--admin-color-border);
+  color: var(--admin-color-text-secondary);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  height: 30px;
+  padding: 0 12px;
+  margin-top: 10px;
+  border-radius: 999px;
+  line-height: normal;
+  white-space: nowrap;
+}
+.users-page .ant-tag {
+  margin-inline-end: 0;
 }
 
 .role-tag--admin {
@@ -112,4 +164,32 @@
 
 .status-tag--inactive {
   color: var(--admin-color-danger);
+}
+
+.user-detail-descriptions .ant-descriptions-item-label {
+  width: 180px;
+  font-weight: 600;
+}
+
+@media (max-width: 1200px) {
+  .users-table-actions {
+    width: 100%;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+
+  .users-table-actions {
+    flex-wrap: wrap;
+    align-items: stretch;
+  }
+  
+  .users-search {
+    width: 100%;
+  }
+  .users-role-filter-select {
+    width: 100%;
+  }
 }

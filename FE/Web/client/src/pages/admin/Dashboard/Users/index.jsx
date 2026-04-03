@@ -1,5 +1,7 @@
 import {
   DeleteOutlined,
+  EyeOutlined,
+  InfoCircleOutlined,
   SearchOutlined,
   UserOutlined,
 } from '@ant-design/icons'
@@ -8,19 +10,21 @@ import {
   Button,
   Card,
   Col,
+  Descriptions,
   Flex,
   Input,
+  Select,
   Pagination,
-  Popconfirm,
   Row,
   Space,
   Statistic,
   Table,
   Tag,
   Typography,
+  Modal,
   message,
 } from 'antd'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getRoleLabel } from '../../../../constants/veterinaryLabels'
 import { deleteUserApi, getUserListApi } from '../../../../data/admin/api/userApi'
 import './style.css'
@@ -50,32 +54,81 @@ const ROLE_CLASSNAMES = {
   ADMIN_CLINIC: 'role-tag role-tag--clinic',
   VETERINARIAN: 'role-tag role-tag--vet',
   CUSTOMER: 'role-tag role-tag--customer',
+  USER: 'role-tag role-tag--customer',
+}
+
+const USER_ROLE_FILTERS = {
+  ALL: 'ALL',
+  CUSTOMER: 'CUSTOMER',
+  VETERINARIAN: 'VETERINARIAN',
+  NO_ROLE: 'NO_ROLE',
+}
+
+const normalizeRole = (role) => String(role || '').trim().toUpperCase()
+
+const isCustomerRole = (role) => {
+  const normalized = normalizeRole(role)
+  return normalized === 'CUSTOMER' || normalized === 'USER'
+}
+
+const isVeterinarianRole = (role) => normalizeRole(role) === 'VETERINARIAN'
+
+const isNoRole = (role) => !normalizeRole(role)
+
+const fetchAllUsersByKeyword = async (keyword = '') => {
+  const limit = 100
+  let page = 1
+  let totalPages = 1
+  const items = []
+
+  while (page <= totalPages) {
+    const data = await getUserListApi(page, limit, keyword)
+    const currentItems = data?.items || []
+    const meta = data?.meta || {}
+    items.push(...currentItems)
+    totalPages = meta.totalPages || 1
+    page += 1
+  }
+
+  return items
 }
 
 export default function Users() {
-  const [userList, setUserList] = useState([])
+  const [allUsers, setAllUsers] = useState([])
   const [pagination, setPagination] = useState({
     current: 1,
     pageSize: 10,
-    total: 0,
   })
-  const [stats, setStats] = useState({ totalUsers: 0 })
+  const [stats, setStats] = useState({
+    totalCustomers: 0,
+    totalVeterinarians: 0,
+  })
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState(USER_ROLE_FILTERS.ALL)
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
 
-  const fetchUsers = useCallback(async (page, pageSize, keyword = '') => {
+  const buildRoleStats = useCallback((items) => {
+    return items.reduce(
+      (acc, user) => {
+        if (isCustomerRole(user?.role)) acc.totalCustomers += 1
+        if (isVeterinarianRole(user?.role)) acc.totalVeterinarians += 1
+        return acc
+      },
+      { totalCustomers: 0, totalVeterinarians: 0 },
+    )
+  }, [])
+
+  const fetchUsers = useCallback(async (keyword = '') => {
     setLoading(true)
     try {
-      const data = await getUserListApi(page, pageSize, keyword)
-      setUserList(data.items || [])
-      setPagination({
-        current: data.meta.currentPage,
-        pageSize: data.meta.itemsPerPage,
-        total: data.meta.totalItems,
-      })
-      if (!keyword) {
-        setStats({ totalUsers: data.meta.totalItems || 0 })
-      }
+      const items = await fetchAllUsersByKeyword(keyword)
+      setAllUsers(items)
+      setPagination((prev) => ({
+        ...prev,
+        current: 1,
+      }))
     } catch (error) {
       message.error(error.message || 'Không thể tải danh sách người dùng')
     } finally {
@@ -83,42 +136,108 @@ export default function Users() {
     }
   }, [])
 
+  const fetchRoleStats = useCallback(async () => {
+    try {
+      const items = await fetchAllUsersByKeyword('')
+      setStats(buildRoleStats(items))
+    } catch (error) {
+      message.error(error.message || 'Không thể tải thống kê người dùng')
+    }
+  }, [buildRoleStats])
+
   useEffect(() => {
-    fetchUsers(pagination.current, pagination.pageSize)
-  }, [])
+    fetchUsers('')
+    fetchRoleStats()
+  }, [fetchUsers, fetchRoleStats])
+
+  const roleFilteredUsers = useMemo(() => {
+    if (roleFilter === USER_ROLE_FILTERS.CUSTOMER) {
+      return allUsers.filter((item) => isCustomerRole(item?.role))
+    }
+
+    if (roleFilter === USER_ROLE_FILTERS.VETERINARIAN) {
+      return allUsers.filter((item) => isVeterinarianRole(item?.role))
+    }
+
+    if (roleFilter === USER_ROLE_FILTERS.NO_ROLE) {
+      return allUsers.filter((item) => isNoRole(item?.role))
+    }
+
+    return allUsers
+  }, [allUsers, roleFilter])
+
+  const pagedUsers = useMemo(() => {
+    const startIndex = (pagination.current - 1) * pagination.pageSize
+    const endIndex = startIndex + pagination.pageSize
+    return roleFilteredUsers.slice(startIndex, endIndex)
+  }, [pagination.current, pagination.pageSize, roleFilteredUsers])
+
+  const roleFilterOptions = [
+    { value: USER_ROLE_FILTERS.ALL, label: 'Tất cả' },
+    { value: USER_ROLE_FILTERS.CUSTOMER, label: 'Khách hàng' },
+    { value: USER_ROLE_FILTERS.VETERINARIAN, label: 'Bác sĩ' },
+    { value: USER_ROLE_FILTERS.NO_ROLE, label: 'Không' },
+  ]
 
   const handlePageChange = (page, pageSize) => {
-    fetchUsers(page, pageSize, search)
+    setPagination((prev) => ({
+      ...prev,
+      current: page,
+      pageSize,
+    }))
   }
 
   const handleSearch = (value) => {
     const keyword = value.trim()
-    setSearch(keyword)
-    fetchUsers(1, pagination.pageSize, keyword)
+    setSearch(value)
+    fetchUsers(keyword)
   }
 
   const handleSearchChange = (event) => {
     const nextValue = event.target.value
     setSearch(nextValue)
     if (!nextValue) {
-      fetchUsers(1, pagination.pageSize, '')
+      fetchUsers('')
     }
+  }
+
+  const handleRoleFilter = (nextRole) => {
+    setRoleFilter(nextRole)
+    setPagination((prev) => ({
+      ...prev,
+      current: 1,
+    }))
   }
 
   const handleDelete = async (userId) => {
     try {
       await deleteUserApi(userId)
       message.success('Đã cập nhật trạng thái người dùng')
-      setStats((prev) => ({
-        totalUsers: prev.totalUsers > 0 ? prev.totalUsers - 1 : 0,
-      }))
-      const nextPage = userList.length === 1 && pagination.current > 1
-        ? pagination.current - 1
-        : pagination.current
-      fetchUsers(nextPage, pagination.pageSize, search)
+      const keyword = search.trim()
+      await Promise.all([fetchUsers(keyword), fetchRoleStats()])
     } catch (error) {
       message.error(error.message || 'Không thể cập nhật trạng thái người dùng')
     }
+  }
+
+  const handleDeleteWithConfirm = (record) => {
+    Modal.confirm({
+      centered: true,
+      title: 'Xác nhận dừng hoạt động',
+      icon: <InfoCircleOutlined style={{ color: 'var(--admin-color-warning)' }} />,
+      content: `Bạn có chắc muốn dừng hoạt động tài khoản "${record?.fullName || 'này'}" không?`,
+      okText: 'Dừng hoạt động',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        await handleDelete(record.id)
+      },
+    })
+  }
+
+  const handleViewUser = (record) => {
+    setSelectedUser(record)
+    setViewModalOpen(true)
   }
 
   const columns = [
@@ -148,7 +267,11 @@ export default function Users() {
       title: 'ĐỊA CHỈ',
       dataIndex: 'address',
       key: 'address',
-      render: (value) => value || '—',
+      render: (value) => (
+        <Typography.Text className="user-address-ellipsis" title={value || ''}>
+          {value || '—'}
+        </Typography.Text>
+      ),
     },
     {
       title: 'NGÀY TẠO',
@@ -187,32 +310,44 @@ export default function Users() {
       key: 'action',
       render: (_, record) => (
         <Space>
-          <Popconfirm
-            title="Bạn có chắc muốn dừng hoạt động người dùng này?"
-            okText="Dừng hoạt động"
-            cancelText="Hủy"
-            onConfirm={() => handleDelete(record.id)}
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewUser(record)}
+          />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteWithConfirm(record)}
+          />
         </Space>
       ),
     },
   ]
 
-  const { current, pageSize, total } = pagination
+  const { current, pageSize } = pagination
+  const total = roleFilteredUsers.length
   const start = total === 0 ? 0 : (current - 1) * pageSize + 1
   const end = Math.min(current * pageSize, total)
 
   return (
     <div className="users-page">
       <Row gutter={[24, 24]} style={{ marginBottom: 24 }}>
-        <Col span={24}>
+        <Col xs={24} md={12}>
           <Card className="stat-card stat-card--user">
             <div className="stat-card__icon stat-card__icon--user">
               <UserOutlined />
             </div>
-            <Statistic title="Tổng số người dùng" value={stats.totalUsers} />
+            <Statistic title="Tổng số người dùng" value={stats.totalCustomers} />
+          </Card>
+        </Col>
+        <Col xs={24} md={12}>
+          <Card className="stat-card stat-card--vet">
+            <div className="stat-card__icon stat-card__icon--vet">
+              <UserOutlined />
+            </div>
+            <Statistic title="Tổng số bác sĩ" value={stats.totalVeterinarians} />
           </Card>
         </Col>
       </Row>
@@ -227,21 +362,34 @@ export default function Users() {
               Quản lý tài khoản đăng ký trong hệ thống
             </Typography.Text>
           </div>
-          <Input.Search
-            className="users-search"
-            placeholder="Tìm kiếm theo tên hoặc email"
-            allowClear
-            enterButton={false}
-            value={search}
-            onChange={handleSearchChange}
-            onSearch={handleSearch}
-            prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-          />
+          <div className="users-table-actions">
+            <Input
+              className="users-search"
+              placeholder="Tìm kiếm theo tên hoặc email"
+              allowClear
+              value={search}
+              onChange={handleSearchChange}
+              onPressEnter={(event) => handleSearch(event.target.value)}
+              prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+            />
+            
+          </div>
+          <div className="users-role-filter">
+            <Select
+              size='large'
+              className="users-role-filter-select"
+              options={roleFilterOptions}
+              value={roleFilter}
+              onChange={handleRoleFilter}
+              placeholder="Lọc theo vai trò"
+            />
+          </div>
+
         </Flex>
 
         <Table
           columns={columns}
-          dataSource={userList}
+          dataSource={pagedUsers}
           loading={loading}
           pagination={false}
           rowKey="id"
@@ -260,6 +408,42 @@ export default function Users() {
           />
         </Flex>
       </Card>
+
+      <Modal
+        title="Chi tiết người dùng"
+        open={viewModalOpen}
+        onCancel={() => setViewModalOpen(false)}
+        footer={null}
+        width={720}
+        centered
+      >
+        <Descriptions bordered column={1} size="middle" className="user-detail-descriptions">
+          <Descriptions.Item label="Họ và tên">
+            {selectedUser?.fullName || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Email">
+            {selectedUser?.email || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Số điện thoại">
+            {selectedUser?.phone || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Địa chỉ">
+            {selectedUser?.address || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Vai trò">
+            {selectedUser?.role ? getRoleLabel(selectedUser.role) : 'Không'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Trạng thái">
+            {selectedUser?.deleted ? 'Dừng hoạt động' : 'Hoạt động'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày tạo">
+            {formatDate(selectedUser?.createdAt)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày cập nhật">
+            {formatDate(selectedUser?.updatedAt)}
+          </Descriptions.Item>
+        </Descriptions>
+      </Modal>
     </div>
   )
 }

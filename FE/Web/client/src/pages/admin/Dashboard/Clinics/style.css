@@ -62,6 +62,16 @@
   margin-bottom: 16px;
 }
 
+.table-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.clinics-search {
+  width: 320px;
+}
+
 .pagination-bar {
   margin-top: 16px;
   padding: 0 8px;
@@ -80,6 +90,16 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.clinic-name-ellipsis,
+.clinic-address-ellipsis {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* ── Add button blue style ── */
@@ -135,4 +155,21 @@
 .add-clinic-form .ant-form-item-label > label {
   font-weight: 500;
   color: var(--admin-color-text-primary);
+}
+
+.clinic-detail-descriptions .ant-descriptions-item-label {
+  width: 180px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .table-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .clinics-search {
+    width: 100%;
+  }
 }
