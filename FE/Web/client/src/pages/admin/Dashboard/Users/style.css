@@ -107,8 +107,7 @@
 }
 
 /* ── Tags ── */
-.role-tag,
-.status-tag {
+.role-tag {
   background: var(--admin-color-surface-soft);
   border: 1px solid var(--admin-color-border);
   color: var(--admin-color-text-secondary);
@@ -123,7 +122,22 @@
   line-height: normal;
   white-space: nowrap;
 }
-
+.status-tag{
+  background: var(--admin-color-surface-soft);
+  border: 1px solid var(--admin-color-border);
+  color: var(--admin-color-text-secondary);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  height: 30px;
+  padding: 0 12px;
+  margin-top: 10px;
+  border-radius: 999px;
+  line-height: normal;
+  white-space: nowrap;
+}
 .users-page .ant-tag {
   margin-inline-end: 0;
 }
