@@ -1,9 +1,10 @@
 import {
 	CalendarOutlined,
 	ExperimentOutlined,
-	FileTextOutlined,
+	FileDoneOutlined,
 	HeartOutlined,
 	MedicineBoxOutlined,
+	PrinterOutlined,
 	SmileOutlined,
 	UserOutlined,
 	WarningOutlined,
@@ -14,6 +15,7 @@ import {
 	Col,
 	Divider,
 	Input,
+	Modal,
 	Row,
 	Spin,
 	Table,
@@ -23,7 +25,12 @@ import {
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { getClinicAppointmentByIdApi } from '../../../../data/Clinic/api/appointmentApi'
+import {
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+	APPOINTMENT_STATUS,
+	getClinicAppointmentByIdApi,
+} from '../../../../data/Clinic/api/appointmentApi'
+import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../data/Clinic/api/invoiceApi'
 import {
 	getMedicalById,
 	getMedicalByPetId,
@@ -99,6 +106,25 @@ const resolveMedicineLabel = (item) => {
 	const meta = strength && unitLabel ? `${strength} - ${unitLabel}` : strength || unitLabel
 
 	return meta ? `${medicineName} (${meta})` : medicineName
+}
+
+const EMPTY_BILL_DATA = {
+	code: 'HD-TEMP',
+	medicineItems: [],
+	testItems: [],
+	provisionalTotal: '0 VND',
+	grandTotal: '0 VND',
+}
+
+const toCurrencyVnd = (value) => {
+	const amount = Number(value || 0)
+	if (!Number.isFinite(amount) || amount <= 0) return '0 VND'
+	return `${amount.toLocaleString('vi-VN')} VND`
+}
+
+const buildInvoiceCode = (medicalRecordId) => {
+	if (!medicalRecordId) return 'HD-TEMP'
+	return `HD-${String(medicalRecordId).slice(0, 6).toUpperCase()}`
 }
 
 const selectMedicalRecordByAppointment = (records, appointment) => {
@@ -180,6 +206,8 @@ export default function PetMedicalRecords() {
 	const [ownerDetail, setOwnerDetail] = useState(null)
 	const [medicalOrders, setMedicalOrders] = useState([])
 	const [medicines, setMedicines] = useState([])
+	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+	const [isConfirmingPayment, setIsConfirmingPayment] = useState(false)
 
 	const loadExamDetail = useCallback(async () => {
 		if (!appointmentId) return
@@ -356,16 +384,103 @@ export default function PetMedicalRecords() {
 		},
 	]
 
-	const handleMedicalBill = () => {
-		navigate(`${routePrefix}/exam-slips/${appointmentId}/bill`, {
-			state: {
-				appointmentId,
-				appointment,
-				medicalRecord,
-				medicalOrders,
-				medicines,
-			},
+	const billData = useMemo(() => {
+		if (!medicalRecord?.id) return EMPTY_BILL_DATA
+
+		const medicineItems = medicines.map((item) => {
+			const unitPrice = Number(item?.priceAtTime || 0)
+			const quantity = Number(item?.quantity || 0)
+			const amount = unitPrice * quantity
+			return {
+				name: `${resolveMedicineLabel(item)}${quantity > 0 ? ` x${quantity}` : ''}`,
+				amount: toCurrencyVnd(amount),
+				rawAmount: amount,
+			}
 		})
+
+		const testItems = medicalOrders.map((item) => {
+			const amount = Number(item?.priceAtTime || 0)
+			return {
+				name: item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || 'Chỉ định xét nghiệm',
+				amount: toCurrencyVnd(amount),
+				rawAmount: amount,
+			}
+		})
+
+		const subtotal = [...medicineItems, ...testItems].reduce((sum, row) => sum + Number(row.rawAmount || 0), 0)
+
+		return {
+			code: buildInvoiceCode(medicalRecord.id),
+			medicineItems,
+			testItems,
+			provisionalTotal: toCurrencyVnd(subtotal),
+			grandTotal: toCurrencyVnd(subtotal),
+		}
+	}, [medicalOrders, medicalRecord?.id, medicines])
+
+	const handlePrintInvoice = () => {
+		window.print()
+	}
+
+	const openPaymentModal = () => {
+		if (!medicalRecord?.id) {
+			message.warning('Chưa có phiếu khám để thanh toán')
+			return
+		}
+		setIsPaymentModalOpen(true)
+	}
+
+	const closePaymentModal = () => {
+		if (isConfirmingPayment) return
+		setIsPaymentModalOpen(false)
+	}
+
+	const handleConfirmPayment = async () => {
+		if (!appointmentId) {
+			message.error('Không tìm thấy lịch khám để xác nhận thanh toán')
+			return
+		}
+
+		if (!medicalRecord?.id) {
+			message.error('Không tìm thấy hồ sơ bệnh án để thanh toán')
+			return
+		}
+
+		try {
+			setIsConfirmingPayment(true)
+
+			const petOwnerId =
+				pet?.ownerId ||
+				pet?.owner?.id ||
+				owner?.id ||
+				appointment?.ownerId ||
+				appointment?.pet?.owner?.id ||
+				''
+
+			await upsertPaidInvoiceByMedicalApi({
+				medicalRecordId: medicalRecord.id,
+				petOwnerId,
+				note: 'Thanh toán tại phòng khám',
+			})
+
+			localStorage.setItem(
+				APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+				JSON.stringify({
+					appointmentId,
+					status: APPOINTMENT_STATUS.COMPLETED,
+					paymentStatus: INVOICE_STATUS.PAID,
+					updatedAt: Date.now(),
+				}),
+			)
+
+			setIsPaymentModalOpen(false)
+			message.success('Thanh toán thành công')
+			navigate(`${routePrefix}/appointments`)
+		} catch (error) {
+			message.error(error?.message || 'Không thể xác nhận thanh toán')
+		} finally {
+			setIsConfirmingPayment(false)
+		}
 	}
 
 	return (
@@ -461,10 +576,90 @@ export default function PetMedicalRecords() {
 					</Card>
 
 					<div className={styles.actionRow}>
-						<Button type="primary" className={styles.saveBtn} icon={<FileTextOutlined />} onClick={handleMedicalBill}>
-							Hóa đơn bệnh án
+						<Button className={`${styles.actionBtn} ${styles.printBtn}`} icon={<PrinterOutlined />} onClick={handlePrintInvoice}>
+							In hóa đơn
+						</Button>
+						<Button type="primary" className={`${styles.actionBtn} ${styles.payBtn}`} icon={<CalendarOutlined />} onClick={openPaymentModal}>
+							Thanh toán
 						</Button>
 					</div>
+
+					<Modal
+						open={isPaymentModalOpen}
+						onCancel={closePaymentModal}
+						footer={null}
+						centered
+						width={560}
+						className={styles.paymentModal}
+						destroyOnClose
+						closable={!isConfirmingPayment}
+						maskClosable={!isConfirmingPayment}
+					>
+						<div className={styles.modalBody}>
+							<h3>
+								<FileDoneOutlined />
+								<span>Tóm tắt hóa đơn</span>
+							</h3>
+
+							<p className={styles.billCode}>MÃ HÓA ĐƠN: {billData.code}</p>
+
+							<div className={styles.modalSectionTitle}>THUỐC ĐÃ KÊ ĐƠN</div>
+							<div className={styles.modalList}>
+								{billData.medicineItems.length > 0 ? (
+									billData.medicineItems.map((item) => (
+										<div className={styles.modalRow} key={item.name}>
+											<span>{item.name}</span>
+											<strong>{item.amount}</strong>
+										</div>
+									))
+								) : (
+									<div className={styles.modalRow}>
+										<span>Không có dữ liệu thuốc</span>
+										<strong>0 VND</strong>
+									</div>
+								)}
+							</div>
+
+							<div className={styles.modalSectionTitle}>XÉT NGHIỆM & CHẨN ĐOÁN</div>
+							<div className={styles.modalList}>
+								{billData.testItems.length > 0 ? (
+									billData.testItems.map((item) => (
+										<div className={styles.modalRow} key={item.name}>
+											<span>{item.name}</span>
+											<strong>{item.amount}</strong>
+										</div>
+									))
+								) : (
+									<div className={styles.modalRow}>
+										<span>Không có dữ liệu chỉ định</span>
+										<strong>0 VND</strong>
+									</div>
+								)}
+							</div>
+
+							<div className={styles.divider} />
+
+							<div className={styles.modalRow}>
+								<span className={styles.provisionalLabel}>Tạm tính:</span>
+								<strong>{billData.provisionalTotal}</strong>
+							</div>
+
+							<div className={styles.modalRowTotal}>
+								<span>Tổng cộng:</span>
+								<strong>{billData.grandTotal}</strong>
+							</div>
+
+							<button
+								type="button"
+								className={styles.confirmButton}
+								onClick={handleConfirmPayment}
+								disabled={isConfirmingPayment}
+							>
+								<CalendarOutlined />
+								<span>{isConfirmingPayment ? 'Đang xác nhận...' : 'Xác nhận thanh toán'}</span>
+							</button>
+						</div>
+					</Modal>
 				</Spin>
 			</div>
 		</div>

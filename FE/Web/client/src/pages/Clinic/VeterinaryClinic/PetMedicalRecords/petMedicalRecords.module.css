@@ -180,20 +180,145 @@
 	padding-bottom: 4px;
 }
 
-.saveBtn {
+.actionBtn {
 	height: 40px;
 	padding: 0 20px;
 	border-radius: 999px;
 	font-weight: 700;
-	background: #4672b4 !important;
-	border-color: #4672b4 !important;
-	color: #fff !important;
 	box-shadow: none;
 }
 
-.saveBtn:hover {
+.printBtn {
+	background: #fff !important;
+	border-color: #c8d5e4 !important;
+	color: #355279 !important;
+
+}
+
+.printBtn:hover {
+	background: #f3f7fb !important;
+	border-color: #a9bfd6 !important;
+	color: #2a4a72 !important;
+}
+
+.payBtn {
+	background: #4672b4 !important;
+	border-color: #4672b4 !important;
+	color: #fff !important;
+}
+
+.payBtn:hover {
 	background: #13c1b6 !important;
 	border-color: #13c1b6 !important;
+}
+
+.paymentModal :global(.ant-modal-content) {
+	border-radius: 20px;
+	padding: 0;
+	overflow: hidden;
+}
+
+.paymentModal :global(.ant-modal-body) {
+	padding: 0;
+}
+
+.modalBody {
+	padding: 20px;
+	background: #fff;
+}
+
+.modalBody h3 {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 22px;
+	font-weight: 800;
+	color: #1d304d;
+}
+
+.billCode {
+	margin: 10px 0 12px;
+	font-size: 14px;
+	font-weight: 800;
+	color: #5a7191;
+	text-align: center;
+}
+
+.modalSectionTitle {
+	margin: 10px 0 8px;
+	font-size: 13px;
+	font-weight: 800;
+	color: #7a8fa9;
+}
+
+.modalList {
+	display: grid;
+	gap: 6px;
+}
+
+.modalRow {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 12px;
+	font-size: 14px;
+	color: #2e3e58;
+}
+
+.modalRow strong {
+	font-weight: 800;
+	color: #1e2f4a;
+	white-space: nowrap;
+}
+
+.divider {
+	margin: 12px 0;
+	border-top: 1px dashed #d5dfeb;
+}
+
+.provisionalLabel {
+	color: #6c829e;
+}
+
+.modalRowTotal {
+	margin-top: 2px;
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	font-size: 15px;
+	font-weight: 800;
+	color: #1d304d;
+}
+
+.modalRowTotal strong {
+	font-size: 17px;
+}
+
+.confirmButton {
+	margin-top: 14px;
+	width: 100%;
+	height: 44px;
+	border: none;
+	border-radius: 999px;
+	background: #4672b4;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-size: 14px;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.confirmButton:hover {
+	background: #13c1b6;
+}
+
+.confirmButton:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
 }
 
 @media (max-width: 992px) {
@@ -231,11 +356,12 @@
 		bottom: 0;
 		z-index: 8;
 		justify-content: stretch;
+		flex-direction: column;
 		background: linear-gradient(180deg, rgba(238, 242, 247, 0) 0%, rgba(238, 242, 247, 0.95) 32%, rgba(238, 242, 247, 1) 100%);
 		padding-top: 12px;
 	}
 
-	.saveBtn {
+	.actionBtn {
 		width: 100%;
 	}
 }

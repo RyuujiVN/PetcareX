@@ -280,9 +280,11 @@ Luồng đang chạy:
 - `PetMedicalRecords` đã bổ sung hydrate dữ liệu đầy đủ theo chuỗi API: `GET /medical/pet/:petId` -> `GET /medical/:id` -> `GET /pet/:id` -> `GET /user/:id` để giảm thiếu dữ liệu ở phần chỉ số và thông tin chủ nuôi.
 - `ViewMedicalRecords` đã bổ sung gọi `GET /pet/:id` để điền đủ ngày sinh/giới tính thú cưng khi payload từ medical list thiếu trường chi tiết.
 - `ListPetMedicalRecords` đã đồng bộ nhãn loài/giống theo helper enum tập trung và áp dụng quy tắc fallback mới cho số điện thoại.
+- Luồng hóa đơn phía phòng khám đã đổi: thao tác `In hóa đơn` và `Thanh toán` thực hiện trực tiếp tại `PetMedicalRecords` (không còn điều hướng qua màn `PetMedicalBill`).
+- Màn thanh toán trong `PetMedicalRecords` dùng modal tóm tắt chi phí thuốc + chỉ định xét nghiệm, sau đó gọi `upsertPaidInvoiceByMedicalApi` và phát `APPOINTMENT_PAYMENT_SYNC_EVENT_KEY` để đồng bộ trạng thái lịch hẹn.
 
 ### 5) Các màn còn template/mock trong admin clinic
-- `PetMedicalBill`: dữ liệu tiền thuốc/xét nghiệm cứng; chỉ phần xác nhận thanh toán có gọi API cập nhật status appointment.
+- Luồng `PetMedicalBill` đã được loại bỏ khỏi route để giảm thao tác lặp; nghiệp vụ thanh toán/in hóa đơn được dồn về `PetMedicalRecords`.
 
 ### 6) Admin Clinic Profile
 - Lấy profile `/user/profile`.
@@ -518,8 +520,6 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 - Hiện chủ yếu dựa interceptor 401 để redirect.
 
 ### 3) Một số màn còn mock/template
-- `adminClinic/PetMedicalRecords`
-- `adminClinic/PetMedicalBill`
 - `adminVererianrian/PetAppointmentVererianrian`
 
 ### 4) Một số route điều hướng chưa khớp route khai báo
