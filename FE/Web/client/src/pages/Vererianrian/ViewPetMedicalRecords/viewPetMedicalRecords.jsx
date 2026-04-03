@@ -1,18 +1,18 @@
 import {
-    CalendarOutlined,
-    MedicineBoxOutlined,
-    UserOutlined
+	CalendarOutlined,
+	MedicineBoxOutlined,
+	UserOutlined
 } from '@ant-design/icons'
 import { Spin, message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-    getMedicalById,
-    getMedicalByPetId,
-    getMedicalOrdersByMedicalId,
-    getMedicinesByMedicalId,
+	getMedicalById,
+	getMedicalByPetId,
+	getMedicalOrdersByMedicalId,
+	getMedicinesByMedicalId,
 } from '../../../data/Vererianrian/api/medicalApi'
-import { getMedicalRecordStatusLabel, getPetBreedLabel } from '../../../utils/enumLabel'
+import { getMedicalRecordStatusLabel, getPetBreedLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
 
 const DEFAULT_PET = {
@@ -29,6 +29,27 @@ const formatDate = (value) => {
 	const date = new Date(value)
 	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
 	return date.toLocaleDateString('vi-VN')
+}
+
+const formatFollowUpDate = (value) => {
+	const resolved = formatDate(value)
+	return resolved === 'Chưa cập nhật' ? 'Không' : resolved
+}
+
+const resolveRecordTitle = (name, fallback = 'Phiếu khám') => {
+	if (!name) return fallback
+	return getServiceLabel(name, name) || fallback
+}
+
+const formatVitalValue = (value, suffix = '') => {
+	if (value === null || value === undefined || value === '') return 'Chưa cập nhật'
+	return suffix ? `${value} ${suffix}` : String(value)
+}
+
+const formatBloodPressure = (systolic, diastolic) => {
+	if (!systolic && !diastolic) return 'Chưa cập nhật'
+	if (systolic && diastolic) return `${systolic}/${diastolic} mmHg`
+	return `${systolic || diastolic} mmHg`
 }
 
 const formatGender = (gender) => {
@@ -94,7 +115,7 @@ const toTimelineRecord = (record, medicalOrders = [], medicines = []) => {
 
 	return {
 		id: String(record?.id || Math.random()),
-		title: record?.name || 'Phiếu khám',
+		title: resolveRecordTitle(record?.name),
 		status: getMedicalRecordStatusLabel(done, { uppercase: true }),
 		statusType: done ? 'done' : 'pending',
 		leftInfo: [
@@ -108,11 +129,15 @@ const toTimelineRecord = (record, medicalOrders = [], medicines = []) => {
 			{ label: 'Mã đơn thuốc', value: normalizeMedicineCode(medicalOrders, medicines) },
 		],
 		details: [
+			{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
+			{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
+			{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
+			{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
 			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
 			{ label: 'Kết luận', value: conclusionSummary },
 			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
 			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
-			{ label: 'Ngày tái khám', value: formatDate(record?.followUpDate) },
+			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
 		],
 	}
 }
@@ -146,6 +171,16 @@ export default function ViewPetMedicalRecords() {
 						: Array.isArray(byPet)
 							? byPet
 							: []
+			}
+
+			if (!medicalId && records.length > 0) {
+				records = await Promise.all(
+					records.map(async (record) => {
+						if (!record?.id) return record
+						const detail = await getMedicalById(record.id).catch(() => null)
+						return detail ? { ...record, ...detail } : record
+					}),
+				)
 			}
 
 			if (records.length === 0) {

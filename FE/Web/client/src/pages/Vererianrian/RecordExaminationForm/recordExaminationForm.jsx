@@ -65,7 +65,7 @@ import {
 } from '../../../data/Vererianrian/api/userApi'
 import { getBreedLabel, getSpeciesLabel } from '../../../data/client/api/petApi'
 import { ServiceEnum } from '../../../enum/service.enum'
-import { getServiceLabel } from '../../../utils/enumLabel'
+import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
 const EDITABLE_DURATION_SECONDS = 15 * 60
@@ -87,9 +87,12 @@ const getMedicalOrderOptionLabel = (item) => {
 
 const getMedicineOptionLabel = (item) => {
 	const name = item?.name || item?.nameVn || item?.nameEng || item?.tradeName || item?.code || 'Chua cap nhat'
-	const strength = item?.strength || item?.concentration || item?.unit || item?.dosage || ''
+	const strength = item?.strength || item?.concentration || item?.dosage || ''
+	const unitValue = item?.unit || item?.medicineUnit || item?.unitType || ''
+	const unitLabel = unitValue ? getMedicineUnitLabel(unitValue, unitValue) : ''
+	const meta = strength && unitLabel ? `${strength} - ${unitLabel}` : strength || unitLabel
 
-	return strength ? `${name} (${strength})` : name
+	return meta ? `${name} (${meta})` : name
 }
 
 const toNumberOrUndefined = (value) => {
@@ -151,6 +154,42 @@ const formatDateLabel = (value, fallback = 'Chưa cập nhật') => {
 	const date = new Date(value)
 	if (Number.isNaN(date.getTime())) return fallback
 	return date.toLocaleDateString('vi-VN')
+}
+
+const formatFollowUpDateLabel = (value) => formatDateLabel(value, 'Không')
+
+const resolveRecordName = (name, fallback = 'Phiếu khám') => {
+	if (!name) return fallback
+	return getServiceLabel(name, name) || fallback
+}
+
+const resolveMedicineUnitLabel = (item) => {
+	const unitValue =
+		item?.medicine?.unit ||
+		item?.medicine?.medicineUnit ||
+		item?.medicine?.unitType ||
+		item?.unit ||
+		item?.unitType ||
+		''
+	if (!unitValue) return ''
+	return getMedicineUnitLabel(unitValue, unitValue)
+}
+
+const formatMedicineQuantityLabel = (item) => {
+	if (!item?.quantity) return ''
+	const unitLabel = resolveMedicineUnitLabel(item)
+	return ` (${item.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
+}
+
+const formatVitalValue = (value, suffix = '') => {
+	if (value === null || value === undefined || value === '') return 'Chưa cập nhật'
+	return suffix ? `${value} ${suffix}` : String(value)
+}
+
+const formatBloodPressure = (systolic, diastolic) => {
+	if (!systolic && !diastolic) return 'Chưa cập nhật'
+	if (systolic && diastolic) return `${systolic}/${diastolic} mmHg`
+	return `${systolic || diastolic} mmHg`
 }
 
 const formatGenderLabel = (gender) => {
@@ -614,7 +653,7 @@ export default function RecordExaminationForm() {
 				setHistoryLoading(true)
 				// TODO: Check pet owner's sharing permission before displaying medical records.
 				const payload = await getMedicalByPetId(historyPetId, 1, 200)
-				const records = normalizeCollection(payload)
+				let records = normalizeCollection(payload)
 				if (!active) return
 
 				if (records.length === 0) {
@@ -622,6 +661,14 @@ export default function RecordExaminationForm() {
 					setHistoryPet(appointment?.petRaw || appointment?.pet || null)
 					return
 				}
+
+				records = await Promise.all(
+					records.map(async (record) => {
+						if (!record?.id) return record
+						const detail = await getMedicalById(record.id).catch(() => null)
+						return detail ? { ...record, ...detail } : record
+					}),
+				)
 
 				records.sort((a, b) => {
 					const aTime = new Date(a?.createdAt || 0).getTime()
@@ -1832,7 +1879,7 @@ export default function RecordExaminationForm() {
 									>
 										<div className={styles.historyRecordHeader}>
 											<div>
-												<h4>{record?.name || 'Phiếu khám'}</h4>
+												<h4>{resolveRecordName(record?.name)}</h4>
 												<p>{formatDateLabel(record?.createdAt)} · {record?.veterinarian?.fullName || 'Chưa cập nhật bác sĩ'}</p>
 											</div>
 											<span className={styles.historyStatus}>
@@ -1841,6 +1888,22 @@ export default function RecordExaminationForm() {
 										</div>
 
 										<div className={styles.historyRecordBody}>
+											<div>
+												<span>Cân nặng:</span>
+												<strong>{formatVitalValue(record?.weight, 'kg')}</strong>
+											</div>
+											<div>
+												<span>Nhiệt độ:</span>
+												<strong>{formatVitalValue(record?.temperature, '°C')}</strong>
+											</div>
+											<div>
+												<span>Nhịp tim:</span>
+												<strong>{formatVitalValue(record?.heartRate, 'l/p/m')}</strong>
+											</div>
+											<div>
+												<span>Huyết áp:</span>
+												<strong>{formatBloodPressure(record?.systolic, record?.diastolic)}</strong>
+											</div>
 											<div>
 												<span>Chẩn đoán:</span>
 												<strong>{record?.diagnosis || 'Chưa cập nhật'}</strong>
@@ -1855,7 +1918,7 @@ export default function RecordExaminationForm() {
 											</div>
 											<div>
 												<span>Ngày tái khám:</span>
-												<strong>{formatDateLabel(record?.followUpDate)}</strong>
+												<strong>{formatFollowUpDateLabel(record?.followUpDate)}</strong>
 											</div>
 										</div>
 
@@ -1874,7 +1937,7 @@ export default function RecordExaminationForm() {
 																}
 															>
 																{item?.medicine?.name || item?.medicine?.nameVn || 'Thuốc'}
-																{item?.quantity ? ` (${item.quantity})` : ''}
+																{formatMedicineQuantityLabel(item)}
 															</li>
 														))}
 													</ul>

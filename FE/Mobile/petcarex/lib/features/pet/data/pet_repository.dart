@@ -41,6 +41,20 @@ class PetRepository {
     throw Exception('Lỗi khi tải danh sách vật nuôi của bạn');
   }
 
+  Future<Pet> getPetById(String petId) async {
+    final response = await _apiClient.get(ApiHelper.petByIdEndpoint(petId));
+    if (response.statusCode == 200) {
+      try {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          return Pet.fromJson(data);
+        }
+      } catch (_) {}
+      throw Exception('Phản hồi từ máy chủ không hợp lệ');
+    }
+    throw Exception(_parseErrorMessage(response.body, 'Lỗi khi tải thông tin thú cưng'));
+  }
+
   Future<List<PetSpecies>> getSpecies() async {
     final response = await _apiClient.get(AppConstants.END_POINT_PET_SPECIES);
     if (response.statusCode == 200) {

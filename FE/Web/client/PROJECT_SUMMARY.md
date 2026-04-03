@@ -213,6 +213,10 @@ Luồng đang chạy:
 - Medical records lấy theo `petId` hoặc `medicalId`.
 - Enrich từng record bằng medical orders + medicines.
 - Render timeline + reminder block.
+- Tên phiếu khám được map từ enum dịch vụ sang tiếng Việt (nếu backend trả enum).
+- Ngày tái khám không có dữ liệu hiển thị `Không` thay vì `Chưa cập nhật`.
+- Timeline chi tiết bổ sung các chỉ số sinh tồn (cân nặng, nhiệt độ, nhịp tim, huyết áp).
+- Đơn thuốc hiển thị thêm đơn vị (Viên, Gói, Ống...) nếu có.
 
 ### 8) Forum
 - Đã nối API thật:
@@ -360,6 +364,8 @@ Luồng đang chạy:
 ### 2) Hồ sơ bệnh án
 - `ListMedicalRecords`: lấy từ API appointment theo ngày, xem chi tiết hồ sơ.
 - `ViewPetMedicalRecords`: lấy medical records thật theo `petId/medicalId`, render timeline.
+- Timeline chi tiết hiển thị thêm chỉ số sinh tồn và map tên phiếu khám theo enum dịch vụ.
+- Ngày tái khám trống hiển thị `Không`, đơn thuốc hiển thị đơn vị nếu có.
 
 ### 3) Phiếu khám
 - `ListExaminationForm`: lấy lịch hẹn theo ngày, điều hướng vào phiếu khám theo `appointmentId`.
