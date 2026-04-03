@@ -1,6 +1,6 @@
 .pageRoot {
 	min-height: 100%;
-	padding: 16px 18px 20px;
+	padding: 18px 20px 22px;
 	background: #eef2f7;
 }
 
@@ -13,12 +13,12 @@
 	background: #fff;
 	border: 1px solid #dfe7ef;
 	border-radius: 16px;
-	padding: 14px 16px;
+	padding: 16px 20px;
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	gap: 14px;
-	margin-bottom: 12px;
+	gap: 16px;
+	margin-bottom: 14px;
 }
 
 .brandRow {
@@ -61,6 +61,7 @@
 }
 
 .headerMeta span {
+	display: block;
 	font-size: 13px;
 	font-weight: 600;
 	color: #697f9d;
@@ -70,13 +71,25 @@
 	border-radius: 16px;
 	border: 1px solid #dde5ee;
 	box-shadow: 0 3px 14px rgba(31, 54, 84, 0.05);
-	margin-bottom: 12px;
+	margin-bottom: 14px;
+}
+
+.sectionCard :global(.ant-card-head) {
+	min-height: 58px;
+}
+
+.sectionCard :global(.ant-card-head-title) {
+	padding: 14px 0;
 }
 
 .sectionCard :global(.ant-card-head-title) {
 	font-size: 18px;
 	font-weight: 800;
 	color: #1d304d;
+}
+
+.sectionCard :global(.ant-card-body) {
+	padding: 18px 20px 16px;
 }
 
 .sectionCard :global(.ant-card-head-title span) {
@@ -86,12 +99,26 @@
 }
 
 .readonlyField {
-	margin-bottom: 10px;
+	margin-bottom: 0;
 }
 
-.readonlyField :global(.ant-form-item-label > label) {
+.readonlyField + .readonlyField {
+	margin-top: 10px;
+}
+
+.fieldCol {
+	display: flex;
+}
+
+.fieldCol .readonlyField {
+	width: 100%;
+}
+
+.fieldLabel {
+	margin: 0 0 6px;
 	font-size: 12px;
 	font-weight: 700;
+	line-height: 1.25;
 	color: #73859d;
 }
 
@@ -103,8 +130,17 @@
 	color: #1f334f;
 }
 
+.readonlyField :global(.ant-input) {
+	height: 42px;
+}
+
+.readonlyField :global(.ant-input[readonly]),
+.readonlyField :global(.ant-input-textarea textarea[readonly]) {
+	cursor: default;
+}
+
 .noteDivider {
-	margin: 12px 0;
+	margin: 14px 0;
 }
 
 .doctorSign {
@@ -141,7 +177,7 @@
 	justify-content: flex-end;
 	align-items: center;
 	gap: 10px;
-	padding-bottom: 8px;
+	padding-bottom: 4px;
 }
 
 .saveBtn {
@@ -161,20 +197,45 @@
 }
 
 @media (max-width: 992px) {
+	.pageRoot {
+		padding: 14px 12px 16px;
+	}
+
 	.formHeader {
 		flex-direction: column;
 		align-items: flex-start;
+		padding: 14px;
 	}
 
 	.headerMeta {
 		text-align: left;
+		width: 100%;
 	}
 
 	.doctorSign {
 		align-items: flex-start;
 	}
 
+	.sectionCard :global(.ant-card-body) {
+		padding: 14px;
+	}
+
 	.actionRow {
 		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 768px) {
+	.actionRow {
+		position: sticky;
+		bottom: 0;
+		z-index: 8;
+		justify-content: stretch;
+		background: linear-gradient(180deg, rgba(238, 242, 247, 0) 0%, rgba(238, 242, 247, 0.95) 32%, rgba(238, 242, 247, 1) 100%);
+		padding-top: 12px;
+	}
+
+	.saveBtn {
+		width: 100%;
 	}
 }

@@ -1,39 +1,39 @@
 import {
-	CalendarOutlined,
-	ExperimentOutlined,
-	FileTextOutlined,
-	HeartOutlined,
-	MedicineBoxOutlined,
-	SmileOutlined,
-	UserOutlined,
-	WarningOutlined,
+    CalendarOutlined,
+    ExperimentOutlined,
+    FileTextOutlined,
+    HeartOutlined,
+    MedicineBoxOutlined,
+    SmileOutlined,
+    UserOutlined,
+    WarningOutlined,
 } from '@ant-design/icons'
 import {
-	Button,
-	Card,
-	Col,
-	Divider,
-	Form,
-	Input,
-	Row,
-	Spin,
-	Table,
-	Tag,
-	Typography,
-	message,
+    Button,
+    Card,
+    Col,
+    Divider,
+    Input,
+    Row,
+    Spin,
+    Table,
+    Tag,
+    Typography,
+    message,
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getClinicAppointmentByIdApi } from '../../../../data/Clinic/api/appointmentApi'
 import {
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
+    getMedicalByPetId,
+    getMedicalOrdersByMedicalId,
+    getMedicinesByMedicalId,
 } from '../../../../data/Clinic/api/medicalApi'
 import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
+import { getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './petMedicalRecords.module.css'
 
-const FALLBACK_TEXT = 'Chua cap nhat'
+const FALLBACK_TEXT = 'Chưa cập nhật'
 const { TextArea } = Input
 
 const formatDateLabel = (value, fallback = FALLBACK_TEXT) => {
@@ -41,14 +41,6 @@ const formatDateLabel = (value, fallback = FALLBACK_TEXT) => {
 	const date = new Date(value)
 	if (Number.isNaN(date.getTime())) return fallback
 	return date.toLocaleDateString('vi-VN')
-}
-
-const formatEnumLabel = (value, fallback = FALLBACK_TEXT) => {
-	if (!value) return fallback
-	return String(value)
-		.replace(/_/g, ' ')
-		.toLowerCase()
-		.replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
 const buildExamCode = (medicalId) => {
@@ -60,7 +52,7 @@ const parseConclusionSummary = (conclusionText, fallback = FALLBACK_TEXT) => {
 	const raw = String(conclusionText || '').trim()
 	if (!raw) return fallback
 
-	const summaryMatch = raw.match(/Ket\s*luan\s*:\s*([^\n]+)/i)
+	const summaryMatch = raw.match(/K(?:e|ế)t\s*lu(?:a|ậ)n\s*:\s*([^\n]+)/i)
 	return summaryMatch?.[1]?.trim() || raw
 }
 
@@ -88,6 +80,12 @@ const toDateTime = (appointmentDate, appointmentTime) => {
 	const timePart = (appointmentTime || '00:00').slice(0, 5)
 	const candidate = new Date(`${datePart}T${timePart}:00`)
 	return Number.isNaN(candidate.getTime()) ? null : candidate
+}
+
+const formatFieldValue = (value, fallback = FALLBACK_TEXT) => {
+	if (value === null || value === undefined) return fallback
+	if (typeof value === 'string' && !value.trim()) return fallback
+	return String(value)
 }
 
 const selectMedicalRecordByAppointment = (records, appointment) => {
@@ -138,9 +136,19 @@ const selectMedicalRecordByAppointment = (records, appointment) => {
 
 function ReadonlyField({ label, value }) {
 	return (
-		<Form.Item label={label} className={styles.readonlyField}>
+		<div className={styles.readonlyField}>
+			<p className={styles.fieldLabel}>{label}:</p>
 			<Input value={value || FALLBACK_TEXT} readOnly />
-		</Form.Item>
+		</div>
+	)
+}
+
+function ReadonlyTextAreaField({ label, value, rows = 3 }) {
+	return (
+		<div className={styles.readonlyField}>
+			<p className={styles.fieldLabel}>{label}:</p>
+			<TextArea value={value || FALLBACK_TEXT} rows={rows} readOnly />
+		</div>
 	)
 }
 
@@ -214,7 +222,7 @@ export default function PetMedicalRecords() {
 			setMedicalOrders(Array.isArray(ordersPayload) ? ordersPayload : [])
 			setMedicines(Array.isArray(medicinesPayload) ? medicinesPayload : [])
 		} catch (error) {
-			message.error(error?.message || 'Khong the tai du lieu phieu kham')
+			message.error(error?.message || 'Không thể tải dữ liệu phiếu khám')
 			setMedicalRecord(null)
 			setPetDetail(null)
 			setMedicalOrders([])
@@ -236,17 +244,21 @@ export default function PetMedicalRecords() {
 
 	const ownerName = medicalRecord?.customerName || owner?.fullName || appointment?.ownerName || FALLBACK_TEXT
 	const ownerEmail = medicalRecord?.email || owner?.email || appointment?.ownerEmail || FALLBACK_TEXT
-	const ownerPhone = medicalRecord?.phone || owner?.phone || FALLBACK_TEXT
+	const ownerPhone = medicalRecord?.phone || owner?.phone || appointment?.ownerPhone || FALLBACK_TEXT
 	const petName = medicalRecord?.petName || pet?.name || appointment?.petName || FALLBACK_TEXT
-	const speciesLabel = formatEnumLabel(medicalRecord?.species || pet?.species)
-	const breedLabel = formatEnumLabel(medicalRecord?.breed || pet?.breed)
-	const weightText = medicalRecord?.weight ? String(medicalRecord.weight) : pet?.weight ? String(pet.weight) : FALLBACK_TEXT
-	const examName = medicalRecord?.name || appointment?.service || FALLBACK_TEXT
+	const speciesCode = medicalRecord?.species || pet?.species
+	const speciesLabel = getPetSpeciesLabel(speciesCode, FALLBACK_TEXT)
+	const breedLabel = getPetBreedLabel(medicalRecord?.breed || pet?.breed, speciesCode, FALLBACK_TEXT)
+	const weightText = formatFieldValue(medicalRecord?.weight ?? pet?.weight)
+	const examName = getServiceLabel(medicalRecord?.name || appointment?.service, FALLBACK_TEXT)
 	const followUpDateText = formatDateLabel(medicalRecord?.followUpDate)
-	const temperatureText = medicalRecord?.temperature ? String(medicalRecord.temperature) : FALLBACK_TEXT
-	const heartRateText = medicalRecord?.heartRate ? String(medicalRecord.heartRate) : FALLBACK_TEXT
+	const temperatureText = formatFieldValue(medicalRecord?.temperature)
+	const heartRateText = formatFieldValue(medicalRecord?.heartRate)
 	const bloodPressureText =
-		medicalRecord?.systolic && medicalRecord?.diastolic
+		medicalRecord?.systolic !== null &&
+		medicalRecord?.systolic !== undefined &&
+		medicalRecord?.diastolic !== null &&
+		medicalRecord?.diastolic !== undefined
 			? `${medicalRecord.systolic}/${medicalRecord.diastolic}`
 			: FALLBACK_TEXT
 	const conclusionSummary = parseConclusionSummary(medicalRecord?.conclusion)
@@ -259,26 +271,26 @@ export default function PetMedicalRecords() {
 			render: (_, __, index) => index + 1,
 		},
 		{
-			title: 'LOAI XET NGHIEM / CHAN DOAN HINH ANH',
+			title: 'LOẠI XÉT NGHIỆM / CHẨN ĐOÁN HÌNH ẢNH',
 			dataIndex: 'medicalOrder',
 			render: (medicalOrder) => medicalOrder?.nameVn || medicalOrder?.nameEng || FALLBACK_TEXT,
 		},
 		{
-			title: 'GHI CHU YEU CAU',
+			title: 'GHI CHÚ YÊU CẦU',
 			dataIndex: 'note',
 			render: (value) => value || FALLBACK_TEXT,
 		},
 		{
-			title: 'TRANG THAI',
+			title: 'TRẠNG THÁI',
 			key: 'status',
 			width: 150,
-			render: () => <Tag color="blue">Da chi dinh</Tag>,
+			render: () => <Tag color="blue">Đã chỉ định</Tag>,
 		},
 	]
 
 	const medicineColumns = [
 		{
-			title: 'TEN THUOC / HAM LUONG',
+			title: 'TÊN THUỐC / HÀM LƯỢNG',
 			dataIndex: 'medicine',
 			render: (medicine) => {
 				const name = medicine?.name || FALLBACK_TEXT
@@ -287,17 +299,17 @@ export default function PetMedicalRecords() {
 			},
 		},
 		{
-			title: 'LIEU DUNG',
+			title: 'LIỀU DÙNG',
 			dataIndex: 'quantity',
 			render: (value) => (value ? String(value) : FALLBACK_TEXT),
 		},
 		{
-			title: 'TAN SUAT',
+			title: 'TẦN SUẤT',
 			dataIndex: 'note',
 			render: (value) => value || FALLBACK_TEXT,
 		},
 		{
-			title: 'GHI CHU',
+			title: 'GHI CHÚ',
 			dataIndex: 'medicine',
 			render: (medicine) => medicine?.note || FALLBACK_TEXT,
 		},
@@ -325,98 +337,90 @@ export default function PetMedicalRecords() {
 						</div>
 						<div>
 							<Typography.Title level={3} className={styles.titleText}>
-								He thong thu y chuyen nghiep
+								Hệ thống thú y chuyên nghiệp
 							</Typography.Title>
 						</div>
 					</div>
 
 					<div className={styles.headerMeta}>
-						<p>PHIEU KHAM BENH & CHI DINH</p>
-						<span>Ma ho so: {buildExamCode(medicalRecord?.id)}</span>
-						<span>Ngay kham: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</span>
+						<p>PHIẾU KHÁM BỆNH & CHỈ ĐỊNH</p>
+						<span>Mã hồ sơ: {buildExamCode(medicalRecord?.id)}</span>
+						<span>Ngày khám: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</span>
 					</div>
 				</header>
 
 				<Spin spinning={loading}>
 					<Card className={styles.sectionCard}>
-						<Row gutter={12}>
-							<Col xs={24} md={12}>
-								<ReadonlyField label="TEN PHIEU KHAM" value={examName} />
+						<Row gutter={[16, 8]}>
+							<Col xs={24} md={12} className={styles.fieldCol}>
+								<ReadonlyField label="TÊN PHIẾU KHÁM" value={examName} />
 							</Col>
-							<Col xs={24} md={12}>
-								<ReadonlyField label="NGAY TAI KHAM" value={followUpDateText} />
+							<Col xs={24} md={12} className={styles.fieldCol}>
+								<ReadonlyField label="NGÀY TÁI KHÁM" value={followUpDateText} />
 							</Col>
 						</Row>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><UserOutlined /> Thong tin khach hang & Thu cung</span>}>
-						<Row gutter={12}>
-							<Col xs={24} md={8}><ReadonlyField label="TEN KHACH HANG" value={ownerName} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="EMAIL" value={ownerEmail} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="SDT" value={ownerPhone} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="TEN THU CUNG" value={petName} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="LOAI" value={speciesLabel} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="GIONG LOAI" value={breedLabel} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="CAN NANG (KG)" value={weightText} /></Col>
+					<Card className={styles.sectionCard} title={<span><UserOutlined /> Thông tin khách hàng & Thú cưng</span>}>
+						<Row gutter={[16, 8]}>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="TÊN KHÁCH HÀNG" value={ownerName} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="EMAIL" value={ownerEmail} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="SĐT" value={ownerPhone} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="TÊN THÚ CƯNG" value={petName} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="LOÀI" value={speciesLabel} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="GIỐNG LOÀI" value={breedLabel} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="CÂN NẶNG (KG)" value={weightText} /></Col>
 						</Row>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><HeartOutlined /> Chi so sinh ton</span>}>
-						<Row gutter={12}>
-							<Col xs={24} md={8}><ReadonlyField label="NHIET DO (DEG C)" value={temperatureText} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="NHIP TIM (L/P/M)" value={heartRateText} /></Col>
-							<Col xs={24} md={8}><ReadonlyField label="HUYET AP (MMHG)" value={bloodPressureText} /></Col>
+					<Card className={styles.sectionCard} title={<span><HeartOutlined /> Chỉ số sinh tồn</span>}>
+						<Row gutter={[16, 8]}>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="NHIỆT ĐỘ (°C)" value={temperatureText} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="NHỊP TIM (L/P/M)" value={heartRateText} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="HUYẾT ÁP (MMHG)" value={bloodPressureText} /></Col>
 						</Row>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><WarningOutlined /> Thong tin lam sang</span>}>
-						<Form.Item label="TRIEU CHUNG & TINH TRANG" className={styles.readonlyField}>
-							<TextArea value={medicalRecord?.symptoms || FALLBACK_TEXT} rows={3} readOnly />
-						</Form.Item>
-						<Form.Item label="CHAN DOAN SO BO" className={styles.readonlyField}>
-							<TextArea value={medicalRecord?.diagnosis || FALLBACK_TEXT} rows={2} readOnly />
-						</Form.Item>
-						<Form.Item label="KET LUAN" className={styles.readonlyField}>
-							<TextArea value={conclusionSummary} rows={3} readOnly />
-						</Form.Item>
+					<Card className={styles.sectionCard} title={<span><WarningOutlined /> Thông tin lâm sàng</span>}>
+						<ReadonlyTextAreaField label="TRIỆU CHỨNG & TÌNH TRẠNG" value={medicalRecord?.symptoms} rows={3} />
+						<ReadonlyTextAreaField label="CHẨN ĐOÁN SƠ BỘ" value={medicalRecord?.diagnosis} rows={2} />
+						<ReadonlyTextAreaField label="KẾT LUẬN" value={conclusionSummary} rows={3} />
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><ExperimentOutlined /> Phieu chi dinh xet nghiem/X-Quang</span>}>
+					<Card className={styles.sectionCard} title={<span><ExperimentOutlined /> Phiếu chỉ định xét nghiệm/X-Quang</span>}>
 						<Table
 							rowKey={(row, index) => row?.id || `order-${index}`}
 							columns={orderColumns}
 							dataSource={medicalOrders}
 							pagination={false}
-							locale={{ emptyText: 'Chua co chi dinh xet nghiem' }}
+							locale={{ emptyText: 'Chưa có chỉ định xét nghiệm' }}
 						/>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Don thuoc chi dinh</span>}>
+					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Đơn thuốc chỉ định</span>}>
 						<Table
 							rowKey={(row, index) => row?.id || `medicine-${index}`}
 							columns={medicineColumns}
 							dataSource={medicines}
 							pagination={false}
-							locale={{ emptyText: 'Chua co don thuoc' }}
+							locale={{ emptyText: 'Chưa có đơn thuốc' }}
 						/>
 
 						<Divider className={styles.noteDivider} />
-						<Form.Item label="LOI DAN BAC SI" className={styles.readonlyField}>
-							<TextArea value={medicalRecord?.note || 'Khong co ghi chu them tu bac si.'} rows={3} readOnly />
-						</Form.Item>
+						<ReadonlyTextAreaField label="LỜI DẶN BÁC SĨ" value={medicalRecord?.note || 'Không có ghi chú thêm từ bác sĩ.'} rows={3} />
 
 						<div className={styles.doctorSign}>
 							<p>
-								<CalendarOutlined /> Ngay tao: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}
+								<CalendarOutlined /> Ngày tạo: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}
 							</p>
-							<strong>BAC SI DIEU TRI</strong>
+							<strong>BÁC SĨ ĐIỀU TRỊ</strong>
 							<span>{medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || FALLBACK_TEXT}</span>
 						</div>
 					</Card>
 
 					<div className={styles.actionRow}>
 						<Button type="primary" className={styles.saveBtn} icon={<FileTextOutlined />} onClick={handleMedicalBill}>
-							Hoa don benh an
+							Hóa đơn bệnh án
 						</Button>
 					</div>
 				</Spin>
