@@ -15,6 +15,7 @@ import { CiHospital1 } from "react-icons/ci";
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { RoleEnum } from '../../enum/role.enum'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
+import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
 const menuItems = [

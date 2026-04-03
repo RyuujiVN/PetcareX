@@ -29,8 +29,8 @@
 }
 
 .formHeader {
-	background: #fff;
-	border: 1px solid #dfe7ef;
+	background: var(--vet-color-surface-card);
+	border: 1px solid var(--vet-color-border);
 	border-radius: 16px;
 	padding: 14px 16px;
 	position: sticky;
@@ -55,7 +55,7 @@
 	margin: 0;
 	font-size: 18px;
 	font-weight: 800;
-	color: #4672b4;
+	color: var(--vet-color-brand-primary);
 }
 
 .headerLine {
@@ -64,17 +64,17 @@
 	align-items: baseline;
 	font-size: 13px;
 	font-weight: 600;
-	color: #5b6f8f;
+	color: var(--vet-color-text-secondary);
 }
 
 .headerLabel {
 	font-weight: 700;
-	color: #7a8ca6;
+	color: var(--vet-color-text-muted);
 }
 
 .headerValue {
 	font-weight: 700;
-	color: #1d2f4f;
+	color: var(--vet-color-text-primary);
 }
 
 .tabsRoot {
@@ -85,15 +85,15 @@
 
 .sectionCard {
 	border-radius: 16px;
-	border: 1px solid #dde5ee;
-	box-shadow: 0 3px 14px rgba(31, 54, 84, 0.05);
+	border: 1px solid var(--vet-color-border);
+	box-shadow: var(--vet-shadow-md);
 	margin-bottom: 12px;
 }
 
 .sectionCard :global(.ant-card-head-title) {
 	font-size: 18px;
 	font-weight: 800;
-	color: #1d304d;
+	color: var(--vet-color-text-primary);
 }
 
 .sectionCard :global(.ant-card-head-title span) {
@@ -105,7 +105,7 @@
 .sectionCard :global(.ant-form-item-label > label) {
 	font-size: 12px;
 	font-weight: 700;
-	color: #73859d;
+	color: var(--vet-color-text-muted);
 }
 
 .fullWidth {
@@ -120,8 +120,8 @@
 }
 
 .vitalBox {
-	background: #f6f9fc;
-	border: 1px solid #e2eaf2;
+	background: var(--vet-color-surface-page);
+	border: 1px solid var(--vet-color-border-soft);
 	border-radius: 12px;
 	padding: 10px;
 }
@@ -130,7 +130,7 @@
 	margin: 0 0 8px;
 	font-size: 12px;
 	font-weight: 700;
-	color: #73859d;
+	color: var(--vet-color-text-muted);
 }
 
 .bpGrid {
@@ -144,7 +144,7 @@
 }
 
 .dynamicTable {
-	border: 1px solid #e1e8f0;
+	border: 1px solid var(--vet-color-border-soft);
 	border-radius: 12px;
 	overflow: hidden;
 }
@@ -159,14 +159,14 @@
 }
 
 .dynamicHead {
-	background: #f7fafc;
+	background: var(--vet-color-surface-page);
 	font-size: 12px;
 	font-weight: 700;
-	color: #73859d;
+	color: var(--vet-color-text-muted);
 }
 
 .dynamicRow {
-	border-top: 1px solid #ebf0f5;
+	border-top: 1px solid var(--vet-color-border-soft);
 }
 
 .dynamicHeadMedicine,
@@ -179,14 +179,14 @@
 }
 
 .dynamicHeadMedicine {
-	background: #f7fafc;
+	background: var(--vet-color-surface-page);
 	font-size: 12px;
 	font-weight: 700;
-	color: #73859d;
+	color: var(--vet-color-text-muted);
 }
 
 .dynamicRowMedicine {
-	border-top: 1px solid #ebf0f5;
+	border-top: 1px solid var(--vet-color-border-soft);
 }
 
 .adviceDivider {
@@ -204,19 +204,19 @@
 .doctorSign p {
 	margin: 0;
 	font-size: 12px;
-	color: #6d809a;
+	color: var(--vet-color-text-disabled);
 	font-weight: 600;
 }
 
 .doctorSign strong {
 	font-size: 13px;
-	color: #1f334f;
+	color: var(--vet-color-text-primary);
 }
 
 .doctorSign span {
 	font-size: 14px;
 	font-weight: 700;
-	color: #1f334f;
+	color: var(--vet-color-text-primary);
 }
 
 .footerActions {
@@ -242,21 +242,21 @@
 	margin: 0;
 	font-size: 12px;
 	font-weight: 700;
-	color: #73859d;
+	color: var(--vet-color-text-muted);
 }
 
 .historyTitle {
 	margin: 0;
 	font-size: 20px;
 	font-weight: 800;
-	color: #1d304d;
+	color: var(--vet-color-text-primary);
 }
 
 .historySub {
 	margin: 4px 0 0;
 	font-size: 14px;
 	font-weight: 600;
-	color: #7e8fa5;
+	color: var(--vet-color-text-disabled);
 }
 
 .historyMetaGrid {
@@ -268,7 +268,7 @@
 
 .historyMetaGrid span {
 	font-size: 12px;
-	color: #7e8fa5;
+	color: var(--vet-color-text-disabled);
 	font-weight: 600;
 }
 
@@ -276,7 +276,7 @@
 	display: block;
 	margin-top: 2px;
 	font-size: 14px;
-	color: #1d304d;
+	color: var(--vet-color-text-primary);
 	font-weight: 700;
 }
 
@@ -284,10 +284,10 @@
 	min-height: 280px;
 	display: grid;
 	place-items: center;
-	background: #fff;
+	background: var(--vet-color-surface-card);
 	border-radius: 16px;
-	border: 1px dashed #d9e2ec;
-	color: #7c8ea6;
+	border: 1px dashed var(--vet-color-border);
+	color: var(--vet-color-text-disabled);
 	font-weight: 600;
 }
 
@@ -298,11 +298,11 @@
 }
 
 .historyRecord {
-	background: #fff;
+	background: var(--vet-color-surface-card);
 	border-radius: 16px;
-	border: 1px solid #e1e8f0;
+	border: 1px solid var(--vet-color-border-soft);
 	padding: 14px 16px;
-	box-shadow: 0 3px 12px rgba(31, 54, 84, 0.05);
+	box-shadow: var(--vet-shadow-md);
 }
 
 .historyRecordHeader {
@@ -328,9 +328,9 @@
 
 .historyExpandButton {
 	border-radius: 10px;
-	border: 1px solid #d6e1ed;
-	background: #f4f8fc;
-	color: #2b5174;
+	border: 1px solid var(--vet-color-border-strong);
+	background: var(--vet-color-surface-page);
+	color: var(--vet-color-text-primary);
 	font-size: 12px;
 	font-weight: 700;
 	padding: 6px 10px;
@@ -344,21 +344,21 @@
 	margin: 0 0 4px;
 	font-size: 16px;
 	font-weight: 800;
-	color: #1d304d;
+	color: var(--vet-color-text-primary);
 }
 
 .historyRecordHeader p {
 	margin: 0;
 	font-size: 13px;
-	color: #7e8fa5;
+	color: var(--vet-color-text-disabled);
 	font-weight: 600;
 }
 
 .historyStatus {
 	padding: 4px 10px;
 	border-radius: 999px;
-	background: #e7f3ff;
-	color: #2563eb;
+	background: var(--vet-color-accent-soft);
+	color: var(--vet-color-brand-primary);
 	font-size: 12px;
 	font-weight: 700;
 }
@@ -389,14 +389,14 @@
 .historyRecordBody span {
 	font-size: 12px;
 	font-weight: 700;
-	color: #73859d;
+	color: var(--vet-color-text-muted);
 	margin-right: 6px;
 }
 
 .historyRecordBody strong {
 	font-size: 14px;
 	font-weight: 600;
-	color: #1d304d;
+	color: var(--vet-color-text-primary);
 }
 
 .historyRecordLists {
@@ -405,20 +405,20 @@
 	gap: 16px;
 	margin-top: 12px;
 	padding-top: 12px;
-	border-top: 1px solid #edf1f5;
+	border-top: 1px solid var(--vet-color-border-soft);
 }
 
 .historyRecordLists p {
 	margin: 0 0 6px;
 	font-size: 13px;
 	font-weight: 700;
-	color: #1d304d;
+	color: var(--vet-color-text-primary);
 }
 
 .historyRecordLists ul {
 	margin: 0;
 	padding-left: 18px;
-	color: #51627a;
+	color: var(--vet-color-text-secondary);
 	font-size: 13px;
 }
 
@@ -435,21 +435,21 @@
 }
 
 .cancelBtn {
-	background: #e8edf4;
+	background: var(--vet-btn-cancel-bg);
 	border: none;
-	color: #7d8ea4;
+	color: var(--vet-btn-cancel-text);
 }
 
 .saveBtn {
-	background: #4672b4 !important;
-	border-color: #4672b4 !important;
+	background: var(--vet-btn-primary-bg) !important;
+	border-color: var(--vet-btn-primary-bg) !important;
 	color: #fff !important;
 	box-shadow: none;
 }
 
 .saveBtn:hover {
-	background: #13c1b6 !important;
-	border-color: #13c1b6 !important;
+	background: var(--vet-btn-primary-hover-bg) !important;
+	border-color: var(--vet-btn-primary-hover-bg) !important;
 }
 
 @media (max-width: 992px) {

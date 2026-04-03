@@ -368,6 +368,9 @@ Luồng đang chạy:
 ### 2) Hồ sơ bệnh án
 - `ListMedicalRecords`: lấy từ API appointment theo ngày, xem chi tiết hồ sơ.
 - `ViewPetMedicalRecords`: lấy medical records thật theo `petId/medicalId`, render timeline.
+  - Giao diện đã đồng bộ với client MedicalRecords: timeline marker, meta grid (phòng khám/bác sĩ/ngày tạo/ngày tái khám), icon pet giống nhau.
+  - Gọi trực tiếp `GET /api/pet/{id}` để lấy đầy đủ thông tin thú cưng (dateOfBirth, breed, gender, weight) thay vì chỉ dựa vào nested pet data trong medical record.
+  - Enrich records với medical orders + medicines để hiển thị đơn thuốc trong chi tiết.
 - Timeline chi tiết hiển thị thêm chỉ số sinh tồn và map tên phiếu khám theo enum dịch vụ.
 - Ngày tái khám trống hiển thị `Không`, đơn thuốc hiển thị đơn vị nếu có.
 
@@ -419,12 +422,15 @@ Luồng đang chạy:
 ## Styling & Design System
 
 ### 1) Token CSS
-- `src/styles/client/colorsToken.css`
-- `src/styles/adminClinic/colorsToken.css`
-- `src/styles/admin/colorsToken.css` (biến màu riêng cho super admin: sidebar dark, stat cards, brand)
+- `src/styles/client/colorsToken.css` — biến màu cho client portal (prefix `--color-*`, `--page-*`).
+- `src/styles/Clinic/colorsToken.css` — biến màu cho admin clinic portal (prefix `--color-*`, `--page-*`).
+- `src/styles/admin/colorsToken.css` — biến màu riêng cho super admin: sidebar dark, stat cards, brand (prefix `--admin-*`).
+- `src/styles/vererianrian/colorsToken.css` — biến màu cho veterinarian portal (prefix `--vet-*`): brand, surface, border, text, status tag, pet card, record meta, shadow, button, timeline marker.
 
 Thư mục `styles/admin/colorsToken.css` chứa thêm biến sidebar dark theme (`--admin-sidebar-*`) và stat cards (`--admin-stat-*`).
 Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
+
+**Quy ước veterinarian CSS**: Toàn bộ CSS module trong `pages/Vererianrian/` và `layouts/Vererianrian/` đã chuyển sang dùng CSS variables `--vet-*` thay vì hardcode màu. File token được import tại `AdminVererianrianLayout.jsx`.
 
 ### 2) Global style
 - `src/index.css` chứa:
@@ -507,7 +513,8 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 - `src/socket/socket.js` dùng cố định `http://localhost:3000/chat`, chưa đưa vào env.
 
 ### 6) Token CSS trùng lặp
-- Client/Admin token gần như giống nhau, nên cân nhắc single source.
+- Client/Clinic token gần như giống nhau, nên cân nhắc single source.
+- Veterinarian token (`--vet-*`) đã tách riêng và áp dụng cho toàn bộ portal bác sĩ.
 
 ### 7) Một số dữ liệu UI vẫn hardcoded
 - Nhiều block marketing và thông tin clinic (rating/time/demo content).

@@ -4,11 +4,11 @@
 }
 
 .tablePanel {
-	background: #fff;
+	background: var(--vet-color-surface-card);
 	border-radius: 16px;
-	border: 1px solid #dde5ee;
+	border: 1px solid var(--vet-color-border);
 	overflow: hidden;
-	box-shadow: 0 4px 18px rgba(32, 53, 81, 0.06);
+	box-shadow: var(--vet-shadow-card);
 }
 
 .tablePanelHeader {
@@ -16,7 +16,7 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 14px 16px;
-	border-bottom: 1px solid #ebf0f5;
+	border-bottom: 1px solid var(--vet-color-border-soft);
 }
 
 .headerActions {
@@ -29,13 +29,13 @@
 	margin: 0;
 	font-size: 24px;
 	font-weight: 800;
-	color: #233952;
+	color: var(--vet-color-text-heading);
 }
 
 .panelTitle {
 	margin: 0 !important;
 	font-size: 20px !important;
-	color: #1d2f4f !important;
+	color: var(--vet-color-text-primary) !important;
 }
 
 .datePicker {
@@ -47,14 +47,13 @@
 	padding: 0 16px;
 	border-radius: 999px;
 	font-weight: 700;
-	background: #e76b3c !important;
-	border-color: #e76b3c !important;
+	background: var(--vet-color-danger) !important;
+	border-color: var(--vet-color-danger) !important;
 	color: #fff !important;
 }
 
 .emergencyBtn:hover {
-	background: #d65f34 !important;
-	border-color: #d65f34 !important;
+	opacity: 0.9;
 }
 
 .tableWrap {
@@ -68,14 +67,14 @@
 }
 
 .tableWrap thead {
-	background: #f8fafc;
+	background: var(--vet-color-surface-page);
 }
 
 .tableWrap th {
 	padding: 14px 16px;
 	font-size: 14px;
 	font-weight: 800;
-	color: #74859d;
+	color: var(--vet-color-text-muted);
 	text-align: left;
 	letter-spacing: 0.02em;
 	white-space: nowrap;
@@ -85,8 +84,8 @@
 	padding: 12px 16px;
 	font-size: 16px;
 	font-weight: 600;
-	color: #243a54;
-	border-top: 1px solid #edf1f5;
+	color: var(--vet-color-text-primary);
+	border-top: 1px solid var(--vet-color-border-soft);
 	vertical-align: middle;
 }
 
@@ -100,10 +99,10 @@
 	width: 48px;
 	height: 48px;
 	border-radius: 50%;
-	background: #eff4fa;
-	color: #5d7591;
+	background: var(--vet-color-surface-page);
+	color: var(--vet-color-text-secondary);
 	font-weight: 800;
-	border: 1px solid #d8e2ed;
+	border: 1px solid var(--vet-color-border-strong);
 }
 
 .petInfo {
@@ -114,7 +113,7 @@
 
 .petInfo strong {
 	font-size: 18px;
-	color: #1f344e;
+	color: var(--vet-color-text-primary);
 	line-height: 1.2;
 	font-weight: 800;
 }
@@ -123,7 +122,7 @@
 	margin: 0;
 	font-size: 16px;
 	font-weight: 600;
-	color: #8a99ad;
+	color: var(--vet-color-text-disabled);
 }
 
 .actionWrap {
@@ -146,24 +145,24 @@
 }
 
 .createBtn {
-	background: #4672b4 !important;
+	background: var(--vet-btn-primary-bg) !important;
 	color: #fff !important;
 	box-shadow: none;
 }
 
 .createBtn:hover {
-	background: #3d64a0 !important;
+	background: var(--vet-btn-primary-hover-bg) !important;
 	color: #fff !important;
 }
 
 .deleteBtn {
-	background: #e7edf4;
-	color: #7d8ca1;
+	background: var(--vet-btn-cancel-bg);
+	color: var(--vet-btn-cancel-text);
 }
 
 .deleteBtn:hover {
 	background: #d5dfea;
-	color: #4f5f76 !important;
+	color: var(--vet-color-text-secondary) !important;
 }
 
 .footerRow {
@@ -171,15 +170,15 @@
 	justify-content: space-between;
 	align-items: center;
 	padding: 12px 16px;
-	border-top: 1px solid #edf1f5;
-	background: #fff;
+	border-top: 1px solid var(--vet-color-border-soft);
+	background: var(--vet-color-surface-card);
 }
 
 .footerRow p {
 	margin: 0;
 	font-size: 16px;
 	font-weight: 600;
-	color: #788aa0;
+	color: var(--vet-color-text-disabled);
 }
 
 .paginationArrows {
@@ -192,7 +191,7 @@
 	min-height: 320px;
 	display: grid;
 	place-items: center;
-	background: #fff;
+	background: var(--vet-color-surface-card);
 }
 
 @media (max-width: 992px) {

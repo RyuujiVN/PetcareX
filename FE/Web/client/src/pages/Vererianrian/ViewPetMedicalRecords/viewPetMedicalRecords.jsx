@@ -1,18 +1,21 @@
 import {
-	CalendarOutlined,
 	DownOutlined,
-	MedicineBoxOutlined,
 	UpOutlined,
-	UserOutlined
 } from '@ant-design/icons'
 import { Spin, message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
+import { FaCakeCandles, FaDog, FaMars } from 'react-icons/fa6'
+import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import {
 	getMedicalById,
 	getMedicalByPetId,
+	getMedicalOrdersByMedicalId,
+	getMedicinesByMedicalId,
 } from '../../../data/Vererianrian/api/medicalApi'
-import { getMedicalRecordStatusLabel, getPetBreedLabel, getServiceLabel } from '../../../utils/enumLabel'
+import { getVeterinarianPetByIdApi } from '../../../data/Vererianrian/api/petApi'
+import { getBreedLabel } from '../../../data/client/api/petApi'
+import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
 
 const DEFAULT_PET = {
@@ -97,7 +100,7 @@ const toPetSummary = (pet) => {
 	return {
 		name: pet?.name || DEFAULT_PET.name,
 		avatar: pet?.avatar || '',
-		breedText: getPetBreedLabel(pet?.breed || pet?.breedName, pet?.species, 'Chưa cập nhật giống'),
+		breedText: getBreedLabel(pet?.breed || pet?.breedName, pet?.species) || 'Chưa cập nhật giống',
 		rawBirthday: pet?.dateOfBirth || '',
 		birthday: formatDate(pet?.dateOfBirth),
 		ageText: getAgeText(pet?.dateOfBirth),
@@ -106,17 +109,37 @@ const toPetSummary = (pet) => {
 	}
 }
 
-const parseConclusionSummary = (conclusionText) => {
-	const raw = String(conclusionText || '').trim()
-	if (!raw) return 'Chưa cập nhật'
-
-	const summaryMatch = raw.match(/Ket\s*luan\s*:\s*([^\n]+)/i)
-	return summaryMatch?.[1]?.trim() || raw
+const resolveMedicineUnitLabel = (item) => {
+	const unitValue =
+		item?.medicine?.unit ||
+		item?.medicine?.medicineUnit ||
+		item?.medicine?.unitType ||
+		item?.unit ||
+		item?.unitType ||
+		''
+	if (!unitValue) return ''
+	return getMedicineUnitLabel(unitValue, unitValue)
 }
 
-const toTimelineRecord = (record) => {
+const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 	const done = Boolean(record?.conclusion)
-	const conclusionSummary = parseConclusionSummary(record?.conclusion)
+
+	const medicineSummary =
+		medicines.length > 0
+			? medicines.map((medicine, index) => {
+					const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
+					const unitLabel = resolveMedicineUnitLabel(medicine)
+					const quantity = medicine.quantity
+						? ` (${medicine.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
+						: ''
+
+					return (
+						<div key={index}>
+							{medicineName}{quantity}
+						</div>
+					)
+				})
+			: 'Chưa kê thuốc'
 
 	const vitalRows = [
 		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
@@ -126,11 +149,11 @@ const toTimelineRecord = (record) => {
 	]
 
 	const detailRows = [
-		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
-		{ label: 'Kết luận', value: conclusionSummary },
 		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
+		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
+		{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
+		{ label: 'Thuốc', value: medicineSummary },
 		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
-		{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
 	]
 
 	return {
@@ -139,6 +162,14 @@ const toTimelineRecord = (record) => {
 		status: getMedicalRecordStatusLabel(done, { uppercase: true }),
 		statusType: done ? 'done' : 'pending',
 		examDate: resolveExamDate(record),
+		leftInfo: [
+			{ label: 'Tên phòng khám', value: record?.clinic?.name || 'Chưa cập nhật' },
+			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
+		],
+		rightInfo: [
+			{ label: 'Tên bác sĩ', value: record?.veterinarian?.fullName || 'Chưa cập nhật' },
+			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
+		],
 		vitalRows,
 		detailRows,
 	}
@@ -159,6 +190,18 @@ export default function ViewPetMedicalRecords() {
 	const loadMedicalTimeline = useCallback(async () => {
 		try {
 			setLoading(true)
+
+			// Fetch pet detail from API if petId is available
+			if (petId) {
+				try {
+					const petDetail = await getVeterinarianPetByIdApi(petId)
+					if (petDetail) {
+						setPetSummary(toPetSummary(petDetail))
+					}
+				} catch {
+					// fallback to record data below
+				}
+			}
 
 			let records = []
 			if (medicalId) {
@@ -208,12 +251,34 @@ export default function ViewPetMedicalRecords() {
 				return bTime - aTime
 			})
 
-			setTimeline(records.map((record) => toTimelineRecord(record)))
+			const enrichedRecords = await Promise.all(
+				records.map(async (record) => {
+					const [medicalOrders, medicines] = await Promise.all([
+						getMedicalOrdersByMedicalId(record.id).catch(() => []),
+						getMedicinesByMedicalId(record.id).catch(() => []),
+					])
+
+					return {
+						record,
+						medicalOrders: Array.isArray(medicalOrders) ? medicalOrders : [],
+						medicines: Array.isArray(medicines) ? medicines : [],
+					}
+				}),
+			)
+
+			setTimeline(
+				enrichedRecords.map(({ record, medicalOrders, medicines }) =>
+					toTimelineRecord(record, medicalOrders, medicines),
+				),
+			)
 			setExpandedRecords(new Set())
 
-			const firstPet = records[0]?.pet
-			if (firstPet) {
-				setPetSummary(toPetSummary(firstPet))
+			// Use pet info from API if already fetched, otherwise fallback to record data
+			if (!petId) {
+				const firstPet = records[0]?.pet
+				if (firstPet) {
+					setPetSummary(toPetSummary(firstPet))
+				}
 			}
 		} catch (error) {
 			setTimeline([])
@@ -240,8 +305,7 @@ export default function ViewPetMedicalRecords() {
 		loadMedicalTimeline()
 	}, [loadMedicalTimeline])
 
-	const petAgeText = getAgeText(selectedRecord?.petDateOfBirth || petSummary.rawBirthday)
-	const petSubtitle = `${petSummary.breedText} · ${petAgeText || petSummary.ageText} · ${petSummary.weight}`
+	const petSubtitle = `${petSummary.breedText} • ${petSummary.weight}`
 
 	return (
 		<div className={styles.pageRoot}>
@@ -255,23 +319,28 @@ export default function ViewPetMedicalRecords() {
 						<img src={petSummary.avatar} alt={petSummary.name} className={styles.petAvatar} />
 					) : (
 						<div className={styles.petAvatarFallback}>
-							<UserOutlined />
+							<FaDog />
 						</div>
 					)}
 
 					<div>
 						<h2>{petSummary.name}</h2>
 						<p className={styles.petMeta}>{petSubtitle}</p>
-						<p className={styles.petSubMeta}>
-							<CalendarOutlined /> {petSummary.birthday} <span>•</span> {petSummary.gender}
-						</p>
+						<div className={styles.petSubMeta}>
+							<span>
+								<FaCakeCandles /> {petSummary.birthday}
+							</span>
+							<span style={{ marginLeft: 8 }}>
+								<FaMars /> {petSummary.gender}
+							</span>
+						</div>
 					</div>
 				</div>
 			</section>
 
 			<section className={styles.timelinePanel}>
 				<h3>
-					<MedicineBoxOutlined /> Dòng thời gian sức khỏe
+					<MdHealthAndSafety /> Dòng thời gian sức khỏe
 				</h3>
 
 				{loading ? (
@@ -287,13 +356,14 @@ export default function ViewPetMedicalRecords() {
 
 							return (
 								<div key={item.id} className={styles.timelineItem}>
+									<div className={styles.timelineMarker}>
+										<MdHealthAndSafety />
+									</div>
+
 									<div className={styles.timelineCard}>
 										<div className={styles.cardHeader}>
 											<div className={styles.headerMain}>
 												<h4 className={styles.cardTitle}>{item.title}</h4>
-												<p className={styles.recordDate}>
-													<CalendarOutlined /> {item.examDate}
-												</p>
 											</div>
 
 											<div className={styles.headerActions}>
@@ -309,6 +379,23 @@ export default function ViewPetMedicalRecords() {
 													{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
 													{isExpanded ? <UpOutlined /> : <DownOutlined />}
 												</button>
+											</div>
+										</div>
+
+										<div className={styles.recordMetaGrid}>
+											<div>
+												{item.leftInfo.map((line) => (
+													<p key={`${item.id}-${line.label}-left`}>
+														<strong>{line.label}:</strong> {line.value}
+													</p>
+												))}
+											</div>
+											<div>
+												{item.rightInfo.map((line) => (
+													<p key={`${item.id}-${line.label}-right`}>
+														<strong>{line.label}:</strong> {line.value}
+													</p>
+												))}
 											</div>
 										</div>
 
