@@ -211,12 +211,16 @@ Luồng đang chạy:
 ### 7) Medical Records
 - List pet trước khi vào hồ sơ.
 - Medical records lấy theo `petId` hoặc `medicalId`.
-- Enrich từng record bằng medical orders + medicines.
+- Các màn chi tiết có thể enrich record bằng medical orders + medicines (ví dụ: RecordExaminationForm).
 - Render timeline + reminder block.
 - Tên phiếu khám được map từ enum dịch vụ sang tiếng Việt (nếu backend trả enum).
 - Ngày tái khám không có dữ liệu hiển thị `Không` thay vì `Chưa cập nhật`.
 - Timeline chi tiết bổ sung các chỉ số sinh tồn (cân nặng, nhiệt độ, nhịp tim, huyết áp).
 - Đơn thuốc hiển thị thêm đơn vị (Viên, Gói, Ống...) nếu có.
+- View hồ sơ y tế bác sĩ chuyển sang dạng card thu gọn: chỉ hiển thị tên phiếu khám + ngày khám, ẩn tên phòng khám/bác sĩ.
+- Bấm `Xem chi tiết` để mở toàn bộ chỉ số sinh tồn và nội dung chẩn đoán/kết luận/triệu chứng/lời dặn.
+- Danh sách được sắp xếp mới nhất trước để giảm thao tác cuộn khi có nhiều hồ sơ.
+- Tab `Hồ sơ y tế` trong RecordExaminationForm dùng cơ chế thu gọn tương tự để tránh danh sách quá dài.
 
 ### 8) Forum
 - Đã nối API thật:

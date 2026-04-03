@@ -1,16 +1,16 @@
 import {
 	CalendarOutlined,
+	DownOutlined,
 	MedicineBoxOutlined,
+	UpOutlined,
 	UserOutlined
 } from '@ant-design/icons'
 import { Spin, message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useSearchParams } from 'react-router-dom'
 import {
 	getMedicalById,
 	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
 } from '../../../data/Vererianrian/api/medicalApi'
 import { getMedicalRecordStatusLabel, getPetBreedLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
@@ -20,6 +20,8 @@ const DEFAULT_PET = {
 	avatar: '',
 	breedText: 'Chưa cập nhật giống',
 	birthday: 'Chưa cập nhật',
+	rawBirthday: '',
+	ageText: 'Chưa cập nhật tuổi',
 	gender: 'Chưa cập nhật',
 	weight: 'Chưa cập nhật',
 }
@@ -30,6 +32,15 @@ const formatDate = (value) => {
 	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
 	return date.toLocaleDateString('vi-VN')
 }
+
+const resolveExamDate = (record) =>
+	formatDate(
+		record?.appointment?.appointmentDate ||
+			record?.appointmentDate ||
+			record?.examDate ||
+			record?.visitDate ||
+			record?.createdAt,
+	)
 
 const formatFollowUpDate = (value) => {
 	const resolved = formatDate(value)
@@ -87,18 +98,12 @@ const toPetSummary = (pet) => {
 		name: pet?.name || DEFAULT_PET.name,
 		avatar: pet?.avatar || '',
 		breedText: getPetBreedLabel(pet?.breed || pet?.breedName, pet?.species, 'Chưa cập nhật giống'),
+		rawBirthday: pet?.dateOfBirth || '',
 		birthday: formatDate(pet?.dateOfBirth),
+		ageText: getAgeText(pet?.dateOfBirth),
 		gender: formatGender(pet?.gender),
 		weight: pet?.weight ? `${pet.weight} kg` : DEFAULT_PET.weight,
 	}
-}
-
-const normalizeMedicineCode = (medicalOrders = [], medicines = []) => {
-	const firstOrder = medicalOrders[0]
-	if (firstOrder?.medicalOrder?.code) return firstOrder.medicalOrder.code
-	if (firstOrder?.medicalOrder?.id) return `MO-${firstOrder.medicalOrder.id}`
-	if (medicines[0]?.medicine?.id) return `RX-${medicines[0].medicine.id}`
-	return 'Chưa cập nhật'
 }
 
 const parseConclusionSummary = (conclusionText) => {
@@ -109,46 +114,43 @@ const parseConclusionSummary = (conclusionText) => {
 	return summaryMatch?.[1]?.trim() || raw
 }
 
-const toTimelineRecord = (record, medicalOrders = [], medicines = []) => {
+const toTimelineRecord = (record) => {
 	const done = Boolean(record?.conclusion)
 	const conclusionSummary = parseConclusionSummary(record?.conclusion)
+
+	const vitalRows = [
+		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
+		{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
+		{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
+		{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
+	]
+
+	const detailRows = [
+		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
+		{ label: 'Kết luận', value: conclusionSummary },
+		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
+		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
+		{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
+	]
 
 	return {
 		id: String(record?.id || Math.random()),
 		title: resolveRecordTitle(record?.name),
 		status: getMedicalRecordStatusLabel(done, { uppercase: true }),
 		statusType: done ? 'done' : 'pending',
-		leftInfo: [
-			{ label: 'Mã hồ sơ', value: record?.id || 'Chưa cập nhật' },
-			{ label: 'Mã phòng khám', value: record?.clinic?.id || 'Chưa cập nhật' },
-			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
-		],
-		rightInfo: [
-			{ label: 'Tên thú cưng', value: record?.pet?.name || 'Chưa cập nhật' },
-			{ label: 'Tên bác sĩ', value: record?.veterinarian?.fullName || 'Chưa cập nhật' },
-			{ label: 'Mã đơn thuốc', value: normalizeMedicineCode(medicalOrders, medicines) },
-		],
-		details: [
-			{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
-			{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
-			{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
-			{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
-			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
-			{ label: 'Kết luận', value: conclusionSummary },
-			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
-			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
-			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
-		],
+		examDate: resolveExamDate(record),
+		vitalRows,
+		detailRows,
 	}
 }
 
 export default function ViewPetMedicalRecords() {
-	const navigate = useNavigate()
 	const location = useLocation()
 	const [searchParams] = useSearchParams()
 	const [loading, setLoading] = useState(false)
 	const [timeline, setTimeline] = useState([])
 	const [petSummary, setPetSummary] = useState(DEFAULT_PET)
+	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
 
 	const selectedRecord = location?.state?.record
 	const medicalId = searchParams.get('medicalId')
@@ -203,29 +205,13 @@ export default function ViewPetMedicalRecords() {
 			records.sort((a, b) => {
 				const aTime = new Date(a?.createdAt || 0).getTime()
 				const bTime = new Date(b?.createdAt || 0).getTime()
-				return aTime - bTime
+				return bTime - aTime
 			})
 
-			const enriched = await Promise.all(
-				records.map(async (record) => {
-					const [orders, medicines] = await Promise.all([
-						getMedicalOrdersByMedicalId(record.id).catch(() => []),
-						getMedicinesByMedicalId(record.id).catch(() => []),
-					])
+			setTimeline(records.map((record) => toTimelineRecord(record)))
+			setExpandedRecords(new Set())
 
-					return {
-						record,
-						orders: Array.isArray(orders) ? orders : [],
-						medicines: Array.isArray(medicines) ? medicines : [],
-					}
-				}),
-			)
-
-			setTimeline(
-				enriched.map(({ record, orders, medicines }) => toTimelineRecord(record, orders, medicines)),
-			)
-
-			const firstPet = enriched[0]?.record?.pet
+			const firstPet = records[0]?.pet
 			if (firstPet) {
 				setPetSummary(toPetSummary(firstPet))
 			}
@@ -238,13 +224,24 @@ export default function ViewPetMedicalRecords() {
 		}
 	}, [medicalId, petId, selectedRecord])
 
+	const toggleExpandedRecord = useCallback((recordId) => {
+		setExpandedRecords((prev) => {
+			const next = new Set(prev)
+			if (next.has(recordId)) {
+				next.delete(recordId)
+			} else {
+				next.add(recordId)
+			}
+			return next
+		})
+	}, [])
+
 	useEffect(() => {
 		loadMedicalTimeline()
 	}, [loadMedicalTimeline])
 
-	const petSubtitle = `${petSummary.breedText} · ${getAgeText(
-		selectedRecord?.petDateOfBirth || (petSummary.birthday !== 'Chưa cập nhật' ? petSummary.birthday : ''),
-	)} · ${petSummary.weight}`
+	const petAgeText = getAgeText(selectedRecord?.petDateOfBirth || petSummary.rawBirthday)
+	const petSubtitle = `${petSummary.breedText} · ${petAgeText || petSummary.ageText} · ${petSummary.weight}`
 
 	return (
 		<div className={styles.pageRoot}>
@@ -285,48 +282,61 @@ export default function ViewPetMedicalRecords() {
 					<div className={styles.emptyState}>Không có dữ liệu hồ sơ bệnh án để hiển thị.</div>
 				) : (
 					<div className={styles.timelineWrap}>
-						{timeline.map((item, index) => (
-							<div key={item.id} className={styles.timelineItem}>
-								<div className={styles.timelineMarker}>{index + 1}</div>
+						{timeline.map((item) => {
+							const isExpanded = expandedRecords.has(item.id)
 
-								<div className={styles.timelineCard}>
-									<div className={styles.cardHeader}>
-										<h4>{item.title}</h4>
-										<span className={`${styles.statusTag} ${styles[item.statusType]}`}>
-											{item.status}
-										</span>
-									</div>
-
-									<div className={styles.metaGrid}>
-										<div>
-											{item.leftInfo.map((line) => (
-												<p key={`${item.id}-${line.label}-left`}>
-													<strong>{line.label}:</strong> {line.value}
+							return (
+								<div key={item.id} className={styles.timelineItem}>
+									<div className={styles.timelineCard}>
+										<div className={styles.cardHeader}>
+											<div className={styles.headerMain}>
+												<h4 className={styles.cardTitle}>{item.title}</h4>
+												<p className={styles.recordDate}>
+													<CalendarOutlined /> {item.examDate}
 												</p>
-											))}
+											</div>
+
+											<div className={styles.headerActions}>
+												<span className={`${styles.statusTag} ${styles[item.statusType]}`}>
+													{item.status}
+												</span>
+												<button
+													type="button"
+													className={styles.expandButton}
+													onClick={() => toggleExpandedRecord(item.id)}
+													aria-expanded={isExpanded}
+												>
+													{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
+													{isExpanded ? <UpOutlined /> : <DownOutlined />}
+												</button>
+											</div>
 										</div>
 
-										<div>
-											{item.rightInfo.map((line) => (
-												<p key={`${item.id}-${line.label}-right`}>
-													<strong>{line.label}:</strong> {line.value}
-												</p>
-											))}
-										</div>
-									</div>
-
-									<div className={styles.divider} />
-
-									<div className={styles.detailsBlock}>
-										{item.details.map((detail) => (
-											<p key={`${item.id}-${detail.label}`}>
-												<span>{detail.label}:</span> {detail.value}
-											</p>
-										))}
+										{isExpanded ? (
+											<>
+												<div className={styles.divider} />
+												<div className={styles.detailsBlock}>
+													<div className={styles.detailVitalsGrid}>
+														{item.vitalRows.map((detail) => (
+															<p key={`${item.id}-${detail.label}`}>
+																<span>{detail.label}:</span> {detail.value}
+															</p>
+														))}
+													</div>
+													<div className={styles.detailColumn}>
+														{item.detailRows.map((detail) => (
+															<p key={`${item.id}-${detail.label}`}>
+																<span>{detail.label}:</span> {detail.value}
+															</p>
+														))}
+													</div>
+												</div>
+											</>
+										) : null}
 									</div>
 								</div>
-							</div>
-						))}
+							)
+						})}
 					</div>
 				)}
 			</section>

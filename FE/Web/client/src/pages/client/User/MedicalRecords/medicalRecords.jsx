@@ -142,6 +142,21 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 	if (medicalOrders.length > 0) markerType = 'vaccine'
 	if (medicines.length > 0) markerType = 'skin'
 
+	const vitalRows = [
+		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
+		{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
+		{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
+		{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
+	]
+
+	const detailRows = [
+		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
+		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
+		{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
+		{ label: 'Thuốc', value: medicineSummary },
+		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
+	]
+
 	return {
 		id: record?.id || `record-${Date.now()}`,
 		markerType,
@@ -160,18 +175,8 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
 
 		],
-		detailRows: [
-			{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
-			{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
-			{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
-			{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
-			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
-			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
-			{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
-			{ label: 'Thuốc', value: medicineSummary },
-			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
-			// { label: 'Phiếu chỉ định', value: orderSummary },
-		],
+		vitalRows,
+		detailRows,
 	}
 }
 
@@ -408,11 +413,20 @@ function MedicalRecords() {
 									<div className={styles.recordDivider} />
 
 									<div className={styles.recordDetails}>
-										{record.detailRows.map((line) => (
-											<p key={`${record.id}-${line.label}`}>
-												<span>{line.label}:</span> {line.value}
-											</p>
-										))}
+										<div className={styles.recordVitalsGrid}>
+											{record.vitalRows.map((line) => (
+												<p key={`${record.id}-${line.label}`}>
+													<span>{line.label}:</span> {line.value}
+												</p>
+											))}
+										</div>
+										<div className={styles.recordDetailColumn}>
+											{record.detailRows.map((line) => (
+												<p key={`${record.id}-${line.label}`}>
+													<span>{line.label}:</span> {line.value}
+												</p>
+											))}
+										</div>
 									</div>
 								</div>
 								</div>

@@ -1,11 +1,13 @@
 import {
 	DeleteOutlined,
+	DownOutlined,
 	ExperimentOutlined,
 	HeartOutlined,
 	ManOutlined,
 	MedicineBoxOutlined,
 	PlusCircleOutlined,
 	SaveOutlined,
+	UpOutlined,
 	UserOutlined,
 	WarningOutlined,
 	WomanOutlined,
@@ -162,6 +164,15 @@ const resolveRecordName = (name, fallback = 'Phiếu khám') => {
 	if (!name) return fallback
 	return getServiceLabel(name, name) || fallback
 }
+
+const resolveRecordExamDate = (record) =>
+	formatDateLabel(
+		record?.appointment?.appointmentDate ||
+			record?.appointmentDate ||
+			record?.examDate ||
+			record?.visitDate ||
+			record?.createdAt,
+	)
 
 const resolveMedicineUnitLabel = (item) => {
 	const unitValue =
@@ -425,6 +436,7 @@ export default function RecordExaminationForm() {
 	const [isDirty, setIsDirty] = useState(false)
 	const [historyLoading, setHistoryLoading] = useState(false)
 	const [historyRecords, setHistoryRecords] = useState([])
+	const [expandedHistoryRecords, setExpandedHistoryRecords] = useState(() => new Set())
 	const [historyPet, setHistoryPet] = useState(null)
 	const [petDetail, setPetDetail] = useState(null)
 	const initialSnapshotRef = useRef('')
@@ -713,6 +725,22 @@ export default function RecordExaminationForm() {
 			active = false
 		}
 	}, [appointment?.pet, appointment?.petRaw, appointment?.pet?.id, appointment?.petRaw?.id, historyPetId, isWalkIn])
+
+	useEffect(() => {
+		setExpandedHistoryRecords(new Set())
+	}, [historyRecords])
+
+	const toggleHistoryRecord = useCallback((recordId) => {
+		setExpandedHistoryRecords((prev) => {
+			const next = new Set(prev)
+			if (next.has(recordId)) {
+				next.delete(recordId)
+			} else {
+				next.add(recordId)
+			}
+			return next
+		})
+	}, [])
 
 	useEffect(() => {
 		if (!editableMedicalId || !editableMedicalCreatedAtMs) {
@@ -1872,99 +1900,125 @@ export default function RecordExaminationForm() {
 							</div>
 						) : (
 							<div className={styles.historyList}>
-								{historyRecords.map(({ record, orders, medicines }, index) => (
-									<div
-										key={record?.id || `${record?.createdAt || 'record'}-${index}`}
-										className={styles.historyRecord}
-									>
-										<div className={styles.historyRecordHeader}>
-											<div>
-												<h4>{resolveRecordName(record?.name)}</h4>
-												<p>{formatDateLabel(record?.createdAt)} · {record?.veterinarian?.fullName || 'Chưa cập nhật bác sĩ'}</p>
-											</div>
-											<span className={styles.historyStatus}>
-												{record?.conclusion ? 'Đã kết luận' : 'Chưa kết luận'}
-											</span>
-										</div>
+								{historyRecords.map(({ record, orders, medicines }, index) => {
+									const recordKey = record?.id || `${record?.createdAt || 'record'}-${index}`
+									const isExpanded = expandedHistoryRecords.has(recordKey)
 
-										<div className={styles.historyRecordBody}>
-											<div>
-												<span>Cân nặng:</span>
-												<strong>{formatVitalValue(record?.weight, 'kg')}</strong>
-											</div>
-											<div>
-												<span>Nhiệt độ:</span>
-												<strong>{formatVitalValue(record?.temperature, '°C')}</strong>
-											</div>
-											<div>
-												<span>Nhịp tim:</span>
-												<strong>{formatVitalValue(record?.heartRate, 'l/p/m')}</strong>
-											</div>
-											<div>
-												<span>Huyết áp:</span>
-												<strong>{formatBloodPressure(record?.systolic, record?.diastolic)}</strong>
-											</div>
-											<div>
-												<span>Chẩn đoán:</span>
-												<strong>{record?.diagnosis || 'Chưa cập nhật'}</strong>
-											</div>
-											<div>
-												<span>Triệu chứng:</span>
-												<strong>{record?.symptoms || 'Chưa cập nhật'}</strong>
-											</div>
-											<div>
-												<span>Kết luận:</span>
-												<strong>{record?.conclusion || 'Chưa cập nhật'}</strong>
-											</div>
-											<div>
-												<span>Ngày tái khám:</span>
-												<strong>{formatFollowUpDateLabel(record?.followUpDate)}</strong>
-											</div>
-										</div>
+									return (
+										<div key={recordKey} className={styles.historyRecord}>
+											<div className={styles.historyRecordHeader}>
+												<div className={styles.historyHeaderMain}>
+													<h4>{resolveRecordName(record?.name)}</h4>
+													<p>{resolveRecordExamDate(record)}</p>
+												</div>
 
-										<div className={styles.historyRecordLists}>
-											<div>
-												<p>Đơn thuốc</p>
-												{medicines.length === 0 ? (
-													<span>Không có đơn thuốc</span>
-												) : (
-													<ul>
-														{medicines.map((item, medicineIndex) => (
-															<li
-																key={
-																	item?.id ||
-																	`${record?.id || 'record'}-medicine-${item?.medicine?.id || medicineIndex}`
-																}
-															>
-																{item?.medicine?.name || item?.medicine?.nameVn || 'Thuốc'}
-																{formatMedicineQuantityLabel(item)}
-															</li>
-														))}
-													</ul>
-												)}
+												<div className={styles.historyHeaderActions}>
+													<span className={styles.historyStatus}>
+														{record?.conclusion ? 'Đã kết luận' : 'Chưa kết luận'}
+													</span>
+													<button
+														type="button"
+														className={styles.historyExpandButton}
+														onClick={() => toggleHistoryRecord(recordKey)}
+														aria-expanded={isExpanded}
+													>
+														{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
+														{isExpanded ? <UpOutlined /> : <DownOutlined />}
+													</button>
+												</div>
 											</div>
-											<div>
-												<p>Chỉ định xét nghiệm</p>
-												{orders.length === 0 ? (
-													<span>Không có chỉ định</span>
-												) : (
-													<ul>
-														{orders.map((item, orderIndex) => (
-															<li
-																key={
-																	item?.id ||
-																	`${record?.id || 'record'}-order-${item?.medicalOrder?.id || orderIndex}`
-																}
-															>
-																{item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || item?.medicalOrder?.name || 'Chỉ định'}
-															</li>
-														))}
-													</ul>
-												)}
-											</div>
+
+											{isExpanded ? (
+												<>
+													<div className={styles.historyRecordBody}>
+														<div className={styles.historyVitalGrid}>
+															<div className={styles.historyField}>
+																<span>Cân nặng:</span>
+																<strong>{formatVitalValue(record?.weight, 'kg')}</strong>
+															</div>
+															<div className={styles.historyField}>
+																<span>Nhiệt độ:</span>
+																<strong>{formatVitalValue(record?.temperature, '°C')}</strong>
+															</div>
+															<div className={styles.historyField}>
+																<span>Nhịp tim:</span>
+																<strong>{formatVitalValue(record?.heartRate, 'l/p/m')}</strong>
+															</div>
+															<div className={styles.historyField}>
+																<span>Huyết áp:</span>
+																<strong>{formatBloodPressure(record?.systolic, record?.diastolic)}</strong>
+															</div>
+														</div>
+														<div className={styles.historyDetailColumn}>
+															<div className={styles.historyField}>
+																<span>Triệu chứng:</span>
+																<strong>{record?.symptoms || 'Chưa cập nhật'}</strong>
+															</div>
+															<div className={styles.historyField}>
+																<span>Chẩn đoán:</span>
+																<strong>{record?.diagnosis || 'Chưa cập nhật'}</strong>
+															</div>
+															<div className={styles.historyField}>
+																<span>Kết luận:</span>
+																<strong>{record?.conclusion || 'Chưa cập nhật'}</strong>
+															</div>
+															<div className={styles.historyField}>
+																<span>Lời dặn bác sĩ:</span>
+																<strong>{record?.note || 'Chưa cập nhật'}</strong>
+															</div>
+															<div className={styles.historyField}>
+																<span>Ngày tái khám:</span>
+																<strong>{formatFollowUpDateLabel(record?.followUpDate)}</strong>
+															</div>
+														</div>
+													</div>
+
+													<div className={styles.historyRecordLists}>
+														<div>
+															<p>Đơn thuốc</p>
+															{medicines.length === 0 ? (
+																<span>Không có đơn thuốc</span>
+															) : (
+																<ul>
+																	{medicines.map((item, medicineIndex) => (
+																		<li
+																			key={
+																				item?.id ||
+																				`${record?.id || 'record'}-medicine-${item?.medicine?.id || medicineIndex}`
+																			}
+																		>
+																			{item?.medicine?.name || item?.medicine?.nameVn || 'Thuốc'}
+																			{formatMedicineQuantityLabel(item)}
+																		</li>
+																	))}
+																</ul>
+															)}
+														</div>
+														<div>
+															<p>Chỉ định xét nghiệm</p>
+															{orders.length === 0 ? (
+																<span>Không có chỉ định</span>
+															) : (
+																<ul>
+																	{orders.map((item, orderIndex) => (
+																		<li
+																			key={
+																				item?.id ||
+																				`${record?.id || 'record'}-order-${item?.medicalOrder?.id || orderIndex}`
+																			}
+																		>
+																			{item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || item?.medicalOrder?.name || 'Chỉ định'}
+																		</li>
+																	))}
+																</ul>
+															)}
+														</div>
+													</div>
+												</>
+											) : null}
 										</div>
-									</div>
-								))}
+									)
+								})}
 							</div>
 						)}
 						</div>

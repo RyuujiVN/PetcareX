@@ -310,6 +310,34 @@
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.historyHeaderMain {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.historyHeaderActions {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin-left: auto;
+}
+
+.historyExpandButton {
+	border-radius: 10px;
+	border: 1px solid #d6e1ed;
+	background: #f4f8fc;
+	color: #2b5174;
+	font-size: 12px;
+	font-weight: 700;
+	padding: 6px 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
 }
 
 .historyRecordHeader h4 {
@@ -337,9 +365,25 @@
 
 .historyRecordBody {
 	display: grid;
+	gap: 12px;
+	margin-top: 12px;
+}
+
+.historyVitalGrid {
+	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	gap: 8px 16px;
-	margin-top: 12px;
+}
+
+.historyDetailColumn {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 8px;
+}
+
+.historyField {
+	display: flex;
+	align-items: flex-start;
 }
 
 .historyRecordBody span {
@@ -424,6 +468,11 @@
 
 	.historyRecordBody {
 		grid-template-columns: minmax(0, 1fr);
+	}
+
+	.historyHeaderActions {
+		width: 100%;
+		justify-content: space-between;
 	}
 
 	.historyRecordLists {
