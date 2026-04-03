@@ -135,7 +135,7 @@
 
 .mainActionBar {
   position: sticky;
-  top: 8px;
+  top: 10px;
   z-index: 55;
   height: 0;
   display: flex;
