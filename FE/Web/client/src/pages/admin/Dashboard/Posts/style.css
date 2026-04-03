@@ -63,7 +63,18 @@
 }
 
 .posts-search {
+  margin-left: 750px;
   width: 320px;
+}
+
+.posts-table-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.posts-topic-filter {
+  width: 170px;
 }
 
 .pagination-bar {
@@ -90,6 +101,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
 /* ── Tags ── */
@@ -150,6 +162,7 @@
 .post-content {
   margin-bottom: 0;
   color: var(--admin-color-text-primary);
+  max-width: 360px;
 }
 
 /* ── Primary button ── */
@@ -161,4 +174,50 @@
 .posts-page .ant-btn-primary:hover {
   background: var(--admin-color-brand-primary-hover);
   border-color: var(--admin-color-brand-primary-hover);
+}
+
+.post-detail-grid {
+  border: 1px solid var(--admin-color-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.post-detail-row {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--admin-color-border);
+}
+
+.post-detail-row:last-child {
+  border-bottom: none;
+}
+
+.post-detail-label {
+  color: var(--admin-color-text-secondary);
+  font-weight: 600;
+}
+
+.post-detail-content {
+  white-space: pre-wrap;
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .posts-table-actions {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .posts-search,
+  .posts-topic-filter {
+    width: 100%;
+  }
+
+  .post-detail-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
 }

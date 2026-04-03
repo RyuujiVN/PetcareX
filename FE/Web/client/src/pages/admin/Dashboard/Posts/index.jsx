@@ -1,5 +1,8 @@
 import {
+  DeleteOutlined,
+  EyeOutlined,
   FileTextOutlined,
+  InfoCircleOutlined,
   LikeOutlined,
   MessageOutlined,
   SearchOutlined,
@@ -12,7 +15,9 @@ import {
   Col,
   Flex,
   Input,
+  Modal,
   Row,
+  Select,
   Space,
   Statistic,
   Table,
@@ -69,6 +74,9 @@ export default function Posts() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [search, setSearch] = useState('')
+  const [topicFilter, setTopicFilter] = useState('ALL')
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [selectedPost, setSelectedPost] = useState(null)
 
   const postsRef = useRef([])
 
@@ -122,20 +130,73 @@ export default function Posts() {
     setSearch(value)
   }
 
+  const handleViewPost = (post) => {
+    setSelectedPost(post)
+    setViewModalOpen(true)
+  }
+
+  const handleDeletePost = (postId) => {
+    setPosts((prev) => prev.filter((item) => item.id !== postId))
+    message.success('Đã xóa bài đăng khỏi danh sách hiển thị')
+  }
+
+  const handleDeleteWithConfirm = (post) => {
+    Modal.confirm({
+      centered: true,
+      title: 'Xác nhận xóa bài đăng',
+      icon: <InfoCircleOutlined style={{ color: 'var(--admin-color-warning)' }} />,
+      content: 'Bạn có chắc muốn xóa bài đăng này không?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: () => {
+        handleDeletePost(post.id)
+      },
+    })
+  }
+
+  const topicOptions = useMemo(() => {
+    const topicMap = new Map()
+    posts.forEach((post) => {
+      const topicName = post?.topic?.nameVn?.trim()
+      if (topicName) topicMap.set(topicName, topicName)
+    })
+
+    const dynamicOptions = Array.from(topicMap.values())
+      .sort((a, b) => a.localeCompare(b, 'vi'))
+      .map((topic) => ({
+        value: topic,
+        label: topic,
+      }))
+
+    return [
+      { value: 'ALL', label: 'Tất cả' },
+      ...dynamicOptions,
+    ]
+  }, [posts])
+
   const filteredPosts = useMemo(() => {
     const keyword = search.trim().toLowerCase()
-    if (!keyword) return posts
     return posts.filter((post) => {
       const authorName = post?.author?.fullName?.toLowerCase() || ''
       const topicName = post?.topic?.nameVn?.toLowerCase() || ''
       const content = cleanContent(post?.content || '').toLowerCase()
-      return (
+      const matchKeyword = !keyword || (
         authorName.includes(keyword) ||
         topicName.includes(keyword) ||
         content.includes(keyword)
       )
+
+      const rawTopic = post?.topic?.nameVn?.trim() || ''
+      const matchTopic = topicFilter === 'ALL'
+        ? true
+        : topicFilter === 'NO_TOPIC'
+          ? !rawTopic
+          : rawTopic === topicFilter
+
+      return matchKeyword && matchTopic
     })
-  }, [posts, search])
+  }, [posts, search, topicFilter])
 
   const stats = useMemo(() => {
     return posts.reduce(
@@ -159,7 +220,6 @@ export default function Posts() {
       render: (_, record) => {
         const authorName = record?.author?.fullName || ''
         const displayName = authorName || '—'
-        const role = record?.author?.role
         return (
           <Space size={12} className="author-cell">
             <Avatar
@@ -175,11 +235,21 @@ export default function Posts() {
               <Typography.Text className="author-name">
                 {displayName}
               </Typography.Text>
-              <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
-                {role ? getRoleLabel(role) : '—'}
-              </Tag>
             </div>
           </Space>
+        )
+      },
+    },
+    {
+      title: 'VAI TRÒ',
+      key: 'role',
+      width: 170,
+      render: (_, record) => {
+        const role = record?.author?.role
+        return (
+          <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
+            {role ? getRoleLabel(role) : 'Không'}
+          </Tag>
         )
       },
     },
@@ -196,7 +266,8 @@ export default function Posts() {
       render: (value) => (
         <Typography.Paragraph
           className="post-content"
-          ellipsis={{ rows: 2 }}
+          ellipsis={{ rows: 1 }}
+          title={cleanContent(value) || ''}
         >
           {cleanContent(value) || '—'}
         </Typography.Paragraph>
@@ -207,6 +278,7 @@ export default function Posts() {
       dataIndex: 'commentCount',
       key: 'commentCount',
       align: 'center',
+      width: 110,
       render: (value) => value ?? 0,
     },
     {
@@ -214,13 +286,35 @@ export default function Posts() {
       dataIndex: 'likeCount',
       key: 'likeCount',
       align: 'center',
+      width: 110,
       render: (value) => value ?? 0,
     },
     {
       title: 'NGÀY ĐĂNG',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      width: 130,
       render: (date) => formatDate(date),
+    },
+    {
+      title: 'THAO TÁC',
+      key: 'action',
+      width: 100,
+      render: (_, record) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewPost(record)}
+          />
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteWithConfirm(record)}
+          />
+        </Space>
+      ),
     },
   ]
 
@@ -266,16 +360,27 @@ export default function Posts() {
               Theo dõi bài viết mới nhất từ cộng đồng
             </Typography.Text>
           </div>
-          <Input.Search
-            className="posts-search"
-            placeholder="Tìm theo tác giả, chủ đề, nội dung"
-            allowClear
-            enterButton={false}
-            value={search}
-            onChange={(event) => handleSearch(event.target.value)}
-            onSearch={handleSearch}
-            prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-          />
+          <div className="posts-table-actions">
+            <Input
+              className="posts-search"
+              placeholder="Tìm theo tác giả, chủ đề, nội dung"
+              allowClear
+              value={search}
+              onChange={(event) => handleSearch(event.target.value)}
+              onPressEnter={(event) => handleSearch(event.target.value)}
+              prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+            />
+          </div>
+          <div className="posts-topic-filter">
+            <Select
+              size='large'
+              className="posts-topic"
+              options={topicOptions}
+              value={topicFilter}
+              onChange={setTopicFilter}
+              placeholder="Lọc theo chủ đề"
+            />
+          </div>
         </Flex>
 
         <Table
@@ -308,6 +413,44 @@ export default function Posts() {
           </div>
         </Flex>
       </Card>
+
+      <Modal
+        title="Chi tiết bài đăng"
+        open={viewModalOpen}
+        onCancel={() => setViewModalOpen(false)}
+        footer={null}
+        width={760}
+        centered
+      >
+        <div className="post-detail-grid">
+          <div className="post-detail-row">
+            <span className="post-detail-label">Tác giả</span>
+            <span>{selectedPost?.author?.fullName || '—'}</span>
+          </div>
+          <div className="post-detail-row">
+            <span className="post-detail-label">Vai trò</span>
+            <span>{selectedPost?.author?.role ? getRoleLabel(selectedPost.author.role) : '—'}</span>
+          </div>
+          <div className="post-detail-row">
+            <span className="post-detail-label">Ngày đăng</span>
+            <span>{formatDate(selectedPost?.createdAt)}</span>
+          </div>
+          <div className="post-detail-row">
+            <span className="post-detail-label">Lượt thích</span>
+            <span>{selectedPost?.likeCount ?? 0}</span>
+          </div>
+          <div className="post-detail-row">
+            <span className="post-detail-label">Bình luận</span>
+            <span>{selectedPost?.commentCount ?? 0}</span>
+          </div>
+        </div>
+        <Typography.Title level={5} style={{ marginTop: 18 }}>
+          Nội dung bài đăng
+        </Typography.Title>
+        <Typography.Paragraph className="post-detail-content">
+          {cleanContent(selectedPost?.content || '') || '—'}
+        </Typography.Paragraph>
+      </Modal>
     </div>
   )
 }

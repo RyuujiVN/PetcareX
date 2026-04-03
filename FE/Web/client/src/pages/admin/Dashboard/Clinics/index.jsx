@@ -1,12 +1,13 @@
 import {
   DeleteOutlined,
+  InfoCircleOutlined,
   EyeOutlined,
-  FileTextOutlined,
   LockOutlined,
   MailOutlined,
   MedicineBoxOutlined,
   PhoneOutlined,
   PlusOutlined,
+  SearchOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import {
@@ -14,16 +15,18 @@ import {
   Button,
   Card,
   Col,
+  Descriptions,
   Divider,
   Flex,
   Form,
   Input,
   Modal,
   Pagination,
-  Popconfirm,
   Row,
   Space,
-  Statistic, Table, Tag,
+  Statistic,
+  Table,
+  Tag,
   Typography,
   message,
 } from 'antd'
@@ -60,24 +63,21 @@ export default function Clinics() {
   const [loading, setLoading] = useState(false)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [addLoading, setAddLoading] = useState(false)
+  const [search, setSearch] = useState('')
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [selectedClinic, setSelectedClinic] = useState(null)
   const [addForm] = Form.useForm()
 
-  // TODO: gọi API lấy số liệu thống kê
-  const [stats] = useState({
-    totalClinics: 0,
-    totalUsers: 0,
-    totalPosts: 0,
-  })
-
-  const fetchClinics = useCallback(async (page, pageSize) => {
+  const fetchClinics = useCallback(async (page, pageSize, keyword = '') => {
     setLoading(true)
     try {
-      const data = await getClinicListApi(page, pageSize)
+      const data = await getClinicListApi(page, pageSize, keyword)
+      const meta = data?.meta || {}
       setClinicList(data.items || [])
       setPagination({
-        current: data.meta.currentPage,
-        pageSize: data.meta.itemsPerPage,
-        total: data.meta.totalItems,
+        current: meta.currentPage || page,
+        pageSize: meta.itemsPerPage || pageSize,
+        total: meta.totalItems || 0,
       })
     } catch (error) {
       message.error(error.message || 'Không thể tải danh sách phòng khám')
@@ -87,21 +87,40 @@ export default function Clinics() {
   }, [])
 
   useEffect(() => {
-    fetchClinics(pagination.current, pagination.pageSize)
-  }, [])
+    fetchClinics(1, pagination.pageSize, '')
+  }, [fetchClinics, pagination.pageSize])
 
-  const handleView = (id) => {
-    //Điều hướng đến trang chi tiết phòng khám
+  const handleView = (clinic) => {
+    setSelectedClinic(clinic)
+    setViewModalOpen(true)
   }
 
   const handleDelete = async (id) => {
     try {
       await deleteClinicApi(id)
       message.success('Xóa phòng khám thành công')
-      fetchClinics(pagination.current, pagination.pageSize)
+      const nextPage = clinicList.length === 1 && pagination.current > 1
+        ? pagination.current - 1
+        : pagination.current
+      fetchClinics(nextPage, pagination.pageSize, search.trim())
     } catch (error) {
       message.error(error.message || 'Không thể xóa phòng khám')
     }
+  }
+
+  const handleDeleteWithConfirm = (clinic) => {
+    Modal.confirm({
+      centered: true,
+      title: 'Xác nhận xóa phòng khám',
+      icon: <InfoCircleOutlined style={{ color: 'var(--admin-color-warning)' }} />,
+      content: `Bạn có chắc muốn xóa phòng khám "${clinic?.name || 'này'}" không?`,
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        await handleDelete(clinic.id)
+      },
+    })
   }
 
   const handleAdd = () => {
@@ -130,7 +149,7 @@ export default function Clinics() {
       })
       message.success('Thêm phòng khám thành công')
       setAddModalOpen(false)
-      fetchClinics(1, pagination.pageSize)
+      fetchClinics(1, pagination.pageSize, search.trim())
     } catch (error) {
       if (error.message) {
         message.error(error.message)
@@ -141,7 +160,21 @@ export default function Clinics() {
   }
 
   const handlePageChange = (page, pageSize) => {
-    fetchClinics(page, pageSize)
+    fetchClinics(page, pageSize, search.trim())
+  }
+
+  const handleSearch = (value) => {
+    const keyword = value.trim()
+    setSearch(value)
+    fetchClinics(1, pagination.pageSize, keyword)
+  }
+
+  const handleSearchChange = (event) => {
+    const nextValue = event.target.value
+    setSearch(nextValue)
+    if (!nextValue.trim()) {
+      fetchClinics(1, pagination.pageSize, '')
+    }
   }
 
   const columns = [
@@ -154,7 +187,9 @@ export default function Clinics() {
           <Avatar style={{ backgroundColor: 'var(--admin-color-brand-primary)' }}>
             {getAbbreviation(text)}
           </Avatar>
-          <span>{text}</span>
+          <Typography.Text className="clinic-name-ellipsis" title={text || ''}>
+            {text || '—'}
+          </Typography.Text>
         </Space>
       ),
     },
@@ -167,6 +202,11 @@ export default function Clinics() {
       title: 'ĐỊA CHỈ',
       dataIndex: 'address',
       key: 'address',
+      render: (value) => (
+        <Typography.Text className="clinic-address-ellipsis" title={value || ''}>
+          {value || '—'}
+        </Typography.Text>
+      ),
     },
     {
       title: 'NGÀY TẠO',
@@ -198,16 +238,14 @@ export default function Clinics() {
           <Button
             type="text"
             icon={<EyeOutlined />}
-            onClick={() => handleView(record.id)}
+            onClick={() => handleView(record)}
           />
-          <Popconfirm
-            title="Bạn có chắc muốn xóa phòng khám này?"
-            okText="Xóa"
-            cancelText="Hủy"
-            onConfirm={() => handleDelete(record.id)}
-          >
-            <Button type="text" danger icon={<DeleteOutlined />} />
-          </Popconfirm>
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteWithConfirm(record)}
+          />
         </Space>
       ),
     },
@@ -226,23 +264,7 @@ export default function Clinics() {
             <div className="stat-card__icon stat-card__icon--clinic">
               <MedicineBoxOutlined />
             </div>
-            <Statistic title="Tổng số phòng khám" value={stats.totalClinics} />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card className="stat-card stat-card--user">
-            <div className="stat-card__icon stat-card__icon--user">
-              <UserOutlined />
-            </div>
-            <Statistic title="Tổng số người dùng" value={stats.totalUsers} />
-          </Card>
-        </Col>
-        <Col span={8}>
-          <Card className="stat-card stat-card--post">
-            <div className="stat-card__icon stat-card__icon--post">
-              <FileTextOutlined />
-            </div>
-            <Statistic title="Tổng số bài đăng" value={stats.totalPosts} />
+            <Statistic title="Tổng số phòng khám" value={total} />
           </Card>
         </Col>
       </Row>
@@ -258,9 +280,20 @@ export default function Clinics() {
               Quản lý các phòng khám mới đăng ký và đang hoạt động
             </Typography.Text>
           </div>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            Thêm phòng khám
-          </Button>
+          <div className="table-actions">
+            <Input
+              className="clinics-search"
+              placeholder="Tìm theo tên phòng khám hoặc SĐT"
+              allowClear
+              value={search}
+              onChange={handleSearchChange}
+              onPressEnter={(event) => handleSearch(event.target.value)}
+              prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+            />
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+              Thêm phòng khám
+            </Button>
+          </div>
         </Flex>
 
         {/* ── Bảng danh sách ── */}
@@ -425,6 +458,40 @@ export default function Clinics() {
             </Col>
           </Row>
         </Form>
+      </Modal>
+
+      {/* ── Modal xem chi tiết phòng khám ── */}
+      <Modal
+        title="Chi tiết phòng khám"
+        open={viewModalOpen}
+        onCancel={() => setViewModalOpen(false)}
+        footer={null}
+        width={720}
+        centered
+      >
+        <Descriptions column={1} size="middle" bordered className="clinic-detail-descriptions">
+          <Descriptions.Item label="Tên phòng khám">
+            {selectedClinic?.name || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Email">
+            {selectedClinic?.email || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Số điện thoại">
+            {selectedClinic?.phone || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Địa chỉ">
+            {selectedClinic?.address || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Mô tả">
+            {selectedClinic?.description || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Trạng thái">
+            {selectedClinic?.deleted ? 'Dừng hoạt động' : 'Hoạt động'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày tạo">
+            {formatDate(selectedClinic?.createdAt)}
+          </Descriptions.Item>
+        </Descriptions>
       </Modal>
     </div>
   )
