@@ -11,11 +11,9 @@ import {
 } from "../../../../redux/slices/messageSlice";
 import socket from "../../../../socket/socket";
 import { Spin } from "antd";
-import Markdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import "github-markdown-css/github-markdown-light.css";
 import { addRoom } from "../../../../redux/slices/roomSlice";
 import { uploadOneFileResize } from "../../../../data/shared/api/cloudinaryUploadFetch";
+import ChatMessage from "./ChatMessage";
 
 const MessageBox = () => {
   const messages = useSelector((state) => state.message.messages);
@@ -37,8 +35,6 @@ const MessageBox = () => {
   const [isUploadingImages, setIsUploadingImages] = useState(false);
   const fileInputRef = useRef(null);
   const pendingImageRef = useRef([]);
-
-  console.log();
 
   const revokePreviewUrl = (image) => {
     if (image?.previewUrl) {
@@ -317,39 +313,9 @@ const MessageBox = () => {
                 <span>Đang tải tin nhắn cũ...</span>
               </div>
             )}
-            {messages.map((message) =>
-              message?.sendBy === "USER" ? (
-                <div key={message.id} className={`message user`}>
-                  <div className="message-content">
-                    <div className="message-bubble">{message.content}</div>
-
-                    {message.image && (
-                      <div className="message-image-grid">
-                        <a
-                          href={message.image}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="message-image-link"
-                        >
-                          <img
-                            src={message.image}
-                            alt="Anh nguoi dung da gui"
-                            loading="lazy"
-                            className="message-image"
-                          />
-                        </a>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="markdown-body" key={message.id}>
-                  <Markdown remarkPlugins={[remarkGfm]}>
-                    {message.content}
-                  </Markdown>
-                </div>
-              ),
-            )}
+            {messages.map((message) => (
+              <ChatMessage key={message.id} message={message} />
+            ))}
 
             {isAiWaitingFirstToken && (
               <div className="message ai">

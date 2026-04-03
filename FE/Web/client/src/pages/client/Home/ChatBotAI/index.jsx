@@ -157,7 +157,7 @@ export default function ChatBotAI() {
         <div className="conversations-label">LỊCH SỬ GẦN ĐÂY</div>
 
         <div className="conversations-list">
-          {rooms.map((conv) => (
+          {rooms.map((conv) =>
             (() => {
               const titleInfo = formatConversationTitle(conv.name);
               const isHovered = hoveredRoomId === conv.id;
@@ -175,7 +175,11 @@ export default function ChatBotAI() {
                       onMouseEnter={() => setHoveredRoomId(conv.id)}
                       onMouseLeave={() => setHoveredRoomId(null)}
                     >
-                      <span>{titleInfo.isLong && !isHovered ? titleInfo.short : titleInfo.full}</span>
+                      <span>
+                        {titleInfo.isLong && !isHovered
+                          ? titleInfo.short
+                          : titleInfo.full}
+                      </span>
                     </p>
                   </div>
 
@@ -201,7 +205,8 @@ export default function ChatBotAI() {
                         ],
                         onClick: ({ key }) => {
                           if (key === "rename") openRenameModal(conv);
-                          if (key === "delete") handleDeleteConversation(conv.id);
+                          if (key === "delete")
+                            handleDeleteConversation(conv.id);
                         },
                       }}
                     >
@@ -216,8 +221,8 @@ export default function ChatBotAI() {
                   </div>
                 </div>
               );
-            })()
-          ))}
+            })(),
+          )}
         </div>
       </aside>
 
