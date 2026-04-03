@@ -4,7 +4,6 @@ import {
     ClockCircleOutlined,
     DollarCircleOutlined,
     MedicineBoxOutlined,
-    NotificationOutlined,
     SearchOutlined,
 } from '@ant-design/icons'
 import {
@@ -521,7 +520,6 @@ export default function AppointmentManagement() {
 							onChange={(event) => setSearchValue(event.target.value)}
 						/>
 					</div>
-					<Button type="text" icon={<NotificationOutlined />} />
 				</div>
 
 				<div className={styles.mainBody}>
