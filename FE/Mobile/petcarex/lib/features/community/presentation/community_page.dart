@@ -86,189 +86,181 @@ class _CommunityPageState extends State<CommunityPage> {
     return segments.join('\n');
   }
 
+  // ─── Facebook-style image grid ───────────────────────────────────────────
+
   Widget _buildImageGrid(
     List<String> imageUrls, {
-    double maxHeight = 300,
+    double totalHeight = 300,
     bool compact = false,
   }) {
-    final displayCount = imageUrls.length > 4 ? 4 : imageUrls.length;
-    final hasMore = imageUrls.length > 4;
-    final moreCount = imageUrls.length - 4;
+    final count = imageUrls.length;
+    final h = compact ? totalHeight * 0.75 : totalHeight;
+    const gap = 2.0;
 
-    if (displayCount == 1) {
-      return _buildSingleImage(imageUrls[0], maxHeight);
-    }
+    if (count == 0) return const SizedBox.shrink();
 
-    if (displayCount == 2) {
-      return _buildTwoImages(imageUrls, maxHeight);
-    }
-
-    if (displayCount == 3) {
-      return _buildThreeImages(imageUrls, maxHeight);
-    }
-
-    // displayCount == 4
-    return _buildFourImages(imageUrls, maxHeight, hasMore, moreCount);
-  }
-
-  Widget _buildSingleImage(String url, double maxHeight) {
-    return GestureDetector(
-      onTap: () => ImageViewer.show(context, [url], initialIndex: 0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          width: double.infinity,
-          height: maxHeight,
-          color: AppColors.background,
-          child: CachedNetworkImage(
-            imageUrl: ImageHelper.getThumbnailUrl(url),
-            fit: BoxFit.contain,
+    // 1 ảnh: full width, giữ tỉ lệ gốc (contain)
+    if (count == 1) {
+      return GestureDetector(
+        onTap: () => ImageViewer.show(context, imageUrls, initialIndex: 0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            width: double.infinity,
+            height: h,
+            color: AppColors.background,
+            child: CachedNetworkImage(
+              imageUrl: ImageHelper.getThumbnailUrl(imageUrls[0]),
+              fit: BoxFit.contain,
+            ),
           ),
         ),
-      ),
-    );
-  }
+      );
+    }
 
-  Widget _buildTwoImages(List<String> imageUrls, double maxHeight) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildImageItem(imageUrls[0], 0, imageUrls, maxHeight),
-        ),
-        const SizedBox(width: 4),
-        Expanded(
-          child: _buildImageItem(imageUrls[1], 1, imageUrls, maxHeight),
-        ),
-      ],
-    );
-  }
+    // 2 ảnh: hai cột bằng nhau
+    if (count == 2) {
+      return SizedBox(
+        height: h,
+        child: Row(children: [
+          Expanded(child: _fbImage(imageUrls, 0, height: h)),
+          const SizedBox(width: gap),
+          Expanded(child: _fbImage(imageUrls, 1, height: h)),
+        ]),
+      );
+    }
 
-  Widget _buildThreeImages(List<String> imageUrls, double maxHeight) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildImageItem(imageUrls[0], 0, imageUrls, maxHeight * 0.5),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: _buildImageItem(imageUrls[1], 1, imageUrls, maxHeight * 0.5),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        _buildImageItem(imageUrls[2], 2, imageUrls, maxHeight * 0.5),
-      ],
-    );
-  }
+    // 3 ảnh: ảnh 1 cột trái full, ảnh 2+3 cột phải xếp dọc
+    if (count == 3) {
+      return SizedBox(
+        height: h,
+        child: Row(children: [
+          Expanded(child: _fbImage(imageUrls, 0, height: h)),
+          const SizedBox(width: gap),
+          Expanded(
+            child: Column(children: [
+              Expanded(child: _fbImage(imageUrls, 1)),
+              const SizedBox(height: gap),
+              Expanded(child: _fbImage(imageUrls, 2)),
+            ]),
+          ),
+        ]),
+      );
+    }
 
-  Widget _buildFourImages(
-    List<String> imageUrls,
-    double maxHeight,
-    bool hasMore,
-    int moreCount,
-  ) {
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: _buildImageItem(imageUrls[0], 0, imageUrls, maxHeight * 0.5),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: _buildImageItem(imageUrls[1], 1, imageUrls, maxHeight * 0.5),
-            ),
-          ],
+    // 4 ảnh: lưới 2x2 đều nhau
+    if (count == 4) {
+      return SizedBox(
+        height: h,
+        child: Column(children: [
+          Expanded(
+            child: Row(children: [
+              Expanded(child: _fbImage(imageUrls, 0)),
+              const SizedBox(width: gap),
+              Expanded(child: _fbImage(imageUrls, 1)),
+            ]),
+          ),
+          const SizedBox(height: gap),
+          Expanded(
+            child: Row(children: [
+              Expanded(child: _fbImage(imageUrls, 2)),
+              const SizedBox(width: gap),
+              Expanded(child: _fbImage(imageUrls, 3)),
+            ]),
+          ),
+        ]),
+      );
+    }
+
+    // 5+ ảnh: hàng trên 2 ảnh (cao hơn), hàng dưới 3 ảnh
+    // ô thứ 5 hiện overlay "+N" nếu còn ảnh ẩn
+    final topH = h * 0.55;
+    final botH = h * 0.45 - gap;
+    final displayUrls = imageUrls.take(5).toList();
+    final moreCount = imageUrls.length - 5;
+
+    return SizedBox(
+      height: h,
+      child: Column(children: [
+        SizedBox(
+          height: topH,
+          child: Row(children: [
+            Expanded(child: _fbImage(displayUrls, 0, height: topH, allUrls: imageUrls)),
+            const SizedBox(width: gap),
+            Expanded(child: _fbImage(displayUrls, 1, height: topH, allUrls: imageUrls)),
+          ]),
         ),
-        const SizedBox(height: 4),
-        Row(
-          children: [
+        const SizedBox(height: gap),
+        SizedBox(
+          height: botH,
+          child: Row(children: [
+            Expanded(child: _fbImage(displayUrls, 2, height: botH, allUrls: imageUrls)),
+            const SizedBox(width: gap),
+            Expanded(child: _fbImage(displayUrls, 3, height: botH, allUrls: imageUrls)),
+            const SizedBox(width: gap),
             Expanded(
-              child: _buildImageItem(imageUrls[2], 2, imageUrls, maxHeight * 0.5),
-            ),
-            const SizedBox(width: 4),
-            Expanded(
-              child: _buildImageItemWithOverlay(
-                imageUrls[3],
-                3,
-                imageUrls,
-                maxHeight * 0.5,
-                hasMore ? moreCount : 0,
+              child: _fbImage(
+                displayUrls,
+                4,
+                height: botH,
+                overlayCount: moreCount > 0 ? moreCount : null,
+                allUrls: imageUrls,
               ),
             ),
-          ],
+          ]),
         ),
-      ],
+      ]),
     );
   }
 
-  Widget _buildImageItem(
-    String url,
-    int index,
-    List<String> allUrls,
-    double height,
-  ) {
+  /// Một ô ảnh đơn trong grid, có hỗ trợ overlay "+N"
+  Widget _fbImage(
+    List<String> urls,
+    int index, {
+    double? height,
+    int? overlayCount,
+    List<String>? allUrls,
+  }) {
+    final url = urls[index];
+    final viewerUrls = allUrls ?? urls;
+
+    final img = CachedNetworkImage(
+      imageUrl: ImageHelper.getThumbnailUrl(url),
+      fit: BoxFit.cover,
+      width: double.infinity,
+      height: height ?? double.infinity,
+    );
+
     return GestureDetector(
-      onTap: () => ImageViewer.show(context, allUrls, initialIndex: index),
+      onTap: () => ImageViewer.show(context, viewerUrls, initialIndex: index),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Container(
+        borderRadius: BorderRadius.circular(4),
+        child: SizedBox(
           height: height,
-          color: AppColors.background,
-          child: CachedNetworkImage(
-            imageUrl: ImageHelper.getThumbnailUrl(url),
-            fit: BoxFit.cover,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImageItemWithOverlay(
-    String url,
-    int index,
-    List<String> allUrls,
-    double height,
-    int moreCount,
-  ) {
-    return GestureDetector(
-      onTap: () => ImageViewer.show(context, allUrls, initialIndex: index),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Stack(
-          children: [
-            Container(
-              height: height,
-              color: AppColors.background,
-              child: CachedNetworkImage(
-                imageUrl: ImageHelper.getThumbnailUrl(url),
-                fit: BoxFit.cover,
-              ),
-            ),
-            if (moreCount > 0)
-              Container(
-                height: height,
-                decoration: BoxDecoration(
-                  color: AppColors.black.withValues(alpha: 0.5),
-                ),
-                child: Center(
-                  child: Text(
-                    '+$moreCount',
-                    style: const TextStyle(
-                      color: AppColors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+          width: double.infinity,
+          child: overlayCount != null && overlayCount > 0
+              ? Stack(fit: StackFit.expand, children: [
+                  img,
+                  Container(
+                    color: AppColors.black.withValues(alpha: 0.45),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '+$overlayCount',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              ),
-          ],
+                ])
+              : img,
         ),
       ),
     );
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
 
   Widget _buildHtmlContentView(
     String rawContent, {
@@ -295,7 +287,7 @@ class _CommunityPageState extends State<CommunityPage> {
           SizedBox(height: compact ? 8 : 12),
           _buildImageGrid(
             imageUrls,
-            maxHeight: compact ? 160 : imageHeight,
+            totalHeight: compact ? 160 : imageHeight,
             compact: compact,
           ),
         ],
