@@ -4,6 +4,7 @@ import { Button, Divider, Form, Input, Typography, message } from 'antd';
 import { useState } from 'react';
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './styles.css';
 
 import { loginApi } from '../../../../services/authService';
@@ -21,6 +22,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [form] = Form.useForm();
+  const { t } = useTranslation();
   const { login: clientLogin } = useClientAuth();
   const { login: adminLogin } = useAdminAuth();
   const navigate = useNavigate();
@@ -49,7 +51,7 @@ export default function Login() {
       clientLogin(accessToken, userInfo);
     }
 
-    message.success('Đăng nhập thành công!');
+    message.success(t('pages.auth.login.success'));
     navigate(redirectPath, { replace: true });
   };
 
@@ -71,7 +73,7 @@ export default function Login() {
         form.setFields([
           {
             name: "password",
-            errors: [data?.message || "Email hoặc mật khẩu không đúng!"],
+            errors: [data?.message || t('pages.auth.login.invalidCredentials')],
           },
         ]);
 
@@ -87,7 +89,7 @@ export default function Login() {
     } catch (err) {
       const errorMsg =
         err.response?.data?.message ||
-        "Email hoặc mật khẩu không đúng!";
+        t('pages.auth.login.invalidCredentials');
 
       form.setFields([
         {
@@ -114,7 +116,7 @@ export default function Login() {
         userInfo: authResult.userInfo,
       });
     } catch (error) {
-      message.error(error?.response?.data?.message || error?.message || 'Đăng nhập bằng Google thất bại.');
+      message.error(error?.response?.data?.message || error?.message || t('pages.auth.login.googleLoginFailed'));
     } finally {
       setGoogleLoading(false);
     }
@@ -125,8 +127,8 @@ export default function Login() {
       <div className="login-card" style={{ padding: '40px 30px', background: 'var(--color-surface-card)', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <FaPaw style={{ fontSize: '48px', color: 'var(--auth-primary)', marginLeft: 'auto', marginRight: 'auto' }} />
-          <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng nhập</Title>
-          <Text type="secondary">Chào mừng bạn đến với cộng đồng PetcareX</Text>
+          <Title level={2} style={{ margin: '16px 0 8px' }}>{t('pages.auth.login.title')}</Title>
+          <Text type="secondary">{t('pages.auth.login.welcome')}</Text>
         </div>
 
         <Form
@@ -140,35 +142,35 @@ export default function Login() {
 
           <Form.Item
             style={{width: '100%'}}
-            label="Email"
+            label={t('pages.auth.login.emailLabel')}
             name="email"
             rules={[
-              { required: true, message: 'Vui lòng nhập email để đăng nhập!' },
-              { type: 'email', message: 'Email không đúng định dạng!' }
+              { required: true, message: t('pages.auth.login.validation.emailRequired') },
+              { type: 'email', message: t('pages.auth.login.validation.emailInvalid') }
             ]}
           >
             <Input
               prefix={<UserOutlined style={{ color: 'var(--color-text-disabled)'}} />}
-              placeholder="Nhập email của bạn"
+              placeholder={t('pages.auth.login.emailPlaceholder')}
             />
           </Form.Item>
 
           <Form.Item
             label={
               <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%' }}>
-                <span>Mật khẩu</span>
-                <Link href="/forgot-password" style={{ float: 'right', marginLeft: '400px', color: 'var(--auth-primary)' }}>Quên mật khẩu?</Link>
+                <span>{t('pages.auth.login.passwordLabel')}</span>
+                <Link href="/forgot-password" style={{ float: 'right', marginLeft: '400px', color: 'var(--auth-primary)' }}>{t('pages.auth.login.forgotPassword')}</Link>
               </div>
             }
             name="password"
             rules={[
-              { required: true, message: 'Vui lòng nhập mật khẩu để đăng nhập!' },
-              { min: 6, message: 'Mật khẩu phải tối thiểu 6 ký tự!' }
+              { required: true, message: t('pages.auth.login.validation.passwordRequired') },
+              { min: 6, message: t('pages.auth.login.validation.passwordMin') }
             ]}
           >
             <Input.Password
               prefix={<LockOutlined style={{ color: 'var(--color-text-disabled)' }} />}
-              placeholder="Nhập mật khẩu của bạn"
+              placeholder={t('pages.auth.login.passwordPlaceholder')}
             />
           </Form.Item>
 
@@ -180,14 +182,14 @@ export default function Login() {
               loading={loading}
               style={{ backgroundColor: 'var(--auth-primary)', color: 'var(--color-surface-card)', fontWeight: 'bold', borderColor: 'var(--auth-primary)' }}
             >
-              Đăng nhập
+              {t('pages.auth.login.submit')}
             </Button>
           </Form.Item>
 
         </Form>
 
         <Divider style={{ borderColor: 'var(--color-border-strong)' }} plain>
-          Hoặc tiếp tục đăng nhập với
+          {t('pages.auth.login.orContinueWith')}
         </Divider>
 
         {hasGoogleAuth ? (
@@ -199,7 +201,7 @@ export default function Login() {
               size="large"
               style={{ width: 590, height: 46, borderRadius: 15, fontWeight: 600 }}
             >
-              Tiếp tục với Google
+              {t('pages.auth.login.continueWithGoogle')}
             </Button>
           </div>
         ) : (
@@ -210,7 +212,7 @@ export default function Login() {
 
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
           <Text type="secondary">
-            Chưa có tài khoản? <a style={{ color: 'var(--auth-primary)', fontWeight: 'bold' }} href="/register">Đăng ký ngay</a>
+            {t('pages.auth.login.noAccount')} <a style={{ color: 'var(--auth-primary)', fontWeight: 'bold' }} href="/register">{t('pages.auth.login.registerNow')}</a>
           </Text>
         </div>
 

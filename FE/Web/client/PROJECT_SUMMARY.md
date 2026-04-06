@@ -740,6 +740,39 @@ Ghi chú:
 2. Khi thêm API mới trong `src/services/`, bắt buộc follow rule: consumer luôn truyền đúng instance (`getAdminInstance()` hoặc `getClientInstance()`).
 3. Trước khi merge các màn form lớn, cần grep nhanh các call service theo pattern `*Api(` để phát hiện call thiếu instance sớm.
 
+## I18n Migration Status (Client Role) - 2026-04-06
+
+### Mục tiêu và phạm vi
+- Chỉ áp dụng cho frontend web client (role client).
+- Không thay đổi business logic, chỉ chuẩn hóa text hiển thị qua i18n.
+- Hoàn thành theo từng nhóm có checkpoint xác nhận.
+
+### Kết quả đã hoàn thành
+- Thiết lập i18n core:
+  - `i18next` + `react-i18next`.
+  - Khởi tạo tại `src/i18n.js`, import bootstrap ở `src/main.jsx`.
+  - Thêm `LanguageSwitcher` ở header, lưu ngôn ngữ vào localStorage.
+- Hoàn tất migrate text cứng sang key i18n cho các nhóm client đã rà soát, gồm các luồng lớn:
+  - Home, Header/Footer, Clinic Selection, HomePageClinic.
+  - Booking, SuccessBooking, AppointmentDetail, PetDiagnosis.
+  - Pet/Profile/Medical Records/Forum.
+  - Auth (`Login`, `Register`, `ForgotPassword`, `ReEnterPassword`).
+  - ChatBot AI (`index.jsx`, `MessageBox.jsx`).
+  - Accessibility text dùng chung như `ScrollToTopButton`.
+- Đồng bộ key locale đầy đủ ở:
+  - `src/locales/vi.json`
+  - `src/locales/en.json`
+
+### Validation sau migrate
+- Key parity `vi/en`: `onlyVi = 0`, `onlyEn = 0`.
+- Diagnostics: không còn lỗi ở các file đã migrate.
+- Build production (`npm run build`): thành công.
+- Có cảnh báo chunk size của Vite (không phải lỗi build, không phải regression từ i18n).
+
+### Ghi chú maintain
+- Khi thêm UI text mới trong client pages, bắt buộc thêm key vào cả `vi.json` và `en.json` cùng lúc.
+- Ưu tiên dùng namespace/key theo domain (`pages.*`, `common.*`, `header.*`, `footer.*`) để giữ tính nhất quán.
+
 ## Backlog ưu tiên đề xuất (Web)
 1. ~~Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.~~ ✓ Đã hoàn thành — toàn bộ API tập trung trong `src/services/`, chỉ Cloudinary upload dùng native `fetch()`.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.
@@ -747,7 +780,7 @@ Ghi chú:
 4. Thay mock bằng API thật cho các màn admin/veterinarian còn template.
 5. Đưa `SOCKET_URL` vào env (`VITE_SOCKET_URL`) thay vì hardcoded.
 6. Gộp token CSS thành single-source để giảm duplicate.
-7. Tiếp tục chuẩn hóa i18n và giảm hardcoded text tiếng Việt trong UI.
+7. Mở rộng chuẩn hóa i18n cho phần ngoài client portal (admin/clinic/veterinarian) và các text mới phát sinh.
 8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
 9. Hoàn thiện trang super admin còn lại: Overview.
 10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).

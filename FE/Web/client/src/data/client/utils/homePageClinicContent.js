@@ -1,74 +1,82 @@
-export const DEFAULT_CLINIC_HOME_CONTENT = {
+import i18n from '../../../i18n';
+
+const tr = (key, defaultValue) => i18n.t(key, { defaultValue });
+
+export const getDefaultClinicHomeContent = () => ({
   hero: {
-    title: 'PetCar - Khởi đầu cuộc sống tốt đẹp nhất cho thú cưng của bạn tại đây',
-    description:
+    title: tr('pages.home.homePageClinic.content.hero.title', 'PetCar - Khởi đầu cuộc sống tốt đẹp nhất cho thú cưng của bạn tại đây'),
+    description: tr(
+      'pages.home.homePageClinic.content.hero.description',
       'Vươn thương hiệu chăm sóc thú cưng số 1 Việt Nam, luôn đặt lợi ích của thú cưng và chủ nuôi lên hàng đầu.',
-    ctaText: 'Đặt lịch khám ngay',
+    ),
+    ctaText: tr('pages.home.homePageClinic.content.hero.ctaText', 'Đặt lịch khám ngay'),
     bannerImage: '/homePageClinic.png',
   },
   about: {
-    label: 'Giới thiệu',
-    title: 'Bệnh viện thú y PetCar',
-    description:
+    label: tr('pages.home.homePageClinic.content.about.label', 'Giới thiệu'),
+    title: tr('pages.home.homePageClinic.content.about.title', 'Bệnh viện thú y PetCar'),
+    description: tr(
+      'pages.home.homePageClinic.content.about.description',
       'Được thành lập vào năm 2021 với cái tên phòng khám thú y PetCar luôn tự hào là một trong những bệnh viện thú y hàng đầu Việt Nam. Nhiều năm qua, PetCar đã được khách hàng tin tưởng và luôn đồng hành. Cùng với những dịch vụ đa dạng, PetCar luôn mang đến những trải nghiệm tốt và đáng nhớ nhất cho quý khách.',
-    highlightNumber: '20 NAM',
-    highlightLabel: '5 CHI NHANH',
+    ),
+    highlightNumber: tr('pages.home.homePageClinic.content.about.highlightNumber', '20 NAM'),
+    highlightLabel: tr('pages.home.homePageClinic.content.about.highlightLabel', '5 CHI NHANH'),
   },
   gallerySection: {
-    title: 'THƯ VIỆN ẢNH',
-    subtitle: 'Hoạt động thường nhật của phòng khám.',
+    title: tr('pages.home.homePageClinic.content.gallerySection.title', 'THƯ VIỆN ẢNH'),
+    subtitle: tr('pages.home.homePageClinic.content.gallerySection.subtitle', 'Hoạt động thường nhật của phòng khám.'),
   },
   galleryImages: [
     {
       id: 1,
       image: '/homePageClinic.png',
-      alt: 'Hoạt động phòng khám',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.1', 'Hoạt động phòng khám'),
     },
     {
       id: 2,
       image: '/pageMainClinic.png',
-      alt: 'Đội ngũ tại phòng khám',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.2', 'Đội ngũ tại phòng khám'),
     },
     {
       id: 3,
       image: '/forum1.png',
-      alt: 'Sự kiện cộng đồng',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.3', 'Sự kiện cộng đồng'),
     },
     {
       id: 4,
       image: '/forum2.png',
-      alt: 'Hình ảnh thường ngày',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.4', 'Hình ảnh thường ngày'),
     },
     {
       id: 5,
       image: '/forum3.png',
-      alt: 'Hoạt động nội bộ',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.5', 'Hoạt động nội bộ'),
     },
     {
       id: 6,
       image: '/bs1.png',
-      alt: 'Bác sĩ tại phòng khám',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.6', 'Bác sĩ tại phòng khám'),
     },
     {
       id: 7,
       image: '/bs2.png',
-      alt: 'Khoảnh khắc làm việc',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.7', 'Khoảnh khắc làm việc'),
     },
     {
       id: 8,
       image: '/bs3.png',
-      alt: 'Đội ngũ chuyên môn',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.8', 'Đội ngũ chuyên môn'),
     },
     {
       id: 9,
       image: '/bs4.png',
-      alt: 'Sinh hoạt phòng khám',
+      alt: tr('pages.home.homePageClinic.content.galleryImages.9', 'Sinh hoạt phòng khám'),
     },
   ],
   locationSection: {
-    title: 'ĐỊA CHỈ PHÒNG KHÁM',
-    subtitle: 'Tìm đường đến phòng khám nhanh chóng qua Google Maps.',
-    address: '240 Phan Đăng Lưu, Phường 1, Quận Phú Nhuận, TP. Hồ Chí Minh',
+    title: tr('pages.home.homePageClinic.content.location.title', 'ĐỊA CHỈ PHÒNG KHÁM'),
+    subtitle: tr('pages.home.homePageClinic.content.location.subtitle', 'Tìm đường đến phòng khám nhanh chóng qua Google Maps.'),
+    address: tr('pages.home.homePageClinic.content.location.address', '240 Phan Đăng Lưu, Phường 1, Quận Phú Nhuận, TP. Hồ Chí Minh'),
     mapEmbedUrl: 'https://www.google.com/maps?q=B%E1%BB%87nh%20vi%E1%BB%87n%20th%C3%BA%20y%20Procare&output=embed',
     mapLink: 'https://www.google.com/maps/search/?api=1&query=B%E1%BB%87nh%20vi%E1%BB%87n%20th%C3%BA%20y%20Procare',
   },
@@ -103,27 +111,27 @@ export const DEFAULT_CLINIC_HOME_CONTENT = {
     },
   ],
   teamSection: {
-    title: 'ĐỘI NGŨ PHÒNG KHÁM',
+    title: tr('pages.home.homePageClinic.content.team.title', 'ĐỘI NGŨ PHÒNG KHÁM'),
   },
   doctors: [
     {
       id: 1,
-      name: 'ThS. Nguyễn Văn A - Bác sĩ Nội khoa',
+      name: tr('pages.home.homePageClinic.content.doctors.1', 'ThS. Nguyễn Văn A - Bác sĩ Nội khoa'),
       image: '/bs1.png',
     },
     {
       id: 2,
-      name: 'ThS. Lê Thị B - Bác sĩ Ngoại khoa',
+      name: tr('pages.home.homePageClinic.content.doctors.2', 'ThS. Lê Thị B - Bác sĩ Ngoại khoa'),
       image: '/bs2.png',
     },
     {
       id: 3,
-      name: 'ThS. Trần Tiến C - Bác sĩ Thú y',
+      name: tr('pages.home.homePageClinic.content.doctors.3', 'ThS. Trần Tiến C - Bác sĩ Thú y'),
       image: '/bs3.png',
     },
     {
       id: 4,
-      name: 'ThS. Phạm Kim D - Bác sĩ Chẩn đoán hình ảnh',
+      name: tr('pages.home.homePageClinic.content.doctors.4', 'ThS. Phạm Kim D - Bác sĩ Chẩn đoán hình ảnh'),
       image: '/bs4.png',
     },
   ],
@@ -218,7 +226,7 @@ export const DEFAULT_CLINIC_HOME_CONTENT = {
       subtitle: '',
     },
   ],
-};
+});
 
 const cloneDeep = (value) => JSON.parse(JSON.stringify(value));
 
@@ -235,7 +243,7 @@ const normalizeArray = (incoming, fallback) => {
 };
 
 export const buildClinicHomeContent = (incoming = {}) => {
-  const base = cloneDeep(DEFAULT_CLINIC_HOME_CONTENT);
+  const base = cloneDeep(getDefaultClinicHomeContent());
 
   return {
     ...base,

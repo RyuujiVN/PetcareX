@@ -90,6 +90,12 @@
     border-radius: 2px;
 }
 
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .user-section {
     position: relative;
     display: flex;
@@ -609,6 +615,10 @@
         padding: 8px 10px;
     }
 
+    .auth-section {
+        gap: 8px;
+    }
+
     .notification-panel-header {
         flex-direction: column;
         align-items: flex-start;
@@ -649,6 +659,10 @@
     .user-profile {
         gap: 6px;
         padding: 6px 8px;
+    }
+
+    .auth-section {
+        gap: 6px;
     }
 
     .user-avatar {
@@ -701,6 +715,10 @@
     .user-avatar {
         width: 30px;
         height: 30px;
+    }
+
+    .auth-section {
+        gap: 5px;
     }
 
     .user-dropdown {

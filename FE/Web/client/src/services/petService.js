@@ -11,10 +11,10 @@ export const getEnumLabel = (value) => {
 }
 // Lấy enum của loài
 export const getSpeciesLabel = (species) =>
-  getPetSpeciesLabel(species, 'Chưa câp nhật loài')
+  getPetSpeciesLabel(species)
 
 export const getBreedLabel = (breed, species) =>
-  getPetBreedLabel(breed, species, 'Chưa câp nhật giống')
+  getPetBreedLabel(breed, species)
 
 export const getMyPetsApi = (instance) => {
   return instance.get('/pet').then((response) => {

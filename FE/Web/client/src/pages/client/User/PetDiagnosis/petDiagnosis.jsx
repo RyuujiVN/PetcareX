@@ -2,19 +2,22 @@ import { CloseOutlined } from '@ant-design/icons';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import styles from './petDiagnosis.module.css';
 
-const formatDate = (dateValue) => {
-  if (!dateValue) return 'Không rõ ngày';
-  return new Date(dateValue).toLocaleDateString('vi-VN');
+const formatDate = (dateValue, locale, t) => {
+  if (!dateValue) return t('pages.petDiagnosis.unknownDate');
+  return new Date(dateValue).toLocaleDateString(locale);
 };
 
 export function PetDiagnosisContent({ diagnosis, appointment, onClose, inModal = false }) {
-  const petName = diagnosis?.petName || appointment?.petName || 'thú cưng';
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
+  const petName = diagnosis?.petName || appointment?.petName || t('pages.petDiagnosis.defaultPetName');
   const species = diagnosis?.species || appointment?.species;
   const appointmentDateLabel =
-    diagnosis?.appointmentDateLabel || formatDate(diagnosis?.appointmentDate || appointment?.rawDate);
-  const reportMarkdown = diagnosis?.reportMarkdown || 'Chưa có dữ liệu chẩn đoán AI cho lịch hẹn này.';
+    diagnosis?.appointmentDateLabel || formatDate(diagnosis?.appointmentDate || appointment?.rawDate, dateLocale, t);
+  const reportMarkdown = diagnosis?.reportMarkdown || t('pages.petDiagnosis.emptyReport');
 
   return (
     <div className={inModal ? styles.modalContainer : undefined}>
@@ -23,14 +26,14 @@ export function PetDiagnosisContent({ diagnosis, appointment, onClose, inModal =
           type="button"
           className={styles.closeButton}
           onClick={onClose}
-          aria-label="Đóng báo cáo"
+          aria-label={t('pages.petDiagnosis.closeAria')}
         >
           <CloseOutlined />
         </button>
       )}
 
       <h1 className={styles.title}>
-        AI Báo cáo chẩn đoán sơ bộ cho {petName}
+        {t('pages.petDiagnosis.reportTitle', { petName })}
         {species ? ` (${species})` : ''} - {appointmentDateLabel}
       </h1>
 

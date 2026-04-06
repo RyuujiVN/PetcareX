@@ -1,11 +1,13 @@
 import { CalendarOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { Button, Card, Col, Divider, message, Row } from 'antd';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getServiceLabel } from '../../../../utils/enumLabel';
 import './styles.css';
 
 const SuccessBooking = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [appointmentData, setAppointmentData] = useState(null);
@@ -15,21 +17,21 @@ const SuccessBooking = () => {
     const state = location.state?.appointmentData;
 
     if (!state) {
-      message.warning('Không tìm thấy dữ liệu lịch hẹn vừa đặt');
+      message.warning(t('pages.successBooking.notFound'));
       navigate('/appointments');
       return;
     }
 
     setAppointmentData(state);
     setQrValue(`https://petcarex.app/check-in/${state.appointmentId}`);
-  }, [location.state, navigate]);
+  }, [location.state, navigate, t]);
 
   const handleViewAppointments = () => {
     navigate('/appointments');
   };
 
   if (!appointmentData) {
-    return <div>Đang tải...</div>;
+    return <div>{t('common.states.loading')}</div>;
   }
 
   return (
@@ -37,16 +39,16 @@ const SuccessBooking = () => {
       <div className="success-booking-container">
         <div className="success-header">
           <CheckCircleOutlined className="success-icon" />
-          <h1 className="success-title">Đặt lịch thành công!</h1>
+          <h1 className="success-title">{t('pages.successBooking.title')}</h1>
           <p className="success-subtitle">
-            Lịch hẹn của bạn đã được ghi nhận. Vui lòng kiểm tra thông tin bên dưới.
+            {t('pages.successBooking.subtitle')}
           </p>
         </div>
 
         <Card className="appointment-summary-card">
           <div className="summary-header">
             <CalendarOutlined className="summary-icon" />
-            <h2>Tóm tắt lịch hẹn</h2>
+            <h2>{t('pages.successBooking.summaryTitle')}</h2>
           </div>
 
           <Divider style={{ margin: '16px 0' }} />
@@ -54,7 +56,7 @@ const SuccessBooking = () => {
           <div className="summary-content">
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
-                <span className="label-text">Tên thú cưng</span>
+                <span className="label-text">{t('pages.successBooking.petName')}</span>
               </Col>
               <Col xs={24} sm={12} className="summary-value">
                 <span className="value-text">{appointmentData.petName}</span>
@@ -63,7 +65,7 @@ const SuccessBooking = () => {
 
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
-                <span className="label-text">Bác sĩ chuyên khoa</span>
+                <span className="label-text">{t('pages.successBooking.doctor')}</span>
               </Col>
               <Col xs={24} sm={12} className="summary-value">
                 <span className="value-text">{appointmentData.doctorName}</span>
@@ -72,7 +74,7 @@ const SuccessBooking = () => {
 
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
-                <span className="label-text">Thời gian hẹn</span>
+                <span className="label-text">{t('pages.successBooking.time')}</span>
               </Col>
               <Col xs={24} sm={12} className="summary-value">
                 <span className="value-text">{appointmentData.time}</span>
@@ -81,10 +83,10 @@ const SuccessBooking = () => {
 
             <Row gutter={[24, 24]} className="summary-row">
               <Col xs={24} sm={12} className="summary-label">
-                <span className="label-text">Dịch vụ</span>
+                <span className="label-text">{t('pages.successBooking.service')}</span>
               </Col>
               <Col xs={24} sm={12} className="summary-value">
-                <span className="value-text">{getServiceLabel(appointmentData.service, appointmentData.service)}</span>
+                <span className="value-text">{t(`enums.service.${appointmentData.service}`, { defaultValue: getServiceLabel(appointmentData.service, appointmentData.service) })}</span>
               </Col>
             </Row>
           </div>
@@ -102,7 +104,7 @@ const SuccessBooking = () => {
             className="primary-btn"
             icon={<CalendarOutlined />}
           >
-            Đến Lịch hẹn của tôi
+            {t('pages.successBooking.goToAppointments')}
           </Button>
         </div>
       </div>

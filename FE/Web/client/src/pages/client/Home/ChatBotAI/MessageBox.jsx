@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Form, Input, message } from "antd";
 import { Pause, Plus, Send, X } from "lucide-react";
+import { useTranslation } from 'react-i18next';
 import { useSelector, useDispatch } from "react-redux";
 import {
   addMessage,
@@ -20,7 +21,7 @@ import { uploadMultipleFilesToCloudinary } from "../../../../services/cloudinary
 const IMAGE_LINE_PREFIX = "[image]:";
 const MAX_ROOM_NAME_LENGTH = 80;
 
-const deriveRoomNameFromMessage = (text, imageCount = 0) => {
+const deriveRoomNameFromMessage = (text, imageCount = 0, t) => {
   const normalizedText = (text || "").replace(/\s+/g, " ").trim();
 
   if (normalizedText) {
@@ -28,10 +29,12 @@ const deriveRoomNameFromMessage = (text, imageCount = 0) => {
   }
 
   if (imageCount > 0) {
-    return imageCount === 1 ? "Ảnh người dùng đã gửi" : `${imageCount} ảnh người dùng đã gửi`;
+    return imageCount === 1
+      ? t('pages.home.chatbot.messageBox.roomNameSingleImage')
+      : t('pages.home.chatbot.messageBox.roomNameMultiImages', { count: imageCount });
   }
 
-  return "Cuộc trò chuyện mới";
+  return t('pages.home.chatbot.newConversationDefaultName');
 };
 
 const composeMessageContent = (text, imageUrls = []) => {
@@ -77,6 +80,7 @@ const parseUserMessageContent = (content = "") => {
 };
 
 const MessageBox = () => {
+  const { t } = useTranslation();
   const messages = useSelector((state) => state.message.messages);
   const hasMoreMessage = useSelector((state) => state.message.hasMoreMessage);
   const rooms = useSelector((state) => state.room.rooms || []);
@@ -122,7 +126,7 @@ const MessageBox = () => {
 
     const invalidFile = files.find((file) => !file.type.startsWith("image/"));
     if (invalidFile) {
-      message.warning("Chi duoc chon file anh");
+      message.warning(t('pages.home.chatbot.messageBox.validation.imageOnly'));
       event.target.value = "";
       return;
     }
@@ -171,7 +175,7 @@ const MessageBox = () => {
         );
         imageUrls = uploadResult?.urls || [];
       } catch (error) {
-        message.error(error?.message || "Upload anh that bai");
+        message.error(error?.message || t('pages.home.chatbot.messageBox.uploadFailed'));
         setIsUploadingImages(false);
         return;
       }
@@ -183,7 +187,7 @@ const MessageBox = () => {
       roomId,
     };
 
-    const suggestedRoomName = deriveRoomNameFromMessage(textContent, imageUrls.length);
+    const suggestedRoomName = deriveRoomNameFromMessage(textContent, imageUrls.length, t);
     const currentRoom = rooms.find((room) => String(room.id) === String(roomId));
 
     if (
@@ -369,7 +373,7 @@ const MessageBox = () => {
       <div className="messages-container" ref={messagesContainerRef}>
         {!roomId ? (
           <div className="empty-state">
-            <h2>Hôm nay bạn cần gì?</h2>
+            <h2>{t('pages.home.chatbot.messageBox.emptyState')}</h2>
           </div>
         ) : (
           <>
@@ -384,7 +388,7 @@ const MessageBox = () => {
                 }}
               >
                 <Spin size="middle" />
-                <span>Đang tải tin nhắn cũ...</span>
+                <span>{t('pages.home.chatbot.messageBox.loadingOldMessages')}</span>
               </div>
             )}
             {messages.map((message) =>
@@ -409,7 +413,7 @@ const MessageBox = () => {
                             >
                               <img
                                 src={url}
-                                alt="Anh nguoi dung da gui"
+                                alt={t('pages.home.chatbot.messageBox.userImageAlt')}
                                 loading="lazy"
                                 className="message-image"
                               />
@@ -433,7 +437,7 @@ const MessageBox = () => {
               <div className="message ai">
                 <div className="message-content">
                   <div className="message-bubble loading">
-                    <span>Đang trả lời...</span>
+                    <span>{t('pages.home.chatbot.messageBox.answering')}</span>
                   </div>
                 </div>
               </div>
@@ -454,8 +458,8 @@ const MessageBox = () => {
             type="button"
             className="attach-btn"
             onClick={handleOpenFilePicker}
-            title="Them anh"
-            aria-label="Them anh"
+            title={t('pages.home.chatbot.messageBox.attachImage')}
+            aria-label={t('pages.home.chatbot.messageBox.attachImage')}
             disabled={isAiLoading || isUploadingImages}
           >
             <Plus size={20} />
@@ -479,7 +483,7 @@ const MessageBox = () => {
                     type="button"
                     className="inline-image-remove"
                     onClick={() => handleRemovePendingImage(item.id)}
-                    aria-label="Xoa anh"
+                    aria-label={t('pages.home.chatbot.messageBox.removeImage')}
                     disabled={isAiLoading || isUploadingImages}
                   >
                     <X size={12} />
@@ -495,7 +499,7 @@ const MessageBox = () => {
           <Form.Item name="content" style={{ flex: 1, marginBottom: 0}}>
             <Input
               ref={inputRef}
-              placeholder="Nhập câu hỏi..."
+              placeholder={t('pages.home.chatbot.messageBox.inputPlaceholder')}
               className="message-input"
               disabled={isAiLoading || isUploadingImages}
             />
@@ -507,7 +511,7 @@ const MessageBox = () => {
                 type="button"
                 className="send-btn"
                 style={{ padding: 0 }}
-                title="AI đang trả lời"
+                title={t('pages.home.chatbot.messageBox.aiResponding')}
                 onClick={handleStopStream}
               >
                 <Pause size={20} />
@@ -518,7 +522,7 @@ const MessageBox = () => {
                 className="send-btn"
                 style={{ padding: 0 }}
                 disabled={isUploadingImages}
-                title={isUploadingImages ? "Dang tai anh..." : "Gui"}
+                title={isUploadingImages ? t('pages.home.chatbot.messageBox.uploadingImage') : t('pages.home.chatbot.messageBox.send')}
               >
                 <Send size={20} />
               </button>
@@ -528,8 +532,8 @@ const MessageBox = () => {
 
         <p className="footer-info">
           {isUploadingImages
-            ? "Dang tai anh len..."
-            : "Thông tin từ AI chỉ mang tính tham khảo. Hãy hỏi bác sĩ thú y để được tư vấn chính xác."}
+            ? t('pages.home.chatbot.messageBox.uploadingImageLong')
+            : t('pages.home.chatbot.messageBox.disclaimer')}
         </p>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { FaPaw } from 'react-icons/fa';
 import { MdLockReset } from 'react-icons/md';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { forgotPasswordApi, resetPasswordApi } from '../../../../services/authService';
 import { getClientInstance } from '../../../../services/apiClient';
 import './styles.css';
@@ -16,16 +17,17 @@ export default function ReEnterPassword() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(RESEND_COOLDOWN_SECONDS);
   const [otpExpiryLeft, setOtpExpiryLeft] = useState(OTP_EXPIRY_SECONDS);
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const email = location.state?.email || '';
 
   useEffect(() => {
     if (!email) {
-      message.warning('Vui lòng nhập email trước');
+      message.warning(t('pages.auth.resetPassword.enterEmailFirst'));
       navigate('/forgot-password');
     }
-  }, [email, navigate]);
+  }, [email, navigate, t]);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -36,31 +38,31 @@ export default function ReEnterPassword() {
   useEffect(() => {
     if (otpExpiryLeft === 0) {
       message.warning({
-        content: 'Mã OTP đã hết hạn. Vui lòng gửi lại mã OTP mới.',
+        content: t('pages.auth.resetPassword.otpExpired'),
         key: 'otp-expired',
       });
       return;
     }
     const id = setTimeout(() => setOtpExpiryLeft(c => c - 1), 1000);
     return () => clearTimeout(id);
-  }, [otpExpiryLeft]);
+  }, [otpExpiryLeft, t]);
 
   const handleGoBack = () => navigate('/login');
 
   const handleResendOtp = async () => {
     if (!email) {
-      message.error('Email không hợp lệ');
+      message.error(t('pages.auth.resetPassword.invalidEmail'));
       return;
     }
     setResendLoading(true);
     try {
       await forgotPasswordApi(getClientInstance(), email);
-      message.success('Mã OTP đã được gửi lại. Vui lòng kiểm tra email của bạn');
+      message.success(t('pages.auth.resetPassword.otpResent'));
       form.setFieldValue('otp', '');
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setOtpExpiryLeft(OTP_EXPIRY_SECONDS);
     } catch (err) {
-      message.error(err.response?.data?.message || err.message || 'Không thể gửi lại mã OTP');
+      message.error(err.response?.data?.message || err.message || t('pages.auth.resetPassword.resendFailed'));
     } finally {
       setResendLoading(false);
     }
@@ -68,7 +70,7 @@ export default function ReEnterPassword() {
 
   const handleSubmit = async (values) => {
     if (otpExpiryLeft === 0) {
-      message.warning('Mã OTP đã hết hạn. Vui lòng gửi lại mã OTP mới.');
+      message.warning(t('pages.auth.resetPassword.otpExpired'));
       return;
     }
     setLoading(true);
@@ -79,10 +81,10 @@ export default function ReEnterPassword() {
         newPassword: values.newPassword,
         confirmPassword: values.confirmPassword,
       });
-      message.success(response.data?.message || 'Mật khẩu đã được đặt lại thành công');
+      message.success(response.data?.message || t('pages.auth.resetPassword.success'));
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
-      message.error(err.response?.data?.message || err.message || 'Đặt lại mật khẩu thất bại');
+      message.error(err.response?.data?.message || err.message || t('pages.auth.resetPassword.failed'));
     } finally {
       setLoading(false);
     }
@@ -102,9 +104,9 @@ export default function ReEnterPassword() {
         </div>
 
         <div className="reset-password-header">
-          <h1 className="reset-password-title">Thiết lập lại mật khẩu</h1>
+          <h1 className="reset-password-title">{t('pages.auth.resetPassword.heading')}</h1>
           <p className="reset-password-subtitle">
-            Mã OTP đã được gửi tới <strong>{email}</strong>
+            {t('pages.auth.resetPassword.otpSentTo')} <strong>{email}</strong>
           </p>
         </div>
 
@@ -116,22 +118,22 @@ export default function ReEnterPassword() {
             autoComplete="off"
           >
             <Form.Item
-              label="Nhập mã OTP"
+              label={t('pages.auth.resetPassword.otpLabel')}
               name="otp"
               rules={[
-                { required: true, message: 'Vui lòng nhập mã OTP' },
-                { pattern: /^\d{6}$/, message: 'Mã OTP phải gồm 6 chữ số' },
+                { required: true, message: t('pages.auth.resetPassword.validation.otpRequired') },
+                { pattern: /^\d{6}$/, message: t('pages.auth.resetPassword.validation.otpInvalid') },
               ]}
             >
-              <Input placeholder="Nhập mã OTP gồm 6 chữ số" maxLength={6} />
+              <Input placeholder={t('pages.auth.resetPassword.otpPlaceholder')} maxLength={6} />
             </Form.Item>
 
             <div className="resend-otp-row">
               <span className="otp-expiry-hint">
                 {otpExpiryLeft > 0 ? (
-                  <>OTP hết hạn sau: <strong>{formatTime(otpExpiryLeft)}</strong></>
+                  <>{t('pages.auth.resetPassword.otpExpiresIn')} <strong>{formatTime(otpExpiryLeft)}</strong></>
                 ) : (
-                  <span className="otp-expired-text">Mã OTP đã hết hạn</span>
+                  <span className="otp-expired-text">{t('pages.auth.resetPassword.otpExpiredShort')}</span>
                 )}
               </span>
               <Button
@@ -146,19 +148,21 @@ export default function ReEnterPassword() {
                   fontSize: '14px',
                 }}
               >
-                {resendCooldown > 0 ? `Gửi lại mã OTP (${resendCooldown}s)` : 'Gửi lại mã OTP'}
+                {resendCooldown > 0
+                  ? t('pages.auth.resetPassword.resendOtpCooldown', { seconds: resendCooldown })
+                  : t('pages.auth.resetPassword.resendOtp')}
               </Button>
             </div>
 
             <Form.Item
-              label="Nhập mật khẩu mới"
+              label={t('pages.auth.resetPassword.newPasswordLabel')}
               name="newPassword"
               rules={[
-                { required: true, message: 'Vui lòng nhập mật khẩu mới' },
-                { min: 6, message: 'Mật khẩu phải có ít nhất 6 ký tự' },
+                { required: true, message: t('pages.auth.resetPassword.validation.newPasswordRequired') },
+                { min: 6, message: t('pages.auth.resetPassword.validation.newPasswordMin') },
                 {
                   pattern: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
-                  message: 'Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt',
+                  message: t('pages.auth.resetPassword.validation.newPasswordComplexity'),
                 },
               ]}
             >
@@ -166,17 +170,17 @@ export default function ReEnterPassword() {
             </Form.Item>
 
             <Form.Item
-              label="Xác nhận mật khẩu mới"
+              label={t('pages.auth.resetPassword.confirmPasswordLabel')}
               name="confirmPassword"
               dependencies={['newPassword']}
               rules={[
-                { required: true, message: 'Vui lòng xác nhận mật khẩu' },
+                { required: true, message: t('pages.auth.resetPassword.validation.confirmPasswordRequired') },
                 ({ getFieldValue }) => ({
                   validator(_, value) {
                     if (!value || getFieldValue('newPassword') === value) {
                       return Promise.resolve();
                     }
-                    return Promise.reject(new Error('Mật khẩu không khớp'));
+                    return Promise.reject(new Error(t('pages.auth.resetPassword.validation.confirmPasswordMismatch')));
                   },
                 }),
               ]}
@@ -192,7 +196,7 @@ export default function ReEnterPassword() {
                 block
                 className="reset-submit-btn"
               >
-                {loading ? 'Đang cập nhật...' : 'Đặt lại mật khẩu'}
+                {loading ? t('pages.auth.resetPassword.updating') : t('pages.auth.resetPassword.submit')}
               </Button>
             </Form.Item>
           </Form>
@@ -204,7 +208,7 @@ export default function ReEnterPassword() {
             onClick={handleGoBack}
             style={{ color: '#666', fontSize: '14px' }}
           >
-            ← Quay lại Đăng nhập
+            {t('pages.auth.resetPassword.backToLogin')}
           </Button>
         </div>
       </div>

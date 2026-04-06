@@ -23,6 +23,7 @@ import {
 
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useTranslation } from 'react-i18next';
 import { getUserProfileApi } from "../../../../services/userService";
 import { getClientInstance } from "../../../../services/apiClient";
 import {
@@ -43,6 +44,7 @@ import "./styles.css";
 export default function PetProfile() {
   const [form] = Form.useForm();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
@@ -104,7 +106,7 @@ export default function PetProfile() {
       const res = await getUserProfileApi(getClientInstance());
       setOwnerName(res.data?.fullName || "");
     } catch (error) {
-      message.warning("Không lấy được thông tin người dùng");
+      message.warning(t('pages.petProfile.loadUserFailed'));
     }
   };
 
@@ -113,7 +115,7 @@ export default function PetProfile() {
       const speciesData = await getPetSpeciesApi(getClientInstance());
       setSpeciesList(Array.isArray(speciesData) ? speciesData : []);
     } catch (error) {
-      message.error(error.message || "Không thể tải danh sách loài");
+      message.error(error.message || t('pages.petProfile.loadSpeciesFailed'));
     }
   };
 
@@ -122,7 +124,7 @@ export default function PetProfile() {
       const breedsData = await getBreedsBySpeciesApi(getClientInstance(), speciesId);
       setBreedList(Array.isArray(breedsData) ? breedsData : []);
     } catch (error) {
-      message.error(error.message || "Không thể tải danh sách giống");
+      message.error(error.message || t('pages.petProfile.loadBreedFailed'));
     }
   };
 
@@ -150,7 +152,7 @@ export default function PetProfile() {
       }
 
       if (!petInfo) {
-        message.warning("Chưa có thú cưng");
+        message.warning(t('pages.petProfile.noPet'));
         return;
       }
 
@@ -188,7 +190,7 @@ export default function PetProfile() {
       setUploadedAvatarUrl(mappedPetData.avatar || '');
       setHasUnsavedChanges(false);
     } catch (error) {
-      message.error(error.message || "Không thể tải thông tin thú cưng!");
+      message.error(error.message || t('pages.petProfile.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -213,15 +215,15 @@ export default function PetProfile() {
       const nextAvatarUrl = uploadResult?.file || '';
 
       if (!nextAvatarUrl) {
-        throw new Error("Không nhận được URL ảnh từ server");
+        throw new Error(t('pages.petProfile.uploadNoUrl'));
       }
 
       setUploadedAvatarUrl(nextAvatarUrl);
-      message.success("Tải ảnh thú cưng thành công");
+      message.success(t('pages.petProfile.uploadSuccess'));
     } catch (error) {
       setImagePreview(petData?.avatar || null);
       setUploadedAvatarUrl(petData?.avatar || '');
-      message.error(error.message || "Không thể tải ảnh thú cưng");
+      message.error(error.message || t('pages.petProfile.uploadFailed'));
     } finally {
       setUploadingAvatar(false);
       e.target.value = "";
@@ -230,12 +232,12 @@ export default function PetProfile() {
 
   const handleSubmit = async (values) => {
     if (uploadingAvatar) {
-      message.warning("Ảnh đang được tải lên, vui lòng đợi");
+      message.warning(t('pages.petProfile.validation.avatarUploading'));
       return;
     }
 
     if (!currentPetId) {
-      message.error("Không tìm thấy thú cưng để cập nhật");
+      message.error(t('pages.petProfile.validation.petNotFound'));
       return;
     }
 
@@ -245,7 +247,7 @@ export default function PetProfile() {
       "";
 
     if (!matchedBreed) {
-      message.warning("Vui lòng chọn giống hợp lệ");
+      message.warning(t('pages.petProfile.validation.invalidBreed'));
       return;
     }
 
@@ -282,10 +284,10 @@ export default function PetProfile() {
 
       setHasUnsavedChanges(false);
 
-      message.success("Cập nhật thông tin thú cưng thành công!");
+      message.success(t('pages.petProfile.updateSuccess'));
       navigate(-1);
     } catch (error) {
-      message.error(error.message || "Cập nhật thất bại!");
+      message.error(error.message || t('pages.petProfile.updateFailed'));
     } finally {
       setLoading(false);
     }
@@ -298,13 +300,13 @@ export default function PetProfile() {
     }
 
     Modal.confirm({
-      title: 'Hủy thay đổi',
-      content: 'Bạn đang chỉnh sửa thông tin thú cưng. Bạn có chắc muốn hủy các thay đổi chưa lưu và quay lại không?',
-      okText: 'Hủy và quay lại',
-      cancelText: 'Tiếp tục chỉnh sửa',
+      title: t('pages.petProfile.confirmCancel.title'),
+      content: t('pages.petProfile.confirmCancel.content'),
+      okText: t('pages.petProfile.confirmCancel.okText'),
+      cancelText: t('pages.petProfile.confirmCancel.cancelText'),
       centered: true,
       onOk: () => {
-        message.info('Đã hủy thay đổi');
+        message.info(t('pages.petProfile.confirmCancel.successInfo'));
         navigate(-1);
       },
     });
@@ -373,7 +375,7 @@ export default function PetProfile() {
             <div className="profile-info-header">
 
               <h2 className="profile-name">
-                {petData?.petName || "Tên thú cưng"}
+                {petData?.petName || t('pages.petProfile.defaultPetName')}
               </h2>
             </div>
 
@@ -395,16 +397,16 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label="Tên thú cưng"
+                label={t('pages.petProfile.fields.petName')}
                 name="petName"
                 className="form-col"
-                rules={[{ required: true, message: "Nhập tên thú cưng" }]}
+                rules={[{ required: true, message: t('pages.petProfile.validation.petNameRequired') }]}
               >
                 <Input size="large" />
               </Form.Item>
 
               <Form.Item
-                label="Loài"
+                label={t('pages.petProfile.fields.species')}
                 name="species"
                 className="form-col"
                 rules={[{ required: true }]}
@@ -424,15 +426,15 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label="Giống"
+                label={t('pages.petProfile.fields.breed')}
                 name="breed"
                 className="form-col"
-                rules={[{ required: true, message: "Chọn giống" }]}
+                rules={[{ required: true, message: t('pages.petProfile.validation.breedRequired') }]}
               >
                 <Select
                   size="large"
                   showSearch
-                  placeholder="Chọn giống"
+                  placeholder={t('pages.petProfile.placeholders.breed')}
                   className="pet-breed-select"
                   options={breedList.map((item) => ({
                     label: getBreedLabel(item, selectedSpeciesId),
@@ -447,7 +449,7 @@ export default function PetProfile() {
               </Form.Item>
 
               <Form.Item
-                label="Giới tính"
+                label={t('pages.petProfile.fields.gender')}
                 name="gender"
                 className="form-col"
                 rules={[{ required: true }]}
@@ -456,13 +458,13 @@ export default function PetProfile() {
                   <Radio.Button value="Đực" className="pet-gender-btn">
                     <span className="pet-gender-content">
                       <ManOutlined />
-                      <span>Đực</span>
+                      <span>{t('pages.petProfile.gender.male')}</span>
                     </span>
                   </Radio.Button>
                   <Radio.Button value="Cái" className="pet-gender-btn ">
                     <span className="pet-gender-content">
                       <WomanOutlined />
-                      <span>Cái</span>
+                      <span>{t('pages.petProfile.gender.female')}</span>
                     </span>
                   </Radio.Button>
                 </Radio.Group>
@@ -473,21 +475,21 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label="Tuổi thú cưng"
+                label={t('pages.petProfile.fields.age')}
                 name="birthDate"
-                rules={[{ required: true, message: "Chọn ngày sinh" }]}
+                rules={[{ required: true, message: t('pages.petProfile.validation.birthDateRequired') }]}
               >
 
                 <DatePicker
                   size="large"
                   style={{ width: "100%" }}
                   suffixIcon={<CalendarOutlined />}
-                  placeholder="Chọn ngày sinh"
+                  placeholder={t('pages.petProfile.placeholders.birthDate')}
 
                   format={(value) => {
                     if (!value) return "";
                     const age = dayjs().diff(value, "year");
-                    return `${age} tuổi`;
+                    return t('pages.petProfile.age.years', { count: age });
                   }}
 
                   onChange={(date) => {
@@ -505,7 +507,7 @@ export default function PetProfile() {
               </Form.Item>
 
               <Form.Item
-                label="Cân nặng (kg)"
+                label={t('pages.petProfile.fields.weight')}
                 name="weight"
                 className="form-col"
                 rules={[{ required: true }]}
@@ -521,7 +523,7 @@ export default function PetProfile() {
             </div>
 
             <Form.Item
-              label="Màu lông / Đặc điểm"
+              label={t('pages.petProfile.fields.features')}
               name="features"
             >
               <Input.TextArea rows={4} />
@@ -537,7 +539,7 @@ export default function PetProfile() {
                   onClick={handleCancel}
                   disabled={loading || uploadingAvatar}
                 >
-                  Hủy
+                  {t('pages.petProfile.actions.cancel')}
                 </Button>
 
                 <Button
@@ -548,7 +550,7 @@ export default function PetProfile() {
                   loading={loading}
                   disabled={loading || uploadingAvatar}
                 >
-                  {uploadingAvatar ? "Đang tải ảnh..." : "Lưu thay đổi"}
+                  {uploadingAvatar ? t('pages.petProfile.actions.uploading') : t('pages.petProfile.actions.save')}
                 </Button>
 
               </Space>

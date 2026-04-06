@@ -1,5 +1,6 @@
 import { Modal } from 'antd';
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getClinicHomeContent, resolveSelectedClinicId } from '../../../../data/client/utils/clinicHomeStorage';
 import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
@@ -40,6 +41,7 @@ const getPreviewText = (text, wordLimit = INTRO_PREVIEW_WORDS) => {
 };
 
 export default function HomePageClinic({ clinicId = '', forcedContent = null, showBookingButton = true }) {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
@@ -54,7 +56,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
       return buildClinicHomeContent(forcedContent);
     }
     return getClinicHomeContent(selectedClinicId);
-  }, [forcedContent, selectedClinicId]);
+  }, [forcedContent, i18n.language, selectedClinicId]);
 
   const aboutPreview = useMemo(() => getPreviewText(content?.about?.description, INTRO_PREVIEW_WORDS), [content?.about?.description]);
   const galleryImages = useMemo(() => {
@@ -111,7 +113,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
               <p className="about-text">{aboutPreview}</p>
               {content.about.description ? (
                 <button className="btn btn-secondary" onClick={() => setIsAboutModalOpen(true)}>
-                  Đọc thêm
+                  {t('common.actions.readMore')}
                 </button>
               ) : null}
             </div>
@@ -130,7 +132,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
             <div className="clinic-gallery-grid">
               {galleryImages.map((galleryItem, index) => (
                 <div key={galleryItem.id || index} className="clinic-gallery-item">
-                  <img src={galleryItem.image} alt={galleryItem.alt || `Hình ảnh phòng khám ${index + 1}`} loading="lazy" />
+                  <img src={galleryItem.image} alt={galleryItem.alt || t('pages.home.homePageClinic.galleryAltFallback', { index: index + 1 })} loading="lazy" />
                 </div>
               ))}
             </div>
@@ -160,7 +162,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
 
           <div className="clinic-map-wrapper">
             <iframe
-              title="Google Maps địa chỉ phòng khám"
+              title={t('pages.home.homePageClinic.mapIframeTitle')}
               src={mapEmbedUrl}
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
@@ -171,7 +173,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
       </div>
 
       <Modal
-        title={content.about.title || 'Giới thiệu phòng khám'}
+        title={content.about.title || t('pages.home.homePageClinic.aboutModalFallbackTitle')}
         open={isAboutModalOpen}
         onCancel={() => setIsAboutModalOpen(false)}
         footer={null}

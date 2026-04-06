@@ -3,7 +3,8 @@ import {
 	UpOutlined,
 } from '@ant-design/icons'
 import { message } from 'antd'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
 	FaBell,
 	FaCakeCandles,
@@ -28,24 +29,21 @@ import styles from './medicalRecords.module.css'
 
 const EMPTY_TIMELINE = []
 const EMPTY_REMINDERS = []
-const DEFAULT_PET_SUMMARY = {
-	name: 'Chưa chọn thú cưng',
+const getDefaultPetSummary = (t) => ({
+	name: t('pages.medicalRecords.defaultPetSummary.name'),
 	avatar: '',
-	breedName: 'Chưa cập nhật giống',
-	birthday: 'Chưa cập nhật',
-	gender: 'Chưa cập nhật',
-	weight: 'Chưa cập nhật',
-}
+	breedName: t('pages.medicalRecords.defaultPetSummary.breedName'),
+	birthday: t('common.states.notUpdated'),
+	gender: t('common.states.notUpdated'),
+	weight: t('common.states.notUpdated'),
+})
 
-const EMPTY_TIMELINE_HINT =
-	'Chưa có hồ sơ để hiển thị. Hãy chọn thú cưng từ danh sách để xem đúng hồ sơ riêng.'
-
-const formatGender = (gender) => {
-	if (typeof gender === 'boolean') return gender ? 'Đực' : 'Cái'
-	if (!gender) return 'Chưa cập nhật'
+const formatGender = (gender, t) => {
+	if (typeof gender === 'boolean') return gender ? t('pages.medicalRecords.gender.male') : t('pages.medicalRecords.gender.female')
+	if (!gender) return t('common.states.notUpdated')
 	const normalizedGender = String(gender).trim().toLowerCase()
-	if (normalizedGender === 'male') return 'Đực'
-	if (normalizedGender === 'female') return 'Cái'
+	if (normalizedGender === 'male') return t('pages.medicalRecords.gender.male')
+	if (normalizedGender === 'female') return t('pages.medicalRecords.gender.female')
 	return String(gender)
 }
 const getMarkerIcon = (markerType) => {
@@ -60,41 +58,44 @@ const getReminderIcon = (type) => {
 	return <FaCalendarCheck />
 }
 
-const formatDate = (value) => {
-	if (!value) return 'Chưa cập nhật'
+const formatDate = (value, locale, t) => {
+	if (!value) return t('common.states.notUpdated')
 
 	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
+	if (Number.isNaN(date.getTime())) return t('common.states.notUpdated')
 
-	return date.toLocaleDateString('vi-VN')
+	return date.toLocaleDateString(locale)
 }
 
-const formatFollowUpDate = (value) => {
-	const resolved = formatDate(value)
-	return resolved === 'Chưa cập nhật' ? 'Không' : resolved
+const formatFollowUpDate = (value, locale, t) => {
+	const resolved = formatDate(value, locale, t)
+	return resolved === t('common.states.notUpdated') ? t('common.states.notAvailable') : resolved
 }
 
-const resolveRecordTitle = (name, fallback = 'Phiếu khám chưa đặt tên') => {
-	if (!name) return fallback
-	return getServiceLabel(name, name) || fallback
+const resolveRecordTitle = (name, t, fallback) => {
+	const titleFallback = fallback || t('pages.medicalRecords.recordFallbackTitle')
+	if (!name) return titleFallback
+	return getServiceLabel(name, name) || titleFallback
 }
 
-const resolveExamDate = (record) =>
+const resolveExamDate = (record, locale, t) =>
 	formatDate(
 		record?.appointment?.appointmentDate ||
 			record?.appointmentDate ||
 			record?.examDate ||
 			record?.visitDate ||
 			record?.createdAt,
+		locale,
+		t,
 	)
 
-const formatVitalValue = (value, suffix = '') => {
-	if (value === null || value === undefined || value === '') return 'Chưa cập nhật'
+const formatVitalValue = (value, t, suffix = '') => {
+	if (value === null || value === undefined || value === '') return t('common.states.notUpdated')
 	return suffix ? `${value} ${suffix}` : String(value)
 }
 
-const formatBloodPressure = (systolic, diastolic) => {
-	if (!systolic && !diastolic) return 'Chưa cập nhật'
+const formatBloodPressure = (systolic, diastolic, t) => {
+	if (!systolic && !diastolic) return t('common.states.notUpdated')
 	if (systolic && diastolic) return `${systolic}/${diastolic} mmHg`
 	return `${systolic || diastolic} mmHg`
 }
@@ -111,18 +112,18 @@ const resolveMedicineUnitLabel = (item) => {
 	return getMedicineUnitLabel(unitValue, unitValue)
 }
 
-const normalizeMedicalErrorMessage = (error) => {
-	const rawMessage = error?.message || 'Không thể tải hồ sơ khám bệnh'
+const normalizeMedicalErrorMessage = (error, t) => {
+	const rawMessage = error?.message || t('pages.medicalRecords.loadFailed')
 	const normalized = rawMessage.trim().toLowerCase()
 
 	if (normalized === 'internal server error') {
-		return 'Không thể tải hồ sơ khám bệnh. Vui lòng thử lại hoặc kiểm tra dữ liệu thú cưng.'
+		return t('pages.medicalRecords.internalServerError')
 	}
 
 	return rawMessage
 }
 
-const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) => {
+const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = [], locale, t) => {
 	const orderSummary =
 		medicalOrders.length > 0
 			? medicalOrders
@@ -131,15 +132,15 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 							order?.medicalOrder?.nameVn ||
 							order?.medicalOrder?.nameEng ||
 							order?.medicalOrder?.name ||
-							'Chỉ định chưa xác định',
+							t('common.states.notAvailable'),
 					)
 					.join(', ')
-			: 'Không có'
+			: t('common.states.notAvailable')
 
 	const medicineSummary =
 		medicines.length > 0
 			? medicines.map((medicine) => {
-					const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
+					const medicineName = medicine.medicine?.name || t('common.states.notAvailable')
 					const unitLabel = resolveMedicineUnitLabel(medicine)
 					const quantity = medicine.quantity
 						? ` (${medicine.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
@@ -148,7 +149,7 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 					return `${medicineName}${quantity}`
 				})
 				.join(', ')
-			: 'Không có'
+			: t('common.states.notAvailable')
 
 	const hasConclusion = Boolean(record?.conclusion)
 	const status = getMedicalRecordStatusLabel(hasConclusion, { uppercase: true })
@@ -159,37 +160,37 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 	if (medicines.length > 0) markerType = 'skin'
 
 	const vitalRows = [
-		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
-		{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
-		{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
-		{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
+		{ label: t('pages.medicalRecords.record.weight'), value: formatVitalValue(record?.weight, t, 'kg') },
+		{ label: t('pages.medicalRecords.record.temperature'), value: formatVitalValue(record?.temperature, t, '°C') },
+		{ label: t('pages.medicalRecords.record.heartRate'), value: formatVitalValue(record?.heartRate, t, 'l/p/m') },
+		{ label: t('pages.medicalRecords.record.bloodPressure'), value: formatBloodPressure(record?.systolic, record?.diastolic, t) },
 	]
 
 	const detailRows = [
-		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
-		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
-		{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
-		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
-		{ label: 'Chỉ định xét nghiệm', value: orderSummary },
-		{ label: 'Đơn thuốc', value: medicineSummary },
+		{ label: t('pages.medicalRecords.record.symptoms'), value: record?.symptoms || t('common.states.notUpdated') },
+		{ label: t('pages.medicalRecords.record.diagnosis'), value: record?.diagnosis || t('common.states.notUpdated') },
+		{ label: t('pages.medicalRecords.record.conclusion'), value: record?.conclusion || t('common.states.notUpdated') },
+		{ label: t('pages.medicalRecords.record.doctorNote'), value: record?.note || t('common.states.notUpdated') },
+		{ label: t('pages.medicalRecords.record.medicalOrders'), value: orderSummary },
+		{ label: t('pages.medicalRecords.record.prescription'), value: medicineSummary },
 	]
 
 	return {
 		id: record?.id || `record-${Date.now()}`,
 		markerType,
-		title: resolveRecordTitle(record?.name),
+		title: resolveRecordTitle(record?.name, t),
 		status,
 		statusType,
 		leftInfo: [
-			{ label: 'Tên phòng khám', value: record?.clinic?.name || 'Chưa cập nhật' },
-			{ label: 'Ngày khám', value: resolveExamDate(record) },
+			{ label: t('pages.medicalRecords.record.clinicName'), value: record?.clinic?.name || t('common.states.notUpdated') },
+			{ label: t('pages.medicalRecords.record.examDate'), value: resolveExamDate(record, locale, t) },
 		],
 		rightInfo: [
 			{
-				label: 'Tên bác sĩ',
-				value: record?.veterinarian?.fullName || 'Chưa cập nhật',
+				label: t('pages.medicalRecords.record.doctorName'),
+				value: record?.veterinarian?.fullName || t('common.states.notUpdated'),
 			},
-			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
+			{ label: t('pages.medicalRecords.record.followUpDate'), value: formatFollowUpDate(record?.followUpDate, locale, t) },
 
 		],
 		vitalRows,
@@ -197,31 +198,34 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 	}
 }
 
-const mapMedicalToReminder = (record) => {
+const mapMedicalToReminder = (record, locale, t) => {
 	if (record?.followUpDate) {
 		return {
 			id: `reminder-follow-up-${record.id}`,
 			type: 'follow-up',
-			title: `Tái khám - ${record?.pet?.name || record?.petName || 'Thú cưng'}`,
-			subtitle: formatDate(record.followUpDate),
+			title: t('pages.medicalRecords.reminders.followUpTitle', { name: record?.pet?.name || record?.petName || t('pages.medicalRecords.defaultPetName') }),
+			subtitle: formatDate(record.followUpDate, locale, t),
 		}
 	}
 
 	return {
 		id: `reminder-medical-${record?.id || Date.now()}`,
 		type: 'vaccine',
-		title: resolveRecordTitle(record?.name, 'Nhắc lịch khám'),
-		subtitle: `Ngày khám: ${resolveExamDate(record)}`,
+		title: resolveRecordTitle(record?.name, t, t('pages.medicalRecords.reminders.defaultTitle')),
+		subtitle: t('pages.medicalRecords.reminders.examDate', { date: resolveExamDate(record, locale, t) }),
 	}
 }
 
 function MedicalRecords() {
+	const { t, i18n } = useTranslation()
+	const dateLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
+	const defaultPetSummary = useMemo(() => getDefaultPetSummary(t), [t])
 	const navigate = useNavigate()
 	const [searchParams] = useSearchParams()
 	const [loading, setLoading] = useState(false)
 	const [timelineRecords, setTimelineRecords] = useState(EMPTY_TIMELINE)
 	const [reminders, setReminders] = useState(EMPTY_REMINDERS)
-	const [petSummary, setPetSummary] = useState(DEFAULT_PET_SUMMARY)
+	const [petSummary, setPetSummary] = useState(defaultPetSummary)
 	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
 	const medicalId = searchParams.get('medicalId')
 	const petId = searchParams.get('petId')
@@ -240,10 +244,10 @@ function MedicalRecords() {
 				: petList[0]
 
 			if (petId && !selectedPet) {
-				message.warning('Không tìm thấy thú cưng được chọn. Vui lòng thử lại từ danh sách thú cưng.')
+				message.warning(t('pages.medicalRecords.petNotFound'))
 				setTimelineRecords(EMPTY_TIMELINE)
 				setReminders(EMPTY_REMINDERS)
-				setPetSummary(DEFAULT_PET_SUMMARY)
+				setPetSummary(defaultPetSummary)
 				return
 			}
 
@@ -276,12 +280,12 @@ function MedicalRecords() {
 
 			if (records.length === 0 && selectedPet) {
 				setPetSummary({
-					name: selectedPet?.name || DEFAULT_PET_SUMMARY.name,
-					avatar: selectedPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
+					name: selectedPet?.name || defaultPetSummary.name,
+					avatar: selectedPet?.avatar || defaultPetSummary.avatar,
 					breedName: getBreedLabel(selectedPet?.breed, selectedPet?.species),
-					birthday: formatDate(selectedPet?.dateOfBirth),
-					gender: formatGender(selectedPet?.gender),
-					weight: selectedPet?.weight ? `${selectedPet.weight} kg` : DEFAULT_PET_SUMMARY.weight,
+					birthday: formatDate(selectedPet?.dateOfBirth, dateLocale, t),
+					gender: formatGender(selectedPet?.gender, t),
+					weight: selectedPet?.weight ? `${selectedPet.weight} kg` : defaultPetSummary.weight,
 				})
 			}
 
@@ -290,7 +294,7 @@ function MedicalRecords() {
 				setReminders(EMPTY_REMINDERS)
 				setExpandedRecords(new Set())
 				if (!selectedPet) {
-					setPetSummary(DEFAULT_PET_SUMMARY)
+					setPetSummary(defaultPetSummary)
 				}
 				return
 			}
@@ -312,12 +316,12 @@ function MedicalRecords() {
 
 			setTimelineRecords(
 				enrichedRecords.map(({ record, medicalOrders, medicines }) =>
-					mapMedicalToTimelineRecord(record, medicalOrders, medicines),
+					mapMedicalToTimelineRecord(record, medicalOrders, medicines, dateLocale, t),
 				),
 			)
 			setExpandedRecords(new Set())
 
-			setReminders(enrichedRecords.slice(0, 3).map(({ record }) => mapMedicalToReminder(record)))
+			setReminders(enrichedRecords.slice(0, 3).map(({ record }) => mapMedicalToReminder(record, dateLocale, t)))
 
 			const firstRecord = enrichedRecords[0]?.record
 			setPetSummary({
@@ -325,29 +329,29 @@ function MedicalRecords() {
 					firstRecord?.pet?.name ||
 					firstRecord?.petName ||
 					selectedPet?.name ||
-					DEFAULT_PET_SUMMARY.name,
-				avatar: firstRecord?.pet?.avatar || selectedPet?.avatar || DEFAULT_PET_SUMMARY.avatar,
+					defaultPetSummary.name,
+				avatar: firstRecord?.pet?.avatar || selectedPet?.avatar || defaultPetSummary.avatar,
 				breedName: getBreedLabel(
 					firstRecord?.pet?.breed || firstRecord?.pet?.breedName || selectedPet?.breed,
 					firstRecord?.pet?.species || selectedPet?.species,
 				),
-				birthday: formatDate(firstRecord?.pet?.dateOfBirth || selectedPet?.dateOfBirth),
-				gender: formatGender(firstRecord?.pet?.gender ?? selectedPet?.gender),
+				birthday: formatDate(firstRecord?.pet?.dateOfBirth || selectedPet?.dateOfBirth, dateLocale, t),
+				gender: formatGender(firstRecord?.pet?.gender ?? selectedPet?.gender, t),
 				weight:
 					firstRecord?.pet?.weight || firstRecord?.weight || selectedPet?.weight
 						? `${firstRecord?.pet?.weight || firstRecord?.weight || selectedPet?.weight} kg`
-						: DEFAULT_PET_SUMMARY.weight,
+						: defaultPetSummary.weight,
 			})
 		} catch (error) {
-			message.error(normalizeMedicalErrorMessage(error))
+			message.error(normalizeMedicalErrorMessage(error, t))
 			setTimelineRecords(EMPTY_TIMELINE)
 			setReminders(EMPTY_REMINDERS)
 			setExpandedRecords(new Set())
-			setPetSummary(DEFAULT_PET_SUMMARY)
+			setPetSummary(defaultPetSummary)
 		} finally {
 			setLoading(false)
 		}
-	}, [medicalId, petId])
+	}, [medicalId, petId, t, defaultPetSummary, dateLocale])
 
 	const toggleExpandedRecord = useCallback((recordId) => {
 		setExpandedRecords((prev) => {
@@ -405,11 +409,11 @@ function MedicalRecords() {
 				<section className={styles.mainGrid}>
 					<article className={styles.timelinePanel}>
 						<h2 className={styles.panelTitle}>
-							<MdHealthAndSafety /> Dòng thời gian sức khỏe {loading ? '(đang tải...)' : ''}
+							<MdHealthAndSafety /> {t('pages.medicalRecords.timelineTitle')} {loading ? `(${t('common.states.loading')})` : ''}
 						</h2>
 						<div className={styles.timelineWrapper}>
 							{timelineRecords.length === 0 ? (
-								<p className={styles.emptyStateText}>{EMPTY_TIMELINE_HINT}</p>
+								<p className={styles.emptyStateText}>{t('pages.medicalRecords.emptyTimelineHint')}</p>
 							) : (
 								timelineRecords.map((record) => {
 									const isExpanded = expandedRecords.has(record.id)
@@ -436,7 +440,7 @@ function MedicalRecords() {
 															onClick={() => toggleExpandedRecord(record.id)}
 															aria-expanded={isExpanded}
 														>
-															{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
+															{isExpanded ? t('pages.medicalRecords.actions.collapse') : t('pages.medicalRecords.actions.viewDetail')}
 															{isExpanded ? <UpOutlined /> : <DownOutlined />}
 														</button>
 													</div>
@@ -493,12 +497,12 @@ function MedicalRecords() {
 
 					<aside className={styles.reminderPanel}>
 						<h2 className={styles.panelTitle}>
-							<FaBell /> Nhắc nhở quan trọng
+							<FaBell /> {t('pages.medicalRecords.remindersTitle')}
 						</h2>
 
 						<div className={styles.reminderList}>
 							{reminders.length === 0 ? (
-								<p className={styles.emptyStateText}>Chưa có nhắc nhở quan trọng.</p>
+								<p className={styles.emptyStateText}>{t('pages.medicalRecords.emptyReminders')}</p>
 							) : (
 								reminders.map((reminder) => (
 								<div
@@ -519,9 +523,9 @@ function MedicalRecords() {
 							type="button"
 							className={styles.bookNowButton}
 							disabled={loading}
-							onClick={() => handleBookNow('Đặt lịch khám')}
+							onClick={() => handleBookNow(t('pages.medicalRecords.bookingService'))}
 						>
-							Đặt lịch ngay
+							{t('pages.medicalRecords.bookNow')}
 						</button>
 					</aside>
 				</section>

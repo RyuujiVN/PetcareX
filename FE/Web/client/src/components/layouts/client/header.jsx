@@ -1,6 +1,7 @@
 import { EyeInvisibleOutlined, EyeOutlined, LockOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
 import { Avatar, Badge, Button, Empty, Form, List, Popover, Spin, Typography, message } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaPaw } from "react-icons/fa";
 import { FaRegCalendarCheck, FaRegCommentDots, FaRegThumbsUp } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
@@ -8,6 +9,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { changePasswordApi } from "../../../services/authService";
 import { getClientInstance } from "../../../services/apiClient";
 import { loadClientNotifications } from "../../../data/client/api/notificationApi";
+import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import { useAuth } from "../../../hooks/client/AuthContext";
 import "./header.css";
 
@@ -47,19 +49,19 @@ const readStorageJson = (key, fallbackValue) => {
     }
 };
 
-const formatNotificationTimeAgo = (dateValue) => {
+const formatNotificationTimeAgo = (dateValue, t) => {
     const createdAt = new Date(dateValue).getTime();
-    if (Number.isNaN(createdAt)) return "Vừa xong";
+    if (Number.isNaN(createdAt)) return t("header.notifications.justNow");
 
     const diff = Date.now() - createdAt;
     const minute = 60 * 1000;
     const hour = 60 * minute;
     const day = 24 * hour;
 
-    if (diff < minute) return "Vừa xong";
-    if (diff < hour) return `${Math.floor(diff / minute)} phút trước`;
-    if (diff < day) return `${Math.floor(diff / hour)} giờ trước`;
-    return `${Math.floor(diff / day)} ngày trước`;
+    if (diff < minute) return t("header.notifications.justNow");
+    if (diff < hour) return t("header.notifications.minutesAgo", { count: Math.floor(diff / minute) });
+    if (diff < day) return t("header.notifications.hoursAgo", { count: Math.floor(diff / hour) });
+    return t("header.notifications.daysAgo", { count: Math.floor(diff / day) });
 };
 
 const formatSyncTime = (dateValue) => {
@@ -85,6 +87,7 @@ const renderNotificationIcon = (type) => {
 };
 
 function Header() {
+    const { t } = useTranslation();
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -185,11 +188,11 @@ function Header() {
                 setNotificationLastSyncedAt(new Date().toISOString());
 
                 if (payload?.hasPartialFailure && !silent) {
-                    message.warning("Đã tải một phần thông báo, vui lòng thử lại sau");
+                    message.warning(t("header.notifications.partialLoadWarning"));
                 }
             } catch (error) {
                 if (!silent) {
-                    message.error(error?.message || "Không thể tải danh sách thông báo");
+                    message.error(error?.message || t("header.notifications.loadError"));
                 }
             } finally {
                 setNotificationLoading(false);
@@ -328,12 +331,12 @@ function Header() {
         <div className="notification-panel">
             <div className="notification-panel-header">
                 <Typography.Title level={5} style={{ margin: 0 }}>
-                    Thông báo
+                    {t("header.notifications.title")}
                 </Typography.Title>
 
                 <div className="notification-panel-actions">
                     <Button size="small" onClick={() => void refreshNotifications()}>
-                        Làm mới
+                        {t("header.notifications.refresh")}
                     </Button>
                     <Button
                         size="small"
@@ -342,7 +345,7 @@ function Header() {
                         disabled={unreadNotificationCount === 0}
                         onClick={handleMarkAllNotificationsAsRead}
                     >
-                        Đánh dấu đã đọc
+                        {t("header.notifications.markAsRead")}
                     </Button>
                 </div>
             </div>
@@ -354,7 +357,7 @@ function Header() {
                         type={notificationFilter === "all" ? "primary" : "default"}
                         onClick={() => setNotificationFilter("all")}
                     >
-                        Tất cả
+                        {t("header.notifications.all")}
                     </Button>
                 </Form.Item>
                 <Form.Item style={{ marginBottom: 0 }}>
@@ -363,7 +366,7 @@ function Header() {
                         type={notificationFilter === "unread" ? "primary" : "default"}
                         onClick={() => setNotificationFilter("unread")}
                     >
-                        Chưa đọc
+                        {t("header.notifications.unread")}
                     </Button>
                 </Form.Item>
             </Form>
@@ -375,7 +378,7 @@ function Header() {
                     </div>
                 ) : filteredNotificationItems.length === 0 ? (
                     <div className="notification-panel-empty">
-                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có thông báo" />
+                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t("header.notifications.empty")} />
                     </div>
                 ) : (
                     <List
@@ -402,7 +405,7 @@ function Header() {
                                         <span className="notification-item-text">
                                             <span className="notification-item-title">{item.title}</span>
                                             <span className="notification-item-description">{item.description}</span>
-                                            <span className="notification-item-time">{formatNotificationTimeAgo(item.createdAt)}</span>
+                                            <span className="notification-item-time">{formatNotificationTimeAgo(item.createdAt, t)}</span>
                                         </span>
 
                                         {isUnread ? <span className="notification-unread-dot" /> : null}
@@ -415,7 +418,7 @@ function Header() {
             </div>
 
             <Typography.Text className="notification-sync-text" type="secondary">
-                Cập nhật lúc: {formatSyncTime(notificationLastSyncedAt)}
+                {t("header.notifications.syncedAt")}: {formatSyncTime(notificationLastSyncedAt)}
             </Typography.Text>
         </div>
     );
@@ -428,19 +431,19 @@ function Header() {
         };
 
         if (!values.currentPassword) {
-            nextErrors.currentPassword = "Vui lòng nhập mật khẩu hiện tại";
+            nextErrors.currentPassword = t("header.passwordModal.validation.currentRequired");
         }
 
         if (!values.newPassword) {
-            nextErrors.newPassword = "Vui lòng nhập mật khẩu mới";
+            nextErrors.newPassword = t("header.passwordModal.validation.newRequired");
         } else if (values.newPassword.length < MIN_PASSWORD_LENGTH) {
-            nextErrors.newPassword = `Mật khẩu mới phải có ít nhất ${MIN_PASSWORD_LENGTH} ký tự`;
+            nextErrors.newPassword = t("header.passwordModal.validation.newMinLength", { count: MIN_PASSWORD_LENGTH });
         }
 
         if (!values.confirmPassword) {
-            nextErrors.confirmPassword = "Vui lòng xác nhận mật khẩu mới";
+            nextErrors.confirmPassword = t("header.passwordModal.validation.confirmRequired");
         } else if (values.confirmPassword !== values.newPassword) {
-            nextErrors.confirmPassword = "Mật khẩu xác nhận không khớp";
+            nextErrors.confirmPassword = t("header.passwordModal.validation.confirmMismatch");
         }
 
         return nextErrors;
@@ -519,10 +522,10 @@ function Header() {
                 login(newToken);
             }
 
-            message.success("Đổi mật khẩu thành công");
+            message.success(t("header.passwordModal.success"));
             closeChangePasswordPopup();
         } catch (error) {
-            message.error(error?.response?.data?.message || error?.message || "Không thể đổi mật khẩu");
+            message.error(error?.response?.data?.message || error?.message || t("header.passwordModal.error"));
         } finally {
             setChangingPassword(false);
         }
@@ -534,7 +537,7 @@ function Header() {
             <div className="header-container">
                 <Link to="/" className="logo-section">
                     <div className="logo-icon"> <FaPaw size={28} color="var(--page-header-primary)" /></div>
-                    <span className="logo-text">PetCareX</span>
+                    <span className="logo-text">{t("header.logo")}</span>
                 </Link>
 
                 <nav className="nav-menu">
@@ -542,35 +545,36 @@ function Header() {
                         to="/" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Trang chủ
+                        {t("header.nav.home")}
                     </NavLink>
                     <NavLink 
                         to="/appointments" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Lịch hẹn
+                        {t("header.nav.appointments")}
                     </NavLink>
                     <NavLink 
                         to="/listPetMedicalRecords" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Thú cưng của tôi
+                        {t("header.nav.myPets")}
                     </NavLink>
                     <NavLink 
                         to="/forum" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Diễn đàn
+                        {t("header.nav.forum")}
                     </NavLink>
                     <NavLink 
                         to="/chatbot" 
                         className={({ isActive }) => isActive ? "nav-item active" : "nav-item"}
                     >
-                        Chat Bot AI
+                        {t("header.nav.chatbot")}
                     </NavLink>
                 </nav>
 
                 <div className="auth-section">
+                    <LanguageSwitcher />
                     {token ? (
                         <div className="user-section" ref={accountMenuRef}>
                             <Popover
@@ -584,7 +588,7 @@ function Header() {
                                 <button
                                     type="button"
                                     className="notification-bell-btn"
-                                    aria-label="Mở danh sách thông báo"
+                                    aria-label={t("header.notifications.openAria")}
                                 >
                                     <Badge count={unreadNotificationCount} overflowCount={99}>
                                         <IoMdNotificationsOutline size={23} />
@@ -594,9 +598,9 @@ function Header() {
 
                             <div className="user-profile" onClick={handleAccountClick}>
                                 <div className="user-avatar">
-                                    <img src={userProfile?.avatarUrl || '/bs1.png'} alt="User Avatar" />
+                                    <img src={userProfile?.avatarUrl || '/bs1.png'} alt={t("header.user.avatarAlt")} />
                                 </div>
-                                <span className="user-name">{userProfile?.fullName || 'Người dùng'}</span>
+                                <span className="user-name">{userProfile?.fullName || t("header.user.defaultName")}</span>
                                 <span className={`dropdown-arrow ${isAccountDropdownOpen ? "open" : ""}`}>▼</span>
                             </div>
 
@@ -604,7 +608,7 @@ function Header() {
                                 <div className="user-dropdown">
                                     <Link to="/user/profile" className="dropdown-item">
                                         <span className="icon"><UserOutlined /></span>
-                                        <span>Trang cá nhân</span>
+                                        <span>{t("header.user.profile")}</span>
                                     </Link>
                                     <button
                                         type="button"
@@ -612,7 +616,7 @@ function Header() {
                                         onClick={openChangePasswordPopup}
                                     >
                                         <span className="icon"><LockOutlined /></span>
-                                        <span>Đổi mật khẩu</span>
+                                        <span>{t("header.user.changePassword")}</span>
                                     </button>
                                     <div
                                         className="dropdown-item logout"
@@ -622,7 +626,7 @@ function Header() {
                                         }}
                                     >
                                         <span className="icon"><LogoutOutlined /></span>
-                                        <span>Đăng xuất</span>
+                                        <span>{t("header.user.logout")}</span>
                                     </div>
                                 </div>
                             )}
@@ -630,10 +634,10 @@ function Header() {
                     ) : (
                         <div className="auth-buttons">
                             <Link to="/register" className="btns register-btn">
-                                Đăng ký
+                                {t("header.auth.register")}
                             </Link>
                             <Link to="/login" className="btns login-btn">
-                                Đăng nhập
+                                {t("header.auth.login")}
                             </Link>
                         </div>
                     )}
@@ -648,16 +652,16 @@ function Header() {
                         type="button"
                         className="password-modal-close"
                         onClick={closeChangePasswordPopup}
-                        aria-label="Đóng popup đổi mật khẩu"
+                        aria-label={t("header.passwordModal.closeAria")}
                     >
                         ×
                     </button>
 
-                    <h3 className="password-modal-title">Đổi mật khẩu</h3>
+                    <h3 className="password-modal-title">{t("header.passwordModal.title")}</h3>
 
                     <form className="password-form" onSubmit={handleSubmitChangePassword}>
                         <div className="password-form-group">
-                            <label htmlFor="current-password">Mật khẩu hiện tại</label>
+                            <label htmlFor="current-password">{t("header.passwordModal.currentPassword")}</label>
                             <div className="password-input-wrap">
                                 <input
                                     id="current-password"
@@ -681,7 +685,7 @@ function Header() {
                         </div>
 
                         <div className="password-form-group">
-                            <label htmlFor="new-password">Mật khẩu mới</label>
+                            <label htmlFor="new-password">{t("header.passwordModal.newPassword")}</label>
                             <div className="password-input-wrap">
                                 <input
                                     id="new-password"
@@ -705,7 +709,7 @@ function Header() {
                         </div>
 
                         <div className="password-form-group">
-                            <label htmlFor="confirm-password">Xác nhận mật khẩu mới</label>
+                            <label htmlFor="confirm-password">{t("header.passwordModal.confirmNewPassword")}</label>
                             <div className="password-input-wrap">
                                 <input
                                     id="confirm-password"
@@ -735,14 +739,14 @@ function Header() {
                                 onClick={closeChangePasswordPopup}
                                 disabled={changingPassword}
                             >
-                                Hủy
+                                {t("header.passwordModal.cancel")}
                             </button>
                             <button
                                 type="submit"
                                 className="password-submit-btn"
                                 disabled={changingPassword}
                             >
-                                {changingPassword ? "Đang đổi mật khẩu..." : "Xác nhận"}
+                                {changingPassword ? t("header.passwordModal.submitting") : t("header.passwordModal.submit")}
                             </button>
                         </div>
                     </form>

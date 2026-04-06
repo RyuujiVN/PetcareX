@@ -3,8 +3,33 @@ import {
     ENUM_LABEL_MAPS,
     VETERINARY_SPECIALTY_LABELS,
 } from '../constants/enumLabels'
+import i18n from '../i18n'
 
 export const UNKNOWN_ENUM_LABEL = 'Chưa cập nhật'
+
+const ENUM_TRANSLATION_PREFIX = {
+  [ENUM_KEYS.APPOINTMENT_STATUS]: 'enums.appointmentStatus',
+  [ENUM_KEYS.SERVICE]: 'enums.service',
+  [ENUM_KEYS.ROLE]: 'enums.role',
+  [ENUM_KEYS.VETERINARY_SPECIALTY]: 'enums.veterinarySpecialty',
+  [ENUM_KEYS.PET_SPECIES]: 'enums.petSpecies',
+  [ENUM_KEYS.PET_BREED]: 'enums.petBreed',
+  [ENUM_KEYS.INVOICE_STATUS]: 'enums.invoiceStatus',
+  [ENUM_KEYS.SENDER]: 'enums.sender',
+  [ENUM_KEYS.MEDICINE_UNIT]: 'enums.medicineUnit',
+  [ENUM_KEYS.MEDICAL_RECORD_STATUS]: 'enums.medicalRecordStatus',
+}
+
+const tryTranslate = (key) => {
+  const translated = i18n.t(key, { defaultValue: '' })
+  if (!translated || translated === key) return ''
+  return translated
+}
+
+const resolveDefaultFallback = (fallback) => {
+  if (fallback !== UNKNOWN_ENUM_LABEL) return fallback
+  return tryTranslate('common.states.notUpdated') || fallback
+}
 
 const normalizeEnumValue = (value) => {
   if (value === undefined || value === null) return ''
@@ -26,11 +51,20 @@ export const humanizeEnumValue = (value, fallback = UNKNOWN_ENUM_LABEL) => {
 }
 
 export const getEnumLabel = (enumKey, value, fallback = UNKNOWN_ENUM_LABEL) => {
+  const resolvedFallback = resolveDefaultFallback(fallback)
   const rawValue = String(value || '').trim()
   const normalized = normalizeEnumValue(value)
-  if (!normalized) return fallback
+  if (!normalized) return resolvedFallback
 
   const dictionary = ENUM_LABEL_MAPS[enumKey] || {}
+  const translationPrefix = ENUM_TRANSLATION_PREFIX[enumKey]
+  if (translationPrefix) {
+    const translatedLabel = tryTranslate(`${translationPrefix}.${normalized}`)
+    if (translatedLabel) {
+      return translatedLabel
+    }
+  }
+
   if (dictionary[normalized]) {
     return dictionary[normalized]
   }
@@ -40,7 +74,7 @@ export const getEnumLabel = (enumKey, value, fallback = UNKNOWN_ENUM_LABEL) => {
     return rawValue
   }
 
-  return humanizeEnumValue(normalized, fallback)
+  return humanizeEnumValue(normalized, resolvedFallback)
 }
 
 export const getAppointmentStatusLabel = (value, fallback = UNKNOWN_ENUM_LABEL) =>

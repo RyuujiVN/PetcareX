@@ -2,6 +2,7 @@ import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumL
 import { getMyAppointmentsApi } from '../../../services/appointmentService';
 import { getClientInstance } from '../../../services/apiClient';
 import { getRepliesApi, getCommentsByPostIdApi, getPostsApi } from '../../../services/forumService';
+import i18n from '../../../i18n';
 
 const MAX_APPOINTMENTS = 120;
 const MAX_FORUM_POSTS = 120;
@@ -15,6 +16,7 @@ const IMAGE_TOKEN_REGEX = /\[\[img:(.*?)\]\]/g;
 const TITLE_TOKEN_REGEX = /^\s*\[\[title:(.*?)\]\]\s*/i;
 
 const normalizeText = (value) => String(value || '').trim();
+const t = (key, options) => i18n.t(key, options);
 
 const safeDateValue = (value) => {
   const date = new Date(value);
@@ -37,7 +39,7 @@ const buildPostPreview = (content = '') => {
   const withoutTitleToken = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim();
 
   if (!withoutTitleToken) {
-    return 'Bai viet co hinh anh';
+    return t('header.notifications.postWithImageFallback');
   }
 
   if (withoutTitleToken.length <= 110) {
@@ -49,7 +51,7 @@ const buildPostPreview = (content = '') => {
 
 const buildCommentPreview = (content = '') => {
   const cleaned = String(content || '').replace(IMAGE_TOKEN_REGEX, '').trim();
-  if (!cleaned) return 'Da gui hinh anh';
+  if (!cleaned) return t('header.notifications.imageSentFallback');
 
   if (cleaned.length <= 100) return cleaned;
   return `${cleaned.slice(0, 100).trim()}...`;
@@ -65,16 +67,24 @@ const buildAppointmentNotifications = (appointments = []) => {
       if (!appointmentDate || !appointmentTime || !status) return null;
 
       const createdAt = formatAppointmentDateTime(appointmentDate, appointmentTime) || new Date().toISOString();
-      const petName = normalizeText(appointment?.pet?.name) || 'Thu cung';
-      const clinicName = normalizeText(appointment?.clinic?.name) || 'Phong kham';
-      const serviceLabel = getServiceLabel(appointment?.service, normalizeText(appointment?.service) || 'Dich vu kham');
+      const petName = normalizeText(appointment?.pet?.name) || t('header.notifications.petFallback');
+      const clinicName = normalizeText(appointment?.clinic?.name) || t('header.notifications.clinicFallback');
+      const serviceLabel = getServiceLabel(
+        appointment?.service,
+        normalizeText(appointment?.service) || t('header.notifications.serviceFallback'),
+      );
       const statusLabel = getAppointmentStatusLabel(status, status);
 
       return {
         id: `appointment-${appointment.id}-${status}-${appointmentDate}-${appointmentTime}`,
         type: 'appointment',
         title: `${statusLabel}: ${petName}`,
-        description: `${appointmentDate} ${appointmentTime} - ${serviceLabel} tai ${clinicName}`,
+        description: t('header.notifications.appointmentDescription', {
+          date: appointmentDate,
+          time: appointmentTime,
+          service: serviceLabel,
+          clinic: clinicName,
+        }),
         createdAt,
         href: '/appointments',
       };
@@ -102,7 +112,7 @@ const buildLikeCountNotifications = ({ ownPosts, previousLikeSnapshot }) => {
     notifications.push({
       id: `forum-like-${postId}-${currentLikeCount}`,
       type: 'forum-like',
-      title: `Bai viet cua ban co them ${delta} luot thich`,
+      title: t('header.notifications.forumLikeTitle', { count: delta }),
       description: buildPostPreview(post?.content),
       createdAt: new Date().toISOString(),
       href: `/forum?post=${postId}`,
@@ -133,10 +143,11 @@ const buildCommentAndReplyNotifications = async ({ ownPosts, userId }) => {
         const commentId = normalizeText(comment?.id);
 
         if (commentId && commentAuthorId && commentAuthorId !== userId) {
+          const actorName = normalizeText(comment?.user?.fullName) || t('header.notifications.forumActorFallback');
           interactionNotifications.push({
             id: `forum-comment-${commentId}`,
             type: 'forum-comment',
-            title: `${normalizeText(comment?.user?.fullName) || 'Nguoi dung'} da binh luan bai viet cua ban`,
+            title: t('header.notifications.forumCommentTitle', { name: actorName }),
             description: buildCommentPreview(comment?.content),
             createdAt: normalizeText(comment?.createdAt) || new Date().toISOString(),
             href: `/forum?post=${postId}`,
@@ -170,12 +181,13 @@ const buildCommentAndReplyNotifications = async ({ ownPosts, userId }) => {
           if (!replyId || !replyAuthorId || replyAuthorId === userId) return;
 
           const isReplyToCurrentUser = normalizeText(comment?.user?.id) === userId;
+          const actorName = normalizeText(reply?.user?.fullName) || t('header.notifications.forumActorFallback');
           interactionNotifications.push({
             id: `forum-reply-${replyId}`,
             type: 'forum-reply',
             title: isReplyToCurrentUser
-              ? `${normalizeText(reply?.user?.fullName) || 'Nguoi dung'} da phan hoi binh luan cua ban`
-              : `${normalizeText(reply?.user?.fullName) || 'Nguoi dung'} da phan hoi trong bai viet cua ban`,
+              ? t('header.notifications.forumReplyToCommentTitle', { name: actorName })
+              : t('header.notifications.forumReplyInPostTitle', { name: actorName }),
             description: buildCommentPreview(reply?.content),
             createdAt: normalizeText(reply?.createdAt) || new Date().toISOString(),
             href: `/forum?post=${postId}`,
