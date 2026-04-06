@@ -15,16 +15,18 @@ import {
 } from 'antd'
 import {
 	CameraOutlined,
+	EnvironmentOutlined,
 	EyeInvisibleOutlined,
 	EyeTwoTone,
 	LockOutlined,
 	MailOutlined,
+	PhoneOutlined,
 	SaveOutlined,
 	UserOutlined,
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { uploadUserImageApi } from '../../../../data/Clinic/api/user'
+import { uploadUserImageApi, updateUserProfileApi } from '../../../../data/Clinic/api/user'
 import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import styles from './addNewVererianrian.module.css'
 
@@ -36,13 +38,15 @@ const defaultFormValues = {
 	email: '',
 	password: '',
 	specialty: 'GENERAL_EXAMINATION',
+	phone: '',
+	address: '',
 }
 
 export default function AddNewVererianrian() {
 	const navigate = useNavigate()
 	const [form] = Form.useForm()
 	const [messageApi, contextHolder] = message.useMessage()
-	const { saving, addVeterinarian, editVeterinarian } = useVeterinarians()
+	const { saving, addVeterinarian, removeVeterinarian } = useVeterinarians()
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [avatarFile, setAvatarFile] = useState(null)
 	const [avatarPreview, setAvatarPreview] = useState('')
@@ -65,7 +69,10 @@ export default function AddNewVererianrian() {
 			const fullName = String(values.fullName || '').trim()
 			const email = String(values.email || '').trim().toLowerCase()
 			const password = String(values.password || '')
+			const phone = String(values.phone || '').trim()
+			const address = String(values.address || '').trim()
 
+			// Bước 1: Tạo tài khoản bác sĩ (POST /veterinarian chỉ nhận 5 field)
 			const created = await addVeterinarian({
 				fullName,
 				email,
@@ -73,11 +80,26 @@ export default function AddNewVererianrian() {
 				specialty: values.specialty,
 			})
 
-			if (uploadedAvatarUrl && created?.userId) {
-				// Chỉ gửi field cần cập nhật để tránh fail validate các field optional như phone.
-				await editVeterinarian(created.userId, {
-					avatarUrl: uploadedAvatarUrl,
-				})
+			if (!created?.userId) {
+				throw new Error('Tạo bác sĩ thành công nhưng không nhận được userId')
+			}
+
+			// Bước 2: Cập nhật SĐT, địa chỉ, avatar qua PUT /user/{id}
+			try {
+				const updateData = { fullName, email, phone, address }
+				if (uploadedAvatarUrl) {
+					updateData.avatarUrl = uploadedAvatarUrl
+				}
+				await updateUserProfileApi(created.userId, updateData)
+			} catch (updateError) {
+				// Rollback: xóa bác sĩ vừa tạo để tránh dữ liệu rỗng
+				try {
+					await removeVeterinarian(created.userId)
+				} catch {
+					// Nếu rollback cũng thất bại
+					throw new Error('Cập nhật thông tin thất bại và không thể tự hủy tài khoản. Vui lòng xóa thủ công bác sĩ vừa tạo.')
+				}
+				throw new Error('Không thể cập nhật SĐT/địa chỉ. Tài khoản đã được hủy, vui lòng thử lại.')
 			}
 
 			navigateToListWithFlash('Thêm bác sĩ mới thành công')
@@ -251,6 +273,32 @@ export default function AddNewVererianrian() {
 										placeholder="Nhập mật khẩu"
 										iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
 									/>
+								</Form.Item>
+							</Col>
+
+							<Col xs={24} md={12}>
+								<Form.Item
+									name="phone"
+									label="Số điện thoại"
+									rules={[
+										{ required: true, message: 'Vui lòng nhập số điện thoại' },
+										{
+											pattern: /^0\d{9}$/,
+											message: 'Số điện thoại phải đúng 10 số (VD: 0901234567)',
+										},
+									]}
+								>
+									<Input prefix={<PhoneOutlined />} placeholder="Nhập số điện thoại" />
+								</Form.Item>
+							</Col>
+
+							<Col xs={24} md={12}>
+								<Form.Item
+									name="address"
+									label="Địa chỉ"
+									rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+								>
+									<Input prefix={<EnvironmentOutlined />} placeholder="Nhập địa chỉ" />
 								</Form.Item>
 							</Col>
 						</Row>

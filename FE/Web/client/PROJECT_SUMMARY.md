@@ -264,6 +264,13 @@ Luồng đang chạy:
   - JWT payload,
   - fallback gọi profile API.
 - Có CRUD bác sĩ + filter + phân trang + upload avatar.
+- Form "Thêm mới bác sĩ" (`AddNewVererianrian`) bắt buộc nhập 6 field: Tên, Chuyên khoa, Email, Mật khẩu, Số điện thoại, Địa chỉ.
+  - Luồng tạo bác sĩ chia 2 bước API:
+    1. `POST /veterinarian` chỉ gửi 5 field: `fullName`, `email`, `password`, `clinicId`, `specialty`.
+    2. `PUT /user/{userId}` gửi `phone`, `address`, `avatarUrl` (nếu có) để cập nhật thông tin liên lạc.
+  - Nếu bước 2 thất bại → rollback bằng `DELETE /veterinarian/{userId}` để tránh tài khoản rỗng trong DB.
+  - Số điện thoại validate đúng 10 số bắt đầu bằng `0` (regex `^0\d{9}$`).
+  - Địa chỉ bắt buộc nhập.
 
 ### 4) Exam Slips & Medical Records
 - `ListPetExaminationRecords`: đã dùng API appointment để liệt kê thú cưng theo lịch khám.
