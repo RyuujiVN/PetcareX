@@ -224,9 +224,76 @@
   letter-spacing: 0.3px;
 }
 
+.add-clinic-form .clinic-form-columns {
+  margin-top: 8px;
+}
+
+.add-clinic-form-section {
+  height: 100%;
+  padding: 16px 16px 4px;
+  border: 1px solid var(--admin-color-border);
+  border-radius: 12px;
+  background: var(--admin-color-surface-card);
+}
+
+.add-clinic-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.add-clinic-form .ant-form-item {
+  margin-bottom: 14px;
+}
+
+.add-clinic-form .clinic-description-item .ant-input-textarea {
+  display: block;
+  width: 100%;
+}
+
+.add-clinic-form .clinic-description-item textarea.ant-input:not([aria-hidden='true']) {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px !important;
+  line-height: 1.5;
+}
+
+.add-clinic-form .clinic-description-item textarea.ant-input:not([aria-hidden='true'])::placeholder {
+  line-height: 1.5;
+}
+
+.add-clinic-form .clinic-description-item .ant-input-textarea-show-count::after {
+  margin-top: 4px;
+}
+
 .add-clinic-form .ant-form-item-label > label {
   font-weight: 500;
   color: var(--admin-color-text-primary);
+  white-space: normal;
+  line-height: 1.35;
+  height: auto;
+  align-items: flex-start;
+}
+
+.required-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.required-asterisk {
+  color: var(--admin-color-danger);
+  font-weight: 700;
+}
+
+.add-clinic-form .ant-input-textarea-show-count::after {
+  color: var(--admin-color-text-secondary);
 }
 
 .clinic-detail-descriptions .ant-descriptions-item-label {
@@ -248,5 +315,10 @@
 
   .clinics-search {
     width: 100%;
+  }
+
+  .add-clinic-modal .ant-modal-body {
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
   }
 }

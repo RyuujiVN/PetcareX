@@ -16,7 +16,6 @@ import {
   Card,
   Col,
   Descriptions,
-  Divider,
   Flex,
   Form,
   Input,
@@ -177,6 +176,13 @@ export default function Clinics() {
     }
   }
 
+  const requiredLabel = (label) => (
+    <span className="required-label">
+      <span className="required-asterisk">*</span>
+      {label}
+    </span>
+  )
+
   const columns = [
     {
       title: 'TÊN PHÒNG KHÁM',
@@ -328,8 +334,9 @@ export default function Clinics() {
         okText="Thêm phòng khám"
         cancelText="Hủy"
         confirmLoading={addLoading}
-        width={620}
+        width={960}
         destroyOnClose
+        centered
         className="add-clinic-modal"
       >
         <Form
@@ -338,122 +345,118 @@ export default function Clinics() {
           requiredMark={false}
           className="add-clinic-form"
         >
-          <Divider orientation="left" plain>
-            <Space>
-              <MedicineBoxOutlined />
-              Thông tin phòng khám
-            </Space>
-          </Divider>
+          <Row gutter={[16, 16]} className="clinic-form-columns">
+            <Col xs={24} lg={12}>
+              <div className="add-clinic-form-section">
+                <div className="add-clinic-section-title">
+                  <MedicineBoxOutlined />
+                  Thông tin phòng khám
+                </div>
 
-          <Form.Item
-            name="clinicName"
-            label="Tên phòng khám"
-            rules={[{ required: true, message: 'Vui lòng nhập tên phòng khám' }]}
-          >
-            <Input
-              prefix={<MedicineBoxOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-              placeholder="VD: Phòng khám thú y ABC"
-            />
-          </Form.Item>
+                <Form.Item
+                  name="clinicName"
+                  label={requiredLabel('Tên phòng khám')}
+                  rules={[{ required: true, message: 'Vui lòng nhập tên phòng khám' }]}
+                >
+                  <Input
+                    prefix={<MedicineBoxOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                    placeholder="VD: Phòng khám thú y ABC"
+                  />
+                </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="clinicEmail"
-                label="Email phòng khám"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập email' },
-                  { type: 'email', message: 'Email không hợp lệ' },
-                ]}
-              >
-                <Input
-                  prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                  placeholder="clinic@email.com"
-                />
-              </Form.Item>
+                <Form.Item
+                  name="clinicEmail"
+                  label={requiredLabel('Email phòng khám')}
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập email' },
+                    { type: 'email', message: 'Email không hợp lệ' },
+                  ]}
+                >
+                  <Input
+                    prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                    placeholder="clinic@email.com"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="clinicPhone"
+                  label={requiredLabel('Số điện thoại')}
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập SĐT' },
+                    { pattern: /^0\d{9}$/, message: 'SĐT phải gồm 10 chữ số, bắt đầu bằng 0' },
+                  ]}
+                >
+                  <Input
+                    prefix={<PhoneOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                    placeholder="0901234567"
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="clinicAddress"
+                  label={requiredLabel('Địa chỉ')}
+                  rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+                >
+                  <Input placeholder="VD: 123 Nguyễn Văn Linh, Đà Nẵng" />
+                </Form.Item>
+
+                <Form.Item name="clinicDescription" label="Mô tả" className="clinic-description-item">
+                  <Input.TextArea
+                    rows={2}
+                    placeholder="Mô tả ngắn về phòng khám (không bắt buộc)"
+                    showCount
+                    maxLength={500}
+                  />
+                </Form.Item>
+              </div>
             </Col>
-            <Col span={12}>
-              <Form.Item
-                name="clinicPhone"
-                label="Số điện thoại"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập SĐT' },
-                  { pattern: /^0\d{9}$/, message: 'SĐT phải gồm 10 chữ số, bắt đầu bằng 0' },
-                ]}
-              >
-                <Input
-                  prefix={<PhoneOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                  placeholder="0901234567"
-                />
-              </Form.Item>
-            </Col>
-          </Row>
 
-          <Form.Item
-            name="clinicAddress"
-            label="Địa chỉ"
-            rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
-          >
-            <Input placeholder="VD: 123 Nguyễn Văn Linh, Đà Nẵng" />
-          </Form.Item>
+            <Col xs={24} lg={12}>
+              <div className="add-clinic-form-section">
+                <div className="add-clinic-section-title">
+                  <UserOutlined />
+                  Tài khoản quản trị phòng khám
+                </div>
 
-          <Form.Item name="clinicDescription" label="Mô tả">
-            <Input.TextArea
-              rows={3}
-              placeholder="Mô tả ngắn về phòng khám (không bắt buộc)"
-              showCount
-              maxLength={500}
-            />
-          </Form.Item>
+                <Form.Item
+                  name="adminFullName"
+                  label={requiredLabel('Họ và tên quản trị')}
+                  rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+                >
+                  <Input
+                    prefix={<UserOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                    placeholder="VD: Nguyễn Văn A"
+                  />
+                </Form.Item>
 
-          <Divider orientation="left" plain>
-            <Space>
-              <UserOutlined />
-              Tài khoản quản trị phòng khám
-            </Space>
-          </Divider>
+                <Form.Item
+                  name="adminEmail"
+                  label={requiredLabel('Email đăng nhập')}
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập email' },
+                    { type: 'email', message: 'Email không hợp lệ' },
+                  ]}
+                >
+                  <Input
+                    prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                    placeholder="admin@email.com"
+                  />
+                </Form.Item>
 
-          <Form.Item
-            name="adminFullName"
-            label="Họ và tên quản trị"
-            rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
-          >
-            <Input
-              prefix={<UserOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-              placeholder="VD: Nguyễn Văn A"
-            />
-          </Form.Item>
-
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                name="adminEmail"
-                label="Email đăng nhập"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập email' },
-                  { type: 'email', message: 'Email không hợp lệ' },
-                ]}
-              >
-                <Input
-                  prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                  placeholder="admin@email.com"
-                />
-              </Form.Item>
-            </Col>
-            <Col span={12}>
-              <Form.Item
-                name="adminPassword"
-                label="Mật khẩu"
-                rules={[
-                  { required: true, message: 'Vui lòng nhập mật khẩu' },
-                  { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
-                ]}
-              >
-                <Input.Password
-                  prefix={<LockOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                  placeholder="Tối thiểu 6 ký tự"
-                />
-              </Form.Item>
+                <Form.Item
+                  name="adminPassword"
+                  label={requiredLabel('Mật khẩu')}
+                  rules={[
+                    { required: true, message: 'Vui lòng nhập mật khẩu' },
+                    { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
+                  ]}
+                >
+                  <Input.Password
+                    prefix={<LockOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+                    placeholder="Tối thiểu 6 ký tự"
+                  />
+                </Form.Item>
+              </div>
             </Col>
           </Row>
         </Form>
