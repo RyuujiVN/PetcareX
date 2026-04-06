@@ -28,6 +28,7 @@ import styles from './forum.module.css'
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
 const IMAGE_TOKEN_REGEX = /\[\[img:(.*?)\]\]/g
 const TITLE_TOKEN_REGEX = /^\s*\[\[title:(.*?)\]\]\s*/i
+const NO_TOPIC_TOKEN = '[[no-topic:1]]'
 const NO_TOPIC_VALUE = 'no-topic'
 const NO_TOPIC_FILTER_VALUE = 'none'
 const FEATURED_POST_LIMIT = 3
@@ -67,12 +68,14 @@ const getTopicDisplayName = (topic = {}) => topic?.nameVn || topic?.nameEng || t
 const getPostEngagementScore = (post = {}) => Number(post.likes || 0) + Number(post.comments || 0)
 
 const extractMediaFromContent = (rawContent = '') => {
+	const hasNoTopicToken = rawContent.includes(NO_TOPIC_TOKEN)
+	const normalizedContent = hasNoTopicToken ? rawContent.split(NO_TOPIC_TOKEN).join('').trim() : rawContent.trim()
 	const matches = [...rawContent.matchAll(IMAGE_TOKEN_REGEX)]
 	const images = matches
 		.map((match) => match?.[1]?.trim())
 		.filter((url) => Boolean(url))
 	const firstImage = images[0] || null
-	const withoutImageToken = rawContent.replace(IMAGE_TOKEN_REGEX, '').trim()
+	const withoutImageToken = normalizedContent.replace(IMAGE_TOKEN_REGEX, '').trim()
 	const titleMatch = withoutImageToken.match(TITLE_TOKEN_REGEX)
 	const title = titleMatch?.[1]?.trim() || ''
 	const cleanContent = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim()
@@ -82,13 +85,18 @@ const extractMediaFromContent = (rawContent = '') => {
 		text: cleanContent,
 		image: firstImage,
 		images,
+		isNoTopic: hasNoTopicToken,
 	}
 }
 
-const attachPostToContent = ({ title, text, imageUrls = [] }) => {
+const attachPostToContent = ({ title, text, imageUrls = [], isNoTopic = false }) => {
 	const normalizedTitle = title?.trim()
 	const normalizedText = text.trim() || 'Hình ảnh'
 	const lines = []
+
+	if (isNoTopic) {
+		lines.push(NO_TOPIC_TOKEN)
+	}
 
 	if (normalizedTitle) {
 		lines.push(`[[title:${normalizedTitle}]]`)
@@ -145,6 +153,7 @@ const mapCommentToUi = (comment) => {
 const mapPostToUi = (post) => {
 	const media = extractMediaFromContent(post.content || '')
 	const topicName = getTopicDisplayName(post.topic)
+	const isNoTopic = media.isNoTopic || !post.topic?.id
 
 	return {
 		id: post.id,
@@ -155,14 +164,16 @@ const mapPostToUi = (post) => {
 		image: media.image,
 		images: media.images,
 		time: formatTimeAgo(post.createdAt),
-		tag: (topicName || 'Bài viết').toUpperCase(),
-		tagType: normalizeTagType(topicName),
+		tag: isNoTopic ? 'BÀI VIẾT' : (topicName || 'Bài viết').toUpperCase(),
+		tagType: isNoTopic ? 'no-topic' : normalizeTagType(topicName),
 		likes: Number(post.likeCount || 0),
 		comments: Number(post.commentCount || 0),
 		createdAt: post.createdAt,
 		avatar: post.author?.avatarUrl || DEFAULT_COMPOSER_AVATAR,
 		liked: Boolean(post.liked),
-		rawTopicId: post.topic?.id,
+		rawTopicId: isNoTopic ? null : post.topic?.id,
+		actualTopicId: post.topic?.id || null,
+		noTopicSelected: isNoTopic,
 	}
 }
 
@@ -251,6 +262,11 @@ function Forum() {
 		[apiTopics],
 	)
 
+	const fallbackTopicId = useMemo(() => {
+		const firstAvailableTopic = apiTopics.find((topic) => topic.id && getTopicDisplayName(topic))
+		return firstAvailableTopic ? String(firstAvailableTopic.id) : null
+	}, [apiTopics])
+
 	const topicDropdownItems = useMemo(
 		() =>
 			topicFilterOptions.map((item) => ({
@@ -283,7 +299,7 @@ function Forum() {
 		.slice(0, 3)
 		.map((item, index) => ({
 			...item,
-			score: `${item.count} Bài viết`,
+			score: `${item.count}`,
 			rank: `#${index + 1}`,
 		}))
 }, [apiPosts])
@@ -423,14 +439,25 @@ function Forum() {
 				imageUrls = await uploadUserImagesApi(composerImageFiles)
 			}
 
-			await createPostApi(getClientInstance(), {
-				topicId: composerTopicId === NO_TOPIC_VALUE ? null : composerTopicId,
+			const isNoTopicSelected = composerTopicId === NO_TOPIC_VALUE
+			const resolvedTopicId = isNoTopicSelected ? fallbackTopicId : composerTopicId
+
+			if (!resolvedTopicId) {
+				message.error('Hiện chưa có chủ đề khả dụng để đăng bài, vui lòng thử lại sau')
+				return
+			}
+
+			const createPayload = {
+				topicId: resolvedTopicId,
 				content: attachPostToContent({
 					title: composerTitle,
 					text: composerText,
 					imageUrls,
+					isNoTopic: isNoTopicSelected,
 				}),
-			})
+			}
+
+			await createPostApi(getClientInstance(), createPayload)
 			message.success('Đăng bài thành công')
 			setComposerText('')
 			setComposerTitle('')
@@ -463,6 +490,7 @@ function Forum() {
 			title: post.title || '',
 			text: post.content || '',
 			topicId: post.rawTopicId ? String(post.rawTopicId) : NO_TOPIC_VALUE,
+			fallbackTopicId: post.actualTopicId ? String(post.actualTopicId) : fallbackTopicId,
 			imageFile: null,
 			imagePreview: post.image || '',
 			imageUrl: post.image || '',
@@ -533,13 +561,21 @@ function Forum() {
 		try {
 			setSubmittingEditPost(true)
 			const imageUrl = editingPost.imageUrl || null
+			const isNoTopicSelected = editingPost.topicId === NO_TOPIC_VALUE
+			const resolvedTopicId = isNoTopicSelected ? (editingPost.fallbackTopicId || fallbackTopicId) : editingPost.topicId
+
+			if (!resolvedTopicId) {
+				message.error('Hiện chưa có chủ đề khả dụng để cập nhật bài viết, vui lòng thử lại sau')
+				return
+			}
 
 			await updatePostApi(getClientInstance(), editingPost.id, {
-				topicId: editingPost.topicId === NO_TOPIC_VALUE ? null : editingPost.topicId,
+				topicId: resolvedTopicId,
 				content: attachPostToContent({
 					title: editingPost.title,
 					text: editingPost.text,
-					imageUrl,
+					imageUrls: imageUrl ? [imageUrl] : [],
+					isNoTopic: isNoTopicSelected,
 				}),
 			})
 
