@@ -166,10 +166,6 @@ export default function ClinicSelectionEditor() {
 
   return (
     <div className="clinic-selection-editor-page">
-      <div className="clinic-selection-editor-header">
-        <Title level={2}>Chỉnh Sửa Thông Tin Phòng Khám</Title>
-      </div>
-
       <Card loading={loadingInit}>
         <Form form={form} layout="vertical" autoComplete="off">
           <Row gutter={[16, 16]}>
@@ -225,19 +221,7 @@ export default function ClinicSelectionEditor() {
                       <Input placeholder="Ví dụ: Thứ 2 - Chủ nhật" maxLength={80} />
                     </Form.Item>
                   </Col> */}
-                <Col xs={24} md={6}>
-                <Upload 
-                    style={{marginTop: 30}}
-                  accept="image/*"
-                  showUploadList={false}
-                  beforeUpload={handleUploadAvatar}
-                  disabled={uploadingAvatar}
-                >
-                  <Button icon={<UploadOutlined />} loading={uploadingAvatar}>
-                    Tải ảnh đại diện
-                  </Button>
-                </Upload>
-                   </Col>
+                
                   <Col xs={24} md={6}>
                     <Form.Item
                       label="Giờ mở cửa"
@@ -273,7 +257,7 @@ export default function ClinicSelectionEditor() {
             </Col>
 
             <Col xs={24} lg={8}>
-              <Card title="Xem trước card phòng khám" className="clinic-preview-card">
+              <Card title="Xem trước sau khi thay đổi" className="clinic-preview-card">
                 <div className="clinic-preview-image-wrap">
                   {draftSnapshot.avatarUrl ? (
                     <img src={draftSnapshot.avatarUrl} alt={draftSnapshot.name || 'Clinic avatar'} className="clinic-preview-image" />
@@ -287,6 +271,19 @@ export default function ClinicSelectionEditor() {
                   <p>{draftSnapshot.address || 'Địa chỉ phòng khám'}</p>
                   <p>{previewTime || '08:00 - 20:00'}</p>
                   <p>{draftSnapshot.phone || 'Số điện thoại'}</p>
+                  <Col xs={24} md={6}>
+                <Upload 
+                    style={{marginLeft: 150}}
+                  accept="image/*"
+                  showUploadList={false}
+                  beforeUpload={handleUploadAvatar}
+                  disabled={uploadingAvatar}
+                >
+                  <Button icon={<UploadOutlined />} loading={uploadingAvatar}>
+                    Tải ảnh đại diện
+                  </Button>
+                </Upload>
+                   </Col>
                 </div>
               </Card>
             </Col>

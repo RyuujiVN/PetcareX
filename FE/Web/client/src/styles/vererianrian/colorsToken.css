@@ -1,0 +1,73 @@
+:root {
+  /* ── Brand ── */
+  --vet-color-brand-primary: #4672b4;
+  --vet-color-brand-primary-hover: #3a62a0;
+  --vet-color-brand-primary-active: #2e528c;
+  --vet-color-brand-primary-rgb: 70, 114, 180;
+  --vet-color-brand-strong: #4672b4;
+  --vet-color-brand-muted: #4672b4;
+
+  /* ── Surface ── */
+  --vet-color-surface-page: #f3f6fb;
+  --vet-color-surface-card: #ffffff;
+  --vet-color-surface-soft: #fafafa;
+  --vet-color-surface-muted: #f8f9fa;
+
+  /* ── Border ── */
+  --vet-color-border: #dde5ee;
+  --vet-color-border-soft: #e4ebf3;
+  --vet-color-border-strong: #d6e1ed;
+
+  /* ── Text ── */
+  --vet-color-text-primary: #1d304d;
+  --vet-color-text-secondary: #5b6f8f;
+  --vet-color-text-muted: #73859d;
+  --vet-color-text-disabled: #7e8fa5;
+  --vet-color-text-heading: #213750;
+
+  /* ── Status ── */
+  --vet-color-info: #1890ff;
+  --vet-color-success: #52c41a;
+  --vet-color-warning: #faad14;
+  --vet-color-danger: #ff4d4f;
+
+  /* ── Medical record accent ── */
+  --vet-color-accent: #4672b4;
+  --vet-color-accent-soft: rgba(70, 114, 180, 0.1);
+
+  /* ── Status tag ── */
+  --vet-status-done-bg: #d9f5e5;
+  --vet-status-done-text: #1f9f59;
+  --vet-status-done-dot: #15aa57;
+  --vet-status-pending-bg: #ddf4e6;
+  --vet-status-pending-text: #2d9b58;
+  --vet-status-pending-dot: #8db091;
+
+  /* ── Pet card ── */
+  --vet-pet-avatar-border: #f7dac9;
+  --vet-pet-avatar-fallback-bg: #fff4ed;
+  --vet-pet-avatar-fallback-color: #f16f33;
+  --vet-pet-name-color: #243247;
+  --vet-pet-meta-color: #607086;
+  --vet-pet-submeta-color: #7d8fa4;
+
+  /* ── Record meta ── */
+  --vet-record-meta-color: #f17a3f;
+
+  /* ── Shadow ── */
+  --vet-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --vet-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --vet-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --vet-shadow-card: 0 5px 18px rgba(16, 40, 60, 0.05);
+
+  /* ── Button ── */
+  --vet-btn-primary-bg: #4672b4;
+  --vet-btn-primary-hover-bg: #3a62a0;
+  --vet-btn-cancel-bg: #e8edf4;
+  --vet-btn-cancel-text: #7d8ea4;
+
+  /* ── Timeline marker ── */
+  --vet-marker-vaccine: #f26522;
+  --vet-marker-checkup: #4672b4;
+  --vet-marker-skin: #9ba9b8;
+}

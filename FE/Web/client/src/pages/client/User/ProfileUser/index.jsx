@@ -1,5 +1,5 @@
 import { CameraOutlined, HomeOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
-import { Avatar, Button, Card, Form, Input, message, Space, Spin } from 'antd';
+import { Button, Card, Form, Input, message, Space, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -154,43 +154,49 @@ export default function ProfileUser() {
     <div className="profile-containers">
       <div className="profile-wrapper">
         <div className="profile-headers">
-        <h2 className="profile-titles">Thông tin cá nhân</h2>
-
           <div className="profile-avatar-section">
-            <div className="profile-avatar-container">
-              <Spin spinning={uploadingAvatar} style={{ display: 'inline-block' }}>
-                <Avatar
-                  size={120}
-                  icon={<UserOutlined />}
-                  src={avatarUrl}
-                  className="profile-avatar"
-                />
-              </Spin>
-              <label
-                htmlFor="avatar-upload"
-                className="avatar-upload-btn"
-                style={{
-                  opacity: uploadingAvatar || loading ? 0.5 : 1,
-                  pointerEvents: uploadingAvatar || loading ? 'none' : 'auto',
-                }}
+            <Spin spinning={uploadingAvatar}>
+              <div
+                className={`profile-cover ${avatarUrl ? 'has-cover-image' : 'no-cover-image'}`}
+                style={
+                  avatarUrl
+                    ? {
+                        backgroundImage: `linear-gradient(120deg, rgba(13, 26, 53, 0.3) 100%, rgba(253, 253, 253, 0.26) 100%, rgba(116, 160, 220, 0.22) 100%), url(${avatarUrl})`,
+                      }
+                    : undefined
+                }
               >
-                <CameraOutlined />
-              </label>
-              <input
-                id="avatar-upload"
-                type="file"
-                accept="image/*"
-                onChange={handleImageChange}
-                disabled={uploadingAvatar || loading}
-                style={{ display: 'none' }}
-              />
-            </div>
+                {!avatarUrl && (
+                  <div className="profile-cover-placeholder">
+                    <UserOutlined />
+                  </div>
+                )}
+
+                <label
+                  htmlFor="avatar-upload"
+                  className="cover-upload-btn"
+                  style={{
+                    opacity: uploadingAvatar || loading ? 0.5 : 1,
+                    pointerEvents: uploadingAvatar || loading ? 'none' : 'auto',
+                  }}
+                >
+                  <CameraOutlined />
+                </label>
+                <input
+                  id="avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  disabled={uploadingAvatar || loading}
+                  style={{ display: 'none' }}
+                />
+              </div>
+            </Spin>
 
             <div className="profile-info-header">
               <h2 className="profile-name">
                 {profileData?.fullName || 'Người dùng'}
               </h2>
-              <p className="profile-subtitles">Chủ nuôi thú cưng</p>
             </div>
           </div>
         </div>

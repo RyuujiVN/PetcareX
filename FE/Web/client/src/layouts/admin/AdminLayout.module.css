@@ -1,7 +1,7 @@
 .layout {
   height: 100vh;
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 250px 1fr;
   background: var(--admin-color-surface-page);
   overflow: hidden;
 }
@@ -29,14 +29,14 @@
 }
 
 .brandIcon {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 50px;
   border-radius: 12px;
   background: var(--admin-sidebar-brand-icon);
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 18px;
+  font-size: 35px;
   flex-shrink: 0;
 }
 
@@ -173,8 +173,157 @@
   gap: 12px;
 }
 
-.searchInput {
-  width: 220px;
+.notificationWrapper {
+  position: relative;
+}
+
+.notificationBtn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--admin-color-surface-soft);
+  color: var(--admin-color-text-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 22px;
+}
+
+.notificationBtn:hover {
+  background: var(--admin-color-border);
+}
+
+.notificationPanel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 390px;
+  max-height: 520px;
+  border-radius: 16px;
+  background: #161d26;
+  color: #f2f5f9;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 32px rgba(12, 18, 26, 0.45);
+  z-index: 30;
+  overflow: hidden;
+}
+
+.notificationHeader {
+  padding: 16px 16px 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notificationHeader h3 {
+  margin: 0;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  font-weight: 700;
+}
+
+.notificationHeader button {
+  background: transparent;
+  border: none;
+  color: #67a6ff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.notificationTabs {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 10px;
+}
+
+.notificationTabs button {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #dae2ea;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.notificationTabActive {
+  background: rgba(69, 153, 255, 0.35) !important;
+  color: #d8ecff !important;
+}
+
+.notificationList {
+  max-height: 380px;
+  overflow-y: auto;
+  padding: 0 8px 10px;
+}
+
+.notificationItem {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  gap: 10px;
+  padding: 10px 8px;
+  border-radius: 10px;
+}
+
+.notificationItem:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.notificationDotWrap {
+  position: relative;
+}
+
+.notificationAvatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #2f4058;
+  color: #d7e7ff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.notificationDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #5aa0ff;
+  position: absolute;
+  right: 2px;
+  top: 0;
+}
+
+.notificationTitle {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 600;
+}
+
+.notificationContent {
+  margin: 4px 0 0;
+  color: #b8c2cf;
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.notificationTime {
+  margin-top: 6px;
+  display: inline-block;
+  color: #6fb0ff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.notificationEmpty {
+  margin: 0;
+  padding: 12px 10px;
+  color: #b8c2cf;
 }
 
 .content {
@@ -200,8 +349,12 @@
     font-size: 13px;
   }
 
-  .searchInput {
-    width: 180px;
+  .notificationPanel {
+    width: 340px;
+  }
+
+  .notificationHeader h3 {
+    font-size: 28px;
   }
 
   .profileInfo h4 {
@@ -234,6 +387,17 @@
     overflow: visible;
   }
 
+  .header {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+
   .menu {
     overflow-x: auto;
     flex-direction: row;
@@ -259,5 +423,9 @@
 
   .profileInfo p {
     font-size: 11px;
+  }
+
+  .notificationPanel {
+    width: min(92vw, 360px);
   }
 }

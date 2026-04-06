@@ -30,16 +30,15 @@ import AdminReEnterPassword from '../pages/Clinic/Auth/ReEnterPassword'
 import AdminRegister from '../pages/Clinic/Auth/Register'
 import AddNewVererianrian from '../pages/Clinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
 import AppointmentManagement from '../pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
+import ClinicSelectionEditor from '../pages/Clinic/VeterinaryClinic/ClinicSelectionEditor'
+import HomePageClinicEditor from '../pages/Clinic/VeterinaryClinic/HomePageClinicEditor'
 import InformationVererianrian from '../pages/Clinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
 import ListPetExaminationRecords from '../pages/Clinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import AdminListPetMedicalRecords from '../pages/Clinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
-import PetMedicalBill from '../pages/Clinic/VeterinaryClinic/PetMedicalBill/petMedicalBill'
 import PetMedicalRecords from '../pages/Clinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
 import AdminClinicProfile from '../pages/Clinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
 import VererianrianManagement from '../pages/Clinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
 import ViewMedicalRecords from '../pages/Clinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords'
-import HomePageClinicEditor from '../pages/Clinic/VeterinaryClinic/HomePageClinicEditor'
-import ClinicSelectionEditor from '../pages/Clinic/VeterinaryClinic/ClinicSelectionEditor'
 import ListExaminationForm from '../pages/Vererianrian/ListExaminationForm/listExaminationForm'
 import ListMedicalRecords from '../pages/Vererianrian/ListMedicalRecords/listMedicalRecords'
 import PetAppointmentVererianrian from '../pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
@@ -76,7 +75,6 @@ export default function AppRoutes({ location }) {
         <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
         <Route path="/clinic/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
-        <Route path="/clinic/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
         <Route path="/clinic/home-editor/:clinicId" element={<HomePageClinicEditor />} />
         <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicSelectionEditor />} />
       </Route>
@@ -94,7 +92,6 @@ export default function AppRoutes({ location }) {
         <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
         <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
         <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
-        <Route path="/veterinarian/exam-slips/:appointmentId/bill" element={<PetMedicalBill />} />
       </Route>
 
 

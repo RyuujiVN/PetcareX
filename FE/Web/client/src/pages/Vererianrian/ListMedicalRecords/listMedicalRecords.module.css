@@ -1,36 +1,36 @@
 .pageRoot {
 	max-height: 100%;
 	gap: 10;
-	
+
 }
 
 .todayIcon {
-	color: #32bf77;
+	color: var(--vet-color-success);
 	background: #e6f8ee;
 }
 
 .waitingIcon {
-	color: #f89b36;
+	color: var(--vet-color-warning);
 	background: #fff3e6;
 }
 
 .doneIcon {
-	color: #638dff;
-	background: #ebf0ff;
+	color: var(--vet-color-brand-primary);
+	background: var(--vet-color-accent-soft);
 }
 .panelTitle {
   margin: 0 !important;
   font-size: 20px !important;
-  color: #1d2f4f !important;
+  color: var(--vet-color-text-primary) !important;
 }
 
 .tablePanel {
 	margin-top: 14px;
-	background: #fff;
+	background: var(--vet-color-surface-card);
 	border-radius: 16px;
-	border: 1px solid #dde5ee;
+	border: 1px solid var(--vet-color-border);
 	overflow: hidden;
-	box-shadow: 0 4px 18px rgba(32, 53, 81, 0.06);
+	box-shadow: var(--vet-shadow-card);
 }
 
 .tablePanelHeader {
@@ -38,14 +38,14 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 14px 16px;
-	border-bottom: 1px solid #ebf0f5;
+	border-bottom: 1px solid var(--vet-color-border-soft);
 }
 
 .tablePanelHeader h2 {
 	margin: 0;
 	font-size: 24px;
 	font-weight: 800;
-	color: #233952;
+	color: var(--vet-color-text-heading);
 }
 
 .datePicker {
@@ -63,14 +63,14 @@
 }
 
 .tableWrap thead {
-	background: #f8fafc;
+	background: var(--vet-color-surface-page);
 }
 
 .tableWrap th {
 	padding: 13px 16px;
 	font-size: 12px;
 	font-weight: 700;
-	color: #72839a;
+	color: var(--vet-color-text-muted);
 	text-align: left;
 	letter-spacing: 0.02em;
 	white-space: nowrap;
@@ -80,8 +80,8 @@
 	padding: 12px 16px;
 	font-size: 14px;
 	font-weight: 600;
-	color: #243a54;
-	border-top: 1px solid #edf1f5;
+	color: var(--vet-color-text-primary);
+	border-top: 1px solid var(--vet-color-border-soft);
 	vertical-align: middle;
 }
 
@@ -92,22 +92,17 @@
 }
 
 .petAvatar {
-	width: 34px;
-	height: 34px;
+	width: 50px;
+	height: 50px;
 	border-radius: 50%;
 	overflow: hidden;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	background: #eff4fa;
-	color: #5d7591;
+	background: var(--vet-color-surface-page);
+	color: var(--vet-color-text-secondary);
 	font-weight: 800;
-	border: 1px solid #d8e2ed;
-}
-
-.petAvatar{
-	width: 50px;
-	height: 50px;
+	border: 1px solid var(--vet-color-border-strong);
 	object-fit: cover;
 }
 
@@ -119,7 +114,7 @@
 
 .petInfo strong {
 	font-size: 15px;
-	color: #1f344e;
+	color: var(--vet-color-text-primary);
 	line-height: 1.2;
 }
 
@@ -142,12 +137,12 @@
 }
 
 .viewBtn {
-	background: var(--color-brand-primary);
+	background: var(--vet-btn-primary-bg);
 	color: #fff;
 }
 
 .viewBtn:hover {
-	background: var(--color-brand-primary-hover);
+	background: var(--vet-btn-primary-hover-bg);
 }
 
 .footerRow {
@@ -155,15 +150,15 @@
 	justify-content: space-between;
 	align-items: center;
 	padding: 12px 16px;
-	border-top: 1px solid #edf1f5;
-	background: #fff;
+	border-top: 1px solid var(--vet-color-border-soft);
+	background: var(--vet-color-surface-card);
 }
 
 .footerRow p {
 	margin: 0;
 	font-size: 13px;
 	font-weight: 500;
-	color: #788aa0;
+	color: var(--vet-color-text-disabled);
 }
 
 .paginationArrows {
@@ -176,7 +171,7 @@
 	min-height: 380px;
 	display: grid;
 	place-items: center;
-	background: #fff;
+	background: var(--vet-color-surface-card);
 }
 
 :global(.ant-picker) {

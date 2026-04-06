@@ -1,13 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import dayjs from 'dayjs'
-import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, message } from 'antd'
 import { CalendarOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons'
+import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, message } from 'antd'
+import dayjs from 'dayjs'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
 import { getClinicPetSpeciesApi } from '../../../../data/Clinic/api/petApi'
+import { getPetBreedLabel, getPetSpeciesLabel } from '../../../../utils/enumLabel'
 import styles from './listPetMedicalRecords.module.css'
 
 const PAGE_SIZE = 8
+const FALLBACK_TEXT = 'Không'
+const CONTACT_FALLBACK_TEXT = 'Chưa cập nhật được'
 
 const normalizeDate = (dateValue) => {
 	if (!dateValue) return ''
@@ -23,29 +26,21 @@ const normalizeDate = (dateValue) => {
 }
 
 const formatDisplayDate = (dateValue) => {
-	if (!dateValue) return 'Chưa cập nhật'
+	if (!dateValue) return FALLBACK_TEXT
 	return new Date(dateValue).toLocaleDateString('vi-VN')
 }
 
 const formatDisplayTime = (timeValue) => (timeValue || '').slice(0, 5)
 
 const formatEnumLabel = (value) => {
-	if (!value) return 'Không xác định'
-
-	return String(value)
-		.replace(/_/g, ' ')
-		.toLowerCase()
-		.replace(/\b\w/g, (char) => char.toUpperCase())
+	return getPetSpeciesLabel(value, FALLBACK_TEXT)
 }
 
 const formatSpeciesLabel = (species, breed) => {
-	const speciesLabel = formatEnumLabel(species)
-	const breedLabel = formatEnumLabel(breed)
+	const speciesLabel = getPetSpeciesLabel(species, FALLBACK_TEXT)
+	const breedLabel = getPetBreedLabel(breed, species, FALLBACK_TEXT)
 
-	if (!breed || breedLabel === 'Không Xác Định') {
-		return speciesLabel
-	}
-
+	if (!breedLabel || breedLabel === FALLBACK_TEXT) return speciesLabel
 	return `${speciesLabel} (${breedLabel})`
 }
 
@@ -133,7 +128,7 @@ export default function ListPetMedicalRecords() {
 					gender: pet?.gender,
 					weight: pet?.weight,
 					ownerName: owner?.fullName || 'Không rõ chủ nuôi',
-					ownerPhone: owner?.phone || 'Chưa cập nhật',
+					ownerPhone: owner?.phone || CONTACT_FALLBACK_TEXT,
 					appointmentSummary: sortedAppointments
 						.map((appointment) => {
 							const time = formatDisplayTime(appointment?.appointmentTime)

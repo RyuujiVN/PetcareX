@@ -1,13 +1,18 @@
 import { EyeInvisibleOutlined, EyeOutlined, LockOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
-import { message } from "antd";
-import { useState } from "react";
+import { Avatar, Badge, Button, Empty, Form, List, Popover, Spin, Typography, message } from "antd";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FaPaw } from "react-icons/fa";
+import { FaRegCalendarCheck, FaRegCommentDots, FaRegThumbsUp } from "react-icons/fa6";
+import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { changePasswordApi } from "../../../data/client/api/auth";
+import { loadClientNotifications } from "../../../data/client/api/notificationApi";
 import { useAuth } from "../../../hooks/client/AuthContext";
 import "./header.css";
 
 const MIN_PASSWORD_LENGTH = 8;
+const NOTIFICATION_READ_STORAGE_KEY = "client_header_notification_read_ids";
+const NOTIFICATION_LIKE_SNAPSHOT_STORAGE_KEY = "client_header_notification_like_snapshot";
 
 const INITIAL_PASSWORD_FORM = {
     currentPassword: "",
@@ -27,9 +32,66 @@ const INITIAL_PASSWORD_VISIBILITY = {
     confirmPassword: false,
 };
 
+const getScopedStorageKey = (baseKey, userId) => `${baseKey}:${userId}`;
+
+const readStorageJson = (key, fallbackValue) => {
+    if (!key) return fallbackValue;
+
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallbackValue;
+        return JSON.parse(raw);
+    } catch {
+        return fallbackValue;
+    }
+};
+
+const formatNotificationTimeAgo = (dateValue) => {
+    const createdAt = new Date(dateValue).getTime();
+    if (Number.isNaN(createdAt)) return "Vừa xong";
+
+    const diff = Date.now() - createdAt;
+    const minute = 60 * 1000;
+    const hour = 60 * minute;
+    const day = 24 * hour;
+
+    if (diff < minute) return "Vừa xong";
+    if (diff < hour) return `${Math.floor(diff / minute)} phút trước`;
+    if (diff < day) return `${Math.floor(diff / hour)} giờ trước`;
+    return `${Math.floor(diff / day)} ngày trước`;
+};
+
+const formatSyncTime = (dateValue) => {
+    const date = new Date(dateValue);
+    if (Number.isNaN(date.getTime())) return "--:--";
+
+    return date.toLocaleTimeString("vi-VN", {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
+
+const renderNotificationIcon = (type) => {
+    if (type === "appointment") {
+        return <FaRegCalendarCheck />;
+    }
+
+    if (type === "forum-like") {
+        return <FaRegThumbsUp />;
+    }
+
+    return <FaRegCommentDots />;
+};
+
 function Header() {
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
+    const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [notificationLoading, setNotificationLoading] = useState(false);
+    const [notificationItems, setNotificationItems] = useState([]);
+    const [notificationFilter, setNotificationFilter] = useState("all");
+    const [notificationReadIds, setNotificationReadIds] = useState([]);
+    const [notificationLastSyncedAt, setNotificationLastSyncedAt] = useState("");
     const [changingPassword, setChangingPassword] = useState(false);
     const [passwordForm, setPasswordForm] = useState(INITIAL_PASSWORD_FORM);
     const [passwordErrors, setPasswordErrors] = useState(INITIAL_PASSWORD_ERRORS);
@@ -39,12 +101,144 @@ function Header() {
         confirmPassword: false,
     });
     const [passwordVisible, setPasswordVisible] = useState(INITIAL_PASSWORD_VISIBILITY);
+    const accountMenuRef = useRef(null);
+    const likeSnapshotRef = useRef({});
+    const notificationRequestInFlightRef = useRef(false);
     const navigate = useNavigate();
-    const { logout, token, userProfile } = useAuth();
+    const { login, logout, token, userProfile } = useAuth();
+    const currentUserId = String(userProfile?.id || "");
+
+    const notificationReadIdSet = useMemo(() => new Set(notificationReadIds), [notificationReadIds]);
+
+    const unreadNotificationCount = useMemo(
+        () => notificationItems.reduce((count, item) => (notificationReadIdSet.has(item.id) ? count : count + 1), 0),
+        [notificationItems, notificationReadIdSet],
+    );
+
+    const filteredNotificationItems = useMemo(() => {
+        if (notificationFilter === "unread") {
+            return notificationItems.filter((item) => !notificationReadIdSet.has(item.id));
+        }
+
+        return notificationItems;
+    }, [notificationFilter, notificationItems, notificationReadIdSet]);
+
+    const persistReadNotificationIds = useCallback(
+        (nextReadIds) => {
+            if (!currentUserId) return;
+
+            const key = getScopedStorageKey(NOTIFICATION_READ_STORAGE_KEY, currentUserId);
+            localStorage.setItem(key, JSON.stringify(nextReadIds.slice(-500)));
+        },
+        [currentUserId],
+    );
+
+    const persistLikeSnapshot = useCallback(
+        (snapshot) => {
+            if (!currentUserId) return;
+
+            const key = getScopedStorageKey(NOTIFICATION_LIKE_SNAPSHOT_STORAGE_KEY, currentUserId);
+            localStorage.setItem(key, JSON.stringify(snapshot || {}));
+        },
+        [currentUserId],
+    );
+
+    const markNotificationsAsRead = useCallback(
+        (ids = []) => {
+            if (!Array.isArray(ids) || ids.length === 0) return;
+
+            setNotificationReadIds((prev) => {
+                const next = new Set(prev);
+                ids.forEach((id) => {
+                    if (id) {
+                        next.add(id);
+                    }
+                });
+
+                const nextList = Array.from(next);
+                persistReadNotificationIds(nextList);
+                return nextList;
+            });
+        },
+        [persistReadNotificationIds],
+    );
+
+    const refreshNotifications = useCallback(
+        async ({ silent = false } = {}) => {
+            if (!token || !currentUserId) return;
+            if (notificationRequestInFlightRef.current) return;
+
+            notificationRequestInFlightRef.current = true;
+            setNotificationLoading(true);
+
+            try {
+                const payload = await loadClientNotifications({
+                    userId: currentUserId,
+                    previousLikeSnapshot: likeSnapshotRef.current,
+                });
+
+                setNotificationItems(Array.isArray(payload?.items) ? payload.items : []);
+
+                likeSnapshotRef.current = payload?.nextLikeSnapshot || {};
+                persistLikeSnapshot(likeSnapshotRef.current);
+                setNotificationLastSyncedAt(new Date().toISOString());
+
+                if (payload?.hasPartialFailure && !silent) {
+                    message.warning("Đã tải một phần thông báo, vui lòng thử lại sau");
+                }
+            } catch (error) {
+                if (!silent) {
+                    message.error(error?.message || "Không thể tải danh sách thông báo");
+                }
+            } finally {
+                setNotificationLoading(false);
+                notificationRequestInFlightRef.current = false;
+            }
+        },
+        [currentUserId, persistLikeSnapshot, token],
+    );
 
     const handleAccountClick = () => {
-        setIsAccountDropdownOpen(!isAccountDropdownOpen);
+        setIsNotificationOpen(false);
+        setIsAccountDropdownOpen((prev) => !prev);
     };
+
+    const handleNotificationOpenChange = (nextOpen) => {
+        setIsNotificationOpen(nextOpen);
+
+        if (nextOpen) {
+            setIsAccountDropdownOpen(false);
+            void refreshNotifications({ silent: true });
+        }
+    };
+
+    useEffect(() => {
+        if (!isAccountDropdownOpen) {
+            return;
+        }
+
+        const handleOutsideClick = (event) => {
+            if (accountMenuRef.current && !accountMenuRef.current.contains(event.target)) {
+                setIsAccountDropdownOpen(false);
+            }
+        };
+
+        const handleEscapeKey = (event) => {
+            if (event.key === "Escape") {
+                setIsAccountDropdownOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleOutsideClick);
+        document.addEventListener("touchstart", handleOutsideClick);
+        document.addEventListener("keydown", handleEscapeKey);
+
+        return () => {
+            document.removeEventListener("mousedown", handleOutsideClick);
+            document.removeEventListener("touchstart", handleOutsideClick);
+            document.removeEventListener("keydown", handleEscapeKey);
+        };
+    }, [isAccountDropdownOpen]);
 
     const resetPasswordPopup = () => {
         setPasswordForm(INITIAL_PASSWORD_FORM);
@@ -64,9 +258,166 @@ function Header() {
 
     const openChangePasswordPopup = () => {
         setIsAccountDropdownOpen(false);
+        setIsNotificationOpen(false);
         resetPasswordPopup();
         setIsChangePasswordOpen(true);
     };
+
+    useEffect(() => {
+        if (!token || !currentUserId) {
+            setNotificationItems([]);
+            setNotificationReadIds([]);
+            setNotificationLastSyncedAt("");
+            likeSnapshotRef.current = {};
+            return;
+        }
+
+        const readKey = getScopedStorageKey(NOTIFICATION_READ_STORAGE_KEY, currentUserId);
+        const likeSnapshotKey = getScopedStorageKey(NOTIFICATION_LIKE_SNAPSHOT_STORAGE_KEY, currentUserId);
+
+        const storedReadIds = readStorageJson(readKey, []);
+        const storedLikeSnapshot = readStorageJson(likeSnapshotKey, {});
+
+        setNotificationReadIds(Array.isArray(storedReadIds) ? storedReadIds : []);
+        likeSnapshotRef.current =
+            storedLikeSnapshot && typeof storedLikeSnapshot === "object" ? storedLikeSnapshot : {};
+
+        void refreshNotifications({ silent: true });
+    }, [currentUserId, refreshNotifications, token]);
+
+    useEffect(() => {
+        if (!token || !currentUserId) {
+            return undefined;
+        }
+
+        const intervalId = window.setInterval(() => {
+            void refreshNotifications({ silent: true });
+        }, 60000);
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === "visible") {
+                void refreshNotifications({ silent: true });
+            }
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            window.clearInterval(intervalId);
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [currentUserId, refreshNotifications, token]);
+
+    const handleClickNotificationItem = (item) => {
+        if (!item?.id) return;
+
+        markNotificationsAsRead([item.id]);
+        setIsNotificationOpen(false);
+
+        if (item.href) {
+            navigate(item.href);
+        }
+    };
+
+    const handleMarkAllNotificationsAsRead = () => {
+        markNotificationsAsRead(notificationItems.map((item) => item.id));
+    };
+
+    const notificationPanel = (
+        <div className="notification-panel">
+            <div className="notification-panel-header">
+                <Typography.Title level={5} style={{ margin: 0 }}>
+                    Thông báo
+                </Typography.Title>
+
+                <div className="notification-panel-actions">
+                    <Button size="small" onClick={() => void refreshNotifications()}>
+                        Làm mới
+                    </Button>
+                    <Button
+                        size="small"
+                        type="primary"
+                        ghost
+                        disabled={unreadNotificationCount === 0}
+                        onClick={handleMarkAllNotificationsAsRead}
+                    >
+                        Đánh dấu đã đọc
+                    </Button>
+                </div>
+            </div>
+
+            <Form layout="inline" className="notification-filter-form">
+                <Form.Item style={{ marginBottom: 0 }}>
+                    <Button
+                        size="small"
+                        type={notificationFilter === "all" ? "primary" : "default"}
+                        onClick={() => setNotificationFilter("all")}
+                    >
+                        Tất cả
+                    </Button>
+                </Form.Item>
+                <Form.Item style={{ marginBottom: 0 }}>
+                    <Button
+                        size="small"
+                        type={notificationFilter === "unread" ? "primary" : "default"}
+                        onClick={() => setNotificationFilter("unread")}
+                    >
+                        Chưa đọc
+                    </Button>
+                </Form.Item>
+            </Form>
+
+            <div className="notification-panel-content">
+                {notificationLoading ? (
+                    <div className="notification-panel-loading">
+                        <Spin />
+                    </div>
+                ) : filteredNotificationItems.length === 0 ? (
+                    <div className="notification-panel-empty">
+                        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Chưa có thông báo" />
+                    </div>
+                ) : (
+                    <List
+                        className="notification-list"
+                        dataSource={filteredNotificationItems}
+                        renderItem={(item) => {
+                            const isUnread = !notificationReadIdSet.has(item.id);
+
+                            return (
+                                <List.Item className="notification-list-item">
+                                    <button
+                                        type="button"
+                                        className={`notification-item ${isUnread ? "unread" : ""}`}
+                                        onClick={() => handleClickNotificationItem(item)}
+                                    >
+                                        {item.avatarUrl ? (
+                                            <Avatar src={item.avatarUrl} size={42} />
+                                        ) : (
+                                            <span className={`notification-type-icon ${item.type}`}>
+                                                {renderNotificationIcon(item.type)}
+                                            </span>
+                                        )}
+
+                                        <span className="notification-item-text">
+                                            <span className="notification-item-title">{item.title}</span>
+                                            <span className="notification-item-description">{item.description}</span>
+                                            <span className="notification-item-time">{formatNotificationTimeAgo(item.createdAt)}</span>
+                                        </span>
+
+                                        {isUnread ? <span className="notification-unread-dot" /> : null}
+                                    </button>
+                                </List.Item>
+                            );
+                        }}
+                    />
+                )}
+            </div>
+
+            <Typography.Text className="notification-sync-text" type="secondary">
+                Cập nhật lúc: {formatSyncTime(notificationLastSyncedAt)}
+            </Typography.Text>
+        </div>
+    );
 
     const validatePasswordForm = (values) => {
         const nextErrors = {
@@ -156,11 +507,17 @@ function Header() {
 
         try {
             setChangingPassword(true);
-            await changePasswordApi({
+            const response = await changePasswordApi({
                 oldPassword: passwordForm.currentPassword,
                 newPassword: passwordForm.newPassword,
                 confirmPassword: passwordForm.confirmPassword,
             });
+
+            const newToken = response?.data?.accessToken;
+            if (newToken) {
+                login(newToken);
+            }
+
             message.success("Đổi mật khẩu thành công");
             closeChangePasswordPopup();
         } catch (error) {
@@ -214,7 +571,26 @@ function Header() {
 
                 <div className="auth-section">
                     {token ? (
-                        <div className="user-section">
+                        <div className="user-section" ref={accountMenuRef}>
+                            <Popover
+                                content={notificationPanel}
+                                trigger="click"
+                                placement="bottomRight"
+                                open={isNotificationOpen}
+                                onOpenChange={handleNotificationOpenChange}
+                                overlayClassName="header-notification-popover"
+                            >
+                                <button
+                                    type="button"
+                                    className="notification-bell-btn"
+                                    aria-label="Mở danh sách thông báo"
+                                >
+                                    <Badge count={unreadNotificationCount} overflowCount={99}>
+                                        <IoMdNotificationsOutline size={23} />
+                                    </Badge>
+                                </button>
+                            </Popover>
+
                             <div className="user-profile" onClick={handleAccountClick}>
                                 <div className="user-avatar">
                                     <img src={userProfile?.avatarUrl || '/bs1.png'} alt="User Avatar" />
@@ -237,7 +613,7 @@ function Header() {
                                         <span className="icon"><LockOutlined /></span>
                                         <span>Đổi mật khẩu</span>
                                     </button>
-                                    <div 
+                                    <div
                                         className="dropdown-item logout"
                                         onClick={() => {
                                             logout();

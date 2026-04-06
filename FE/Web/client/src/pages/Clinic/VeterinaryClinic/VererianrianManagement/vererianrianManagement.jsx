@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { message } from 'antd'
-import { FaBell, FaMapMarkerAlt, FaPlus } from 'react-icons/fa'
+import { FaBell, FaEnvelope, FaPhone, FaPlus } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
 import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels'
@@ -160,13 +160,13 @@ export default function VeterinarianManagement() {
 
 								<div className={styles.infoLine}>
 									<span className={styles.metaText}>
-										<FaMapMarkerAlt /> {doctor.phone}
+										<FaPhone /> {doctor.phone}
 									</span>
 									<span className={`${styles.statusBadge} ${styles[doctor.statusType]}`}>{doctor.status}</span>
 								</div>
 
 								<p className={styles.phone}>
-									<FaMapMarkerAlt /> {doctor.email}
+									<FaEnvelope /> {doctor.email}
 								</p>
 							</div>
 						</article>

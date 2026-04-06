@@ -17,7 +17,13 @@ export const getBreedLabel = (breed, species) =>
   getPetBreedLabel(breed, species, 'Chưa cập nhật giống');
 
 export const getMyPetsApi = () => {
-  return instance.get('/pet').then((response) => response.data);
+  return instance.get('/pet').then((response) => {
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  });
 };
 
 export const getPetByIdApi = (petId) => {

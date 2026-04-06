@@ -1,4 +1,6 @@
 import {
+  ManOutlined,
+  WomanOutlined,
   CameraOutlined,
   UserOutlined,
   CalendarOutlined
@@ -13,7 +15,6 @@ import {
   message,
   Modal,
   Card,
-  Avatar,
   Space,
   Spin,
   Radio,
@@ -44,7 +45,6 @@ export default function PetProfile() {
 
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
-  const [avatarFile, setAvatarFile] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('');
   const [petData, setPetData] = useState(null);
@@ -184,7 +184,6 @@ export default function PetProfile() {
       });
 
       setImagePreview(mappedPetData.avatar);
-      setAvatarFile(null);
       setUploadedAvatarUrl(mappedPetData.avatar || '');
       setHasUnsavedChanges(false);
     } catch (error) {
@@ -198,7 +197,6 @@ export default function PetProfile() {
     const file = e.target.files[0];
     if (!file) return;
 
-    setAvatarFile(file);
     setUploadingAvatar(true);
 
     const reader = new FileReader();
@@ -220,7 +218,6 @@ export default function PetProfile() {
       setUploadedAvatarUrl(nextAvatarUrl);
       message.success("Tải ảnh thú cưng thành công");
     } catch (error) {
-      setAvatarFile(null);
       setImagePreview(petData?.avatar || null);
       setUploadedAvatarUrl(petData?.avatar || '');
       message.error(error.message || "Không thể tải ảnh thú cưng");
@@ -282,7 +279,6 @@ export default function PetProfile() {
         avatar: avatarUrl,
       }));
 
-      setAvatarFile(null);
       setHasUnsavedChanges(false);
 
       message.success("Cập nhật thông tin thú cưng thành công!");
@@ -331,24 +327,29 @@ export default function PetProfile() {
 
       <div className="profile-wrapper">
 
-        <div className="profile-header">
-
-          <h2 className="profile-title">Thông tin thú cưng</h2>
-
+        {/* <div className="profile-header"> */}
           <div className="profile-avatar-section">
 
-            <div className="profile-avatar-container">
+            <div
+              className={`profile-cover ${imagePreview ? "has-cover-image" : "no-cover-image"}`}
+              style={
+                imagePreview
+                  ? {
+                      backgroundImage: `linear-gradient(120deg, rgba(13, 26, 53, 0.3) 8%, rgba(40, 93, 170, 0.26) 62%, rgba(116, 160, 220, 0.22) 100%), url(${imagePreview})`,
+                    }
+                  : undefined
+              }
+            >
 
-              <Avatar
-                size={120}
-                src={imagePreview}
-                icon={<UserOutlined />}
-                className="profile-avatar"
-              />
+              {!imagePreview && (
+                <div className="profile-cover-placeholder">
+                  <UserOutlined />
+                </div>
+              )}
 
               <label
                 htmlFor="avatar-upload"
-                className="avatar-upload-btn"
+                className="cover-upload-btn"
                 style={{
                   opacity: uploadingAvatar || loading ? 0.5 : 1,
                   pointerEvents: uploadingAvatar || loading ? "none" : "auto",
@@ -373,18 +374,9 @@ export default function PetProfile() {
               <h2 className="profile-name">
                 {petData?.petName || "Tên thú cưng"}
               </h2>
-
-              <p className="profile-subtitle">
-
-                {petAge
-                  ? `${petAge} tuổi • ${petData?.weight || 0} kg`
-                  : "• tuổi • kg"}
-
-              </p>
-
             </div>
 
-          </div>
+          {/* </div> */}
 
         </div>
 
@@ -461,10 +453,16 @@ export default function PetProfile() {
               >
                 <Radio.Group className="pet-gender-group">
                   <Radio.Button value="Đực" className="pet-gender-btn">
-                    Đực
+                    <span className="pet-gender-content">
+                      <ManOutlined />
+                      <span>Đực</span>
+                    </span>
                   </Radio.Button>
                   <Radio.Button value="Cái" className="pet-gender-btn ">
-                    Cái
+                    <span className="pet-gender-content">
+                      <WomanOutlined />
+                      <span>Cái</span>
+                    </span>
                   </Radio.Button>
                 </Radio.Group>
               </Form.Item>

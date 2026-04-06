@@ -180,7 +180,7 @@ export default function HomePage() {
 
       <section className="challenges-sections">
         <div className="section-container">
-          <h2 className="section-title">Thách thức & Giải pháp</h2>
+          <h2 className="section-titles">Thách thức & Giải pháp</h2>
           <p className="section-subtitle">
             Chúng tôi hiểu những khó khăn trong việc quản lý truyền thống và mang đến công nghệ để giải quyết triệt để
           </p>
@@ -228,7 +228,7 @@ export default function HomePage() {
     
       <section className="technology-section">
         <div className="section-container">
-          <h2 className="section-title">Công Nghệ Phục Vụ Thú Cưng</h2>
+          <h2 className="section-titles">Công Nghệ Phục Vụ Thú Cưng</h2>
 
           <div className="technology-grid">
             {technologies.map((tech) => (

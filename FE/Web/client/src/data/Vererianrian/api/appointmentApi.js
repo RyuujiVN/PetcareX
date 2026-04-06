@@ -62,12 +62,14 @@ export const updateVeterinarianAppointmentStatusApi = (appointmentId, payload) =
 }
 
 export const getVeterinarianServerNowApi = async () => {
+	const localBefore = Date.now()
 	const response = await instance.get('/appointment', {
 		params: {
 			page: 1,
 			limit: 1,
 		},
 	})
+	const localAfter = Date.now()
 
 	const headerDate = response?.headers?.date
 	if (headerDate) {
@@ -86,7 +88,9 @@ export const getVeterinarianServerNowApi = async () => {
 		}
 	}
 
-	return null
+	// Fallback: use local clock midpoint as best estimate when server
+	// does not expose Date header or serverTime field (CORS restriction).
+	return Math.round((localBefore + localAfter) / 2)
 }
 
 export const deleteVeterinarianAppointmentApi = (appointmentId) => {

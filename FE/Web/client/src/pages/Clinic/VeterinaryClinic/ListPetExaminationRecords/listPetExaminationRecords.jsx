@@ -6,9 +6,9 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
 import { getClinicPetSpeciesApi } from '../../../../data/Clinic/api/petApi'
 import {
-	getAppointmentStatusLabel,
-	getPetBreedLabel,
-	getPetSpeciesLabel,
+    getAppointmentStatusLabel,
+    getPetBreedLabel,
+    getPetSpeciesLabel,
 } from '../../../../utils/enumLabel'
 import styles from './listPetExaminationRecords.module.css'
 
@@ -33,18 +33,17 @@ const getAgeLabel = (dateOfBirth) => {
 	if (Number.isNaN(birthDate.getTime())) return 'Chưa rõ tuổi'
 
 	const now = new Date()
-	let years = now.getFullYear() - birthDate.getFullYear()
-	const monthDiff = now.getMonth() - birthDate.getMonth()
+	let totalMonths =
+		(now.getFullYear() - birthDate.getFullYear()) * 12 +
+		(now.getMonth() - birthDate.getMonth())
 
-	if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < birthDate.getDate())) {
-		years -= 1
+	if (now.getDate() < birthDate.getDate()) {
+		totalMonths -= 1
 	}
 
-	if (years <= 0) {
-		return 'Dưới 1 năm'
-	}
-
-	return `${years} tuổi`
+	if (totalMonths < 0) return 'Chưa rõ tuổi'
+	if (totalMonths < 24) return `${totalMonths} tháng`
+	return `${Math.floor(totalMonths / 12)} tuổi`
 }
 
 const getStatusLabel = (status) => getAppointmentStatusLabel(status, status || 'Không xác định')

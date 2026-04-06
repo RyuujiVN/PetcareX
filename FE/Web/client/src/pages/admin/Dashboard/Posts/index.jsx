@@ -1,5 +1,8 @@
 import {
+  DeleteOutlined,
+  EyeOutlined,
   FileTextOutlined,
+  InfoCircleOutlined,
   LikeOutlined,
   MessageOutlined,
   SearchOutlined,
@@ -10,9 +13,12 @@ import {
   Button,
   Card,
   Col,
+  Descriptions,
   Flex,
   Input,
+  Modal,
   Row,
+  Select,
   Space,
   Statistic,
   Table,
@@ -69,6 +75,9 @@ export default function Posts() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [search, setSearch] = useState('')
+  const [topicFilter, setTopicFilter] = useState('ALL')
+  const [viewModalOpen, setViewModalOpen] = useState(false)
+  const [selectedPost, setSelectedPost] = useState(null)
 
   const postsRef = useRef([])
 
@@ -122,20 +131,73 @@ export default function Posts() {
     setSearch(value)
   }
 
+  const handleViewPost = (post) => {
+    setSelectedPost(post)
+    setViewModalOpen(true)
+  }
+
+  const handleDeletePost = (postId) => {
+    setPosts((prev) => prev.filter((item) => item.id !== postId))
+    message.success('Đã xóa bài đăng khỏi danh sách hiển thị')
+  }
+
+  const handleDeleteWithConfirm = (post) => {
+    Modal.confirm({
+      centered: true,
+      title: 'Xác nhận xóa bài đăng',
+      icon: <InfoCircleOutlined style={{ color: 'var(--admin-color-warning)' }} />,
+      content: 'Bạn có chắc muốn xóa bài đăng này không?',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: () => {
+        handleDeletePost(post.id)
+      },
+    })
+  }
+
+  const topicOptions = useMemo(() => {
+    const topicMap = new Map()
+    posts.forEach((post) => {
+      const topicName = post?.topic?.nameVn?.trim()
+      if (topicName) topicMap.set(topicName, topicName)
+    })
+
+    const dynamicOptions = Array.from(topicMap.values())
+      .sort((a, b) => a.localeCompare(b, 'vi'))
+      .map((topic) => ({
+        value: topic,
+        label: topic,
+      }))
+
+    return [
+      { value: 'ALL', label: 'Tất cả' },
+      ...dynamicOptions,
+    ]
+  }, [posts])
+
   const filteredPosts = useMemo(() => {
     const keyword = search.trim().toLowerCase()
-    if (!keyword) return posts
     return posts.filter((post) => {
       const authorName = post?.author?.fullName?.toLowerCase() || ''
       const topicName = post?.topic?.nameVn?.toLowerCase() || ''
       const content = cleanContent(post?.content || '').toLowerCase()
-      return (
+      const matchKeyword = !keyword || (
         authorName.includes(keyword) ||
         topicName.includes(keyword) ||
         content.includes(keyword)
       )
+
+      const rawTopic = post?.topic?.nameVn?.trim() || ''
+      const matchTopic = topicFilter === 'ALL'
+        ? true
+        : topicFilter === 'NO_TOPIC'
+          ? !rawTopic
+          : rawTopic === topicFilter
+
+      return matchKeyword && matchTopic
     })
-  }, [posts, search])
+  }, [posts, search, topicFilter])
 
   const stats = useMemo(() => {
     return posts.reduce(
@@ -156,10 +218,10 @@ export default function Posts() {
     {
       title: 'TÁC GIẢ',
       key: 'author',
+      width: 250,
       render: (_, record) => {
         const authorName = record?.author?.fullName || ''
         const displayName = authorName || '—'
-        const role = record?.author?.role
         return (
           <Space size={12} className="author-cell">
             <Avatar
@@ -172,22 +234,27 @@ export default function Posts() {
                 : null}
             </Avatar>
             <div className="author-meta">
-              <Typography.Text className="author-name">
+              <Typography.Text className="author-name" title={displayName}>
                 {displayName}
               </Typography.Text>
-              <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
-                {role ? getRoleLabel(role) : '—'}
-              </Tag>
             </div>
           </Space>
         )
       },
     },
     {
-      title: 'CHỦ ĐỀ',
-      dataIndex: ['topic', 'nameVn'],
-      key: 'topic',
-      render: (value) => <Tag className="topic-tag">{value || '—'}</Tag>,
+      title: 'VAI TRÒ',
+      key: 'role',
+      width: 170,
+      align: 'center',
+      render: (_, record) => {
+        const role = record?.author?.role
+        return (
+          <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
+            {role ? getRoleLabel(role) : 'Không'}
+          </Tag>
+        )
+      },
     },
     {
       title: 'NỘI DUNG',
@@ -196,31 +263,42 @@ export default function Posts() {
       render: (value) => (
         <Typography.Paragraph
           className="post-content"
-          ellipsis={{ rows: 2 }}
+          ellipsis={{ rows: 1 }}
+          title={cleanContent(value) || ''}
         >
           {cleanContent(value) || '—'}
         </Typography.Paragraph>
       ),
     },
     {
-      title: 'BÌNH LUẬN',
-      dataIndex: 'commentCount',
-      key: 'commentCount',
-      align: 'center',
-      render: (value) => value ?? 0,
-    },
-    {
-      title: 'LƯỢT THÍCH',
-      dataIndex: 'likeCount',
-      key: 'likeCount',
-      align: 'center',
-      render: (value) => value ?? 0,
-    },
-    {
       title: 'NGÀY ĐĂNG',
       dataIndex: 'createdAt',
       key: 'createdAt',
+      width: 130,
       render: (date) => formatDate(date),
+    },
+    {
+      title: 'THAO TÁC',
+      key: 'action',
+      width: 100,
+      align: 'center',
+      render: (_, record) => (
+        <Space className="table-action-group">
+          <Button
+            type="text"
+            className="table-action-btn table-action-btn--view"
+            icon={<EyeOutlined />}
+            onClick={() => handleViewPost(record)}
+          />
+          <Button
+            type="text"
+            danger
+            className="table-action-btn table-action-btn--delete"
+            icon={<DeleteOutlined />}
+            onClick={() => handleDeleteWithConfirm(record)}
+          />
+        </Space>
+      ),
     },
   ]
 
@@ -258,7 +336,7 @@ export default function Posts() {
 
       <Card className="table-card">
         <Flex justify="space-between" align="center" className="section-header">
-          <div>
+          <div className="section-title">
             <Typography.Title level={4} style={{ margin: 0 }}>
               Danh sách bài đăng
             </Typography.Title>
@@ -266,16 +344,25 @@ export default function Posts() {
               Theo dõi bài viết mới nhất từ cộng đồng
             </Typography.Text>
           </div>
-          <Input.Search
-            className="posts-search"
-            placeholder="Tìm theo tác giả, chủ đề, nội dung"
-            allowClear
-            enterButton={false}
-            value={search}
-            onChange={(event) => handleSearch(event.target.value)}
-            onSearch={handleSearch}
-            prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-          />
+          <div className="posts-table-actions">
+            <Input
+              className="posts-search"
+              placeholder="Tìm theo tác giả, chủ đề, nội dung"
+              allowClear
+              value={search}
+              onChange={(event) => handleSearch(event.target.value)}
+              onPressEnter={(event) => handleSearch(event.target.value)}
+              prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
+            />
+            <Select
+              size='large'
+              className="posts-topic"
+              options={topicOptions}
+              value={topicFilter}
+              onChange={setTopicFilter}
+              placeholder="Lọc theo chủ đề"
+            />
+          </div>
         </Flex>
 
         <Table
@@ -284,6 +371,7 @@ export default function Posts() {
           loading={loading}
           pagination={false}
           rowKey="id"
+          tableLayout="fixed"
         />
 
         <Flex justify="space-between" align="center" className="pagination-bar">
@@ -308,6 +396,41 @@ export default function Posts() {
           </div>
         </Flex>
       </Card>
+
+      <Modal
+        title="Chi tiết bài đăng"
+        open={viewModalOpen}
+        onCancel={() => setViewModalOpen(false)}
+        footer={null}
+        width={720}
+        centered
+      >
+        <Descriptions bordered column={1} size="middle" className="post-detail-descriptions">
+          <Descriptions.Item label="Tác giả">
+            {selectedPost?.author?.fullName || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Vai trò">
+            {selectedPost?.author?.role ? getRoleLabel(selectedPost.author.role) : '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Chủ đề">
+            {selectedPost?.topic?.nameVn || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày đăng">
+            {formatDate(selectedPost?.createdAt)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Lượt thích">
+            {selectedPost?.likeCount ?? 0}
+          </Descriptions.Item>
+          <Descriptions.Item label="Bình luận">
+            {selectedPost?.commentCount ?? 0}
+          </Descriptions.Item>
+          <Descriptions.Item label="Nội dung">
+            <Typography.Text className="post-detail-content">
+              {cleanContent(selectedPost?.content || '') || '—'}
+            </Typography.Text>
+          </Descriptions.Item>
+        </Descriptions>
+      </Modal>
     </div>
   )
 }
