@@ -819,21 +819,10 @@ export default function PetMedicalRecords() {
 		<div className={styles.pageRoot}>
 			<div className={styles.pageWrap}>
 				<header className={styles.formHeader}>
-					<div className={styles.brandRow}>
-						<div className={styles.brandIcon}>
-							<SmileOutlined />
-						</div>
-						<div>
-							<Typography.Title level={3} className={styles.titleText}>
-								Hệ thống thú y chuyên nghiệp
-							</Typography.Title>
-						</div>
-					</div>
-
 					<div className={styles.headerMeta}>
 						<p>PHIẾU KHÁM BỆNH & CHỈ ĐỊNH</p>
-						<span>Mã hồ sơ: {buildExamCode(medicalRecord?.id)}</span>
-						<span>Ngày khám: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</span>
+						<span style={{marginRight: 135}}>Mã hồ sơ: {buildExamCode(medicalRecord?.id)}</span>
+						<span style={{marginRight: 155}}>Ngày khám: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</span>
 					</div>
 				</header>
 
