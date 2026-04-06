@@ -319,10 +319,6 @@ export default function ViewPetMedicalRecords() {
 
 	return (
 		<div className={styles.pageRoot}>
-			<header className={styles.pageHeader}>
-				<h1>Hồ sơ y tế điện tử</h1>
-			</header>
-
 			<section className={styles.petSection}>
 				<div className={styles.petMainInfo}>
 					{petSummary.avatar ? (

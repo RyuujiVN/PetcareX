@@ -131,6 +131,10 @@ export default function AdminVererianrianLayout() {
     '/veterinarian/viewRecords',
   ]
   const isExamFormFocusMode = location.pathname === '/veterinarian/exam-forms/create'
+  const isViewPetMedicalRecordsRoute =
+    location.pathname === '/veterinarian/viewRecords' ||
+    location.pathname.startsWith('/veterinarian/viewRecords/')
+  const shouldUseMedicalRecordHeader = isViewPetMedicalRecordsRoute && !isExamFormFocusMode
   const notificationItems = useMemo(
     () => buildMockVeterinarianNotifications(clinicDisplayName),
     [clinicDisplayName],
@@ -343,9 +347,13 @@ export default function AdminVererianrianLayout() {
 
       <main className={`${styles.main} ${isExamFormFocusMode ? styles.mainFocus : ''}`}>
         {!isExamFormFocusMode ? (
-          <header className={styles.header}>
+          <header
+            className={`${styles.header} ${shouldUseMedicalRecordHeader ? styles.headerMedicalRecord : ''}`}
+          >
             <div className={styles.headerSearchWrap}>
-              {!shouldHideSearch ? (
+              {shouldUseMedicalRecordHeader ? (
+                <h1 className={styles.headerTitle}>Hồ sơ y tế điện tử</h1>
+              ) : !shouldHideSearch ? (
                 <Input
                   className={styles.searchInput}
                   prefix={<SearchOutlined />}

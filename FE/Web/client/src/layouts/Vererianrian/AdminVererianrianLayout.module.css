@@ -120,7 +120,6 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  padding: 20px 24px;
 }
 
 .mainFocus {
@@ -138,7 +137,15 @@
   align-items: center;
   gap: 14px;
   margin-bottom: 14px;
-  padding: 6px 0;
+  padding: 6px 15px;
+}
+
+.headerMedicalRecord {
+  min-height: 64px;
+  margin-bottom: 0;
+  padding: 0 24px;
+  background: var(--vet-color-surface-card);
+  border-bottom: 1px solid var(--vet-color-border);
 }
 
 .headerSearchWrap {
@@ -146,6 +153,14 @@
   min-width: 0;
   display: flex;
   align-items: center;
+}
+
+.headerTitle {
+  margin: 0;
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--vet-color-text-heading);
+  /* line-height: 1.1; */
 }
 
 .searchInput {
@@ -286,7 +301,7 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-right: 4px;
+  padding: 10px 16px 40px;
 }
 
 .contentFocus {
@@ -349,10 +364,14 @@
     border-bottom: 0;
   }
 
+  .headerMedicalRecord {
+    min-height: 56px;
+    padding: 0 14px;
+  }
+
   .headerSearchWrap {
     flex: 1;
   }
-
   .content {
     overflow: visible;
     padding-right: 0;
