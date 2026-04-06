@@ -1,11 +1,11 @@
 import { NotificationEnum } from 'src/common/enums/notification.enum';
-import { RecipientEnum } from 'src/common/enums/recipient.enum';
 import { SenderNotificationEnum } from 'src/common/enums/sender-notification.enum';
 import { User } from 'src/user/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -18,11 +18,8 @@ export class Notification {
   @Column({ type: 'uuid', name: 'recipient_id' })
   recipientId: string;
 
-  @Column({ type: 'enum', name: 'recipient_type', enum: RecipientEnum })
-  recipientType: RecipientEnum;
-
-  @Column({ type: 'uuid', name: 'sender_id' })
-  senderId: string;
+  @Column({ type: 'uuid', name: 'sender_id', nullable: true })
+  senderId: string | null;
 
   @Column({ type: 'enum', name: 'sender_type', enum: SenderNotificationEnum })
   senderType: SenderNotificationEnum;
@@ -30,14 +27,11 @@ export class Notification {
   @Column({ type: 'enum', enum: NotificationEnum })
   type: NotificationEnum;
 
-  @Column({ type: 'text' })
-  content: string;
-
   @Column({ type: 'boolean', name: 'is_read', default: 'false' })
   isRead: boolean;
 
   @Column({ type: 'jsonb' })
-  target: string;
+  target: Record<string, any>;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
@@ -45,5 +39,6 @@ export class Notification {
   @ManyToOne(() => User, (user) => user.notifications, {
     onDelete: 'CASCADE',
   })
+  @JoinColumn({ name: 'recipient_id' })
   user: User;
 }

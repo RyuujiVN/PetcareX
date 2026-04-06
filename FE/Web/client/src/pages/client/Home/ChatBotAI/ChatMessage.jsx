@@ -7,8 +7,6 @@ import "github-markdown-css/github-markdown-light.css";
 const ChatMessage = memo(({ message }) => {
   if (!message) return null;
 
-  console.log(message.id);
-
   if (message?.sendBy === "USER") {
     return (
       <div className="message user">

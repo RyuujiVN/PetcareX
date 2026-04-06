@@ -38,5 +38,7 @@ export class NotificationGateway
     client.disconnect();
   }
 
-  
+  sendNotificationToClient(userId: string, data: any) {
+    this.server.to(userId).emit('severSendNotification', data);
+  }
 }

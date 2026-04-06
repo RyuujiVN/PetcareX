@@ -14,7 +14,7 @@ import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
-import { QueueNameEnum } from 'src/common/enums/queue.enum';
+import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
 
 @Injectable()
 export class AppointmentService {
@@ -173,7 +173,7 @@ export class AppointmentService {
 
     // Gửi triệu chứng về cho AI phân tích
     await this.analyzeSymptomsQueue.add(
-      'analyzeSymptoms',
+      JobNameEnum.ANALYZE_SYMPTOMS,
       {
         ...appointment,
         userId: userId,
@@ -191,7 +191,7 @@ export class AppointmentService {
 
     const savedAppointment = await this.appointmentRepository.save(appointment);
 
-    return await this.findOneById(savedAppointment.id);
+    return savedAppointment;
   }
 
   // Cập nhật lịch hẹn
