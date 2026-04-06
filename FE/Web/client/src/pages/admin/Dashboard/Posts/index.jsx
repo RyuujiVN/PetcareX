@@ -300,16 +300,19 @@ export default function Posts() {
       title: 'THAO TÁC',
       key: 'action',
       width: 100,
+      align: 'center',
       render: (_, record) => (
-        <Space>
+        <Space className="table-action-group">
           <Button
             type="text"
+            className="table-action-btn table-action-btn--view"
             icon={<EyeOutlined />}
             onClick={() => handleViewPost(record)}
           />
           <Button
             type="text"
             danger
+            className="table-action-btn table-action-btn--delete"
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteWithConfirm(record)}
           />
@@ -352,7 +355,7 @@ export default function Posts() {
 
       <Card className="table-card">
         <Flex justify="space-between" align="center" className="section-header">
-          <div>
+          <div className="section-title">
             <Typography.Title level={4} style={{ margin: 0 }}>
               Danh sách bài đăng
             </Typography.Title>
@@ -370,8 +373,6 @@ export default function Posts() {
               onPressEnter={(event) => handleSearch(event.target.value)}
               prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
             />
-          </div>
-          <div className="posts-topic-filter">
             <Select
               size='large'
               className="posts-topic"

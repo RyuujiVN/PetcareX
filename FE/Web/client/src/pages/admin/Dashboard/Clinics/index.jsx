@@ -208,12 +208,12 @@ export default function Clinics() {
         </Typography.Text>
       ),
     },
-    {
-      title: 'NGÀY TẠO',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date) => formatDate(date),
-    },
+    // {
+    //   title: 'NGÀY TẠO',
+    //   dataIndex: 'createdAt',
+    //   key: 'createdAt',
+    //   render: (date) => formatDate(date),
+    // },
     {
       title: 'EMAIL',
       dataIndex: 'email',
@@ -223,26 +223,31 @@ export default function Clinics() {
       title: 'TRẠNG THÁI',
       dataIndex: 'deleted',
       key: 'deleted',
-      render: (deleted) => {
-        if (deleted) {
-          return <Tag color="error">Dừng hoạt động</Tag>
-        }
-        return <Tag color="success">Hoạt động</Tag>
-      },
+      width: 150,
+      align: 'center',
+      render: (deleted) => (
+        <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'}>
+          {deleted ? 'Dừng hoạt động' : 'Hoạt động'}
+        </Tag>
+      ),
     },
     {
       title: 'THAO TÁC',
       key: 'action',
+      width: 110,
+      align: 'center',
       render: (_, record) => (
-        <Space>
+        <Space className="table-action-group">
           <Button
             type="text"
+            className="table-action-btn table-action-btn--view"
             icon={<EyeOutlined />}
             onClick={() => handleView(record)}
           />
           <Button
             type="text"
             danger
+            className="table-action-btn table-action-btn--delete"
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteWithConfirm(record)}
           />
@@ -272,8 +277,8 @@ export default function Clinics() {
       {/* ── Header bảng ── */}
       <Card className="table-card">
         <Flex justify="space-between" align="center" className="section-header">
-          <div>
-            <Typography.Title level={4} style={{ margin: 0 }}>
+          <div className="section-title">
+            <Typography.Title level={4} style={{ marginRight: 165 }}>
               Danh sách phòng khám
             </Typography.Title>
             <Typography.Text type="secondary">
