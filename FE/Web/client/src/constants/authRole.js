@@ -90,7 +90,7 @@ export const getPostLoginPathByRole = (userInfo) => {
     case RoleEnum.VETERINARIAN:
       return '/veterinarian/appointments'
     case RoleEnum.ADMIN:
-      return '/admin/home'
+      return '/admin/dashboard/clinics'
     case RoleEnum.ADMIN_CLINIC:
       return '/clinic/appointments'
     case RoleEnum.CUSTOMER:

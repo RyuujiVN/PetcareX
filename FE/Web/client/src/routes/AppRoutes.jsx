@@ -57,7 +57,6 @@ export default function AppRoutes({ location }) {
 
       {/* ── Super Admin (role ADMIN) ── */}
       <Route element={<AdminLayout />}>
-        <Route path="/admin/home" element={<Clinics />} />
         <Route path="/admin/dashboard/clinics" element={<Clinics />} />
         <Route path="/admin/dashboard/users" element={<Users />} />
         <Route path="/admin/dashboard/posts" element={<Posts />} />
