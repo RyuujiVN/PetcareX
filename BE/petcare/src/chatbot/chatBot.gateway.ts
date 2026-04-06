@@ -28,7 +28,7 @@ export class ChatBotGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  private server: Server;
 
   constructor(
     private readonly messageService: MessageService,
@@ -56,6 +56,7 @@ export class ChatBotGateway
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
+    client.disconnect();
   }
 
   @SubscribeMessage('message')
