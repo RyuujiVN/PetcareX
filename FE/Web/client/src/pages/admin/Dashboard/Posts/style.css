@@ -1,5 +1,5 @@
 .posts-page {
-  padding: 24px;
+  padding: 25px;
   overflow: hidden;
 }
 
@@ -66,7 +66,6 @@
 }
 
 .posts-page .section-title {
-  flex: 1 1 320px;
   min-width: 240px;
 }
 
@@ -79,7 +78,6 @@
   align-items: center;
   gap: 12px;
   margin-left: auto;
-  flex-wrap: wrap;
   justify-content: flex-end;
 }
 
@@ -144,7 +142,6 @@
 .posts-page .table-action-group {
   gap: 8px;
 }
-
 .posts-page .table-action-btn {
   width: 32px;
   height: 32px;
@@ -216,7 +213,7 @@
 .posts-page .post-content {
   margin-bottom: 0;
   color: var(--admin-color-text-primary);
-  max-width: 360px;
+  max-width: 460px;
 }
 
 /* ── Primary button ── */
@@ -230,31 +227,14 @@
   border-color: var(--admin-color-brand-primary-hover);
 }
 
-.posts-page .post-detail-grid {
-  border: 1px solid var(--admin-color-border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.posts-page .post-detail-row {
-  display: grid;
-  grid-template-columns: 160px 1fr;
-  gap: 12px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--admin-color-border);
-}
-
-.posts-page .post-detail-row:last-child {
-  border-bottom: none;
-}
-
-.posts-page .post-detail-label {
-  color: var(--admin-color-text-secondary);
+.posts-page .post-detail-descriptions .ant-descriptions-item-label {
+  width: 180px;
   font-weight: 600;
 }
 
 .posts-page .post-detail-content {
   white-space: pre-wrap;
+  word-break: break-word;
   margin-bottom: 0;
 }
 
@@ -273,10 +253,5 @@
   .posts-page .posts-search,
   .posts-page .posts-topic {
     width: 100%;
-  }
-
-  .posts-page .post-detail-row {
-    grid-template-columns: 1fr;
-    gap: 4px;
   }
 }

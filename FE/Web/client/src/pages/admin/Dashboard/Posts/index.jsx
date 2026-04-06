@@ -13,6 +13,7 @@ import {
   Button,
   Card,
   Col,
+  Descriptions,
   Flex,
   Input,
   Modal,
@@ -246,6 +247,7 @@ export default function Posts() {
       title: 'VAI TRÒ',
       key: 'role',
       width: 170,
+      align: 'center',
       render: (_, record) => {
         const role = record?.author?.role
         return (
@@ -254,12 +256,6 @@ export default function Posts() {
           </Tag>
         )
       },
-    },
-    {
-      title: 'CHỦ ĐỀ',
-      dataIndex: ['topic', 'nameVn'],
-      key: 'topic',
-      render: (value) => <Tag className="topic-tag">{value || '—'}</Tag>,
     },
     {
       title: 'NỘI DUNG',
@@ -274,22 +270,6 @@ export default function Posts() {
           {cleanContent(value) || '—'}
         </Typography.Paragraph>
       ),
-    },
-    {
-      title: 'BÌNH LUẬN',
-      dataIndex: 'commentCount',
-      key: 'commentCount',
-      align: 'center',
-      width: 110,
-      render: (value) => value ?? 0,
-    },
-    {
-      title: 'LƯỢT THÍCH',
-      dataIndex: 'likeCount',
-      key: 'likeCount',
-      align: 'center',
-      width: 110,
-      render: (value) => value ?? 0,
     },
     {
       title: 'NGÀY ĐĂNG',
@@ -392,7 +372,7 @@ export default function Posts() {
           loading={loading}
           pagination={false}
           rowKey="id"
-          scroll={{ x: 1280 }}
+          tableLayout="fixed"
         />
 
         <Flex justify="space-between" align="center" className="pagination-bar">
@@ -423,37 +403,34 @@ export default function Posts() {
         open={viewModalOpen}
         onCancel={() => setViewModalOpen(false)}
         footer={null}
-        width={760}
+        width={720}
         centered
       >
-        <div className="post-detail-grid">
-          <div className="post-detail-row">
-            <span className="post-detail-label">Tác giả</span>
-            <span>{selectedPost?.author?.fullName || '—'}</span>
-          </div>
-          <div className="post-detail-row">
-            <span className="post-detail-label">Vai trò</span>
-            <span>{selectedPost?.author?.role ? getRoleLabel(selectedPost.author.role) : '—'}</span>
-          </div>
-          <div className="post-detail-row">
-            <span className="post-detail-label">Ngày đăng</span>
-            <span>{formatDate(selectedPost?.createdAt)}</span>
-          </div>
-          <div className="post-detail-row">
-            <span className="post-detail-label">Lượt thích</span>
-            <span>{selectedPost?.likeCount ?? 0}</span>
-          </div>
-          <div className="post-detail-row">
-            <span className="post-detail-label">Bình luận</span>
-            <span>{selectedPost?.commentCount ?? 0}</span>
-          </div>
-        </div>
-        <Typography.Title level={5} style={{ marginTop: 18 }}>
-          Nội dung bài đăng
-        </Typography.Title>
-        <Typography.Paragraph className="post-detail-content">
-          {cleanContent(selectedPost?.content || '') || '—'}
-        </Typography.Paragraph>
+        <Descriptions bordered column={1} size="middle" className="post-detail-descriptions">
+          <Descriptions.Item label="Tác giả">
+            {selectedPost?.author?.fullName || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Vai trò">
+            {selectedPost?.author?.role ? getRoleLabel(selectedPost.author.role) : '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Chủ đề">
+            {selectedPost?.topic?.nameVn || '—'}
+          </Descriptions.Item>
+          <Descriptions.Item label="Ngày đăng">
+            {formatDate(selectedPost?.createdAt)}
+          </Descriptions.Item>
+          <Descriptions.Item label="Lượt thích">
+            {selectedPost?.likeCount ?? 0}
+          </Descriptions.Item>
+          <Descriptions.Item label="Bình luận">
+            {selectedPost?.commentCount ?? 0}
+          </Descriptions.Item>
+          <Descriptions.Item label="Nội dung">
+            <Typography.Text className="post-detail-content">
+              {cleanContent(selectedPost?.content || '') || '—'}
+            </Typography.Text>
+          </Descriptions.Item>
+        </Descriptions>
       </Modal>
     </div>
   )
