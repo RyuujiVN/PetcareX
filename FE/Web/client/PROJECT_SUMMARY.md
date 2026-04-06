@@ -712,6 +712,34 @@ Ghi chú:
 - API `POST /auth/change-password` luôn trả `{ message, accessToken }`. FE bắt buộc phải dùng `accessToken` mới này.
 - `changePasswordApi` trong `src/services/authService.js` dùng chung cho mọi portal. Khi triển khai đổi mật khẩu cho Clinic/Vet portal, phải áp dụng cùng pattern: lấy token mới từ response và gọi `login()`.
 
+## Bug Fix Log: Lỗi khởi tạo phiếu khám + không tải catalog Thuốc/Chỉ định (2026-04-06)
+
+### Vấn đề gốc
+1. Bác sĩ bấm `Bắt đầu khám` mở tab `/veterinarian/exam-forms/create?appointmentId=...` thì xuất hiện toast lỗi ngay khi mount: `Cannot read properties of undefined (reading 'get')`.
+2. Trong form phiếu khám, bấm `Thêm thuốc` hoặc `Thêm chỉ định` thì dropdown danh sách trống vì không tải được catalog.
+
+### Nguyên nhân đã xác định
+1. `src/services/medicalService.js` quy ước toàn bộ hàm nhận `instance` ở tham số đầu (`(instance, ...)`), bao gồm cả alias catalog (`getMedicalOrderCatalogApi`, `getMedicineCatalogApi`) và nhóm create/update medical.
+2. `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` gọi nhiều hàm medical service **thiếu tham số instance**.
+3. Khi mount form, `loadMetaData` gọi catalog thiếu instance nên ném TypeError trước khi gửi request HTTP; lỗi bị bắt tại catch và hiển thị toast `Không thể tải dữ liệu phiếu khám`.
+
+### Cách fix đã áp dụng
+1. Chuẩn hóa toàn bộ call tới medical service trong `RecordExaminationForm` theo đúng chữ ký: luôn truyền `getAdminInstance()` làm tham số đầu.
+2. Sửa cả 2 nhóm call:
+  - Nhóm khởi tạo metadata (catalog chỉ định/thuốc) khi mount form.
+  - Nhóm lưu dữ liệu (create/update medical record, create chỉ định, create thuốc) cho cả luồng thường và walk-in.
+3. Giữ nguyên toàn bộ nghiệp vụ hiện có; chỉ sửa wiring API để loại bỏ false error và khôi phục tải dữ liệu.
+
+### Trạng thái sau fix
+1. Mở tab phiếu khám từ `Bắt đầu khám` không còn toast lỗi giả ngay khi vào form.
+2. Dropdown `Chọn loại chỉ định` và `Chọn thuốc` nạp dữ liệu bình thường khi thêm dòng.
+3. Luồng lưu phiếu không còn rủi ro TypeError do thiếu instance ở nhóm API medical.
+
+### Điểm dễ tái phát và cách phòng ngừa
+1. Các alias service (`getMedicalOrderCatalogApi`, `getMedicineCatalogApi`, `createMedicalRecordApi`, ...) vẫn giữ chữ ký `(instance, ...)`; alias **không** tự bind instance.
+2. Khi thêm API mới trong `src/services/`, bắt buộc follow rule: consumer luôn truyền đúng instance (`getAdminInstance()` hoặc `getClientInstance()`).
+3. Trước khi merge các màn form lớn, cần grep nhanh các call service theo pattern `*Api(` để phát hiện call thiếu instance sớm.
+
 ## Backlog ưu tiên đề xuất (Web)
 1. ~~Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.~~ ✓ Đã hoàn thành — toàn bộ API tập trung trong `src/services/`, chỉ Cloudinary upload dùng native `fetch()`.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.

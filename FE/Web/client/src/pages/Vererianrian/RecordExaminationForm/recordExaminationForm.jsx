@@ -1,71 +1,71 @@
 ﻿import {
-	DeleteOutlined,
-	DownOutlined,
-	ExperimentOutlined,
-	HeartOutlined,
-	ManOutlined,
-	MedicineBoxOutlined,
-	PlusCircleOutlined,
-	SaveOutlined,
-	UpOutlined,
-	UserOutlined,
-	WarningOutlined,
-	WomanOutlined,
+    DeleteOutlined,
+    DownOutlined,
+    ExperimentOutlined,
+    HeartOutlined,
+    ManOutlined,
+    MedicineBoxOutlined,
+    PlusCircleOutlined,
+    SaveOutlined,
+    UpOutlined,
+    UserOutlined,
+    WarningOutlined,
+    WomanOutlined,
 } from '@ant-design/icons'
 import {
-	Alert,
-	Button,
-	Card,
-	Col,
-	DatePicker,
-	Divider,
-	Form,
-	Input,
-	InputNumber,
-	message,
-	Modal,
-	Row,
-	Select,
-	Spin,
-	Tabs,
+    Alert,
+    Button,
+    Card,
+    Col,
+    DatePicker,
+    Divider,
+    Form,
+    Input,
+    InputNumber,
+    message,
+    Modal,
+    Row,
+    Select,
+    Spin,
+    Tabs,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
-import {
-	APPOINTMENT_STATUS,
-	getAppointmentsApi,
-	getServerNowApi,
-	updateAppointmentStatusApi,
-} from '../../../services/appointmentService'
+import { ServiceEnum } from '../../../enum/service.enum'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
-	createMedicalMedicineApi,
-	createMedicalOrderApi,
-	createMedicalRecordApi,
-	deleteMedicalOrderApi,
-	deleteMedicineApi,
-	getMedicalByIdApi,
-	getMedicalByPetIdApi,
-	getMedicalOrderCatalogApi,
-	getMedicalOrdersByMedicalIdApi,
-	getMedicineCatalogApi,
-	getMedicinesByMedicalIdApi,
-	updateMedicalRecordApi,
+    APPOINTMENT_STATUS,
+    getAppointmentsApi,
+    getServerNowApi,
+    updateAppointmentStatusApi,
+} from '../../../services/appointmentService'
+import { registerApi } from '../../../services/authService'
+import {
+    createMedicalMedicineApi,
+    createMedicalOrderApi,
+    createMedicalRecordApi,
+    deleteMedicalOrderApi,
+    deleteMedicineApi,
+    getMedicalByIdApi,
+    getMedicalByPetIdApi,
+    getMedicalOrderCatalogApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicineCatalogApi,
+    getMedicinesByMedicalIdApi,
+    updateMedicalRecordApi,
 } from '../../../services/medicalService'
 import {
-	createPetApi,
-	getBreedsBySpeciesApi,
-	getPetByIdApi,
-	getPetsByOwnerApi,
-	getPetSpeciesApi,
-	getBreedLabel,
-	getSpeciesLabel,
+    createPetApi,
+    getBreedLabel,
+    getBreedsBySpeciesApi,
+    getPetByIdApi,
+    getPetsByOwnerApi,
+    getPetSpeciesApi,
+    getSpeciesLabel,
 } from '../../../services/petService'
 import { getUserByIdApi, getUserListApi } from '../../../services/userService'
-import { registerApi } from '../../../services/authService'
-import { ServiceEnum } from '../../../enum/service.enum'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
@@ -527,8 +527,8 @@ export default function RecordExaminationForm() {
 			await hydrateByAppointmentId()
 
 			const [medicalOrders, medicines, species, serverNowMs] = await Promise.all([
-				getMedicalOrderCatalogApi(),
-				getMedicineCatalogApi(),
+				getMedicalOrderCatalogApi(getAdminInstance()),
+				getMedicineCatalogApi(getAdminInstance()),
 				getPetSpeciesApi(getAdminInstance()),
 				getServerNowApi(getAdminInstance()).catch(() => null),
 			])
@@ -1126,7 +1126,7 @@ export default function RecordExaminationForm() {
 
 			let medicalId = editableMedicalId
 			if (medicalId) {
-				await updateMedicalRecordApi(medicalId, {
+				await updateMedicalRecordApi(getAdminInstance(), medicalId, {
 					...createPayload,
 					...updatePayload,
 				})
@@ -1141,7 +1141,7 @@ export default function RecordExaminationForm() {
 				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrderApi(getAdminInstance(), id)))
 				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicineApi(getAdminInstance(), id)))
 			} else {
-				const createdMedical = await createMedicalRecordApi(createPayload)
+				const createdMedical = await createMedicalRecordApi(getAdminInstance(), createPayload)
 				medicalId = createdMedical?.id
 
 				if (!medicalId) {
@@ -1149,7 +1149,7 @@ export default function RecordExaminationForm() {
 				}
 
 				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
-					await updateMedicalRecordApi(medicalId, updatePayload)
+					await updateMedicalRecordApi(getAdminInstance(), medicalId, updatePayload)
 				}
 			}
 
@@ -1162,7 +1162,7 @@ export default function RecordExaminationForm() {
 							(order) => String(order.id) === String(item.medicalOrderId),
 						)
 
-						return createMedicalOrderApi({
+						return createMedicalOrderApi(getAdminInstance(), {
 							medicalRecordId: medicalId,
 							medicalOrderId: item.medicalOrderId,
 							note: item.note || undefined,
@@ -1180,7 +1180,7 @@ export default function RecordExaminationForm() {
 							(medicine) => String(medicine.id) === String(item.medicineId),
 						)
 
-						return createMedicalMedicineApi({
+						return createMedicalMedicineApi(getAdminInstance(), {
 							medicalRecordId: medicalId,
 							medicineId: item.medicineId,
 							quantity: Number(item.quantity),
@@ -1273,7 +1273,7 @@ export default function RecordExaminationForm() {
 			let medicalId = editableMedicalId
 
 			if (medicalId) {
-				await updateMedicalRecordApi(medicalId, {
+				await updateMedicalRecordApi(getAdminInstance(), medicalId, {
 					...createPayload,
 					...updatePayload,
 				})
@@ -1288,7 +1288,7 @@ export default function RecordExaminationForm() {
 				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrderApi(getAdminInstance(), id)))
 				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicineApi(getAdminInstance(), id)))
 			} else {
-				const createdMedical = await createMedicalRecordApi(createPayload)
+				const createdMedical = await createMedicalRecordApi(getAdminInstance(), createPayload)
 				medicalId = createdMedical?.id
 
 				if (!medicalId) {
@@ -1296,7 +1296,7 @@ export default function RecordExaminationForm() {
 				}
 
 				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
-					await updateMedicalRecordApi(medicalId, updatePayload)
+					await updateMedicalRecordApi(getAdminInstance(), medicalId, updatePayload)
 				}
 			}
 
@@ -1310,7 +1310,7 @@ export default function RecordExaminationForm() {
 							(order) => String(order.id) === String(item.medicalOrderId),
 						)
 
-						return createMedicalOrderApi({
+						return createMedicalOrderApi(getAdminInstance(), {
 							medicalRecordId: medicalId,
 							medicalOrderId: item.medicalOrderId,
 							note: item.note || undefined,
@@ -1328,7 +1328,7 @@ export default function RecordExaminationForm() {
 							(medicine) => String(medicine.id) === String(item.medicineId),
 						)
 
-						return createMedicalMedicineApi({
+						return createMedicalMedicineApi(getAdminInstance(), {
 							medicalRecordId: medicalId,
 							medicineId: item.medicineId,
 							quantity: Number(item.quantity),
