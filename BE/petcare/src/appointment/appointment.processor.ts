@@ -12,7 +12,6 @@ import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import { NotFoundError } from 'rxjs';
 import { NotificationGateway } from 'src/notification/notification.gateway';
-import { error } from 'console';
 
 @Processor(QueueNameEnum.APPOINTMENT, { concurrency: 5 })
 export class AppointmentProcessor extends WorkerHost {
@@ -35,12 +34,12 @@ export class AppointmentProcessor extends WorkerHost {
               this.configService.get<string>('LINK_CONNECT_AI');
             const aiDiagnosisRepo = manager.getRepository(AiDiagnosis);
 
-            // Gửi triệu chứng tới AI để phân tích
+            // 1. Gửi triệu chứng tới AI để phân tích
             const response = await axios.post(`${linkConnectAI}/api/triage`, {
               symptoms: appointment.note,
             });
 
-            // Lưu phản hồi của AI vào database
+            // 2. Lưu phản hồi của AI vào database
             const aiDiagnosis = aiDiagnosisRepo.create();
             aiDiagnosis.petId = appointment.petId;
             aiDiagnosis.userId = appointment.userId;
@@ -50,7 +49,7 @@ export class AppointmentProcessor extends WorkerHost {
 
             const savedAiDiagnosis = await aiDiagnosisRepo.save(aiDiagnosis);
 
-            // Tìm pet
+            // 3. Tìm pet
             const petRepo = this.dataSource.getRepository(Pet);
             const pet = await petRepo.findOne({
               where: { id: appointment.petId },
@@ -59,6 +58,7 @@ export class AppointmentProcessor extends WorkerHost {
 
             if (!pet) throw new NotFoundError('Không tìm thấy pet');
 
+            // 4. Lưu thông báo
             const notificationRepo = manager.getRepository(Notification);
             const notification = notificationRepo.create();
             notification.recipientId = appointment.userId;
@@ -68,10 +68,12 @@ export class AppointmentProcessor extends WorkerHost {
             notification.target = {
               appointmentId: appointment.id,
               aiDiagnosisId: savedAiDiagnosis.id,
-              // petName: pet.name,
+              petName: pet.name,
             };
 
             const savedNotification = await notificationRepo.save(notification);
+
+            // 5. Gửi thông báo về client
             this.notificationGateway.sendNotificationToClient(
               savedNotification.recipientId,
               savedNotification,

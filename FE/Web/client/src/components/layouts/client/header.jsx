@@ -363,7 +363,7 @@ function Header() {
   }, [currentUserId, refreshNotifications, token]);
 
   useEffect(() => {
-    notifySocket.connect();
+    if (!notifySocket.connected) notifySocket.connect();
 
     notifySocket.on("severSendNotification", (data) => {
       console.log(data);

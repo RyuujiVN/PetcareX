@@ -15,6 +15,11 @@ import { AppointmentPagination } from './types/appointment-pagination.type';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationGateway } from 'src/notification/notification.gateway';
+import { SenderNotificationEnum } from 'src/common/enums/sender-notification.enum';
+import { NotificationEnum } from 'src/common/enums/notification.enum';
+import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 
 @Injectable()
 export class AppointmentService {
@@ -23,6 +28,7 @@ export class AppointmentService {
     private readonly analyzeSymptomsQueue: Queue,
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
+    private readonly notificationGateway: NotificationGateway,
   ) {}
 
   async findOneById(appointmentId: string) {
@@ -167,16 +173,76 @@ export class AppointmentService {
   }
 
   // Tạo mới lịch hẹn
-  async createAppointment(createDTO: CreateAppointmentDTO, userId: string) {
-    const appointment = this.appointmentRepository.create(createDTO);
-    appointment.status = AppointmentStatusEnum.BOOKED;
+  async createAppointment(
+    createDTO: CreateAppointmentDTO,
+    user: { id: string; fullName?: string },
+  ) {
+    const savedAppointment =
+      await this.appointmentRepository.manager.transaction(async (manager) => {
+        const appointmentRepo = manager.getRepository(Appointment);
+        const notificationRepo = manager.getRepository(Notification);
+        const adminClinicRepo = manager.getRepository(AdminClinic);
 
-    // Gửi triệu chứng về cho AI phân tích
+        // 1. Lưu lịch hẹn
+        const appointment = appointmentRepo.create(createDTO);
+        appointment.status = AppointmentStatusEnum.BOOKED;
+        const createdAppointment = await appointmentRepo.save(appointment);
+
+        // Lấy admin clinic theo clinicId của lịch hẹn
+        const adminClinic = await adminClinicRepo.findOne({
+          where: { clinicId: createdAppointment.clinicId },
+          select: { userId: true },
+        });
+
+        // 2. Lưu thông báo cho admin clinic và veterinarian
+        const notificationAdminClinic = notificationRepo.create({
+          recipientId: adminClinic?.userId,
+          senderId: user.id,
+          senderType: SenderNotificationEnum.SYSTEM,
+          type: NotificationEnum.APPOINTMENT_BOOKED,
+          target: {
+            appointmentDate: createdAppointment.appointmentDate,
+            appointmentTime: createdAppointment.appointmentTime,
+            appointmentId: createdAppointment.id,
+            userName: user.fullName ?? '',
+          },
+        });
+
+        const notificationVeterinarian = notificationRepo.create({
+          recipientId: savedAppointment.veterinarianId,
+          senderId: user.id,
+          senderType: SenderNotificationEnum.SYSTEM,
+          type: NotificationEnum.APPOINTMENT_BOOKED,
+          target: {
+            appointmentDate: createdAppointment.appointmentDate,
+            appointmentTime: createdAppointment.appointmentTime,
+            appointmentId: createdAppointment.id,
+            userName: user.fullName ?? '',
+          },
+        });
+
+        const notifications = await Promise.all([
+          notificationRepo.save(notificationAdminClinic),
+          notificationRepo.save(notificationVeterinarian),
+        ]);
+
+        // 3. Gửi thông báo realtime cho client sau khi tạo thành công
+        notifications.forEach((item) => {
+          this.notificationGateway.sendNotificationToClient(
+            item.recipientId,
+            item,
+          );
+        });
+
+        return createdAppointment;
+      });
+
+    // 4. Gửi triệu chứng về cho AI phân tích
     await this.analyzeSymptomsQueue.add(
       JobNameEnum.ANALYZE_SYMPTOMS,
       {
-        ...appointment,
-        userId: userId,
+        ...savedAppointment,
+        userId: user.id,
       },
       {
         attempts: 4,
@@ -188,8 +254,6 @@ export class AppointmentService {
         },
       },
     );
-
-    const savedAppointment = await this.appointmentRepository.save(appointment);
 
     return savedAppointment;
   }
