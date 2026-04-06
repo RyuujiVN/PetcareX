@@ -145,6 +145,7 @@ Chức năng chính:
   - Field: mật khẩu hiện tại, mật khẩu mới, xác nhận mật khẩu mới.
   - Có toggle hiện/ẩn ký tự cho từng field.
   - Validate inline (required, độ dài tối thiểu, confirm khớp) và gọi API `POST /auth/change-password`.
+  - Sau đổi mật khẩu thành công, FE tự động lấy `accessToken` mới từ response backend và cập nhật vào AuthContext + localStorage qua `login(newToken)`, đảm bảo session liên tục không cần đăng nhập lại.
 
 ### 2) Home & chọn phòng khám
 - `/home`: landing/marketing.
@@ -660,6 +661,29 @@ Ghi chú:
 - **Không dùng data từ list API cho form edit**: List API chỉ phục vụ danh sách, thiếu nhiều field. Luôn gọi detail API khi cần dữ liệu đầy đủ.
 - **Cross-tab sync**: Mọi màn mở phiếu khám bằng `window.open` đều cần focus/visibility listener ở tab gốc.
 - **Backend chưa có appointment→medical relation**: Phát hiện medical record chỉ dựa vào status COMPLETED và fuzzy scoring theo ngày/clinic. Nếu backend thêm relation sau, cần cập nhật logic `hasMedicalRecord` và `hydrateLatestMedicalRecord`.
+
+## Bug Fix Log: Token không cập nhật sau đổi mật khẩu (2026-04)
+
+### Vấn đề gốc
+- Sau khi đổi mật khẩu thành công, FE không lấy `accessToken` mới từ response backend.
+- Token cũ vẫn nằm trong localStorage và AuthContext, dùng cho mọi request tiếp theo.
+
+### Nguyên nhân đã xác định
+- **FE bỏ qua response**: `handleSubmitChangePassword` trong `header.jsx` gọi `await changePasswordApi(...)` nhưng không gán response, không extract `accessToken`.
+
+### Tại sao user chưa gặp lỗi ngay
+- JWT stateless: token cũ vẫn valid đến khi hết hạn (7 ngày), nên user không bị logout.
+- Tuy nhiên, nếu tương lai thêm token blacklist/rotation, token cũ sẽ bị reject ngay lập tức → user bị logout bất ngờ.
+
+### Cách fix đã áp dụng (chỉ FE)
+- **FE `header.jsx`**: Lấy `response` từ `changePasswordApi`, extract `response.data.accessToken`, gọi `login(newToken)` để cập nhật AuthContext + localStorage. AuthContext tự trigger `useEffect` re-fetch user profile.
+
+### Ghi chú cho BE (chưa sửa, cần báo team BE)
+- `auth.service.ts` method `changePassword` dùng `avatar_url` trong JWT payload, trong khi method `login` dùng `avatarUrl`. Không nhất quán nhưng **không ảnh hưởng FE** vì FE chỉ dùng chuỗi JWT nguyên vẹn, không decode payload.
+
+### Lưu ý khi maintain
+- API `POST /auth/change-password` luôn trả `{ message, accessToken }`. FE bắt buộc phải dùng `accessToken` mới này.
+- Clinic portal có export `changePasswordApi` trong `src/data/Clinic/api/auth.js` nhưng chưa dùng. Khi triển khai đổi mật khẩu cho Clinic/Vet portal, phải áp dụng cùng pattern: lấy token mới từ response và gọi `login()`.
 
 ## Backlog ưu tiên đề xuất (Web)
 1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.

@@ -105,7 +105,7 @@ function Header() {
     const likeSnapshotRef = useRef({});
     const notificationRequestInFlightRef = useRef(false);
     const navigate = useNavigate();
-    const { logout, token, userProfile } = useAuth();
+    const { login, logout, token, userProfile } = useAuth();
     const currentUserId = String(userProfile?.id || "");
 
     const notificationReadIdSet = useMemo(() => new Set(notificationReadIds), [notificationReadIds]);
@@ -507,11 +507,17 @@ function Header() {
 
         try {
             setChangingPassword(true);
-            await changePasswordApi({
+            const response = await changePasswordApi({
                 oldPassword: passwordForm.currentPassword,
                 newPassword: passwordForm.newPassword,
                 confirmPassword: passwordForm.confirmPassword,
             });
+
+            const newToken = response?.data?.accessToken;
+            if (newToken) {
+                login(newToken);
+            }
+
             message.success("Đổi mật khẩu thành công");
             closeChangePasswordPopup();
         } catch (error) {
