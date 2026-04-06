@@ -30,6 +30,7 @@ import {
 	APPOINTMENT_STATUS,
 	getClinicAppointmentByIdApi,
 } from '../../../../data/Clinic/api/appointmentApi'
+import { getClinicByIdApi } from '../../../../data/Clinic/api/clinicApi'
 import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../data/Clinic/api/invoiceApi'
 import {
 	getMedicalById,
@@ -39,7 +40,8 @@ import {
 } from '../../../../data/Clinic/api/medicalApi'
 import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
 import { getUserByIdApi, getUserProfileApi } from '../../../../data/Clinic/api/user'
-import { getClinicInfoContent } from '../../../../data/client/utils/clinicInfoStorage'
+import { formatClinicOpenHours, getClinicInfoContent } from '../../../../data/client/utils/clinicInfoStorage'
+import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
 import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './petMedicalRecords.module.css'
 
@@ -97,6 +99,24 @@ const formatFieldValue = (value, fallback = FALLBACK_TEXT) => {
 	if (value === null || value === undefined) return fallback
 	if (typeof value === 'string' && !value.trim()) return fallback
 	return String(value)
+}
+
+const toCleanText = (value) => {
+	if (value === null || value === undefined) return ''
+	return String(value).trim()
+}
+
+const pickClinicValue = (candidates = [], blockedValues = []) => {
+	const blockedSet = new Set(blockedValues.map((item) => toCleanText(item).toLowerCase()).filter(Boolean))
+
+	for (const candidate of candidates) {
+		const text = toCleanText(candidate)
+		if (!text) continue
+		if (blockedSet.has(text.toLowerCase())) continue
+		return text
+	}
+
+	return ''
 }
 
 const resolveMedicineLabel = (item) => {
@@ -268,6 +288,7 @@ export default function PetMedicalRecords() {
 	const [petDetail, setPetDetail] = useState(null)
 	const [ownerDetail, setOwnerDetail] = useState(null)
 	const [clinicProfile, setClinicProfile] = useState(null)
+	const [clinicDetail, setClinicDetail] = useState(null)
 	const [medicalOrders, setMedicalOrders] = useState([])
 	const [medicines, setMedicines] = useState([])
 	const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
@@ -284,8 +305,32 @@ export default function PetMedicalRecords() {
 				resolvedAppointment = await getClinicAppointmentByIdApi(appointmentId)
 			}
 
-			const profilePayload = await getUserProfileApi().catch(() => null)
-			setClinicProfile(profilePayload?.data || profilePayload || null)
+			const clinicIdFromAuth = getCurrentAdminClinicId()
+			const clinicIdFromAppointment =
+				resolvedAppointment?.clinic?.id ||
+				resolvedAppointment?.clinicId ||
+				stateRecord?.clinic?.id ||
+				stateRecord?.clinicId ||
+				''
+			const preferredClinicId = clinicIdFromAppointment || clinicIdFromAuth || ''
+
+			const [profilePayload, initialClinicPayload] = await Promise.all([
+				getUserProfileApi().catch(() => null),
+				preferredClinicId ? getClinicByIdApi(preferredClinicId).catch(() => null) : Promise.resolve(null),
+			])
+
+			const normalizedProfile = profilePayload?.data || profilePayload || null
+			const clinicIdFromProfile = getCurrentAdminClinicId(normalizedProfile)
+			const finalClinicId = preferredClinicId || clinicIdFromProfile || ''
+
+			let resolvedClinicPayload = initialClinicPayload?.data || initialClinicPayload || null
+			if (!resolvedClinicPayload && finalClinicId && String(finalClinicId) !== String(preferredClinicId)) {
+				const retryClinicPayload = await getClinicByIdApi(finalClinicId).catch(() => null)
+				resolvedClinicPayload = retryClinicPayload?.data || retryClinicPayload || null
+			}
+
+			setClinicProfile(normalizedProfile)
+			setClinicDetail(resolvedClinicPayload || normalizedProfile?.clinicInfo || normalizedProfile?.clinic || null)
 
 			setAppointment(resolvedAppointment || null)
 
@@ -364,6 +409,7 @@ export default function PetMedicalRecords() {
 			setMedicalRecord(null)
 			setPetDetail(null)
 			setOwnerDetail(null)
+			setClinicDetail(null)
 			setMedicalOrders([])
 			setMedicines([])
 		} finally {
@@ -404,16 +450,82 @@ export default function PetMedicalRecords() {
 	const conclusionSummary = parseConclusionSummary(medicalRecord?.conclusion)
 
 	const clinicPresentation = useMemo(() => {
-		const clinicId = appointment?.clinic?.id || appointment?.clinicId
-		const clinicInfo = getClinicInfoContent(clinicId, appointment?.clinic || null)
+		const clinicId = appointment?.clinic?.id || appointment?.clinicId || clinicDetail?.id
+		const clinicInfo = getClinicInfoContent(clinicId, clinicDetail || appointment?.clinic || null)
+		const profileClinic = clinicProfile?.clinicInfo || clinicProfile?.clinic || null
+		const openHoursFromClinicApi = formatClinicOpenHours({
+			openingTime: clinicDetail?.openingTime || appointment?.clinic?.openingTime || '',
+			closingTime: clinicDetail?.closingTime || appointment?.clinic?.closingTime || '',
+			openingDays: clinicDetail?.openingDays || appointment?.clinic?.openingDays || '',
+		})
+		const openHoursFromProfile = formatClinicOpenHours({
+			openingTime: profileClinic?.openingTime || '',
+			closingTime: profileClinic?.closingTime || '',
+			openingDays: profileClinic?.openingDays || '',
+		})
 
 		return {
-			name: clinicInfo?.name || appointment?.clinic?.name || 'Phòng khám thú y',
-			address: clinicInfo?.address || clinicProfile?.address || CONTACT_FALLBACK_TEXT,
-			phone: clinicInfo?.phone || clinicProfile?.phone || CONTACT_FALLBACK_TEXT,
-			openHours: clinicInfo?.timeDisplay || 'Chưa cập nhật được',
+			name:
+				pickClinicValue([
+					clinicInfo?.name,
+					clinicDetail?.name,
+					profileClinic?.name,
+					clinicProfile?.clinicName,
+					appointment?.clinic?.name,
+				], ['Phòng khám thú y']) || 'Phòng khám thú y',
+			address:
+				pickClinicValue(
+					[
+						clinicInfo?.address,
+						clinicDetail?.address,
+						profileClinic?.address,
+						appointment?.clinic?.address,
+						clinicProfile?.address,
+					],
+					[CONTACT_FALLBACK_TEXT],
+				) || CONTACT_FALLBACK_TEXT,
+			phone:
+				pickClinicValue(
+					[
+						clinicInfo?.phone,
+						clinicDetail?.phone,
+						clinicDetail?.phoneNumber,
+						profileClinic?.phone,
+						profileClinic?.phoneNumber,
+						appointment?.clinic?.phone,
+						appointment?.clinic?.phoneNumber,
+						clinicProfile?.phone,
+					],
+					[CONTACT_FALLBACK_TEXT],
+				) || CONTACT_FALLBACK_TEXT,
+			openHours:
+				pickClinicValue(
+					[
+						clinicInfo?.timeDisplay,
+						openHoursFromClinicApi,
+						openHoursFromProfile,
+						appointment?.clinic?.timeDisplay,
+					],
+					['Chưa cập nhật được'],
+				) || 'Chưa cập nhật được',
 		}
-	}, [appointment?.clinic, appointment?.clinicId, clinicProfile?.address, clinicProfile?.phone])
+	}, [
+		appointment?.clinic,
+		appointment?.clinicId,
+		clinicDetail?.address,
+		clinicDetail?.closingTime,
+		clinicDetail?.id,
+		clinicDetail?.name,
+		clinicDetail?.openingDays,
+		clinicDetail?.openingTime,
+		clinicDetail?.phoneNumber,
+		clinicDetail?.phone,
+		clinicProfile?.address,
+		clinicProfile?.clinic,
+		clinicProfile?.clinicInfo,
+		clinicProfile?.clinicName,
+		clinicProfile?.phone,
+	])
 
 	const orderColumns = [
 		{
@@ -521,19 +633,24 @@ export default function PetMedicalRecords() {
 		* { box-sizing: border-box; }
 		body { margin: 0; font-family: "Segoe UI", "Be Vietnam Pro", sans-serif; color: #1f2d44; background: #f3f6fb; }
 		.sheet { width: 100%; background: #fff; border: 1px solid #d8e1ee; border-radius: 14px; overflow: hidden; }
-		.header { padding: 20px 24px; background: linear-gradient(120deg, #eef4ff 0%, #f9fbff 42%, #fff 100%); border-bottom: 1px solid #dce6f3; display: flex; justify-content: space-between; gap: 16px; }
-		.brand h1 { margin: 0; font-size: 20px; color: #1b3e75; }
-		.brand p { margin: 6px 0 0; font-size: 13px; color: #5b7598; line-height: 1.45; }
-		.meta { text-align: right; }
-		.meta h2 { margin: 0; font-size: 22px; color: #234b86; letter-spacing: 0.5px; }
-		.meta p { margin: 6px 0 0; font-size: 13px; color: #637c9f; }
+			.header { padding: 20px 24px; background: linear-gradient(120deg, #eef4ff 0%, #f9fbff 42%, #fff 100%); border-bottom: 1px solid #dce6f3; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
+			.brand { min-width: 0; }
+			.brand h1 { margin: 0; font-size: 18px; color: #1b3e75; line-height: 1.32; overflow-wrap: break-word; word-break: normal; }
+			.brandInfo { margin-top: 8px; }
+			.brandLine { margin: 0 0 4px; display: flex; align-items: flex-start; gap: 6px; font-size: 13px; color: #5b7598; line-height: 1.45; }
+			.brandLine:last-child { margin-bottom: 0; }
+			.brandLabel { flex: 0 0 52px; font-weight: 600; }
+			.brandValue { flex: 1; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+			.meta { text-align: right; min-width: 0; }
+			.meta h2 { margin: 0; font-size: 21px; color: #234b86; letter-spacing: 0.4px; line-height: 1.2; white-space: nowrap; }
+			.meta p { margin: 6px 0 0; font-size: 13px; color: #637c9f; overflow-wrap: anywhere; }
 		.body { padding: 20px 24px 24px; }
 		.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
 		.box { border: 1px solid #dfe7f2; border-radius: 12px; padding: 12px 14px; }
 		.box h3 { margin: 0 0 8px; font-size: 13px; color: #5b7496; text-transform: uppercase; letter-spacing: 0.35px; }
-		.row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; margin-top: 4px; }
+			.row { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; font-size: 13px; margin-top: 4px; }
 		.label { color: #5e779a; font-weight: 600; }
-		.value { color: #1f2e46; font-weight: 700; text-align: right; }
+			.value { color: #1f2e46; font-weight: 700; text-align: right; min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
 		.section { margin-top: 16px; }
 		.sectionTitle { margin: 0 0 8px; font-size: 14px; font-weight: 800; color: #2a4e84; }
 		table { width: 100%; border-collapse: collapse; border: 1px solid #e0e7f2; border-radius: 10px; overflow: hidden; }
@@ -548,6 +665,11 @@ export default function PetMedicalRecords() {
 		.note { border: 1px solid #dfe7f2; border-radius: 10px; padding: 10px 12px; min-height: 78px; font-size: 13px; line-height: 1.45; color: #2a3d5d; }
 		.sign { text-align: right; font-size: 13px; color: #37557f; }
 		.sign strong { display: block; margin-top: 36px; font-size: 15px; color: #1e375d; }
+		@media (max-width: 760px) {
+			.header { grid-template-columns: minmax(0, 1fr) 290px; }
+			.grid { grid-template-columns: 1fr; }
+			.footer { grid-template-columns: 1fr; }
+		}
 		@media print {
 			body { background: #fff; }
 			.sheet { border: none; border-radius: 0; }
@@ -559,7 +681,11 @@ export default function PetMedicalRecords() {
 		<header class="header">
 			<div class="brand">
 				<h1>${escapeHtml(clinicPresentation.name)}</h1>
-				<p>${escapeHtml(clinicPresentation.address)}<br/>SĐT: ${escapeHtml(clinicPresentation.phone)}<br/>Giờ mở cửa: ${escapeHtml(clinicPresentation.openHours)}</p>
+				<div class="brandInfo">
+					<p class="brandLine"><span class="brandLabel">Địa chỉ:</span><span class="brandValue">${escapeHtml(clinicPresentation.address)}</span></p>
+					<p class="brandLine"><span class="brandLabel">SĐT:</span><span class="brandValue">${escapeHtml(clinicPresentation.phone)}</span></p>
+					<p class="brandLine"><span class="brandLabel">Giờ mở:</span><span class="brandValue">${escapeHtml(clinicPresentation.openHours)}</span></p>
+				</div>
 			</div>
 			<div class="meta">
 				<h2>HÓA ĐƠN KHÁM BỆNH</h2>

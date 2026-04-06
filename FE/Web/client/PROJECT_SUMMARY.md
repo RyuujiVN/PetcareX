@@ -284,7 +284,10 @@ Luồng đang chạy:
 - Màn thanh toán trong `PetMedicalRecords` dùng modal tóm tắt chi phí thuốc + chỉ định xét nghiệm, sau đó gọi `upsertPaidInvoiceByMedicalApi` và phát `APPOINTMENT_PAYMENT_SYNC_EVENT_KEY` để đồng bộ trạng thái lịch hẹn.
 - Nút `In hóa đơn` ở `PetMedicalRecords` đã dùng template in A4 riêng (mở cửa sổ in chuyên biệt), không in toàn bộ màn hình hiện tại.
 - Template in hóa đơn gồm: thông tin phòng khám, thông tin khách hàng/thú cưng, bảng thuốc, bảng chỉ định, tạm tính/tổng cộng, lời dặn bác sĩ, chữ ký bác sĩ.
-- Nguồn dữ liệu phòng khám cho template in ưu tiên theo thứ tự: `clinicInfoStorage` (đã chỉnh ở ClinicSelectionEditor) -> dữ liệu `appointment.clinic` -> `GET /user/profile` (fallback phone/address).
+- Nguồn dữ liệu phòng khám cho template in ưu tiên theo thứ tự: `clinicInfoStorage` (đã chỉnh ở ClinicSelectionEditor) -> `GET /clinic/:id` (nguồn chính để lấy địa chỉ/SĐT phòng khám) -> dữ liệu `appointment.clinic` -> `GET /user/profile` (fallback phone/address).
+- Màn `PetMedicalRecords` resolve `clinicId` theo chuỗi: appointment/state -> auth storage/token/profile (`getCurrentAdminClinicId`) để giảm trường hợp thiếu `clinicId` khi payload lịch hẹn không hydrate đầy đủ quan hệ clinic.
+- Với metadata in hóa đơn, các giá trị placeholder như `Chưa cập nhật được` sẽ không ghi đè dữ liệu thật từ API/profile nếu các nguồn sau có dữ liệu hợp lệ.
+- Header template in giữ bố cục 2 cột trái/phải (không tự stack xuống 2 hàng); khối trái dùng nhãn ngắn + value mềm để địa chỉ dài xuống nhiều dòng tự nhiên, tránh khoảng trắng thô và vẫn giữ cân bằng thị giác với khối meta bên phải.
 - Để tránh popup `about:blank` bị chặn, luồng in hiện tại ưu tiên in qua iframe ẩn trong cùng tab (không mở tab/cửa sổ mới).
 
 ### 5) Các màn còn template/mock trong admin clinic
