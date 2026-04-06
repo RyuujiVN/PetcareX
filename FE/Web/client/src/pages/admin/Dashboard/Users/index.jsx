@@ -289,9 +289,11 @@ export default function Users() {
       title: 'VAI TRÒ',
       dataIndex: 'role',
       key: 'role',
+      width: 150,
+      align: 'center',
       render: (role) => (
         <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
-          {getRoleLabel(role)}
+          {role ? getRoleLabel(role) : 'Không'}
         </Tag>
       ),
     },
@@ -299,6 +301,8 @@ export default function Users() {
       title: 'TRẠNG THÁI',
       dataIndex: 'deleted',
       key: 'deleted',
+      width: 150,
+      align: 'center',
       render: (deleted) => (
         <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'}>
           {deleted ? 'Dừng hoạt động' : 'Hoạt động'}
@@ -308,16 +312,20 @@ export default function Users() {
     {
       title: 'THAO TÁC',
       key: 'action',
+      width: 110,
+      align: 'center',
       render: (_, record) => (
-        <Space>
+        <Space className="table-action-group">
           <Button
             type="text"
+            className="table-action-btn table-action-btn--view"
             icon={<EyeOutlined />}
             onClick={() => handleViewUser(record)}
           />
           <Button
             type="text"
             danger
+            className="table-action-btn table-action-btn--delete"
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteWithConfirm(record)}
           />
@@ -354,8 +362,8 @@ export default function Users() {
 
       <Card className="table-card">
         <Flex justify="space-between" align="center" className="section-header">
-          <div>
-            <Typography.Title level={4} style={{ margin: 0 }}>
+          <div className="section-title">
+            <Typography.Title level={4} style={{ marginRight: 165  }}>
               Danh sách người dùng
             </Typography.Title>
             <Typography.Text type="secondary">
@@ -372,9 +380,6 @@ export default function Users() {
               onPressEnter={(event) => handleSearch(event.target.value)}
               prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
             />
-            
-          </div>
-          <div className="users-role-filter">
             <Select
               size='large'
               className="users-role-filter-select"
@@ -384,7 +389,6 @@ export default function Users() {
               placeholder="Lọc theo vai trò"
             />
           </div>
-
         </Flex>
 
         <Table
