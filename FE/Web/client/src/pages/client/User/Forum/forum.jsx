@@ -229,7 +229,7 @@ function Forum() {
 	const topicFilterOptions = useMemo(
 		() => [
 			{ label: 'Tất cả chủ đề', value: 'all' },
-			{ label: 'Không chủ đề', value: NO_TOPIC_FILTER_VALUE },
+			{ label: 'Không có chủ đề', value: NO_TOPIC_FILTER_VALUE },
 			...filteredTopics.map((topic) => ({
 				label: topic.label,
 				value: topic.id,

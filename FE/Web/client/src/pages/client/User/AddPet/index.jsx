@@ -206,7 +206,7 @@ export default function AddPet() {
 
     Modal.confirm({
       title: 'Bạn có muốn lưu thay đổi?',
-      content: 'Bạn đang nhập dở thông tin thú cưng. Chọn Lưu thay đổi để lưu lại trước khi thoát.',
+      content: 'Bạn đang nhập thông tin thú cưng. Chọn Lưu thay đổi để lưu lại trước khi thoát.',
       okText: 'Lưu thay đổi',
       cancelText: 'Hủy thay đổi',
       centered: true,

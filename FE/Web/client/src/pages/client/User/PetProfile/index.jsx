@@ -298,13 +298,13 @@ export default function PetProfile() {
     }
 
     Modal.confirm({
-      title: 'Hủy thay đổi chưa lưu',
-      content: 'Bạn đang chỉnh sửa dở. Bạn có chắc muốn hủy các thay đổi chưa lưu và quay lại không?',
+      title: 'Hủy thay đổi',
+      content: 'Bạn đang chỉnh sửa thông tin thú cưng. Bạn có chắc muốn hủy các thay đổi chưa lưu và quay lại không?',
       okText: 'Hủy và quay lại',
       cancelText: 'Tiếp tục chỉnh sửa',
       centered: true,
       onOk: () => {
-        message.info('Đã hủy thay đổi chưa lưu');
+        message.info('Đã hủy thay đổi');
         navigate(-1);
       },
     });
