@@ -10,9 +10,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
-	getVeterinarianAppointmentsApi,
-} from '../../../data/Vererianrian/api/appointmentApi'
-import { getBreedLabel } from '../../../data/client/api/petApi'
+	getAppointmentsApi,
+} from '../../../services/appointmentService'
+import { getAdminInstance } from '../../../services/apiClient'
+import { getBreedLabel } from '../../../services/petService'
 import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './listExaminationForm.module.css'
 
@@ -75,7 +76,7 @@ export default function ListExaminationForm() {
 		inFlightRef.current = true
 		try {
 			if (!silent) setLoading(true)
-			const response = await getVeterinarianAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 500,
 				date: selectedDate.format('YYYY-MM-DD'),

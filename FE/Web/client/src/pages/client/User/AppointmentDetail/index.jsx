@@ -6,12 +6,13 @@ import {
   APPOINTMENT_STATUS,
   getMyAppointmentsApi,
   updateAppointmentStatusApi,
-} from '../../../../data/client/api/appointmentApi';
+} from '../../../../services/appointmentService';
+import { getClientInstance } from '../../../../services/apiClient';
 import {
   generateAndStoreDiagnosisReport,
   getStoredDiagnosisReport,
 } from '../../../../data/client/api/appointmentDiagnosis';
-import { getBreedLabel } from '../../../../data/client/api/petApi';
+import { getBreedLabel } from '../../../../services/petService';
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../../utils/enumLabel';
 import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
@@ -61,7 +62,7 @@ const AppointmentDetail = () => {
         setLoading(true);
       }
 
-      const res = await getMyAppointmentsApi(1, 200);
+      const res = await getMyAppointmentsApi(getClientInstance(), 1, 200);
       const nextItems = Array.isArray(res?.items) ? res.items : [];
       const nextSignature = buildAppointmentsSignature(nextItems);
 
@@ -161,7 +162,7 @@ const AppointmentDetail = () => {
       centered: true,
       async onOk() {
         try {
-          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELLED);
+          await updateAppointmentStatusApi(getClientInstance(), appointmentId, APPOINTMENT_STATUS.CANCELLED);
           antd.message.success('Hủy lịch khám thành công');
           await fetchAppointments({ silent: true });
         } catch (error) {

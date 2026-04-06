@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../../../../hooks/Clinic/AuthContext';
 import HomePageClinic from '../../../client/Home/HomePageClinic';
-import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../data/shared/api/cloudinaryUploadFetch';
+import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../services/cloudinaryService';
 import { getClinicHomeContent, saveClinicHomeContent } from '../../../../data/client/utils/clinicHomeStorage';
 import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';

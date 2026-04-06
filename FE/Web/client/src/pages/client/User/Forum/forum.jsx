@@ -8,19 +8,20 @@ import {
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { createComment, getReplies } from '../../../../data/client/api/commentApi'
+import { createCommentApi, getRepliesApi } from '../../../../services/forumService'
 import { CLIENT_AUTH_STORAGE } from '../../../../constants/authStorage'
-import { uploadUserImagesApi, uploadUserImageApi } from '../../../../data/client/api/user'
+import { getClientInstance } from '../../../../services/apiClient'
+import { uploadUserImagesApi, uploadUserImageApi } from '../../../../services/userService'
 import {
-	createPost,
-	deletePost,
-	getCommentsByPostId,
-	getPosts,
-	likePost,
-	unlikePost,
-	updatePost,
-} from '../../../../data/client/api/postApi'
-import { getAllTopics } from '../../../../data/client/api/topicApi'
+	createPostApi,
+	deletePostApi,
+	getCommentsByPostIdApi,
+	getPostsApi,
+	likePostApi,
+	unlikePostApi,
+	updatePostApi,
+} from '../../../../services/forumService'
+import { getAllTopicsApi } from '../../../../services/forumService'
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import styles from './forum.module.css'
 
@@ -362,7 +363,7 @@ function Forum() {
 	const loadPosts = async () => {
 		setLoadingPosts(true)
 		try {
-			const data = await getPosts({ limit: 1000 })
+			const data = await getPostsApi(getClientInstance(), { limit: 1000 })
 			setApiPosts(Array.isArray(data) ? data.map(mapPostToUi) : [])
 		} catch (error) {
 			message.error(error.message || 'Không thể tải danh sách bài viết')
@@ -375,7 +376,7 @@ function Forum() {
 		const loadInitialData = async () => {
 			setLoadingTopics(true)
 			try {
-				const topics = await getAllTopics()
+				const topics = await getAllTopicsApi(getClientInstance())
 				setApiTopics(Array.isArray(topics) ? topics : [])
 			} catch (error) {
 				message.error(error.message || 'Không thể tải chủ đề')
@@ -422,7 +423,7 @@ function Forum() {
 				imageUrls = await uploadUserImagesApi(composerImageFiles)
 			}
 
-			await createPost({
+			await createPostApi(getClientInstance(), {
 				topicId: composerTopicId === NO_TOPIC_VALUE ? null : composerTopicId,
 				content: attachPostToContent({
 					title: composerTitle,
@@ -533,7 +534,7 @@ function Forum() {
 			setSubmittingEditPost(true)
 			const imageUrl = editingPost.imageUrl || null
 
-			await updatePost(editingPost.id, {
+			await updatePostApi(getClientInstance(), editingPost.id, {
 				topicId: editingPost.topicId === NO_TOPIC_VALUE ? null : editingPost.topicId,
 				content: attachPostToContent({
 					title: editingPost.title,
@@ -568,7 +569,7 @@ function Forum() {
 			centered: true,
 			onOk: async () => {
 				try {
-					await deletePost(post.id)
+					await deletePostApi(getClientInstance(), post.id)
 					message.success('Đã xóa bài viết')
 					if (expandedPostId === post.id) {
 						setExpandedPostId(null)
@@ -627,7 +628,7 @@ function Forum() {
 
 		setProcessingLikeId(post.id)
 		try {
-			const response = nextLiked ? await likePost(post.id) : await unlikePost(post.id)
+			const response = nextLiked ? await likePostApi(getClientInstance(), post.id) : await unlikePostApi(getClientInstance(), post.id)
 			setApiPosts((prev) =>
 				prev.map((item) =>
 					item.id === post.id
@@ -670,14 +671,14 @@ function Forum() {
 		}))
 
 		try {
-			const comments = await getCommentsByPostId(postId, { limit: 1000 })
+			const comments = await getCommentsByPostIdApi(getClientInstance(), postId, { limit: 1000 })
 			const topComments = Array.isArray(comments) ? comments : []
 
 			const commentThreads = await Promise.all(
 				topComments.map(async (comment) => {
 					let replies = []
 					if (Number(comment.replyCount || 0) > 0) {
-						const fetchedReplies = await getReplies({ parentId: comment.id, limit: 1000 })
+						const fetchedReplies = await getRepliesApi(getClientInstance(), { parentId: comment.id, limit: 1000 })
 						if (Array.isArray(fetchedReplies) && fetchedReplies.length > 0) {
 							replies = fetchedReplies.map(mapCommentToUi)
 						}
@@ -796,7 +797,7 @@ function Forum() {
 		try {
 			setSubmittingComment(true)
 			const imageUrl = commentImageUrl || null
-			const createdComment = await createComment({
+			const createdComment = await createCommentApi(getClientInstance(), {
 				postId,
 				parentId: null,
 				content: attachCommentToContent(commentText, imageUrl),
@@ -850,7 +851,7 @@ function Forum() {
 		try {
 			setSubmittingReply(true)
 			const imageUrl = replyImageUrl || null
-			const createdReply = await createComment({
+			const createdReply = await createCommentApi(getClientInstance(), {
 				postId: replyingComment.postId,
 				parentId: replyingComment.parentId,
 				content: attachCommentToContent(replyText, imageUrl),

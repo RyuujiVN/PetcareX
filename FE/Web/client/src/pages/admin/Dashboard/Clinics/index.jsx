@@ -31,7 +31,8 @@ import {
   message,
 } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
-import { createClinicApi, deleteClinicApi, getClinicListApi } from '../../../../data/admin/api/clinicApi'
+import { createClinicApi, deleteClinicApi, getClinicListApi } from '../../../../services/clinicService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import './style.css'
 
 const getAbbreviation = (name) => {
@@ -71,7 +72,7 @@ export default function Clinics() {
   const fetchClinics = useCallback(async (page, pageSize, keyword = '') => {
     setLoading(true)
     try {
-      const data = await getClinicListApi(page, pageSize, keyword)
+      const data = await getClinicListApi(getAdminInstance(), page, pageSize, keyword)
       const meta = data?.meta || {}
       setClinicList(data.items || [])
       setPagination({
@@ -97,7 +98,7 @@ export default function Clinics() {
 
   const handleDelete = async (id) => {
     try {
-      await deleteClinicApi(id)
+      await deleteClinicApi(getAdminInstance(), id)
       message.success('Xóa phòng khám thành công')
       const nextPage = clinicList.length === 1 && pagination.current > 1
         ? pagination.current - 1
@@ -132,7 +133,7 @@ export default function Clinics() {
     try {
       const values = await addForm.validateFields()
       setAddLoading(true)
-      await createClinicApi({
+      await createClinicApi(getAdminInstance(), {
         clinic: {
           name: values.clinicName,
           email: values.clinicEmail,

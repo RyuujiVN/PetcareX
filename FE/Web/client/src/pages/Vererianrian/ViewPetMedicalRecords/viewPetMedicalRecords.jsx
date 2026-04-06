@@ -8,13 +8,13 @@ import { FaCakeCandles, FaDog, FaMars } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import {
-	getMedicalById,
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
-} from '../../../data/Vererianrian/api/medicalApi'
-import { getVeterinarianPetByIdApi } from '../../../data/Vererianrian/api/petApi'
-import { getBreedLabel } from '../../../data/client/api/petApi'
+	getMedicalByIdApi,
+	getMedicalByPetIdApi,
+	getMedicalOrdersByMedicalIdApi,
+	getMedicinesByMedicalIdApi,
+} from '../../../services/medicalService'
+import { getPetByIdApi, getBreedLabel } from '../../../services/petService'
+import { getAdminInstance } from '../../../services/apiClient'
 import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
 
@@ -204,7 +204,7 @@ export default function ViewPetMedicalRecords() {
 			// Fetch pet detail from API if petId is available
 			if (petId) {
 				try {
-					const petDetail = await getVeterinarianPetByIdApi(petId)
+					const petDetail = await getPetByIdApi(getAdminInstance(), petId)
 					if (petDetail) {
 						setPetSummary(toPetSummary(petDetail))
 					}
@@ -215,10 +215,10 @@ export default function ViewPetMedicalRecords() {
 
 			let records = []
 			if (medicalId) {
-				const detail = await getMedicalById(medicalId)
+				const detail = await getMedicalByIdApi(getAdminInstance(), medicalId)
 				records = detail ? [detail] : []
 			} else if (petId) {
-				const byPet = await getMedicalByPetId(petId, 1, 200)
+				const byPet = await getMedicalByPetIdApi(getAdminInstance(), petId, 1, 200)
 				records = Array.isArray(byPet?.items)
 					? byPet.items
 					: Array.isArray(byPet?.data)
@@ -232,7 +232,7 @@ export default function ViewPetMedicalRecords() {
 				records = await Promise.all(
 					records.map(async (record) => {
 						if (!record?.id) return record
-						const detail = await getMedicalById(record.id).catch(() => null)
+						const detail = await getMedicalByIdApi(getAdminInstance(), record.id).catch(() => null)
 						return detail ? { ...record, ...detail } : record
 					}),
 				)
@@ -264,8 +264,8 @@ export default function ViewPetMedicalRecords() {
 			const enrichedRecords = await Promise.all(
 				records.map(async (record) => {
 					const [medicalOrders, medicines] = await Promise.all([
-						getMedicalOrdersByMedicalId(record.id).catch(() => []),
-						getMedicinesByMedicalId(record.id).catch(() => []),
+						getMedicalOrdersByMedicalIdApi(getAdminInstance(), record.id).catch(() => []),
+						getMedicinesByMedicalIdApi(getAdminInstance(), record.id).catch(() => []),
 					])
 
 					return {

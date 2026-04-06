@@ -1,9 +1,10 @@
-import { loginGoogleApi } from '../api/auth'
+import { loginGoogleApi } from '../../../services/authService'
+import { getClientInstance } from '../../../services/apiClient'
 import { signInWithGooglePopupToken } from './firebaseClient'
 
 export const authenticateClientWithGoogle = async () => {
   const { googleIdToken, fullName, avatarUrl } = await signInWithGooglePopupToken()
-  const res = await loginGoogleApi({ googleIdToken, fullName, avatarUrl })
+  const res = await loginGoogleApi(getClientInstance(), { googleIdToken, fullName, avatarUrl })
   const data = res?.data
 
   if (!data?.accessToken) {

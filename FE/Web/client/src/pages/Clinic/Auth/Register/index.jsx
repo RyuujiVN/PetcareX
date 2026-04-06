@@ -10,7 +10,8 @@ import {
 } from "antd";
 import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
 import "./styles.css";
-import { registerApi } from "../../../../data/Clinic/api/auth";
+import { registerApi } from "../../../../services/authService";
+import { getAdminInstance } from "../../../../services/apiClient";
 import { FaPaw } from "react-icons/fa";
 
 const { Title, Text } = Typography;
@@ -52,7 +53,7 @@ export default function Register() {
   const handleRegister = async (values) => {
     try {
       setLoading(true);
-      await registerApi({
+      await registerApi(getAdminInstance(), {
         fullName: values.fullName,
         email: values.email,
         password: values.password,

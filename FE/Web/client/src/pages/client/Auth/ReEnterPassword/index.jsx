@@ -3,7 +3,8 @@ import { useEffect, useState } from 'react';
 import { FaPaw } from 'react-icons/fa';
 import { MdLockReset } from 'react-icons/md';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { forgotPasswordApi, resetPasswordApi } from '../../../../data/client/api/auth';
+import { forgotPasswordApi, resetPasswordApi } from '../../../../services/authService';
+import { getClientInstance } from '../../../../services/apiClient';
 import './styles.css';
 
 const OTP_EXPIRY_SECONDS = 300; // 5 phút theo backend
@@ -53,7 +54,7 @@ export default function ReEnterPassword() {
     }
     setResendLoading(true);
     try {
-      await forgotPasswordApi(email);
+      await forgotPasswordApi(getClientInstance(), email);
       message.success('Mã OTP đã được gửi lại. Vui lòng kiểm tra email của bạn');
       form.setFieldValue('otp', '');
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
@@ -72,7 +73,7 @@ export default function ReEnterPassword() {
     }
     setLoading(true);
     try {
-      const response = await resetPasswordApi({
+      const response = await resetPasswordApi(getClientInstance(), {
         email,
         otp: values.otp,
         newPassword: values.newPassword,

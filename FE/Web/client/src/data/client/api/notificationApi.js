@@ -1,7 +1,7 @@
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel';
-import { getMyAppointmentsApi } from './appointmentApi';
-import { getReplies } from './commentApi';
-import { getCommentsByPostId, getPosts } from './postApi';
+import { getMyAppointmentsApi } from '../../../services/appointmentService';
+import { getClientInstance } from '../../../services/apiClient';
+import { getRepliesApi, getCommentsByPostIdApi, getPostsApi } from '../../../services/forumService';
 
 const MAX_APPOINTMENTS = 120;
 const MAX_FORUM_POSTS = 120;
@@ -122,7 +122,7 @@ const buildCommentAndReplyNotifications = async ({ ownPosts, userId }) => {
       const postId = normalizeText(post?.id);
       if (!postId) return;
 
-      const comments = await getCommentsByPostId(postId, { limit: MAX_COMMENTS_PER_POST });
+      const comments = await getCommentsByPostIdApi(getClientInstance(), postId, { limit: MAX_COMMENTS_PER_POST });
       if (!Array.isArray(comments) || comments.length === 0) return;
 
       const replyTasks = [];
@@ -150,7 +150,7 @@ const buildCommentAndReplyNotifications = async ({ ownPosts, userId }) => {
         replyThreadCount += 1;
 
         replyTasks.push(
-          getReplies({
+          getRepliesApi(getClientInstance(), {
             parentId: commentId,
             limit: MAX_REPLIES_PER_COMMENT,
           }).then((replies) => ({ replies, comment }))
@@ -230,8 +230,8 @@ export const loadClientNotifications = async ({ userId, previousLikeSnapshot = {
   }
 
   const [appointmentResult, postsResult] = await Promise.allSettled([
-    getMyAppointmentsApi(1, MAX_APPOINTMENTS),
-    getPosts({ limit: MAX_FORUM_POSTS }),
+    getMyAppointmentsApi(getClientInstance(), 1, MAX_APPOINTMENTS),
+    getPostsApi(getClientInstance(), { limit: MAX_FORUM_POSTS }),
   ]);
 
   let hasPartialFailure = false;

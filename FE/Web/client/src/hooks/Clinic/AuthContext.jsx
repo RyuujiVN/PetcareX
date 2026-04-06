@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getUserProfileApi } from "../../data/Clinic/api/user";
+import { getUserProfileApi } from "../../services/userService";
+import { getAdminInstance } from "../../services/apiClient";
 import { getPrimaryRole } from "../../constants/authRole";
 import {
 	ADMIN_AUTH_STORAGE,
@@ -72,7 +73,7 @@ export const AuthProvider = ({ children }) => {
 				setAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey, cachedRole);
 			}
 
-			getUserProfileApi()
+			getUserProfileApi(getAdminInstance())
 				.then((res) => {
 					const mergedProfile = mergeClinicMetadata(res.data, cachedProfile);
 					setUserProfile(mergedProfile);
@@ -119,7 +120,7 @@ export const AuthProvider = ({ children }) => {
 	const refreshUserProfile = async () => {
 		if (!token) return;
 		try {
-			const res = await getUserProfileApi();
+			const res = await getUserProfileApi(getAdminInstance());
 			const mergedProfile = mergeClinicMetadata(res.data, readStoredAdminProfile());
 			setUserProfile(mergedProfile);
 			setAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));

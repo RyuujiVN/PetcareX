@@ -12,12 +12,13 @@ import {
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
-	getMedicalById,
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
-} from '../../../../data/client/api/medicalApi'
-import { getBreedLabel, getMyPetsApi } from '../../../../data/client/api/petApi'
+	getMedicalByIdApi,
+	getMedicalByPetIdApi,
+	getMedicalOrdersByMedicalIdApi,
+	getMedicinesByMedicalIdApi,
+} from '../../../../services/medicalService'
+import { getBreedLabel, getMyPetsApi } from '../../../../services/petService'
+import { getClientInstance } from '../../../../services/apiClient'
 import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './medicalRecords.module.css'
 
@@ -226,7 +227,7 @@ function MedicalRecords() {
 		try {
 			setLoading(true)
 
-			const myPets = await getMyPetsApi().catch(() => [])
+			const myPets = await getMyPetsApi(getClientInstance()).catch(() => [])
 			const petList = Array.isArray(myPets) ? myPets : []
 
 			const selectedPet = petId
@@ -245,10 +246,10 @@ function MedicalRecords() {
 
 			let records = []
 			if (medicalId) {
-				const detail = await getMedicalById(medicalId)
+				const detail = await getMedicalByIdApi(getClientInstance(), medicalId)
 				records = detail ? [detail] : []
 			} else if (resolvedPetId) {
-				const byPet = await getMedicalByPetId(resolvedPetId)
+				const byPet = await getMedicalByPetIdApi(getClientInstance(), resolvedPetId)
 				records = Array.isArray(byPet?.items)
 					? byPet.items
 					: Array.isArray(byPet?.data)
@@ -262,7 +263,7 @@ function MedicalRecords() {
 				records = await Promise.all(
 					records.map(async (record) => {
 						if (!record?.id) return record
-						const detail = await getMedicalById(record.id).catch(() => null)
+						const detail = await getMedicalByIdApi(getClientInstance(), record.id).catch(() => null)
 						return detail ? { ...record, ...detail } : record
 					}),
 				)
@@ -291,8 +292,8 @@ function MedicalRecords() {
 			const enrichedRecords = await Promise.all(
 				records.map(async (record) => {
 					const [medicalOrders, medicines] = await Promise.all([
-						getMedicalOrdersByMedicalId(record.id).catch(() => []),
-						getMedicinesByMedicalId(record.id).catch(() => []),
+						getMedicalOrdersByMedicalIdApi(getClientInstance(), record.id).catch(() => []),
+						getMedicinesByMedicalIdApi(getClientInstance(), record.id).catch(() => []),
 					])
 
 					return {

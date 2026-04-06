@@ -5,7 +5,8 @@ import { FaPaw } from "react-icons/fa";
 import { FaRegCalendarCheck, FaRegCommentDots, FaRegThumbsUp } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { changePasswordApi } from "../../../data/client/api/auth";
+import { changePasswordApi } from "../../../services/authService";
+import { getClientInstance } from "../../../services/apiClient";
 import { loadClientNotifications } from "../../../data/client/api/notificationApi";
 import { useAuth } from "../../../hooks/client/AuthContext";
 import "./header.css";
@@ -507,7 +508,7 @@ function Header() {
 
         try {
             setChangingPassword(true);
-            const response = await changePasswordApi({
+            const response = await changePasswordApi(getClientInstance(), {
                 oldPassword: passwordForm.currentPassword,
                 newPassword: passwordForm.newPassword,
                 confirmPassword: passwordForm.confirmPassword,

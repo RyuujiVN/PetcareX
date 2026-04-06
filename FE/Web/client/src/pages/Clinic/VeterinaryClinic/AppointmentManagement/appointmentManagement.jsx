@@ -28,12 +28,13 @@ import { useCallback, useEffect, useState } from 'react'
 import {
     APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
     APPOINTMENT_STATUS,
-    getClinicAppointmentsApi,
+    getAppointmentsApi,
     updateAppointmentStatusApi,
-} from '../../../../data/Clinic/api/appointmentApi'
-import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../../data/Clinic/api/invoiceApi'
-import { getLatestMedicalByPetId } from '../../../../data/Clinic/api/medicalApi'
-import { getUserByIdApi } from '../../../../data/Clinic/api/user'
+} from '../../../../services/appointmentService'
+import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../../services/invoiceService'
+import { getLatestMedicalByPetIdApi } from '../../../../services/medicalService'
+import { getUserByIdApi } from '../../../../services/userService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import {
     getAppointmentStatusLabel,
     getPetBreedLabel,
@@ -196,7 +197,7 @@ export default function AppointmentManagement() {
 		try {
 			setLoading(true)
 
-			const response = await getClinicAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 300,
 				date: selectedDate ? selectedDate.format('YYYY-MM-DD') : undefined,
@@ -241,12 +242,12 @@ export default function AppointmentManagement() {
 					}
 
 					try {
-						const latestMedical = await getLatestMedicalByPetId(petId)
+						const latestMedical = await getLatestMedicalByPetIdApi(getAdminInstance(), petId)
 						if (!latestMedical?.id) {
 							return [appointmentId, INVOICE_STATUS.UNPAID]
 						}
 
-						const invoice = await getInvoiceByMedicalRecordIdApi(latestMedical.id)
+						const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), latestMedical.id)
 						return [
 							appointmentId,
 							invoice?.status === INVOICE_STATUS.PAID ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
@@ -438,7 +439,7 @@ export default function AppointmentManagement() {
 
 		try {
 			setUpdatingId(appointmentId)
-			await updateAppointmentStatusApi(appointmentId, nextStatus)
+			await updateAppointmentStatusApi(getAdminInstance(), appointmentId, nextStatus)
 			message.success(`Đã cập nhật trạng thái thành ${getAppointmentStatusLabel(nextStatus, nextStatus)}`)
 		} catch (error) {
 			setAppointments((prev) =>
@@ -460,7 +461,7 @@ export default function AppointmentManagement() {
 		if (!ownerId || ownerDetailsById[ownerId]) return
 
 		try {
-			const res = await getUserByIdApi(ownerId)
+			const res = await getUserByIdApi(getAdminInstance(), ownerId)
 			const ownerData = res?.data
 
 			if (ownerData) {
@@ -486,7 +487,7 @@ export default function AppointmentManagement() {
 			async onOk() {
 				try {
 					setUpdatingId(selectedAppointment.id)
-					await updateAppointmentStatusApi(selectedAppointment.id, APPOINTMENT_STATUS.CANCELLED)
+					await updateAppointmentStatusApi(getAdminInstance(), selectedAppointment.id, APPOINTMENT_STATUS.CANCELLED)
 					message.success('Đã hủy lịch đặt khám')
 					setIsModalOpen(false)
 					setSelectedAppointment(null)

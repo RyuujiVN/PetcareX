@@ -1,7 +1,8 @@
 import { EnvironmentOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Form, Input, Row, Spin, Typography, message } from 'antd'
 import { useEffect, useState } from 'react'
-import { getUserProfileApi, updateUserProfileApi } from '../../../../data/Clinic/api/user'
+import { getUserProfileApi, updateUserProfileApi } from '../../../../services/userService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import { getRoleLabel } from '../../../../constants/veterinaryLabels'
 import { useAuth } from '../../../../hooks/Clinic/AuthContext'
 import styles from './profileAdminClinic.module.css'
@@ -18,7 +19,7 @@ export default function AdminClinicProfile() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await getUserProfileApi()
+        const res = await getUserProfileApi(getAdminInstance())
         const data = res.data
         setProfileData(data)
         form.setFieldsValue({
@@ -51,7 +52,7 @@ export default function AdminClinicProfile() {
 
     try {
       setSaving(true)
-      await updateUserProfileApi(profileData.id, {
+      await updateUserProfileApi(getAdminInstance(), profileData.id, {
         fullName: profileData?.fullName || '',
         email: profileData?.email || '',
         avatarUrl: profileData?.avatarUrl || '',
@@ -59,7 +60,7 @@ export default function AdminClinicProfile() {
         address: values.address.trim(),
       })
 
-      const latestRes = await getUserProfileApi()
+      const latestRes = await getUserProfileApi(getAdminInstance())
       const latestData = latestRes.data
       setProfileData(latestData)
       form.setFieldsValue({

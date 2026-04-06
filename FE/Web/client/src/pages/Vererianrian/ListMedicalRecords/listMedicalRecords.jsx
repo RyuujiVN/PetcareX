@@ -7,8 +7,9 @@ import { Typography } from 'antd'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
-	getVeterinarianAppointmentsApi,
-} from '../../../data/Vererianrian/api/appointmentApi'
+	getAppointmentsApi,
+} from '../../../services/appointmentService'
+import { getAdminInstance } from '../../../services/apiClient'
 import styles from './listMedicalRecords.module.css'
 
 const PAGE_SIZE = 4
@@ -64,7 +65,7 @@ export default function ListMedicalRecords() {
 	const fetchRecords = useCallback(async () => {
 		try {
 			setLoading(true)
-			const response = await getVeterinarianAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 500,
 				date: selectedDate.format('YYYY-MM-DD'),

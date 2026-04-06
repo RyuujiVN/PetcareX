@@ -3,8 +3,9 @@ import { Button, DatePicker, Empty, Select, Spin, message } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
-import { getClinicPetSpeciesApi } from '../../../../data/Clinic/api/petApi'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
+import { getAdminInstance } from '../../../../services/apiClient'
+import { getPetSpeciesApi } from '../../../../services/petService'
 import {
     getAppointmentStatusLabel,
     getPetBreedLabel,
@@ -64,7 +65,7 @@ export default function ListPetExaminationRecords() {
 	const fetchSpecies = useCallback(async () => {
 		try {
 			setLoadingSpecies(true)
-			const response = await getClinicPetSpeciesApi()
+			const response = await getPetSpeciesApi(getAdminInstance())
 			setSpeciesList(Array.isArray(response) ? response : [])
 		} catch {
 			setSpeciesList([])
@@ -77,7 +78,7 @@ export default function ListPetExaminationRecords() {
 		try {
 			setLoading(true)
 
-			const response = await getClinicAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 300,
 				date: selectedDate || undefined,

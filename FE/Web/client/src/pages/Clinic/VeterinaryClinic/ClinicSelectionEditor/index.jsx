@@ -8,7 +8,7 @@ import {
   getClinicInfoContent,
   saveClinicInfoContent,
 } from '../../../../data/client/utils/clinicInfoStorage'
-import { uploadOneFileToCloudinary } from '../../../../data/shared/api/cloudinaryUploadFetch'
+import { uploadOneFileToCloudinary } from '../../../../services/cloudinaryService'
 import { useAuth } from '../../../../hooks/Clinic/AuthContext'
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
 import './styles.css'

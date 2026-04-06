@@ -12,7 +12,8 @@ import {
   getPetSpeciesApi,
   getSpeciesLabel,
   uploadPetAvatarApi,
-} from '../../../../data/client/api/petApi';
+} from '../../../../services/petService';
+import { getClientInstance } from '../../../../services/apiClient';
 
 export default function AddPet() {
   const navigate = useNavigate();
@@ -101,7 +102,7 @@ export default function AddPet() {
     const fetchSpecies = async () => {
       try {
         setLoadingMeta(true);
-        const speciesData = await getPetSpeciesApi();
+        const speciesData = await getPetSpeciesApi(getClientInstance());
         setSpeciesList(Array.isArray(speciesData) ? speciesData : []);
       } catch (error) {
         message.error(error.message || 'Không thể tải danh sách loài');
@@ -123,7 +124,7 @@ export default function AddPet() {
     const fetchBreeds = async () => {
       try {
         setLoadingMeta(true);
-        const breedsData = await getBreedsBySpeciesApi(species);
+        const breedsData = await getBreedsBySpeciesApi(getClientInstance(), species);
         const nextBreeds = Array.isArray(breedsData) ? breedsData : [];
         setBreedList(nextBreeds);
 
@@ -186,7 +187,7 @@ export default function AddPet() {
 
     try {
       setSubmitting(true);
-      await createPetApi(payload);
+      await createPetApi(getClientInstance(), payload);
       message.success('Thêm thú cưng mới thành công');
       setHasUnsavedChanges(false);
       navigate(-1);

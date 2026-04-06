@@ -27,7 +27,8 @@ import {
 } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { getRoleLabel } from '../../../../constants/veterinaryLabels'
-import { getPostListApi } from '../../../../data/admin/api/postApi'
+import { getPostListApi } from '../../../../services/forumService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import './style.css'
 
 const DEFAULT_LIMIT = 20
@@ -97,7 +98,7 @@ export default function Posts() {
     }
 
     try {
-      const data = await getPostListApi(DEFAULT_LIMIT, lastPostTime)
+      const data = await getPostListApi(getAdminInstance(), DEFAULT_LIMIT, lastPostTime)
       const incoming = Array.isArray(data) ? data : []
 
       setPosts((prev) => {

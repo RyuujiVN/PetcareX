@@ -107,25 +107,52 @@ Mỗi context quản lý:
 ### 1) Base URL
 - `VITE_API_URL` (fallback: `http://localhost:3000/api`).
 
-### 2) Axios instances
-- `src/data/client/api/instance.js`
-- `src/data/admin/api/instance.js`
-- `src/data/adminClinic/api/instance.js`
-- `src/data/adminVererianrian/api/instance.js`
+### 2) Kiến trúc tập trung — `src/services/`
 
-Chức năng chính:
-- Auto attach Bearer token đúng storage key.
-- Normalize error message backend.
-- 401 -> clear auth và redirect `/login`.
+Toàn bộ API layer đã được refactor thành **12 service file** trong `src/services/`, mỗi endpoint chỉ định nghĩa **đúng 1 lần**. Không còn duplicate giữa các role.
 
-### 3) Fetch wrappers còn tồn tại
-- `src/data/client/api/forumFetchClient.js`
-- `src/data/client/api/medicalApi.js`
-- `src/data/shared/api/cloudinaryUploadFetch.js`
+#### Factory & Instances — `src/services/apiClient.js`
+- **2 lazy singleton** axios instance thay cho 4 instance cũ:
+  - `getClientInstance()` — dùng `CLIENT_AUTH_STORAGE` (localStorage) cho client portal.
+  - `getAdminInstance()` — dùng `ADMIN_AUTH_STORAGE` (sessionStorage) cho admin/clinic/vet portal.
+- `applyResponseInterceptor(instance, clearFn)` — interceptor chung: normalize error message backend, 401 → clear auth + redirect `/login`.
+- Export: `getClientInstance()`, `getAdminInstance()`, `API_BASE_URL`.
 
-=> Codebase vẫn đang chạy song song Axios và Fetch.
+#### Quy ước gọi API
+- Mọi service function nhận `instance` làm tham số đầu tiên (trừ cloudinary upload).
+- Consumer chọn instance phù hợp role: `loginApi(getClientInstance(), payload)` hoặc `getUserListApi(getAdminInstance(), ...)`.
+- Service function trả về **full axios response** — consumer tự unwrap `.data` khi cần.
 
-### 4) Các nhóm API nổi bật
+#### Danh sách service file
+
+| File | Domain | Endpoints chính |
+|------|--------|----------------|
+| `apiClient.js` | Foundation | `getClientInstance()`, `getAdminInstance()`, `API_BASE_URL` |
+| `authService.js` | Auth | `loginApi`, `registerApi`, `loginGoogleApi`, `forgotPasswordApi`, `resetPasswordApi`, `changePasswordApi` |
+| `userService.js` | User | `getUserListApi`, `getUserProfileApi`, `getUserByIdApi`, `updateUserProfileApi`, `deleteUserApi`, `uploadAvatarApi`, `uploadUserImageApi`, `uploadUserImagesApi` |
+| `petService.js` | Pet | `getMyPetsApi`, `getPetByIdApi`, `createPetApi`, `updatePetApi`, `deletePetApi`, `getPetSpeciesApi`, `getBreedsBySpeciesApi`, `getPetsByOwnerApi`, `uploadPetAvatarApi` + utility re-export `getEnumLabel`, `getSpeciesLabel`, `getBreedLabel` |
+| `appointmentService.js` | Appointment | `getMyAppointmentsApi` (client), `getAppointmentsApi` (clinic/vet, client-side filter), `getAppointmentByIdApi`, `createAppointmentApi`, `updateAppointmentStatusApi`, `deleteAppointmentApi`, `getServerNowApi` + constants `APPOINTMENT_STATUS`, `SERVICE_OPTIONS` |
+| `clinicService.js` | Clinic | `getClinicListApi`, `getClinicByIdApi`, `createClinicApi`, `updateClinicApi`, `deleteClinicApi`, `uploadClinicAvatarApi` |
+| `medicalService.js` | Medical | 15+ endpoint: CRUD medical record, medical order, medicine. Backward-compatible aliases: `createMedicalRecordApi`, `getMedicalOrderCatalogApi`, `getMedicineCatalogApi` |
+| `veterinarianService.js` | Veterinarian | `getVeterinariansApi`, `getVeterinarianByClinicApi`, `createVeterinarianApi`, `updateVeterinarianApi`, `deleteVeterinarianApi` |
+| `invoiceService.js` | Invoice | `getInvoiceByMedicalRecordIdApi`, `createInvoiceApi`, `updateInvoiceApi`, `upsertPaidInvoiceByMedicalApi` + `INVOICE_STATUS` |
+| `forumService.js` | Forum | Post CRUD + like/unlike, Topic CRUD, Comment/Reply CRUD, `getCommentsByPostIdApi`, `getRepliesApi` |
+| `chatService.js` | Chatbot | `getAllRoomsApi`, `getMessagesInRoomApi`, `createRoomApi`, `renameRoomApi`, `deleteRoomApi`, `sendMessageApi` |
+| `cloudinaryService.js` | Upload | `uploadOneFileToCloudinary`, `uploadMultipleFilesToCloudinary` — dùng native `fetch()` cho multipart FormData, tự detect token từ CLIENT hoặc ADMIN storage |
+
+#### Business logic modules (giữ trong `src/data/`)
+- `src/data/client/api/notificationApi.js` — tổng hợp notification từ appointment + forum, delegate sang `services/`.
+- `src/data/client/utils/appointmentDiagnosis.js` — WebSocket AI diagnosis, không dùng REST.
+- `src/data/Clinic/api/useVeterinarians.js` — React hook quản lý veterinarian list, delegate sang `services/`.
+
+#### Cách thêm API mới đúng chuẩn
+1. Xác định domain → mở service file tương ứng trong `src/services/`.
+2. Thêm function với signature `export const doSomethingApi = async (instance, ...params) => { ... }`.
+3. Consumer import function + instance getter: `import { doSomethingApi } from '../../services/myService'` + `import { getClientInstance } from '../../services/apiClient'`.
+4. Gọi: `const response = await doSomethingApi(getClientInstance(), payload)`.
+5. **Không tạo file API mới** trong `src/data/*/api/` — mọi endpoint phải nằm trong `src/services/`.
+
+### 3) Các nhóm API endpoint
 - Auth: `/auth/login`, `/auth/register`, `/auth/login-google`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`.
 - User: `/user/profile`, `/user/:id`, upload cloudinary.
 - Pet: `/pet`, `/pet/:id`, `/pet/species`, `/pet/species/:species/breed`.
@@ -186,10 +213,10 @@ Luồng đang chạy:
 - Auto refresh 20 giây + refresh khi tab active lại.
 - Hủy lịch (PATCH status).
 - Xem chi tiết lịch.
-- `src/data/Vererianrian/api/userApi.js`:
-  - Tra cứu user theo email và tạo user tạm.
-- `src/data/Vererianrian/api/petApi.js`:
-  - Tra cứu pet theo owner và tạo pet mới cho walk-in.
+- `src/services/userService.js`:
+  - Tra cứu user theo email và tạo user tạm (`getUserByIdApi`).
+- `src/services/petService.js`:
+  - Tra cứu pet theo owner (`getPetsByOwnerApi`) và tạo pet mới cho walk-in (`createPetApi`).
 - Mở modal chẩn đoán AI (`PetDiagnosisContent`).
 - Đã tích hợp `ScrollToTopButton` dùng chung cho trang lịch hẹn (áp dụng cho cả 2 tab section).
 
@@ -367,13 +394,13 @@ Luồng đang chạy:
   - `DELETE /api/clinic/:id` — xóa phòng khám (có Popconfirm).
   - `POST /api/clinic` — thêm phòng khám mới qua Modal (thông tin phòng khám + tài khoản admin clinic).
 - Modal "Thêm phòng khám mới": 2 section (thông tin phòng khám: tên, email, SĐT, địa chỉ, mô tả; tài khoản quản trị: họ tên, email, mật khẩu). Có validation form đầy đủ.
-- API layer riêng: `src/data/admin/api/` (instance.js dùng `ADMIN_AUTH_STORAGE`, clinicApi.js có 5 hàm CRUD).
+- API layer tập trung: `src/services/clinicService.js` (5 hàm CRUD) + `src/services/apiClient.js` (`getAdminInstance()` dùng `ADMIN_AUTH_STORAGE`).
 
 ### 3) Users Management (pages/admin/Dashboard/Users)
 - UI dùng cùng token màu admin (`styles/admin/colorsToken.css`), layout thống nhất với Clinics.
 - Danh sách người dùng phân trang + tìm kiếm theo tên/email.
 - Cột hiển thị: avatar/tên, SĐT, địa chỉ, ngày tạo, email, vai trò, trạng thái.
-- API: `GET /api/user?page&limit&search` qua `src/data/admin/api/userApi.js`.
+- API: `GET /api/user?page&limit&search` qua `src/services/userService.js` (`getUserListApi`).
 
 ### 4) Posts Management (pages/admin/Dashboard/Posts)
 - UI thống nhất với Clinics/Users (stat cards + bảng + thanh tìm kiếm).
@@ -447,11 +474,11 @@ Luồng đang chạy:
   - Chế độ read-only sau khi hết hạn.
   - Tab Hồ sơ y tế: appointment -> petId -> medical history.
   - TODO: kiểm tra quyền chia sẻ hồ sơ trước khi hiển thị.
-- `src/data/Vererianrian/api/appointmentApi.js`:
-  - `getVeterinarianServerNowApi()` dùng đồng bộ clock server cho countdown.
-- `src/data/Vererianrian/api/medicalApi.js`:
+- `src/services/appointmentService.js`:
+  - `getServerNowApi()` dùng đồng bộ clock server cho countdown.
+- `src/services/medicalService.js`:
   - API create/update medical record và CRUD medical orders/medicines phục vụ lưu/cập nhật phiếu khám.
-  - `getMedicalByPetId`, `getMedicalOrdersByMedicalId`, `getMedicinesByMedicalId` dùng cho tab hồ sơ y tế.
+  - `getMedicalByPetIdApi`, `getMedicalOrdersByMedicalIdApi`, `getMedicinesByMedicalIdApi` dùng cho tab hồ sơ y tế.
 
 ## Styling & Design System
 
@@ -619,8 +646,8 @@ Ghi chú:
 
 ### Tương thích ngược
 - `src/constants/veterinaryLabels.js` giữ nguyên tên hàm public (`getRoleLabel`, `getSpecialtyLabel`, `getSpecialtyOptions`) nhưng delegate sang `src/utils/enumLabel.js`.
-- `src/data/client/api/appointmentApi.js` và `src/data/Clinic/api/appointmentApi.js` giữ export cũ (`SERVICE_OPTIONS`, `APPOINTMENT_STATUS_LABEL`) nhưng dữ liệu lấy từ `src/constants/enumLabels.js`.
-- `src/data/client/api/petApi.js` giữ API cũ (`getSpeciesLabel`, `getBreedLabel`) nhưng dùng mapping tập trung.
+- `src/services/appointmentService.js` export `SERVICE_OPTIONS`, `APPOINTMENT_STATUS_LABEL` — dữ liệu lấy từ `src/constants/enumLabels.js`.
+- `src/services/petService.js` re-export `getSpeciesLabel`, `getBreedLabel` — dùng mapping tập trung từ `src/utils/enumLabel.js`.
 
 ### Quy tắc maintain bắt buộc
 1. Không hardcode nhãn enum tiếng Việt trực tiếp trong page/component.
@@ -631,7 +658,7 @@ Ghi chú:
 ### Chuẩn canonical cho Appointment Status
 - Canonical frontend chỉ dùng: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`.
 - Không dùng biến thể sai chính tả của `CANCELLED` trong hằng số public hoặc mapping label.
-- `src/data/client/api/appointmentApi.js` có bước normalize dữ liệu cũ (`SUCCESS`, `DONE`, và biến thể CANCEL*ED) về canonical status trước khi render UI.
+- `src/services/appointmentService.js` có bước normalize dữ liệu cũ (`SUCCESS`, `DONE`, và biến thể CANCEL*ED) về canonical status trước khi render UI.
 
 ## Bug Fix Log: Đồng bộ dữ liệu sau tạo phiếu khám (2026-04)
 
@@ -683,10 +710,10 @@ Ghi chú:
 
 ### Lưu ý khi maintain
 - API `POST /auth/change-password` luôn trả `{ message, accessToken }`. FE bắt buộc phải dùng `accessToken` mới này.
-- Clinic portal có export `changePasswordApi` trong `src/data/Clinic/api/auth.js` nhưng chưa dùng. Khi triển khai đổi mật khẩu cho Clinic/Vet portal, phải áp dụng cùng pattern: lấy token mới từ response và gọi `login()`.
+- `changePasswordApi` trong `src/services/authService.js` dùng chung cho mọi portal. Khi triển khai đổi mật khẩu cho Clinic/Vet portal, phải áp dụng cùng pattern: lấy token mới từ response và gọi `login()`.
 
 ## Backlog ưu tiên đề xuất (Web)
-1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
+1. ~~Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.~~ ✓ Đã hoàn thành — toàn bộ API tập trung trong `src/services/`, chỉ Cloudinary upload dùng native `fetch()`.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.
 3. Rà soát và dọn các đường dẫn legacy `/admin/*` còn sót trong code/component để thống nhất route canonical.
 4. Thay mock bằng API thật cho các màn admin/veterinarian còn template.

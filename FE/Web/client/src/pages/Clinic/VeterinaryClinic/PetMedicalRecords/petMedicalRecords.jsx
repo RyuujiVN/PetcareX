@@ -28,18 +28,19 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
 	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
 	APPOINTMENT_STATUS,
-	getClinicAppointmentByIdApi,
-} from '../../../../data/Clinic/api/appointmentApi'
-import { getClinicByIdApi } from '../../../../data/Clinic/api/clinicApi'
-import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../data/Clinic/api/invoiceApi'
+	getAppointmentByIdApi,
+} from '../../../../services/appointmentService'
+import { getClinicByIdApi } from '../../../../services/clinicService'
+import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../services/invoiceService'
 import {
-	getMedicalById,
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
-} from '../../../../data/Clinic/api/medicalApi'
-import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
-import { getUserByIdApi, getUserProfileApi } from '../../../../data/Clinic/api/user'
+	getMedicalByIdApi,
+	getMedicalByPetIdApi,
+	getMedicalOrdersByMedicalIdApi,
+	getMedicinesByMedicalIdApi,
+} from '../../../../services/medicalService'
+import { getPetByIdApi } from '../../../../services/petService'
+import { getUserByIdApi, getUserProfileApi } from '../../../../services/userService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import { formatClinicOpenHours, getClinicInfoContent } from '../../../../data/client/utils/clinicInfoStorage'
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
 import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
@@ -302,7 +303,7 @@ export default function PetMedicalRecords() {
 
 			let resolvedAppointment = stateRecord
 			if (!resolvedAppointment || String(resolvedAppointment?.id) !== String(appointmentId)) {
-				resolvedAppointment = await getClinicAppointmentByIdApi(appointmentId)
+				resolvedAppointment = await getAppointmentByIdApi(getAdminInstance(), appointmentId)
 			}
 
 			const clinicIdFromAuth = getCurrentAdminClinicId()
@@ -315,8 +316,8 @@ export default function PetMedicalRecords() {
 			const preferredClinicId = clinicIdFromAppointment || clinicIdFromAuth || ''
 
 			const [profilePayload, initialClinicPayload] = await Promise.all([
-				getUserProfileApi().catch(() => null),
-				preferredClinicId ? getClinicByIdApi(preferredClinicId).catch(() => null) : Promise.resolve(null),
+				getUserProfileApi(getAdminInstance()).catch(() => null),
+				preferredClinicId ? getClinicByIdApi(getAdminInstance(), preferredClinicId).catch(() => null) : Promise.resolve(null),
 			])
 
 			const normalizedProfile = profilePayload?.data || profilePayload || null
@@ -325,7 +326,7 @@ export default function PetMedicalRecords() {
 
 			let resolvedClinicPayload = initialClinicPayload?.data || initialClinicPayload || null
 			if (!resolvedClinicPayload && finalClinicId && String(finalClinicId) !== String(preferredClinicId)) {
-				const retryClinicPayload = await getClinicByIdApi(finalClinicId).catch(() => null)
+				const retryClinicPayload = await getClinicByIdApi(getAdminInstance(), finalClinicId).catch(() => null)
 				resolvedClinicPayload = retryClinicPayload?.data || retryClinicPayload || null
 			}
 
@@ -349,11 +350,11 @@ export default function PetMedicalRecords() {
 				return
 			}
 
-			const medicalPayload = await getMedicalByPetId(resolvedPetId, 1, 200)
+			const medicalPayload = await getMedicalByPetIdApi(getAdminInstance(), resolvedPetId, 1, 200)
 			const medicalRecords = normalizeCollection(medicalPayload)
 			const matchedMedical = selectMedicalRecordByAppointment(medicalRecords, resolvedAppointment)
 			const detailedMedical = matchedMedical?.id
-				? await getMedicalById(matchedMedical.id).catch(() => matchedMedical)
+				? await getMedicalByIdApi(getAdminInstance(), matchedMedical.id).catch(() => matchedMedical)
 				: null
 			const finalMedical = detailedMedical || matchedMedical || null
 			const petIdForDetail = finalMedical?.petId || finalMedical?.pet?.id || matchedMedical?.petId || matchedMedical?.pet?.id || resolvedPetId
@@ -362,7 +363,7 @@ export default function PetMedicalRecords() {
 
 			if (!finalMedical?.id) {
 				const petPayload = petIdForDetail
-					? await getClinicPetByIdApi(petIdForDetail).catch(() => null)
+					? await getPetByIdApi(getAdminInstance(), petIdForDetail).catch(() => null)
 					: null
 				const ownerId =
 					petPayload?.ownerId ||
@@ -370,7 +371,7 @@ export default function PetMedicalRecords() {
 					resolvedAppointment?.ownerId ||
 					resolvedAppointment?.pet?.owner?.id
 				const ownerPayload = ownerId
-					? await getUserByIdApi(ownerId)
+					? await getUserByIdApi(getAdminInstance(), ownerId)
 						.then((response) => response?.data || null)
 						.catch(() => null)
 					: null
@@ -383,9 +384,9 @@ export default function PetMedicalRecords() {
 			}
 
 			const [ordersPayload, medicinesPayload, petPayload] = await Promise.all([
-				getMedicalOrdersByMedicalId(finalMedical.id).catch(() => []),
-				getMedicinesByMedicalId(finalMedical.id).catch(() => []),
-				petIdForDetail ? getClinicPetByIdApi(petIdForDetail).catch(() => null) : null,
+				getMedicalOrdersByMedicalIdApi(getAdminInstance(), finalMedical.id).catch(() => []),
+				getMedicinesByMedicalIdApi(getAdminInstance(), finalMedical.id).catch(() => []),
+				petIdForDetail ? getPetByIdApi(getAdminInstance(), petIdForDetail).catch(() => null) : null,
 			])
 			const ownerId =
 				petPayload?.ownerId ||
@@ -395,7 +396,7 @@ export default function PetMedicalRecords() {
 				resolvedAppointment?.ownerId ||
 				resolvedAppointment?.pet?.owner?.id
 			const ownerPayload = ownerId
-				? await getUserByIdApi(ownerId)
+				? await getUserByIdApi(getAdminInstance(), ownerId)
 					.then((response) => response?.data || null)
 					.catch(() => null)
 				: null
@@ -788,7 +789,7 @@ export default function PetMedicalRecords() {
 				appointment?.pet?.owner?.id ||
 				''
 
-			await upsertPaidInvoiceByMedicalApi({
+			await upsertPaidInvoiceByMedicalApi(getAdminInstance(), {
 				medicalRecordId: medicalRecord.id,
 				petOwnerId,
 				note: 'Thanh toán tại phòng khám',

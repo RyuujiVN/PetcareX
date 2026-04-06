@@ -7,7 +7,8 @@ import {
   getUserProfileApi,
   updateUserProfileApi,
   uploadAvatarApi,
-} from '../../../../data/client/api/user';
+} from '../../../../services/userService';
+import { getClientInstance } from '../../../../services/apiClient';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import './styles.css';
 
@@ -30,7 +31,7 @@ export default function ProfileUser() {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      const res = await getUserProfileApi();
+      const res = await getUserProfileApi(getClientInstance());
       const data = res.data;
       setProfileData(data);
       setAvatarUrl(data.avatarUrl || null);
@@ -105,7 +106,7 @@ export default function ProfileUser() {
         return;
       }
 
-      const userListRes = await getUserListApi(1, 1000, '');
+      const userListRes = await getUserListApi(getClientInstance(), 1, 1000, '');
       const userItems = Array.isArray(userListRes?.data?.items) ? userListRes.data.items : [];
       const duplicatedEmail = userItems.some(
         (user) => user?.id !== profileData?.id && normalizeEmail(user?.email) === updateData.email,
@@ -124,7 +125,7 @@ export default function ProfileUser() {
         return;
       }
 
-      await updateUserProfileApi(profileData.id, updateData);
+      await updateUserProfileApi(getClientInstance(), profileData.id, updateData);
       setProfileData((prev) => ({ ...prev, ...updateData }));
       await refreshUserProfile();
       message.success('Cập nhật hồ sơ thành công!');

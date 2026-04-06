@@ -16,11 +16,12 @@ import {
   createAppointmentApi,
   getMyAppointmentsApi,
   SERVICE_OPTIONS,
-} from '../../../../data/client/api/appointmentApi';
+} from '../../../../services/appointmentService';
+import { getClientInstance } from '../../../../services/apiClient';
 import { generateAndStoreDiagnosisReport } from '../../../../data/client/api/appointmentDiagnosis';
-import { getClinicByIdApi, getClinicListApi } from '../../../../data/client/api/clinicApi';
-import { getBreedLabel, getMyPetsApi } from '../../../../data/client/api/petApi';
-import { getVeterinarianByClinicApi } from '../../../../data/client/api/veterinarianApi';
+import { getClinicByIdApi, getClinicListApi } from '../../../../services/clinicService';
+import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
+import { getVeterinarianByClinicApi } from '../../../../services/veterinarianService';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import './styles.css';
 
@@ -140,7 +141,7 @@ export default function BookingAppointment() {
   }, [myAppointments, selectedDate, selectedDoctor]);
 
   const fetchPets = async () => {
-    const data = await getMyPetsApi();
+    const data = await getMyPetsApi(getClientInstance());
     const petList = Array.isArray(data) ? data : [];
     setPets(petList);
     if (petList.length > 0) {
@@ -149,7 +150,7 @@ export default function BookingAppointment() {
   };
 
   const fetchClinics = async () => {
-    const res = await getClinicListApi(1, 50);
+    const res = await getClinicListApi(getClientInstance(), 1, 50);
     const clinicList = Array.isArray(res?.items) ? res.items : [];
     setClinics(clinicList);
     if (clinicList.length > 0) {
@@ -170,7 +171,7 @@ export default function BookingAppointment() {
   };
 
   const fetchAppointments = async () => {
-    const res = await getMyAppointmentsApi(1, 200);
+    const res = await getMyAppointmentsApi(getClientInstance(), 1, 200);
     setMyAppointments(Array.isArray(res?.items) ? res.items : []);
   };
 
@@ -181,7 +182,7 @@ export default function BookingAppointment() {
       return;
     }
 
-    const res = await getVeterinarianByClinicApi(nextClinicId, 1, 50);
+    const res = await getVeterinarianByClinicApi(getClientInstance(), nextClinicId, 1, 50);
     const doctorList = Array.isArray(res?.items) ? res.items : [];
     setDoctors(doctorList);
 
@@ -203,7 +204,7 @@ export default function BookingAppointment() {
       return;
     }
 
-    const detail = await getClinicByIdApi(nextClinicId);
+    const detail = await getClinicByIdApi(getClientInstance(), nextClinicId);
     setClinicDetail(detail || null);
   };
 
@@ -417,7 +418,7 @@ export default function BookingAppointment() {
 
     try {
       setSubmitting(true);
-      const created = await createAppointmentApi(payload);
+      const created = await createAppointmentApi(getClientInstance(), payload);
 
       const appointmentData = {
         petName: created?.pet?.name || selectedPet.name,

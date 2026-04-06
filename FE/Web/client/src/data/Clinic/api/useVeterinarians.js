@@ -1,12 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem, setAdminAuthItem } from '../../../constants/authStorage';
-import { getUserProfileApi } from './user';
+import { getUserProfileApi } from '../../../services/userService';
+import { getAdminInstance } from '../../../services/apiClient';
 import {
-  createVeterinarian,
-  deleteVeterinarian,
-  getVeterinarians,
-  updateVeterinarian,
-} from './veterinarianService';
+  getVeterinariansApi,
+  createVeterinarianApi,
+  deleteVeterinarianApi,
+  updateVeterinarianApi,
+} from '../../../services/veterinarianService';
 
 const DEFAULT_PAGINATION = {
   totalItems: 0,
@@ -72,7 +73,7 @@ export default function useVeterinarians(options = {}) {
       }
 
       try {
-        const profileResponse = await getUserProfileApi();
+        const profileResponse = await getUserProfileApi(getAdminInstance());
         const profile = profileResponse?.data || {};
         const clinicId = profile?.clinicId || profile?.clinic?.id || '';
 
@@ -112,7 +113,7 @@ export default function useVeterinarians(options = {}) {
         setLoading(true);
         setError('');
 
-        const payload = await getVeterinarians(page, size, {
+        const payload = await getVeterinariansApi(getAdminInstance(), page, size, {
           clinicId: targetClinicId,
           search,
           specialty,
@@ -155,7 +156,7 @@ export default function useVeterinarians(options = {}) {
           throw new Error('Không tìm thấy clinicId để tạo bác sĩ');
         }
 
-        const payload = await createVeterinarian({
+        const payload = await createVeterinarianApi(getAdminInstance(), {
           ...data,
           clinicId: targetClinicId,
         });
@@ -178,7 +179,7 @@ export default function useVeterinarians(options = {}) {
       setError('');
       setSuccess('');
 
-      const payload = await updateVeterinarian(id, data);
+      const payload = await updateVeterinarianApi(getAdminInstance(), id, data);
       setSuccess('Cập nhật bác sĩ thành công');
       return payload;
     } catch (apiError) {
@@ -195,7 +196,7 @@ export default function useVeterinarians(options = {}) {
       setError('');
       setSuccess('');
 
-      const payload = await deleteVeterinarian(id);
+      const payload = await deleteVeterinarianApi(getAdminInstance(), id);
       setSuccess('Xóa bác sĩ thành công');
       return payload;
     } catch (apiError) {

@@ -11,12 +11,13 @@ import {
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import {
-    getMedicalById,
-    getMedicalByPetId,
-    getMedicalOrdersByMedicalId,
-    getMedicinesByMedicalId,
-} from '../../../../data/Clinic/api/medicalApi'
-import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
+    getMedicalByIdApi,
+    getMedicalByPetIdApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicinesByMedicalIdApi,
+} from '../../../../services/medicalService'
+import { getPetByIdApi } from '../../../../services/petService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import {
     getMedicalRecordStatusLabel,
     getMedicineUnitLabel,
@@ -201,10 +202,10 @@ function ViewMedicalRecords() {
 
 			let records = []
 			if (medicalId) {
-				const detail = await getMedicalById(medicalId)
+				const detail = await getMedicalByIdApi(getAdminInstance(), medicalId)
 				records = detail ? [detail] : []
 			} else if (resolvedPetId) {
-				const byPet = await getMedicalByPetId(resolvedPetId)
+				const byPet = await getMedicalByPetIdApi(getAdminInstance(), resolvedPetId)
 				records = Array.isArray(byPet?.items)
 					? byPet.items
 					: Array.isArray(byPet?.data)
@@ -217,7 +218,7 @@ function ViewMedicalRecords() {
 			const firstRecordPetId = records[0]?.pet?.id || records[0]?.petId
 			const petDetail =
 				resolvedPetId || firstRecordPetId
-					? await getClinicPetByIdApi(resolvedPetId || firstRecordPetId).catch(() => null)
+					? await getPetByIdApi(getAdminInstance(), resolvedPetId || firstRecordPetId).catch(() => null)
 					: null
 
 			if (records.length === 0 && selectedRecord) {
@@ -239,8 +240,8 @@ function ViewMedicalRecords() {
 			const enrichedRecords = await Promise.all(
 				records.map(async (record) => {
 					const [medicalOrders, medicines] = await Promise.all([
-						getMedicalOrdersByMedicalId(record.id).catch(() => []),
-						getMedicinesByMedicalId(record.id).catch(() => []),
+						getMedicalOrdersByMedicalIdApi(getAdminInstance(), record.id).catch(() => []),
+						getMedicinesByMedicalIdApi(getAdminInstance(), record.id).catch(() => []),
 					])
 
 					return {

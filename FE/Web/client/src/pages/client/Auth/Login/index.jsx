@@ -6,7 +6,8 @@ import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
-import { loginApi } from '../../../../data/client/api/auth';
+import { loginApi } from '../../../../services/authService';
+import { getClientInstance } from '../../../../services/apiClient';
 import { getAuthPortalByRole, getPostLoginPathByRole } from '../../../../constants/authRole';
 import { useAuth as useAdminAuth } from '../../../../hooks/Clinic/AuthContext';
 import { useAuth as useClientAuth } from '../../../../hooks/client/AuthContext';
@@ -61,7 +62,7 @@ export default function Login() {
       const email = values.email.trim().toLowerCase();
       const password = values.password;
 
-      const res = await loginApi(email, password);
+      const res = await loginApi(getClientInstance(), email, password);
 
       const data = res.data;
 

@@ -12,7 +12,8 @@ import React from "react";
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
 import { getAuthPortalByRole, getPostLoginPathByRole } from "../../../../constants/authRole";
-import { registerApi } from "../../../../data/client/api/auth";
+import { registerApi } from "../../../../services/authService";
+import { getClientInstance } from "../../../../services/apiClient";
 import { useAuth as useAdminAuth } from "../../../../hooks/Clinic/AuthContext";
 import { useAuth } from "../../../../hooks/client/AuthContext";
 import { authenticateClientWithGoogle } from "../../../../data/client/utils/clientGoogleAuth";
@@ -81,7 +82,7 @@ export default function Register() {
   const handleRegister = async (values) => {
     try {
       setLoading(true);
-      await registerApi({
+      await registerApi(getClientInstance(), {
         fullName: values.fullName,
         email: values.email,
         password: values.password,

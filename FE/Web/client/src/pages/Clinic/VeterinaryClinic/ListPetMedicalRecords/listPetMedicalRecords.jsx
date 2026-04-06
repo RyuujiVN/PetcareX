@@ -3,8 +3,9 @@ import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, messag
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
-import { getClinicPetSpeciesApi } from '../../../../data/Clinic/api/petApi'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
+import { getAdminInstance } from '../../../../services/apiClient'
+import { getPetSpeciesApi } from '../../../../services/petService'
 import { getPetBreedLabel, getPetSpeciesLabel } from '../../../../utils/enumLabel'
 import styles from './listPetMedicalRecords.module.css'
 
@@ -76,7 +77,7 @@ export default function ListPetMedicalRecords() {
 	const fetchSpecies = useCallback(async () => {
 		try {
 			setLoadingSpecies(true)
-			const response = await getClinicPetSpeciesApi()
+			const response = await getPetSpeciesApi(getAdminInstance())
 			setSpeciesList(Array.isArray(response) ? response : [])
 		} catch {
 			setSpeciesList([])
@@ -89,7 +90,7 @@ export default function ListPetMedicalRecords() {
 		try {
 			setLoading(true)
 
-			const response = await getClinicAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 500,
 				date: selectedDate.format('YYYY-MM-DD'),

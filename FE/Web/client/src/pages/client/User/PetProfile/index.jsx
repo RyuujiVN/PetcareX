@@ -23,7 +23,8 @@ import {
 
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { getUserProfileApi } from "../../../../data/client/api/user";
+import { getUserProfileApi } from "../../../../services/userService";
+import { getClientInstance } from "../../../../services/apiClient";
 import {
   getBreedLabel,
   getPetByIdApi,
@@ -33,7 +34,7 @@ import {
   getSpeciesLabel,
   uploadPetAvatarApi,
   updatePetApi,
-} from "../../../../data/client/api/petApi";
+} from "../../../../services/petService";
 
 import dayjs from "dayjs";
 
@@ -100,7 +101,7 @@ export default function PetProfile() {
 
   const fetchUser = async () => {
     try {
-      const res = await getUserProfileApi();
+      const res = await getUserProfileApi(getClientInstance());
       setOwnerName(res.data?.fullName || "");
     } catch (error) {
       message.warning("Không lấy được thông tin người dùng");
@@ -109,7 +110,7 @@ export default function PetProfile() {
 
   const fetchSpecies = async () => {
     try {
-      const speciesData = await getPetSpeciesApi();
+      const speciesData = await getPetSpeciesApi(getClientInstance());
       setSpeciesList(Array.isArray(speciesData) ? speciesData : []);
     } catch (error) {
       message.error(error.message || "Không thể tải danh sách loài");
@@ -118,7 +119,7 @@ export default function PetProfile() {
 
   const fetchBreedsBySpecies = async (speciesId) => {
     try {
-      const breedsData = await getBreedsBySpeciesApi(speciesId);
+      const breedsData = await getBreedsBySpeciesApi(getClientInstance(), speciesId);
       setBreedList(Array.isArray(breedsData) ? breedsData : []);
     } catch (error) {
       message.error(error.message || "Không thể tải danh sách giống");
@@ -134,14 +135,14 @@ export default function PetProfile() {
 
       if (petIdFromQuery) {
         try {
-          petInfo = await getPetByIdApi(petIdFromQuery);
+          petInfo = await getPetByIdApi(getClientInstance(), petIdFromQuery);
         } catch (error) {
           petInfo = null;
         }
       }
 
       if (!petInfo) {
-        const pets = await getMyPetsApi();
+        const pets = await getMyPetsApi(getClientInstance());
         const petList = Array.isArray(pets) ? pets : [];
         petInfo = petIdFromQuery
           ? petList.find((item) => item.id === petIdFromQuery)
@@ -264,7 +265,7 @@ export default function PetProfile() {
         avatar: avatarUrl,
       };
 
-      await updatePetApi(currentPetId, updatePayload);
+      await updatePetApi(getClientInstance(), currentPetId, updatePayload);
 
       setPetData((prev) => ({
         ...prev,

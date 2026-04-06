@@ -1,5 +1,6 @@
 ﻿import { createContext, useContext, useEffect, useState } from "react";
-import { getUserProfileApi } from "../../data/client/api/user";
+import { getUserProfileApi } from "../../services/userService";
+import { getClientInstance } from "../../services/apiClient";
 import {
   CLIENT_AUTH_STORAGE,
   clearAuthStorage,
@@ -19,7 +20,7 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     if (token) {
-      getUserProfileApi()
+      getUserProfileApi(getClientInstance())
         .then((res) => {
           setUserProfile(res.data);
           localStorage.setItem(CLIENT_AUTH_STORAGE.userInfoKey, JSON.stringify(res.data));
@@ -56,7 +57,7 @@ export const AuthProvider = ({ children }) => {
   const refreshUserProfile = async () => {
     if (!token) return;
     try {
-      const res = await getUserProfileApi();
+      const res = await getUserProfileApi(getClientInstance());
       setUserProfile(res.data);
       localStorage.setItem(CLIENT_AUTH_STORAGE.userInfoKey, JSON.stringify(res.data));
       return res.data;

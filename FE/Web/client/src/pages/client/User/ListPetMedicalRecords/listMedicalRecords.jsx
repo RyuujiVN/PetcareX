@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Button, Spin, Empty, message, Modal, Dropdown } from 'antd';
 import { EyeOutlined, PlusOutlined, MoreOutlined } from '@ant-design/icons';
 import { createSearchParams, useNavigate } from 'react-router-dom';
-import { deletePetApi, getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi';
+import { deletePetApi, getMyPetsApi, getBreedLabel } from '../../../../services/petService';
+import { getClientInstance } from '../../../../services/apiClient';
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import styles from './listMedicalRecords.module.css';
 
@@ -45,7 +46,7 @@ const ListPetMedicalRecords = () => {
     const fetchPets = async () => {
       try {
         setLoading(true);
-        const petData = await getMyPetsApi();
+        const petData = await getMyPetsApi(getClientInstance());
         setPets(Array.isArray(petData) ? petData : []);
       } catch (error) { 
         message.error(error.message || 'Lỗi khi tải danh sách thú cưng');
@@ -78,7 +79,7 @@ const ListPetMedicalRecords = () => {
       centered: true,
       onOk: async () => {
         try {
-          await deletePetApi(petId);
+          await deletePetApi(getClientInstance(), petId);
           setPets((prev) => prev.filter((pet) => pet.id !== petId));
           message.success('Xóa thú cưng thành công');
         } catch (error) {

@@ -37,7 +37,8 @@ import {
 } from '@ant-design/icons'
 import { useLocation } from 'react-router-dom'
 import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { getUserByIdApi, uploadUserImageApi } from '../../../../data/Clinic/api/user'
+import { getUserByIdApi, uploadUserImageApi } from '../../../../services/userService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import { getRoleLabel, getSpecialtyLabel, getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import styles from './InformationVererianrian.module.css'
 
@@ -142,7 +143,7 @@ export default function InformationVererianrian() {
 			if (veterinarian?.user?.phone && veterinarian?.user?.address) return
 
 			try {
-				const response = await getUserByIdApi(veterinarian.userId)
+				const response = await getUserByIdApi(getAdminInstance(), veterinarian.userId)
 				const userData = response?.data
 				if (!userData) return
 

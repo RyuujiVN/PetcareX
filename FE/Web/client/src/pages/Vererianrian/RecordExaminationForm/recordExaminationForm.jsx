@@ -35,37 +35,36 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
 	APPOINTMENT_STATUS,
-	getVeterinarianAppointmentsApi,
-	getVeterinarianServerNowApi,
-	updateVeterinarianAppointmentStatusApi,
-} from '../../../data/Vererianrian/api/appointmentApi'
+	getAppointmentsApi,
+	getServerNowApi,
+	updateAppointmentStatusApi,
+} from '../../../services/appointmentService'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
 	createMedicalMedicineApi,
 	createMedicalOrderApi,
 	createMedicalRecordApi,
-	deleteMedicalOrder,
-	deleteMedicine,
-	getMedicalById,
-	getMedicalByPetId,
+	deleteMedicalOrderApi,
+	deleteMedicineApi,
+	getMedicalByIdApi,
+	getMedicalByPetIdApi,
 	getMedicalOrderCatalogApi,
-	getMedicalOrdersByMedicalId,
+	getMedicalOrdersByMedicalIdApi,
 	getMedicineCatalogApi,
-	getMedicinesByMedicalId,
+	getMedicinesByMedicalIdApi,
 	updateMedicalRecordApi,
-} from '../../../data/Vererianrian/api/medicalApi'
+} from '../../../services/medicalService'
 import {
-	createVeterinarianPetApi,
-	getVeterinarianPetBreedsApi,
-	getVeterinarianPetByIdApi,
-	getVeterinarianPetsByOwnerApi,
-	getVeterinarianPetSpeciesApi,
-} from '../../../data/Vererianrian/api/petApi'
-import {
-	getVeterinarianUserByIdApi,
-	registerVeterinarianUserApi,
-	searchVeterinarianUsersApi,
-} from '../../../data/Vererianrian/api/userApi'
-import { getBreedLabel, getSpeciesLabel } from '../../../data/client/api/petApi'
+	createPetApi,
+	getBreedsBySpeciesApi,
+	getPetByIdApi,
+	getPetsByOwnerApi,
+	getPetSpeciesApi,
+	getBreedLabel,
+	getSpeciesLabel,
+} from '../../../services/petService'
+import { getUserByIdApi, getUserListApi } from '../../../services/userService'
+import { registerApi } from '../../../services/authService'
 import { ServiceEnum } from '../../../enum/service.enum'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
@@ -496,7 +495,7 @@ export default function RecordExaminationForm() {
 			}
 
 			try {
-				const payload = await getVeterinarianPetByIdApi(historyPetId)
+				const payload = await getPetByIdApi(getAdminInstance(), historyPetId)
 				if (active) setPetDetail(payload || null)
 			} catch {
 				if (active) setPetDetail(null)
@@ -514,7 +513,7 @@ export default function RecordExaminationForm() {
 		if (isWalkIn) return
 		if (!appointmentId || location?.state?.appointment?.appointmentId === appointmentId) return
 
-		const response = await getVeterinarianAppointmentsApi({ page: 1, limit: 500 })
+		const response = await getAppointmentsApi(getAdminInstance(), { page: 1, limit: 500 })
 		const items = Array.isArray(response?.items) ? response.items : []
 		const found = items.find((item) => String(item?.id) === String(appointmentId))
 		if (found) {
@@ -530,8 +529,8 @@ export default function RecordExaminationForm() {
 			const [medicalOrders, medicines, species, serverNowMs] = await Promise.all([
 				getMedicalOrderCatalogApi(),
 				getMedicineCatalogApi(),
-				getVeterinarianPetSpeciesApi(),
-				getVeterinarianServerNowApi().catch(() => null),
+				getPetSpeciesApi(getAdminInstance()),
+				getServerNowApi(getAdminInstance()).catch(() => null),
 			])
 
 			setMedicalOrderOptions(normalizeCollection(medicalOrders))
@@ -588,7 +587,7 @@ export default function RecordExaminationForm() {
 			}
 
 			try {
-				const payload = await getMedicalByPetId(petId, 1, 200)
+				const payload = await getMedicalByPetIdApi(getAdminInstance(),petId, 1, 200)
 				const records = Array.isArray(payload?.items)
 					? payload.items
 					: Array.isArray(payload?.data)
@@ -630,7 +629,7 @@ export default function RecordExaminationForm() {
 
 				const idToFetch = matchedMedical?.id || appointmentMedicalId
 				const resolvedMedical = idToFetch
-					? await getMedicalById(idToFetch).catch(() => matchedMedical || null)
+					? await getMedicalByIdApi(getAdminInstance(),idToFetch).catch(() => matchedMedical || null)
 					: null
 				if (!resolvedMedical || !active) {
 					setEditableMedicalRecord(null)
@@ -640,8 +639,8 @@ export default function RecordExaminationForm() {
 				}
 
 				const [orders, medicines] = await Promise.all([
-					getMedicalOrdersByMedicalId(resolvedMedical.id).catch(() => []),
-					getMedicinesByMedicalId(resolvedMedical.id).catch(() => []),
+					getMedicalOrdersByMedicalIdApi(getAdminInstance(),resolvedMedical.id).catch(() => []),
+					getMedicinesByMedicalIdApi(getAdminInstance(),resolvedMedical.id).catch(() => []),
 				])
 
 				if (!active) return
@@ -689,7 +688,7 @@ export default function RecordExaminationForm() {
 			try {
 				setHistoryLoading(true)
 				// TODO: Check pet owner's sharing permission before displaying medical records.
-				const payload = await getMedicalByPetId(historyPetId, 1, 200)
+				const payload = await getMedicalByPetIdApi(getAdminInstance(),historyPetId, 1, 200)
 				let records = normalizeCollection(payload)
 				if (!active) return
 
@@ -702,7 +701,7 @@ export default function RecordExaminationForm() {
 				records = await Promise.all(
 					records.map(async (record) => {
 						if (!record?.id) return record
-						const detail = await getMedicalById(record.id).catch(() => null)
+						const detail = await getMedicalByIdApi(getAdminInstance(),record.id).catch(() => null)
 						return detail ? { ...record, ...detail } : record
 					}),
 				)
@@ -716,8 +715,8 @@ export default function RecordExaminationForm() {
 				const enriched = await Promise.all(
 					records.map(async (record) => {
 						const [orders, medicines] = await Promise.all([
-							getMedicalOrdersByMedicalId(record.id).catch(() => []),
-							getMedicinesByMedicalId(record.id).catch(() => []),
+							getMedicalOrdersByMedicalIdApi(getAdminInstance(),record.id).catch(() => []),
+							getMedicinesByMedicalIdApi(getAdminInstance(),record.id).catch(() => []),
 						])
 
 						return {
@@ -797,7 +796,8 @@ export default function RecordExaminationForm() {
 			if (!appointmentOwnerId || appointmentOwnerEmail) return
 
 			try {
-				const owner = await getVeterinarianUserByIdApi(appointmentOwnerId)
+				const ownerResponse = await getUserByIdApi(getAdminInstance(), appointmentOwnerId)
+				const owner = ownerResponse.data
 				const resolvedEmail = owner?.email || owner?.data?.email || ''
 				if (!resolvedEmail || !active) return
 
@@ -840,7 +840,7 @@ export default function RecordExaminationForm() {
 			}
 
 			try {
-				const breeds = await getVeterinarianPetBreedsApi(selectedSpecies)
+				const breeds = await getBreedsBySpeciesApi(getAdminInstance(), selectedSpecies)
 				if (mounted) {
 					setBreedOptions(Array.isArray(breeds) ? breeds : [])
 				}
@@ -977,7 +977,8 @@ export default function RecordExaminationForm() {
 
 	const findUserByEmail = async (email) => {
 		try {
-			const payload = await searchVeterinarianUsersApi({ search: email, page: 1, limit: 50 })
+			const searchResponse = await getUserListApi(getAdminInstance(), 1, 50, email)
+			const payload = searchResponse.data
 			const users = normalizeCollection(payload)
 			return users.find((user) => normalizeEmail(user?.email) === email) || null
 		} catch {
@@ -987,7 +988,7 @@ export default function RecordExaminationForm() {
 
 	const findPetByOwnerAndName = async (ownerId, petName) => {
 		try {
-			const payload = await getVeterinarianPetsByOwnerApi({ ownerId, page: 1, limit: 200 })
+			const payload = await getPetsByOwnerApi(getAdminInstance(), { ownerId, page: 1, limit: 200 })
 			const pets = normalizeCollection(payload)
 			const normalizedName = String(petName || '').trim().toLowerCase()
 			return pets.find((pet) => String(pet?.name || '').trim().toLowerCase() === normalizedName) || null
@@ -1058,7 +1059,7 @@ export default function RecordExaminationForm() {
 			if (!owner) {
 				showWalkInStep('Đang tạo tài khoản khách hàng...')
 				// Placeholder password; backend should replace with random password + email notification.
-				await registerVeterinarianUserApi({
+				await registerApi(getAdminInstance(), {
 					fullName: values.customerName,
 					email: normalizedEmail,
 					password: EMERGENCY_TEMP_PASSWORD,
@@ -1081,7 +1082,7 @@ export default function RecordExaminationForm() {
 			let pet = await findPetByOwnerAndName(ownerId, values.petName)
 			if (!pet) {
 				showWalkInStep('Đang tạo thú cưng mới...')
-				pet = await createVeterinarianPetApi({
+				pet = await createPetApi(getAdminInstance(), {
 					ownerId,
 					name: values.petName,
 					species: values.species,
@@ -1137,8 +1138,8 @@ export default function RecordExaminationForm() {
 					.map((item) => item?.id)
 					.filter(Boolean)
 
-				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrder(id)))
-				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicine(id)))
+				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrderApi(getAdminInstance(), id)))
+				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicineApi(getAdminInstance(), id)))
 			} else {
 				const createdMedical = await createMedicalRecordApi(createPayload)
 				medicalId = createdMedical?.id
@@ -1284,8 +1285,8 @@ export default function RecordExaminationForm() {
 					.map((item) => item?.id)
 					.filter(Boolean)
 
-				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrder(id)))
-				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicine(id)))
+				await Promise.allSettled(existingOrderIds.map((id) => deleteMedicalOrderApi(getAdminInstance(), id)))
+				await Promise.allSettled(existingMedicineIds.map((id) => deleteMedicineApi(getAdminInstance(), id)))
 			} else {
 				const createdMedical = await createMedicalRecordApi(createPayload)
 				medicalId = createdMedical?.id
@@ -1338,7 +1339,7 @@ export default function RecordExaminationForm() {
 			)
 
 			if (appointmentId) {
-				await updateVeterinarianAppointmentStatusApi(appointmentId, {
+				await updateAppointmentStatusApi(getAdminInstance(), appointmentId, {
 					status: APPOINTMENT_STATUS.COMPLETED,
 				}).catch(() => undefined)
 			}

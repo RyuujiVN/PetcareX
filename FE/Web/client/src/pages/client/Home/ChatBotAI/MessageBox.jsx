@@ -15,7 +15,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import "github-markdown-css/github-markdown-light.css";
 import { addRoom, fetchRenameRoom } from "../../../../redux/slices/roomSlice";
-import { uploadMultipleFilesToCloudinary } from "../../../../data/shared/api/cloudinaryUploadFetch";
+import { uploadMultipleFilesToCloudinary } from "../../../../services/cloudinaryService";
 
 const IMAGE_LINE_PREFIX = "[image]:";
 const MAX_ROOM_NAME_LENGTH = 80;

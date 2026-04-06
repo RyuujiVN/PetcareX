@@ -2,7 +2,8 @@
 import { message, Spin } from "antd";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getClinicByIdApi, getClinicListApi } from "../../../../data/client/api/clinicApi";
+import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
+import { getClientInstance } from "../../../../services/apiClient";
 import { getClinicInfoContent } from "../../../../data/client/utils/clinicInfoStorage";
 import "./styles.css";
 
@@ -19,7 +20,7 @@ export default function ClinicSelection() {
     const fetchClinics = async () => {
       try {
         setLoading(true);
-        const response = await getClinicListApi(1, 50, "");
+        const response = await getClinicListApi(getClientInstance(), 1, 50, "");
         const clinicItems = Array.isArray(response?.items) ? response.items : [];
 
         if (!mounted) return;
@@ -77,7 +78,7 @@ useEffect(() => {
   const handleChoose = async (clinic) => {
     try {
       setLoading(true);
-      const clinicDetail = await getClinicByIdApi(clinic.id);
+      const clinicDetail = await getClinicByIdApi(getClientInstance(), clinic.id);
       const clinicInfo = getClinicInfoContent(clinic.id, clinicDetail || clinic);
       sessionStorage.setItem("selectedClinicId", String(clinic.id));
 

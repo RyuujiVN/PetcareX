@@ -2,7 +2,8 @@ import { Button, Form, Input, message, Spin } from 'antd';
 import React from 'react';
 import { FaPaw } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { forgotPasswordApi } from '../../../../data/client/api/auth';
+import { forgotPasswordApi } from '../../../../services/authService';
+import { getClientInstance } from '../../../../services/apiClient';
 import './styles.css';
 
 export default function ForgotPassword() {
@@ -13,7 +14,7 @@ export default function ForgotPassword() {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      await forgotPasswordApi(values.email);
+      await forgotPasswordApi(getClientInstance(), values.email);
       message.success({
         content: 'Mã OTP đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư đến hoặc thư mục spam.',
         duration: 3,

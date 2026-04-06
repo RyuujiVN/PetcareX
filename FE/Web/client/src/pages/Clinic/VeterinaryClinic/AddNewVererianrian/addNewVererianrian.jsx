@@ -26,7 +26,8 @@ import {
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { uploadUserImageApi, updateUserProfileApi } from '../../../../data/Clinic/api/user'
+import { uploadUserImageApi, updateUserProfileApi } from '../../../../services/userService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import styles from './addNewVererianrian.module.css'
 
@@ -90,7 +91,7 @@ export default function AddNewVererianrian() {
 				if (uploadedAvatarUrl) {
 					updateData.avatarUrl = uploadedAvatarUrl
 				}
-				await updateUserProfileApi(created.userId, updateData)
+				await updateUserProfileApi(getAdminInstance(), created.userId, updateData)
 			} catch (updateError) {
 				// Rollback: xóa bác sĩ vừa tạo để tránh dữ liệu rỗng
 				try {

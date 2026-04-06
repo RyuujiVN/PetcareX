@@ -26,7 +26,8 @@ import {
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { getRoleLabel } from '../../../../constants/veterinaryLabels'
-import { deleteUserApi, getUserListApi } from '../../../../data/admin/api/userApi'
+import { deleteUserApi, getUserListApi } from '../../../../services/userService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import './style.css'
 
 const getAbbreviation = (name) => {
@@ -82,7 +83,8 @@ const fetchAllUsersByKeyword = async (keyword = '') => {
   const items = []
 
   while (page <= totalPages) {
-    const data = await getUserListApi(page, limit, keyword)
+    const response = await getUserListApi(getAdminInstance(), page, limit, keyword)
+    const data = response?.data
     const currentItems = data?.items || []
     const meta = data?.meta || {}
     items.push(...currentItems)
@@ -210,7 +212,7 @@ export default function Users() {
 
   const handleDelete = async (userId) => {
     try {
-      await deleteUserApi(userId)
+      await deleteUserApi(getAdminInstance(), userId)
       message.success('Đã cập nhật trạng thái người dùng')
       const keyword = search.trim()
       await Promise.all([fetchUsers(keyword), fetchRoleStats()])

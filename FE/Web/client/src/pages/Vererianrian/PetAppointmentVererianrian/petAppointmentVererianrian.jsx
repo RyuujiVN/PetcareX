@@ -11,9 +11,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import {
     APPOINTMENT_STATUS,
-    getVeterinarianAppointmentsApi,
-    updateVeterinarianAppointmentStatusApi,
-} from '../../../data/Vererianrian/api/appointmentApi'
+    getAppointmentsApi,
+    updateAppointmentStatusApi,
+} from '../../../services/appointmentService'
+import { getAdminInstance } from '../../../services/apiClient'
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './petAppointmentVererianrian.module.css'
 
@@ -101,7 +102,7 @@ export default function PetAppointmentVererianrian() {
         setIsRefreshing(true)
       }
 
-      const response = await getVeterinarianAppointmentsApi({
+      const response = await getAppointmentsApi(getAdminInstance(), {
         page: 1,
         limit: 500,
         date: TODAY_DATE,
@@ -250,7 +251,7 @@ export default function PetAppointmentVererianrian() {
     updatingIdsRef.current.add(appointment.id)
 
     try {
-      await updateVeterinarianAppointmentStatusApi(appointment.id, {
+      await updateAppointmentStatusApi(getAdminInstance(), appointment.id, {
         status: APPOINTMENT_STATUS.IN_PROGRESS,
       })
       await fetchTodayAppointments({ silent: true })
