@@ -206,22 +206,15 @@
   color: var(--admin-color-danger);
 }
 
-.users-page .user-detail-descriptions .ant-descriptions-item-label {
+.user-detail-descriptions .ant-descriptions-item-label {
   width: 180px;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 @media (max-width: 768px) {
   .users-page .section-title {
     min-width: 100%;
   }
-/* 
-  .users-page .users-table-actions {
-    width: 100%;
-    flex-wrap: wrap;
-    align-items: stretch;
-    margin-left: 0;
-  } */
   
   .users-page .users-search,
   .users-page .users-role-filter-select {

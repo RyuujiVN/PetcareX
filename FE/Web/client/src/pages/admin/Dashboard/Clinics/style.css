@@ -298,7 +298,7 @@
 
 .clinic-detail-descriptions .ant-descriptions-item-label {
   width: 180px;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 @media (max-width: 768px) {
