@@ -208,12 +208,6 @@ export default function Clinics() {
         </Typography.Text>
       ),
     },
-    // {
-    //   title: 'NGÀY TẠO',
-    //   dataIndex: 'createdAt',
-    //   key: 'createdAt',
-    //   render: (date) => formatDate(date),
-    // },
     {
       title: 'EMAIL',
       dataIndex: 'email',
