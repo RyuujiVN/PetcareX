@@ -1,3 +1,7 @@
+import {
+	DownOutlined,
+	UpOutlined,
+} from '@ant-design/icons'
 import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -218,6 +222,7 @@ function MedicalRecords() {
 	const [timelineRecords, setTimelineRecords] = useState(EMPTY_TIMELINE)
 	const [reminders, setReminders] = useState(EMPTY_REMINDERS)
 	const [petSummary, setPetSummary] = useState(DEFAULT_PET_SUMMARY)
+	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
 	const medicalId = searchParams.get('medicalId')
 	const petId = searchParams.get('petId')
 	const handleChangePet = () => {
@@ -283,6 +288,7 @@ function MedicalRecords() {
 			if (records.length === 0) {
 				setTimelineRecords(EMPTY_TIMELINE)
 				setReminders(EMPTY_REMINDERS)
+				setExpandedRecords(new Set())
 				if (!selectedPet) {
 					setPetSummary(DEFAULT_PET_SUMMARY)
 				}
@@ -309,6 +315,7 @@ function MedicalRecords() {
 					mapMedicalToTimelineRecord(record, medicalOrders, medicines),
 				),
 			)
+			setExpandedRecords(new Set())
 
 			setReminders(enrichedRecords.slice(0, 3).map(({ record }) => mapMedicalToReminder(record)))
 
@@ -335,11 +342,24 @@ function MedicalRecords() {
 			message.error(normalizeMedicalErrorMessage(error))
 			setTimelineRecords(EMPTY_TIMELINE)
 			setReminders(EMPTY_REMINDERS)
+			setExpandedRecords(new Set())
 			setPetSummary(DEFAULT_PET_SUMMARY)
 		} finally {
 			setLoading(false)
 		}
 	}, [medicalId, petId])
+
+	const toggleExpandedRecord = useCallback((recordId) => {
+		setExpandedRecords((prev) => {
+			const next = new Set(prev)
+			if (next.has(recordId)) {
+				next.delete(recordId)
+			} else {
+				next.add(recordId)
+			}
+			return next
+		})
+	}, [])
 
 	useEffect(() => {
 		window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -391,59 +411,82 @@ function MedicalRecords() {
 							{timelineRecords.length === 0 ? (
 								<p className={styles.emptyStateText}>{EMPTY_TIMELINE_HINT}</p>
 							) : (
-								timelineRecords.map((record) => (
-								<div key={record.id} className={styles.timelineItem}>
-									<div className={`${styles.timelineMarker} ${styles[record.markerType]}`}>
-										{getMarkerIcon(record.markerType)}
-									</div>
+								timelineRecords.map((record) => {
+									const isExpanded = expandedRecords.has(record.id)
 
-									<div className={styles.recordCard}>
-									<div className={styles.recordHeader}>
-										<h3 style={{fontSize: 22}}>{record.title}</h3>
-										<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
-											{record.status}
-										</span>
-									</div>
+									return (
+										<div key={record.id} className={styles.timelineItem}>
+											<div className={`${styles.timelineMarker} ${styles[record.markerType]}`}>
+												{getMarkerIcon(record.markerType)}
+											</div>
 
-									<div className={styles.recordMetaGrid}>
-										<div>
-											{record.leftInfo.map((line) => (
-												<p key={`${record.id}-${line.label}-left`}>
-													<strong>{line.label}:</strong> {line.value}
-												</p>
-											))}
+											<div className={styles.recordCard}>
+												<div className={styles.recordHeader}>
+													<div className={styles.headerMain}>
+														<h3 style={{fontSize: 22}}>{record.title}</h3>
+													</div>
+
+													<div className={styles.headerActions}>
+														<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
+															{record.status}
+														</span>
+														<button
+															type="button"
+															className={styles.expandButton}
+															onClick={() => toggleExpandedRecord(record.id)}
+															aria-expanded={isExpanded}
+														>
+															{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
+															{isExpanded ? <UpOutlined /> : <DownOutlined />}
+														</button>
+													</div>
+												</div>
+
+												<div className={styles.recordMetaGrid}>
+													<div>
+														{record.leftInfo.map((line) => (
+															<p key={`${record.id}-${line.label}-left`}>
+																<strong>{line.label}:</strong> {line.value}
+															</p>
+														))}
+													</div>
+
+													<div>
+														{record.rightInfo.map((line) => (
+															<p key={`${record.id}-${line.label}-right`}>
+																<strong>{line.label}:</strong> {line.value}
+															</p>
+														))}
+													</div>
+												</div>
+
+												{isExpanded ? (
+													<>
+														<div className={styles.divider} />
+
+														<div className={styles.detailsBlock}>
+															<div className={styles.detailVitalsGrid}>
+																{record.vitalRows.map((line) => (
+																	<p key={`${record.id}-${line.label}`}>
+																		<span>{line.label}:</span> {line.value}
+																	</p>
+																))}
+															</div>
+
+															<div className={styles.detailColumn}>
+																{record.detailRows.map((line) => (
+																	<p key={`${record.id}-${line.label}`}>
+																		<span>{line.label}:</span> {line.value}
+																	</p>
+																))}
+															</div>
+														</div>
+													</>
+												) : null}
+											</div>
 										</div>
-
-										<div>
-											{record.rightInfo.map((line) => (
-												<p key={`${record.id}-${line.label}-right`}>
-													<strong>{line.label}:</strong> {line.value}
-												</p>
-											))}
-										</div>
-									</div>
-
-									<div className={styles.recordDivider} />
-
-									<div className={styles.recordDetails}>
-										<div className={styles.recordVitalsGrid}>
-											{record.vitalRows.map((line) => (
-												<p key={`${record.id}-${line.label}`}>
-													<span>{line.label}:</span> {line.value}
-												</p>
-											))}
-										</div>
-										<div className={styles.recordDetailColumn}>
-											{record.detailRows.map((line) => (
-												<p key={`${record.id}-${line.label}`}>
-													<span>{line.label}:</span> {line.value}
-												</p>
-											))}
-										</div>
-									</div>
-								</div>
-								</div>
-							))
+									)
+								})
 							)}
 						</div>
 					</article>

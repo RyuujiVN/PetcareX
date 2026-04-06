@@ -1,3 +1,4 @@
+import { DownOutlined, UpOutlined } from '@ant-design/icons'
 import { message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import {
@@ -81,6 +82,43 @@ const formatDate = (value) => {
 	return date.toLocaleDateString('vi-VN')
 }
 
+const formatFollowUpDate = (value) => {
+	const resolved = formatDate(value)
+	return resolved === FALLBACK_TEXT ? 'Không' : resolved
+}
+
+const resolveExamDate = (record) =>
+	formatDate(
+		record?.appointment?.appointmentDate ||
+			record?.appointmentDate ||
+			record?.examDate ||
+			record?.visitDate ||
+			record?.createdAt,
+	)
+
+const formatVitalValue = (value, suffix = '') => {
+	if (value === null || value === undefined || value === '') return FALLBACK_TEXT
+	return suffix ? `${value} ${suffix}` : String(value)
+}
+
+const formatBloodPressure = (systolic, diastolic) => {
+	if (!systolic && !diastolic) return FALLBACK_TEXT
+	if (systolic && diastolic) return `${systolic}/${diastolic} mmHg`
+	return `${systolic || diastolic} mmHg`
+}
+
+const resolveMedicineUnitLabel = (item) => {
+	const unitValue =
+		item?.medicine?.unit ||
+		item?.medicine?.medicineUnit ||
+		item?.medicine?.unitType ||
+		item?.unit ||
+		item?.unitType ||
+		''
+	if (!unitValue) return ''
+	return getMedicineUnitLabel(unitValue, unitValue)
+}
+
 const normalizeMedicalErrorMessage = (error) => {
 	const rawMessage = error?.message || 'Không thể tải hồ sơ khám bệnh'
 	const normalized = rawMessage.trim().toLowerCase()
@@ -92,37 +130,33 @@ const normalizeMedicalErrorMessage = (error) => {
 	return rawMessage
 }
 
-const parseConclusionSummary = (conclusionText) => {
-	const raw = String(conclusionText || '').trim()
-	if (!raw) return FALLBACK_TEXT
-
-	const summaryMatch = raw.match(/K(?:e|ế)t\s*lu(?:a|ậ)n\s*:\s*([^\n]+)/i)
-	return summaryMatch?.[1]?.trim() || raw
-}
-
 const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) => {
-	const conclusionSummary = parseConclusionSummary(record?.conclusion)
+	const orderSummary =
+		medicalOrders.length > 0
+			? medicalOrders
+					.map(
+						(order) =>
+							order?.medicalOrder?.nameVn ||
+							order?.medicalOrder?.nameEng ||
+							order?.medicalOrder?.name ||
+							'Chỉ định chưa xác định',
+					)
+					.join(', ')
+			: 'Không có'
+
 	const medicineSummary =
 		medicines.length > 0
-			? medicines.map((medicine, index) => {
+			? medicines.map((medicine) => {
 					const medicineName = medicine?.medicine?.name || FALLBACK_TEXT
-					const quantity = medicine?.quantity ? ` (${medicine.quantity})` : ''
-					const unitValue =
-						medicine?.medicine?.unit ||
-						medicine?.medicine?.medicineUnit ||
-						medicine?.medicine?.unitType ||
-						''
-					const unitLabel = unitValue ? getMedicineUnitLabel(unitValue, unitValue) : ''
+					const unitLabel = resolveMedicineUnitLabel(medicine)
+					const quantity = medicine?.quantity
+						? ` (${medicine.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
+						: ''
 
-					return (
-						<div key={index}>
-							{medicineName}
-							{quantity}
-							{unitLabel ? ` - ${unitLabel}` : ''}
-						</div>
-					)
+					return `${medicineName}${quantity}`
 			  })
-			: 'Chưa kê thuốc'
+				.join(', ')
+			: 'Không có'
 
 	const hasConclusion = Boolean(record?.conclusion)
 	const status = getMedicalRecordStatusLabel(hasConclusion, { uppercase: true })
@@ -132,6 +166,22 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 	if (medicalOrders.length > 0) markerType = 'vaccine'
 	if (medicines.length > 0) markerType = 'skin'
 
+	const vitalRows = [
+		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
+		{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
+		{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
+		{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
+	]
+
+	const detailRows = [
+		{ label: 'Triệu chứng', value: record?.symptoms || FALLBACK_TEXT },
+		{ label: 'Chẩn đoán', value: record?.diagnosis || FALLBACK_TEXT },
+		{ label: 'Kết luận', value: record?.conclusion || FALLBACK_TEXT },
+		{ label: 'Lời dặn bác sĩ', value: record?.note || FALLBACK_TEXT },
+		{ label: 'Chỉ định xét nghiệm', value: orderSummary },
+		{ label: 'Đơn thuốc', value: medicineSummary },
+	]
+
 	return {
 		id: record?.id || `record-${Date.now()}`,
 		markerType,
@@ -140,22 +190,17 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) 
 		statusType,
 		leftInfo: [
 			{ label: 'Tên phòng khám', value: record?.clinic?.name || FALLBACK_TEXT },
-			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
+			{ label: 'Ngày khám', value: resolveExamDate(record) },
 		],
 		rightInfo: [
 			{
 				label: 'Tên bác sĩ',
 				value: record?.veterinarian?.fullName || FALLBACK_TEXT,
 			},
-			{ label: 'Ngày tái khám', value: formatDate(record?.followUpDate) },
+			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
 		],
-		detailRows: [
-			{ label: 'Triệu chứng', value: record?.symptoms || FALLBACK_TEXT },
-			{ label: 'Chẩn đoán', value: record?.diagnosis || FALLBACK_TEXT },
-			{ label: 'Kết luận', value: conclusionSummary },
-			{ label: 'Thuốc', value: medicineSummary },
-			{ label: 'Ghi chú', value: record?.note || FALLBACK_TEXT },
-		],
+		vitalRows,
+		detailRows,
 	}
 }
 
@@ -187,6 +232,7 @@ function ViewMedicalRecords() {
 	const [timelineRecords, setTimelineRecords] = useState(EMPTY_TIMELINE)
 	const [reminders, setReminders] = useState(EMPTY_REMINDERS)
 	const [petSummary, setPetSummary] = useState(DEFAULT_PET_SUMMARY)
+	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
 	const selectedRecord = location?.state?.record
 	const medicalId = searchParams.get('medicalId')
 	const petId = searchParams.get('petId')
@@ -215,6 +261,16 @@ function ViewMedicalRecords() {
 							: []
 			}
 
+			if (!medicalId && records.length > 0) {
+				records = await Promise.all(
+					records.map(async (record) => {
+						if (!record?.id) return record
+						const detail = await getMedicalByIdApi(getAdminInstance(), record.id).catch(() => null)
+						return detail ? { ...record, ...detail } : record
+					}),
+				)
+			}
+
 			const firstRecordPetId = records[0]?.pet?.id || records[0]?.petId
 			const petDetail =
 				resolvedPetId || firstRecordPetId
@@ -231,6 +287,7 @@ function ViewMedicalRecords() {
 			if (records.length === 0) {
 				setTimelineRecords(EMPTY_TIMELINE)
 				setReminders(EMPTY_REMINDERS)
+				setExpandedRecords(new Set())
 				if (!selectedRecord) {
 					setPetSummary(DEFAULT_PET_SUMMARY)
 				}
@@ -257,6 +314,7 @@ function ViewMedicalRecords() {
 					mapMedicalToTimelineRecord(record, medicalOrders, medicines),
 				),
 			)
+			setExpandedRecords(new Set())
 
 			setReminders(enrichedRecords.slice(0, 3).map(({ record }) => mapMedicalToReminder(record)))
 
@@ -283,11 +341,24 @@ function ViewMedicalRecords() {
 			message.error(normalizeMedicalErrorMessage(error))
 			setTimelineRecords(EMPTY_TIMELINE)
 			setReminders(EMPTY_REMINDERS)
+			setExpandedRecords(new Set())
 			setPetSummary(DEFAULT_PET_SUMMARY)
 		} finally {
 			setLoading(false)
 		}
 	}, [medicalId, petId, selectedRecord])
+
+	const toggleExpandedRecord = useCallback((recordId) => {
+		setExpandedRecords((prev) => {
+			const next = new Set(prev)
+			if (next.has(recordId)) {
+				next.delete(recordId)
+			} else {
+				next.add(recordId)
+			}
+			return next
+		})
+	}, [])
 
 	useEffect(() => {
 		window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -341,50 +412,82 @@ function ViewMedicalRecords() {
 							{timelineRecords.length === 0 ? (
 								<p className={styles.emptyStateText}>{EMPTY_TIMELINE_HINT}</p>
 							) : (
-								timelineRecords.map((record) => (
-									<div key={record.id} className={styles.timelineItem}>
-										<div className={`${styles.timelineMarker} ${styles[record.markerType]}`}>
-											{getMarkerIcon(record.markerType)}
-										</div>
+								timelineRecords.map((record) => {
+									const isExpanded = expandedRecords.has(record.id)
 
-										<div className={styles.recordCard}>
-											<div className={styles.recordHeader}>
-												<h3 style={{ fontSize: 22 }}>{record.title}</h3>
-												<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
-													{record.status}
-												</span>
+									return (
+										<div key={record.id} className={styles.timelineItem}>
+											<div className={`${styles.timelineMarker} ${styles[record.markerType]}`}>
+												{getMarkerIcon(record.markerType)}
 											</div>
 
-											<div className={styles.recordMetaGrid}>
-												<div>
-													{record.leftInfo.map((line) => (
-														<p key={`${record.id}-${line.label}-left`}>
-															<strong>{line.label}:</strong> {line.value}
-														</p>
-													))}
+											<div className={styles.recordCard}>
+												<div className={styles.recordHeader}>
+													<div className={styles.headerMain}>
+														<h3 style={{ fontSize: 22 }}>{record.title}</h3>
+													</div>
+
+													<div className={styles.headerActions}>
+														<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
+															{record.status}
+														</span>
+														<button
+															type="button"
+															className={styles.expandButton}
+															onClick={() => toggleExpandedRecord(record.id)}
+															aria-expanded={isExpanded}
+														>
+															{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
+															{isExpanded ? <UpOutlined /> : <DownOutlined />}
+														</button>
+													</div>
 												</div>
 
-												<div>
-													{record.rightInfo.map((line) => (
-														<p key={`${record.id}-${line.label}-right`}>
-															<strong>{line.label}:</strong> {line.value}
-														</p>
-													))}
+												<div className={styles.recordMetaGrid}>
+													<div>
+														{record.leftInfo.map((line) => (
+															<p key={`${record.id}-${line.label}-left`}>
+																<strong>{line.label}:</strong> {line.value}
+															</p>
+														))}
+													</div>
+
+													<div>
+														{record.rightInfo.map((line) => (
+															<p key={`${record.id}-${line.label}-right`}>
+																<strong>{line.label}:</strong> {line.value}
+															</p>
+														))}
+													</div>
 												</div>
-											</div>
 
-											<div className={styles.recordDivider} />
+												{isExpanded ? (
+													<>
+														<div className={styles.divider} />
 
-											<div className={styles.recordDetails}>
-												{record.detailRows.map((line) => (
-													<p key={`${record.id}-${line.label}`}>
-														<span>{line.label}:</span> {line.value}
-													</p>
-												))}
+														<div className={styles.detailsBlock}>
+															<div className={styles.detailVitalsGrid}>
+																{record.vitalRows.map((line) => (
+																	<p key={`${record.id}-${line.label}`}>
+																		<span>{line.label}:</span> {line.value}
+																	</p>
+																))}
+															</div>
+
+															<div className={styles.detailColumn}>
+																{record.detailRows.map((line) => (
+																	<p key={`${record.id}-${line.label}`}>
+																		<span>{line.label}:</span> {line.value}
+																	</p>
+																))}
+															</div>
+														</div>
+													</>
+												) : null}
 											</div>
 										</div>
-									</div>
-								))
+									)
+								})
 							)}
 						</div>
 					</article>
