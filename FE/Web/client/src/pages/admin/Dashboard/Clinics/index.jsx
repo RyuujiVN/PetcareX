@@ -403,7 +403,7 @@ export default function Clinics() {
 
                 <Form.Item name="clinicDescription" label="Mô tả" className="clinic-description-item">
                   <Input.TextArea
-                    rows={2}
+                    rows={1}
                     placeholder="Mô tả ngắn về phòng khám (không bắt buộc)"
                     showCount
                     maxLength={500}
