@@ -1,5 +1,3 @@
-import socket from '../../../socket/socket';
-
 const STORAGE_KEY = 'petcarex.appointmentDiagnosis.v1';
 
 const HIGH_RISK_KEYWORDS = ['khó thở', 'co giật', 'bất tỉnh', 'nôn ra máu', 'tiêu chảy ra máu'];
@@ -75,11 +73,6 @@ const requestDiagnosisFromAi = ({ symptomsText, petName, species, appointmentDat
     let resolved = false;
     let diagnosisRoomId = '';
 
-    const cleanup = () => {
-      socket.off('serverResponseMessage', onServerResponseMessage);
-      socket.off('serverResponseAIMessage', onServerResponseAIMessage);
-    };
-
     const finish = (callback) => {
       if (resolved) return;
       resolved = true;
@@ -110,15 +103,6 @@ const requestDiagnosisFromAi = ({ symptomsText, petName, species, appointmentDat
       window.clearTimeout(timer);
       finish(() => resolve(String(message?.content || '').trim()));
     };
-
-    socket.on('serverResponseMessage', onServerResponseMessage);
-    socket.on('serverResponseAIMessage', onServerResponseAIMessage);
-
-    socket.emit('message', {
-      content: prompt,
-      roomId: undefined,
-      sendBy: 'USER',
-    });
   });
 };
 

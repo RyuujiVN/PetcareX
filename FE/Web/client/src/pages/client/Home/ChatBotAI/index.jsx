@@ -9,13 +9,13 @@ import {
 import { Dropdown, Input, Modal, message } from "antd";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import socket from "../../../../socket/socket";
 import {
   fetchCreateRoom,
   fetchDeleteRoom,
   fetchRooms,
   fetchRenameRoom,
 } from "../../../../redux/slices/roomSlice";
+import chatSocket from "../../../../socket/chatSocket";
 
 const TITLE_PREVIEW_LIMIT = 28;
 
@@ -55,8 +55,8 @@ export default function ChatBotAI() {
   };
 
   useEffect(() => {
-    if (!socket.connected) {
-      socket.connect();
+    if (!chatSocket.connected) {
+      chatSocket.connect();
     }
 
     const fetchRoomsData = async () => {
@@ -70,8 +70,8 @@ export default function ChatBotAI() {
     fetchRoomsData();
 
     return () => {
-      if (socket.connected) {
-        socket.disconnect();
+      if (chatSocket.connected) {
+        chatSocket.disconnect();
       }
     };
   }, [dispatch]);

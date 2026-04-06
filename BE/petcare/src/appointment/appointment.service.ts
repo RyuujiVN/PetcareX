@@ -179,12 +179,12 @@ export class AppointmentService {
         userId: userId,
       },
       {
-        attempts: 3,
+        attempts: 4,
         removeOnComplete: true,
         removeOnFail: true,
         backoff: {
           type: 'exponential',
-          delay: 2000,
+          delay: 4000,
         },
       },
     );

@@ -9,11 +9,11 @@ import {
   fetchMessageInRoom,
   fetchOldMessageInRoom,
 } from "../../../../redux/slices/messageSlice";
-import socket from "../../../../socket/socket";
 import { Spin } from "antd";
 import { addRoom } from "../../../../redux/slices/roomSlice";
 import { uploadOneFileResize } from "../../../../data/shared/api/cloudinaryUploadFetch";
 import ChatMessage from "./ChatMessage";
+import chatSocket from "../../../../socket/chatSocket";
 
 const MessageBox = () => {
   const messages = useSelector((state) => state.message.messages);
@@ -121,7 +121,7 @@ const MessageBox = () => {
 
     setIsAiLoading(true);
     setIsAiWaitingFirstToken(true);
-    socket.emit("message", payload);
+    chatSocket.emit("message", payload);
     form.resetFields(["content"]);
     handleRemovePendingImage();
     scrollToBottom();
@@ -142,7 +142,7 @@ const MessageBox = () => {
       sendBy: "AI",
     };
 
-    socket.emit("stopStream", payload);
+    chatSocket.emit("stopStream", payload);
 
     setIsAiLoading(false);
     setIsAiWaitingFirstToken(false);
@@ -164,7 +164,7 @@ const MessageBox = () => {
 
         setIsLoadingMore(false);
 
-        socket.emit("joinRoom", { roomId });
+        chatSocket.emit("joinRoom", { roomId });
       }
     };
 
@@ -230,23 +230,23 @@ const MessageBox = () => {
       setIsAiWaitingFirstToken(false);
     };
 
-    socket.on("aiResponse", onAiResponse);
-    socket.on("serverResponseAIMessage", serverResponseAIMessage);
-    socket.on("serverResponseMessage", onServerResponseMessage);
-    socket.on("serverResponseRoom", onServerResponseRoom);
-    socket.on("serverResponseNewRoom", serverResponseNewRoom);
-    socket.on("serverResponseError", onServerResponseError);
+    chatSocket.on("aiResponse", onAiResponse);
+    chatSocket.on("serverResponseAIMessage", serverResponseAIMessage);
+    chatSocket.on("serverResponseMessage", onServerResponseMessage);
+    chatSocket.on("serverResponseRoom", onServerResponseRoom);
+    chatSocket.on("serverResponseNewRoom", serverResponseNewRoom);
+    chatSocket.on("serverResponseError", onServerResponseError);
 
     return () => {
-      socket.off("aiResponse", onAiResponse);
-      socket.off("serverResponseMessage", onServerResponseMessage);
-      socket.off("serverResponseAIMessage", serverResponseAIMessage);
-      socket.off("serverResponseRoom", onServerResponseRoom);
-      socket.off("serverResponseNewRoom", serverResponseNewRoom);
-      socket.off("serverResponseError", onServerResponseError);
+      chatSocket.off("aiResponse", onAiResponse);
+      chatSocket.off("serverResponseMessage", onServerResponseMessage);
+      chatSocket.off("serverResponseAIMessage", serverResponseAIMessage);
+      chatSocket.off("serverResponseRoom", onServerResponseRoom);
+      chatSocket.off("serverResponseNewRoom", serverResponseNewRoom);
+      chatSocket.off("serverResponseError", onServerResponseError);
 
       if (roomId) {
-        socket.emit("leaveRoom", { roomId });
+        chatSocket.emit("leaveRoom", { roomId });
       }
     };
   }, [roomId, dispatch, navigate]);

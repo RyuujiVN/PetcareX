@@ -1,15 +1,15 @@
 import { io } from "socket.io-client";
 import { CLIENT_AUTH_STORAGE } from "../constants/authStorage";
 
-const SOCKET_URL = "http://localhost:3000/chat";
+const SOCKET_URL = "http://localhost:3000/notification";
 
-const socket = io(SOCKET_URL, {
+const notifySocket = io(SOCKET_URL, {
   autoConnect: false,
   transports: ["websocket"],
-  auth: (cb) => {
+  auth: (callback) => {
     const accessToken = localStorage.getItem(CLIENT_AUTH_STORAGE.tokenKey);
-    cb(accessToken ? { accessToken } : {});
+    callback(accessToken ? { accessToken } : {});
   },
 });
 
-export default socket;
+export default notifySocket;

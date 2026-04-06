@@ -12,6 +12,7 @@ import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import { NotFoundError } from 'rxjs';
 import { NotificationGateway } from 'src/notification/notification.gateway';
+import { error } from 'console';
 
 @Processor(QueueNameEnum.APPOINTMENT, { concurrency: 5 })
 export class AppointmentProcessor extends WorkerHost {
@@ -67,7 +68,7 @@ export class AppointmentProcessor extends WorkerHost {
             notification.target = {
               appointmentId: appointment.id,
               aiDiagnosisId: savedAiDiagnosis.id,
-              petName: pet.name,
+              // petName: pet.name,
             };
 
             const savedNotification = await notificationRepo.save(notification);

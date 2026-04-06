@@ -75,7 +75,7 @@ export class ChatBotGateway
           where: { id: roomId },
         });
 
-        client.join(roomId);
+        await client.join(roomId);
         client.emit('serverResponseNewRoom', room);
       }
 
@@ -115,15 +115,15 @@ export class ChatBotGateway
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(client: Socket, payload: any) {
+  async handleJoinRoom(client: Socket, payload: any) {
     if (!payload?.roomId) return;
-    client.join(payload.roomId);
+    await client.join(payload.roomId);
   }
 
   @SubscribeMessage('leaveRoom')
-  handleLeaveRoom(client: Socket, payload: any) {
+  async handleLeaveRoom(client: Socket, payload: any) {
     if (!payload?.roomId) return;
-    client.leave(payload.roomId);
+    await client.leave(payload.roomId);
   }
 
   @SubscribeMessage('stopStream')
