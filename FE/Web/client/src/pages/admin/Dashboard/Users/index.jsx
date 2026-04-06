@@ -176,7 +176,6 @@ export default function Users() {
     { value: USER_ROLE_FILTERS.ALL, label: 'Tất cả' },
     { value: USER_ROLE_FILTERS.CUSTOMER, label: 'Khách hàng' },
     { value: USER_ROLE_FILTERS.VETERINARIAN, label: 'Bác sĩ' },
-    { value: USER_ROLE_FILTERS.NO_ROLE, label: 'Không' },
   ]
 
   const handlePageChange = (page, pageSize) => {
@@ -253,7 +252,9 @@ export default function Users() {
           >
             {!record.avatarUrl ? getAbbreviation(text) : null}
           </Avatar>
-          <span>{text || '—'}</span>
+          <Typography.Text className="user-name-ellipsis" title={text || ''}>
+            {text || '—'}
+          </Typography.Text>
         </Space>
       ),
     },
@@ -272,12 +273,6 @@ export default function Users() {
           {value || '—'}
         </Typography.Text>
       ),
-    },
-    {
-      title: 'NGÀY TẠO',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      render: (date) => formatDate(date),
     },
     {
       title: 'EMAIL',
@@ -304,7 +299,7 @@ export default function Users() {
       width: 150,
       align: 'center',
       render: (deleted) => (
-        <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'}>
+        <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'} style={{ marginTop: 7}}>
           {deleted ? 'Dừng hoạt động' : 'Hoạt động'}
         </Tag>
       ),
@@ -363,7 +358,7 @@ export default function Users() {
       <Card className="table-card">
         <Flex justify="space-between" align="center" className="section-header">
           <div className="section-title">
-            <Typography.Title level={4} style={{ marginRight: 165  }}>
+            <Typography.Title level={4} style={{ margin: 0 }}>
               Danh sách người dùng
             </Typography.Title>
             <Typography.Text type="secondary">
@@ -381,7 +376,7 @@ export default function Users() {
               prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
             />
             <Select
-              size='large'
+              size = 'large'
               className="users-role-filter-select"
               options={roleFilterOptions}
               value={roleFilter}
@@ -397,6 +392,7 @@ export default function Users() {
           loading={loading}
           pagination={false}
           rowKey="id"
+          scroll={{ x: 1180 }}
         />
 
         <Flex justify="space-between" align="center" className="pagination-bar">

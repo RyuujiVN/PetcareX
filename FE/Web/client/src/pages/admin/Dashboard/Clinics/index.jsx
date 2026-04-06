@@ -226,7 +226,7 @@ export default function Clinics() {
       width: 150,
       align: 'center',
       render: (deleted) => (
-        <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'}>
+        <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'} style={{ marginTop: 7 }}>
           {deleted ? 'Dừng hoạt động' : 'Hoạt động'}
         </Tag>
       ),

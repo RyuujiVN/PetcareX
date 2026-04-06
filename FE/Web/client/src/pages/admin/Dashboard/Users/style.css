@@ -1,5 +1,6 @@
 .users-page {
-  padding: 24px;
+  padding: 10px;
+  overflow: hidden;
 }
 
 /* ── Stat Cards ── */
@@ -65,15 +66,13 @@
 
 .users-page .users-table-actions {
   display: flex;
-  align-items: center;
   gap: 12px;
   margin-left: auto;
-  flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .users-page .users-role-filter-select {
-  width: 170px;
+  width: 100px;
 }
 
 .users-page .pagination-bar {
@@ -105,6 +104,14 @@
 .users-page .user-address-ellipsis {
   display: inline-block;
   max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.users-page .user-name-ellipsis {
+  display: inline-block;
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -204,29 +211,21 @@
   font-weight: 600;
 }
 
-@media (max-width: 1200px) {
-  .users-page .users-table-actions {
-    flex: 1 1 auto;
-  }
-}
-
 @media (max-width: 768px) {
   .users-page .section-title {
     min-width: 100%;
   }
-
+/* 
   .users-page .users-table-actions {
     width: 100%;
     flex-wrap: wrap;
     align-items: stretch;
     margin-left: 0;
-  }
+  } */
   
-  .users-page .users-search {
-    width: 100%;
-  }
-
+  .users-page .users-search,
   .users-page .users-role-filter-select {
     width: 100%;
   }
+
 }

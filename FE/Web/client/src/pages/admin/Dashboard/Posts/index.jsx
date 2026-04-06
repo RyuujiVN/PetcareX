@@ -217,6 +217,7 @@ export default function Posts() {
     {
       title: 'TÁC GIẢ',
       key: 'author',
+      width: 250,
       render: (_, record) => {
         const authorName = record?.author?.fullName || ''
         const displayName = authorName || '—'
@@ -232,7 +233,7 @@ export default function Posts() {
                 : null}
             </Avatar>
             <div className="author-meta">
-              <Typography.Text className="author-name">
+              <Typography.Text className="author-name" title={displayName}>
                 {displayName}
               </Typography.Text>
             </div>
@@ -390,6 +391,7 @@ export default function Posts() {
           loading={loading}
           pagination={false}
           rowKey="id"
+          scroll={{ x: 1280 }}
         />
 
         <Flex justify="space-between" align="center" className="pagination-bar">

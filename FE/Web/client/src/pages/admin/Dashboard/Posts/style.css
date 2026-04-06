@@ -1,5 +1,6 @@
 .posts-page {
   padding: 24px;
+  overflow: hidden;
 }
 
 /* ── Stat Cards ── */
@@ -83,7 +84,7 @@
 }
 
 .posts-page .posts-topic {
-  width: 170px;
+  width: 220px;
 }
 
 .posts-page .pagination-bar {
@@ -197,6 +198,11 @@
 }
 
 .posts-page .author-name {
+  display: inline-block;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   color: var(--admin-color-text-primary);
   font-weight: 500;
 }
