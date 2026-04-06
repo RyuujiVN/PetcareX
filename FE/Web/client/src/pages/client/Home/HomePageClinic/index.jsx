@@ -124,7 +124,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
 
         <section className="clinic-gallery-section">
           <div className="section-container">
-            <h2 className="section-title">{content.gallerySection.title}</h2>
+            <h2 className="section-title" style={{textAlign: 'center', fontSize: 25, fontWeight: 'bold', marginBottom: 25, color: '#4672b4'}}>{content.gallerySection.title}</h2>
             <p className="section-subtitle">{content.gallerySection.subtitle}</p>
 
             <div className="clinic-gallery-grid">
@@ -139,7 +139,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
 
         <section className="team-section">
           <div className="section-container">
-            <h2 className="section-title">{content.teamSection.title}</h2>
+            <h2 className="section-title" style={{textAlign: 'center', fontSize: 25, fontWeight: 'bold', marginBottom: 25, color: '#4672b4'}}>{content.teamSection.title}</h2>
             <div className="team-grid">
               {content.doctors.map((doctor, index) => (
                 <div key={doctor.id || index} className="doctor-cards">
@@ -153,7 +153,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
 
         <section className="clinic-location-section">
           <div className="section-container clinic-location-header">
-            <h2 className="section-title">{content.locationSection.title}</h2>
+            <h2 className="section-title" style={{textAlign: 'center', fontSize: 25, fontWeight: 'bold', marginBottom: 25, color: '#4672b4'}}>{content.locationSection.title}</h2>
             <p className="section-subtitle">{content.locationSection.subtitle}</p>
             <p className="clinic-address-text">{content.locationSection.address}</p>
           </div>
