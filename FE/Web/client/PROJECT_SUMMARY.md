@@ -779,6 +779,37 @@ Ghi chú:
 2. Khi thêm API mới trong `src/services/`, bắt buộc follow rule: consumer luôn truyền đúng instance (`getAdminInstance()` hoặc `getClientInstance()`).
 3. Trước khi merge các màn form lớn, cần grep nhanh các call service theo pattern `*Api(` để phát hiện call thiếu instance sớm.
 
+## Bug Fix: loadMetaData resilience & loadHistoryRecords error suppression (2026-04-07)
+
+### Vấn đề
+1. `loadMetaData` trong `RecordExaminationForm` dùng `Promise.all` → **1 API fail = toàn bộ fail** → error toast xuất hiện + catalog Thuốc/Chỉ định **không bao giờ được set** → Select dropdown trống.
+2. `hydrateByAppointmentId()` chạy **tuần tự trước** `Promise.all` trong cùng `try/catch` → appointment fetch fail kéo theo catalog loading không bao giờ chạy.
+3. `loadHistoryRecords` throws `message.error()` cho non-critical data (tab Hồ sơ y tế) → toast lỗi không cần thiết khi chưa chuyển sang tab đó.
+
+### Nguyên nhân kiến trúc
+- `Appointment` entity KHÔNG có relation với `MedicalRecord` → `appointment.medical` luôn `null` khi fetch từ `GET /appointment`
+- `GET /appointment` KHÔNG select `owner.email` → `ownerEmail` luôn rỗng
+- `loadMetaData` gộp 5 concern khác nhau (appointment hydration + 4 catalogs) vào 1 try/catch duy nhất
+
+### Fix đã áp dụng
+
+| File | Thay đổi | Lý do |
+|------|----------|-------|
+| `RecordExaminationForm` | Wrap `hydrateByAppointmentId()` trong try/catch riêng | Appointment fail không block catalog loading |
+| `RecordExaminationForm` | Đổi `Promise.all` → `Promise.allSettled` cho 4 catalogs | Mỗi catalog load độc lập, 1 fail không kéo theo cái khác |
+| `RecordExaminationForm` | Set state từ từng settled result | Catalog nào thành công thì set, catalog nào fail thì log warning |
+| `RecordExaminationForm` | `loadHistoryRecords` catch: `message.error()` → `console.warn()` | History load fail không gây toast lỗi trên tab Phiếu khám |
+
+### Trạng thái sau fix
+1. Mở tab phiếu khám → không còn toast lỗi nếu chỉ 1 API fail
+2. Catalog Thuốc/Chỉ định load độc lập → dropdown có data ngay cả khi appointment hydration hoặc species API fail
+3. History tab errors chỉ log ra console, không ảnh hưởng UX tab Phiếu khám chính
+
+### Phòng ngừa tái phát
+1. **Không dùng `Promise.all` cho các API calls không phụ thuộc nhau** — luôn dùng `Promise.allSettled` khi các calls có thể fail independently
+2. **Tách concern mount-time**: appointment hydration, catalog loading, history loading phải có error boundary riêng
+3. **`message.error()` chỉ dùng cho lỗi trực tiếp ảnh hưởng UX hiện tại** — non-critical hoặc lazy-loaded data chỉ log console
+
 ## I18n Migration Status (Client Role) - 2026-04-06
 
 ### Mục tiêu và phạm vi
@@ -883,6 +914,38 @@ createdAt:   Date (auto)
 | **Modified** | `components/layouts/client/header.css` — added `ai-diagnosis` icon style |
 
 ### Mock Data Removed
+
+### Time-ago Labels — Periodic Refresh (cập nhật 2026-04-07)
+- `formatNotificationTimeAgo()` tính `Date.now() - createdAt` tại thời điểm render → nếu component không re-render, nhãn "Vừa xong" bị đóng băng.
+- **Fix:** Mỗi layout có `setTimeTick` state cập nhật mỗi **30 giây** → ép re-render → time-ago labels luôn cập nhật.
+- Áp dụng: `header.jsx`, `AdminClinicLayout.jsx`, `AdminVererianrianLayout.jsx`.
+- `formatNotificationTimeAgo` tồn tại độc lập trong mỗi layout (không abstract), trả về: "Vừa xong" / "X phút trước" / "X giờ trước" / "X ngày trước".
+
+### Notification UI Fixes (cập nhật 2026-04-07)
+
+#### 1. Client time-ago "Vừa xong" cho lịch hẹn tương lai
+- **Nguyên nhân:** `buildAppointmentNotifications()` trong `notificationService.js` dùng ngày/giờ *lịch hẹn* làm `createdAt` → lịch hẹn tương lai có `diff < 0` → luôn hiển thị "Vừa xong".
+- **Fix:** Ưu tiên `appointment.createdAt` (timestamp DB) → `createdAt` phản ánh thời điểm đặt lịch, không phải thời điểm khám.
+
+#### 2. Notification panel không scroll được (Client)
+- **Nguyên nhân:** `.notification-panel-content` trong `header.css` có `overflow: hidden`.
+- **Fix:** Đổi thành `overflow-y: auto`. Admin/Vet CSS Modules đã có scroll sẵn.
+
+#### 3. Date format chuẩn hóa dd-mm-yyyy HH:mm
+- **Trước:** ISO string `2026-04-07T00:00:00.000Z` hoặc `2026-04-07 16:00:00` hiển thị thô.
+- **Sau:** `07-04-2026 lúc 16:00` (dd-mm-yyyy, HH:mm không giây).
+- **Helpers:** `formatDateDDMMYYYY()` + `formatTimeHHMM()` — khai báo cục bộ trong:
+  - `services/notificationService.js` (client portal)
+  - `hooks/useNotificationSocket.js` (admin/vet portals)
+
+#### Files Changed (notification UI fixes)
+| Action | File |
+|--------|------|
+| **Modified** | `services/notificationService.js` — thêm formatters, đổi createdAt sang DB timestamp |
+| **Modified** | `hooks/useNotificationSocket.js` — thêm formatters, áp dụng cho 3 notification types |
+| **Modified** | `components/layouts/client/header.css` — `overflow: hidden` → `overflow-y: auto` |
+
+### Mock Data Removed (trước đó)
 - `buildMockClinicNotifications()` from AdminClinicLayout (5 hardcoded items)
 - `buildMockVeterinarianNotifications()` from AdminVererianrianLayout (5 hardcoded items)
 - `MOCK_ADMIN_NOTIFICATIONS` from AdminLayout (6 hardcoded items)

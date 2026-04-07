@@ -11,6 +11,20 @@ const RECONNECT_ATTEMPTS = 15;
 const RECONNECT_DELAY_MS = 3000;
 const RECONNECT_DELAY_MAX_MS = 15000;
 
+const formatDateDDMMYYYY = (value) => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value || '');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}-${mm}-${d.getFullYear()}`;
+};
+
+const formatTimeHHMM = (value) => {
+  const text = String(value || '').trim();
+  const match = text.match(/(\d{1,2}):(\d{2})/);
+  return match ? `${match[1].padStart(2, '0')}:${match[2]}` : text;
+};
+
 const readStorageJson = (key, fallback) => {
   try {
     const raw = localStorage.getItem(key);
@@ -42,7 +56,7 @@ export const mapBeNotification = (raw) => {
         ...base,
         type: 'appointment',
         title: `Lịch hẹn mới từ ${raw.target?.userName || 'khách hàng'}`,
-        description: `Ngày ${raw.target?.appointmentDate || ''} lúc ${raw.target?.appointmentTime || ''}`,
+        description: `Ngày ${formatDateDDMMYYYY(raw.target?.appointmentDate)} lúc ${formatTimeHHMM(raw.target?.appointmentTime)}`,
         href: null,
       };
 
@@ -51,7 +65,7 @@ export const mapBeNotification = (raw) => {
         ...base,
         type: 'appointment',
         title: 'Lịch hẹn đã bị hủy',
-        description: `Lịch hẹn ngày ${raw.target?.appointmentDate || ''} lúc ${raw.target?.appointmentTime || ''} đã bị hủy.`,
+        description: `Lịch hẹn ngày ${formatDateDDMMYYYY(raw.target?.appointmentDate)} lúc ${formatTimeHHMM(raw.target?.appointmentTime)} đã bị hủy.`,
         href: null,
       };
 
@@ -60,7 +74,7 @@ export const mapBeNotification = (raw) => {
         ...base,
         type: 'system',
         title: 'Nhắc nhở lịch hẹn',
-        description: `Bạn có lịch hẹn vào ngày ${raw.target?.appointmentDate || ''} lúc ${raw.target?.appointmentTime || ''}.`,
+        description: `Bạn có lịch hẹn vào ngày ${formatDateDDMMYYYY(raw.target?.appointmentDate)} lúc ${formatTimeHHMM(raw.target?.appointmentTime)}.`,
         href: null,
       };
 

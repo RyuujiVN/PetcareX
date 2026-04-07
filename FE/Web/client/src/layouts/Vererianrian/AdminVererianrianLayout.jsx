@@ -1,10 +1,10 @@
 import {
-  CalendarOutlined,
-  FileTextOutlined,
-  FormOutlined,
-  LogoutOutlined,
-  SearchOutlined,
-  UserOutlined
+    CalendarOutlined,
+    FileTextOutlined,
+    FormOutlined,
+    LogoutOutlined,
+    SearchOutlined,
+    UserOutlined
 } from '@ant-design/icons'
 import { Avatar, Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
@@ -79,6 +79,13 @@ export default function AdminVererianrianLayout() {
     viewMode: 'all',
     eventType: 'all',
   })
+  const [, setTimeTick] = useState(0)
+
+  // Force re-render every 30s so time-ago labels stay fresh
+  useEffect(() => {
+    const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
   const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
   const hasVeterinarianRole = normalizedRoles.includes(RoleEnum.VETERINARIAN)

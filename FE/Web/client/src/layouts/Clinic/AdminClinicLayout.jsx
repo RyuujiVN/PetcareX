@@ -1,38 +1,38 @@
 import {
-  CalendarOutlined,
-  EditOutlined,
-  FileSearchOutlined,
-  HomeOutlined,
-  LineChartOutlined,
-  LogoutOutlined,
-  MedicineBoxOutlined,
-  TeamOutlined,
-  UserOutlined,
+    CalendarOutlined,
+    EditOutlined,
+    FileSearchOutlined,
+    HomeOutlined,
+    LineChartOutlined,
+    LogoutOutlined,
+    MedicineBoxOutlined,
+    TeamOutlined,
+    UserOutlined,
 } from "@ant-design/icons";
 import {
-  Avatar,
-  Badge,
-  Button,
-  Empty,
-  Form,
-  List,
-  Popover,
-  Select,
-  Tag,
-  Typography,
-  message,
+    Avatar,
+    Badge,
+    Button,
+    Empty,
+    Form,
+    List,
+    Popover,
+    Select,
+    Tag,
+    Typography,
+    message,
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/Clinic/AuthContext";
-import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
-import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
 import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { RoleEnum } from "../../enum/role.enum";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
+import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
 import { getRoleLabel } from "../../constants/veterinaryLabels";
-import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
+import { RoleEnum } from "../../enum/role.enum";
+import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
+import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import styles from "./AdminClinicLayout.module.css";
 
 const { Text } = Typography;
@@ -144,6 +144,13 @@ export default function AdminClinicLayout() {
     viewMode: "all",
     eventType: "all",
   });
+  const [, setTimeTick] = useState(0);
+
+  // Force re-render every 30s so time-ago labels stay fresh
+  useEffect(() => {
+    const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const effectiveRole =
     activeRole || (userProfile ? getPrimaryRole(userProfile) : null);
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : [];

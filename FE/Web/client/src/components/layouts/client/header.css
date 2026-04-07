@@ -164,7 +164,7 @@
 .notification-panel-content {
     flex: 1;
     min-height: 160px;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .notification-panel-loading,

@@ -1,33 +1,33 @@
 ﻿import {
-    DeleteOutlined,
-    DownOutlined,
-    ExperimentOutlined,
-    HeartOutlined,
-    ManOutlined,
-    MedicineBoxOutlined,
-    PlusCircleOutlined,
-    SaveOutlined,
-    UpOutlined,
-    UserOutlined,
-    WarningOutlined,
-    WomanOutlined,
+	DeleteOutlined,
+	DownOutlined,
+	ExperimentOutlined,
+	HeartOutlined,
+	ManOutlined,
+	MedicineBoxOutlined,
+	PlusCircleOutlined,
+	SaveOutlined,
+	UpOutlined,
+	UserOutlined,
+	WarningOutlined,
+	WomanOutlined,
 } from '@ant-design/icons'
 import {
-    Alert,
-    Button,
-    Card,
-    Col,
-    DatePicker,
-    Divider,
-    Form,
-    Input,
-    InputNumber,
-    message,
-    Modal,
-    Row,
-    Select,
-    Spin,
-    Tabs,
+	Alert,
+	Button,
+	Card,
+	Col,
+	DatePicker,
+	Divider,
+	Form,
+	Input,
+	InputNumber,
+	message,
+	Modal,
+	Row,
+	Select,
+	Spin,
+	Tabs,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -36,34 +36,34 @@ import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authSto
 import { ServiceEnum } from '../../../enum/service.enum'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
-    APPOINTMENT_STATUS,
-    getAppointmentsApi,
-    getServerNowApi,
-    updateAppointmentStatusApi,
+	APPOINTMENT_STATUS,
+	getAppointmentsApi,
+	getServerNowApi,
+	updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { registerApi } from '../../../services/authService'
 import {
-    createMedicalMedicineApi,
-    createMedicalOrderApi,
-    createMedicalRecordApi,
-    deleteMedicalOrderApi,
-    deleteMedicineApi,
-    getMedicalByIdApi,
-    getMedicalByPetIdApi,
-    getMedicalOrderCatalogApi,
-    getMedicalOrdersByMedicalIdApi,
-    getMedicineCatalogApi,
-    getMedicinesByMedicalIdApi,
-    updateMedicalRecordApi,
+	createMedicalMedicineApi,
+	createMedicalOrderApi,
+	createMedicalRecordApi,
+	deleteMedicalOrderApi,
+	deleteMedicineApi,
+	getMedicalByIdApi,
+	getMedicalByPetIdApi,
+	getMedicalOrderCatalogApi,
+	getMedicalOrdersByMedicalIdApi,
+	getMedicineCatalogApi,
+	getMedicinesByMedicalIdApi,
+	updateMedicalRecordApi,
 } from '../../../services/medicalService'
 import {
-    createPetApi,
-    getBreedLabel,
-    getBreedsBySpeciesApi,
-    getPetByIdApi,
-    getPetsByOwnerApi,
-    getPetSpeciesApi,
-    getSpeciesLabel,
+	createPetApi,
+	getBreedLabel,
+	getBreedsBySpeciesApi,
+	getPetByIdApi,
+	getPetsByOwnerApi,
+	getPetSpeciesApi,
+	getSpeciesLabel,
 } from '../../../services/petService'
 import { getUserByIdApi, getUserListApi } from '../../../services/userService'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
@@ -524,22 +524,46 @@ export default function RecordExaminationForm() {
 	const loadMetaData = useCallback(async () => {
 		setLoading(true)
 		try {
-			await hydrateByAppointmentId()
+			// Hydrate appointment independently — failure must NOT block catalog loading
+			try {
+				await hydrateByAppointmentId()
+			} catch (appointmentError) {
+				console.warn('[loadMetaData] hydrateByAppointmentId failed:', appointmentError?.message)
+			}
 
-			const [medicalOrders, medicines, species, serverNowMs] = await Promise.all([
+			// Load each catalog independently so one failure does not block the others
+			const [medicalOrdersResult, medicinesResult, speciesResult, serverNowResult] = await Promise.allSettled([
 				getMedicalOrderCatalogApi(getAdminInstance()),
 				getMedicineCatalogApi(getAdminInstance()),
 				getPetSpeciesApi(getAdminInstance()),
-				getServerNowApi(getAdminInstance()).catch(() => null),
+				getServerNowApi(getAdminInstance()),
 			])
 
-			setMedicalOrderOptions(normalizeCollection(medicalOrders))
-			setMedicineOptions(normalizeCollection(medicines))
-			setSpeciesOptions(normalizeCollection(species))
+			if (medicalOrdersResult.status === 'fulfilled') {
+				setMedicalOrderOptions(normalizeCollection(medicalOrdersResult.value))
+			} else {
+				console.warn('[loadMetaData] Không tải được danh mục chỉ định:', medicalOrdersResult.reason?.message)
+			}
 
-			if (typeof serverNowMs === 'number' && Number.isFinite(serverNowMs)) {
-				setServerTimeOffsetMs(serverNowMs - Date.now())
-				setServerTimeSynced(true)
+			if (medicinesResult.status === 'fulfilled') {
+				setMedicineOptions(normalizeCollection(medicinesResult.value))
+			} else {
+				console.warn('[loadMetaData] Không tải được danh mục thuốc:', medicinesResult.reason?.message)
+			}
+
+			if (speciesResult.status === 'fulfilled') {
+				setSpeciesOptions(normalizeCollection(speciesResult.value))
+			}
+
+			if (serverNowResult.status === 'fulfilled') {
+				const serverNowMs = serverNowResult.value
+				if (typeof serverNowMs === 'number' && Number.isFinite(serverNowMs)) {
+					setServerTimeOffsetMs(serverNowMs - Date.now())
+					setServerTimeSynced(true)
+				} else {
+					setServerTimeOffsetMs(0)
+					setServerTimeSynced(false)
+				}
 			} else {
 				setServerTimeOffsetMs(0)
 				setServerTimeSynced(false)
@@ -734,7 +758,7 @@ export default function RecordExaminationForm() {
 				if (active) {
 					setHistoryRecords([])
 					setHistoryPet(appointment?.petRaw || appointment?.pet || null)
-					message.error(error?.message || 'Không thể tải hồ sơ y tế thú cưng')
+					console.warn('[loadHistoryRecords]', error?.message)
 				}
 			} finally {
 				if (active) {

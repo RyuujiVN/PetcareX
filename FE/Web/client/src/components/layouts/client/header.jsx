@@ -8,10 +8,10 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { useAuth } from "../../../hooks/client/AuthContext";
+import { mapBeNotification } from "../../../hooks/useNotificationSocket";
 import { getClientInstance } from "../../../services/apiClient";
 import { changePasswordApi } from "../../../services/authService";
 import { loadClientNotifications } from "../../../services/notificationService";
-import { mapBeNotification } from "../../../hooks/useNotificationSocket";
 import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
 
@@ -103,6 +103,13 @@ function Header() {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [notificationLoading, setNotificationLoading] = useState(false);
     const [notificationItems, setNotificationItems] = useState([]);
+    const [, setTimeTick] = useState(0);
+
+    // Force re-render every 30s so time-ago labels stay fresh
+    useEffect(() => {
+        const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000);
+        return () => window.clearInterval(id);
+    }, []);
     const [notificationFilter, setNotificationFilter] = useState("all");
     const [notificationReadIds, setNotificationReadIds] = useState([]);
     const [notificationLastSyncedAt, setNotificationLastSyncedAt] = useState("");
