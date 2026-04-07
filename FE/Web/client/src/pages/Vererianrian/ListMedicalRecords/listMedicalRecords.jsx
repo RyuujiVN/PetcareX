@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, DatePicker, Empty, Spin, message } from 'antd'
 import { EyeOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons'
+import { Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Typography } from 'antd'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
-import {
-	APPOINTMENT_STATUS,
-	getAppointmentsApi,
-} from '../../../services/appointmentService'
 import { getAdminInstance } from '../../../services/apiClient'
+import {
+    APPOINTMENT_STATUS,
+    getAppointmentsApi,
+} from '../../../services/appointmentService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import styles from './listMedicalRecords.module.css'
 
 const PAGE_SIZE = 4
@@ -27,15 +27,11 @@ const getCurrentVeterinarianUserId = () => {
 }
 
 const formatDate = (value) => {
-	if (!value) return 'Chưa cập nhật'
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(value, 'Chưa cập nhật')
 }
 
 const formatTime = (value) => {
-	if (!value) return 'Chưa cập nhật'
-	return String(value).slice(0, 5)
+	return formatTimeHHMM(value, 'Chưa cập nhật')
 }
 
 const toPetRow = (item) => {

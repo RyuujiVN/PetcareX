@@ -4,9 +4,10 @@ import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
 import { getAdminInstance } from '../../../../services/apiClient'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
 import { getPetSpeciesApi } from '../../../../services/petService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
 import { getPetBreedLabel, getPetSpeciesLabel } from '../../../../utils/enumLabel'
 import styles from './listPetMedicalRecords.module.css'
 
@@ -25,12 +26,11 @@ const normalizeDate = (dateValue) => {
 	return `${year}-${month}-${day}`
 }
 
-const formatDisplayDate = (dateValue, locale, fallbackText) => {
-	if (!dateValue) return fallbackText
-	return new Date(dateValue).toLocaleDateString(locale)
+const formatDisplayDate = (dateValue, _locale, fallbackText) => {
+	return formatDateDDMMYYYY(dateValue, fallbackText)
 }
 
-const formatDisplayTime = (timeValue) => (timeValue || '').slice(0, 5)
+const formatDisplayTime = (timeValue) => formatTimeHHMM(timeValue, '')
 
 const formatEnumLabel = (value, fallbackText) => {
 	return getPetSpeciesLabel(value, fallbackText)
@@ -140,7 +140,11 @@ export default function ListPetMedicalRecords() {
 						})
 						.join(', '),
 					revisitDateRaw: pickRevisitDate(firstAppointment),
-					revisitDateLabel: formatDisplayDate(pickRevisitDate(firstAppointment), locale, fallbackText),
+					revisitDateLabel: formatDisplayDate(
+						pickRevisitDate(firstAppointment),
+						locale,
+						fallbackText,
+					),
 					totalAppointments: sortedAppointments.length,
 					dateKey: normalizeDate(firstAppointment?.appointmentDate),
 				}

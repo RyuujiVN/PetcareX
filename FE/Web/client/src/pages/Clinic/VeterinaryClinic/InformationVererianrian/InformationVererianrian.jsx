@@ -1,33 +1,33 @@
 import {
-    CalendarOutlined,
-    CameraOutlined,
-    EditOutlined,
-    EnvironmentOutlined,
-    IdcardOutlined,
-    MailOutlined,
-    MedicineBoxOutlined,
-    PhoneOutlined,
-    SaveOutlined,
-    UserOutlined
+	CalendarOutlined,
+	CameraOutlined,
+	EditOutlined,
+	EnvironmentOutlined,
+	IdcardOutlined,
+	MailOutlined,
+	MedicineBoxOutlined,
+	PhoneOutlined,
+	SaveOutlined,
+	UserOutlined
 } from '@ant-design/icons'
 import {
-    Avatar,
-    Button,
-    Card,
-    Col,
-    DatePicker,
-    Descriptions,
-    Divider,
-    Form,
-    Input,
-    Modal,
-    Row,
-    Select,
-    Space,
-    Statistic,
-    Typography,
-    Upload,
-    message
+	Avatar,
+	Button,
+	Card,
+	Col,
+	DatePicker,
+	Descriptions,
+	Divider,
+	Form,
+	Input,
+	Modal,
+	Row,
+	Select,
+	Space,
+	Statistic,
+	Typography,
+	Upload,
+	message
 } from 'antd'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
@@ -37,17 +37,13 @@ import { getRoleLabel, getSpecialtyLabel, getSpecialtyOptions } from '../../../.
 import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
 import { getAdminInstance } from '../../../../services/apiClient'
 import { getUserByIdApi, uploadUserImageApi } from '../../../../services/userService'
+import { formatDateDDMMYYYY } from '../../../../utils/dateTimeFormat'
 import styles from './InformationVererianrian.module.css'
 
 const { Title, Text } = Typography
 
-const formatDate = (dateValue, locale, t) => {
-	if (!dateValue) return t('veterinarians.common.notUpdated')
-
-	const date = new Date(dateValue)
-	if (Number.isNaN(date.getTime())) return t('veterinarians.common.notUpdated')
-
-	return date.toLocaleDateString(locale)
+const formatDate = (dateValue, _locale, fallbackText) => {
+	return formatDateDDMMYYYY(dateValue, fallbackText)
 }
 
 const parseDay = (dateValue) => {
@@ -126,7 +122,6 @@ export default function InformationVererianrian() {
 	const specialtyOptions = useMemo(() => getSpecialtyOptions(), [i18n.language])
 	const validateFullName = useMemo(() => buildValidateFullName(t), [t])
 	const validatePhone = useMemo(() => buildValidatePhone(t), [t])
-	const locale = i18n.language?.startsWith('en') ? 'en-GB' : 'vi-VN'
 
 	const [veterinarian, setVeterinarian] = useState(() => {
 		const fromLocation = location.state?.veterinarian
@@ -179,14 +174,18 @@ export default function InformationVererianrian() {
 			specialtyValue,
 			role: getRoleLabel(roleValue),
 			roleValue,
-			joinDate: formatDate(user.createdAt, locale, t),
+			joinDate: formatDate(
+				user.createdAt,
+				i18n.language?.startsWith('en') ? 'en-GB' : 'vi-VN',
+				t('veterinarians.common.notUpdated'),
+			),
 			joinDateRaw: user.createdAt || '',
 			phone: user.phone || t('veterinarians.common.notUpdated'),
 			email: user.email || t('veterinarians.common.notUpdated'),
 			address: user.address || t('veterinarians.common.notUpdated'),
 			active: !user.deleted,
 		}
-	}, [locale, t, veterinarian])
+	}, [i18n.language, t, veterinarian])
 
 	const openEditModal = () => {
 		const initialValues = {

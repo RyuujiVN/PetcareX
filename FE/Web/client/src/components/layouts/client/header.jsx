@@ -6,12 +6,18 @@ import { FaPaw } from "react-icons/fa";
 import { FaRegCalendarCheck, FaRegCommentDots, FaRegThumbsUp } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { io } from "socket.io-client";
 import { useAuth } from "../../../hooks/client/AuthContext";
+import { mapBeNotification } from "../../../hooks/useNotificationSocket";
 import { getClientInstance } from "../../../services/apiClient";
 import { changePasswordApi } from "../../../services/authService";
 import { loadClientNotifications } from "../../../services/notificationService";
 import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
+
+const WS_BASE_URL =
+    (import.meta.env.VITE_API_URL || "http://localhost:3000/api").replace(/\/api\/?$/, "");
+const NOTIFICATION_SOCKET_URL = `${WS_BASE_URL}/notification`;
 
 const MIN_PASSWORD_LENGTH = 8;
 const NOTIFICATION_READ_STORAGE_KEY = "client_header_notification_read_ids";
@@ -83,6 +89,10 @@ const renderNotificationIcon = (type) => {
         return <FaRegThumbsUp />;
     }
 
+    if (type === "ai-diagnosis") {
+        return <FaRegCalendarCheck />;
+    }
+
     return <FaRegCommentDots />;
 };
 
@@ -93,6 +103,13 @@ function Header() {
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [notificationLoading, setNotificationLoading] = useState(false);
     const [notificationItems, setNotificationItems] = useState([]);
+    const [, setTimeTick] = useState(0);
+
+    // Force re-render every 30s so time-ago labels stay fresh
+    useEffect(() => {
+        const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000);
+        return () => window.clearInterval(id);
+    }, []);
     const [notificationFilter, setNotificationFilter] = useState("all");
     const [notificationReadIds, setNotificationReadIds] = useState([]);
     const [notificationLastSyncedAt, setNotificationLastSyncedAt] = useState("");
@@ -311,6 +328,40 @@ function Header() {
             document.removeEventListener("visibilitychange", handleVisibilityChange);
         };
     }, [currentUserId, refreshNotifications, token]);
+
+    // ── WebSocket: receive realtime notifications from BE (e.g. AI_DIAGNOSIS) ──
+    useEffect(() => {
+        if (!token || !currentUserId) return;
+
+        const socket = io(NOTIFICATION_SOCKET_URL, {
+            transports: ["websocket"],
+            auth: { accessToken: token },
+            reconnection: true,
+            reconnectionAttempts: 15,
+            reconnectionDelay: 3000,
+            reconnectionDelayMax: 15000,
+        });
+
+        socket.on("connect", () => {
+            console.log("[Client Header] ✅ Socket notification connected:", socket.id);
+        });
+
+        socket.on("severSendNotification", (data) => {
+            console.log("[Client Header] 📩 Nhận notification từ BE:", data);
+            const mapped = mapBeNotification(data);
+            if (!mapped) return;
+
+            setNotificationItems((prev) => {
+                if (prev.some((n) => n.id === mapped.id)) return prev;
+                return [mapped, ...prev].slice(0, 120);
+            });
+        });
+
+        return () => {
+            socket.removeAllListeners();
+            socket.disconnect();
+        };
+    }, [token, currentUserId]);
 
     const handleClickNotificationItem = (item) => {
         if (!item?.id) return;

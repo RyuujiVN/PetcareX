@@ -41,6 +41,7 @@ import {
 import { getPetByIdApi } from '../../../../services/petService'
 import { getUserByIdApi, getUserProfileApi } from '../../../../services/userService'
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import { formatClinicOpenHours, getClinicInfoContent } from '../../../../utils/storage/clinicInfoStorage'
 import styles from './petMedicalRecords.module.css'
@@ -49,11 +50,8 @@ const FALLBACK_TEXT = '-'
 const CONTACT_FALLBACK_TEXT = '-'
 const { TextArea } = Input
 
-const formatDateLabel = (value, locale = 'vi-VN', fallback = FALLBACK_TEXT) => {
-	if (!value) return fallback
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return fallback
-	return date.toLocaleDateString(locale)
+const formatDateLabel = (value, _locale = 'vi-VN', fallback = FALLBACK_TEXT) => {
+	return formatDateDDMMYYYY(value, fallback)
 }
 
 const buildExamCode = (medicalId) => {
@@ -626,7 +624,7 @@ export default function PetMedicalRecords() {
 		const invoiceCode = billData.code
 		const examCode = buildExamCode(medicalRecord?.id)
 		const examDate = formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate, locale, fallbackText)
-		const examTime = formatFieldValue(appointment?.appointmentTime || '', t('medicalRecords.common.none'))
+		const examTime = formatTimeHHMM(appointment?.appointmentTime, t('medicalRecords.common.none'))
 
 		const medicineRows = buildPrintRowsMarkup(
 			billData.medicineItems,

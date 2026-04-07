@@ -18,6 +18,20 @@ const TITLE_TOKEN_REGEX = /^\s*\[\[title:(.*?)\]\]\s*/i;
 const normalizeText = (value) => String(value || '').trim();
 const t = (key, options) => i18n.t(key, options);
 
+const formatDateDDMMYYYY = (value) => {
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value || '');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  return `${dd}-${mm}-${d.getFullYear()}`;
+};
+
+const formatTimeHHMM = (value) => {
+  const text = String(value || '').trim();
+  const match = text.match(/(\d{1,2}):(\d{2})/);
+  return match ? `${match[1].padStart(2, '0')}:${match[2]}` : text;
+};
+
 const safeDateValue = (value) => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
@@ -66,7 +80,7 @@ const buildAppointmentNotifications = (appointments = []) => {
 
       if (!appointmentDate || !appointmentTime || !status) return null;
 
-      const createdAt = formatAppointmentDateTime(appointmentDate, appointmentTime) || new Date().toISOString();
+      const createdAt = normalizeText(appointment?.createdAt) || formatAppointmentDateTime(appointmentDate, appointmentTime) || new Date().toISOString();
       const petName = normalizeText(appointment?.pet?.name) || t('header.notifications.petFallback');
       const clinicName = normalizeText(appointment?.clinic?.name) || t('header.notifications.clinicFallback');
       const serviceLabel = getServiceLabel(
@@ -80,8 +94,8 @@ const buildAppointmentNotifications = (appointments = []) => {
         type: 'appointment',
         title: `${statusLabel}: ${petName}`,
         description: t('header.notifications.appointmentDescription', {
-          date: appointmentDate,
-          time: appointmentTime,
+          date: formatDateDDMMYYYY(appointmentDate),
+          time: formatTimeHHMM(appointmentTime),
           service: serviceLabel,
           clinic: clinicName,
         }),

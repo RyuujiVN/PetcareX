@@ -23,20 +23,20 @@ import {
   message,
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../hooks/Clinic/AuthContext";
+import { CiHospital1 } from "react-icons/ci";
+import { IoMdNotificationsOutline } from "react-icons/io";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
 import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
-import { CiHospital1 } from "react-icons/ci";
-import { IoMdNotificationsOutline } from "react-icons/io";
-import { RoleEnum } from "../../enum/role.enum";
 import { getRoleLabel } from "../../constants/veterinaryLabels";
+import { RoleEnum } from "../../enum/role.enum";
+import { useAuth } from "../../hooks/Clinic/AuthContext";
+import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import styles from "./AdminClinicLayout.module.css";
-import notifySocket from "../../socket/notifySocket";
 
 const { Text } = Typography;
 
@@ -73,67 +73,50 @@ const menuItemConfigs = [
   },
 ];
 
-const CLINIC_NOTIFICATION_READ_STORAGE_KEY =
-  "clinic_layout_notification_read_ids";
 const NOTIFICATION_TYPE_COLORS = {
   appointment: "blue",
-  system: "gold",
-  review: "purple",
   payment: "green",
+  review: "purple",
+  "ai-diagnosis": "purple",
+  system: "gold",
+  "forum-comment": "cyan",
 };
 
 const getNotificationTypeLabel = (type, t) => {
-  if (type === "appointment") return t("sidebar.notifications.types.appointment");
-  if (type === "system") return t("sidebar.notifications.types.system");
-  if (type === "review") return t("sidebar.notifications.types.review");
-  if (type === "payment") return t("sidebar.notifications.types.payment");
-  return t("sidebar.notifications.types.other");
-};
+  if (type === "appointment") {
+    return t("sidebar.notifications.types.appointment", {
+      defaultValue: "Lịch hẹn",
+    });
+  }
+  if (type === "payment") {
+    return t("sidebar.notifications.types.payment", {
+      defaultValue: "Thanh toán",
+    });
+  }
+  if (type === "review") {
+    return t("sidebar.notifications.types.review", {
+      defaultValue: "Đánh giá",
+    });
+  }
+  if (type === "ai-diagnosis") {
+    return t("sidebar.notifications.types.aiDiagnosis", {
+      defaultValue: "Chẩn đoán AI",
+    });
+  }
+  if (type === "forum-comment") {
+    return t("sidebar.notifications.types.forumComment", {
+      defaultValue: "Bình luận",
+    });
+  }
+  if (type === "system") {
+    return t("sidebar.notifications.types.system", {
+      defaultValue: "Hệ thống",
+    });
+  }
 
-const buildMockClinicNotifications = (clinicName, t) => {
-  const now = Date.now();
-  const createTime = (minutesAgo) =>
-    new Date(now - minutesAgo * 60 * 1000).toISOString();
-
-  return [
-    {
-      id: "clinic-notify-01",
-      type: "appointment",
-      createdAt: createTime(3),
-      title: t("sidebar.notifications.mock.newAppointmentTitle"),
-      description: t("sidebar.notifications.mock.newAppointmentDescription", {
-        clinicName,
-      }),
-    },
-    {
-      id: "clinic-notify-02",
-      type: "appointment",
-      createdAt: createTime(26),
-      title: t("sidebar.notifications.mock.changedAppointmentTitle"),
-      description: t("sidebar.notifications.mock.changedAppointmentDescription"),
-    },
-    {
-      id: "clinic-notify-03",
-      type: "payment",
-      createdAt: createTime(95),
-      title: t("sidebar.notifications.mock.paymentTitle"),
-      description: t("sidebar.notifications.mock.paymentDescription"),
-    },
-    {
-      id: "clinic-notify-04",
-      type: "review",
-      createdAt: createTime(300),
-      title: t("sidebar.notifications.mock.reviewTitle"),
-      description: t("sidebar.notifications.mock.reviewDescription"),
-    },
-    {
-      id: "clinic-notify-05",
-      type: "system",
-      createdAt: createTime(1380),
-      title: t("sidebar.notifications.mock.systemTitle"),
-      description: t("sidebar.notifications.mock.systemDescription"),
-    },
-  ];
+  return t("sidebar.notifications.types.other", {
+    defaultValue: "Khác",
+  });
 };
 
 const formatNotificationTimeAgo = (dateValue, t) => {
@@ -182,7 +165,6 @@ const getClinicDisplayName = (profile, t) => {
 
 const handoffAdminAuthToNewTab = () => {
   const authKeys = [
-    ADMIN_AUTH_STORAGE.tokenKey,
     ADMIN_AUTH_STORAGE.userInfoKey,
     ADMIN_AUTH_STORAGE.activeRoleKey,
   ];
@@ -203,11 +185,17 @@ export default function AdminClinicLayout() {
   const location = useLocation();
   const { token, userProfile, logout, activeRole } = useAuth();
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
-  const [notificationReadIds, setNotificationReadIds] = useState([]);
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: "all",
     eventType: "all",
   });
+  const [, setTimeTick] = useState(0);
+
+  // Force re-render every 30s so time-ago labels stay fresh
+  useEffect(() => {
+    const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const effectiveRole =
     activeRole || (userProfile ? getPrimaryRole(userProfile) : null);
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : [];
@@ -219,29 +207,21 @@ export default function AdminClinicLayout() {
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
 
-  const notificationItems = useMemo(
-    () => buildMockClinicNotifications(clinicDisplayName, t),
-    [clinicDisplayName, t],
-  );
+  const {
+    notifications: notificationItems,
+    readIdSet: notificationReadIdSet,
+    unreadCount: unreadNotificationCount,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+  } = useNotificationSocket({
+    storageKey: `ws_notif_clinic:${notificationScopeKey}`,
+    token,
+    enabled: !!token,
+  });
 
   const menuItems = useMemo(
     () => menuItemConfigs.map((item) => ({ ...item, label: t(item.labelKey) })),
     [t],
-  );
-
-  const notificationReadIdSet = useMemo(
-    () => new Set(notificationReadIds),
-    [notificationReadIds],
-  );
-
-  const unreadNotificationCount = useMemo(
-    () =>
-      notificationItems.reduce(
-        (count, item) =>
-          notificationReadIdSet.has(item.id) ? count : count + 1,
-        0,
-      ),
-    [notificationItems, notificationReadIdSet],
   );
 
   const filteredNotificationItems = useMemo(() => {
@@ -265,30 +245,6 @@ export default function AdminClinicLayout() {
   }, [notificationFilters, notificationItems, notificationReadIdSet]);
 
   useEffect(() => {
-    const storageKey = `${CLINIC_NOTIFICATION_READ_STORAGE_KEY}:${notificationScopeKey}`;
-
-    try {
-      const storedIds = JSON.parse(
-        window.localStorage.getItem(storageKey) || "[]",
-      );
-      if (Array.isArray(storedIds)) {
-        setNotificationReadIds(storedIds);
-        return;
-      }
-    } catch {}
-
-    setNotificationReadIds([]);
-  }, [notificationScopeKey]);
-
-  useEffect(() => {
-    const storageKey = `${CLINIC_NOTIFICATION_READ_STORAGE_KEY}:${notificationScopeKey}`;
-    window.localStorage.setItem(
-      storageKey,
-      JSON.stringify(notificationReadIds.slice(-300)),
-    );
-  }, [notificationReadIds, notificationScopeKey]);
-
-  useEffect(() => {
     if (!token) {
       navigate("/login", { replace: true });
       return;
@@ -306,37 +262,9 @@ export default function AdminClinicLayout() {
     }
   }, [token, effectiveRole, hasClinicRole, navigate]);
 
-  useEffect(() => {
-    if (!notifySocket.connected) notifySocket.connect();
-
-    notifySocket.on("severSendNotification", (data) => {
-      console.log(data);
-    });
-
-    return () => {
-      notifySocket.off("severSendNotification", (data) => {
-        console.log(data);
-      });
-      notifySocket.disconnect();
-    };
-  }, []);
-
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
-  };
-
-  const markNotificationAsRead = (notificationId) => {
-    if (!notificationId) return;
-
-    setNotificationReadIds((prev) => {
-      if (prev.includes(notificationId)) return prev;
-      return [...prev, notificationId];
-    });
-  };
-
-  const markAllNotificationsAsRead = () => {
-    setNotificationReadIds(notificationItems.map((item) => item.id));
   };
 
   const openHomePageEditor = () => {
@@ -416,18 +344,46 @@ export default function AdminClinicLayout() {
             options={[
               {
                 value: "all",
-                label: t("sidebar.notifications.filters.allTypes"),
+                label: t("sidebar.notifications.filters.allTypes", {
+                  defaultValue: "Mọi loại",
+                }),
               },
               {
                 value: "appointment",
-                label: t("sidebar.notifications.filters.appointment"),
+                label: t("sidebar.notifications.filters.appointment", {
+                  defaultValue: "Lịch hẹn",
+                }),
               },
               {
                 value: "payment",
-                label: t("sidebar.notifications.filters.payment"),
+                label: t("sidebar.notifications.filters.payment", {
+                  defaultValue: "Thanh toán",
+                }),
               },
-              { value: "review", label: t("sidebar.notifications.filters.review") },
-              { value: "system", label: t("sidebar.notifications.filters.system") },
+              {
+                value: "review",
+                label: t("sidebar.notifications.filters.review", {
+                  defaultValue: "Đánh giá",
+                }),
+              },
+              {
+                value: "ai-diagnosis",
+                label: t("sidebar.notifications.filters.aiDiagnosis", {
+                  defaultValue: "Chẩn đoán AI",
+                }),
+              },
+              {
+                value: "forum-comment",
+                label: t("sidebar.notifications.filters.forumComment", {
+                  defaultValue: "Bình luận",
+                }),
+              },
+              {
+                value: "system",
+                label: t("sidebar.notifications.filters.system", {
+                  defaultValue: "Hệ thống",
+                }),
+              },
             ]}
           />
         </Form.Item>

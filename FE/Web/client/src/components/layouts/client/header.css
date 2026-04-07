@@ -164,7 +164,7 @@
 .notification-panel-content {
     flex: 1;
     min-height: 160px;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .notification-panel-loading,
@@ -235,6 +235,11 @@
 .notification-type-icon.forum-like {
     background: rgba(239, 68, 68, 0.14);
     color: #ef4444;
+}
+
+.notification-type-icon.ai-diagnosis {
+    background: rgba(139, 92, 246, 0.14);
+    color: #7c3aed;
 }
 
 .notification-item-text {
