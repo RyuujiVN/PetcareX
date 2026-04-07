@@ -32,8 +32,8 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { RoleEnum } from "../../enum/role.enum";
 import { getRoleLabel } from "../../constants/veterinaryLabels";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
+import useNotificationSocket from "../../hooks/useNotificationSocket";
 import styles from "./AdminClinicLayout.module.css";
-import notifySocket from "../../socket/notifySocket";
 
 const { Text } = Typography;
 
@@ -70,69 +70,19 @@ const menuItems = [
   },
 ];
 
-const CLINIC_NOTIFICATION_READ_STORAGE_KEY =
-  "clinic_layout_notification_read_ids";
 const NOTIFICATION_TYPE_COLORS = {
   appointment: "blue",
+  "ai-diagnosis": "purple",
   system: "gold",
-  review: "purple",
-  payment: "green",
+  "forum-comment": "cyan",
 };
 
 const getNotificationTypeLabel = (type) => {
   if (type === "appointment") return "Lịch hẹn";
+  if (type === "ai-diagnosis") return "Chẩn đoán AI";
   if (type === "system") return "Hệ thống";
-  if (type === "review") return "Đánh giá";
-  if (type === "payment") return "Thanh toán";
+  if (type === "forum-comment") return "Bình luận";
   return "Khác";
-};
-
-const buildMockClinicNotifications = (clinicName) => {
-  const now = Date.now();
-  const createTime = (minutesAgo) =>
-    new Date(now - minutesAgo * 60 * 1000).toISOString();
-
-  return [
-    {
-      id: "clinic-notify-01",
-      type: "appointment",
-      createdAt: createTime(3),
-      title: "Có lịch khám mới từ khách hàng",
-      description: `Nguyễn Minh An vừa đặt lịch tại ${clinicName} cho bé Mít với dịch vụ Khám tổng quát lúc 09:30 hôm nay.`,
-    },
-    {
-      id: "clinic-notify-02",
-      type: "appointment",
-      createdAt: createTime(26),
-      title: "Khách hàng đã đổi khung giờ khám",
-      description:
-        "Lê Thu Hằng đã đổi lịch cho bé Bông từ 14:00 sang 15:30, dịch vụ Tiêm phòng nhắc lại.",
-    },
-    {
-      id: "clinic-notify-03",
-      type: "payment",
-      createdAt: createTime(95),
-      title: "Thanh toán hóa đơn thành công",
-      description:
-        "Hóa đơn MR-2308 cho lịch khám của bé Cún đã được thanh toán online đầy đủ.",
-    },
-    {
-      id: "clinic-notify-04",
-      type: "review",
-      createdAt: createTime(300),
-      title: "Bạn nhận được đánh giá mới 5 sao",
-      description:
-        "Khách hàng Phạm Hải Đăng để lại phản hồi tốt về dịch vụ Khám da liễu cho thú cưng.",
-    },
-    {
-      id: "clinic-notify-05",
-      type: "system",
-      createdAt: createTime(1380),
-      title: "Nhắc nhở lịch hẹn ngày mai",
-      description:
-        "Bạn có 7 lịch hẹn vào ngày mai. Hãy xác nhận đủ bác sĩ trực để tránh quá tải.",
-    },
-  ];
 };
 
 const formatNotificationTimeAgo = (dateValue) => {
@@ -191,7 +141,6 @@ export default function AdminClinicLayout() {
   const location = useLocation();
   const { token, userProfile, logout, activeRole } = useAuth();
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
-  const [notificationReadIds, setNotificationReadIds] = useState([]);
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: "all",
     eventType: "all",
@@ -207,25 +156,17 @@ export default function AdminClinicLayout() {
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
 
-  const notificationItems = useMemo(
-    () => buildMockClinicNotifications(clinicDisplayName),
-    [clinicDisplayName],
-  );
-
-  const notificationReadIdSet = useMemo(
-    () => new Set(notificationReadIds),
-    [notificationReadIds],
-  );
-
-  const unreadNotificationCount = useMemo(
-    () =>
-      notificationItems.reduce(
-        (count, item) =>
-          notificationReadIdSet.has(item.id) ? count : count + 1,
-        0,
-      ),
-    [notificationItems, notificationReadIdSet],
-  );
+  const {
+    notifications: notificationItems,
+    readIdSet: notificationReadIdSet,
+    unreadCount: unreadNotificationCount,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+  } = useNotificationSocket({
+    storageKey: `ws_notif_clinic:${notificationScopeKey}`,
+    token,
+    enabled: !!token,
+  });
 
   const filteredNotificationItems = useMemo(() => {
     return notificationItems.filter((item) => {
@@ -248,30 +189,6 @@ export default function AdminClinicLayout() {
   }, [notificationFilters, notificationItems, notificationReadIdSet]);
 
   useEffect(() => {
-    const storageKey = `${CLINIC_NOTIFICATION_READ_STORAGE_KEY}:${notificationScopeKey}`;
-
-    try {
-      const storedIds = JSON.parse(
-        window.localStorage.getItem(storageKey) || "[]",
-      );
-      if (Array.isArray(storedIds)) {
-        setNotificationReadIds(storedIds);
-        return;
-      }
-    } catch {}
-
-    setNotificationReadIds([]);
-  }, [notificationScopeKey]);
-
-  useEffect(() => {
-    const storageKey = `${CLINIC_NOTIFICATION_READ_STORAGE_KEY}:${notificationScopeKey}`;
-    window.localStorage.setItem(
-      storageKey,
-      JSON.stringify(notificationReadIds.slice(-300)),
-    );
-  }, [notificationReadIds, notificationScopeKey]);
-
-  useEffect(() => {
     if (!token) {
       navigate("/login", { replace: true });
       return;
@@ -289,37 +206,9 @@ export default function AdminClinicLayout() {
     }
   }, [token, effectiveRole, hasClinicRole, navigate]);
 
-  useEffect(() => {
-    if (!notifySocket.connected) notifySocket.connect();
-
-    notifySocket.on("severSendNotification", (data) => {
-      console.log(data);
-    });
-
-    return () => {
-      notifySocket.off("severSendNotification", (data) => {
-        console.log(data);
-      });
-      notifySocket.disconnect();
-    };
-  }, []);
-
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
-  };
-
-  const markNotificationAsRead = (notificationId) => {
-    if (!notificationId) return;
-
-    setNotificationReadIds((prev) => {
-      if (prev.includes(notificationId)) return prev;
-      return [...prev, notificationId];
-    });
-  };
-
-  const markAllNotificationsAsRead = () => {
-    setNotificationReadIds(notificationItems.map((item) => item.id));
   };
 
   const openHomePageEditor = () => {
@@ -391,8 +280,7 @@ export default function AdminClinicLayout() {
             options={[
               { value: "all", label: "Mọi loại" },
               { value: "appointment", label: "Lịch hẹn" },
-              { value: "payment", label: "Thanh toán" },
-              { value: "review", label: "Đánh giá" },
+              { value: "ai-diagnosis", label: "Chẩn đoán AI" },
               { value: "system", label: "Hệ thống" },
             ]}
           />

@@ -15,6 +15,7 @@ import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
+import useNotificationSocket from '../../hooks/useNotificationSocket'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
@@ -28,60 +29,17 @@ const menuItems = [
 
 const NOTIFICATION_TYPE_COLORS = {
   appointment: 'blue',
-  record: 'geekblue',
-  examSlip: 'orange',
+  'ai-diagnosis': 'purple',
   system: 'gold',
+  'forum-comment': 'cyan',
 }
 
 const getNotificationTypeLabel = (type) => {
   if (type === 'appointment') return 'Lịch hẹn'
-  if (type === 'record') return 'Hồ sơ bệnh án'
-  if (type === 'examSlip') return 'Phiếu khám'
+  if (type === 'ai-diagnosis') return 'Chẩn đoán AI'
   if (type === 'system') return 'Hệ thống'
+  if (type === 'forum-comment') return 'Bình luận'
   return 'Khác'
-}
-
-const buildMockVeterinarianNotifications = (clinicName) => {
-  const now = Date.now()
-  const createTime = (minutesAgo) => new Date(now - minutesAgo * 60 * 1000).toISOString()
-
-  return [
-    {
-      id: 'vet-notify-01',
-      type: 'appointment',
-      createdAt: createTime(6),
-      title: 'Có lịch hẹn khám mới trong hôm nay',
-      description: `Lịch hẹn mới cho bé Misa tại ${clinicName} lúc 10:15 đã được xác nhận.`,
-    },
-    {
-      id: 'vet-notify-02',
-      type: 'appointment',
-      createdAt: createTime(42),
-      title: 'Lịch hẹn đã được khách cập nhật',
-      description: 'Khách hàng Trần Bảo An dời lịch tái khám của bé Gấu từ 14:30 sang 16:00.',
-    },
-    {
-      id: 'vet-notify-03',
-      type: 'record',
-      createdAt: createTime(130),
-      title: 'Có hồ sơ bệnh án cần hoàn thiện',
-      description: 'Hồ sơ MR-5412 của bé Mèo Mun còn thiếu mục chẩn đoán sau điều trị.',
-    },
-    {
-      id: 'vet-notify-04',
-      type: 'examSlip',
-      createdAt: createTime(255),
-      title: 'Phiếu khám đang chờ ký xác nhận',
-      description: 'Phiếu khám EX-884 cho ca nội soi tai của bé Corgi cần bạn xác nhận trước 18:00.',
-    },
-    {
-      id: 'vet-notify-05',
-      type: 'system',
-      createdAt: createTime(980),
-      title: 'Nhắc nhở lịch trực ngày mai',
-      description: 'Bạn có 8 lịch hẹn ngày mai. Vui lòng kiểm tra lại khung giờ và trạng thái chuẩn bị.',
-    },
-  ]
 }
 
 const formatNotificationTimeAgo = (dateValue) => {
@@ -117,7 +75,6 @@ export default function AdminVererianrianLayout() {
   const navigate = useNavigate()
   const { token, userProfile, logout, activeRole } = useAuth()
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false)
-  const [notificationReadIds, setNotificationReadIds] = useState([])
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: 'all',
     eventType: 'all',
@@ -135,19 +92,19 @@ export default function AdminVererianrianLayout() {
     location.pathname === '/veterinarian/viewRecords' ||
     location.pathname.startsWith('/veterinarian/viewRecords/')
   const shouldUseMedicalRecordHeader = isViewPetMedicalRecordsRoute && !isExamFormFocusMode
-  const notificationItems = useMemo(
-    () => buildMockVeterinarianNotifications(clinicDisplayName),
-    [clinicDisplayName],
-  )
-  const notificationReadIdSet = useMemo(() => new Set(notificationReadIds), [notificationReadIds])
-  const unreadNotificationCount = useMemo(
-    () =>
-      notificationItems.reduce(
-        (count, item) => (notificationReadIdSet.has(item.id) ? count : count + 1),
-        0,
-      ),
-    [notificationItems, notificationReadIdSet],
-  )
+
+  const {
+    notifications: notificationItems,
+    readIdSet: notificationReadIdSet,
+    unreadCount: unreadNotificationCount,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+  } = useNotificationSocket({
+    storageKey: `ws_notif_vet:${userProfile?.id || 'default'}`,
+    token,
+    enabled: !!token,
+  })
+
   const filteredNotificationItems = useMemo(() => {
     return notificationItems.filter((item) => {
       if (notificationFilters.viewMode === 'unread' && notificationReadIdSet.has(item.id)) {
@@ -167,19 +124,6 @@ export default function AdminVererianrianLayout() {
   const handleLogout = () => {
     logout()
     navigate('/login', { replace: true })
-  }
-
-  const markNotificationAsRead = (notificationId) => {
-    if (!notificationId) return
-
-    setNotificationReadIds((prev) => {
-      if (prev.includes(notificationId)) return prev
-      return [...prev, notificationId]
-    })
-  }
-
-  const markAllNotificationsAsRead = () => {
-    setNotificationReadIds(notificationItems.map((item) => item.id))
   }
 
   useEffect(() => {
@@ -246,8 +190,7 @@ export default function AdminVererianrianLayout() {
             options={[
               { value: 'all', label: 'Mọi loại' },
               { value: 'appointment', label: 'Lịch hẹn' },
-              { value: 'record', label: 'Hồ sơ bệnh án' },
-              { value: 'examSlip', label: 'Phiếu khám' },
+              { value: 'ai-diagnosis', label: 'Chẩn đoán AI' },
               { value: 'system', label: 'Hệ thống' },
             ]}
           />

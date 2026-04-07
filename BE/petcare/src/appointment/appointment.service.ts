@@ -1,25 +1,25 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
   BadRequestException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Queue } from 'bullmq';
 import { paginate } from 'nestjs-typeorm-paginate';
 import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
+import { NotificationEnum } from 'src/common/enums/notification.enum';
+import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
+import { SenderNotificationEnum } from 'src/common/enums/sender-notification.enum';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationGateway } from 'src/notification/notification.gateway';
+import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { Repository } from 'typeorm';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
 import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
-import { Notification } from 'src/notification/entities/notification.entity';
-import { NotificationGateway } from 'src/notification/notification.gateway';
-import { SenderNotificationEnum } from 'src/common/enums/sender-notification.enum';
-import { NotificationEnum } from 'src/common/enums/notification.enum';
-import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 
 @Injectable()
 export class AppointmentService {
@@ -209,7 +209,7 @@ export class AppointmentService {
         });
 
         const notificationVeterinarian = notificationRepo.create({
-          recipientId: savedAppointment.veterinarianId,
+          recipientId: createdAppointment.veterinarianId,
           senderId: user.id,
           senderType: SenderNotificationEnum.SYSTEM,
           type: NotificationEnum.APPOINTMENT_BOOKED,

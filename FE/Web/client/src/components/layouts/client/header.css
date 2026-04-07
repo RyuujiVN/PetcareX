@@ -237,6 +237,11 @@
     color: #ef4444;
 }
 
+.notification-type-icon.ai-diagnosis {
+    background: rgba(139, 92, 246, 0.14);
+    color: #7c3aed;
+}
+
 .notification-item-text {
     display: flex;
     flex-direction: column;
