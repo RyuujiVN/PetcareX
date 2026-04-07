@@ -1,19 +1,20 @@
 import {
-	FileAddOutlined,
-	LeftOutlined,
-	PlusCircleOutlined,
-	RightOutlined,
+    FileAddOutlined,
+    LeftOutlined,
+    PlusCircleOutlined,
+    RightOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
-import {
-	APPOINTMENT_STATUS,
-	getAppointmentsApi,
-} from '../../../services/appointmentService'
 import { getAdminInstance } from '../../../services/apiClient'
+import {
+    APPOINTMENT_STATUS,
+    getAppointmentsApi,
+} from '../../../services/appointmentService'
 import { getBreedLabel } from '../../../services/petService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './listExaminationForm.module.css'
 
@@ -32,10 +33,7 @@ const getCurrentVeterinarianUserId = () => {
 }
 
 const formatDate = (value) => {
-	if (!value) return '--/--/----'
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return '--/--/----'
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(value, '--/--/----')
 }
 
 const toRecordRow = (item) => {
@@ -51,7 +49,7 @@ const toRecordRow = (item) => {
 		medical: item?.medical || null,
 		appointmentDate: item?.appointmentDate || null,
 		createdDate: formatDate(item?.appointmentDate),
-		appointmentTime: String(item?.appointmentTime || '').slice(0, 5),
+		appointmentTime: formatTimeHHMM(item?.appointmentTime, ''),
 		clinicId: item?.clinic?.id || item?.clinicId || '',
 		formName: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),
 		petName: pet?.name || 'Chưa cập nhật',

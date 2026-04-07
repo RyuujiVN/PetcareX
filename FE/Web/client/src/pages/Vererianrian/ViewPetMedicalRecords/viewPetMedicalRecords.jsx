@@ -1,20 +1,21 @@
 import {
-	DownOutlined,
-	UpOutlined,
+    DownOutlined,
+    UpOutlined,
 } from '@ant-design/icons'
 import { Spin, message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import { FaCakeCandles, FaDog, FaMars } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useSearchParams } from 'react-router-dom'
-import {
-	getMedicalByIdApi,
-	getMedicalByPetIdApi,
-	getMedicalOrdersByMedicalIdApi,
-	getMedicinesByMedicalIdApi,
-} from '../../../services/medicalService'
-import { getPetByIdApi, getBreedLabel } from '../../../services/petService'
 import { getAdminInstance } from '../../../services/apiClient'
+import {
+    getMedicalByIdApi,
+    getMedicalByPetIdApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicinesByMedicalIdApi,
+} from '../../../services/medicalService'
+import { getBreedLabel, getPetByIdApi } from '../../../services/petService'
+import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
 
@@ -30,10 +31,7 @@ const DEFAULT_PET = {
 }
 
 const formatDate = (value) => {
-	if (!value) return 'Chưa cập nhật'
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(value, 'Chưa cập nhật')
 }
 
 const resolveExamDate = (record) =>

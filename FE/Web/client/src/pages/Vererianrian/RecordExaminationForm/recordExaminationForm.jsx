@@ -66,6 +66,7 @@ import {
 	getSpeciesLabel,
 } from '../../../services/petService'
 import { getUserByIdApi, getUserListApi } from '../../../services/userService'
+import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
@@ -151,10 +152,7 @@ const formatRemainingTime = (seconds) => {
 }
 
 const formatDateLabel = (value, fallback = 'Chưa cập nhật') => {
-	if (!value) return fallback
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return fallback
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(value, fallback)
 }
 
 const formatFollowUpDateLabel = (value) => formatDateLabel(value, 'Không')

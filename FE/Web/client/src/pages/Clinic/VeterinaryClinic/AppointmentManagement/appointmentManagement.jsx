@@ -1,45 +1,46 @@
 import {
-    CalendarOutlined,
-    CheckCircleOutlined,
-    ClockCircleOutlined,
-    DollarCircleOutlined,
-    MedicineBoxOutlined,
-    SearchOutlined,
+	CalendarOutlined,
+	CheckCircleOutlined,
+	ClockCircleOutlined,
+	DollarCircleOutlined,
+	MedicineBoxOutlined,
+	SearchOutlined,
 } from '@ant-design/icons'
 import {
-    Avatar,
-    Badge,
-    Button,
-    Card,
-    Col,
-    DatePicker,
-    Empty,
-    Input,
-    message,
-    Modal,
-    Row,
-    Select,
-    Spin,
-    Tag,
-    Typography,
+	Avatar,
+	Badge,
+	Button,
+	Card,
+	Col,
+	DatePicker,
+	Empty,
+	Input,
+	message,
+	Modal,
+	Row,
+	Select,
+	Spin,
+	Tag,
+	Typography,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useState } from 'react'
+import { getAdminInstance } from '../../../../services/apiClient'
 import {
-    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-    APPOINTMENT_STATUS,
-    getAppointmentsApi,
-    updateAppointmentStatusApi,
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+	APPOINTMENT_STATUS,
+	getAppointmentsApi,
+	updateAppointmentStatusApi,
 } from '../../../../services/appointmentService'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../../services/invoiceService'
 import { getLatestMedicalByPetIdApi } from '../../../../services/medicalService'
 import { getUserByIdApi } from '../../../../services/userService'
-import { getAdminInstance } from '../../../../services/apiClient'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
 import {
-    getAppointmentStatusLabel,
-    getPetBreedLabel,
-    getPetSpeciesLabel,
-    getServiceLabel,
+	getAppointmentStatusLabel,
+	getPetBreedLabel,
+	getPetSpeciesLabel,
+	getServiceLabel,
 } from '../../../../utils/enumLabel'
 import styles from './appointmentManagement.module.css'
 
@@ -113,11 +114,10 @@ const getAgeLabel = (dateOfBirth) => {
 }
 
 const formatDisplayDate = (dateValue) => {
-	if (!dateValue) return ''
-	return new Date(dateValue).toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(dateValue, '')
 }
 
-const getTimeValue = (time) => (time || '').slice(0, 5)
+const getTimeValue = (time) => formatTimeHHMM(time, '')
 
 const getGenderLabel = (value) => {
 	if (typeof value === 'boolean') {
@@ -385,7 +385,7 @@ export default function AppointmentManagement() {
 				genderLabel: getGenderLabel(petGender),
 				ageLabel: getAgeLabel(petDateOfBirth),
 				dateOfBirthLabel: petDateOfBirth
-					? new Date(petDateOfBirth).toLocaleDateString('vi-VN')
+					? formatDateDDMMYYYY(petDateOfBirth, MISSING_APPOINTMENT_FIELD)
 					: MISSING_APPOINTMENT_FIELD,
 				featureNote: petFeature || MISSING_APPOINTMENT_FIELD,
 				appointmentNote: item.note || 'Không có ghi chú',

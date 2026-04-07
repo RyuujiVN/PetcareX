@@ -9,12 +9,13 @@ import {
 import { Avatar, Button, Card, Col, Flex, message, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
     APPOINTMENT_STATUS,
     getAppointmentsApi,
     updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
-import { getAdminInstance } from '../../../services/apiClient'
+import { formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './petAppointmentVererianrian.module.css'
 
@@ -39,7 +40,7 @@ const getCurrentVeterinarianUserId = () => {
   }
 }
 
-const normalizeTime = (value) => (value ? String(value).slice(0, 5) : '--:--')
+const normalizeTime = (value) => formatTimeHHMM(value, '--:--')
 
 const mapStatusClass = (status) => {
   if (status === APPOINTMENT_STATUS.IN_PROGRESS) return 'statusInProgress'

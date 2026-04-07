@@ -3,9 +3,10 @@ import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, messag
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
 import { getAdminInstance } from '../../../../services/apiClient'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
 import { getPetSpeciesApi } from '../../../../services/petService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
 import { getPetBreedLabel, getPetSpeciesLabel } from '../../../../utils/enumLabel'
 import styles from './listPetMedicalRecords.module.css'
 
@@ -27,11 +28,10 @@ const normalizeDate = (dateValue) => {
 }
 
 const formatDisplayDate = (dateValue) => {
-	if (!dateValue) return FALLBACK_TEXT
-	return new Date(dateValue).toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(dateValue, FALLBACK_TEXT)
 }
 
-const formatDisplayTime = (timeValue) => (timeValue || '').slice(0, 5)
+const formatDisplayTime = (timeValue) => formatTimeHHMM(timeValue, '')
 
 const formatEnumLabel = (value) => {
 	return getPetSpeciesLabel(value, FALLBACK_TEXT)

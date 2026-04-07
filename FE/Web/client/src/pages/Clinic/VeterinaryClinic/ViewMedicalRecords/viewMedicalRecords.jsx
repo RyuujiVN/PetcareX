@@ -11,6 +11,7 @@ import {
 } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { getAdminInstance } from '../../../../services/apiClient'
 import {
     getMedicalByIdApi,
     getMedicalByPetIdApi,
@@ -18,7 +19,7 @@ import {
     getMedicinesByMedicalIdApi,
 } from '../../../../services/medicalService'
 import { getPetByIdApi } from '../../../../services/petService'
-import { getAdminInstance } from '../../../../services/apiClient'
+import { formatDateDDMMYYYY } from '../../../../utils/dateTimeFormat'
 import {
     getMedicalRecordStatusLabel,
     getMedicineUnitLabel,
@@ -74,12 +75,7 @@ const getReminderIcon = (type) => {
 }
 
 const formatDate = (value) => {
-	if (!value) return FALLBACK_TEXT
-
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return FALLBACK_TEXT
-
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(value, FALLBACK_TEXT)
 }
 
 const formatFollowUpDate = (value) => {

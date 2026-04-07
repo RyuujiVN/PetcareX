@@ -40,6 +40,31 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 6. Không tạo file mới trong `src/data/`; nếu có nhu cầu mới, phân loại theo các tầng trên.
 7. Mọi lần di chuyển file phải cập nhật import và chạy build để xác nhận không vỡ luồng.
 
+### Chuẩn hóa ngày giờ hiển thị (cập nhật 2026-04-07)
+
+Để đồng nhất với chuẩn thông báo (notification), toàn bộ màn hình **Clinic Portal** và **Veterinarian Portal** đã chuyển sang dùng utility chung:
+
+- `src/utils/dateTimeFormat.js`
+  - `formatDateDDMMYYYY(value, fallback)` -> chuẩn `DD-MM-YYYY` (có số 0 đầu)
+  - `formatTimeHHMM(value, fallback)` -> chuẩn `HH:mm` (có số 0 đầu, xử lý cả dữ liệu có giây)
+
+#### Quy ước bắt buộc khi hiển thị ngày giờ
+1. Không format trực tiếp bằng `new Date(...).toLocaleDateString('vi-VN')` trong page components của Clinic/Veterinarian.
+2. Không cắt giờ thủ công bằng `.slice(0, 5)` để tránh lệch format khi backend trả về dữ liệu khác chuẩn.
+3. Luôn dùng helper từ `src/utils/dateTimeFormat.js` để bảo đảm đồng nhất UI giữa các màn.
+
+#### Các màn hình đã migrate sang formatter chung
+- `src/pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement.jsx`
+- `src/pages/Clinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian.jsx`
+- `src/pages/Clinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords.jsx`
+- `src/pages/Clinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords.jsx`
+- `src/pages/Clinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords.jsx`
+- `src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx`
+- `src/pages/Vererianrian/ListMedicalRecords/listMedicalRecords.jsx`
+- `src/pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian.jsx`
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`
+- `src/pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords.jsx`
+
 ## Kiến trúc ứng dụng
 
 ### 1) Bootstrap & Provider Chain

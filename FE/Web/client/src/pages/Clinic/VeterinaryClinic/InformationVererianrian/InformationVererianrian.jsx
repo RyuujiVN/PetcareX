@@ -1,33 +1,33 @@
 import {
-    CalendarOutlined,
-    CameraOutlined,
-    EditOutlined,
-    EnvironmentOutlined,
-    IdcardOutlined,
-    MailOutlined,
-    MedicineBoxOutlined,
-    PhoneOutlined,
-    SaveOutlined,
-    UserOutlined
+	CalendarOutlined,
+	CameraOutlined,
+	EditOutlined,
+	EnvironmentOutlined,
+	IdcardOutlined,
+	MailOutlined,
+	MedicineBoxOutlined,
+	PhoneOutlined,
+	SaveOutlined,
+	UserOutlined
 } from '@ant-design/icons'
 import {
-    Avatar,
-    Button,
-    Card,
-    Col,
-    DatePicker,
-    Descriptions,
-    Divider,
-    Form,
-    Input,
-    Modal,
-    Row,
-    Select,
-    Space,
-    Statistic,
-    Typography,
-    Upload,
-    message
+	Avatar,
+	Button,
+	Card,
+	Col,
+	DatePicker,
+	Descriptions,
+	Divider,
+	Form,
+	Input,
+	Modal,
+	Row,
+	Select,
+	Space,
+	Statistic,
+	Typography,
+	Upload,
+	message
 } from 'antd'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
@@ -36,17 +36,13 @@ import { getRoleLabel, getSpecialtyLabel, getSpecialtyOptions } from '../../../.
 import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
 import { getAdminInstance } from '../../../../services/apiClient'
 import { getUserByIdApi, uploadUserImageApi } from '../../../../services/userService'
+import { formatDateDDMMYYYY } from '../../../../utils/dateTimeFormat'
 import styles from './InformationVererianrian.module.css'
 
 const { Title, Text } = Typography
 
 const formatDate = (dateValue) => {
-	if (!dateValue) return 'Chưa cập nhật'
-
-	const date = new Date(dateValue)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
-
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(dateValue, 'Chưa cập nhật')
 }
 
 const parseDay = (dateValue) => {
