@@ -31,6 +31,7 @@ import {
 } from 'antd'
 import dayjs from 'dayjs'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router-dom'
 import { getRoleLabel, getSpecialtyLabel, getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
 import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
@@ -40,13 +41,13 @@ import styles from './InformationVererianrian.module.css'
 
 const { Title, Text } = Typography
 
-const formatDate = (dateValue) => {
-	if (!dateValue) return 'Chưa cập nhật'
+const formatDate = (dateValue, locale, t) => {
+	if (!dateValue) return t('veterinarians.common.notUpdated')
 
 	const date = new Date(dateValue)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
+	if (Number.isNaN(date.getTime())) return t('veterinarians.common.notUpdated')
 
-	return date.toLocaleDateString('vi-VN')
+	return date.toLocaleDateString(locale)
 }
 
 const parseDay = (dateValue) => {
@@ -57,45 +58,45 @@ const parseDay = (dateValue) => {
 
 const NAME_REGEX = /^[A-Za-zÀ-ỹ]+(?: [A-Za-zÀ-ỹ]+)*$/u
 
-const validateFullName = async (_, value) => {
+const buildValidateFullName = (t) => async (_, value) => {
 	const rawValue = value || ''
 	const trimmedValue = rawValue.trim()
 
 	if (!trimmedValue) {
-		throw new Error('Vui lòng nhập họ tên')
+		throw new Error(t('veterinarians.validation.fullNameRequired'))
 	}
 
 	if (rawValue !== trimmedValue) {
-		throw new Error('Họ tên không được có khoảng trắng ở đầu hoặc cuối')
+		throw new Error(t('veterinarians.validation.fullNameNoEdgeSpaces'))
 	}
 
 	if (/\s{2,}/.test(rawValue)) {
-		throw new Error('Họ tên không được chứa 2 khoảng trắng liên tiếp')
+		throw new Error(t('veterinarians.validation.fullNameNoDoubleSpaces'))
 	}
 
 	if (!NAME_REGEX.test(trimmedValue)) {
-		throw new Error('Họ tên chỉ được chứa chữ cái và khoảng trắng')
+		throw new Error(t('veterinarians.validation.fullNameCharacters'))
 	}
 }
 
-const validatePhone = async (_, value) => {
+const buildValidatePhone = (t) => async (_, value) => {
 	const rawValue = value || ''
 	const trimmedValue = rawValue.trim()
 
 	if (!trimmedValue) {
-		throw new Error('Vui lòng nhập số điện thoại')
+		throw new Error(t('veterinarians.validation.phoneRequired'))
 	}
 
 	if (rawValue !== trimmedValue || /\s/.test(rawValue)) {
-		throw new Error('Số điện thoại không được chứa khoảng trắng')
+		throw new Error(t('veterinarians.validation.phoneNoSpaces'))
 	}
 
 	if (!/^\d+$/.test(trimmedValue)) {
-		throw new Error('Số điện thoại chỉ được chứa chữ số')
+		throw new Error(t('veterinarians.validation.phoneDigitsOnly'))
 	}
 
 	if (trimmedValue.length !== 10) {
-		throw new Error('Số điện thoại phải đúng 10 chữ số')
+		throw new Error(t('veterinarians.validation.phoneLength'))
 	}
 }
 
@@ -110,6 +111,7 @@ const getStoredVeterinarian = () => {
 }
 
 export default function InformationVererianrian() {
+	const { t, i18n } = useTranslation('clinic')
 	const location = useLocation()
 	const [form] = Form.useForm()
 	const [messageApi, contextHolder] = message.useMessage()
@@ -121,7 +123,10 @@ export default function InformationVererianrian() {
 	const [editAvatarUploading, setEditAvatarUploading] = useState(false)
 	const [editUploadedAvatarUrl, setEditUploadedAvatarUrl] = useState('')
 	const [initialEditValues, setInitialEditValues] = useState(null)
-	const specialtyOptions = useMemo(() => getSpecialtyOptions('vi'), [])
+	const specialtyOptions = useMemo(() => getSpecialtyOptions(), [i18n.language])
+	const validateFullName = useMemo(() => buildValidateFullName(t), [t])
+	const validatePhone = useMemo(() => buildValidatePhone(t), [t])
+	const locale = i18n.language?.startsWith('en') ? 'en-GB' : 'vi-VN'
 
 	const [veterinarian, setVeterinarian] = useState(() => {
 		const fromLocation = location.state?.veterinarian
@@ -169,19 +174,19 @@ export default function InformationVererianrian() {
 		return {
 			avatarUrl: user.avatarUrl || '',
 			userId: veterinarian?.userId || '',
-			fullName: user.fullName || 'Chưa cập nhật',
-			specialty: getSpecialtyLabel(specialtyValue, 'vi'),
+			fullName: user.fullName || t('veterinarians.common.notUpdated'),
+			specialty: getSpecialtyLabel(specialtyValue),
 			specialtyValue,
-			role: getRoleLabel(roleValue, 'vi'),
+			role: getRoleLabel(roleValue),
 			roleValue,
-			joinDate: formatDate(user.createdAt),
+			joinDate: formatDate(user.createdAt, locale, t),
 			joinDateRaw: user.createdAt || '',
-			phone: user.phone || 'Chưa cập nhật',
-			email: user.email || 'Chưa cập nhật',
-			address: user.address || 'Chưa cập nhật',
+			phone: user.phone || t('veterinarians.common.notUpdated'),
+			email: user.email || t('veterinarians.common.notUpdated'),
+			address: user.address || t('veterinarians.common.notUpdated'),
 			active: !user.deleted,
 		}
-	}, [veterinarian])
+	}, [locale, t, veterinarian])
 
 	const openEditModal = () => {
 		const initialValues = {
@@ -213,7 +218,7 @@ export default function InformationVererianrian() {
 
 	const saveEditProfile = async () => {
 		if (editAvatarUploading) {
-			messageApi.warning('Ảnh đang được tải lên, vui lòng đợi')
+			messageApi.warning(t('veterinarians.info.messages.avatarUploading'))
 			return
 		}
 
@@ -251,11 +256,11 @@ export default function InformationVererianrian() {
 				return updated
 			})
 
-			messageApi.success('Cập nhật hồ sơ bác sĩ thành công')
+			messageApi.success(t('veterinarians.info.messages.updateSuccess'))
 			setEditOpen(false)
 		} catch (error) {
 			if (error?.errorFields) return
-			messageApi.error(error.message || 'Không thể cập nhật hồ sơ bác sĩ')
+			messageApi.error(error.message || t('veterinarians.info.messages.updateFailed'))
 		} finally {
 			setEditing(false)
 		}
@@ -263,7 +268,7 @@ export default function InformationVererianrian() {
 
 	const closeModalWithGuard = () => {
 		if (editAvatarUploading) {
-			messageApi.warning('Ảnh đang được tải lên, vui lòng đợi hoàn tất')
+			messageApi.warning(t('veterinarians.info.messages.avatarUploadingWait'))
 			return
 		}
 
@@ -274,10 +279,10 @@ export default function InformationVererianrian() {
 		}
 
 		Modal.confirm({
-			title: 'Xác nhận hủy chỉnh sửa',
-			content: 'Bạn đang nhập dở thông tin. Nếu hủy, các thay đổi chưa lưu sẽ bị mất.',
-			okText: 'Bỏ thay đổi',
-			cancelText: 'Tiếp tục chỉnh sửa',
+			title: t('veterinarians.info.confirmDiscard.title'),
+			content: t('veterinarians.info.confirmDiscard.content'),
+			okText: t('veterinarians.info.confirmDiscard.okText'),
+			cancelText: t('veterinarians.info.confirmDiscard.cancelText'),
 			onOk: () => setEditOpen(false),
 		})
 	}
@@ -292,16 +297,16 @@ export default function InformationVererianrian() {
 			const avatarUrl = uploaded?.url || uploaded?.file || uploaded?.secure_url || uploaded?.data?.url || ''
 
 			if (!avatarUrl) {
-				throw new Error('Không nhận được URL ảnh từ server')
+				throw new Error(t('veterinarians.info.messages.avatarUrlMissing'))
 			}
 
 			setEditUploadedAvatarUrl(avatarUrl)
-			messageApi.success('Tải ảnh đại diện thành công')
+			messageApi.success(t('veterinarians.info.messages.avatarUploadSuccess'))
 		} catch (error) {
 			setEditAvatarFile(null)
 			setEditAvatarPreview(veterinarian?.user?.avatarUrl || '')
 			setEditUploadedAvatarUrl(veterinarian?.user?.avatarUrl || '')
-			messageApi.error(error.message || 'Không thể tải ảnh đại diện')
+			messageApi.error(error.message || t('veterinarians.info.messages.avatarUploadFailed'))
 		} finally {
 			setEditAvatarUploading(false)
 		}
@@ -320,7 +325,7 @@ export default function InformationVererianrian() {
 		<div className={styles.page}>
 			{contextHolder}
 			<header className={styles.topBar}>
-				<h1 style={{fontSize: 24, fontWeight: 'bold'}}>Thông tin bác sĩ</h1>
+				<h1 style={{fontSize: 24, fontWeight: 'bold'}}>{t('veterinarians.info.pageTitle')}</h1>
 			</header>
 
 			<section className={styles.content}>
@@ -362,7 +367,7 @@ export default function InformationVererianrian() {
 									onClick={openEditModal}
 									disabled={saving}
 								>
-									Chỉnh sửa hồ sơ
+									{t('veterinarians.info.editButton')}
 								</Button>
 							</div>
 						</Col>
@@ -373,44 +378,44 @@ export default function InformationVererianrian() {
 					<Row gutter={[16, 16]}>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title="Vai trò" value={veterinarianView.role} prefix={<IdcardOutlined />} />
+								<Statistic title={t('veterinarians.fields.role')} value={veterinarianView.role} prefix={<IdcardOutlined />} />
 							</Card>
 						</Col>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title="Chuyên khoa" value={veterinarianView.specialty} prefix={<MedicineBoxOutlined />} />
+								<Statistic title={t('veterinarians.fields.specialty')} value={veterinarianView.specialty} prefix={<MedicineBoxOutlined />} />
 							</Card>
 						</Col>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title="Ngày tham gia" value={veterinarianView.joinDate} prefix={<CalendarOutlined />} />
+								<Statistic title={t('veterinarians.fields.joinDate')} value={veterinarianView.joinDate} prefix={<CalendarOutlined />} />
 							</Card>
 						</Col>
 					</Row>
 				</Card>
 
-				<Card className={styles.infoCard} title="Thông tin cá nhân">
+				<Card className={styles.infoCard} title={t('veterinarians.info.personalInfoTitle')}>
 					<Descriptions column={{ xs: 1, md: 2 }} bordered size="middle">
-						<Descriptions.Item label="Họ và tên">{veterinarianView.fullName}</Descriptions.Item>
-						<Descriptions.Item label="Số điện thoại">
+						<Descriptions.Item label={t('veterinarians.fields.fullName')}>{veterinarianView.fullName}</Descriptions.Item>
+						<Descriptions.Item label={t('veterinarians.fields.phone')}>
 							<PhoneOutlined /> {veterinarianView.phone}
 						</Descriptions.Item>
-						<Descriptions.Item label="Email">
+						<Descriptions.Item label={t('veterinarians.fields.email')}>
 							<MailOutlined /> {veterinarianView.email}
 						</Descriptions.Item>
-						<Descriptions.Item label="Địa chỉ">
+						<Descriptions.Item label={t('veterinarians.fields.address')}>
 							<EnvironmentOutlined /> {veterinarianView.address}
 						</Descriptions.Item>
 					</Descriptions>
 				</Card>
 
 				<Modal
-					title="Chỉnh sửa hồ sơ bác sĩ"
+					title={t('veterinarians.info.editModal.title')}
 					open={editOpen}
 					onCancel={closeModalWithGuard}
 					footer={
 						<Space>
-							<Button onClick={closeModalWithGuard} disabled={editAvatarUploading || editing || saving}>Hủy</Button>
+							<Button onClick={closeModalWithGuard} disabled={editAvatarUploading || editing || saving}>{t('veterinarians.common.cancel')}</Button>
 							<Button
 								type="primary"
 								icon={<SaveOutlined />}
@@ -418,7 +423,7 @@ export default function InformationVererianrian() {
 								onClick={saveEditProfile}
 								disabled={editAvatarUploading}
 							>
-								{editAvatarUploading ? 'Đang tải ảnh...' : 'Lưu hồ sơ'}
+								{editAvatarUploading ? t('veterinarians.common.uploadingImage') : t('veterinarians.common.save')}
 							</Button>
 						</Space>
 					}
@@ -432,7 +437,7 @@ export default function InformationVererianrian() {
 								disabled={editAvatarUploading || editing || saving}
 								loading={editAvatarUploading}
 							>
-								Đổi ảnh đại diện
+								{t('veterinarians.info.editModal.changeAvatar')}
 							</Button>
 						</Upload>
 					</div>
@@ -442,7 +447,7 @@ export default function InformationVererianrian() {
 							<Col span={12}>
 								<Form.Item
 									name="fullName"
-									label="Họ và tên"
+									label={t('veterinarians.fields.fullName')}
 									rules={[{ validator: validateFullName }]}
 								>
 									<Input prefix={<UserOutlined />} maxLength={80} />
@@ -451,32 +456,32 @@ export default function InformationVererianrian() {
 							<Col span={12}>
 								<Form.Item
 									name="email"
-									label="Email"
+									label={t('veterinarians.fields.email')}
 									rules={[
-										{ required: true, message: 'Vui lòng nhập email' },
-										{ type: 'email', message: 'Email không hợp lệ' },
+										{ required: true, message: t('veterinarians.validation.emailRequired') },
+										{ type: 'email', message: t('veterinarians.validation.emailInvalid') },
 									]}
 								>
 									<Input prefix={<MailOutlined />} />
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="phone" label="Số điện thoại" rules={[{ validator: validatePhone }]}>
+								<Form.Item name="phone" label={t('veterinarians.fields.phone')} rules={[{ validator: validatePhone }]}>
 									<Input prefix={<PhoneOutlined />} maxLength={10} inputMode="numeric" />
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="specialty" label="Chuyên khoa">
+								<Form.Item name="specialty" label={t('veterinarians.fields.specialty')}>
 									<Select  size="large" options={specialtyOptions} />
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="address" label="Địa chỉ">
+								<Form.Item name="address" label={t('veterinarians.fields.address')}>
 									<Input prefix={<EnvironmentOutlined />} />
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="joinDate" label="Ngày tham gia">
+								<Form.Item name="joinDate" label={t('veterinarians.fields.joinDate')}>
 									<DatePicker
 										style={{ width: '100%', height: 40 }}
 										format="DD/MM/YYYY"

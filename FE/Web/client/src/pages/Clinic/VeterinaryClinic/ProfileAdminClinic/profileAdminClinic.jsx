@@ -1,6 +1,7 @@
 import { EnvironmentOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Form, Input, Row, Spin, Typography, message } from 'antd'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { getUserProfileApi, updateUserProfileApi } from '../../../../services/userService'
 import { getAdminInstance } from '../../../../services/apiClient'
 import { getRoleLabel } from '../../../../constants/veterinaryLabels'
@@ -10,6 +11,7 @@ import styles from './profileAdminClinic.module.css'
 const { Title, Text } = Typography
 
 export default function AdminClinicProfile() {
+  const { t } = useTranslation('clinic')
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -27,26 +29,26 @@ export default function AdminClinicProfile() {
           address: data?.address || '',
         })
       } catch (error) {
-        message.error(error?.response?.data?.message || error?.message || 'Không thể tải thông tin tài khoản')
+        message.error(error?.response?.data?.message || error?.message || t('profile.messages.loadFailed'))
       } finally {
         setLoading(false)
       }
     }
 
     fetchProfile()
-  }, [form])
+  }, [form, t])
 
   const handleCancel = () => {
     form.setFieldsValue({
       phone: profileData?.phone || '',
       address: profileData?.address || '',
     })
-    message.info('Đã hủy thay đổi')
+    message.info(t('profile.messages.cancelled'))
   }
 
   const handleSave = async (values) => {
     if (!profileData?.id) {
-      message.error('Không tìm thấy tài khoản để cập nhật')
+      message.error(t('profile.messages.accountNotFound'))
       return
     }
 
@@ -69,9 +71,9 @@ export default function AdminClinicProfile() {
       })
       await refreshUserProfile()
 
-      message.success('Lưu thông tin thành công')
+      message.success(t('profile.messages.saveSuccess'))
     } catch (error) {
-      message.error(error?.response?.data?.message || error?.message || 'Không thể lưu thông tin')
+      message.error(error?.response?.data?.message || error?.message || t('profile.messages.saveFailed'))
     } finally {
       setSaving(false)
     }
@@ -92,22 +94,22 @@ export default function AdminClinicProfile() {
               </Col>
               <Col xs={24} md={16}>
                 <Title level={3} className={styles.adminProfileTitle}>
-                  {profileData?.fullName || 'Phòng khám'}
+                  {profileData?.fullName || t('profile.defaults.clinicName')}
                 </Title>
-                <Text type="secondary">Trang cá nhân phòng khám</Text>
+                <Text type="secondary">{t('profile.page.subtitle')}</Text>
               </Col>
             </Row>
 
             <div className={styles.adminProfileInfo}>
               <div className={styles.infoRow}>
-                <span className={styles.label}>Vai trò</span>
-                <span className={styles.value}>{getRoleLabel(profileData?.role || 'ADMIN_CLINIC', 'vi')}</span>
+                <span className={styles.label}>{t('profile.labels.role')}</span>
+                <span className={styles.value}>{getRoleLabel(profileData?.role || 'ADMIN_CLINIC')}</span>
               </div>
 
               <div className={styles.infoRow}>
-                <span className={styles.label}>Email</span>
+                <span className={styles.label}>{t('profile.labels.email')}</span>
                 <span className={styles.value}>
-                  <MailOutlined /> {profileData?.email || 'Chưa cập nhật'}
+                  <MailOutlined /> {profileData?.email || t('veterinarians.common.notUpdated')}
                 </span>
               </div>
 
@@ -120,19 +122,19 @@ export default function AdminClinicProfile() {
               >
                 <div className={styles.formRow}>
                   <Form.Item
-                    label={<span className={styles.inlineLabel}>Số điện thoại</span>}
+                    label={<span className={styles.inlineLabel}>{t('profile.labels.phone')}</span>}
                     name="phone"
                     rules={[
-                      { required: true, message: 'Vui lòng nhập số điện thoại' },
+                      { required: true, message: t('profile.validation.phoneRequired') },
                       {
                         pattern: /^(\+84|0)\d{9}$/,
-                        message: 'Số điện thoại không hợp lệ (ví dụ: 0912345678 hoặc +84912345678)',
+                        message: t('profile.validation.phoneInvalid'),
                       },
                     ]}
                   >
                     <Input
                       prefix={<PhoneOutlined />}
-                      placeholder="Nhập số điện thoại"
+                      placeholder={t('profile.placeholders.phone')}
                       maxLength={12}
                     />
                   </Form.Item>
@@ -140,24 +142,24 @@ export default function AdminClinicProfile() {
 
                 <div className={styles.formRow}>
                   <Form.Item
-                    label={<span className={styles.inlineLabel}>Địa chỉ</span>}
+                    label={<span className={styles.inlineLabel}>{t('profile.labels.address')}</span>}
                     name="address"
                     rules={[
-                      { required: true, message: 'Vui lòng nhập địa chỉ' },
-                      { min: 5, message: 'Địa chỉ cần ít nhất 5 ký tự' },
-                      { max: 200, message: 'Địa chỉ tối đa 200 ký tự' },
+                      { required: true, message: t('profile.validation.addressRequired') },
+                      { min: 5, message: t('profile.validation.addressMin') },
+                      { max: 200, message: t('profile.validation.addressMax') },
                     ]}
                   >
-                    <Input prefix={<EnvironmentOutlined />} placeholder="Nhập địa chỉ" maxLength={200} />
+                    <Input prefix={<EnvironmentOutlined />} placeholder={t('profile.placeholders.address')} maxLength={200} />
                   </Form.Item>
                 </div>
 
                 <div className={styles.actions}>
                   <Button onClick={handleCancel} disabled={saving}>
-                    Hủy
+                    {t('profile.actions.cancel')}
                   </Button>
                   <Button type="primary" htmlType="submit" loading={saving}>
-                    Lưu
+                    {t('profile.actions.save')}
                   </Button>
                 </div>
               </Form>

@@ -148,6 +148,12 @@
   pointer-events: auto;
 }
 
+.mainActionGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .notificationBellButton {
   width: 42px !important;
   height: 42px !important;

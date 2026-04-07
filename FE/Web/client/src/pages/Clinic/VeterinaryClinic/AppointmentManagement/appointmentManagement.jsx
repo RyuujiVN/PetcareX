@@ -24,7 +24,8 @@ import {
     Typography,
 } from 'antd'
 import dayjs from 'dayjs'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
     APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
     APPOINTMENT_STATUS,
@@ -47,28 +48,23 @@ const { Title, Text } = Typography
 
 const TIME_SLOTS = ['08:00', '08:30','09:00', '09:30', '10:00', '10:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30']
 
-const STATUS_COLUMNS = [
+const STATUS_COLUMN_CONFIGS = [
 	{
 		key: APPOINTMENT_STATUS.BOOKED,
-		title: getAppointmentStatusLabel(APPOINTMENT_STATUS.BOOKED),
 		dotClass: styles.grayDot,
 		badgeStatus: 'default',
 	},
 	{
 		key: APPOINTMENT_STATUS.IN_PROGRESS,
-		title: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
 		dotClass: styles.greenDot,
 		badgeStatus: 'processing',
 	},
 	{
 		key: APPOINTMENT_STATUS.COMPLETED,
-		title: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED),
 		dotClass: styles.blueDot,
 		badgeStatus: 'success',
 	},
 ]
-
-const MISSING_APPOINTMENT_FIELD = 'Không có trong dữ liệu lịch hẹn'
 
 const pickFirst = (...values) => values.find((value) => value !== undefined && value !== null && value !== '')
 
@@ -92,11 +88,11 @@ const getByPaths = (source, paths, fallback) => {
 	return fallback
 }
 
-const getAgeLabel = (dateOfBirth) => {
-	if (!dateOfBirth) return 'Chưa cập nhật'
+const getAgeLabel = (dateOfBirth, t) => {
+	if (!dateOfBirth) return t('appointments.common.notUpdated')
 
 	const birthDate = new Date(dateOfBirth)
-	if (Number.isNaN(birthDate.getTime())) return 'Chưa cập nhật'
+	if (Number.isNaN(birthDate.getTime())) return t('appointments.common.notUpdated')
 
 	const now = new Date()
 	let totalMonths =
@@ -107,35 +103,37 @@ const getAgeLabel = (dateOfBirth) => {
 		totalMonths -= 1
 	}
 
-	if (totalMonths < 0) return 'Chưa cập nhật'
-	if (totalMonths < 24) return `${totalMonths} tháng`
-	return `${Math.floor(totalMonths / 12)} tuổi`
+	if (totalMonths < 0) return t('appointments.common.notUpdated')
+	if (totalMonths < 24) {
+		return t('appointments.common.monthsOld', { count: totalMonths })
+	}
+	return t('appointments.common.yearsOld', { count: Math.floor(totalMonths / 12) })
 }
 
-const formatDisplayDate = (dateValue) => {
+const formatDisplayDate = (dateValue, locale) => {
 	if (!dateValue) return ''
-	return new Date(dateValue).toLocaleDateString('vi-VN')
+	return new Date(dateValue).toLocaleDateString(locale)
 }
 
 const getTimeValue = (time) => (time || '').slice(0, 5)
 
-const getGenderLabel = (value) => {
+const getGenderLabel = (value, t, missingField) => {
 	if (typeof value === 'boolean') {
-		return value ? 'Đực' : 'Cái'
+		return value ? t('appointments.common.male') : t('appointments.common.female')
 	}
 
 	if (typeof value === 'string') {
 		const normalized = value.trim().toLowerCase()
-		if (!normalized) return MISSING_APPOINTMENT_FIELD
-		if (['male', 'm', 'duc', 'đực', 'true', '1'].includes(normalized)) return 'Đực'
-		if (['female', 'f', 'cai', 'cái', 'false', '0'].includes(normalized)) return 'Cái'
+		if (!normalized) return missingField
+		if (['male', 'm', 'duc', 'đực', 'true', '1'].includes(normalized)) return t('appointments.common.male')
+		if (['female', 'f', 'cai', 'cái', 'false', '0'].includes(normalized)) return t('appointments.common.female')
 		return value
 	}
 
-	return MISSING_APPOINTMENT_FIELD
+	return missingField
 }
 
-function AppointmentCard({ item, onOpenDetails, onDragStart }) {
+function AppointmentCard({ item, onOpenDetails, onDragStart, t }) {
 	return (
 		<Card
 			hoverable
@@ -155,7 +153,7 @@ function AppointmentCard({ item, onOpenDetails, onDragStart }) {
 					</Avatar>
 					<div>
 						<h4>{item.petName}</h4>
-						<p>{`Chủ: ${item.ownerName}`}</p>
+						<p>{t('appointments.card.ownerPrefix', { owner: item.ownerName })}</p>
 					</div>
 				</div>
 
@@ -182,6 +180,7 @@ function AppointmentCard({ item, onOpenDetails, onDragStart }) {
 }
 
 export default function AppointmentManagement() {
+	const { t, i18n } = useTranslation('clinic')
 	const [loading, setLoading] = useState(false)
 	const [updatingId, setUpdatingId] = useState('')
 	const [selectedDate, setSelectedDate] = useState(dayjs())
@@ -192,6 +191,17 @@ export default function AppointmentManagement() {
 	const [isModalOpen, setIsModalOpen] = useState(false)
 	const [ownerDetailsById, setOwnerDetailsById] = useState({})
 	const [paymentStatusByAppointmentId, setPaymentStatusByAppointmentId] = useState({})
+	const locale = i18n.language?.startsWith('en') ? 'en-GB' : 'vi-VN'
+	const missingAppointmentField = t('appointments.common.missingFromAppointment')
+
+	const statusColumns = useMemo(
+		() =>
+			STATUS_COLUMN_CONFIGS.map((column) => ({
+				...column,
+				title: getAppointmentStatusLabel(column.key, column.key),
+			})),
+		[i18n.language],
+	)
 
 	const fetchAppointments = useCallback(async () => {
 		try {
@@ -207,11 +217,11 @@ export default function AppointmentManagement() {
 			const items = Array.isArray(response?.items) ? response.items : []
 			setAppointments(items)
 		} catch (error) {
-			message.error(error.message || 'Không thể tải danh sách lịch khám của phòng khám')
+			message.error(error.message || t('appointments.messages.fetchFailed'))
 		} finally {
 			setLoading(false)
 		}
-	}, [selectedDate, selectedTime])
+	}, [selectedDate, selectedTime, t])
 
 	useEffect(() => {
 		fetchAppointments()
@@ -331,7 +341,7 @@ export default function AppointmentManagement() {
 			const petSource = item.pet || {}
 			const ownerSource = pickFirst(petSource.owner, item.owner, {})
 
-			const petName = getByPaths(item, ['pet.name', 'petName', 'pet_name'], 'Không rõ')
+			const petName = getByPaths(item, ['pet.name', 'petName', 'pet_name'], t('appointments.common.unknown'))
 			const petAvatar = getByPaths(item, ['pet.avatar', 'petAvatar', 'pet_avatar'], '')
 			const petSpecies = getByPaths(item, ['pet.species', 'petSpecies', 'pet_species'], null)
 			const petBreed = getByPaths(item, ['pet.breed', 'petBreed', 'pet_breed'], null)
@@ -339,8 +349,8 @@ export default function AppointmentManagement() {
 			const petDateOfBirth = getByPaths(item, ['pet.dateOfBirth', 'pet.date_of_birth', 'petDateOfBirth', 'pet_date_of_birth'], null)
 			const petFeature = getByPaths(item, ['pet.note', 'pet.featureNote', 'pet_note', 'featureNote', 'feature_note'], null)
 			const ownerId = getByPaths(item, ['pet.owner.id', 'owner.id', 'ownerId', 'owner_id', 'pet.ownerId'], '')
-			const ownerName = getByPaths(item, ['pet.owner.fullName', 'owner.fullName', 'ownerName', 'owner_name'], 'Không rõ')
-			const ownerPhone = getByPaths(item, ['pet.owner.phone', 'owner.phone', 'ownerPhone', 'owner_phone'], MISSING_APPOINTMENT_FIELD)
+			const ownerName = getByPaths(item, ['pet.owner.fullName', 'owner.fullName', 'ownerName', 'owner_name'], t('appointments.common.unknown'))
+			const ownerPhone = getByPaths(item, ['pet.owner.phone', 'owner.phone', 'ownerPhone', 'owner_phone'], missingAppointmentField)
 
 			const badgeByStatus = {
 				[APPOINTMENT_STATUS.BOOKED]: 'default',
@@ -355,9 +365,9 @@ export default function AppointmentManagement() {
 				item.status === APPOINTMENT_STATUS.COMPLETED && paymentStatus === INVOICE_STATUS.PAID
 
 			const statusLabel = isCompletedPaid
-				? 'Đã thanh toán'
+				? t('appointments.status.paid')
 				: isCompletedUnpaid
-					? 'Chưa thanh toán'
+					? t('appointments.status.unpaid')
 					: getAppointmentStatusLabel(item.status, item.status)
 
 			const badgeStatus = isCompletedUnpaid
@@ -369,7 +379,7 @@ export default function AppointmentManagement() {
 				status: item.status,
 				statusLabel,
 				badgeStatus,
-				date: formatDisplayDate(item.appointmentDate),
+				date: formatDisplayDate(item.appointmentDate, locale),
 				time: getTimeValue(item.appointmentTime),
 				appointmentDateRaw: item.appointmentDate,
 				service: item.service,
@@ -380,19 +390,19 @@ export default function AppointmentManagement() {
 				ownerId,
 				ownerName,
 				ownerPhone,
-				speciesLabel: petSpecies ? getPetSpeciesLabel(petSpecies) : MISSING_APPOINTMENT_FIELD,
+				speciesLabel: petSpecies ? getPetSpeciesLabel(petSpecies) : missingAppointmentField,
 				breedLabel: getPetBreedLabel(petBreed, petSpecies),
-				genderLabel: getGenderLabel(petGender),
-				ageLabel: getAgeLabel(petDateOfBirth),
+				genderLabel: getGenderLabel(petGender, t, missingAppointmentField),
+				ageLabel: getAgeLabel(petDateOfBirth, t),
 				dateOfBirthLabel: petDateOfBirth
-					? new Date(petDateOfBirth).toLocaleDateString('vi-VN')
-					: MISSING_APPOINTMENT_FIELD,
-				featureNote: petFeature || MISSING_APPOINTMENT_FIELD,
-				appointmentNote: item.note || 'Không có ghi chú',
-				clinicName: item.clinic?.name || 'Không rõ',
-				clinicAddress: item.clinic?.address || 'Không rõ',
+					? new Date(petDateOfBirth).toLocaleDateString(locale)
+					: missingAppointmentField,
+				featureNote: petFeature || missingAppointmentField,
+				appointmentNote: item.note || t('appointments.common.noNotes'),
+				clinicName: item.clinic?.name || t('appointments.common.unknown'),
+				clinicAddress: item.clinic?.address || t('appointments.common.unknown'),
 				veterinarianName:
-					getByPaths(item, ['veterinarian.user.fullName', 'veterinarianName'], 'Chưa phân công'),
+					getByPaths(item, ['veterinarian.user.fullName', 'veterinarianName'], t('appointments.common.notAssigned')),
 				ownerRaw: ownerSource,
 				petRaw: petSource,
 				paymentStatus,
@@ -440,14 +450,18 @@ export default function AppointmentManagement() {
 		try {
 			setUpdatingId(appointmentId)
 			await updateAppointmentStatusApi(getAdminInstance(), appointmentId, nextStatus)
-			message.success(`Đã cập nhật trạng thái thành ${getAppointmentStatusLabel(nextStatus, nextStatus)}`)
+			message.success(
+				t('appointments.messages.updateSuccess', {
+					status: getAppointmentStatusLabel(nextStatus, nextStatus),
+				}),
+			)
 		} catch (error) {
 			setAppointments((prev) =>
 				prev.map((item) =>
 					item.id === appointmentId ? { ...item, status: previousAppointment.status } : item,
 				),
 			)
-			message.error(error.message || 'Cập nhật trạng thái thất bại')
+			message.error(error.message || t('appointments.messages.updateFailed'))
 		} finally {
 			setUpdatingId('')
 		}
@@ -479,21 +493,21 @@ export default function AppointmentManagement() {
 		if (!selectedAppointment) return
 
 		Modal.confirm({
-			title: 'Xóa lịch đặt',
-			content: 'Xác nhận hủy lịch đặt này?',
-			okText: 'Xóa lịch',
+			title: t('appointments.cancelModal.title'),
+			content: t('appointments.cancelModal.content'),
+			okText: t('appointments.cancelModal.okText'),
 			okButtonProps: { danger: true },
 			centered: true,
 			async onOk() {
 				try {
 					setUpdatingId(selectedAppointment.id)
 					await updateAppointmentStatusApi(getAdminInstance(), selectedAppointment.id, APPOINTMENT_STATUS.CANCELLED)
-					message.success('Đã hủy lịch đặt khám')
+					message.success(t('appointments.messages.cancelSuccess'))
 					setIsModalOpen(false)
 					setSelectedAppointment(null)
 					await fetchAppointments()
 				} catch (error) {
-					message.error(error.message || 'Không thể hủy lịch đặt')
+					message.error(error.message || t('appointments.messages.cancelFailed'))
 				} finally {
 					setUpdatingId('')
 				}
@@ -502,12 +516,12 @@ export default function AppointmentManagement() {
 	}
 
 	const totalAppointments = filteredAppointments.length
-	const timeOptions = TIME_SLOTS.map((slot) => ({ value: slot, label: slot }))
+	const timeOptions = useMemo(() => TIME_SLOTS.map((slot) => ({ value: slot, label: slot })), [])
 	const ownerDetails = selectedAppointment?.ownerId
 		? ownerDetailsById[selectedAppointment.ownerId]
 		: null
-	const ownerNameDisplay = ownerDetails?.fullName || selectedAppointment?.ownerName || 'Không rõ'
-	const ownerPhoneDisplay = ownerDetails?.phone || selectedAppointment?.ownerPhone || MISSING_APPOINTMENT_FIELD
+	const ownerNameDisplay = ownerDetails?.fullName || selectedAppointment?.ownerName || t('appointments.common.unknown')
+	const ownerPhoneDisplay = ownerDetails?.phone || selectedAppointment?.ownerPhone || missingAppointmentField
 
 	return (
 		<div className={styles.content}>
@@ -515,7 +529,7 @@ export default function AppointmentManagement() {
 					<div className={styles.searchBox}>
 						<SearchOutlined />
 						<Input
-							placeholder="Tìm thú cưng, chủ nuôi, dịch vụ..."
+							placeholder={t('appointments.searchPlaceholder')}
 							variant="borderless"
 							value={searchValue}
 							onChange={(event) => setSearchValue(event.target.value)}
@@ -525,16 +539,16 @@ export default function AppointmentManagement() {
 
 				<div className={styles.mainBody}>
 					<Title level={3} className={styles.pageTitle}>
-						Quản lý lịch khám
+						{t('appointments.pageTitle')}
 					</Title>
 					<Text className={styles.pageSubTitle}>
-						{`Tổng ${totalAppointments} lịch hẹn của ngày hiện tại.`}
+						{t('appointments.pageSubtitle', { count: totalAppointments })}
 					</Text>
 
 					<Card className={styles.filterCard}>
 						<Row gutter={[12, 12]} align="middle">
 							<Col xs={24} md={12}>
-								<Text strong>Ngày khám</Text>
+								<Text strong>{t('appointments.filters.examDate')}</Text>
 								<DatePicker
 									className={styles.filterInput}
 									format="DD/MM/YYYY"
@@ -545,10 +559,10 @@ export default function AppointmentManagement() {
 							</Col>
 
 							<Col xs={24} md={12}>
-								<Text strong>Giờ khám</Text>
+								<Text strong>{t('appointments.filters.examTime')}</Text>
 								<Select
 									className={styles.filterInput}
-									placeholder="Chọn khung giờ"
+									placeholder={t('appointments.filters.timePlaceholder')}
 									allowClear
 									value={selectedTime}
 									onChange={(value) => setSelectedTime(value)}
@@ -561,7 +575,7 @@ export default function AppointmentManagement() {
 
 					<Spin spinning={loading || Boolean(updatingId)}>
 						<div className={styles.groupSection}>
-							{STATUS_COLUMNS.map((column) => {
+							{statusColumns.map((column) => {
 								const columnData = groupedAppointments[column.key] || []
 
 								return (
@@ -587,11 +601,12 @@ export default function AppointmentManagement() {
 														item={item}
 														onOpenDetails={handleOpenDetails}
 														onDragStart={handleDragStart}
+														t={t}
 													/>
 												))
 											) : (
 												<div className={styles.emptyWrap}>
-													<Empty description="Không có lịch hẹn" image={Empty.PRESENTED_IMAGE_SIMPLE} />
+													<Empty description={t('appointments.empty')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
 												</div>
 											)}
 										</div>
@@ -604,13 +619,13 @@ export default function AppointmentManagement() {
 				
 				<Modal
 				style={{textAlign: 'center'}}
-					title="THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM"
+					title={t('appointments.detailModal.title')}
 					open={isModalOpen}
 					onCancel={() => setIsModalOpen(false)}
 					footer={[
 						canClinicCancelAppointment ? (
 							<Button key="cancel-appointment" danger onClick={handleClinicCancelAppointment}>
-								Xóa lịch đặt
+								{t('appointments.detailModal.actions.deleteBooking')}
 							</Button>
 						) : null,
 					]}
@@ -633,29 +648,29 @@ export default function AppointmentManagement() {
 							</div>
 
 							<div className={styles.infoSection}>
-								<div className={`${styles.sectionTitle} ${styles.petSectionTitle}`}>Thông tin Thú cưng</div>
+								<div className={`${styles.sectionTitle} ${styles.petSectionTitle}`}>{t('appointments.detailModal.petSectionTitle')}</div>
 								<div className={styles.infoGrid}>
-									<div className={styles.infoRow}><span>Tên thú cưng:</span><strong>{selectedAppointment.petName}</strong></div>
-									<div className={styles.infoRow}><span>Ngày sinh / Tuổi:</span><strong>{`${selectedAppointment.dateOfBirthLabel} / ${selectedAppointment.ageLabel}`}</strong></div>
-									<div className={styles.infoRow}><span>Loài:</span><strong>{selectedAppointment.speciesLabel}</strong></div>
-									<div className={styles.infoRow}><span>Giới tính:</span><strong>{selectedAppointment.genderLabel}</strong></div>
-									<div className={styles.infoRow}><span>Giống:</span><strong>{selectedAppointment.breedLabel}</strong></div>
-									<div className={styles.infoRow}><span>Tên chủ thú cưng:</span><strong>{ownerNameDisplay}</strong></div>
-									<div className={styles.infoRow}><span>Đặc điểm nhận dạng:</span><strong>{selectedAppointment.featureNote}</strong></div>
-									<div className={styles.infoRow}><span>Số điện thoại:</span><strong>{ownerPhoneDisplay}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.petName')}</span><strong>{selectedAppointment.petName}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.birthAndAge')}</span><strong>{`${selectedAppointment.dateOfBirthLabel} / ${selectedAppointment.ageLabel}`}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.species')}</span><strong>{selectedAppointment.speciesLabel}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.gender')}</span><strong>{selectedAppointment.genderLabel}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.breed')}</span><strong>{selectedAppointment.breedLabel}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.ownerName')}</span><strong>{ownerNameDisplay}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.feature')}</span><strong>{selectedAppointment.featureNote}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.phone')}</span><strong>{ownerPhoneDisplay}</strong></div>
 								</div>
 							</div>
 
 							<div className={styles.infoSection}>
-								<div className={`${styles.sectionTitle} ${styles.appointmentSectionTitle}`}>Thông tin Lịch Khám</div>
+								<div className={`${styles.sectionTitle} ${styles.appointmentSectionTitle}`}>{t('appointments.detailModal.appointmentSectionTitle')}</div>
 								<div className={styles.infoGrid}>
-									<div className={styles.infoRow}><span>Phòng khám:</span><strong>{selectedAppointment.clinicName}</strong></div>
-									<div className={styles.infoRow}><span>Ngày & giờ:</span><strong>{`${selectedAppointment.date} - ${selectedAppointment.time}`}</strong></div>
-									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>Địa chỉ:</span><strong>{selectedAppointment.clinicAddress}</strong></div>
-									<div className={styles.infoRow}><span>Dịch vụ:</span><strong>{selectedAppointment.serviceLabel}</strong></div>
-									<div className={styles.infoRow}><span>Bác sĩ:</span><strong>{selectedAppointment.veterinarianName}</strong></div>
-									<div className={styles.infoRow}><span>Trạng thái:</span><Tag icon={selectedAppointment.status === APPOINTMENT_STATUS.COMPLETED ? <DollarCircleOutlined /> : <CheckCircleOutlined />}>{selectedAppointment.statusLabel}</Tag></div>
-									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>Ghi chú:</span><strong>{selectedAppointment.appointmentNote}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.clinic')}</span><strong>{selectedAppointment.clinicName}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.dateTime')}</span><strong>{`${selectedAppointment.date} - ${selectedAppointment.time}`}</strong></div>
+									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>{t('appointments.detailModal.fields.address')}</span><strong>{selectedAppointment.clinicAddress}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.service')}</span><strong>{selectedAppointment.serviceLabel}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.veterinarian')}</span><strong>{selectedAppointment.veterinarianName}</strong></div>
+									<div className={styles.infoRow}><span>{t('appointments.detailModal.fields.status')}</span><Tag icon={selectedAppointment.status === APPOINTMENT_STATUS.COMPLETED ? <DollarCircleOutlined /> : <CheckCircleOutlined />}>{selectedAppointment.statusLabel}</Tag></div>
+									<div className={`${styles.infoRow} ${styles.fullWidthRow}`}><span>{t('appointments.detailModal.fields.note')}</span><strong>{selectedAppointment.appointmentNote}</strong></div>
 								</div>
 							</div>
 						</div>

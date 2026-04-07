@@ -140,6 +140,12 @@
   padding: 6px 15px;
 }
 
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .headerMedicalRecord {
   min-height: 64px;
   margin-bottom: 0;

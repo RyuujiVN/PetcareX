@@ -15,6 +15,8 @@ import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
+import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageSwitcher'
+import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
@@ -332,7 +334,7 @@ export default function AdminVererianrianLayout() {
             <Avatar size={44} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
             <div className={styles.profileMeta}>
               <h4>{userProfile?.fullName || 'Bác sĩ'}</h4>
-              <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN', 'vi')}</p>
+              <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN')}</p>
             </div>
             <Button
               type="text"
@@ -362,32 +364,36 @@ export default function AdminVererianrianLayout() {
               ) : null}
             </div>
 
-            <Popover
-              trigger="click"
-              placement="bottomRight"
-              overlayClassName={styles.notificationPopoverOverlay}
-              content={notificationContent}
-              open={notificationPopoverOpen}
-              onOpenChange={setNotificationPopoverOpen}
-            >
-              <Button
-                type="text"
-                aria-label="Xem thông báo bác sĩ"
-                className={styles.notificationBellButton}
-                icon={(
-                  <Badge
-                    count={unreadNotificationCount}
-                    size="small"
-                    overflowCount={99}
-                    color="#1976ff"
-                  >
-                    <span className={styles.notificationBellIcon}>
-                      <IoMdNotificationsOutline />
-                    </span>
-                  </Badge>
-                )}
-              />
-            </Popover>
+            <div className={styles.headerActions}>
+              <LanguageSwitcher scope={LANGUAGE_SCOPE.veterinarian} />
+
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                overlayClassName={styles.notificationPopoverOverlay}
+                content={notificationContent}
+                open={notificationPopoverOpen}
+                onOpenChange={setNotificationPopoverOpen}
+              >
+                <Button
+                  type="text"
+                  aria-label="Xem thông báo bác sĩ"
+                  className={styles.notificationBellButton}
+                  icon={(
+                    <Badge
+                      count={unreadNotificationCount}
+                      size="small"
+                      overflowCount={99}
+                      color="#1976ff"
+                    >
+                      <span className={styles.notificationBellIcon}>
+                        <IoMdNotificationsOutline />
+                      </span>
+                    </Badge>
+                  )}
+                />
+              </Popover>
+            </div>
           </header>
         ) : null}
 

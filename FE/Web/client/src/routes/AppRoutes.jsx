@@ -25,9 +25,6 @@ import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
 import PetProfile from '../pages/client/User/PetProfile'
 import ProfileUser from '../pages/client/User/ProfileUser'
 import SuccessBooking from '../pages/client/User/SuccessBooking'
-import AdminForgotPassword from '../pages/Clinic/Auth/ForgotPassword'
-import AdminReEnterPassword from '../pages/Clinic/Auth/ReEnterPassword'
-import AdminRegister from '../pages/Clinic/Auth/Register'
 import AddNewVererianrian from '../pages/Clinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
 import AppointmentManagement from '../pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
 import ClinicSelectionEditor from '../pages/Clinic/VeterinaryClinic/ClinicSelectionEditor'
@@ -49,10 +46,10 @@ export default function AppRoutes({ location }) {
     <Routes location={location}>
       <Route path="/admin" element={<Navigate to="/login" replace />} />
       <Route path="/admin/login" element={<Navigate to="/login" replace />} />
-      <Route path="/admin/register" element={<AdminRegister />} />
-      <Route path="/admin/forgot-password" element={<AdminForgotPassword />} />
-      <Route path="/admin/reEnterPassword" element={<AdminReEnterPassword />} />
-      <Route path="/admin/confirm-password" element={<Navigate to="/admin/reEnterPassword" replace />}
+      <Route path="/admin/register" element={<Navigate to="/register" replace />} />
+      <Route path="/admin/forgot-password" element={<Navigate to="/forgot-password" replace />} />
+      <Route path="/admin/reEnterPassword" element={<Navigate to="/reEnterPassword" replace />} />
+      <Route path="/admin/confirm-password" element={<Navigate to="/reEnterPassword" replace />}
       />
 
       {/* ── Super Admin (role ADMIN) ── */}
@@ -79,10 +76,10 @@ export default function AppRoutes({ location }) {
       </Route>
 
       <Route path="/veterinarian/login" element={<Navigate to="/login" replace />} />
-      <Route path="/veterinarian/register" element={<AdminRegister />} />
-      <Route path="/veterinarian/forgot-password" element={<AdminForgotPassword />} />
-      <Route path="/veterinarian/reEnterPassword" element={<AdminReEnterPassword />} />
-      <Route path="/veterinarian/confirm-password" element={<Navigate to="/veterinarian/reEnterPassword" replace />}/>
+      <Route path="/veterinarian/register" element={<Navigate to="/register" replace />} />
+      <Route path="/veterinarian/forgot-password" element={<Navigate to="/forgot-password" replace />} />
+      <Route path="/veterinarian/reEnterPassword" element={<Navigate to="/reEnterPassword" replace />} />
+      <Route path="/veterinarian/confirm-password" element={<Navigate to="/reEnterPassword" replace />}/>
 
       <Route element={<AdminVererianrianLayout/>}>
         <Route path="/veterinarian/appointments" element={<PetAppointmentVererianrian />} />

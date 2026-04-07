@@ -1,14 +1,26 @@
 import { useTranslation } from 'react-i18next';
+import { useEffect } from 'react';
+import { getLanguageForScope, LANGUAGE_SCOPE, setLanguageForScope } from '../../../constants/languageStorage';
 import './LanguageSwitcher.css';
 
-const LanguageSwitcher = () => {
+const normalizeLanguage = (value) => (String(value || '').toLowerCase().startsWith('en') ? 'en' : 'vi');
+
+const LanguageSwitcher = ({ scope = LANGUAGE_SCOPE.client }) => {
   const { i18n, t } = useTranslation();
-  const isVietnamese = i18n.language?.startsWith('vi');
+  const currentLanguage = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
+  const isVietnamese = currentLanguage === 'vi';
+
+  useEffect(() => {
+    const savedLanguage = getLanguageForScope(scope);
+    if (savedLanguage !== currentLanguage) {
+      i18n.changeLanguage(savedLanguage);
+    }
+  }, [scope, currentLanguage, i18n]);
 
   const toggle = () => {
     const next = isVietnamese ? 'en' : 'vi';
     i18n.changeLanguage(next);
-    localStorage.setItem('lang', next);
+    setLanguageForScope(scope, next);
   };
 
   return (
