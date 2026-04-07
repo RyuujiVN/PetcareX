@@ -1,4 +1,4 @@
-import socket from '../socket/socket';
+import socket from '../socket/chatSocket';
 
 const STORAGE_KEY = 'petcarex.appointmentDiagnosis.v1';
 

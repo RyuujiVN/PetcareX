@@ -23,4 +23,9 @@ export class CreateMessageDTO {
   @IsString()
   @IsNotEmpty({ message: 'Nội dung message không được để trống' })
   content: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  image?: string;
 }

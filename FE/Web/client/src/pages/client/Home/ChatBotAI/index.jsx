@@ -10,7 +10,7 @@ import { Dropdown, Input, Modal, message } from "antd";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useTranslation } from 'react-i18next';
-import socket from "../../../../socket/socket";
+import socket from "../../../../socket/chatSocket";
 import {
   fetchCreateRoom,
   fetchDeleteRoom,

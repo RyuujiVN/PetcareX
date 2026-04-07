@@ -151,6 +151,7 @@
 }
 
 @keyframes conversation-marquee {
+
   0%,
   12% {
     transform: translateX(0);
@@ -523,7 +524,7 @@
 .inline-image-preview-list {
   display: flex;
   gap: 6px;
-  max-width: 220px;
+  max-width: 320px;
   overflow-x: auto;
   padding: 0 4px;
 }
@@ -539,13 +540,28 @@
 
 .inline-image-preview-item {
   position: relative;
-  width: 52px;
-  height: 52px;
-  border-radius: 12px;
+  width: 92px;
+  height: 92px;
+  border-radius: 18px;
   overflow: hidden;
   border: 1px solid #e2e8f0;
   flex-shrink: 0;
   background: #f8fafc;
+}
+
+.inline-image-upload-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(248, 250, 252, 0.75);
+  backdrop-filter: blur(2px);
+  pointer-events: none;
+  /* allow clicking the remove button */
+  z-index: 1;
 }
 
 .inline-image-preview {
@@ -557,10 +573,10 @@
 
 .inline-image-remove {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 18px;
-  height: 18px;
+  top: 6px;
+  right: 6px;
+  width: 22px;
+  height: 22px;
   border-radius: 50%;
   border: none;
   background: rgba(15, 23, 42, 0.8);
@@ -569,6 +585,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  z-index: 2;
 }
 
 .inline-image-remove:disabled {
@@ -593,10 +610,7 @@
 }
 
 .message-image-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  width: min(360px, 100%);
+  width: 250px;
 }
 
 .message-image-link {

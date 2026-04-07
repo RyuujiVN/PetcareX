@@ -52,11 +52,21 @@ export class AiClientService implements OnModuleInit, OnModuleDestroy {
     this.socket.disconnect();
   }
 
-  sendMessage(data) {
-    this.socket.emit('chat_event', data);
-  }
-
   stopStream() {
     this.socket.emit('stop_chat');
+  }
+
+  sendMessage(data: any) {
+    if (!this.socket) {
+      throw new ServiceUnavailableException('Chưa khởi tạo kết nối tới AI');
+    }
+
+    if (!this.socket.connected) {
+      throw new ServiceUnavailableException(
+        'AI server chưa sẵn sàng. Vui lòng thử lại',
+      );
+    }
+
+    this.socket.emit('chat_event', data);
   }
 }

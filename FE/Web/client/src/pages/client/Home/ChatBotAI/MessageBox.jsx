@@ -10,7 +10,7 @@ import {
   fetchMessageInRoom,
   fetchOldMessageInRoom,
 } from "../../../../redux/slices/messageSlice";
-import socket from "../../../../socket/socket";
+import socket from "../../../../socket/chatSocket";
 import { Spin } from "antd";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";

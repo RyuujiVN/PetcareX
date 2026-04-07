@@ -23,6 +23,9 @@ export class ChatbotMessage {
   @Column({ type: 'text' })
   content: string;
 
+  @Column({ default: null, nullable: true })
+  image: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
