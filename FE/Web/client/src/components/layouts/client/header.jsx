@@ -335,7 +335,12 @@ function Header() {
             reconnectionDelayMax: 15000,
         });
 
+        socket.on("connect", () => {
+            console.log("[Client Header] ✅ Socket notification connected:", socket.id);
+        });
+
         socket.on("severSendNotification", (data) => {
+            console.log("[Client Header] 📩 Nhận notification từ BE:", data);
             const mapped = mapBeNotification(data);
             if (!mapped) return;
 

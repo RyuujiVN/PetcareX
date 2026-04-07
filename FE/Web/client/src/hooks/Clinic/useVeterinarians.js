@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem, setAdminAuthItem } from '../../constants/authStorage';
+import { getToken } from '../../utils/storage/tokenStorage';
 import { getAdminInstance } from '../../services/apiClient';
 import { getUserProfileApi } from '../../services/userService';
 import {
@@ -45,7 +46,7 @@ const getClinicIdFromStorage = () => {
 };
 
 const getClinicIdFromToken = () => {
-  const token = getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey);
+  const token = getToken();
   const payload = decodeJwtPayload(token);
   return payload?.clinicId || '';
 };

@@ -149,10 +149,17 @@ export default function useNotificationSocket({ storageKey, token, enabled = tru
 
     socketRef.current = socket;
 
-    socket.on('connect', () => setConnected(true));
-    socket.on('disconnect', () => setConnected(false));
+    socket.on('connect', () => {
+      console.log(`[useNotificationSocket] ✅ Connected (key=${storageKeyRef.current})`, socket.id);
+      setConnected(true);
+    });
+    socket.on('disconnect', () => {
+      console.log(`[useNotificationSocket] ❌ Disconnected (key=${storageKeyRef.current})`);
+      setConnected(false);
+    });
 
     socket.on('severSendNotification', (data) => {
+      console.log(`[useNotificationSocket] 📩 Nhận notification (key=${storageKeyRef.current}):`, data);
       const mapped = mapBeNotification(data);
       if (!mapped) return;
 

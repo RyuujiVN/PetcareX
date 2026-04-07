@@ -121,7 +121,6 @@ const getClinicDisplayName = (profile) => {
 
 const handoffAdminAuthToNewTab = () => {
   const authKeys = [
-    ADMIN_AUTH_STORAGE.tokenKey,
     ADMIN_AUTH_STORAGE.userInfoKey,
     ADMIN_AUTH_STORAGE.activeRoleKey,
   ];

@@ -1,9 +1,4 @@
-import {
-  ADMIN_AUTH_STORAGE,
-  CLIENT_AUTH_STORAGE,
-  LEGACY_AUTH_STORAGE,
-  getAdminAuthItem,
-} from '../constants/authStorage'
+import { getToken } from '../utils/storage/tokenStorage'
 
 const API_BASE_URL = (
   import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
@@ -39,15 +34,6 @@ const normalizeErrorMessage = (payload, fallbackMessage) => {
   return payload.message || payload.error || fallbackMessage
 }
 
-const getAuthToken = () => {
-  return (
-    localStorage.getItem(CLIENT_AUTH_STORAGE.tokenKey) ||
-    getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey) ||
-    localStorage.getItem(LEGACY_AUTH_STORAGE.tokenKey) ||
-    ''
-  )
-}
-
 export const extractCloudinaryUrl = (payload) => {
   if (!payload) {
     return ''
@@ -64,7 +50,7 @@ export const extractCloudinaryUrl = (payload) => {
 }
 
 export const postMultipartFormData = async (endpoint, formData) => {
-  const token = getAuthToken()
+  const token = getToken()
   const headers = {
     Accept: 'application/json',
   }

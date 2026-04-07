@@ -1,12 +1,11 @@
 import axios from 'axios'
 import {
-  ADMIN_AUTH_STORAGE,
   clearAdminAuthStorage,
   clearAuthStorage,
   clearLegacyAuthStorage,
   CLIENT_AUTH_STORAGE,
-  getAdminAuthItem,
 } from '../constants/authStorage'
+import { getToken } from '../utils/storage/tokenStorage'
 // Base URL cho API, lấy từ biến môi trường hoặc mặc định về localhost
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || 'http://localhost:3000/api'
@@ -48,7 +47,7 @@ export const getClientInstance = () => {
 
     _clientInstance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem(CLIENT_AUTH_STORAGE.tokenKey)
+        const token = getToken()
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }
@@ -70,7 +69,7 @@ export const getAdminInstance = () => {
 
     _adminInstance.interceptors.request.use(
       (config) => {
-        const token = getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey)
+        const token = getToken()
         if (token) {
           config.headers.Authorization = `Bearer ${token}`
         }

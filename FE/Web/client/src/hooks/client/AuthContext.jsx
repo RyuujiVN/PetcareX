@@ -1,4 +1,4 @@
-﻿import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 import { getUserProfileApi } from "../../services/userService";
 import { getClientInstance } from "../../services/apiClient";
 import {
@@ -6,12 +6,13 @@ import {
   clearAuthStorage,
   clearLegacyAuthStorage,
 } from "../../constants/authStorage";
+import { getToken, setToken as saveToken } from "../../utils/storage/tokenStorage";
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
 
-  const [token, setToken] = useState(localStorage.getItem(CLIENT_AUTH_STORAGE.tokenKey));
+  const [token, setToken] = useState(getToken());
   const [userProfile, setUserProfile] = useState(null);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = (accessToken, profile = null) => {
     clearLegacyAuthStorage();
-    localStorage.setItem(CLIENT_AUTH_STORAGE.tokenKey, accessToken);
+    saveToken(accessToken);
     if (profile) {
       localStorage.setItem(CLIENT_AUTH_STORAGE.userInfoKey, JSON.stringify(profile));
       setUserProfile(profile);
