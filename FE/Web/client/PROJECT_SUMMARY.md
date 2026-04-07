@@ -52,6 +52,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 1. Không format trực tiếp bằng `new Date(...).toLocaleDateString('vi-VN')` trong page components của Clinic/Veterinarian.
 2. Không cắt giờ thủ công bằng `.slice(0, 5)` để tránh lệch format khi backend trả về dữ liệu khác chuẩn.
 3. Luôn dùng helper từ `src/utils/dateTimeFormat.js` để bảo đảm đồng nhất UI giữa các màn.
+4. Notification cache cũ trong `localStorage` được tự normalize lại khi mở app qua `src/hooks/useNotificationSocket.js` để chuyển các mô tả lịch hẹn từ ISO/raw string sang chuẩn `DD-MM-YYYY` và `HH:mm`.
 
 #### Các màn hình đã migrate sang formatter chung
 - `src/pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement.jsx`

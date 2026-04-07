@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../utils/dateTimeFormat';
 
 const SOCKET_BASE_URL =
   (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
@@ -11,18 +12,46 @@ const RECONNECT_ATTEMPTS = 15;
 const RECONNECT_DELAY_MS = 3000;
 const RECONNECT_DELAY_MAX_MS = 15000;
 
-const formatDateDDMMYYYY = (value) => {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value || '');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  return `${dd}-${mm}-${d.getFullYear()}`;
+const formatNotificationDate = (value) =>
+  formatDateDDMMYYYY(value, String(value || '').trim());
+
+const formatNotificationTime = (value) =>
+  formatTimeHHMM(value, String(value || '').trim());
+
+const buildAppointmentDescription = (beType, target) => {
+  const dateText = formatNotificationDate(target?.appointmentDate);
+  const timeText = formatNotificationTime(target?.appointmentTime);
+
+  if (beType === 'APPOINTMENT_BOOKED') {
+    return `Ngày ${dateText} lúc ${timeText}`;
+  }
+
+  if (beType === 'APPOINTMENT_CANCELLED') {
+    return `Lịch hẹn ngày ${dateText} lúc ${timeText} đã bị hủy.`;
+  }
+
+  if (beType === 'APPOINTMENT_REMINDER') {
+    return `Bạn có lịch hẹn vào ngày ${dateText} lúc ${timeText}.`;
+  }
+
+  return '';
 };
 
-const formatTimeHHMM = (value) => {
-  const text = String(value || '').trim();
-  const match = text.match(/(\d{1,2}):(\d{2})/);
-  return match ? `${match[1].padStart(2, '0')}:${match[2]}` : text;
+const normalizeStoredNotification = (item) => {
+  if (!item || !item.id) return null;
+
+  if (
+    item.beType === 'APPOINTMENT_BOOKED' ||
+    item.beType === 'APPOINTMENT_CANCELLED' ||
+    item.beType === 'APPOINTMENT_REMINDER'
+  ) {
+    return {
+      ...item,
+      description: buildAppointmentDescription(item.beType, item.target),
+    };
+  }
+
+  return item;
 };
 
 const readStorageJson = (key, fallback) => {
@@ -56,7 +85,7 @@ export const mapBeNotification = (raw) => {
         ...base,
         type: 'appointment',
         title: `Lịch hẹn mới từ ${raw.target?.userName || 'khách hàng'}`,
-        description: `Ngày ${formatDateDDMMYYYY(raw.target?.appointmentDate)} lúc ${formatTimeHHMM(raw.target?.appointmentTime)}`,
+        description: buildAppointmentDescription(raw.type, raw.target),
         href: null,
       };
 
@@ -65,7 +94,7 @@ export const mapBeNotification = (raw) => {
         ...base,
         type: 'appointment',
         title: 'Lịch hẹn đã bị hủy',
-        description: `Lịch hẹn ngày ${formatDateDDMMYYYY(raw.target?.appointmentDate)} lúc ${formatTimeHHMM(raw.target?.appointmentTime)} đã bị hủy.`,
+        description: buildAppointmentDescription(raw.type, raw.target),
         href: null,
       };
 
@@ -74,7 +103,7 @@ export const mapBeNotification = (raw) => {
         ...base,
         type: 'system',
         title: 'Nhắc nhở lịch hẹn',
-        description: `Bạn có lịch hẹn vào ngày ${formatDateDDMMYYYY(raw.target?.appointmentDate)} lúc ${formatTimeHHMM(raw.target?.appointmentTime)}.`,
+        description: buildAppointmentDescription(raw.type, raw.target),
         href: null,
       };
 
@@ -143,7 +172,17 @@ export default function useNotificationSocket({ storageKey, token, enabled = tru
     const items = readStorageJson(`${storageKey}:items`, []);
     const stored = readStorageJson(`${storageKey}:read`, []);
 
-    setNotifications(Array.isArray(items) ? items : []);
+    const normalizedItems = (Array.isArray(items) ? items : [])
+      .map(normalizeStoredNotification)
+      .filter(Boolean);
+
+    try {
+      localStorage.setItem(`${storageKey}:items`, JSON.stringify(normalizedItems));
+    } catch {
+      // non-critical
+    }
+
+    setNotifications(normalizedItems);
     setReadIds(Array.isArray(stored) ? stored : []);
   }, [storageKey]);
 
