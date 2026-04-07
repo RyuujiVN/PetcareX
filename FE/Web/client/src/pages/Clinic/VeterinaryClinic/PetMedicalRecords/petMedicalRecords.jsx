@@ -1,49 +1,47 @@
 import {
-	CalendarOutlined,
-	ExperimentOutlined,
-	FileDoneOutlined,
-	HeartOutlined,
-	MedicineBoxOutlined,
-	PrinterOutlined,
-	SmileOutlined,
-	UserOutlined,
-	WarningOutlined,
+    CalendarOutlined,
+    ExperimentOutlined,
+    FileDoneOutlined,
+    HeartOutlined,
+    MedicineBoxOutlined,
+    PrinterOutlined,
+    UserOutlined,
+    WarningOutlined
 } from '@ant-design/icons'
 import {
-	Button,
-	Card,
-	Col,
-	Divider,
-	Input,
-	Modal,
-	Row,
-	Spin,
-	Table,
-	Tag,
-	Typography,
-	message,
+    Button,
+    Card,
+    Col,
+    Divider,
+    Input,
+    Modal,
+    Row,
+    Spin,
+    Table,
+    Tag,
+    message
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { getAdminInstance } from '../../../../services/apiClient'
 import {
-	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-	APPOINTMENT_STATUS,
-	getAppointmentByIdApi,
+    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+    APPOINTMENT_STATUS,
+    getAppointmentByIdApi,
 } from '../../../../services/appointmentService'
 import { getClinicByIdApi } from '../../../../services/clinicService'
 import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../services/invoiceService'
 import {
-	getMedicalByIdApi,
-	getMedicalByPetIdApi,
-	getMedicalOrdersByMedicalIdApi,
-	getMedicinesByMedicalIdApi,
+    getMedicalByIdApi,
+    getMedicalByPetIdApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicinesByMedicalIdApi,
 } from '../../../../services/medicalService'
 import { getPetByIdApi } from '../../../../services/petService'
 import { getUserByIdApi, getUserProfileApi } from '../../../../services/userService'
-import { getAdminInstance } from '../../../../services/apiClient'
-import { formatClinicOpenHours, getClinicInfoContent } from '../../../../data/client/utils/clinicInfoStorage'
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
 import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
+import { formatClinicOpenHours, getClinicInfoContent } from '../../../../utils/storage/clinicInfoStorage'
 import styles from './petMedicalRecords.module.css'
 
 const FALLBACK_TEXT = 'Không'

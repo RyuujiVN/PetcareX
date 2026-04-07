@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useState } from 'react'
-import { message } from 'antd'
-import { FaBell, FaEnvelope, FaPhone, FaPlus } from 'react-icons/fa'
-import { useNavigate } from 'react-router-dom'
-import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels'
-import styles from './vererianrianManagement.module.css'
 import { SearchOutlined } from '@ant-design/icons'
+import { message } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
+import { FaEnvelope, FaPhone, FaPlus } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
+import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels'
+import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
+import styles from './vererianrianManagement.module.css'
 
 const PAGE_SIZE = 12
 

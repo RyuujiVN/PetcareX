@@ -1,13 +1,13 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ADMIN_AUTH_STORAGE, getAdminAuthItem, setAdminAuthItem } from '../../../constants/authStorage';
-import { getUserProfileApi } from '../../../services/userService';
-import { getAdminInstance } from '../../../services/apiClient';
+import { ADMIN_AUTH_STORAGE, getAdminAuthItem, setAdminAuthItem } from '../../constants/authStorage';
+import { getAdminInstance } from '../../services/apiClient';
+import { getUserProfileApi } from '../../services/userService';
 import {
-  getVeterinariansApi,
   createVeterinarianApi,
   deleteVeterinarianApi,
+  getVeterinariansApi,
   updateVeterinarianApi,
-} from '../../../services/veterinarianService';
+} from '../../services/veterinarianService';
 
 const DEFAULT_PAGINATION = {
   totalItems: 0,

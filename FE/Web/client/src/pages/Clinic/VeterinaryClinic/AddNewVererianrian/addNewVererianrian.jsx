@@ -1,34 +1,34 @@
-import { useState } from 'react'
 import {
-	Avatar,
-	Button,
-	Card,
-	Col,
-	Form,
-	Input,
-	Modal,
-	Row,
-	Select,
-	Space,
-	message,
-	Upload,
-} from 'antd'
-import {
-	CameraOutlined,
-	EnvironmentOutlined,
-	EyeInvisibleOutlined,
-	EyeTwoTone,
-	LockOutlined,
-	MailOutlined,
-	PhoneOutlined,
-	SaveOutlined,
-	UserOutlined,
+    CameraOutlined,
+    EnvironmentOutlined,
+    EyeInvisibleOutlined,
+    EyeTwoTone,
+    LockOutlined,
+    MailOutlined,
+    PhoneOutlined,
+    SaveOutlined,
+    UserOutlined,
 } from '@ant-design/icons'
+import {
+    Avatar,
+    Button,
+    Card,
+    Col,
+    Form,
+    Input,
+    message,
+    Modal,
+    Row,
+    Select,
+    Space,
+    Upload,
+} from 'antd'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { uploadUserImageApi, updateUserProfileApi } from '../../../../services/userService'
-import { getAdminInstance } from '../../../../services/apiClient'
 import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
+import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
+import { getAdminInstance } from '../../../../services/apiClient'
+import { updateUserProfileApi, uploadUserImageApi } from '../../../../services/userService'
 import styles from './addNewVererianrian.module.css'
 
 const specialtyOptions = getSpecialtyOptions('vi')

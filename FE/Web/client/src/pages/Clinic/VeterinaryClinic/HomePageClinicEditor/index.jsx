@@ -1,13 +1,13 @@
 import { CloseOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Divider, Input, Modal, Row, Space, Typography, message, Upload } from 'antd';
+import { Button, Card, Col, Divider, Input, message, Modal, Row, Space, Typography, Upload } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
 import { useAuth } from '../../../../hooks/Clinic/AuthContext';
-import HomePageClinic from '../../../client/Home/HomePageClinic';
 import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../services/cloudinaryService';
-import { getClinicHomeContent, saveClinicHomeContent } from '../../../../data/client/utils/clinicHomeStorage';
-import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';
+import { getClinicHomeContent, saveClinicHomeContent } from '../../../../utils/storage/clinicHomeStorage';
+import HomePageClinic from '../../../client/Home/HomePageClinic';
 import './styles.css';
 
 const { TextArea } = Input;

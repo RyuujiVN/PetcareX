@@ -2,8 +2,8 @@ import { Modal } from 'antd';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { getClinicHomeContent, resolveSelectedClinicId } from '../../../../data/client/utils/clinicHomeStorage';
-import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
+import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
+import { getClinicHomeContent, resolveSelectedClinicId } from '../../../../utils/storage/clinicHomeStorage';
 import '../HomePage/styles.css';
 import './HomePageClinic.css';
 

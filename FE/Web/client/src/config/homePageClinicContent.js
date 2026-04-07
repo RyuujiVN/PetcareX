@@ -1,4 +1,4 @@
-import i18n from '../../../i18n';
+import i18n from '../i18n';
 
 const tr = (key, defaultValue) => i18n.t(key, { defaultValue });
 

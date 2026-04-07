@@ -1,45 +1,41 @@
-import { useEffect, useMemo, useState } from 'react'
-import dayjs from 'dayjs'
 import {
-	Avatar,
-	Badge,
-	Button,
-	Card,
-	Col,
-	DatePicker,
-	Descriptions,
-	Divider,
-	Form,
-	Input,
-	Modal,
-	Row,
-	Select,
-	Space,
-	Statistic,
-	Tag,
-	Typography,
-	Upload,
-	message,
-} from 'antd'
-import {
-	CalendarOutlined,
-	CameraOutlined,
-	EditOutlined,
-	EnvironmentOutlined,
-	IdcardOutlined,
-	MailOutlined,
-	MedicineBoxOutlined,
-	PhoneOutlined,
-	SaveOutlined,
-	SearchOutlined,
-	TeamOutlined,
-	UserOutlined,
+    CalendarOutlined,
+    CameraOutlined,
+    EditOutlined,
+    EnvironmentOutlined,
+    IdcardOutlined,
+    MailOutlined,
+    MedicineBoxOutlined,
+    PhoneOutlined,
+    SaveOutlined,
+    UserOutlined
 } from '@ant-design/icons'
+import {
+    Avatar,
+    Button,
+    Card,
+    Col,
+    DatePicker,
+    Descriptions,
+    Divider,
+    Form,
+    Input,
+    Modal,
+    Row,
+    Select,
+    Space,
+    Statistic,
+    Typography,
+    Upload,
+    message
+} from 'antd'
+import dayjs from 'dayjs'
+import { useEffect, useMemo, useState } from 'react'
 import { useLocation } from 'react-router-dom'
-import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { getUserByIdApi, uploadUserImageApi } from '../../../../services/userService'
-import { getAdminInstance } from '../../../../services/apiClient'
 import { getRoleLabel, getSpecialtyLabel, getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
+import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
+import { getAdminInstance } from '../../../../services/apiClient'
+import { getUserByIdApi, uploadUserImageApi } from '../../../../services/userService'
 import styles from './InformationVererianrian.module.css'
 
 const { Title, Text } = Typography

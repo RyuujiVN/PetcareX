@@ -1,24 +1,24 @@
 import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
 import {
-  Button,
-  Checkbox,
-  Divider,
-  Form,
-  Input,
-  message,
-  Typography,
+    Button,
+    Checkbox,
+    Divider,
+    Form,
+    Input,
+    message,
+    Typography,
 } from "antd";
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import { FcGoogle } from "react-icons/fc";
 import { useNavigate } from "react-router-dom";
-import { useTranslation } from 'react-i18next';
+import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from "../../../../config/firebaseClient";
 import { getAuthPortalByRole, getPostLoginPathByRole } from "../../../../constants/authRole";
-import { registerApi } from "../../../../services/authService";
-import { getClientInstance } from "../../../../services/apiClient";
 import { useAuth as useAdminAuth } from "../../../../hooks/Clinic/AuthContext";
 import { useAuth } from "../../../../hooks/client/AuthContext";
-import { authenticateClientWithGoogle } from "../../../../data/client/utils/clientGoogleAuth";
-import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from "../../../../data/client/utils/firebaseClient";
+import { getClientInstance } from "../../../../services/apiClient";
+import { registerApi } from "../../../../services/authService";
+import { authenticateClientWithGoogle } from "../../../../services/clientGoogleAuthService";
 import "./styles.css";
 
 const { Title, Text } = Typography;

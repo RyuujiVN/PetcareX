@@ -2,15 +2,15 @@ import { UploadOutlined } from '@ant-design/icons'
 import { Button, Card, Col, Divider, Form, Input, Modal, Row, Space, Typography, Upload, message } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  buildClinicInfoContent,
-  formatClinicOpenHours,
-  getClinicInfoContent,
-  saveClinicInfoContent,
-} from '../../../../data/client/utils/clinicInfoStorage'
-import { uploadOneFileToCloudinary } from '../../../../services/cloudinaryService'
 import { useAuth } from '../../../../hooks/Clinic/AuthContext'
+import { uploadOneFileToCloudinary } from '../../../../services/cloudinaryService'
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
+import {
+    buildClinicInfoContent,
+    formatClinicOpenHours,
+    getClinicInfoContent,
+    saveClinicInfoContent,
+} from '../../../../utils/storage/clinicInfoStorage'
 import './styles.css'
 
 const { Title, Text } = Typography

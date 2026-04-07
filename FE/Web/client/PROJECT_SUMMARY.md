@@ -6,7 +6,7 @@ PetCareX Web Client là ứng dụng frontend cho 3 nhóm người dùng chính:
 - Admin Clinic Portal: Quản lý phòng khám (quản lý lịch hẹn, bác sĩ, hồ sơ khám).
 - Veterinarian Portal: Bác sĩ thú y (quản lý lịch, lập phiếu khám, xem hồ sơ bệnh án).
 
-Dự án được xây dựng theo kiến trúc route-based, tách khá rõ theo từng portal trong `src/pages`, `src/layouts`, `src/data`, `src/hooks`.
+Dự án được xây dựng theo kiến trúc route-based, tách theo từng portal trong `src/pages`, `src/layouts`, đồng thời chuẩn hóa lớp dùng chung theo `src/services`, `src/hooks`, `src/utils`, `src/constants`, `src/config`.
 
 ## Tech Stack
 - Frontend core: React 19 + Vite 7.
@@ -18,6 +18,27 @@ Dự án được xây dựng theo kiến trúc route-based, tách khá rõ theo
 - Markdown rendering: `react-markdown` + `remark-gfm`.
 - Social auth: Firebase Web SDK (`firebase/app`, `firebase/auth`, `firebase/analytics`).
 - Styling: CSS Modules + CSS page-level + token CSS variables.
+
+## Chuẩn hóa cấu trúc thư mục (2026-04-07)
+
+### Cấu trúc chuẩn hiện tại (rút gọn)
+- `src/services/`: API calls và business orchestration (notification aggregation, AI diagnosis, Google auth bridge).
+- `src/hooks/`: custom hooks theo role/domain (`client`, `Clinic`, ...).
+- `src/config/`: cấu hình tích hợp (Firebase) và static content config theo module.
+- `src/utils/`: utility thuần; riêng nhóm lưu trữ đặt trong `src/utils/storage/`.
+- `src/constants/`: enum labels, auth storage keys, role mapping, magic values.
+- `src/components/`: shared UI components.
+- `src/pages/`, `src/layouts/`, `src/routes/`: route-level screens, layout và router.
+- `src/data/`: **đã loại bỏ** (tránh trùng tầng trách nhiệm).
+
+### Quy ước thêm file mới
+1. Endpoint REST/HTTP mới phải đặt trong `src/services/<domain>Service.js`.
+2. Business flow tổng hợp nhiều service (không phải UI) đặt ở `src/services/`.
+3. Custom hook đặt ở `src/hooks/<RoleOrDomain>/`.
+4. Static config hoặc third-party bootstrap đặt ở `src/config/`.
+5. Local/session storage helper đặt ở `src/utils/storage/`.
+6. Không tạo file mới trong `src/data/`; nếu có nhu cầu mới, phân loại theo các tầng trên.
+7. Mọi lần di chuyển file phải cập nhật import và chạy build để xác nhận không vỡ luồng.
 
 ## Kiến trúc ứng dụng
 
@@ -109,7 +130,7 @@ Mỗi context quản lý:
 
 ### 2) Kiến trúc tập trung — `src/services/`
 
-Toàn bộ API layer đã được refactor thành **12 service file** trong `src/services/`, mỗi endpoint chỉ định nghĩa **đúng 1 lần**. Không còn duplicate giữa các role.
+Toàn bộ API layer đã được refactor thành service tập trung trong `src/services/` (API wrappers + business service), mỗi endpoint chỉ định nghĩa **đúng 1 lần**. Không còn duplicate giữa các role.
 
 #### Factory & Instances — `src/services/apiClient.js`
 - **2 lazy singleton** axios instance thay cho 4 instance cũ:
@@ -139,18 +160,26 @@ Toàn bộ API layer đã được refactor thành **12 service file** trong `sr
 | `forumService.js` | Forum | Post CRUD + like/unlike, Topic CRUD, Comment/Reply CRUD, `getCommentsByPostIdApi`, `getRepliesApi` |
 | `chatService.js` | Chatbot | `getAllRoomsApi`, `getMessagesInRoomApi`, `createRoomApi`, `renameRoomApi`, `deleteRoomApi`, `sendMessageApi` |
 | `cloudinaryService.js` | Upload | `uploadOneFileToCloudinary`, `uploadMultipleFilesToCloudinary` — dùng native `fetch()` cho multipart FormData, tự detect token từ CLIENT hoặc ADMIN storage |
+| `notificationService.js` | Notification Orchestration | tổng hợp notification từ appointment + forum |
+| `appointmentDiagnosisService.js` | AI Diagnosis Orchestration | WebSocket AI diagnosis + fallback + local cache |
+| `clientGoogleAuthService.js` | Auth Orchestration | bridge Firebase Google token -> backend `/auth/login-google` |
 
-#### Business logic modules (giữ trong `src/data/`)
-- `src/data/client/api/notificationApi.js` — tổng hợp notification từ appointment + forum, delegate sang `services/`.
-- `src/data/client/utils/appointmentDiagnosis.js` — WebSocket AI diagnosis, không dùng REST.
-- `src/data/Clinic/api/useVeterinarians.js` — React hook quản lý veterinarian list, delegate sang `services/`.
+#### Business logic modules (sau chuẩn hóa)
+- `src/services/notificationService.js` — tổng hợp notification từ appointment + forum.
+- `src/services/appointmentDiagnosisService.js` — WebSocket AI diagnosis, fallback markdown, cache local theo appointment.
+- `src/hooks/Clinic/useVeterinarians.js` — React hook quản lý veterinarian list, delegate sang `services/`.
+- `src/config/firebaseClient.js` — Firebase bootstrap + analytics + popup token.
+- `src/services/clientGoogleAuthService.js` — xử lý Google login/register phía client.
+- `src/utils/storage/clinicInfoStorage.js` — helper localStorage cho card phòng khám.
+- `src/utils/storage/clinicHomeStorage.js` — helper localStorage cho nội dung HomePage theo clinic.
+- `src/config/homePageClinicContent.js` — default content + builder cho HomePageClinic.
 
 #### Cách thêm API mới đúng chuẩn
 1. Xác định domain → mở service file tương ứng trong `src/services/`.
 2. Thêm function với signature `export const doSomethingApi = async (instance, ...params) => { ... }`.
 3. Consumer import function + instance getter: `import { doSomethingApi } from '../../services/myService'` + `import { getClientInstance } from '../../services/apiClient'`.
 4. Gọi: `const response = await doSomethingApi(getClientInstance(), payload)`.
-5. **Không tạo file API mới** trong `src/data/*/api/` — mọi endpoint phải nằm trong `src/services/`.
+5. **Không tạo file API mới** trong `src/data/*` (đã loại bỏ) — mọi endpoint phải nằm trong `src/services/`.
 
 ### 3) Các nhóm API endpoint
 - Auth: `/auth/login`, `/auth/register`, `/auth/login-google`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`.

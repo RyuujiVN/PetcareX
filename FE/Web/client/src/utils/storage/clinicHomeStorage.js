@@ -1,4 +1,4 @@
-import { buildClinicHomeContent } from '../../../config/homePageClinicContent';
+import { buildClinicHomeContent } from '../../config/homePageClinicContent';
 
 export const CLINIC_HOME_STORAGE_PREFIX = 'homePage_';
 

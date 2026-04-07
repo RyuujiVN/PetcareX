@@ -1,20 +1,20 @@
 ﻿import * as icons from '@ant-design/icons';
 import * as antd from 'antd';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  APPOINTMENT_STATUS,
-  getMyAppointmentsApi,
-  updateAppointmentStatusApi,
-} from '../../../../services/appointmentService';
+import { useNavigate } from 'react-router-dom';
+import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import { getClientInstance } from '../../../../services/apiClient';
 import {
-  generateAndStoreDiagnosisReport,
-  getStoredDiagnosisReport,
-} from '../../../../data/client/api/appointmentDiagnosis';
+    generateAndStoreDiagnosisReport,
+    getStoredDiagnosisReport,
+} from '../../../../services/appointmentDiagnosisService';
+import {
+    APPOINTMENT_STATUS,
+    getMyAppointmentsApi,
+    updateAppointmentStatusApi,
+} from '../../../../services/appointmentService';
 import { getBreedLabel } from '../../../../services/petService';
-import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../../utils/enumLabel';
 import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
 import './styles.css';

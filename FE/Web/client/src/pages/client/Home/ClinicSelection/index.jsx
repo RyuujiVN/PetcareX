@@ -1,11 +1,11 @@
-﻿import { useEffect, useRef, useState } from "react";
+﻿import { message, Spin } from "antd";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { message, Spin } from "antd";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
 import { getClientInstance } from "../../../../services/apiClient";
-import { getClinicInfoContent } from "../../../../data/client/utils/clinicInfoStorage";
+import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
+import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
 export default function ClinicSelection() {

@@ -1,8 +1,8 @@
-import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel';
-import { getMyAppointmentsApi } from '../../../services/appointmentService';
-import { getClientInstance } from '../../../services/apiClient';
-import { getRepliesApi, getCommentsByPostIdApi, getPostsApi } from '../../../services/forumService';
-import i18n from '../../../i18n';
+import i18n from '../i18n';
+import { getAppointmentStatusLabel, getServiceLabel } from '../utils/enumLabel';
+import { getClientInstance } from './apiClient';
+import { getMyAppointmentsApi } from './appointmentService';
+import { getCommentsByPostIdApi, getPostsApi, getRepliesApi } from './forumService';
 
 const MAX_APPOINTMENTS = 120;
 const MAX_FORUM_POSTS = 120;

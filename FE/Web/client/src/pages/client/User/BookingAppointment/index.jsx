@@ -1,29 +1,29 @@
 import {
-  ClockCircleOutlined,
-  EnvironmentOutlined,
-  ExperimentOutlined,
-  MoonOutlined,
-  SmileOutlined,
-  SunOutlined,
-  UserOutlined,
+    ClockCircleOutlined,
+    EnvironmentOutlined,
+    ExperimentOutlined,
+    MoonOutlined,
+    SmileOutlined,
+    SunOutlined,
+    UserOutlined,
 } from '@ant-design/icons';
 import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
-import {
-  APPOINTMENT_STATUS,
-  createAppointmentApi,
-  getMyAppointmentsApi,
-  SERVICE_OPTIONS,
-} from '../../../../services/appointmentService';
+import { useAuth } from '../../../../hooks/client/AuthContext';
 import { getClientInstance } from '../../../../services/apiClient';
-import { generateAndStoreDiagnosisReport } from '../../../../data/client/api/appointmentDiagnosis';
+import { generateAndStoreDiagnosisReport } from '../../../../services/appointmentDiagnosisService';
+import {
+    APPOINTMENT_STATUS,
+    createAppointmentApi,
+    getMyAppointmentsApi,
+    SERVICE_OPTIONS,
+} from '../../../../services/appointmentService';
 import { getClinicByIdApi, getClinicListApi } from '../../../../services/clinicService';
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
 import { getVeterinarianByClinicApi } from '../../../../services/veterinarianService';
-import { useAuth } from '../../../../hooks/client/AuthContext';
 import './styles.css';
 
 const TIME_SLOT_GROUPS = [

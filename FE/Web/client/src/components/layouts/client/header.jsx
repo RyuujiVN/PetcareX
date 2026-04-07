@@ -6,11 +6,11 @@ import { FaPaw } from "react-icons/fa";
 import { FaRegCalendarCheck, FaRegCommentDots, FaRegThumbsUp } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { changePasswordApi } from "../../../services/authService";
-import { getClientInstance } from "../../../services/apiClient";
-import { loadClientNotifications } from "../../../data/client/api/notificationApi";
-import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import { useAuth } from "../../../hooks/client/AuthContext";
+import { getClientInstance } from "../../../services/apiClient";
+import { changePasswordApi } from "../../../services/authService";
+import { loadClientNotifications } from "../../../services/notificationService";
+import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
 
 const MIN_PASSWORD_LENGTH = 8;

@@ -1,6 +1,6 @@
-import { signInWithGooglePopupToken } from '../../../config/firebaseClient'
-import { getClientInstance } from '../../../services/apiClient'
-import { loginGoogleApi } from '../../../services/authService'
+import { signInWithGooglePopupToken } from '../config/firebaseClient'
+import { getClientInstance } from './apiClient'
+import { loginGoogleApi } from './authService'
 
 export const authenticateClientWithGoogle = async () => {
   const { googleIdToken, fullName, avatarUrl } = await signInWithGooglePopupToken()
