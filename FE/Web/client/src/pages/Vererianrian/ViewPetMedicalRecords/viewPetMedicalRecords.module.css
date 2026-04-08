@@ -67,6 +67,12 @@
 	gap: 8px;
 }
 
+.petSubMeta span {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
 .backButton {
 	border-radius: 999px;
 	height: 38px;
