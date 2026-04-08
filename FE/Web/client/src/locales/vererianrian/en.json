@@ -141,6 +141,7 @@
 				"serviceType": "FORM TYPE",
 				"formName": "FORM NAME",
 				"followUpDate": "FOLLOW-UP DATE",
+				"enableFollowUpDate": "Enable follow-up",
 				"customerName": "CUSTOMER NAME",
 				"email": "EMAIL",
 				"phone": "PHONE",
@@ -242,6 +243,7 @@
 			"validation": {
 				"serviceTypeRequired": "Please select form type",
 				"formNameRequired": "Please enter form name",
+				"followUpDateRequiredWhenEnabled": "Please select follow-up date",
 				"customerNameRequired": "Please enter customer name",
 				"emailRequired": "Please enter email",
 				"emailInvalid": "Invalid email",

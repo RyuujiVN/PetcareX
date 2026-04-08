@@ -16,6 +16,7 @@ import {
 	Alert,
 	Button,
 	Card,
+	Checkbox,
 	Col,
 	DatePicker,
 	Divider,
@@ -378,6 +379,7 @@ const buildInitialValues = (
 	return {
 		formName: isWalkIn ? '' : serviceLabel,
 		serviceType: resolvedServiceType,
+		enableFollowUpDate: Boolean(editableMedicalRecord?.followUpDate),
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
 		customerName: isWalkIn ? '' : appointment?.ownerName || owner?.fullName || '',
 		email: isWalkIn ? '' : owner?.email || appointment?.ownerEmail || '',
@@ -467,6 +469,7 @@ export default function RecordExaminationForm() {
 	const [serverTimeSynced, setServerTimeSynced] = useState(false)
 	const [remainingEditableSeconds, setRemainingEditableSeconds] = useState(EDITABLE_DURATION_SECONDS)
 	const [isDirty, setIsDirty] = useState(false)
+	const enableFollowUpDate = Form.useWatch('enableFollowUpDate', form)
 	const [historyLoading, setHistoryLoading] = useState(false)
 	const [historyRecords, setHistoryRecords] = useState([])
 	const [expandedHistoryRecords, setExpandedHistoryRecords] = useState(() => new Set())
@@ -1151,11 +1154,20 @@ export default function RecordExaminationForm() {
 				symptoms: values.clinicalSymptoms,
 			}
 
+			const shouldClearFollowUpDate = !values.enableFollowUpDate && Boolean(editableMedicalId)
 			const updatePayload = {
 				conclusion: buildConclusionText(values.conclusionSummary),
 				note: values.note || undefined,
-				followUpDate: values.followUpDate ? values.followUpDate.format('YYYY-MM-DD') : undefined,
+				followUpDate:
+					values.enableFollowUpDate && values.followUpDate
+						? values.followUpDate.format('YYYY-MM-DD')
+						: shouldClearFollowUpDate
+							? null
+							: undefined,
 			}
+			const hasFollowUpDateUpdate = values.enableFollowUpDate
+				? Boolean(values.followUpDate)
+				: shouldClearFollowUpDate
 
 			let medicalId = editableMedicalId
 			if (medicalId) {
@@ -1181,7 +1193,7 @@ export default function RecordExaminationForm() {
 					throw new Error(t('examForm.record.messages.medicalIdMissingError'))
 				}
 
-				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
+				if (updatePayload.conclusion || updatePayload.note || hasFollowUpDateUpdate) {
 					await updateMedicalRecordApi(getAdminInstance(), medicalId, updatePayload)
 				}
 			}
@@ -1297,11 +1309,20 @@ export default function RecordExaminationForm() {
 				symptoms: values.clinicalSymptoms,
 			}
 
+			const shouldClearFollowUpDate = !values.enableFollowUpDate && Boolean(editableMedicalId)
 			const updatePayload = {
 				conclusion: buildConclusionText(values.conclusionSummary),
 				note: values.note || undefined,
-				followUpDate: values.followUpDate ? values.followUpDate.format('YYYY-MM-DD') : undefined,
+				followUpDate:
+					values.enableFollowUpDate && values.followUpDate
+						? values.followUpDate.format('YYYY-MM-DD')
+						: shouldClearFollowUpDate
+							? null
+							: undefined,
 			}
+			const hasFollowUpDateUpdate = values.enableFollowUpDate
+				? Boolean(values.followUpDate)
+				: shouldClearFollowUpDate
 
 			let medicalId = editableMedicalId
 
@@ -1328,7 +1349,7 @@ export default function RecordExaminationForm() {
 					throw new Error(t('examForm.record.messages.medicalIdMissingError'))
 				}
 
-				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
+				if (updatePayload.conclusion || updatePayload.note || hasFollowUpDateUpdate) {
 					await updateMedicalRecordApi(getAdminInstance(), medicalId, updatePayload)
 				}
 			}
@@ -1501,13 +1522,38 @@ export default function RecordExaminationForm() {
 							)}
 						</Col>
 						<Col xs={24} md={12}>
-							<Form.Item label={t('examForm.record.fields.followUpDate')} name="followUpDate">
-								<DatePicker
-									format="DD/MM/YYYY"
-									placeholder={t('examForm.record.placeholders.date')}
-									className={styles.fullWidth}
-									disabledDate={(current) => current && current <= dayjs().startOf('day')}
-								/>
+							<Form.Item label={t('examForm.record.fields.followUpDate')}>
+								<div className={styles.followUpControlRow}>
+									<Form.Item
+										name="followUpDate"
+										rules={
+											enableFollowUpDate
+												? [{ required: true, message: t('examForm.record.validation.followUpDateRequiredWhenEnabled') }]
+												: []
+										}
+										className={styles.followUpDateField}
+									>
+										<DatePicker
+											format="DD/MM/YYYY"
+											placeholder={t('examForm.record.placeholders.date')}
+											className={styles.followUpDateCompact}
+											disabled={!enableFollowUpDate}
+											disabledDate={(current) => current && current <= dayjs().startOf('day')}
+										/>
+									</Form.Item>
+
+									<Form.Item name="enableFollowUpDate" valuePropName="checked" className={styles.followUpToggleField}>
+										<Checkbox
+											onChange={(event) => {
+												if (!event?.target?.checked) {
+													form.setFieldValue('followUpDate', null)
+												}
+											}}
+										>
+											{t('examForm.record.fields.enableFollowUpDate')}
+										</Checkbox>
+									</Form.Item>
+								</div>
 							</Form.Item>
 						</Col>
 					</Row>
@@ -1998,9 +2044,11 @@ export default function RecordExaminationForm() {
 												<div>
 													<p><strong>{t('examForm.record.history.examDate')}</strong> {resolveRecordExamDate(record)}</p>
 												</div>
-												<div>
-													<p><strong>{t('examForm.record.history.followUpDate')}</strong> {formatFollowUpDateLabel(record?.followUpDate)}</p>
-												</div>
+												{record?.followUpDate ? (
+													<div>
+														<p><strong>{t('examForm.record.history.followUpDate')}</strong> {formatFollowUpDateLabel(record?.followUpDate)}</p>
+													</div>
+												) : null}
 											</div>
 
 											{isExpanded ? (

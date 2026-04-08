@@ -181,9 +181,9 @@ const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 		leftInfo: [
 			{ label: tVet('medicalRecords.detail.labels.examDate'), value: resolveExamDate(record) },
 		],
-		rightInfo: [
-			{ label: tVet('medicalRecords.detail.labels.followUpDate'), value: formatFollowUpDate(record?.followUpDate) },
-		],
+		rightInfo: record?.followUpDate
+			? [{ label: tVet('medicalRecords.detail.labels.followUpDate'), value: formatFollowUpDate(record?.followUpDate) }]
+			: [],
 		vitalRows,
 		detailRows,
 	}
@@ -394,7 +394,9 @@ export default function ViewPetMedicalRecords() {
 											</div>
 										</div>
 
-										<div className={styles.recordMetaGrid}>
+										<div
+											className={`${styles.recordMetaGrid} ${item.rightInfo.length === 0 ? styles.recordMetaGridSingle : ''}`}
+										>
 											<div>
 												{item.leftInfo.map((line) => (
 													<p key={`${item.id}-${line.label}-left`}>

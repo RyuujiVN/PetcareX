@@ -233,6 +233,10 @@
 	gap: 8px 24px;
 }
 
+.recordMetaGridSingle {
+	grid-template-columns: 1fr;
+}
+
 .recordMetaGrid p {
 	margin: 0 0 4px;
 	color: #f17a3f;

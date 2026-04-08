@@ -141,6 +141,7 @@
 				"serviceType": "LOẠI PHIẾU KHÁM",
 				"formName": "TÊN PHIẾU KHÁM",
 				"followUpDate": "NGÀY TÁI KHÁM",
+				"enableFollowUpDate": "Hẹn tái khám",
 				"customerName": "TÊN KHÁCH HÀNG",
 				"email": "EMAIL",
 				"phone": "SĐT",
@@ -242,6 +243,7 @@
 			"validation": {
 				"serviceTypeRequired": "Vui lòng chọn loại phiếu khám",
 				"formNameRequired": "Vui lòng nhập tên phiếu khám",
+				"followUpDateRequiredWhenEnabled": "Vui lòng chọn ngày tái khám",
 				"customerNameRequired": "Vui lòng nhập tên khách hàng",
 				"emailRequired": "Vui lòng nhập email",
 				"emailInvalid": "Email không hợp lệ",
