@@ -22,5 +22,10 @@ export class NotificationService {
       queryBuilder.andWhere('notify.createdAt < :time', {
         time: new Date(options.createdAt),
       });
+
+    if (options.filter === 'UNREAD')
+      queryBuilder.andWhere('notify.isRead = :isRead', { isRead: false });
+
+    return await queryBuilder.getMany();
   }
 }
