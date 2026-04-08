@@ -1,0 +1,287 @@
+{
+  "layout": {
+    "brand": {
+      "name": "PetCareX",
+      "subtitle": "Administration System"
+    },
+    "menu": {
+      "overview": "Overview",
+      "clinics": "Clinic Management",
+      "users": "User Management",
+      "posts": "Post Management"
+    },
+    "profile": {
+      "defaultName": "Admin Name",
+      "defaultEmail": "admin@petcarex.vn"
+    },
+    "header": {
+      "title": "Admin Dashboard",
+      "searchPlaceholder": "Search"
+    },
+    "actions": {
+      "logout": "Log out"
+    },
+    "notification": {
+      "openAriaLabel": "Open notifications",
+      "title": "Notifications",
+      "markAllRead": "Mark all as read",
+      "tabs": {
+        "all": "All",
+        "unread": "Unread"
+      },
+      "empty": "No notifications available.",
+      "timeAgo": {
+        "justNow": "Just now",
+        "minutesAgo": "{{count}} minutes ago",
+        "hoursAgo": "{{count}} hours ago",
+        "daysAgo": "{{count}} days ago"
+      }
+    }
+  },
+  "clinics": {
+    "stats": {
+      "totalClinics": "Total clinics"
+    },
+    "page": {
+      "title": "Clinic list",
+      "subtitle": "Manage newly registered and active clinics"
+    },
+    "search": {
+      "placeholder": "Search by clinic name or phone number"
+    },
+    "actions": {
+      "addClinic": "Add clinic",
+      "view": "View",
+      "delete": "Delete"
+    },
+    "table": {
+      "columns": {
+        "name": "CLINIC NAME",
+        "phone": "PHONE NUMBER",
+        "address": "ADDRESS",
+        "email": "EMAIL",
+        "status": "STATUS",
+        "action": "ACTIONS"
+      }
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "deleted": "Deleted"
+    },
+    "pagination": {
+      "summary": "Showing {{start}}-{{end}} of {{total}} clinics"
+    },
+    "messages": {
+      "fetchFailed": "Unable to load clinic list",
+      "deleteSuccess": "Clinic deleted successfully",
+      "deleteFailed": "Unable to delete clinic",
+      "createSuccess": "Clinic added successfully"
+    },
+    "confirmDelete": {
+      "title": "Confirm clinic deletion",
+      "content": "Are you sure you want to delete clinic \"{{name}}\"?",
+      "ok": "Delete",
+      "cancel": "Cancel"
+    },
+    "addModal": {
+      "title": "Add new clinic",
+      "ok": "Add clinic",
+      "cancel": "Cancel",
+      "sections": {
+        "clinicInfo": "Clinic information",
+        "adminInfo": "Clinic admin account"
+      },
+      "labels": {
+        "clinicName": "Clinic name",
+        "clinicEmail": "Clinic email",
+        "clinicPhone": "Phone number",
+        "clinicAddress": "Address",
+        "clinicDescription": "Description",
+        "adminFullName": "Admin full name",
+        "adminEmail": "Login email",
+        "adminPassword": "Password"
+      },
+      "placeholders": {
+        "clinicName": "Ex: ABC Veterinary Clinic",
+        "clinicEmail": "clinic@email.com",
+        "clinicPhone": "0901234567",
+        "clinicAddress": "Ex: 123 Nguyen Van Linh, Da Nang",
+        "clinicDescription": "Short clinic description (optional)",
+        "adminFullName": "Ex: Nguyen Van A",
+        "adminEmail": "admin@email.com",
+        "adminPassword": "At least 6 characters"
+      },
+      "validation": {
+        "clinicNameRequired": "Please enter clinic name",
+        "emailRequired": "Please enter email",
+        "invalidEmail": "Invalid email",
+        "phoneRequired": "Please enter phone number",
+        "phoneInvalid": "Phone number must be 10 digits and start with 0",
+        "addressRequired": "Please enter address",
+        "adminNameRequired": "Please enter full name",
+        "adminEmailRequired": "Please enter email",
+        "passwordRequired": "Please enter password",
+        "passwordMin": "Password must be at least 6 characters"
+      }
+    },
+    "detailModal": {
+      "title": "Clinic details",
+      "labels": {
+        "clinicName": "Clinic name",
+        "email": "Email",
+        "phone": "Phone number",
+        "address": "Address",
+        "description": "Description",
+        "status": "Status",
+        "createdAt": "Created date"
+      }
+    }
+  },
+  "users": {
+    "stats": {
+      "totalUsers": "Total users",
+      "totalVeterinarians": "Total veterinarians"
+    },
+    "page": {
+      "title": "User list",
+      "subtitle": "Manage registered accounts in the system"
+    },
+    "search": {
+      "placeholder": "Search by name or email"
+    },
+    "filters": {
+      "rolePlaceholder": "Filter by role",
+      "all": "All",
+      "customer": "Customer",
+      "veterinarian": "Veterinarian",
+      "noRole": "No role"
+    },
+    "table": {
+      "columns": {
+        "name": "USER NAME",
+        "phone": "PHONE NUMBER",
+        "address": "ADDRESS",
+        "email": "EMAIL",
+        "role": "ROLE",
+        "status": "STATUS",
+        "action": "ACTIONS"
+      }
+    },
+    "role": {
+      "ADMIN": "System admin",
+      "ADMIN_CLINIC": "Clinic admin",
+      "VETERINARIAN": "Veterinarian",
+      "CUSTOMER": "Customer",
+      "USER": "Customer",
+      "none": "None"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "pagination": {
+      "summary": "Showing {{start}}-{{end}} of {{total}} users"
+    },
+    "states": {
+      "empty": "No user data available"
+    },
+    "messages": {
+      "fetchFailed": "Unable to load user list",
+      "statsFailed": "Unable to load user statistics",
+      "updateSuccess": "User status updated successfully",
+      "updateFailed": "Unable to update user status"
+    },
+    "confirmDeactivate": {
+      "title": "Confirm deactivation",
+      "content": "Are you sure you want to deactivate account \"{{name}}\"?",
+      "ok": "Deactivate",
+      "cancel": "Cancel"
+    },
+    "detailModal": {
+      "title": "User details",
+      "labels": {
+        "fullName": "Full name",
+        "email": "Email",
+        "phone": "Phone number",
+        "address": "Address",
+        "role": "Role",
+        "status": "Status",
+        "createdAt": "Created date",
+        "updatedAt": "Updated date"
+      }
+    }
+  },
+  "posts": {
+    "stats": {
+      "loadedPosts": "Loaded posts",
+      "totalLikes": "Total likes",
+      "totalComments": "Total comments"
+    },
+    "page": {
+      "title": "Post list",
+      "subtitle": "Monitor latest posts from the community"
+    },
+    "search": {
+      "placeholder": "Search by author, topic, content"
+    },
+    "filters": {
+      "topicPlaceholder": "Filter by topic",
+      "all": "All",
+      "noTopic": "No topic"
+    },
+    "table": {
+      "columns": {
+        "author": "AUTHOR",
+        "topic": "TOPIC",
+        "role": "ROLE",
+        "content": "CONTENT",
+        "comments": "COMMENTS",
+        "likes": "LIKES",
+        "postedDate": "POSTED DATE",
+        "action": "ACTIONS"
+      }
+    },
+    "actions": {
+      "loadMore": "Load more"
+    },
+    "states": {
+      "empty": "No post data available",
+      "allDataLoaded": "All data loaded"
+    },
+    "pagination": {
+      "summary": "Showing {{filtered}} / {{loaded}} loaded posts"
+    },
+    "messages": {
+      "fetchFailed": "Unable to load post list",
+      "deleteSuccess": "Post removed from display list"
+    },
+    "confirmDelete": {
+      "title": "Confirm post deletion",
+      "content": "Are you sure you want to delete this post?",
+      "ok": "Delete",
+      "cancel": "Cancel"
+    },
+    "detailModal": {
+      "title": "Post details",
+      "labels": {
+        "author": "Author",
+        "role": "Role",
+        "topic": "Topic",
+        "postedDate": "Posted date",
+        "likes": "Likes",
+        "comments": "Comments",
+        "content": "Content"
+      }
+    }
+  },
+  "common": {
+    "noData": "—",
+    "none": "None",
+    "thisItem": "this item",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "viewDetail": "Details"
+  }
+}

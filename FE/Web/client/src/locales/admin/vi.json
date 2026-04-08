@@ -1,0 +1,287 @@
+{
+  "layout": {
+    "brand": {
+      "name": "PetCareX",
+      "subtitle": "Hệ thống quản trị"
+    },
+    "menu": {
+      "overview": "Tổng quan",
+      "clinics": "Quản lý phòng khám",
+      "users": "Quản lý người dùng",
+      "posts": "Quản lý bài đăng"
+    },
+    "profile": {
+      "defaultName": "Admin Name",
+      "defaultEmail": "admin@petcarex.vn"
+    },
+    "header": {
+      "title": "Dashboard Admin",
+      "searchPlaceholder": "Tìm kiếm"
+    },
+    "actions": {
+      "logout": "Đăng xuất"
+    },
+    "notification": {
+      "openAriaLabel": "Mở thông báo",
+      "title": "Thông báo",
+      "markAllRead": "Đánh dấu tất cả đã đọc",
+      "tabs": {
+        "all": "Tất cả",
+        "unread": "Chưa đọc"
+      },
+      "empty": "Không có thông báo nào.",
+      "timeAgo": {
+        "justNow": "Vừa xong",
+        "minutesAgo": "{{count}} phút trước",
+        "hoursAgo": "{{count}} giờ trước",
+        "daysAgo": "{{count}} ngày trước"
+      }
+    }
+  },
+  "clinics": {
+    "stats": {
+      "totalClinics": "Tổng số phòng khám"
+    },
+    "page": {
+      "title": "Danh sách phòng khám",
+      "subtitle": "Quản lý các phòng khám mới đăng ký và đang hoạt động"
+    },
+    "search": {
+      "placeholder": "Tìm theo tên phòng khám hoặc SĐT"
+    },
+    "actions": {
+      "addClinic": "Thêm phòng khám",
+      "view": "Xem",
+      "delete": "Xóa"
+    },
+    "table": {
+      "columns": {
+        "name": "TÊN PHÒNG KHÁM",
+        "phone": "SỐ ĐIỆN THOẠI",
+        "address": "ĐỊA CHỈ",
+        "email": "EMAIL",
+        "status": "TRẠNG THÁI",
+        "action": "THAO TÁC"
+      }
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Dừng hoạt động",
+      "deleted": "Đã xóa"
+    },
+    "pagination": {
+      "summary": "Hiển thị {{start}}-{{end}} trên {{total}} phòng khám"
+    },
+    "messages": {
+      "fetchFailed": "Không thể tải danh sách phòng khám",
+      "deleteSuccess": "Xóa phòng khám thành công",
+      "deleteFailed": "Không thể xóa phòng khám",
+      "createSuccess": "Thêm phòng khám thành công"
+    },
+    "confirmDelete": {
+      "title": "Xác nhận xóa phòng khám",
+      "content": "Bạn có chắc muốn xóa phòng khám \"{{name}}\" không?",
+      "ok": "Xóa",
+      "cancel": "Hủy"
+    },
+    "addModal": {
+      "title": "Thêm phòng khám mới",
+      "ok": "Thêm phòng khám",
+      "cancel": "Hủy",
+      "sections": {
+        "clinicInfo": "Thông tin phòng khám",
+        "adminInfo": "Tài khoản quản trị phòng khám"
+      },
+      "labels": {
+        "clinicName": "Tên phòng khám",
+        "clinicEmail": "Email phòng khám",
+        "clinicPhone": "Số điện thoại",
+        "clinicAddress": "Địa chỉ",
+        "clinicDescription": "Mô tả",
+        "adminFullName": "Họ và tên quản trị",
+        "adminEmail": "Email đăng nhập",
+        "adminPassword": "Mật khẩu"
+      },
+      "placeholders": {
+        "clinicName": "VD: Phòng khám thú y ABC",
+        "clinicEmail": "clinic@email.com",
+        "clinicPhone": "0901234567",
+        "clinicAddress": "VD: 123 Nguyễn Văn Linh, Đà Nẵng",
+        "clinicDescription": "Mô tả ngắn về phòng khám (không bắt buộc)",
+        "adminFullName": "VD: Nguyễn Văn A",
+        "adminEmail": "admin@email.com",
+        "adminPassword": "Tối thiểu 6 ký tự"
+      },
+      "validation": {
+        "clinicNameRequired": "Vui lòng nhập tên phòng khám",
+        "emailRequired": "Vui lòng nhập email",
+        "invalidEmail": "Email không hợp lệ",
+        "phoneRequired": "Vui lòng nhập SĐT",
+        "phoneInvalid": "SĐT phải gồm 10 chữ số, bắt đầu bằng 0",
+        "addressRequired": "Vui lòng nhập địa chỉ",
+        "adminNameRequired": "Vui lòng nhập họ tên",
+        "adminEmailRequired": "Vui lòng nhập email",
+        "passwordRequired": "Vui lòng nhập mật khẩu",
+        "passwordMin": "Mật khẩu tối thiểu 6 ký tự"
+      }
+    },
+    "detailModal": {
+      "title": "Chi tiết phòng khám",
+      "labels": {
+        "clinicName": "Tên phòng khám",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "description": "Mô tả",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo"
+      }
+    }
+  },
+  "users": {
+    "stats": {
+      "totalUsers": "Tổng số người dùng",
+      "totalVeterinarians": "Tổng số bác sĩ"
+    },
+    "page": {
+      "title": "Danh sách người dùng",
+      "subtitle": "Quản lý tài khoản đăng ký trong hệ thống"
+    },
+    "search": {
+      "placeholder": "Tìm kiếm theo tên hoặc email"
+    },
+    "filters": {
+      "rolePlaceholder": "Lọc theo vai trò",
+      "all": "Tất cả",
+      "customer": "Khách hàng",
+      "veterinarian": "Bác sĩ",
+      "noRole": "Không có vai trò"
+    },
+    "table": {
+      "columns": {
+        "name": "TÊN NGƯỜI DÙNG",
+        "phone": "SỐ ĐIỆN THOẠI",
+        "address": "ĐỊA CHỈ",
+        "email": "EMAIL",
+        "role": "VAI TRÒ",
+        "status": "TRẠNG THÁI",
+        "action": "THAO TÁC"
+      }
+    },
+    "role": {
+      "ADMIN": "Quản trị hệ thống",
+      "ADMIN_CLINIC": "Quản trị phòng khám",
+      "VETERINARIAN": "Bác sĩ thú y",
+      "CUSTOMER": "Khách hàng",
+      "USER": "Khách hàng",
+      "none": "Không"
+    },
+    "status": {
+      "active": "Hoạt động",
+      "inactive": "Dừng hoạt động"
+    },
+    "pagination": {
+      "summary": "Hiển thị {{start}}-{{end}} trên {{total}} người dùng"
+    },
+    "states": {
+      "empty": "Không có dữ liệu người dùng"
+    },
+    "messages": {
+      "fetchFailed": "Không thể tải danh sách người dùng",
+      "statsFailed": "Không thể tải thống kê người dùng",
+      "updateSuccess": "Đã cập nhật trạng thái người dùng",
+      "updateFailed": "Không thể cập nhật trạng thái người dùng"
+    },
+    "confirmDeactivate": {
+      "title": "Xác nhận dừng hoạt động",
+      "content": "Bạn có chắc muốn dừng hoạt động tài khoản \"{{name}}\" không?",
+      "ok": "Dừng hoạt động",
+      "cancel": "Hủy"
+    },
+    "detailModal": {
+      "title": "Chi tiết người dùng",
+      "labels": {
+        "fullName": "Họ và tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ",
+        "role": "Vai trò",
+        "status": "Trạng thái",
+        "createdAt": "Ngày tạo",
+        "updatedAt": "Ngày cập nhật"
+      }
+    }
+  },
+  "posts": {
+    "stats": {
+      "loadedPosts": "Bài đăng đã tải",
+      "totalLikes": "Tổng lượt thích",
+      "totalComments": "Tổng bình luận"
+    },
+    "page": {
+      "title": "Danh sách bài đăng",
+      "subtitle": "Theo dõi bài viết mới nhất từ cộng đồng"
+    },
+    "search": {
+      "placeholder": "Tìm theo tác giả, chủ đề, nội dung"
+    },
+    "filters": {
+      "topicPlaceholder": "Lọc theo chủ đề",
+      "all": "Tất cả",
+      "noTopic": "Không có chủ đề"
+    },
+    "table": {
+      "columns": {
+        "author": "TÁC GIẢ",
+        "topic": "CHỦ ĐỀ",
+        "role": "VAI TRÒ",
+        "content": "NỘI DUNG",
+        "comments": "BÌNH LUẬN",
+        "likes": "LƯỢT THÍCH",
+        "postedDate": "NGÀY ĐĂNG",
+        "action": "THAO TÁC"
+      }
+    },
+    "actions": {
+      "loadMore": "Tải thêm"
+    },
+    "states": {
+      "empty": "Không có dữ liệu bài đăng",
+      "allDataLoaded": "Đã tải hết dữ liệu"
+    },
+    "pagination": {
+      "summary": "Hiển thị {{filtered}} / {{loaded}} bài đã tải"
+    },
+    "messages": {
+      "fetchFailed": "Không thể tải danh sách bài đăng",
+      "deleteSuccess": "Đã xóa bài đăng khỏi danh sách hiển thị"
+    },
+    "confirmDelete": {
+      "title": "Xác nhận xóa bài đăng",
+      "content": "Bạn có chắc muốn xóa bài đăng này không?",
+      "ok": "Xóa",
+      "cancel": "Hủy"
+    },
+    "detailModal": {
+      "title": "Chi tiết bài đăng",
+      "labels": {
+        "author": "Tác giả",
+        "role": "Vai trò",
+        "topic": "Chủ đề",
+        "postedDate": "Ngày đăng",
+        "likes": "Lượt thích",
+        "comments": "Bình luận",
+        "content": "Nội dung"
+      }
+    }
+  },
+  "common": {
+    "noData": "—",
+    "none": "Không",
+    "thisItem": "này",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "delete": "Xóa",
+    "viewDetail": "Chi tiết"
+  }
+}
