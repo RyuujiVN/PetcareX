@@ -244,7 +244,7 @@ export default function ListPetExaminationRecords() {
 
 								<div className={styles.cardBody}>
 									<div className={styles.petHeaderRow}>
-										<h3 style={{fontSize: 23}}>{t('examForm.list.fields.petName')}: {record.petName}</h3>
+										<h3 style={{fontSize: 23}}> {record.petName}</h3>
 										<span className={styles.ageBadge}>{t('examForm.list.fields.age')}: {record.ageLabel}</span>
 									</div>
 
