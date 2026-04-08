@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -20,6 +21,7 @@ import { NotificationGateway } from 'src/notification/notification.gateway';
 import { SenderNotificationEnum } from 'src/common/enums/sender-notification.enum';
 import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
+import { Not } from 'typeorm';
 
 @Injectable()
 export class AppointmentService {
@@ -177,6 +179,37 @@ export class AppointmentService {
     createDTO: CreateAppointmentDTO,
     user: { id: string; fullName?: string },
   ) {
+    // Kiểm tra lịch có đặt trước 6 tiếng không
+    const appointmentDateTime = new Date(createDTO.appointmentDate);
+    const [hours, minutes] = createDTO.appointmentTime.split(':').map(Number);
+    appointmentDateTime.setHours(hours, minutes, 0, 0);
+
+    const minimumBookingTime = new Date();
+    minimumBookingTime.setHours(minimumBookingTime.getHours() + 6);
+    if (appointmentDateTime < minimumBookingTime) {
+      throw new BadRequestException(
+        'Lịch hẹn phải được đặt trước ít nhất 6 tiếng',
+      );
+    }
+
+    // Kiểm tra xem lịch có bị đặt trùng không
+    const duplicatedAppointment = await this.appointmentRepository.findOne({
+      where: {
+        veterinarianId: createDTO.veterinarianId,
+        appointmentDate: createDTO.appointmentDate,
+        appointmentTime: createDTO.appointmentTime,
+        status: Not(AppointmentStatusEnum.CANCELLED),
+      },
+      select: {
+        id: true,
+      },
+    });
+    if (duplicatedAppointment) {
+      throw new BadRequestException(
+        'Khung giờ này đã có lịch hẹn, vui lòng chọn giờ khác',
+      );
+    }
+
     const savedAppointment =
       await this.appointmentRepository.manager.transaction(async (manager) => {
         const appointmentRepo = manager.getRepository(Appointment);
@@ -193,10 +226,15 @@ export class AppointmentService {
           where: { clinicId: createdAppointment.clinicId },
           select: { userId: true },
         });
+        if (!adminClinic?.userId) {
+          throw new BadRequestException(
+            'Không tìm thấy admin phòng khám để gửi thông báo',
+          );
+        }
 
         // 2. Lưu thông báo cho admin clinic và veterinarian
         const notificationAdminClinic = notificationRepo.create({
-          recipientId: adminClinic?.userId,
+          recipientId: adminClinic.userId,
           senderId: user.id,
           senderType: SenderNotificationEnum.SYSTEM,
           type: NotificationEnum.APPOINTMENT_BOOKED,
@@ -209,7 +247,7 @@ export class AppointmentService {
         });
 
         const notificationVeterinarian = notificationRepo.create({
-          recipientId: savedAppointment.veterinarianId,
+          recipientId: createdAppointment.veterinarianId,
           senderId: user.id,
           senderType: SenderNotificationEnum.SYSTEM,
           type: NotificationEnum.APPOINTMENT_BOOKED,
@@ -275,20 +313,79 @@ export class AppointmentService {
     await this.appointmentRepository.save(appointment);
   }
 
-  // Cập nhật trạng thái lịch hẹn
-  async updateAppointmentStatus(
+  // Cập nhật trạng thái lịch hẹn từ phía phòng khám
+  async updateAppointmentStatusByClinic(
     updateDTO: UpdateAppointmentStatusDTO,
     appointmentId: string,
+    user: { id: string; fullName?: string },
   ) {
-    const appointment = await this.appointmentRepository.findOne({
-      where: {
-        id: appointmentId,
-      },
-    });
+    const appointment = await this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .leftJoin('appointment.pet', 'pet')
+      .leftJoin('pet.owner', 'owner')
+      .where('appointment.id = :appointmentId', { appointmentId })
+      .select([
+        'appointment.id',
+        'appointment.appointmentDate',
+        'appointment.appointmentTime',
+        'appointment.status',
+        'owner.id',
+      ])
+      .getOne();
 
     if (!appointment) throw new NotFoundException('Không tìm thấy lịch hẹn');
     Object.assign(appointment, updateDTO);
+    const updatedAppointment =
+      await this.appointmentRepository.save(appointment);
 
+    // Cập nhật từ phía phòng khám: nếu huỷ lịch thì gửi thông báo về client
+    if (
+      updateDTO.status === AppointmentStatusEnum.CANCELLED &&
+      appointment.pet?.owner?.id
+    ) {
+      const notificationRepo =
+        this.appointmentRepository.manager.getRepository(Notification);
+      const notification = notificationRepo.create({
+        recipientId: appointment.pet.owner.id,
+        senderId: user.id,
+        senderType: SenderNotificationEnum.CLINIC,
+        type: NotificationEnum.APPOINTMENT_CANCELLED,
+        target: {
+          appointmentId: updatedAppointment.id,
+          appointmentDate: updatedAppointment.appointmentDate,
+          appointmentTime: updatedAppointment.appointmentTime,
+          userName: user.fullName ?? '',
+        },
+      });
+      const savedNotification = await notificationRepo.save(notification);
+
+      this.notificationGateway.sendNotificationToClient(
+        savedNotification.recipientId,
+        savedNotification,
+      );
+    }
+  }
+
+  // Cập nhật trạng thái lịch hẹn từ phía client
+  async updateAppointmentStatusByClient(
+    updateDTO: UpdateAppointmentStatusDTO,
+    appointmentId: string,
+    userId: string,
+  ) {
+    const appointment = await this.appointmentRepository
+      .createQueryBuilder('appointment')
+      .leftJoin('appointment.pet', 'pet')
+      .leftJoin('pet.owner', 'owner')
+      .where('appointment.id = :appointmentId', { appointmentId })
+      .select(['appointment.id', 'appointment.status', 'owner.id'])
+      .getOne();
+
+    if (!appointment) throw new NotFoundException('Không tìm thấy lịch hẹn');
+    if (appointment.pet?.owner?.id !== userId) {
+      throw new ForbiddenException('Bạn không có quyền cập nhật lịch hẹn này');
+    }
+
+    Object.assign(appointment, updateDTO);
     await this.appointmentRepository.save(appointment);
   }
 

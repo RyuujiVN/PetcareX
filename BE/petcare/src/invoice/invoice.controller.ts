@@ -6,23 +6,32 @@ import {
   Param,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
-import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation } from '@nestjs/swagger';
 import { CreateInvoiceDTO } from './dtos/create-invoice.dto';
 import { UpdateInvoiceDTO } from './dtos/update-invoice.dto';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard, RoleGuard)
 @Controller('invoice')
 export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
 
   @Get(':medicalRecordId')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Lấy hoá đơn theo phiếu khám' })
   getOneByMedicalRecordId(@Param('medicalRecordId') medicalRecordId: string) {
     return this.invoiceService.findOneByMedicalRecordId(medicalRecordId);
   }
 
   @Post('')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Tạo mới hoá đơn' })
   @ApiBody({
     type: CreateInvoiceDTO,
@@ -32,6 +41,7 @@ export class InvoiceController {
   }
 
   @Patch(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Chỉnh sửa hoá đơn' })
   @ApiBody({
     type: UpdateInvoiceDTO,
@@ -48,6 +58,7 @@ export class InvoiceController {
   }
 
   @Delete(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Xoá hoá đơn' })
   async deleteInvoice(@Param('id') id: string) {
     await this.invoiceService.deleteInvoice(id);

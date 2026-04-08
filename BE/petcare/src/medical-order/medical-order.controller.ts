@@ -3,14 +3,18 @@ import { MedicalOrderService } from './medical-order.service';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { MedicalOrder } from './entities/medical-order.entity';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('medical-order')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class MedicalOrderController {
   constructor(private readonly medicalOrderService: MedicalOrderService) {}
 
   @Get('')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Lấy danh sách các phiếu chỉ định' })
   getAllMedicalOrder(): Promise<MedicalOrder[]> {
     return this.medicalOrderService.findAll();

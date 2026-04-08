@@ -23,10 +23,14 @@ import { VeterinarianService } from './veterinarian.service';
 import { UpdateVeterinarianDTO } from './dtos/update-veterinarian.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Veterinarian } from './entities/veterinarian.entity';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('veterinarian')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
+@RequiredRole(RoleEnum.ADMIN_CLINIC)
 export class VeterinarianController {
   constructor(private readonly veterinarianService: VeterinarianService) {}
 

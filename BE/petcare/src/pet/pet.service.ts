@@ -76,10 +76,12 @@ export class PetService {
   }
 
   // Xoá thú cưng
-  async deletePet(petId: string) {
-    const result = await this.petRepository.delete({ id: petId });
+  async deletePet(petId: string, userId: string) {
+    const pet = await this.petRepository.findOne({
+      where: { id: petId, ownerId: userId },
+    });
 
-    if (result.affected === 0)
-      throw new NotFoundException('Không tìm thấy thú cưng');
+    if (!pet) throw new NotFoundException('Không tìm thấy pet');
+    await this.petRepository.delete({ id: petId });
   }
 }
