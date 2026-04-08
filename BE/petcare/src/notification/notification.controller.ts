@@ -2,7 +2,9 @@ import {
   Controller,
   DefaultValuePipe,
   Get,
+  Param,
   ParseIntPipe,
+  Patch,
   Query,
   Req,
   UseGuards,
@@ -21,7 +23,12 @@ export class NotificationController {
   @Get('')
   @ApiOperation({ summary: 'Lấy danh sách thông báo người dùng' })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 20 })
-  @ApiQuery({ name: 'filter', required: true, type: String })
+  @ApiQuery({
+    name: 'filter',
+    required: true,
+    type: String,
+    default: NotificationFilter.ALL,
+  })
   @ApiQuery({ name: 'createdAt', required: false, type: Date })
   getAllNotification(
     @Req() req,
@@ -35,5 +42,25 @@ export class NotificationController {
       filter,
       createdAt,
     });
+  }
+
+  @Patch('mark-one/:id')
+  @ApiOperation({ summary: 'Cập nhật một thông báo đã đọc' })
+  async updateOneNotification(@Param('id') id: string) {
+    await this.notificationService.markOneAsRead(id);
+
+    return {
+      message: 'Cập nhật thành công',
+    };
+  }
+
+  @Patch('mark-all')
+  @ApiOperation({ summary: 'Cập nhật một thông báo đã đọc' })
+  async updateAllNotification(@Req() req) {
+    await this.notificationService.markAllAsRead(req?.user?.id);
+
+    return {
+      message: 'Cập nhật thành công',
+    };
   }
 }
