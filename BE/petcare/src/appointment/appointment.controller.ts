@@ -124,12 +124,10 @@ export class AppointmentController {
   async updateAppointmentStatus(
     @Body() updateDTO: UpdateAppointmentStatusDTO,
     @Param('id') id: string,
-    @Req() req,
   ) {
     await this.appointmentService.updateAppointmentStatusByClinic(
       updateDTO,
       id,
-      req?.user,
     );
     return {
       message: 'Cập nhật lịch hẹn thành công',
@@ -138,19 +136,11 @@ export class AppointmentController {
 
   @Patch('client/:id')
   @RequiredRole(RoleEnum.CUSTOMER)
-  @ApiOperation({ summary: 'Client cập nhật trạng thái lịch hẹn' })
-  @ApiBody({
-    type: UpdateAppointmentStatusDTO,
-  })
-  async updateAppointmentStatusByClient(
-    @Body() updateDTO: UpdateAppointmentStatusDTO,
-    @Param('id') id: string,
-    @Req() req,
-  ) {
+  @ApiOperation({ summary: 'Client huỷ lịch hẹn' })
+  async updateAppointmentStatusByClient(@Param('id') id: string, @Req() req) {
     await this.appointmentService.updateAppointmentStatusByClient(
-      updateDTO,
       id,
-      req?.user?.id,
+      req?.user,
     );
     return {
       message: 'Cập nhật lịch hẹn thành công',

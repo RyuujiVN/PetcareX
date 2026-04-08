@@ -30,7 +30,6 @@ import { RoleEnum } from 'src/common/enums/role.enum';
 @Controller('veterinarian')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard, RoleGuard)
-@RequiredRole(RoleEnum.ADMIN_CLINIC)
 export class VeterinarianController {
   constructor(private readonly veterinarianService: VeterinarianService) {}
 
@@ -73,6 +72,7 @@ export class VeterinarianController {
   }
 
   @Post()
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Tạo mới bác sĩ' })
   @ApiBody({
     type: CreateVeterinarianDTO,
@@ -82,6 +82,7 @@ export class VeterinarianController {
   }
 
   @Put(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Chỉnh sửa hồ sơ bác sĩ' })
   @ApiBody({
     type: UpdateVeterinarianDTO,
@@ -98,6 +99,7 @@ export class VeterinarianController {
   }
 
   @Delete(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Xoá bác sĩ' })
   async deleteVeterinarian(@Param('id') id: string) {
     await this.veterinarianService.deleteVeterinarian(id);

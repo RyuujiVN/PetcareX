@@ -7,7 +7,6 @@ import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
 import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 import { DataSource } from 'typeorm';
 import { Notification } from 'src/notification/entities/notification.entity';
-import { SenderNotificationEnum } from 'src/common/enums/sender-notification.enum';
 import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import { NotFoundError } from 'rxjs';
@@ -62,8 +61,6 @@ export class AppointmentProcessor extends WorkerHost {
             const notificationRepo = manager.getRepository(Notification);
             const notification = notificationRepo.create();
             notification.recipientId = appointment.userId;
-            notification.senderId = null;
-            notification.senderType = SenderNotificationEnum.SYSTEM;
             notification.type = NotificationEnum.AI_DIAGNOSIS;
             notification.target = {
               appointmentId: appointment.id,
@@ -74,7 +71,7 @@ export class AppointmentProcessor extends WorkerHost {
             const savedNotification = await notificationRepo.save(notification);
 
             // 5. Gửi thông báo về client
-            this.notificationGateway.sendNotificationToClient(
+            this.notificationGateway.sendNotification(
               savedNotification.recipientId,
               savedNotification,
             );

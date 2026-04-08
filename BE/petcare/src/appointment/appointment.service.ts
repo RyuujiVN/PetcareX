@@ -18,7 +18,6 @@ import { Queue } from 'bullmq';
 import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationGateway } from 'src/notification/notification.gateway';
-import { SenderNotificationEnum } from 'src/common/enums/sender-notification.enum';
 import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { Not } from 'typeorm';
@@ -30,6 +29,10 @@ export class AppointmentService {
     private readonly analyzeSymptomsQueue: Queue,
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
+    @InjectRepository(AdminClinic)
+    private readonly adminClinicRepository: Repository<AdminClinic>,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
     private readonly notificationGateway: NotificationGateway,
   ) {}
 
@@ -179,7 +182,7 @@ export class AppointmentService {
     createDTO: CreateAppointmentDTO,
     user: { id: string; fullName?: string },
   ) {
-    // Kiểm tra lịch có đặt trước 6 tiếng không
+    // 1. Kiểm tra lịch có đặt trước 6 tiếng không
     const appointmentDateTime = new Date(createDTO.appointmentDate);
     const [hours, minutes] = createDTO.appointmentTime.split(':').map(Number);
     appointmentDateTime.setHours(hours, minutes, 0, 0);
@@ -192,7 +195,7 @@ export class AppointmentService {
       );
     }
 
-    // Kiểm tra xem lịch có bị đặt trùng không
+    // 2. Kiểm tra xem lịch có bị đặt trùng không
     const duplicatedAppointment = await this.appointmentRepository.findOne({
       where: {
         veterinarianId: createDTO.veterinarianId,
@@ -210,13 +213,15 @@ export class AppointmentService {
       );
     }
 
+    let notifications;
+
     const savedAppointment =
       await this.appointmentRepository.manager.transaction(async (manager) => {
         const appointmentRepo = manager.getRepository(Appointment);
         const notificationRepo = manager.getRepository(Notification);
         const adminClinicRepo = manager.getRepository(AdminClinic);
 
-        // 1. Lưu lịch hẹn
+        // 3. Lưu lịch hẹn
         const appointment = appointmentRepo.create(createDTO);
         appointment.status = AppointmentStatusEnum.BOOKED;
         const createdAppointment = await appointmentRepo.save(appointment);
@@ -232,66 +237,58 @@ export class AppointmentService {
           );
         }
 
-        // 2. Lưu thông báo cho admin clinic và veterinarian
-        const notificationAdminClinic = notificationRepo.create({
-          recipientId: adminClinic.userId,
-          senderId: user.id,
-          senderType: SenderNotificationEnum.SYSTEM,
-          type: NotificationEnum.APPOINTMENT_BOOKED,
-          target: {
-            appointmentDate: createdAppointment.appointmentDate,
-            appointmentTime: createdAppointment.appointmentTime,
-            appointmentId: createdAppointment.id,
-            userName: user.fullName ?? '',
-          },
-        });
+        // 4. Lưu thông báo cho admin clinic và veterinarian
+        const recipientIds = [
+          adminClinic.userId,
+          createdAppointment.veterinarianId,
+        ];
 
-        const notificationVeterinarian = notificationRepo.create({
-          recipientId: createdAppointment.veterinarianId,
-          senderId: user.id,
-          senderType: SenderNotificationEnum.SYSTEM,
-          type: NotificationEnum.APPOINTMENT_BOOKED,
-          target: {
-            appointmentDate: createdAppointment.appointmentDate,
-            appointmentTime: createdAppointment.appointmentTime,
-            appointmentId: createdAppointment.id,
-            userName: user.fullName ?? '',
-          },
-        });
+        notifications = await Promise.all(
+          recipientIds.map((id) => {
+            const notify = notificationRepo.create({
+              recipientId: id,
+              type: NotificationEnum.APPOINTMENT_BOOKED,
+              target: {
+                appointmentDate: createdAppointment.appointmentDate,
+                appointmentTime: createdAppointment.appointmentTime,
+                appointmentId: createdAppointment.id,
+                userName: user.fullName ?? '',
+              },
+            });
 
-        const notifications = await Promise.all([
-          notificationRepo.save(notificationAdminClinic),
-          notificationRepo.save(notificationVeterinarian),
-        ]);
-
-        // 3. Gửi thông báo realtime cho client sau khi tạo thành công
-        notifications.forEach((item) => {
-          this.notificationGateway.sendNotificationToClient(
-            item.recipientId,
-            item,
-          );
-        });
+            return notificationRepo.save(notify);
+          }),
+        );
 
         return createdAppointment;
       });
 
-    // 4. Gửi triệu chứng về cho AI phân tích
-    await this.analyzeSymptomsQueue.add(
-      JobNameEnum.ANALYZE_SYMPTOMS,
-      {
-        ...savedAppointment,
-        userId: user.id,
-      },
-      {
-        attempts: 4,
-        removeOnComplete: true,
-        removeOnFail: true,
-        backoff: {
-          type: 'exponential',
-          delay: 4000,
+    // 5. Gửi thông báo realtime cho client sau khi tạo thành công
+    notifications.forEach((item) => {
+      this.notificationGateway.sendNotification(item.recipientId, item);
+    });
+
+    // 6. Gửi triệu chứng về cho AI phân tích
+    this.analyzeSymptomsQueue
+      .add(
+        JobNameEnum.ANALYZE_SYMPTOMS,
+        {
+          ...savedAppointment,
+          userId: user.id,
         },
-      },
-    );
+        {
+          attempts: 4,
+          removeOnComplete: true,
+          removeOnFail: true,
+          backoff: {
+            type: 'exponential',
+            delay: 4000,
+          },
+        },
+      )
+      .catch((err) => {
+        console.log('Analyze symptoms job failed:', err);
+      });
 
     return savedAppointment;
   }
@@ -317,76 +314,122 @@ export class AppointmentService {
   async updateAppointmentStatusByClinic(
     updateDTO: UpdateAppointmentStatusDTO,
     appointmentId: string,
-    user: { id: string; fullName?: string },
   ) {
+    // Cập nhật lịch hẹn
+    await this.appointmentRepository.update(
+      { id: appointmentId },
+      { status: updateDTO.status },
+    );
+
     const appointment = await this.appointmentRepository
       .createQueryBuilder('appointment')
       .leftJoin('appointment.pet', 'pet')
-      .leftJoin('pet.owner', 'owner')
+      .leftJoin('appointment.clinic', 'clinic')
       .where('appointment.id = :appointmentId', { appointmentId })
       .select([
         'appointment.id',
         'appointment.appointmentDate',
         'appointment.appointmentTime',
         'appointment.status',
-        'owner.id',
+
+        'pet.ownerId',
+        'clinic.name',
       ])
       .getOne();
 
     if (!appointment) throw new NotFoundException('Không tìm thấy lịch hẹn');
-    Object.assign(appointment, updateDTO);
-    const updatedAppointment =
-      await this.appointmentRepository.save(appointment);
 
-    // Cập nhật từ phía phòng khám: nếu huỷ lịch thì gửi thông báo về client
+    // Nếu huỷ lịch thì gửi thông báo về client
     if (
       updateDTO.status === AppointmentStatusEnum.CANCELLED &&
-      appointment.pet?.owner?.id
+      appointment.pet?.ownerId
     ) {
       const notificationRepo =
         this.appointmentRepository.manager.getRepository(Notification);
       const notification = notificationRepo.create({
-        recipientId: appointment.pet.owner.id,
-        senderId: user.id,
-        senderType: SenderNotificationEnum.CLINIC,
+        recipientId: appointment.pet.ownerId,
         type: NotificationEnum.APPOINTMENT_CANCELLED,
         target: {
-          appointmentId: updatedAppointment.id,
-          appointmentDate: updatedAppointment.appointmentDate,
-          appointmentTime: updatedAppointment.appointmentTime,
-          userName: user.fullName ?? '',
+          appointmentId: appointment.id,
+          appointmentDate: appointment.appointmentDate,
+          appointmentTime: appointment.appointmentTime,
+          clinicName: appointment.clinic?.name,
         },
       });
       const savedNotification = await notificationRepo.save(notification);
 
-      this.notificationGateway.sendNotificationToClient(
+      this.notificationGateway.sendNotification(
         savedNotification.recipientId,
         savedNotification,
       );
     }
   }
 
-  // Cập nhật trạng thái lịch hẹn từ phía client
+  // Huỷ lịch hẹn từ phía client
   async updateAppointmentStatusByClient(
-    updateDTO: UpdateAppointmentStatusDTO,
     appointmentId: string,
-    userId: string,
+    user: { id: string; fullName: string },
   ) {
     const appointment = await this.appointmentRepository
       .createQueryBuilder('appointment')
       .leftJoin('appointment.pet', 'pet')
-      .leftJoin('pet.owner', 'owner')
+      .leftJoin('appointment.clinic', 'clinic')
       .where('appointment.id = :appointmentId', { appointmentId })
-      .select(['appointment.id', 'appointment.status', 'owner.id'])
+      .select([
+        'appointment.id',
+        'appointment.clinicId',
+        'appointment.veterinarianId',
+        'appointment.appointmentDate',
+        'appointment.appointmentTime',
+        'appointment.status',
+
+        'pet.ownerId',
+
+        'clinic.name',
+      ])
       .getOne();
 
     if (!appointment) throw new NotFoundException('Không tìm thấy lịch hẹn');
-    if (appointment.pet?.owner?.id !== userId) {
+
+    if (appointment.pet?.ownerId !== user.id) {
       throw new ForbiddenException('Bạn không có quyền cập nhật lịch hẹn này');
     }
 
-    Object.assign(appointment, updateDTO);
-    await this.appointmentRepository.save(appointment);
+    // Cập nhật lịch hẹn
+    await this.appointmentRepository.update(
+      { id: appointmentId },
+      { status: AppointmentStatusEnum.CANCELLED },
+    );
+
+    // Lấy admin clinic theo clinicId của lịch hẹn
+    const adminClinic = await this.adminClinicRepository.findOne({
+      where: { clinicId: appointment.clinicId },
+      select: { userId: true },
+    });
+
+    // 4. Lưu thông báo cho admin clinic và veterinarian
+    const recipientIds = [adminClinic!.userId, appointment.veterinarianId];
+
+    const notifications = await Promise.all(
+      recipientIds.map((id) => {
+        const notify = this.notificationRepository.create({
+          recipientId: id,
+          type: NotificationEnum.APPOINTMENT_CANCELLED,
+          target: {
+            appointmentDate: appointment.appointmentDate,
+            appointmentTime: appointment.appointmentTime,
+            appointmentId: appointment.id,
+            userName: user?.fullName ?? '',
+          },
+        });
+
+        return this.notificationRepository.save(notify);
+      }),
+    );
+
+    notifications.forEach((item) => {
+      this.notificationGateway.sendNotification(item.recipientId, item);
+    });
   }
 
   // Xoá lịch hẹn
