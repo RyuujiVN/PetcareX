@@ -1,0 +1,422 @@
+{
+	"layout": {
+		"brandSubtitle": "PetcareX",
+		"defaultClinicName": "PetCareX",
+		"defaultDoctorName": "Doctor",
+		"defaultDoctorRole": "Veterinarian",
+		"searchPlaceholder": "Search pets, owners...",
+		"medicalHeaderTitle": "Electronic Medical Records",
+		"portalName": "PetcareX",
+		"menu": {
+			"appointments": "Appointments",
+			"records": "Medical Records",
+			"examForms": "Examination Forms"
+		},
+		"notifications": {
+			"panelTitle": "Veterinarian Notifications",
+			"summary": "{{unread}} unread / {{total}} notifications",
+			"markAllRead": "Mark all as read",
+			"empty": "No matching notifications",
+			"filters": {
+				"all": "All",
+				"unread": "Unread",
+				"allTypes": "All types",
+				"appointment": "Appointment",
+				"aiDiagnosis": "AI Diagnosis",
+				"system": "System"
+			},
+			"types": {
+				"appointment": "Appointment",
+				"aiDiagnosis": "AI Diagnosis",
+				"system": "System",
+				"forumComment": "Comment",
+				"other": "Other"
+			},
+			"time": {
+				"justNow": "Just now",
+				"minutesAgo": "{{count}} minutes ago",
+				"hoursAgo": "{{count}} hours ago",
+				"daysAgo": "{{count}} days ago"
+			}
+		},
+		"aria": {
+			"logout": "Log out",
+			"openNotifications": "View veterinarian notifications"
+		}
+	},
+	"appointments": {
+		"status": {
+			"booked": "Booked",
+			"inProgress": "In progress",
+			"completed": "Completed",
+			"cancelled": "Cancelled"
+		},
+		"tabs": {
+			"all": "All"
+		},
+		"summary": {
+			"today": "Today's appointments"
+		},
+		"title": "Today's appointment list",
+		"table": {
+			"pet": "PET",
+			"owner": "OWNER",
+			"service": "SERVICE",
+			"time": "TIME",
+			"action": "ACTION"
+		},
+		"actions": {
+			"startExam": "Start examination"
+		},
+		"states": {
+			"empty": "No matching appointments.",
+			"notUpdated": "Not updated"
+		},
+		"pagination": {
+			"summary": "Showing {{shown}} of {{total}} appointments"
+		},
+		"messages": {
+			"loadError": "Unable to load today's appointments",
+			"updateStatusError": "Unable to update appointment status"
+		}
+	},
+	"examForm": {
+		"list": {
+			"title": "Examination form list",
+			"actions": {
+				"createWalkIn": "Create Walk-in Form",
+				"create": "Create form",
+				"open": "Open form"
+			},
+			"table": {
+				"pet": "PET",
+				"owner": "OWNER",
+				"createdDate": "CREATED DATE",
+				"formName": "FORM NAME",
+				"action": "ACTION"
+			},
+			"states": {
+				"empty": "No appointments on the selected date",
+				"notUpdated": "Not updated"
+			},
+			"pagination": {
+				"summary": "Showing {{shown}} of {{total}} appointments"
+			},
+			"messages": {
+				"loadError": "Unable to load examination form list",
+				"missingAppointment": "Appointment not found to create examination form"
+			}
+		},
+		"record": {
+			"header": {
+				"title": "MEDICAL EXAMINATION & ORDERS",
+				"recordCode": "Record code:",
+				"examDate": "Exam date:"
+			},
+			"tabs": {
+				"currentExam": "Current examination",
+				"history": "Medical history"
+			},
+			"alerts": {
+				"notCreatedTitle": "Examination form has not been created",
+				"notCreatedDesc": "After creating the form, veterinarians only have 15 minutes to edit it if there are mistakes.",
+				"editingWindowTitle": "Within editable window",
+				"editingWindowDesc": "Remaining time: {{time}} (calculated from server createdAt).",
+				"expiredTitle": "Editing window expired",
+				"expiredDesc": "The form has exceeded 15 minutes since creation, so the system switched to read-only mode.",
+				"serverSyncFailTitle": "Unable to sync server time",
+				"serverSyncFailDesc": "Backend should expose Date header or serverTime for precise server-clock lock calculation.",
+				"missingCreatedAtTitle": "Missing form createdAt",
+				"missingCreatedAtDesc": "Backend should return createdAt in appointment medical data or medical detail endpoint to compute the 15-minute lock."
+			},
+			"sections": {
+				"walkInCustomerPet": "Customer & Pet information",
+				"vital": "Vital signs",
+				"clinical": "Clinical information",
+				"conclusion": "Examination conclusion",
+				"orders": "Lab/X-ray order form",
+				"medicines": "Prescription"
+			},
+			"fields": {
+				"serviceType": "FORM TYPE",
+				"formName": "FORM NAME",
+				"followUpDate": "FOLLOW-UP DATE",
+				"customerName": "CUSTOMER NAME",
+				"email": "EMAIL",
+				"phone": "PHONE",
+				"petName": "PET NAME",
+				"species": "SPECIES",
+				"breed": "BREED",
+				"petGender": "GENDER",
+				"petDateOfBirth": "DATE OF BIRTH",
+				"petAge": "AGE (YEARS)",
+				"weight": "WEIGHT (KG)",
+				"temperature": "TEMPERATURE (°C)",
+				"heartRate": "HEART RATE (BPM)",
+				"bloodPressure": "BLOOD PRESSURE (MMHG)",
+				"systolic": "Systolic",
+				"diastolic": "Diastolic",
+				"clinicalSymptoms": "SYMPTOMS & CONDITION",
+				"preliminaryDiagnosis": "PRELIMINARY DIAGNOSIS",
+				"conclusionSummary": "PROFESSIONAL CONCLUSION",
+				"doctorAdvice": "DOCTOR ADVICE",
+				"orderType": "LAB TEST / DIAGNOSTIC IMAGING",
+				"orderNote": "ORDER NOTE",
+				"medicineName": "MEDICINE / STRENGTH",
+				"dosage": "DOSAGE",
+				"frequency": "FREQUENCY",
+				"index": "NO.",
+				"action": "ACTION"
+			},
+			"options": {
+				"male": "Male",
+				"female": "Female"
+			},
+			"age": {
+				"months": "{{count}} months",
+				"years": "{{count}} years"
+			},
+			"actions": {
+				"addOrder": "Add order",
+				"addMedicine": "Add medicine",
+				"cancel": "Cancel",
+				"save": "SAVE FORM",
+				"confirmCancel": "Confirm cancel",
+				"continueEditing": "Continue editing"
+			},
+			"signature": {
+				"cityDate": "Da Nang, day {{day}} month {{month}} year {{year}}",
+				"doctorTitle": "ATTENDING VETERINARIAN",
+				"defaultDoctor": "Assigned veterinarian"
+			},
+			"history": {
+				"emptyWithPet": "No medical history to display.",
+				"emptyWithoutPet": "No pet selected to load medical history.",
+				"pet": "PET",
+				"age": "Age",
+				"gender": "Gender",
+				"weight": "Weight",
+				"birthday": "Date of birth",
+				"statusDone": "COMPLETED",
+				"statusPending": "PENDING",
+				"examDate": "Exam date:",
+				"followUpDate": "Follow-up date:",
+				"vitalWeight": "Weight:",
+				"vitalTemperature": "Temperature:",
+				"vitalHeartRate": "Heart rate:",
+				"vitalBloodPressure": "Blood pressure:",
+				"symptoms": "Symptoms:",
+				"diagnosis": "Diagnosis:",
+				"conclusion": "Conclusion:",
+				"doctorAdvice": "Doctor advice:",
+				"orders": "Lab orders:",
+				"medicines": "Prescription:"
+			},
+			"placeholders": {
+				"selectServiceType": "Select form type",
+				"formName": "Form name",
+				"date": "dd/mm/yyyy",
+				"customerName": "Customer name",
+				"email": "Customer email",
+				"phone": "Phone number",
+				"petName": "Pet name",
+				"species": "Select species",
+				"breed": "Select breed",
+				"petGender": "Select gender",
+				"petAge": "Enter age",
+				"weight": "Weight",
+				"temperature": "Temperature",
+				"heartRate": "Heart rate",
+				"systolic": "Systolic pressure",
+				"diastolic": "Diastolic pressure",
+				"clinicalSymptoms": "Describe symptoms and condition",
+				"preliminaryDiagnosis": "Preliminary diagnosis",
+				"conclusionSummary": "Summary of disease condition and severity",
+				"selectOrder": "Select order type",
+				"orderNote": "Check white blood cell count",
+				"selectMedicine": "Select medicine",
+				"medicineQuantity": "1",
+				"medicineFrequency": "Frequency and duration",
+				"doctorAdvice": "Monitor temperature at home every 4 hours. If seizure signs or blood vomiting appear, bring the pet to emergency immediately."
+			},
+			"validation": {
+				"serviceTypeRequired": "Please select form type",
+				"formNameRequired": "Please enter form name",
+				"customerNameRequired": "Please enter customer name",
+				"emailRequired": "Please enter email",
+				"emailInvalid": "Invalid email",
+				"phoneRequired": "Please enter phone number",
+				"phoneFormat": "Phone number must be exactly 10 digits",
+				"petNameRequired": "Please enter pet name",
+				"speciesRequired": "Please select species",
+				"breedRequired": "Please select breed",
+				"petGenderRequired": "Please select gender",
+				"weightRequired": "Please enter weight",
+				"weightMin": "Weight must be greater than 0",
+				"weightMax": "Weight must not exceed 99.9kg",
+				"temperatureRequired": "Please enter temperature",
+				"heartRateRequired": "Please enter heart rate",
+				"systolicRequired": "Please enter systolic pressure",
+				"diastolicRequired": "Please enter diastolic pressure",
+				"clinicalSymptomsRequired": "Please enter symptoms",
+				"preliminaryDiagnosisRequired": "Please enter preliminary diagnosis",
+				"conclusionRequired": "Please enter professional conclusion",
+				"orderRequired": "Please select an order",
+				"medicineRequired": "Please select medicine",
+				"medicineQuantityRequired": "Please enter quantity"
+			},
+			"confirm": {
+				"cancelTitle": "Do you want to cancel?",
+				"cancelContent": "Unsaved input data will be lost.",
+				"cancelOk": "Confirm cancel",
+				"cancelCancel": "Continue editing"
+			},
+			"messages": {
+				"loadMetaError": "Unable to load examination form data",
+				"findUserError": "Unable to find customer by email. Backend must support GET /user?search= or GET /user/by-email.",
+				"findPetError": "Unable to find pet by owner. Backend must support GET /pet?ownerId= or GET /pet/owner/:id.",
+				"lockedWarning": "The form is past the 15-minute editing window",
+				"vitalRequiredError": "Please enter all vital signs with valid values",
+				"phoneFormatError": "Phone number must be exactly 10 digits",
+				"emailRequiredError": "Please enter customer email",
+				"petDobRequiredError": "Please enter pet age or date of birth",
+				"petGenderRequiredError": "Please select pet gender",
+				"serviceTypeRequiredError": "Please select form type",
+				"ownerResolveError": "Unable to resolve customer account after creation",
+				"ownerIdMissingError": "Missing customer ID, please verify user API",
+				"petResolveError": "Unable to resolve pet, please verify pet API",
+				"medicalIdMissingError": "No medical record ID returned from system",
+				"walkInSaveSuccess": "Walk-in examination form saved successfully",
+				"walkInSaveError": "Unable to create walk-in examination form",
+				"petMissingError": "Pet not found from appointment. Please reselect appointment before saving",
+				"saveSuccessCreate": "Record saved successfully",
+				"saveSuccessUpdate": "Examination form updated successfully",
+				"saveError": "Unable to save record",
+				"walkInStepCheckingOwner": "Checking customer account...",
+				"walkInStepCreatingOwner": "Creating customer account...",
+				"walkInStepOwnerReady": "Customer account is ready",
+				"walkInStepCheckingPet": "Checking pet...",
+				"walkInStepCreatingPet": "Creating new pet...",
+				"walkInStepPetReady": "Pet is ready",
+				"walkInStepSaving": "Saving examination form..."
+			},
+			"fallbacks": {
+				"recordName": "Examination form",
+				"notUpdated": "Not updated",
+				"notAvailable": "None",
+				"ageNotUpdated": "Age not updated",
+				"doctorDefault": "Assigned veterinarian",
+				"orderUnnamed": "Order",
+				"medicineUnnamed": "Medicine",
+				"orderUnknown": "Unknown order",
+				"medicineUnknown": "Unknown medicine",
+				"none": "None"
+			}
+		}
+	},
+	"medicalRecords": {
+		"list": {
+			"title": "Pet medical records",
+			"table": {
+				"pet": "PET",
+				"owner": "OWNER",
+				"createdDate": "CREATED DATE",
+				"time": "TIME",
+				"action": "ACTION"
+			},
+			"actions": {
+				"viewDetail": "View details"
+			},
+			"states": {
+				"empty": "No records on the selected date",
+				"notUpdated": "Not updated"
+			},
+			"pagination": {
+				"summary": "Showing {{shown}} of {{total}} appointments"
+			},
+			"messages": {
+				"loadError": "Unable to load medical record list",
+				"missingPet": "Pet not found to view record details"
+			}
+		},
+		"detail": {
+			"title": "Health timeline",
+			"states": {
+				"empty": "No medical record data to display.",
+				"notUpdated": "Not updated",
+				"none": "None"
+			},
+			"actions": {
+				"expand": "View details",
+				"collapse": "Collapse"
+			},
+			"status": {
+				"done": "COMPLETED",
+				"pending": "PENDING"
+			},
+			"labels": {
+				"examDate": "Exam date",
+				"followUpDate": "Follow-up date",
+				"weight": "Weight",
+				"temperature": "Temperature",
+				"heartRate": "Heart rate",
+				"bloodPressure": "Blood pressure",
+				"symptoms": "Symptoms",
+				"diagnosis": "Diagnosis",
+				"conclusion": "Conclusion",
+				"doctorAdvice": "Doctor advice",
+				"orders": "Lab orders",
+				"medicines": "Prescription"
+			},
+			"pet": {
+				"nameFallback": "No pet data",
+				"breedFallback": "Breed not updated",
+				"birthdayFallback": "Not updated",
+				"ageFallback": "Age not updated",
+				"ageMonths": "{{count}} months",
+				"ageYears": "{{count}} years",
+				"male": "Male",
+				"female": "Female",
+				"genderFallback": "Not updated",
+				"weightFallback": "Not updated"
+			},
+			"messages": {
+				"loadError": "Unable to load record details"
+			},
+			"record": {
+				"titleFallback": "Examination form",
+				"orderFallback": "Unknown order",
+				"medicineFallback": "Unknown medicine",
+				"none": "None"
+			}
+		}
+	},
+	"common": {
+		"actions": {
+			"cancel": "Cancel",
+			"save": "Save",
+			"delete": "Delete",
+			"confirm": "Confirm",
+			"viewDetail": "View details",
+			"continue": "Continue",
+			"expand": "View details",
+			"collapse": "Collapse"
+		},
+		"states": {
+			"loading": "Loading...",
+			"empty": "No data",
+			"notUpdated": "Not updated",
+			"notAvailable": "None",
+			"unknown": "Unknown"
+		},
+		"labels": {
+			"pet": "Pet",
+			"owner": "Owner",
+			"service": "Service",
+			"time": "Time",
+			"status": "Status",
+			"examDate": "Exam date",
+			"followUpDate": "Follow-up date"
+		}
+	}
+}

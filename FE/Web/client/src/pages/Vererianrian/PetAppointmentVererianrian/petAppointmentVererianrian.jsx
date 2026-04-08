@@ -8,6 +8,7 @@ import {
 } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Flex, message, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
@@ -16,17 +17,11 @@ import {
     updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { formatTimeHHMM } from '../../../utils/dateTimeFormat'
-import { getAppointmentStatusLabel, getServiceLabel } from '../../../utils/enumLabel'
+import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './petAppointmentVererianrian.module.css'
 
 const PAGE_SIZE = 4
 const TODAY_DATE = new Date().toISOString().slice(0, 10)
-
-const tableTabs = [
-  { label: 'Tất cả', value: 'all' },
-  { label: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS), value: 'inProgress' },
-  { label: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED), value: 'completed' },
-]
 
 const getCurrentVeterinarianUserId = () => {
   try {
@@ -55,17 +50,17 @@ const mapServiceClass = (service) => {
   return 'serviceGeneral'
 }
 
-const toRow = (item) => {
+const toRow = (item, t) => {
   const pet = item?.pet || {}
   const owner = pet?.owner || {}
 
   return {
     id: item?.id,
     status: item?.status,
-    petName: pet?.name || 'Chưa cập nhật',
-    ownerName: owner?.fullName || 'Chưa cập nhật',
+    petName: pet?.name || t('appointments.states.notUpdated'),
+    ownerName: owner?.fullName || t('appointments.states.notUpdated'),
     petAvatar: pet?.avatar || '',
-    service: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),
+    service: getServiceLabel(item?.service, item?.service || t('appointments.states.notUpdated')),
     time: normalizeTime(item?.appointmentTime),
     medicalId: item?.medical?.id || '',
   }
@@ -77,6 +72,7 @@ const buildAppointmentsSignature = (items) =>
     .join('|')
 
 export default function PetAppointmentVererianrian() {
+  const { t } = useTranslation('vererianrian')
   const [activeTab, setActiveTab] = useState('all')
   const [loading, setLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
@@ -86,6 +82,26 @@ export default function PetAppointmentVererianrian() {
   const hasLoadedOnceRef = useRef(false)
   const lastDataSignatureRef = useRef('')
   const updatingIdsRef = useRef(new Set())
+
+  const getStatusLabel = useCallback(
+    (status) => {
+      if (status === APPOINTMENT_STATUS.BOOKED) return t('appointments.status.booked')
+      if (status === APPOINTMENT_STATUS.IN_PROGRESS) return t('appointments.status.inProgress')
+      if (status === APPOINTMENT_STATUS.COMPLETED) return t('appointments.status.completed')
+      if (status === APPOINTMENT_STATUS.CANCELLED) return t('appointments.status.cancelled')
+      return status || t('common.states.unknown')
+    },
+    [t],
+  )
+
+  const tableTabs = useMemo(
+    () => [
+      { label: t('appointments.tabs.all'), value: 'all' },
+      { label: getStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS), value: 'inProgress' },
+      { label: getStatusLabel(APPOINTMENT_STATUS.COMPLETED), value: 'completed' },
+    ],
+    [getStatusLabel, t],
+  )
 
   const fetchTodayAppointments = useCallback(async ({ silent = false } = {}) => {
     if (inFlightRef.current) {
@@ -119,7 +135,7 @@ export default function PetAppointmentVererianrian() {
           const veterinarianUserId = item?.veterinarian?.user?.id
           return String(veterinarianUserId || '') === String(currentUserId)
         })
-        .map(toRow)
+        .map((item) => toRow(item, t))
         .sort((a, b) => String(a.time).localeCompare(String(b.time)))
 
       const nextSignature = buildAppointmentsSignature(filtered)
@@ -131,13 +147,13 @@ export default function PetAppointmentVererianrian() {
       hasLoadedOnceRef.current = true
     } catch (error) {
       setAllAppointments([])
-      message.error(error?.message || 'Không thể tải lịch hẹn hôm nay')
+      message.error(error?.message || t('appointments.messages.loadError'))
     } finally {
       inFlightRef.current = false
       setLoading(false)
       setIsRefreshing(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchTodayAppointments()
@@ -179,26 +195,26 @@ export default function PetAppointmentVererianrian() {
       {
         key: 'today',
         icon: <CalendarOutlined />,
-        title: 'Lịch hôm nay',
+        title: t('appointments.summary.today'),
         value: stats.today,
         iconClassName: 'summaryIconGreen',
       },
       {
         key: 'inProgress',
         icon: <ClockCircleOutlined />,
-        title: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
+        title: getStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
         value: stats.inProgress,
         iconClassName: 'summaryIconOrange',
       },
       {
         key: 'completed',
         icon: <CheckCircleOutlined />,
-        title: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED),
+        title: getStatusLabel(APPOINTMENT_STATUS.COMPLETED),
         value: stats.completed,
         iconClassName: 'summaryIconBlue',
       },
     ],
-    [stats],
+    [getStatusLabel, stats, t],
   )
 
   const filteredAppointments = useMemo(() => {
@@ -264,7 +280,7 @@ export default function PetAppointmentVererianrian() {
             : item,
         ),
       )
-      message.error(error?.message || 'Không thể cập nhật trạng thái lịch hẹn')
+      message.error(error?.message || t('appointments.messages.updateStatusError'))
     } finally {
       updatingIdsRef.current.delete(appointment.id)
     }
@@ -273,7 +289,7 @@ export default function PetAppointmentVererianrian() {
   const getActionButtons = (appointment) => {
     if (appointment.status === APPOINTMENT_STATUS.IN_PROGRESS) {
       return {
-        primaryLabel: getAppointmentStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
+        primaryLabel: getStatusLabel(APPOINTMENT_STATUS.IN_PROGRESS),
         primaryIcon: <ClockCircleOutlined />,
         primaryClassName: 'inProgressActionBtn',
         secondaryLabel: '',
@@ -285,7 +301,7 @@ export default function PetAppointmentVererianrian() {
 
     if (appointment.status === APPOINTMENT_STATUS.COMPLETED) {
       return {
-        primaryLabel: getAppointmentStatusLabel(APPOINTMENT_STATUS.COMPLETED),
+        primaryLabel: getStatusLabel(APPOINTMENT_STATUS.COMPLETED),
         secondaryLabel: '',
         onPrimary: () => undefined,
         onSecondary: () => undefined,
@@ -294,7 +310,7 @@ export default function PetAppointmentVererianrian() {
     }
 
     return {
-      primaryLabel: 'Bắt đầu khám',
+      primaryLabel: t('appointments.actions.startExam'),
       primaryIcon: <PlayCircleOutlined />,
       primaryClassName: 'primaryActionBtn',
       secondaryLabel: '',
@@ -322,7 +338,7 @@ export default function PetAppointmentVererianrian() {
 
       <Card className={styles.tablePanel}>
         <Flex justify="space-between" align="center" className={styles.tableHeader}>
-          <Typography.Title className={styles.panelTitle}>Danh sách lịch hẹn hôm nay</Typography.Title>
+          <Typography.Title className={styles.panelTitle}>{t('appointments.title')}</Typography.Title>
           <Space size={12}>
             <Typography.Text type="secondary">
               {isRefreshing ? '' : ''}
@@ -332,11 +348,11 @@ export default function PetAppointmentVererianrian() {
         </Flex>
 
         <div className={styles.tableHeadRow}>
-          <span>THÚ CƯNG</span>
-          <span>CHỦ NUÔI</span>
-          <span>DỊCH VỤ</span>
-          <span>THỜI GIAN</span>
-          <span>THAO TÁC</span>
+          <span>{t('appointments.table.pet')}</span>
+          <span>{t('appointments.table.owner')}</span>
+          <span>{t('appointments.table.service')}</span>
+          <span>{t('appointments.table.time')}</span>
+          <span>{t('appointments.table.action')}</span>
         </div>
 
         {loading ? (
@@ -344,7 +360,7 @@ export default function PetAppointmentVererianrian() {
             <Spin size="large" />
           </div>
         ) : paginatedAppointments.length === 0 ? (
-          <div className={styles.emptyText}>Không có lịch hẹn phù hợp.</div>
+          <div className={styles.emptyText}>{t('appointments.states.empty')}</div>
         ) : (
           paginatedAppointments.map((item) => {
             const actions = getActionButtons(item)
@@ -386,7 +402,10 @@ export default function PetAppointmentVererianrian() {
 
         <Flex justify="space-between" align="center" className={styles.tableFooter}>
           <Typography.Text>
-            Hiển thị {paginatedAppointments.length} trong số {filteredAppointments.length} lịch hẹn
+            {t('appointments.pagination.summary', {
+              shown: paginatedAppointments.length,
+              total: filteredAppointments.length,
+            })}
           </Typography.Text>
           <Space size={8}>
             <Button
