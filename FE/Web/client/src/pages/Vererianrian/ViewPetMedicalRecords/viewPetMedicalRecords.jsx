@@ -190,7 +190,7 @@ const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 }
 
 export default function ViewPetMedicalRecords() {
-	useTranslation('vererianrian')
+	const { i18n: i18nInstance } = useTranslation('vererianrian')
 	const location = useLocation()
 	const [searchParams] = useSearchParams()
 	const [loading, setLoading] = useState(false)
@@ -201,6 +201,7 @@ export default function ViewPetMedicalRecords() {
 	const selectedRecord = location?.state?.record
 	const medicalId = searchParams.get('medicalId')
 	const petId = searchParams.get('petId')
+	const currentLanguage = i18nInstance.resolvedLanguage || i18nInstance.language
 
 	const loadMedicalTimeline = useCallback(async () => {
 		try {
@@ -302,7 +303,7 @@ export default function ViewPetMedicalRecords() {
 		} finally {
 			setLoading(false)
 		}
-	}, [medicalId, petId, selectedRecord])
+	}, [medicalId, petId, selectedRecord, currentLanguage])
 
 	const toggleExpandedRecord = useCallback((recordId) => {
 		setExpandedRecords((prev) => {
