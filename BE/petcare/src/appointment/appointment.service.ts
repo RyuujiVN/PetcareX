@@ -21,6 +21,7 @@ import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
 import { Not } from 'typeorm';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class AppointmentService {
@@ -77,7 +78,7 @@ export class AppointmentService {
   }
 
   // Danh sách lịch hẹn của người dùng
-  async findAllMyAppointments(options: AppointmentPagination, userId: string) {
+  async findAllMyAppointments(options: AppointmentPagination, user: { id: string, role: string }) {
     const queryBuilder = this.appointmentRepository
       .createQueryBuilder('appointment')
       .leftJoin('appointment.pet', 'pet')
@@ -85,7 +86,6 @@ export class AppointmentService {
       .leftJoin('appointment.veterinarian', 'veterinarian')
       .leftJoin('pet.owner', 'owner')
       .leftJoin('veterinarian.user', 'user')
-      .where('owner.id = :userId', { userId: userId })
       .select([
         'appointment.id',
         'appointment.appointmentDate',
@@ -114,6 +114,12 @@ export class AppointmentService {
         'user.avatarUrl',
       ])
       .orderBy('appointment.createdAt', 'DESC');
+
+      if(user.role === RoleEnum.CUSTOMER) {
+        queryBuilder.where('owner.id = :userId', { userId: user.id });
+      } else if(user.role === RoleEnum.VETERINARIAN) {
+        queryBuilder.where('veterinarian.userId = :userId', { userId: user.id });
+      }
 
     return paginate<Appointment>(queryBuilder, options);
   }

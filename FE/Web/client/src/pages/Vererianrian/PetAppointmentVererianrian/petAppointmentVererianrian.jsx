@@ -13,7 +13,7 @@ import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authSto
 import { getAdminInstance } from '../../../services/apiClient'
 import {
     APPOINTMENT_STATUS,
-    getAppointmentsApi,
+    getMyAppointmentsApi,
     updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { formatTimeHHMM } from '../../../utils/dateTimeFormat'
@@ -119,7 +119,7 @@ export default function PetAppointmentVererianrian() {
         setIsRefreshing(true)
       }
 
-      const response = await getAppointmentsApi(getAdminInstance(), {
+      const response = await getMyAppointmentsApi(getAdminInstance(), {
         page: 1,
         limit: 500,
         date: TODAY_DATE,

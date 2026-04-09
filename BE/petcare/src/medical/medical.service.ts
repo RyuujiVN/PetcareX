@@ -339,6 +339,70 @@ export class MedicalService {
     };
   }
 
+  // Danh sách phiếu khám theo pet của phòng khám
+  async findAllPaginationByPetOfClinic(options: MedicalRecordPagination, clinicId: string) {
+    const queryBuilder = this.medicalRecordRepository
+      .createQueryBuilder('medical_record')
+      .leftJoin('medical_record.pet', 'pet')
+      .leftJoin('medical_record.clinic', 'clinic')
+      .leftJoin('medical_record.veterinarian', 'veterinarian')
+      .leftJoin('veterinarian.user', 'user')
+      .where('pet.id = :petId', {
+        petId: options.petId,
+      })
+      .andWhere('medical_record.clinicId = :clinicId', {
+        clinicId: clinicId,
+      })
+      .select([
+        'medical_record.id',
+        'medical_record.name',
+        'medical_record.diagnosis',
+        'medical_record.symptoms',
+        'medical_record.conclusion',
+        'medical_record.note',
+        'medical_record.createdAt',
+        'medical_record.followUpDate',
+
+        'clinic.id',
+        'clinic.name',
+
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+        'pet.species',
+        'pet.breed',
+
+        'veterinarian.specialty',
+
+        'user.id',
+        'user.fullName',
+      ])
+      .orderBy('medical_record.createdAt', 'DESC');
+
+    const pagination = await paginate<MedicalRecord>(queryBuilder, options);
+
+    const items = pagination.items.map((record) => ({
+      ...record,
+      pet: {
+        id: record.pet?.id,
+        name: record.pet?.name,
+        avatar: record.pet?.avatar,
+        species: record.pet?.species,
+        breed: record.pet?.breed,
+      },
+      veterinarian: {
+        id: record.veterinarian?.user?.id,
+        specialty: record.veterinarian?.specialty,
+        fullName: record.veterinarian?.user?.fullName,
+      },
+    }));
+
+    return {
+      items: items,
+      meta: pagination.meta,
+    };
+  }
+
   // Tạo phiếu khám
   async createMedicalRecord(
     createDTO: CreateMedicalRecordDTO,
