@@ -19,7 +19,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Social auth: Firebase Web SDK (`firebase/app`, `firebase/auth`, `firebase/analytics`).
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 
-## Chuẩn hóa cấu trúc thư mục (2026-04-07)
+## Chuẩn hóa cấu trúc thư mục (2026-04-07, cập nhật 2026-04-09)
 
 ### Cấu trúc chuẩn hiện tại (rút gọn)
 - `src/services/`: API calls và business orchestration (notification aggregation, AI diagnosis, Google auth bridge).
@@ -29,7 +29,33 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - `src/constants/`: enum labels, auth storage keys, role mapping, magic values.
 - `src/components/`: shared UI components.
 - `src/pages/`, `src/layouts/`, `src/routes/`: route-level screens, layout và router.
-- `src/data/`: **đã loại bỏ** (tránh trùng tầng trách nhiệm).
+- `src/data/`: **đã loại bỏ hoàn toàn** — folder đã xóa khỏi repo, không được tái tạo.
+
+### Refactor loại bỏ trùng lặp data/ vs services/ (2026-04-09)
+Lần refactor này xóa 2 file dead code trong `src/data/` vốn trùng hoàn toàn với bản chính:
+- `data/client/utils/clientGoogleAuth.js` → bản chính: `services/clientGoogleAuthService.js`
+- `data/client/utils/clinicHomeStorage.js` → bản chính: `utils/storage/clinicHomeStorage.js`
+
+Không có consumer nào import từ `data/`, nên không cần cập nhật import. Folder `src/data/` đã xóa hoàn toàn.
+
+### Danh sách services hiện tại
+| File | Mô tả |
+|---|---|
+| `apiClient.js` | Axios instance factory (client/admin/vet) |
+| `appointmentService.js` | CRUD lịch hẹn |
+| `appointmentDiagnosisService.js` | AI diagnosis cho phiếu khám |
+| `authService.js` | Login, register, Google OAuth API |
+| `chatService.js` | Chat rooms & messages |
+| `clientGoogleAuthService.js` | Google auth orchestration (Firebase → BE) |
+| `clinicService.js` | CRUD phòng khám |
+| `cloudinaryService.js` | Upload ảnh Cloudinary |
+| `forumService.js` | Diễn đàn |
+| `invoiceService.js` | Hóa đơn |
+| `medicalService.js` | Hồ sơ y tế & phiếu khám |
+| `notificationService.js` | Thông báo |
+| `petService.js` | CRUD thú cưng |
+| `userService.js` | User profile |
+| `veterinarianService.js` | CRUD bác sĩ thú y |
 
 ### Quy ước thêm file mới
 1. Endpoint REST/HTTP mới phải đặt trong `src/services/<domain>Service.js`.
@@ -37,7 +63,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 3. Custom hook đặt ở `src/hooks/<RoleOrDomain>/`.
 4. Static config hoặc third-party bootstrap đặt ở `src/config/`.
 5. Local/session storage helper đặt ở `src/utils/storage/`.
-6. Không tạo file mới trong `src/data/`; nếu có nhu cầu mới, phân loại theo các tầng trên.
+6. **Tuyệt đối không tạo file trong `src/data/`** — folder này đã bị xóa và không được tái tạo dưới bất kỳ hình thức nào.
 7. Mọi lần di chuyển file phải cập nhật import và chạy build để xác nhận không vỡ luồng.
 
 ### Chuẩn hóa ngày giờ hiển thị (cập nhật 2026-04-07)
