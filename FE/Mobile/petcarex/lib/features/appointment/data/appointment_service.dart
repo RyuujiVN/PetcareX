@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import '../../../core/enums/appointment_status_enum.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_helper.dart';
 import 'appointment_model.dart';
@@ -43,25 +42,10 @@ class AppointmentService {
   Future<bool> cancelAppointment(String id) async {
     try {
       final response = await _apiClient.patch(
-        ApiHelper.appointmentByIdEndpoint(id),
-        {'status': AppointmentStatusEnum.CANCELLED.value},
+        ApiHelper.appointmentClientByIdEndpoint(id),
+        {},
       );
       return response.statusCode == 200 || response.statusCode == 201;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  Future<bool> updateAppointmentStatus(
-    String id,
-    AppointmentStatusEnum status,
-  ) async {
-    try {
-      final response = await _apiClient.patch(
-        ApiHelper.appointmentByIdEndpoint(id),
-        {'status': status.value},
-      );
-      return response.statusCode == 200;
     } catch (e) {
       return false;
     }

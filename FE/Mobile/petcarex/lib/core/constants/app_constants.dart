@@ -60,6 +60,8 @@ class AppConstants {
 
   // Appointment Endpoints
   static const String END_POINT_APPOINTMENT_MY = '$END_POINT_APPOINTMENT/my';
+  static const String END_POINT_APPOINTMENT_CLIENT =
+      '$END_POINT_APPOINTMENT/client';
 
   // Medical Endpoints
   static const String END_POINT_MEDICAL_CLINIC = '$END_POINT_MEDICAL/clinic';
