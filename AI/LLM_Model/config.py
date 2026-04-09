@@ -98,6 +98,24 @@ NGUYÊN TẮC QUAN TRỌNG:
 
 Thông tin người dùng nhập vào khi đặt lịch: {symptoms}
 
+1. Đánh giá tình trạng & Cảnh báo:
+(Nêu mức độ nghiêm trọng. Nếu có dấu hiệu nguy kịch, hãy IN ĐẬM cảnh báo khẩn cấp và yêu cầu đi viện ngay. Nếu không, giải thích sơ bộ đây có thể là dấu hiệu của nhóm vấn đề gì - tiêu hóa, hô hấp, thần kinh...).
+
+2. Hướng dẫn theo dõi & Chuẩn bị dữ liệu mang đến phòng khám:
+(Gạch đầu dòng các việc cụ thể người nuôi CẦN LÀM NGAY:
+- Cần quay video/chụp ảnh gì? (VD: chụp ảnh màu sắc phân/nước tiểu, quay video lúc ho/co giật).
+- Cần theo dõi chỉ số gì ở nhà? (VD: đếm số lần nôn trong ngày, đếm nhịp thở lúc ngủ, theo dõi lượng nước uống).
+- Cần cách ly hay kiêng ăn uống tạm thời không?)
+
+<|im_end|>
+<|im_start|>user
+Hãy phân tích thông tin đặt lịch này giúp tôi.
+<|im_end|>
+<|im_start|>assistant
+"""
+
+Thông tin người dùng nhập vào khi đặt lịch: {symptoms}
+
 Hãy trả lời với 3 phần rõ ràng sau:
 
 1. Đánh giá tình trạng & Cảnh báo:
