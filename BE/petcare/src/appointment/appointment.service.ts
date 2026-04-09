@@ -207,11 +207,18 @@ export class AppointmentService {
         id: true,
       },
     });
+
     if (duplicatedAppointment) {
       throw new BadRequestException(
         'Khung giờ này đã có lịch hẹn, vui lòng chọn giờ khác',
       );
     }
+
+    // Lấy admin clinic theo clinicId của lịch hẹn
+    const adminClinic = await this.adminClinicRepository.findOne({
+      where: { clinicId: createDTO.clinicId },
+      select: { userId: true },
+    });
 
     let notifications;
 
@@ -219,46 +226,36 @@ export class AppointmentService {
       await this.appointmentRepository.manager.transaction(async (manager) => {
         const appointmentRepo = manager.getRepository(Appointment);
         const notificationRepo = manager.getRepository(Notification);
-        const adminClinicRepo = manager.getRepository(AdminClinic);
 
         // 3. Lưu lịch hẹn
         const appointment = appointmentRepo.create(createDTO);
         appointment.status = AppointmentStatusEnum.BOOKED;
         const createdAppointment = await appointmentRepo.save(appointment);
 
-        // Lấy admin clinic theo clinicId của lịch hẹn
-        const adminClinic = await adminClinicRepo.findOne({
-          where: { clinicId: createdAppointment.clinicId },
-          select: { userId: true },
-        });
-        if (!adminClinic?.userId) {
-          throw new BadRequestException(
-            'Không tìm thấy admin phòng khám để gửi thông báo',
-          );
-        }
-
         // 4. Lưu thông báo cho admin clinic và veterinarian
-        const recipientIds = [
-          adminClinic.userId,
-          createdAppointment.veterinarianId,
+        const baseObj = {
+          recipientId: null,
+          type: NotificationEnum.APPOINTMENT_BOOKED,
+          target: {
+            appointmentDate: createdAppointment.appointmentDate,
+            appointmentTime: createdAppointment.appointmentTime,
+            appointmentId: createdAppointment.id,
+            userName: user.fullName ?? '',
+          },
+        };
+
+        const recipients = [
+          {
+            ...baseObj,
+            recipientId: adminClinic?.userId,
+          },
+          {
+            ...baseObj,
+            recipientId: createdAppointment.veterinarianId,
+          },
         ];
 
-        notifications = await Promise.all(
-          recipientIds.map((id) => {
-            const notify = notificationRepo.create({
-              recipientId: id,
-              type: NotificationEnum.APPOINTMENT_BOOKED,
-              target: {
-                appointmentDate: createdAppointment.appointmentDate,
-                appointmentTime: createdAppointment.appointmentTime,
-                appointmentId: createdAppointment.id,
-                userName: user.fullName ?? '',
-              },
-            });
-
-            return notificationRepo.save(notify);
-          }),
-        );
+        notifications = await notificationRepo.save(recipients);
 
         return createdAppointment;
       });
