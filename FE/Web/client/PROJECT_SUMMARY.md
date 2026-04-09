@@ -277,7 +277,7 @@ Toàn bộ API layer đã được refactor thành service tập trung trong `sr
 Luồng đang chạy:
 
 ### 4) Walk-in (Phiếu khám vãng lai)
-- Nút **"Tạo phiếu khám Vãng Lai"** ở trang danh sách phiếu khám, mở form tạo mới không cần lịch hẹn.
+- Nút **"Phiếu khám khẩn cấp"** ở trang danh sách phiếu khám, mở form tạo mới không cần lịch hẹn.
 - Luồng xử lý:
   - Tra cứu khách hàng theo email (cần backend hỗ trợ search email hoặc endpoint riêng).
   - Nếu chưa có tài khoản: tự tạo với password tạm `Baophan1234` (placeholder, backend sẽ thay bằng random + gửi email).
@@ -366,7 +366,10 @@ Luồng đang chạy:
 
 ### 1) Auth & layout
 - Dùng login chung `/login`.
-- Sidebar quản trị + profile menu + đổi mật khẩu trong layout.
+- Sidebar quản trị có account dropdown giống client (`Trang cá nhân`, `Đổi mật khẩu`, `Đăng xuất`) cho role ADMIN_CLINIC.
+- `Trang cá nhân` mở popup chỉnh sửa trực tiếp: avatar, họ tên, email, SĐT, địa chỉ (layout form 2 cột theo style form thêm bác sĩ).
+- `Đổi mật khẩu` dùng popup trong layout (không điều hướng sang màn khác), sau khi thành công sẽ cập nhật token mới vào AuthContext.
+- `Đăng xuất` chỉ clear phiên hiện tại và điều hướng về `/login`.
 - Sidebar có nút `Chỉnh Sửa Trang Chủ` ngay dưới `Xem phiếu khám`; nút mở tab mới tới route editor của chính phòng khám đang đăng nhập.
 
 ### 2) Appointment Management
@@ -466,7 +469,9 @@ Luồng đang chạy:
 - `AdminLayout` (`src/layouts/admin/AdminLayout.jsx`):
   - Sidebar dark theme (navy) + header "Dashboard Admin" + search + notification.
   - Menu: Tổng quan, Quản lý phòng khám, Quản lý người dùng, Quản lý bài đăng.
-  - Profile box + logout ở bottom sidebar.
+  - Account dropdown ở bottom sidebar giống client: `Trang cá nhân`, `Đổi mật khẩu`, `Đăng xuất`.
+  - Popup `Trang cá nhân` hỗ trợ sửa avatar, họ tên, email, SĐT, địa chỉ.
+  - Popup `Đổi mật khẩu` dùng chung behavior với client và refresh token ngay sau khi đổi thành công.
   - Dùng auth context chung từ `hooks/adminClinic/AuthContext`.
 - Routes đã khai báo:
   - `/admin/home` → `Clinics` (trang chính khi ADMIN đăng nhập).
@@ -506,6 +511,10 @@ Luồng đang chạy:
 
 ### 1) Lịch hẹn bác sĩ
 - `PetAppointmentVererianrian` đã dùng API thật theo ngày hiện tại.
+- Cụm summary card (`Lịch hôm nay`, `Đang khám`, `Đã hoàn thành`) đã chỉnh lại UI:
+  - icon lớn hơn,
+  - icon + tiêu đề nằm ngang hàng ở dòng trên,
+  - số liệu nằm giữa, cân đối theo trục của tiêu đề.
 - Nút **"Bắt đầu khám"**:
   - Lần đầu nhấn (khi `BOOKED`): mở tab mới tới `/veterinarian/exam-forms/create?appointmentId=<id>` và gọi `PATCH /appointment/:id` để chuyển trạng thái sang `IN_PROGRESS`.
   - UI danh sách lịch hẹn đổi ngay sang `IN_PROGRESS` (optimistic update) và sync lại bằng refetch nhẹ sau khi API thành công.
@@ -525,6 +534,7 @@ Luồng đang chạy:
 
 ### 3) Phiếu khám
 - `ListExaminationForm`: lấy lịch hẹn theo ngày, điều hướng vào phiếu khám theo `appointmentId`.
+  - Nút tạo walk-in đã đổi nhãn thành `Phiếu khám khẩn cấp`.
   - Có auto-refresh khi tab được focus lại (focus + visibilitychange listener) để đồng bộ trạng thái sau khi phiếu khám được tạo ở tab khác.
   - Dùng `inFlightRef` chống duplicate request khi tab focus nhanh liên tục.
   - Silent refresh không hiển thị loading spinner hoặc error toast.
@@ -557,7 +567,7 @@ Luồng đang chạy:
   - Logic chuyển `BOOKED -> IN_PROGRESS` và giữ nút bấm lại được ở trạng thái `IN_PROGRESS`.
 - `src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx`:
   - Điều hướng tới trang phiếu khám theo `appointmentId`.
-  - Nút "Tạo phiếu khám Vãng Lai" mở form walk-in.
+  - Nút "Phiếu khám khẩn cấp" mở form walk-in.
   - Mang theo dữ liệu `medical` của appointment để hydrate form.
 - `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:
   - Cơ chế lock chỉnh sửa 15 phút.
@@ -595,6 +605,7 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 - Client header/footer riêng trong `src/components/layouts/client`.
 - Admin clinic và veterinarian dùng layout riêng trong `src/layouts`.
 - Super admin dùng `AdminLayout` (`src/layouts/admin/`) với sidebar dark navy + header.
+- Có thêm component dùng chung `src/components/common/PortalAccountMenu/` để đồng bộ account dropdown/popup cho cả 3 portal backend-facing.
 
 ## Luồng dữ liệu chính
 
@@ -626,6 +637,13 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 2. Chỉnh thông tin card phòng khám và lưu vào localStorage key `clinicInfo_{clinicId}`.
 3. Trang `/choose-clinic` hiển thị thông tin card theo đúng dữ liệu đã lưu của clinic tương ứng, fallback về dữ liệu API khi chưa có dữ liệu lưu.
 4. Dữ liệu từng phòng khám độc lập theo `clinicId`, không ghi đè lẫn nhau.
+
+### 3.3) Sidebar Account Menu (Admin/Clinic/Veterinarian)
+1. Người dùng bấm vào profile box ở cuối sidebar.
+2. Dropdown hiển thị 3 tác vụ: `Trang cá nhân`, `Đổi mật khẩu`, `Đăng xuất`.
+3. `Trang cá nhân`: mở popup form 2 cột, cho sửa avatar + thông tin liên hệ và lưu trực tiếp qua `PUT /user/:id`.
+4. `Đổi mật khẩu`: mở popup đổi mật khẩu, gọi `POST /auth/change-password`, nhận token mới và cập nhật lại phiên đăng nhập.
+5. `Đăng xuất`: chỉ logout tài khoản hiện tại và quay về `/login`.
 
 ### 4) Veterinarian exam workflow
 1. Bác sĩ bấm "Bắt đầu khám" từ danh sách lịch hẹn.

@@ -67,6 +67,7 @@ export class AiClientService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
+    console.log(data);
     this.socket.emit('chat_event', data);
   }
 }

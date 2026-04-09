@@ -25,14 +25,21 @@
   box-shadow: var(--vet-shadow-card);
 }
 
+.summaryCard :global(.ant-card-body) {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
+}
+
 .summaryIcon {
-  width: 40px;
-  height: 40px;
+  width: 58px;
+  height: 58px;
   border-radius: 12px;
   display: grid;
   place-items: center;
-  font-size: 18px;
-  margin-bottom: 12px;
+  font-size: 27px;
+  flex-shrink: 0;
 }
 
 .summaryIconGreen {
@@ -53,11 +60,29 @@
 .summaryTitle {
   color: var(--vet-color-text-disabled);
   font-size: 15px;
+  font-weight: 600;
 }
 
 .summaryValue {
-  margin: 6px 0 0 !important;
+  margin: 0 !important;
   color: var(--vet-color-text-primary) !important;
+  text-align: left;
+  font-size: 30px !important;
+  line-height: 1.1 !important;
+}
+
+.summaryTopRow {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+}
+
+.summaryContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .tablePanel {
@@ -68,6 +93,8 @@
 
 .tableHeader {
   margin-bottom: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .panelTitle {
@@ -78,6 +105,7 @@
 
 .segmented {
   background: var(--vet-color-surface-page);
+  margin-left: auto;
 }
 
 .segmented :global(.ant-segmented-item-selected) {
@@ -219,6 +247,14 @@
 }
 
 @media (max-width: 992px) {
+  .tableHeader {
+    justify-content: flex-start;
+  }
+
+  .segmented {
+    margin-left: 0;
+  }
+
   .tablePanel {
     overflow-x: auto;
   }

@@ -13,7 +13,7 @@ import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authSto
 import { getAdminInstance } from '../../../services/apiClient'
 import {
     APPOINTMENT_STATUS,
-    getAppointmentsApi,
+    getMyAppointmentsApi,
     updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { formatTimeHHMM } from '../../../utils/dateTimeFormat'
@@ -119,7 +119,7 @@ export default function PetAppointmentVererianrian() {
         setIsRefreshing(true)
       }
 
-      const response = await getAppointmentsApi(getAdminInstance(), {
+      const response = await getMyAppointmentsApi(getAdminInstance(), {
         page: 1,
         limit: 500,
         date: TODAY_DATE,
@@ -326,11 +326,15 @@ export default function PetAppointmentVererianrian() {
         {summaryCards.map((card) => (
           <Col xs={24} lg={8} key={card.key}>
             <Card className={styles.summaryCard}>
-              <div className={`${styles.summaryIcon} ${styles[card.iconClassName]}`}>{card.icon}</div>
-              <Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
-              <Typography.Title level={2} className={styles.summaryValue}>
-                {card.value}
-              </Typography.Title>
+              <div className={styles.summaryTopRow}>
+                <div className={`${styles.summaryIcon} ${styles[card.iconClassName]}`}>{card.icon}</div>
+                <div className={styles.summaryContent}>
+                  <Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
+                  <Typography.Title level={2} className={styles.summaryValue}>
+                    {card.value}
+                  </Typography.Title>
+                </div>
+              </div>
             </Card>
           </Col>
         ))}

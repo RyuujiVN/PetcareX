@@ -79,6 +79,24 @@ export class MedicalController {
     });
   }
 
+  @Get('clinic/pet/:petId')
+  @RequiredRole(RoleEnum.VETERINARIAN, RoleEnum.ADMIN_CLINIC)
+  @ApiOperation({ summary: 'Lấy danh sách phiếu khám của pet theo phòng khám' })
+  @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  getAllMedicalRecordPetOfClinic(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
+    @Param('petId') petId: string,
+    @Req() req,
+  ) {
+    return this.medicalService.findAllPaginationByPetOfClinic({
+      page,
+      limit,
+      petId: petId,
+    }, req?.user?.clinicId);
+  }
+
   @Post('')
   @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Tạo phiếu khám bệnh cho pet' })
