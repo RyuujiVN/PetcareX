@@ -134,14 +134,11 @@
 }
 
 .mainActionBar {
-  position: sticky;
-  top: 10px;
   z-index: 55;
   height: 0;
   display: flex;
   justify-content: flex-end;
   padding: 0 18px;
-  pointer-events: none;
 }
 
 .mainActionBar > * {
@@ -150,6 +147,7 @@
 
 .mainActionGroup {
   display: inline-flex;
+  margin-top: 28px;
   align-items: center;
   gap: 10px;
 }

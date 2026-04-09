@@ -24,14 +24,18 @@ import { AppointmentService } from './appointment.service';
 import { CreateAppointmentDTO } from './dtos/create-appointment.dto';
 import { UpdateAppointmentStatusDTO } from './dtos/update-appointment-status.dto';
 import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('appointment')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class AppointmentController {
   constructor(private readonly appointmentService: AppointmentService) {}
 
   @Get('my')
+  @RequiredRole(RoleEnum.VETERINARIAN, RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Danh sách lịch hẹn của riêng người dùng' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
@@ -50,6 +54,7 @@ export class AppointmentController {
   }
 
   @Get('')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Danh sách lịch hẹn của riêng phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
@@ -85,6 +90,7 @@ export class AppointmentController {
   }
 
   @Post('')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Tạo mới lịch hẹn' })
   @ApiBody({
     type: CreateAppointmentDTO,
@@ -94,6 +100,7 @@ export class AppointmentController {
   }
 
   @Put(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN, RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Chỉnh sửa lịch hẹn' })
   @ApiBody({
     type: UpdateAppointmentDTO,
@@ -109,6 +116,7 @@ export class AppointmentController {
   }
 
   @Patch(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Cập nhật trạng thái lịch hẹn' })
   @ApiBody({
     type: UpdateAppointmentStatusDTO,
@@ -117,13 +125,30 @@ export class AppointmentController {
     @Body() updateDTO: UpdateAppointmentStatusDTO,
     @Param('id') id: string,
   ) {
-    await this.appointmentService.updateAppointmentStatus(updateDTO, id);
+    await this.appointmentService.updateAppointmentStatusByClinic(
+      updateDTO,
+      id,
+    );
+    return {
+      message: 'Cập nhật lịch hẹn thành công',
+    };
+  }
+
+  @Patch('client/:id')
+  @RequiredRole(RoleEnum.CUSTOMER)
+  @ApiOperation({ summary: 'Client huỷ lịch hẹn' })
+  async updateAppointmentStatusByClient(@Param('id') id: string, @Req() req) {
+    await this.appointmentService.updateAppointmentStatusByClient(
+      id,
+      req?.user,
+    );
     return {
       message: 'Cập nhật lịch hẹn thành công',
     };
   }
 
   @Delete(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Xoá lịch hẹn' })
   async deleteAppointment(@Param('id') id: string) {
     await this.appointmentService.deleteAppointment(id);

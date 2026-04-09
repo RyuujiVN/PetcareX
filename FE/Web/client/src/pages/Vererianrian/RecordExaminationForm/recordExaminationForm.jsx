@@ -16,6 +16,7 @@ import {
 	Alert,
 	Button,
 	Card,
+	Checkbox,
 	Col,
 	DatePicker,
 	Divider,
@@ -31,9 +32,11 @@ import {
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import { ServiceEnum } from '../../../enum/service.enum'
+import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
 	APPOINTMENT_STATUS,
@@ -73,6 +76,8 @@ import styles from './recordExaminationForm.module.css'
 const EDITABLE_DURATION_SECONDS = 15 * 60
 const EMERGENCY_TEMP_PASSWORD = 'Baophan1234'
 
+const tVet = (key, options = {}) => i18n.t(key, { ns: 'vererianrian', ...options })
+
 const normalizeCollection = (payload) => {
 	if (Array.isArray(payload)) return payload
 	if (Array.isArray(payload?.items)) return payload.items
@@ -83,12 +88,18 @@ const normalizeCollection = (payload) => {
 const getMedicalOrderOptionLabel = (item) => {
 	const label = item?.nameVn || item?.name || item?.nameEng || item?.title || item?.code
 	if (label) return label
-	if (item?.id) return `Chi dinh #${String(item.id).slice(0, 6).toUpperCase()}`
-	return 'Chua cap nhat'
+	if (item?.id) return `${tVet('examForm.record.fallbacks.orderUnnamed')} #${String(item.id).slice(0, 6).toUpperCase()}`
+	return tVet('examForm.record.fallbacks.notUpdated')
 }
 
 const getMedicineOptionLabel = (item) => {
-	const name = item?.name || item?.nameVn || item?.nameEng || item?.tradeName || item?.code || 'Chua cap nhat'
+	const name =
+		item?.name ||
+		item?.nameVn ||
+		item?.nameEng ||
+		item?.tradeName ||
+		item?.code ||
+		tVet('examForm.record.fallbacks.notUpdated')
 	const strength = item?.strength || item?.concentration || item?.dosage || ''
 	const unitValue = item?.unit || item?.medicineUnit || item?.unitType || ''
 	const unitLabel = unitValue ? getMedicineUnitLabel(unitValue, unitValue) : ''
@@ -151,13 +162,13 @@ const formatRemainingTime = (seconds) => {
 	return `${String(minutes).padStart(2, '0')}:${String(remainSeconds).padStart(2, '0')}`
 }
 
-const formatDateLabel = (value, fallback = 'Chưa cập nhật') => {
+const formatDateLabel = (value, fallback = tVet('examForm.record.fallbacks.notUpdated')) => {
 	return formatDateDDMMYYYY(value, fallback)
 }
 
-const formatFollowUpDateLabel = (value) => formatDateLabel(value, 'Không')
+const formatFollowUpDateLabel = (value) => formatDateLabel(value, tVet('examForm.record.fallbacks.notAvailable'))
 
-const resolveRecordName = (name, fallback = 'Phiếu khám') => {
+const resolveRecordName = (name, fallback = tVet('examForm.record.fallbacks.recordName')) => {
 	if (!name) return fallback
 	return getServiceLabel(name, name) || fallback
 }
@@ -190,18 +201,18 @@ const formatMedicineQuantityLabel = (item) => {
 }
 
 const formatHistoryMedicineSummary = (medicines) => {
-	if (!Array.isArray(medicines) || medicines.length === 0) return 'Không có'
+	if (!Array.isArray(medicines) || medicines.length === 0) return tVet('examForm.record.fallbacks.none')
 
 	return medicines
 		.map((item) => {
-			const medicineName = item?.medicine?.name || item?.medicine?.nameVn || 'Thuốc'
+			const medicineName = item?.medicine?.name || item?.medicine?.nameVn || tVet('examForm.record.fallbacks.medicineUnnamed')
 			return `${medicineName}${formatMedicineQuantityLabel(item)}`
 		})
 		.join(', ')
 }
 
 const formatHistoryOrderSummary = (orders) => {
-	if (!Array.isArray(orders) || orders.length === 0) return 'Không có'
+	if (!Array.isArray(orders) || orders.length === 0) return tVet('examForm.record.fallbacks.none')
 
 	return orders
 		.map(
@@ -209,35 +220,35 @@ const formatHistoryOrderSummary = (orders) => {
 				item?.medicalOrder?.nameVn ||
 				item?.medicalOrder?.nameEng ||
 				item?.medicalOrder?.name ||
-				'Chỉ định',
+				tVet('examForm.record.fallbacks.orderUnnamed'),
 		)
 		.join(', ')
 }
 
 const formatVitalValue = (value, suffix = '') => {
-	if (value === null || value === undefined || value === '') return 'Chưa cập nhật'
+	if (value === null || value === undefined || value === '') return tVet('examForm.record.fallbacks.notUpdated')
 	return suffix ? `${value} ${suffix}` : String(value)
 }
 
 const formatBloodPressure = (systolic, diastolic) => {
-	if (!systolic && !diastolic) return 'Chưa cập nhật'
+	if (!systolic && !diastolic) return tVet('examForm.record.fallbacks.notUpdated')
 	if (systolic && diastolic) return `${systolic}/${diastolic} mmHg`
 	return `${systolic || diastolic} mmHg`
 }
 
 const formatGenderLabel = (gender) => {
-	if (typeof gender === 'boolean') return gender ? 'Đực' : 'Cái'
-	if (!gender) return 'Chưa cập nhật'
+	if (typeof gender === 'boolean') return gender ? tVet('examForm.record.options.male') : tVet('examForm.record.options.female')
+	if (!gender) return tVet('examForm.record.fallbacks.notUpdated')
 	const normalizedGender = String(gender).trim().toLowerCase()
-	if (normalizedGender === 'male') return 'Đực'
-	if (normalizedGender === 'female') return 'Cái'
+	if (normalizedGender === 'male') return tVet('examForm.record.options.male')
+	if (normalizedGender === 'female') return tVet('examForm.record.options.female')
 	return String(gender)
 }
 
 const getAgeLabel = (birthday) => {
-	if (!birthday) return 'Chưa cập nhật tuổi'
+	if (!birthday) return tVet('examForm.record.fallbacks.ageNotUpdated')
 	const birthDate = new Date(birthday)
-	if (Number.isNaN(birthDate.getTime())) return 'Chưa cập nhật tuổi'
+	if (Number.isNaN(birthDate.getTime())) return tVet('examForm.record.fallbacks.ageNotUpdated')
 
 	const now = new Date()
 	let totalMonths =
@@ -248,9 +259,9 @@ const getAgeLabel = (birthday) => {
 		totalMonths -= 1
 	}
 
-	if (totalMonths < 0) return 'Chưa cập nhật tuổi'
-	if (totalMonths < 24) return `${totalMonths} tháng`
-	return `${Math.floor(totalMonths / 12)} tuổi`
+	if (totalMonths < 0) return tVet('examForm.record.fallbacks.ageNotUpdated')
+	if (totalMonths < 24) return tVet('examForm.record.age.months', { count: totalMonths })
+	return tVet('examForm.record.age.years', { count: Math.floor(totalMonths / 12) })
 }
 
 const resolveServiceTypeFromName = (name) => {
@@ -368,6 +379,7 @@ const buildInitialValues = (
 	return {
 		formName: isWalkIn ? '' : serviceLabel,
 		serviceType: resolvedServiceType,
+		enableFollowUpDate: Boolean(editableMedicalRecord?.followUpDate),
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
 		customerName: isWalkIn ? '' : appointment?.ownerName || owner?.fullName || '',
 		email: isWalkIn ? '' : owner?.email || appointment?.ownerEmail || '',
@@ -436,6 +448,7 @@ const toAppointmentViewModel = (item) => {
 const normalizeRowsPayload = (rows = []) => rows.filter((row) => row && Object.values(row).some(Boolean))
 
 export default function RecordExaminationForm() {
+	const { t } = useTranslation('vererianrian')
 	const [form] = Form.useForm()
 	const navigate = useNavigate()
 	const location = useLocation()
@@ -456,6 +469,7 @@ export default function RecordExaminationForm() {
 	const [serverTimeSynced, setServerTimeSynced] = useState(false)
 	const [remainingEditableSeconds, setRemainingEditableSeconds] = useState(EDITABLE_DURATION_SECONDS)
 	const [isDirty, setIsDirty] = useState(false)
+	const enableFollowUpDate = Form.useWatch('enableFollowUpDate', form)
 	const [historyLoading, setHistoryLoading] = useState(false)
 	const [historyRecords, setHistoryRecords] = useState([])
 	const [expandedHistoryRecords, setExpandedHistoryRecords] = useState(() => new Set())
@@ -567,11 +581,11 @@ export default function RecordExaminationForm() {
 				setServerTimeSynced(false)
 			}
 		} catch (error) {
-			message.error(error?.message || 'Không thể tải dữ liệu phiếu khám')
+			message.error(error?.message || t('examForm.record.messages.loadMetaError'))
 		} finally {
 			setLoading(false)
 		}
-	}, [hydrateByAppointmentId])
+	}, [hydrateByAppointmentId, t])
 
 	useEffect(() => {
 		loadMetaData()
@@ -885,14 +899,14 @@ export default function RecordExaminationForm() {
 
 		try {
 			const rawProfile = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
-			if (!rawProfile) return 'Bác sĩ phụ trách'
+			if (!rawProfile) return t('examForm.record.signature.defaultDoctor')
 
 			const profile = JSON.parse(rawProfile)
-			return profile?.fullName || profile?.user?.fullName || 'Bác sĩ phụ trách'
+			return profile?.fullName || profile?.user?.fullName || t('examForm.record.signature.defaultDoctor')
 		} catch {
-			return 'Bác sĩ phụ trách'
+			return t('examForm.record.signature.defaultDoctor')
 		}
-	}, [location?.state?.doctorName])
+	}, [location?.state?.doctorName, t])
 
 	const prescriptionDate = useMemo(() => {
 		return dayjs().format('DD/MM/YYYY')
@@ -920,15 +934,15 @@ export default function RecordExaminationForm() {
 			null
 
 		return {
-			name: sourcePet?.name || 'Chưa cập nhật',
+			name: sourcePet?.name || t('examForm.record.fallbacks.notUpdated'),
 			species: getSpeciesLabel(sourcePet?.species),
 			breed: getBreedLabel(sourcePet?.breed, sourcePet?.species),
 			birthday: formatDateLabel(sourcePet?.dateOfBirth),
 			age: getAgeLabel(sourcePet?.dateOfBirth),
 			gender: formatGenderLabel(sourcePet?.gender),
-			weight: weightValue ? `${weightValue} kg` : 'Chưa cập nhật',
+			weight: weightValue ? `${weightValue} kg` : t('examForm.record.fallbacks.notUpdated'),
 		}
-	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight, petDetail])
+	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight, petDetail, t])
 
 	const serviceOptions = useMemo(() => {
 		return Object.values(ServiceEnum).map((service) => ({
@@ -944,7 +958,7 @@ export default function RecordExaminationForm() {
 				label: (
 					<span>
 						<ManOutlined style={{ marginRight: 8 }} />
-						Đực
+						{t('examForm.record.options.male')}
 					</span>
 				),
 			},
@@ -953,12 +967,12 @@ export default function RecordExaminationForm() {
 				label: (
 					<span>
 						<WomanOutlined style={{ marginRight: 8 }} />
-						Cái
+						{t('examForm.record.options.female')}
 					</span>
 				),
 			},
 		],
-		[],
+		[t],
 	)
 
 	const handleValuesChange = (_, allValues) => {
@@ -981,10 +995,10 @@ export default function RecordExaminationForm() {
 		}
 
 		Modal.confirm({
-			title: 'Bạn có muốn hủy không?',
-			content: 'Các dữ liệu đang nhập sẽ không được lưu.',
-			okText: 'Xác nhận hủy',
-			cancelText: 'Tiếp tục nhập',
+			title: t('examForm.record.confirm.cancelTitle'),
+			content: t('examForm.record.confirm.cancelContent'),
+			okText: t('examForm.record.confirm.cancelOk'),
+			cancelText: t('examForm.record.confirm.cancelCancel'),
 			onOk: goBackToList,
 		})
 	}
@@ -1004,7 +1018,7 @@ export default function RecordExaminationForm() {
 			const users = normalizeCollection(payload)
 			return users.find((user) => normalizeEmail(user?.email) === email) || null
 		} catch {
-			throw new Error('Không thể tra cứu khách hàng theo email. Backend cần hỗ trợ GET /user?search= hoặc GET /user/by-email.')
+			throw new Error(t('examForm.record.messages.findUserError'))
 		}
 	}
 
@@ -1015,13 +1029,13 @@ export default function RecordExaminationForm() {
 			const normalizedName = String(petName || '').trim().toLowerCase()
 			return pets.find((pet) => String(pet?.name || '').trim().toLowerCase() === normalizedName) || null
 		} catch {
-			throw new Error('Không thể tra cứu thú cưng theo chủ nuôi. Backend cần hỗ trợ GET /pet?ownerId= hoặc GET /pet/owner/:id.')
+			throw new Error(t('examForm.record.messages.findPetError'))
 		}
 	}
 
 	const handleWalkInSubmit = async (values) => {
 		if (isLockedByTime) {
-			message.warning('Phiếu khám đã quá thời gian chỉnh sửa 15 phút')
+			message.warning(t('examForm.record.messages.lockedWarning'))
 			return
 		}
 
@@ -1044,42 +1058,42 @@ export default function RecordExaminationForm() {
 			diastolic === undefined ||
 			weight === undefined
 		) {
-			message.error('Vui lòng nhập đầy đủ và đúng định dạng các chỉ số sinh tồn')
+			message.error(t('examForm.record.messages.vitalRequiredError'))
 			return
 		}
 
 		if (!/^\d{10}$/.test(normalizedPhone)) {
-			message.error('Số điện thoại phải gồm đúng 10 chữ số')
+			message.error(t('examForm.record.messages.phoneFormatError'))
 			return
 		}
 
 		if (!normalizedEmail) {
-			message.error('Vui lòng nhập email khách hàng')
+			message.error(t('examForm.record.messages.emailRequiredError'))
 			return
 		}
 
 		if (!dateOfBirth) {
-			message.error('Vui lòng nhập tuổi hoặc ngày sinh của thú cưng')
+			message.error(t('examForm.record.messages.petDobRequiredError'))
 			return
 		}
 
 		if (genderValue === undefined) {
-			message.error('Vui lòng chọn giới tính thú cưng')
+			message.error(t('examForm.record.messages.petGenderRequiredError'))
 			return
 		}
 
 		if (!selectedServiceType || !resolvedServiceName) {
-			message.error('Vui lòng chọn loại phiếu khám')
+			message.error(t('examForm.record.messages.serviceTypeRequiredError'))
 			return
 		}
 
 		try {
 			setSaving(true)
-			showWalkInStep('Đang kiểm tra tài khoản khách hàng...')
+			showWalkInStep(t('examForm.record.messages.walkInStepCheckingOwner'))
 
 			let owner = await findUserByEmail(normalizedEmail)
 			if (!owner) {
-				showWalkInStep('Đang tạo tài khoản khách hàng...')
+				showWalkInStep(t('examForm.record.messages.walkInStepCreatingOwner'))
 				// Placeholder password; backend should replace with random password + email notification.
 				await registerApi(getAdminInstance(), {
 					fullName: values.customerName,
@@ -1090,20 +1104,20 @@ export default function RecordExaminationForm() {
 			}
 
 			if (!owner) {
-				throw new Error('Không thể xác định tài khoản khách hàng sau khi tạo')
+				throw new Error(t('examForm.record.messages.ownerResolveError'))
 			}
 
-			showWalkInStep('Đã sẵn sàng tài khoản khách hàng', 'success')
+			showWalkInStep(t('examForm.record.messages.walkInStepOwnerReady'), 'success')
 
 			const ownerId = owner?.id || owner?.user?.id
 			if (!ownerId) {
-				throw new Error('Thiếu mã khách hàng, vui lòng kiểm tra API user')
+				throw new Error(t('examForm.record.messages.ownerIdMissingError'))
 			}
 
-			showWalkInStep('Đang kiểm tra thú cưng...')
+			showWalkInStep(t('examForm.record.messages.walkInStepCheckingPet'))
 			let pet = await findPetByOwnerAndName(ownerId, values.petName)
 			if (!pet) {
-				showWalkInStep('Đang tạo thú cưng mới...')
+				showWalkInStep(t('examForm.record.messages.walkInStepCreatingPet'))
 				pet = await createPetApi(getAdminInstance(), {
 					ownerId,
 					name: values.petName,
@@ -1116,12 +1130,12 @@ export default function RecordExaminationForm() {
 			}
 
 			if (!pet?.id) {
-				throw new Error('Không thể xác định thú cưng, vui lòng kiểm tra API pet')
+				throw new Error(t('examForm.record.messages.petResolveError'))
 			}
 
-			showWalkInStep('Đã sẵn sàng thú cưng', 'success')
+			showWalkInStep(t('examForm.record.messages.walkInStepPetReady'), 'success')
 
-			showWalkInStep('Đang lưu phiếu khám...')
+			showWalkInStep(t('examForm.record.messages.walkInStepSaving'))
 			const createPayload = {
 				petId: pet.id,
 				species: values.species,
@@ -1140,11 +1154,20 @@ export default function RecordExaminationForm() {
 				symptoms: values.clinicalSymptoms,
 			}
 
+			const shouldClearFollowUpDate = !values.enableFollowUpDate && Boolean(editableMedicalId)
 			const updatePayload = {
 				conclusion: buildConclusionText(values.conclusionSummary),
 				note: values.note || undefined,
-				followUpDate: values.followUpDate ? values.followUpDate.format('YYYY-MM-DD') : undefined,
+				followUpDate:
+					values.enableFollowUpDate && values.followUpDate
+						? values.followUpDate.format('YYYY-MM-DD')
+						: shouldClearFollowUpDate
+							? null
+							: undefined,
 			}
+			const hasFollowUpDateUpdate = values.enableFollowUpDate
+				? Boolean(values.followUpDate)
+				: shouldClearFollowUpDate
 
 			let medicalId = editableMedicalId
 			if (medicalId) {
@@ -1167,10 +1190,10 @@ export default function RecordExaminationForm() {
 				medicalId = createdMedical?.id
 
 				if (!medicalId) {
-					throw new Error('Không nhận được mã phiếu khám từ hệ thống')
+					throw new Error(t('examForm.record.messages.medicalIdMissingError'))
 				}
 
-				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
+				if (updatePayload.conclusion || updatePayload.note || hasFollowUpDateUpdate) {
 					await updateMedicalRecordApi(getAdminInstance(), medicalId, updatePayload)
 				}
 			}
@@ -1212,10 +1235,10 @@ export default function RecordExaminationForm() {
 					}),
 			)
 
-			showWalkInStep('Lưu phiếu khám khẩn cấp thành công', 'success')
+			showWalkInStep(t('examForm.record.messages.walkInSaveSuccess'), 'success')
 			goBackToList()
 		} catch (error) {
-			message.error(buildErrorMessage(error, 'Không thể tạo phiếu khám khẩn cấp'))
+			message.error(buildErrorMessage(error, t('examForm.record.messages.walkInSaveError')))
 		} finally {
 			setSaving(false)
 		}
@@ -1228,7 +1251,7 @@ export default function RecordExaminationForm() {
 		}
 
 		if (isLockedByTime) {
-			message.warning('Phiếu khám đã quá thời gian chỉnh sửa 15 phút')
+			message.warning(t('examForm.record.messages.lockedWarning'))
 			return
 		}
 
@@ -1237,7 +1260,7 @@ export default function RecordExaminationForm() {
 
 			const petId = appointment?.petRaw?.id
 			if (!petId) {
-				throw new Error('Không tìm thấy thú cưng từ lịch hẹn, vui lòng chọn lại lịch hẹn trước khi lưu')
+				throw new Error(t('examForm.record.messages.petMissingError'))
 			}
 
 			const temperature = toNumberOrUndefined(values.temperature)
@@ -1261,11 +1284,11 @@ export default function RecordExaminationForm() {
 				diastolic === undefined ||
 				weight === undefined
 			) {
-				throw new Error('Vui lòng nhập đầy đủ và đúng định dạng các chỉ số sinh tồn')
+				throw new Error(t('examForm.record.messages.vitalRequiredError'))
 			}
 
 			if (!/^\d{10}$/.test(resolvedPhone)) {
-				throw new Error('Số điện thoại phải gồm đúng 10 chữ số')
+				throw new Error(t('examForm.record.messages.phoneFormatError'))
 			}
 
 			const createPayload = {
@@ -1286,11 +1309,20 @@ export default function RecordExaminationForm() {
 				symptoms: values.clinicalSymptoms,
 			}
 
+			const shouldClearFollowUpDate = !values.enableFollowUpDate && Boolean(editableMedicalId)
 			const updatePayload = {
 				conclusion: buildConclusionText(values.conclusionSummary),
 				note: values.note || undefined,
-				followUpDate: values.followUpDate ? values.followUpDate.format('YYYY-MM-DD') : undefined,
+				followUpDate:
+					values.enableFollowUpDate && values.followUpDate
+						? values.followUpDate.format('YYYY-MM-DD')
+						: shouldClearFollowUpDate
+							? null
+							: undefined,
 			}
+			const hasFollowUpDateUpdate = values.enableFollowUpDate
+				? Boolean(values.followUpDate)
+				: shouldClearFollowUpDate
 
 			let medicalId = editableMedicalId
 
@@ -1314,10 +1346,10 @@ export default function RecordExaminationForm() {
 				medicalId = createdMedical?.id
 
 				if (!medicalId) {
-					throw new Error('Không nhận được mã phiếu khám từ hệ thống')
+					throw new Error(t('examForm.record.messages.medicalIdMissingError'))
 				}
 
-				if (updatePayload.conclusion || updatePayload.note || updatePayload.followUpDate) {
+				if (updatePayload.conclusion || updatePayload.note || hasFollowUpDateUpdate) {
 					await updateMedicalRecordApi(getAdminInstance(), medicalId, updatePayload)
 				}
 			}
@@ -1366,10 +1398,14 @@ export default function RecordExaminationForm() {
 				}).catch(() => undefined)
 			}
 
-			message.success(editableMedicalId ? 'Cập nhật phiếu khám thành công' : 'Lưu hồ sơ thành công')
+			message.success(
+				editableMedicalId
+					? t('examForm.record.messages.saveSuccessUpdate')
+					: t('examForm.record.messages.saveSuccessCreate'),
+			)
 			goBackToList()
 		} catch (error) {
-			message.error(buildErrorMessage(error, 'Không thể lưu hồ sơ'))
+			message.error(buildErrorMessage(error, t('examForm.record.messages.saveError')))
 		} finally {
 			setSaving(false)
 		}
@@ -1395,28 +1431,28 @@ export default function RecordExaminationForm() {
 			>
 				<header className={styles.formHeader}>
 					<div className={styles.headerMeta}>
-						<p>PHIẾU KHÁM BỆNH & CHỈ ĐỊNH</p>
+						<p>{t('examForm.record.header.title')}</p>
 						<div className={styles.headerLine}>
-							<span className={styles.headerLabel}>Mã hồ sơ:</span>
+							<span className={styles.headerLabel}>{t('examForm.record.header.recordCode')}</span>
 							<strong className={styles.headerValue}>{examinationCode}</strong>
 						</div>
 						<div className={styles.headerLine}>
-							<span className={styles.headerLabel}>Ngày khám:</span>
+							<span className={styles.headerLabel}>{t('examForm.record.header.examDate')}</span>
 							<strong className={styles.headerValue}>{prescriptionDate}</strong>
 						</div>
 					</div>
 				</header>
 
 				<Tabs className={styles.tabsRoot} destroyInactiveTabPane={false}>
-					<Tabs.TabPane tab="Phiếu khám hiện tại" key="exam">
+					<Tabs.TabPane tab={t('examForm.record.tabs.currentExam')} key="exam">
 						<div className={styles.formScrollableContent}>
 					{!hasCreatedMedical ? (
 						<Alert
 							className={styles.editLockAlert}
 							type="info"
 							showIcon
-							message="Phiếu khám chưa được tạo"
-							description="Sau khi tạo phiếu khám, bác sĩ chỉ có 15 phút để chỉnh sửa phiếu khám nếu có sai sót."
+							message={t('examForm.record.alerts.notCreatedTitle')}
+							description={t('examForm.record.alerts.notCreatedDesc')}
 						/>
 					) : null}
 
@@ -1425,8 +1461,8 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="success"
 							showIcon
-							message="Đang trong thời gian chỉnh sửa"
-							description={`Thời gian còn lại: ${editableCountdownText} (tính từ thời điểm createdAt của server).`}
+							message={t('examForm.record.alerts.editingWindowTitle')}
+							description={t('examForm.record.alerts.editingWindowDesc', { time: editableCountdownText })}
 						/>
 					) : null}
 
@@ -1435,8 +1471,8 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="warning"
 							showIcon
-							message="Đã hết thời gian chỉnh sửa"
-							description="Phiếu khám đã vượt quá 15 phút kể từ lúc tạo, hệ thống đã chuyển sang chế độ chỉ đọc."
+							message={t('examForm.record.alerts.expiredTitle')}
+							description={t('examForm.record.alerts.expiredDesc')}
 						/>
 					) : null}
 
@@ -1445,8 +1481,8 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="warning"
 							showIcon
-							message="Không đồng bộ được giờ server"
-							description="Cần backend expose Date header hoặc serverTime để khóa chỉnh sửa theo đồng hồ server chính xác tuyệt đối."
+							message={t('examForm.record.alerts.serverSyncFailTitle')}
+							description={t('examForm.record.alerts.serverSyncFailDesc')}
 						/>
 					) : null}
 
@@ -1455,8 +1491,8 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="error"
 							showIcon
-							message="Thiếu createdAt của phiếu khám"
-							description="Backend cần trả về createdAt trong dữ liệu medical của appointment hoặc endpoint chi tiết medical để tính khóa 15 phút."
+							message={t('examForm.record.alerts.missingCreatedAtTitle')}
+							description={t('examForm.record.alerts.missingCreatedAtDesc')}
 						/>
 					) : null}
 
@@ -1465,34 +1501,59 @@ export default function RecordExaminationForm() {
 						<Col xs={24} md={12}>
 							{isWalkIn ? (
 								<Form.Item
-									label="LOẠI PHIẾU KHÁM"
+									label={t('examForm.record.fields.serviceType')}
 									name="serviceType"
-									rules={[{ required: true, message: 'Vui lòng chọn loại phiếu khám' }]}
+									rules={[{ required: true, message: t('examForm.record.validation.serviceTypeRequired') }]}
 								>
 									<Select
 										size="large"
-										placeholder="Chọn loại phiếu khám"
+										placeholder={t('examForm.record.placeholders.selectServiceType')}
 										options={serviceOptions}
 									/>
 								</Form.Item>
 							) : (
 								<Form.Item
-									label="TÊN PHIẾU KHÁM"
+									label={t('examForm.record.fields.formName')}
 									name="formName"
-									rules={[{ required: true, message: 'Vui lòng nhập tên phiếu khám' }]}
+									rules={[{ required: true, message: t('examForm.record.validation.formNameRequired') }]}
 								>
-									<Input placeholder="Tên phiếu khám" />
+									<Input placeholder={t('examForm.record.placeholders.formName')} />
 								</Form.Item>
 							)}
 						</Col>
 						<Col xs={24} md={12}>
-							<Form.Item label="NGÀY TÁI KHÁM" name="followUpDate">
-								<DatePicker
-									format="DD/MM/YYYY"
-									placeholder="dd/mm/yyyy"
-									className={styles.fullWidth}
-									disabledDate={(current) => current && current <= dayjs().startOf('day')}
-								/>
+							<Form.Item label={t('examForm.record.fields.followUpDate')}>
+								<div className={styles.followUpControlRow}>
+									<Form.Item
+										name="followUpDate"
+										rules={
+											enableFollowUpDate
+												? [{ required: true, message: t('examForm.record.validation.followUpDateRequiredWhenEnabled') }]
+												: []
+										}
+										className={styles.followUpDateField}
+									>
+										<DatePicker
+											format="DD/MM/YYYY"
+											placeholder={t('examForm.record.placeholders.date')}
+											className={styles.followUpDateCompact}
+											disabled={!enableFollowUpDate}
+											disabledDate={(current) => current && current <= dayjs().startOf('day')}
+										/>
+									</Form.Item>
+
+									<Form.Item name="enableFollowUpDate" valuePropName="checked" className={styles.followUpToggleField}>
+										<Checkbox
+											onChange={(event) => {
+												if (!event?.target?.checked) {
+													form.setFieldValue('followUpDate', null)
+												}
+											}}
+										>
+											{t('examForm.record.fields.enableFollowUpDate')}
+										</Checkbox>
+									</Form.Item>
+								</div>
 							</Form.Item>
 						</Col>
 					</Row>
@@ -1531,60 +1592,60 @@ export default function RecordExaminationForm() {
 				) : null}
 
 				{isWalkIn ? (
-					<Card className={styles.sectionCard} title={<span><UserOutlined /> Thông tin khách hàng & Thú cưng</span>}>
+					<Card className={styles.sectionCard} title={<span><UserOutlined /> {t('examForm.record.sections.walkInCustomerPet')}</span>}>
 						<Row gutter={12}>
 							<Col xs={24} md={8}>
 								<Form.Item
-									label="TÊN KHÁCH HÀNG"
+									label={t('examForm.record.fields.customerName')}
 									name="customerName"
-									rules={isWalkIn ? [{ required: true, message: 'Vui lòng nhập tên khách hàng' }] : []}
+									rules={isWalkIn ? [{ required: true, message: t('examForm.record.validation.customerNameRequired') }] : []}
 								>
-									<Input placeholder="Tên khách hàng" />
+									<Input placeholder={t('examForm.record.placeholders.customerName')} />
 								</Form.Item>
 							</Col>
 							<Col xs={24} md={8}>
 								<Form.Item
-									label="EMAIL"
+									label={t('examForm.record.fields.email')}
 									name="email"
 									rules={isWalkIn ? [
-										{ required: true, message: 'Vui lòng nhập email' },
-										{ type: 'email', message: 'Email không hợp lệ' },
+										{ required: true, message: t('examForm.record.validation.emailRequired') },
+										{ type: 'email', message: t('examForm.record.validation.emailInvalid') },
 									] : []}
 								>
-									<Input placeholder="Email khách hàng" />
+									<Input placeholder={t('examForm.record.placeholders.email')} />
 								</Form.Item>
 							</Col>
 							<Col xs={24} md={8}>
 								<Form.Item
-									label="SĐT"
+									label={t('examForm.record.fields.phone')}
 									name="phone"
 									rules={isWalkIn ? [
-										{ required: true, message: 'Vui lòng nhập số điện thoại' },
-										{ pattern: /^\d{10}$/, message: 'Số điện thoại phải gồm đúng 10 chữ số' },
+										{ required: true, message: t('examForm.record.validation.phoneRequired') },
+										{ pattern: /^\d{10}$/, message: t('examForm.record.validation.phoneFormat') },
 									] : []}
 								>
-									<Input placeholder="Số điện thoại" />
+									<Input placeholder={t('examForm.record.placeholders.phone')} />
 								</Form.Item>
 							</Col>
 
 							<Col xs={24} md={8}>
 								<Form.Item
-									label="TÊN THÚ CƯNG"
+									label={t('examForm.record.fields.petName')}
 									name="petName"
-									rules={isWalkIn ? [{ required: true, message: 'Vui lòng nhập tên thú cưng' }] : []}
+									rules={isWalkIn ? [{ required: true, message: t('examForm.record.validation.petNameRequired') }] : []}
 								>
-									<Input placeholder="Tên thú cưng" />
+									<Input placeholder={t('examForm.record.placeholders.petName')} />
 								</Form.Item>
 							</Col>
 							<Col xs={24} md={8}>
 								<Form.Item
-									label="LOÀI"
+									label={t('examForm.record.fields.species')}
 									name="species"
-									rules={isWalkIn ? [{ required: true, message: 'Vui lòng chọn loài' }] : []}
+									rules={isWalkIn ? [{ required: true, message: t('examForm.record.validation.speciesRequired') }] : []}
 								>
 									<Select
 										size="large"
-										placeholder="Chọn loài"
+										placeholder={t('examForm.record.placeholders.species')}
 										onChange={() => form.setFieldValue('breed', undefined)}
 										options={speciesOptions.map((species) => ({
 											value: species,
@@ -1595,13 +1656,13 @@ export default function RecordExaminationForm() {
 							</Col>
 							<Col xs={24} md={8}>
 								<Form.Item
-									label="GIỐNG LOÀI"
+									label={t('examForm.record.fields.breed')}
 									name="breed"
-									rules={isWalkIn ? [{ required: true, message: 'Vui lòng chọn giống loài' }] : []}
+									rules={isWalkIn ? [{ required: true, message: t('examForm.record.validation.breedRequired') }] : []}
 								>
 									<Select
 										size="large"
-										placeholder="Giống loài"
+										placeholder={t('examForm.record.placeholders.breed')}
 										options={breedOptions.map((breed) => ({
 											value: breed,
 											label: getBreedLabel(breed, selectedSpecies),
@@ -1612,34 +1673,34 @@ export default function RecordExaminationForm() {
 
 							<Col xs={24} md={8}>
 								<Form.Item
-									label="GIỚI TÍNH"
+									label={t('examForm.record.fields.petGender')}
 									name="petGender"
-									rules={isWalkIn ? [{ required: true, message: 'Vui lòng chọn giới tính' }] : []}
+									rules={isWalkIn ? [{ required: true, message: t('examForm.record.validation.petGenderRequired') }] : []}
 								>
 									<Select
 										size="large"
-										placeholder="Chọn giới tính"
+										placeholder={t('examForm.record.placeholders.petGender')}
 										options={genderSelectOptions}
 									/>
 								</Form.Item>
 							</Col>
 							<Col xs={24} md={8}>
-								<Form.Item label="NGÀY SINH" name="petDateOfBirth">
+								<Form.Item label={t('examForm.record.fields.petDateOfBirth')} name="petDateOfBirth">
 									<DatePicker
 										format="DD/MM/YYYY"
-										placeholder="dd/mm/yyyy"
+										placeholder={t('examForm.record.placeholders.date')}
 										className={styles.fullWidth}
 										disabledDate={(current) => current && current > dayjs().endOf('day')}
 									/>
 								</Form.Item>
 							</Col>
 							<Col xs={24} md={8}>
-								<Form.Item label="TUỔI (NĂM)" name="petAge">
+								<Form.Item label={t('examForm.record.fields.petAge')} name="petAge">
 									<InputNumber
 										min={0}
 										max={50}
 										className={styles.fullWidth}
-										placeholder="Nhập tuổi"
+										placeholder={t('examForm.record.placeholders.petAge')}
 									/>
 								</Form.Item>
 							</Col>
@@ -1647,94 +1708,94 @@ export default function RecordExaminationForm() {
 					</Card>
 				) : null}
 
-				<Card className={styles.sectionCard} title={<span><HeartOutlined /> Chỉ số sinh tồn</span>}>
+				<Card className={styles.sectionCard} title={<span><HeartOutlined /> {t('examForm.record.sections.vital')}</span>}>
 					<div className={styles.vitalGrid}>
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>CÂN NẶNG (KG)</p>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.weight')}</p>
 							<Form.Item
 								name="weight"
 								rules={[
-									{ required: true, message: 'Vui lòng nhập cân nặng' },
-									{ type: 'number', min: 0.1, message: 'Cân nặng phải lớn hơn 0' },
-									{ type: 'number', max: 99.9, message: 'Cân nặng không được vượt quá 99.9kg' },
+									{ required: true, message: t('examForm.record.validation.weightRequired') },
+									{ type: 'number', min: 0.1, message: t('examForm.record.validation.weightMin') },
+									{ type: 'number', max: 99.9, message: t('examForm.record.validation.weightMax') },
 								]}
 								className={styles.noMargin}
 							>
-								<InputNumber min={0.1} max={99.9} step={0.1} className={styles.fullWidth} placeholder="Cân nặng" />
+								<InputNumber min={0.1} max={99.9} step={0.1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.weight')} />
 							</Form.Item>
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>NHIỆT ĐỘ (°C)</p>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.temperature')}</p>
 							<Form.Item
 								name="temperature"
-								rules={[{ required: true, message: 'Vui lòng nhập nhiệt độ' }]}
+								rules={[{ required: true, message: t('examForm.record.validation.temperatureRequired') }]}
 								className={styles.noMargin}
 							>
-								<InputNumber min={20} max={50} step={0.1} className={styles.fullWidth} placeholder="Nhiệt độ" />
+								<InputNumber min={20} max={50} step={0.1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.temperature')} />
 							</Form.Item>
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>NHỊP TIM (L/P/M)</p>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.heartRate')}</p>
 							<Form.Item
 								name="heartRate"
-								rules={[{ required: true, message: 'Vui lòng nhập nhịp tim' }]}
+								rules={[{ required: true, message: t('examForm.record.validation.heartRateRequired') }]}
 								className={styles.noMargin}
 							>
-								<InputNumber min={1} className={styles.fullWidth} placeholder="Nhịp tim" />
+								<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.heartRate')} />
 							</Form.Item>
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>HUYẾT ÁP (MMHG)</p>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.bloodPressure')}</p>
 							<div className={styles.bpGrid}>
 								<Form.Item
 									name="systolic"
-									rules={[{ required: true, message: 'Nhập huyết áp trên' }]}
+									rules={[{ required: true, message: t('examForm.record.validation.systolicRequired') }]}
 									className={styles.noMargin}
 								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder="Huyết áp trên" />
+									<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.systolic')} />
 								</Form.Item>
 								<Form.Item
 									name="diastolic"
-									rules={[{ required: true, message: 'Nhập huyết áp dưới' }]}
+									rules={[{ required: true, message: t('examForm.record.validation.diastolicRequired') }]}
 									className={styles.noMargin}
 								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder="Huyết áp dưới" />
+									<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.diastolic')} />
 								</Form.Item>
 							</div>
 						</div>
 					</div>
 				</Card>
 
-				<Card className={styles.sectionCard} title={<span><WarningOutlined /> Thông tin lâm sàng</span>}>
+				<Card className={styles.sectionCard} title={<span><WarningOutlined /> {t('examForm.record.sections.clinical')}</span>}>
 					<Form.Item 
-						label="TRIỆU CHỨNG & TÌNH TRẠNG"
+						label={t('examForm.record.fields.clinicalSymptoms')}
 						name="clinicalSymptoms"
-						rules={[{ required: true, message: 'Vui lòng nhập triệu chứng' }]}
+						rules={[{ required: true, message: t('examForm.record.validation.clinicalSymptomsRequired') }]}
 					>
-						<Input.TextArea rows={3} placeholder="Mô tả triệu chứng và tình trạng" />
+						<Input.TextArea rows={3} placeholder={t('examForm.record.placeholders.clinicalSymptoms')} />
 					</Form.Item>
 					<Form.Item
-						label="CHẨN ĐOÁN SƠ BỘ"
+						label={t('examForm.record.fields.preliminaryDiagnosis')}
 						name="preliminaryDiagnosis"
-						rules={[{ required: true, message: 'Vui lòng nhập chẩn đoán sơ bộ' }]}
+						rules={[{ required: true, message: t('examForm.record.validation.preliminaryDiagnosisRequired') }]}
 					>
-						<Input.TextArea rows={2} placeholder="Chuẩn đoán sơ bộ" />
+						<Input.TextArea rows={2} placeholder={t('examForm.record.placeholders.preliminaryDiagnosis')} />
 					</Form.Item>
 				</Card>
 
-					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Kết luận khám bệnh</span>}>
+					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> {t('examForm.record.sections.conclusion')}</span>}>
 						<div className={styles.conclusionGrid}>
 							<Form.Item
-								label="KẾT LUẬN CHUYÊN MÔN"
+								label={t('examForm.record.fields.conclusionSummary')}
 								name="conclusionSummary"
-								rules={[{ required: true, message: 'Vui long nhap ket luan chuyen mon' }]}
+								rules={[{ required: true, message: t('examForm.record.validation.conclusionRequired') }]}
 							>
 								<Input.TextArea
 									rows={3}
-									placeholder="Tổng kết tình trạng bệnh lý và mức độ"
+									placeholder={t('examForm.record.placeholders.conclusionSummary')}
 								/>
 							</Form.Item>
 
@@ -1743,7 +1804,7 @@ export default function RecordExaminationForm() {
 
 				<Card
 					className={styles.sectionCard}
-					title={<span><ExperimentOutlined /> Phiếu chỉ định xét nghiệm/X-Quang</span>}
+					title={<span><ExperimentOutlined /> {t('examForm.record.sections.orders')}</span>}
 					extra={
 						<Button
 							type="link"
@@ -1757,7 +1818,7 @@ export default function RecordExaminationForm() {
 								])
 							}}
 						>
-							Thêm chỉ định
+							{t('examForm.record.actions.addOrder')}
 						</Button>
 					}
 				>
@@ -1765,22 +1826,22 @@ export default function RecordExaminationForm() {
 						{(fields, { remove }) => (
 							<div className={styles.dynamicTable}>
 								<div className={styles.dynamicHead}>
-									<span>STT</span>
-									<span>LOẠI XÉT NGHIỆM / CHẨN ĐOÁN HÌNH ẢNH</span>
-									<span>GHI CHÚ YÊU CẦU</span>
-									<span>THAO TÁC</span>
+									<span>{t('examForm.record.fields.index')}</span>
+									<span>{t('examForm.record.fields.orderType')}</span>
+									<span>{t('examForm.record.fields.orderNote')}</span>
+									<span>{t('examForm.record.fields.action')}</span>
 								</div>
 								{fields.map((field, index) => (
 									<div key={field.key} className={styles.dynamicRow}>
 										<span>{index + 1}</span>
 										<Form.Item
 											name={[field.name, 'medicalOrderId']}
-											rules={[{ required: true, message: 'Chọn chỉ định' }]}
+											rules={[{ required: true, message: t('examForm.record.validation.orderRequired') }]}
 											className={styles.noMargin}
 										>
 											<Select
 												size="large"
-												placeholder="Chọn loại chỉ định"
+												placeholder={t('examForm.record.placeholders.selectOrder')}
 												showSearch
 												optionFilterProp="label"
 												options={medicalOrderOptions.map((item) => ({
@@ -1790,7 +1851,7 @@ export default function RecordExaminationForm() {
 											/>
 										</Form.Item>
 										<Form.Item name={[field.name, 'note']} className={styles.noMargin}>
-											<Input placeholder="Kiểm tra bạch cầu" />
+											<Input placeholder={t('examForm.record.placeholders.orderNote')} />
 										</Form.Item>
 										<Button
 											type="text"
@@ -1807,7 +1868,7 @@ export default function RecordExaminationForm() {
 
 				<Card
 					className={styles.sectionCard}
-					title={<span><MedicineBoxOutlined /> Đơn thuốc chỉ định</span>}
+					title={<span><MedicineBoxOutlined /> {t('examForm.record.sections.medicines')}</span>}
 					extra={
 						<Button
 							type="link"
@@ -1821,7 +1882,7 @@ export default function RecordExaminationForm() {
 								])
 							}}
 						>
-							Thêm thuốc
+							{t('examForm.record.actions.addMedicine')}
 						</Button>
 					}
 				>
@@ -1829,23 +1890,23 @@ export default function RecordExaminationForm() {
 						{(fields, { remove }) => (
 							<div className={styles.dynamicTable}>
 								<div className={styles.dynamicHeadMedicine}>
-									<span>STT</span>
-									<span>TÊN THUỐC / HÀM LƯỢNG</span>
-									<span>LIỀU DÙNG</span>
-									<span>TẦN SUẤT</span>
-									<span>THAO TÁC</span>
+									<span>{t('examForm.record.fields.index')}</span>
+									<span>{t('examForm.record.fields.medicineName')}</span>
+									<span>{t('examForm.record.fields.dosage')}</span>
+									<span>{t('examForm.record.fields.frequency')}</span>
+									<span>{t('examForm.record.fields.action')}</span>
 								</div>
 								{fields.map((field, index) => (
 									<div key={field.key} className={styles.dynamicRowMedicine}>
 										<span>{index + 1}</span>
 										<Form.Item
 											name={[field.name, 'medicineId']}
-											rules={[{ required: true, message: 'Chọn thuốc' }]}
+											rules={[{ required: true, message: t('examForm.record.validation.medicineRequired') }]}
 											className={styles.noMargin}
 										>
 											<Select
 												size="large"
-												placeholder="Chọn thuốc"
+												placeholder={t('examForm.record.placeholders.selectMedicine')}
 												showSearch
 												optionFilterProp="label"
 												options={medicineOptions.map((item) => ({
@@ -1856,13 +1917,13 @@ export default function RecordExaminationForm() {
 										</Form.Item>
 										<Form.Item
 											name={[field.name, 'quantity']}
-											rules={[{ required: true, message: 'Nhập số lượng' }]}
+											rules={[{ required: true, message: t('examForm.record.validation.medicineQuantityRequired') }]}
 											className={styles.noMargin}
 										>
-											<InputNumber min={1} className={styles.fullWidth} placeholder="1" />
+											<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.medicineQuantity')} />
 										</Form.Item>
 										<Form.Item name={[field.name, 'frequency']} className={styles.noMargin}>
-											<Input placeholder="Tần suất và trong bao nhiêu ngày" />
+											<Input placeholder={t('examForm.record.placeholders.medicineFrequency')} />
 										</Form.Item>
 										<Button
 											type="text"
@@ -1877,60 +1938,64 @@ export default function RecordExaminationForm() {
 					</Form.List>
 
 					<Divider className={styles.adviceDivider} />
-					<Form.Item label="LỜI DẶN BÁC SĨ" name="note">
+					<Form.Item label={t('examForm.record.fields.doctorAdvice')} name="note">
 						<Input.TextArea
 							rows={3}
-							placeholder="Theo dõi nhiệt độ tại nhà mỗi 4 tiếng. Nếu có dấu hiệu co giật hoặc nôn ra máu, vui lòng đưa bé đến cấp cứu ngay lập tức."
+							placeholder={t('examForm.record.placeholders.doctorAdvice')}
 						/>
 					</Form.Item>
 
 					<div className={styles.doctorSign}>
 						<p>
-							Đà Nẵng, ngày {dayjs().format('DD')} tháng {dayjs().format('MM')} năm {dayjs().format('YYYY')}
+							{t('examForm.record.signature.cityDate', {
+								day: dayjs().format('DD'),
+								month: dayjs().format('MM'),
+								year: dayjs().format('YYYY'),
+							})}
 						</p>
-						<strong>BÁC SĨ ĐIỀU TRỊ</strong>
+						<strong>{t('examForm.record.signature.doctorTitle')}</strong>
 						<span>{doctorName}</span>
 					</div>
 				</Card>
 
 						<div className={styles.footerActions}>
 							<Button className={styles.cancelBtn} onClick={handleCancel}>
-								Hủy
+								{t('examForm.record.actions.cancel')}
 							</Button>
 							{!isLockedByTime ? (
 								<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
-									LƯU PHIẾU KHÁM
+									{t('examForm.record.actions.save')}
 								</Button>
 							) : null}
 						</div>
 					</div>
 				</Tabs.TabPane>
 				{!isWalkIn ? (
-					<Tabs.TabPane tab="Hồ sơ y tế" key="history">
+					<Tabs.TabPane tab={t('examForm.record.tabs.history')} key="history">
 						<div className={styles.historyPanel}>
 						{historySummary ? (
 							<Card className={styles.sectionCard}>
 								<div className={styles.historySummary}>
 									<div>
-										<p className={styles.historyLabel}>THÚ CƯNG</p>
+										<p className={styles.historyLabel}>{t('examForm.record.history.pet')}</p>
 										<h3 className={styles.historyTitle}>{historySummary.name}</h3>
 										<p className={styles.historySub}>{historySummary.species} · {historySummary.breed}</p>
 									</div>
 									<div className={styles.historyMetaGrid}>
 										<div>
-											<span>Tuổi</span>
+											<span>{t('examForm.record.history.age')}</span>
 											<strong>{historySummary.age}</strong>
 										</div>
 										<div>
-											<span>Giới tính</span>
+											<span>{t('examForm.record.history.gender')}</span>
 											<strong>{historySummary.gender}</strong>
 										</div>
 										<div>
-											<span>Cân nặng</span>
+											<span>{t('examForm.record.history.weight')}</span>
 											<strong>{historySummary.weight}</strong>
 										</div>
 										<div>
-											<span>Ngày sinh</span>
+											<span>{t('examForm.record.history.birthday')}</span>
 											<strong>{historySummary.birthday}</strong>
 										</div>
 									</div>
@@ -1944,7 +2009,7 @@ export default function RecordExaminationForm() {
 							</div>
 						) : historyRecords.length === 0 ? (
 							<div className={styles.historyEmpty}>
-								{historyPetId ? 'Không có hồ sơ y tế để hiển thị.' : 'Chưa có thú cưng để tải hồ sơ y tế.'}
+								{historyPetId ? t('examForm.record.history.emptyWithPet') : t('examForm.record.history.emptyWithoutPet')}
 							</div>
 						) : (
 							<div className={styles.historyList}>
@@ -1961,7 +2026,7 @@ export default function RecordExaminationForm() {
 
 												<div className={styles.historyHeaderActions}>
 													<span className={`${styles.historyStatus} ${record?.conclusion ? styles.historyStatusDone : styles.historyStatusPending}`}>
-														{record?.conclusion ? 'ĐÃ HOÀN THÀNH' : 'ĐANG CHỜ'}
+														{record?.conclusion ? t('examForm.record.history.statusDone') : t('examForm.record.history.statusPending')}
 													</span>
 													<button
 														type="button"
@@ -1969,7 +2034,7 @@ export default function RecordExaminationForm() {
 														onClick={() => toggleHistoryRecord(recordKey)}
 														aria-expanded={isExpanded}
 													>
-														{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
+														{isExpanded ? t('common.actions.collapse') : t('common.actions.expand')}
 														{isExpanded ? <UpOutlined /> : <DownOutlined />}
 													</button>
 												</div>
@@ -1977,11 +2042,13 @@ export default function RecordExaminationForm() {
 
 											<div className={styles.historyMetaInfoGrid}>
 												<div>
-													<p><strong>Ngày khám:</strong> {resolveRecordExamDate(record)}</p>
+													<p><strong>{t('examForm.record.history.examDate')}</strong> {resolveRecordExamDate(record)}</p>
 												</div>
-												<div>
-													<p><strong>Ngày tái khám:</strong> {formatFollowUpDateLabel(record?.followUpDate)}</p>
-												</div>
+												{record?.followUpDate ? (
+													<div>
+														<p><strong>{t('examForm.record.history.followUpDate')}</strong> {formatFollowUpDateLabel(record?.followUpDate)}</p>
+													</div>
+												) : null}
 											</div>
 
 											{isExpanded ? (
@@ -1990,45 +2057,45 @@ export default function RecordExaminationForm() {
 													<div className={styles.historyRecordBody}>
 														<div className={styles.historyVitalGrid}>
 															<div className={styles.historyField}>
-																<span>Cân nặng:</span>
+																<span>{t('examForm.record.history.vitalWeight')}</span>
 																<strong>{formatVitalValue(record?.weight, 'kg')}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Nhiệt độ:</span>
+																<span>{t('examForm.record.history.vitalTemperature')}</span>
 																<strong>{formatVitalValue(record?.temperature, '°C')}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Nhịp tim:</span>
+																<span>{t('examForm.record.history.vitalHeartRate')}</span>
 																<strong>{formatVitalValue(record?.heartRate, 'l/p/m')}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Huyết áp:</span>
+																<span>{t('examForm.record.history.vitalBloodPressure')}</span>
 																<strong>{formatBloodPressure(record?.systolic, record?.diastolic)}</strong>
 															</div>
 														</div>
 														<div className={styles.historyDetailColumn}>
 															<div className={styles.historyField}>
-																<span>Triệu chứng:</span>
-																<strong>{record?.symptoms || 'Chưa cập nhật'}</strong>
+																<span>{t('examForm.record.history.symptoms')}</span>
+																<strong>{record?.symptoms || t('examForm.record.fallbacks.notUpdated')}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Chẩn đoán:</span>
-																<strong>{record?.diagnosis || 'Chưa cập nhật'}</strong>
+																<span>{t('examForm.record.history.diagnosis')}</span>
+																<strong>{record?.diagnosis || t('examForm.record.fallbacks.notUpdated')}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Kết luận:</span>
-																<strong>{record?.conclusion || 'Chưa cập nhật'}</strong>
+																<span>{t('examForm.record.history.conclusion')}</span>
+																<strong>{record?.conclusion || t('examForm.record.fallbacks.notUpdated')}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Lời dặn bác sĩ:</span>
-																<strong>{record?.note || 'Chưa cập nhật'}</strong>
+																<span>{t('examForm.record.history.doctorAdvice')}</span>
+																<strong>{record?.note || t('examForm.record.fallbacks.notUpdated')}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Chỉ định xét nghiệm:</span>
+																<span>{t('examForm.record.history.orders')}</span>
 																<strong>{formatHistoryOrderSummary(orders)}</strong>
 															</div>
 															<div className={styles.historyField}>
-																<span>Đơn thuốc:</span>
+																<span>{t('examForm.record.history.medicines')}</span>
 																<strong>{formatHistoryMedicineSummary(medicines)}</strong>
 															</div>
 														</div>

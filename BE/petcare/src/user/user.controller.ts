@@ -22,14 +22,18 @@ import {
 import { UpdateUserDTO } from './dtos/update-user.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { User } from './entities/user.entity';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RoleEnum } from 'src/common/enums/role.enum';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
 
 @Controller('user')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Phân trang người dùng' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
@@ -58,6 +62,7 @@ export class UserController {
   }
 
   @Get(':id')
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Lấy thông tin tài khoản người dùng' })
   getUser(@Param('id') id: string) {
     return this.userService.findOneByid(id);
@@ -77,6 +82,7 @@ export class UserController {
   }
 
   @Delete(':id')
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Xoá tài khoản' })
   async deleteUser(@Param('id') id: string) {
     await this.userService.softDeleteUser(id);

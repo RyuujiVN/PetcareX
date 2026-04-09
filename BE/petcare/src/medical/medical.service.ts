@@ -449,8 +449,8 @@ export class MedicalService {
           removeOnComplete: true,
           removeOnFail: true,
           backoff: {
-            type: 'fixed',
-            delay: 2000,
+            type: 'exponential',
+            delay: 4000,
           },
         });
 

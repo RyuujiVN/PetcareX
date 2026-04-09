@@ -40,6 +40,42 @@ const normalizeEnumValue = (value) => {
     .toUpperCase()
 }
 
+const normalizeLookupValue = (value) =>
+  String(value || '')
+    .trim()
+    .toLowerCase()
+
+const resolveEnumKeyFromReadableValue = (enumKey, rawValue) => {
+  const lookup = normalizeLookupValue(rawValue)
+  if (!lookup) return ''
+
+  const dictionary = ENUM_LABEL_MAPS[enumKey] || {}
+  const entries = Object.entries(dictionary)
+
+  for (const [key, label] of entries) {
+    if (normalizeLookupValue(label) === lookup) {
+      return key
+    }
+  }
+
+  const translationPrefix = ENUM_TRANSLATION_PREFIX[enumKey]
+  if (!translationPrefix) return ''
+
+  for (const [key] of entries) {
+    const viLabel = i18n.t(`${translationPrefix}.${key}`, { lng: 'vi', defaultValue: '' })
+    if (normalizeLookupValue(viLabel) === lookup) {
+      return key
+    }
+
+    const enLabel = i18n.t(`${translationPrefix}.${key}`, { lng: 'en', defaultValue: '' })
+    if (normalizeLookupValue(enLabel) === lookup) {
+      return key
+    }
+  }
+
+  return ''
+}
+
 export const humanizeEnumValue = (value, fallback = UNKNOWN_ENUM_LABEL) => {
   const normalized = normalizeEnumValue(value)
   if (!normalized) return fallback
@@ -58,6 +94,29 @@ export const getEnumLabel = (enumKey, value, fallback = UNKNOWN_ENUM_LABEL) => {
 
   const dictionary = ENUM_LABEL_MAPS[enumKey] || {}
   const translationPrefix = ENUM_TRANSLATION_PREFIX[enumKey]
+
+  const directDictionaryMatch = dictionary[normalized]
+  const directTranslationMatch =
+    translationPrefix && tryTranslate(`${translationPrefix}.${normalized}`)
+
+  const effectiveKey =
+    directDictionaryMatch || directTranslationMatch
+      ? normalized
+      : resolveEnumKeyFromReadableValue(enumKey, rawValue)
+
+  if (effectiveKey) {
+    if (translationPrefix) {
+      const translatedLabel = tryTranslate(`${translationPrefix}.${effectiveKey}`)
+      if (translatedLabel) {
+        return translatedLabel
+      }
+    }
+
+    if (dictionary[effectiveKey]) {
+      return dictionary[effectiveKey]
+    }
+  }
+
   if (translationPrefix) {
     const translatedLabel = tryTranslate(`${translationPrefix}.${normalized}`)
     if (translatedLabel) {

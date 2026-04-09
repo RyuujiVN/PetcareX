@@ -862,38 +862,85 @@ Ghi chú:
 2. **Tách concern mount-time**: appointment hydration, catalog loading, history loading phải có error boundary riêng
 3. **`message.error()` chỉ dùng cho lỗi trực tiếp ảnh hưởng UX hiện tại** — non-critical hoặc lazy-loaded data chỉ log console
 
-## I18n Migration Status (Client Role) - 2026-04-06
+## I18n Migration Status (Client/Clinic/Veterinarian/Admin) - 2026-04-08
 
-### Mục tiêu và phạm vi
-- Chỉ áp dụng cho frontend web client (role client).
-- Không thay đổi business logic, chỉ chuẩn hóa text hiển thị qua i18n.
-- Hoàn thành theo từng nhóm có checkpoint xác nhận.
+### Trạng thái tổng quan
+- Client portal: ✓ Hoàn tất i18n.
+- Clinic portal: ✓ Hoàn tất i18n.
+- Veterinarian portal (`vererianrian`): ✓ Hoàn tất i18n theo 4 nhóm ưu tiên.
+- Super Admin portal (`admin`): ✓ Hoàn tất i18n theo 4 nhóm ưu tiên.
 
-### Kết quả đã hoàn thành
-- Thiết lập i18n core:
-  - `i18next` + `react-i18next`.
-  - Khởi tạo tại `src/i18n.js`, import bootstrap ở `src/main.jsx`.
-  - Thêm `LanguageSwitcher` ở header, lưu ngôn ngữ vào localStorage.
-- Hoàn tất migrate text cứng sang key i18n cho các nhóm client đã rà soát, gồm các luồng lớn:
-  - Home, Header/Footer, Clinic Selection, HomePageClinic.
-  - Booking, SuccessBooking, AppointmentDetail, PetDiagnosis.
-  - Pet/Profile/Medical Records/Forum.
-  - Auth (`Login`, `Register`, `ForgotPassword`, `ReEnterPassword`).
-  - ChatBot AI (`index.jsx`, `MessageBox.jsx`).
-  - Accessibility text dùng chung như `ScrollToTopButton`.
-- Đồng bộ key locale đầy đủ ở:
-  - `src/locales/vi.json`
-  - `src/locales/en.json`
+### Cấu trúc locale hiện tại
+- `src/locales/client/vi.json`
+- `src/locales/client/en.json`
+- `src/locales/clinic/vi.json`
+- `src/locales/clinic/en.json`
+- `src/locales/vererianrian/vi.json`
+- `src/locales/vererianrian/en.json`
+- `src/locales/admin/vi.json`
+- `src/locales/admin/en.json`
+
+### I18n Core Config (cập nhật)
+- `src/i18n.js` đã khai báo đủ 4 namespace:
+  - `client`
+  - `clinic`
+  - `vererianrian`
+  - `admin`
+- Resource map hiện tại:
+  - `vi.client`, `vi.clinic`, `vi.vererianrian`, `vi.admin`
+  - `en.client`, `en.clinic`, `en.vererianrian`, `en.admin`
+- Vẫn giữ:
+  - `defaultNS: 'client'`
+  - `fallbackNS: 'client'`
+  - `lng` lấy từ `getInitialLanguage()` (đọc localStorage `lang` dùng chung cho cả 4 portal)
+  - `fallbackLng: 'vi'`
+
+### Super Admin I18n Migration (theo nhóm)
+
+#### Nhóm 1 — Layout / Sidebar / Header / Notification Panel
+- `src/layouts/admin/AdminLayout.jsx`
+- Đã migrate toàn bộ text hiển thị:
+  - Sidebar/menu, brand subtitle, profile fallback.
+  - Header title.
+  - Notification panel (title, tab, empty state, mark-all-read).
+  - Time-ago labels (`justNow`, `minutesAgo`, `hoursAgo`, `daysAgo`) qua namespace `admin`.
+  - Logout/open-notification aria/title.
+
+#### Nhóm 2 — Clinics Management
+- `src/pages/admin/Dashboard/Clinics/index.jsx`
+- Đã migrate:
+  - Stat card, table column labels, search placeholder, pagination summary.
+  - Add clinic modal (section title, label, placeholder, validation message).
+  - Delete confirm modal + toast success/error.
+  - Status labels: `active`, `deleted`.
+
+#### Nhóm 3 — Users Management
+- `src/pages/admin/Dashboard/Users/index.jsx`
+- Đã migrate:
+  - Stats, page title/subtitle, search/filter placeholder.
+  - Table columns + empty state.
+  - Role labels qua key `users.role.*` (`CUSTOMER`, `ADMIN`, `ADMIN_CLINIC`, `VETERINARIAN`).
+  - Status labels + confirm deactivate + toast.
+
+#### Nhóm 4 — Posts Management
+- `src/pages/admin/Dashboard/Posts/index.jsx`
+- Đã migrate:
+  - Stats, page title/subtitle, search/topic filter placeholder.
+  - Table columns, load-more button, all-loaded state.
+  - Empty state + delete confirm + toast.
+  - Detail modal labels.
 
 ### Validation sau migrate
-- Key parity `vi/en`: `onlyVi = 0`, `onlyEn = 0`.
-- Diagnostics: không còn lỗi ở các file đã migrate.
-- Build production (`npm run build`): thành công.
-- Có cảnh báo chunk size của Vite (không phải lỗi build, không phải regression từ i18n).
+- Build production (`npm run build`): thành công sau mỗi nhóm migrate.
+- Rà soát toàn bộ 4 file Super Admin: không còn hardcode text UI (trừ comment code).
+- Không thay đổi business logic; chỉ thay text hiển thị và wiring i18n.
 
-### Ghi chú maintain
-- Khi thêm UI text mới trong client pages, bắt buộc thêm key vào cả `vi.json` và `en.json` cùng lúc.
-- Ưu tiên dùng namespace/key theo domain (`pages.*`, `common.*`, `header.*`, `footer.*`) để giữ tính nhất quán.
+### Quy ước maintain bắt buộc
+- Mọi text UI mới của Super Admin phải dùng namespace `admin`.
+- Không hardcode text mới trong component; luôn thêm key vào cả:
+  - `src/locales/admin/vi.json`
+  - `src/locales/admin/en.json`
+- Không trộn key chéo namespace giữa `client`, `clinic`, `vererianrian`, `admin`.
 ## Notification System (integrated 2026-04-07)
 
 ### BE Notification Mechanism
@@ -1014,7 +1061,7 @@ The `notificationService.js` provides client-side notification aggregation from 
 4. Thay mock bằng API thật cho các màn admin/veterinarian còn template.
 5. Đưa `SOCKET_URL` vào env (`VITE_SOCKET_URL`) thay vì hardcoded.
 6. Gộp token CSS thành single-source để giảm duplicate.
-7. Mở rộng chuẩn hóa i18n cho phần ngoài client portal (admin/clinic/veterinarian) và các text mới phát sinh.
+7. ~~Mở rộng chuẩn hóa i18n cho phần ngoài client portal (admin/clinic/veterinarian) và các text mới phát sinh.~~ ✓ Đã hoàn thành toàn bộ 4 portal (client + clinic + vererianrian + admin); tiếp tục maintain key mới phát sinh.
 8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
 9. Hoàn thiện trang super admin còn lại: Overview.
 10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).

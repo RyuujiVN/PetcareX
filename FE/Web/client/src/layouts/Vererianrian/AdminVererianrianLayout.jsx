@@ -10,6 +10,7 @@ import { Avatar, Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, 
 import { useEffect, useMemo, useState } from 'react'
 import { CiHospital1 } from "react-icons/ci"
 import { IoMdNotificationsOutline } from 'react-icons/io'
+import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
@@ -23,10 +24,25 @@ import styles from './AdminVererianrianLayout.module.css'
 
 const { Text } = Typography
 
-const menuItems = [
-  { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/veterinarian/appointments' },
-  { key: 'records', label: 'Hồ sơ bệnh án', icon: FileTextOutlined, path: '/veterinarian/listRecords' },
-  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/veterinarian/exam-forms' },
+const buildMenuItems = (t) => [
+  {
+    key: 'appointments',
+    label: t('layout.menu.appointments'),
+    icon: CalendarOutlined,
+    path: '/veterinarian/appointments',
+  },
+  {
+    key: 'records',
+    label: t('layout.menu.records'),
+    icon: FileTextOutlined,
+    path: '/veterinarian/listRecords',
+  },
+  {
+    key: 'exam-slips',
+    label: t('layout.menu.examForms'),
+    icon: FormOutlined,
+    path: '/veterinarian/exam-forms',
+  },
 ]
 
 const NOTIFICATION_TYPE_COLORS = {
@@ -36,43 +52,44 @@ const NOTIFICATION_TYPE_COLORS = {
   'forum-comment': 'cyan',
 }
 
-const getNotificationTypeLabel = (type) => {
-  if (type === 'appointment') return 'Lịch hẹn'
-  if (type === 'ai-diagnosis') return 'Chẩn đoán AI'
-  if (type === 'system') return 'Hệ thống'
-  if (type === 'forum-comment') return 'Bình luận'
-  return 'Khác'
+const getNotificationTypeLabel = (type, t) => {
+  if (type === 'appointment') return t('layout.notifications.types.appointment')
+  if (type === 'ai-diagnosis') return t('layout.notifications.types.aiDiagnosis')
+  if (type === 'system') return t('layout.notifications.types.system')
+  if (type === 'forum-comment') return t('layout.notifications.types.forumComment')
+  return t('layout.notifications.types.other')
 }
 
-const formatNotificationTimeAgo = (dateValue) => {
+const formatNotificationTimeAgo = (dateValue, t) => {
   const createdAt = new Date(dateValue).getTime()
-  if (Number.isNaN(createdAt)) return 'Vừa xong'
+  if (Number.isNaN(createdAt)) return t('layout.notifications.time.justNow')
 
   const diff = Date.now() - createdAt
   const minute = 60 * 1000
   const hour = 60 * minute
   const day = 24 * hour
 
-  if (diff < minute) return 'Vừa xong'
-  if (diff < hour) return `${Math.floor(diff / minute)} phút trước`
-  if (diff < day) return `${Math.floor(diff / hour)} giờ trước`
-  return `${Math.floor(diff / day)} ngày trước`
+  if (diff < minute) return t('layout.notifications.time.justNow')
+  if (diff < hour) return t('layout.notifications.time.minutesAgo', { count: Math.floor(diff / minute) })
+  if (diff < day) return t('layout.notifications.time.hoursAgo', { count: Math.floor(diff / hour) })
+  return t('layout.notifications.time.daysAgo', { count: Math.floor(diff / day) })
 }
 
 const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
 
-const getClinicDisplayName = (profile) => {
+const getClinicDisplayName = (profile, fallbackName) => {
   return (
     profile?.clinicName ||
     profile?.clinicInfo?.name ||
     profile?.clinic?.name ||
     profile?.veterinarian?.clinic?.name ||
     profile?.adminClinic?.clinic?.name ||
-    'PetCareX'
+    fallbackName
   )
 }
 
 export default function AdminVererianrianLayout() {
+  const { t } = useTranslation('vererianrian')
   const location = useLocation()
   const navigate = useNavigate()
   const { token, userProfile, logout, activeRole } = useAuth()
@@ -91,7 +108,8 @@ export default function AdminVererianrianLayout() {
   const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
   const hasVeterinarianRole = normalizedRoles.includes(RoleEnum.VETERINARIAN)
-  const clinicDisplayName = getClinicDisplayName(userProfile)
+  const menuItems = useMemo(() => buildMenuItems(t), [t])
+  const clinicDisplayName = getClinicDisplayName(userProfile, t('layout.defaultClinicName'))
   const hideSearchRoutes = [
     '/veterinarian/exam-forms/create',
     '/veterinarian/viewRecords',
@@ -158,8 +176,13 @@ export default function AdminVererianrianLayout() {
     <div className={styles.notificationPanel}>
       <div className={styles.notificationPanelHeader}>
         <div>
-          <h3>Thông báo bác sĩ</h3>
-          <p>{`${unreadNotificationCount} chưa đọc / ${notificationItems.length} thông báo`}</p>
+          <h3>{t('layout.notifications.panelTitle')}</h3>
+          <p>
+            {t('layout.notifications.summary', {
+              unread: unreadNotificationCount,
+              total: notificationItems.length,
+            })}
+          </p>
         </div>
         <Button
           type="link"
@@ -168,7 +191,7 @@ export default function AdminVererianrianLayout() {
           disabled={unreadNotificationCount === 0}
           className={styles.markAllReadBtn}
         >
-          Đánh dấu đã đọc
+          {t('layout.notifications.markAllRead')}
         </Button>
       </div>
 
@@ -187,8 +210,8 @@ export default function AdminVererianrianLayout() {
           <Select
             size="middle"
             options={[
-              { value: 'all', label: 'Tất cả' },
-              { value: 'unread', label: 'Chưa đọc' },
+              { value: 'all', label: t('layout.notifications.filters.all') },
+              { value: 'unread', label: t('layout.notifications.filters.unread') },
             ]}
           />
         </Form.Item>
@@ -197,10 +220,10 @@ export default function AdminVererianrianLayout() {
           <Select
             size="middle"
             options={[
-              { value: 'all', label: 'Mọi loại' },
-              { value: 'appointment', label: 'Lịch hẹn' },
-              { value: 'ai-diagnosis', label: 'Chẩn đoán AI' },
-              { value: 'system', label: 'Hệ thống' },
+              { value: 'all', label: t('layout.notifications.filters.allTypes') },
+              { value: 'appointment', label: t('layout.notifications.filters.appointment') },
+              { value: 'ai-diagnosis', label: t('layout.notifications.filters.aiDiagnosis') },
+              { value: 'system', label: t('layout.notifications.filters.system') },
             ]}
           />
         </Form.Item>
@@ -213,7 +236,7 @@ export default function AdminVererianrianLayout() {
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="Không có thông báo phù hợp"
+              description={t('layout.notifications.empty')}
             />
           ),
         }}
@@ -228,10 +251,10 @@ export default function AdminVererianrianLayout() {
             >
               <div className={styles.notificationItemTop}>
                 <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || 'default'}>
-                  {getNotificationTypeLabel(item.type)}
+                  {getNotificationTypeLabel(item.type, t)}
                 </Tag>
                 <Text className={styles.notificationTimeText}>
-                  {formatNotificationTimeAgo(item.createdAt)}
+                  {formatNotificationTimeAgo(item.createdAt, t)}
                 </Text>
               </div>
 
@@ -257,7 +280,7 @@ export default function AdminVererianrianLayout() {
               </div>
               <div>
                 <h2>{clinicDisplayName}</h2>
-                <p>PetcareX</p>
+                <p>{t('layout.brandSubtitle')}</p>
               </div>
             </div>
 
@@ -283,7 +306,7 @@ export default function AdminVererianrianLayout() {
           <div className={styles.profileCard}>
             <Avatar size={44} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
             <div className={styles.profileMeta}>
-              <h4>{userProfile?.fullName || 'Bác sĩ'}</h4>
+                <h4>{userProfile?.fullName || t('layout.defaultDoctorName')}</h4>
               <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN')}</p>
             </div>
             <Button
@@ -291,7 +314,7 @@ export default function AdminVererianrianLayout() {
               icon={<LogoutOutlined />}
               className={styles.logoutBtn}
               onClick={handleLogout}
-              aria-label="Đăng xuất"
+                aria-label={t('layout.aria.logout')}
             />
           </div>
         </aside>
@@ -304,12 +327,12 @@ export default function AdminVererianrianLayout() {
           >
             <div className={styles.headerSearchWrap}>
               {shouldUseMedicalRecordHeader ? (
-                <h1 className={styles.headerTitle}>Hồ sơ y tế điện tử</h1>
+                <h1 className={styles.headerTitle}>{t('layout.medicalHeaderTitle')}</h1>
               ) : !shouldHideSearch ? (
                 <Input
                   className={styles.searchInput}
                   prefix={<SearchOutlined />}
-                  placeholder="Tìm kiếm thú cưng, chủ nuôi..."
+                  placeholder={t('layout.searchPlaceholder')}
                 />
               ) : null}
             </div>
@@ -327,7 +350,7 @@ export default function AdminVererianrianLayout() {
               >
                 <Button
                   type="text"
-                  aria-label="Xem thông báo bác sĩ"
+                  aria-label={t('layout.aria.openNotifications')}
                   className={styles.notificationBellButton}
                   icon={(
                     <Badge

@@ -27,7 +27,7 @@ import {
   message,
 } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { getRoleLabel } from '../../../../constants/veterinaryLabels'
+import { useTranslation } from 'react-i18next'
 import { getPostListApi } from '../../../../services/forumService'
 import { getAdminInstance } from '../../../../services/apiClient'
 import './style.css'
@@ -71,6 +71,8 @@ const ROLE_CLASSNAMES = {
 }
 
 export default function Posts() {
+  const { t } = useTranslation('admin')
+  const noDataText = t('common.noData')
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -85,6 +87,12 @@ export default function Posts() {
   useEffect(() => {
     postsRef.current = posts
   }, [posts])
+
+  const getRoleLabelByLocale = (role) => {
+    const normalizedRole = String(role || '').trim().toUpperCase()
+    if (!normalizedRole) return t('users.role.none')
+    return t(`users.role.${normalizedRole}`, { defaultValue: t('users.role.none') })
+  }
 
   const loadPosts = useCallback(async ({ reset = false } = {}) => {
     const currentPosts = postsRef.current
@@ -114,7 +122,7 @@ export default function Posts() {
       })
       setHasMore(incoming.length === DEFAULT_LIMIT)
     } catch (error) {
-      message.error(error.message || 'Không thể tải danh sách bài đăng')
+      message.error(error.message || t('posts.messages.fetchFailed'))
     } finally {
       if (reset) {
         setLoading(false)
@@ -122,7 +130,7 @@ export default function Posts() {
         setLoadingMore(false)
       }
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadPosts({ reset: true })
@@ -139,18 +147,18 @@ export default function Posts() {
 
   const handleDeletePost = (postId) => {
     setPosts((prev) => prev.filter((item) => item.id !== postId))
-    message.success('Đã xóa bài đăng khỏi danh sách hiển thị')
+    message.success(t('posts.messages.deleteSuccess'))
   }
 
   const handleDeleteWithConfirm = (post) => {
     Modal.confirm({
       centered: true,
-      title: 'Xác nhận xóa bài đăng',
+      title: t('posts.confirmDelete.title'),
       icon: <InfoCircleOutlined style={{ color: 'var(--admin-color-warning)' }} />,
-      content: 'Bạn có chắc muốn xóa bài đăng này không?',
-      okText: 'Xóa',
+      content: t('posts.confirmDelete.content'),
+      okText: t('posts.confirmDelete.ok'),
       okType: 'danger',
-      cancelText: 'Hủy',
+      cancelText: t('posts.confirmDelete.cancel'),
       onOk: () => {
         handleDeletePost(post.id)
       },
@@ -172,10 +180,10 @@ export default function Posts() {
       }))
 
     return [
-      { value: 'ALL', label: 'Tất cả' },
+      { value: 'ALL', label: t('posts.filters.all') },
       ...dynamicOptions,
     ]
-  }, [posts])
+  }, [posts, t])
 
   const filteredPosts = useMemo(() => {
     const keyword = search.trim().toLowerCase()
@@ -217,12 +225,12 @@ export default function Posts() {
 
   const columns = [
     {
-      title: 'TÁC GIẢ',
+      title: t('posts.table.columns.author'),
       key: 'author',
       width: 250,
       render: (_, record) => {
         const authorName = record?.author?.fullName || ''
-        const displayName = authorName || '—'
+        const displayName = authorName || noDataText
         return (
           <Space size={12} className="author-cell">
             <Avatar
@@ -244,7 +252,7 @@ export default function Posts() {
       },
     },
     {
-      title: 'VAI TRÒ',
+      title: t('posts.table.columns.role'),
       key: 'role',
       width: 170,
       align: 'center',
@@ -252,13 +260,13 @@ export default function Posts() {
         const role = record?.author?.role
         return (
           <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
-            {role ? getRoleLabel(role) : 'Không'}
+            {getRoleLabelByLocale(role)}
           </Tag>
         )
       },
     },
     {
-      title: 'NỘI DUNG',
+      title: t('posts.table.columns.content'),
       dataIndex: 'content',
       key: 'content',
       render: (value) => (
@@ -267,19 +275,19 @@ export default function Posts() {
           ellipsis={{ rows: 1 }}
           title={cleanContent(value) || ''}
         >
-          {cleanContent(value) || '—'}
+          {cleanContent(value) || noDataText}
         </Typography.Paragraph>
       ),
     },
     {
-      title: 'NGÀY ĐĂNG',
+      title: t('posts.table.columns.postedDate'),
       dataIndex: 'createdAt',
       key: 'createdAt',
       width: 130,
       render: (date) => formatDate(date),
     },
     {
-      title: 'THAO TÁC',
+      title: t('posts.table.columns.action'),
       key: 'action',
       width: 100,
       align: 'center',
@@ -314,7 +322,7 @@ export default function Posts() {
             <div className="stat-card__icon stat-card__icon--post">
               <FileTextOutlined />
             </div>
-            <Statistic title="Bài đăng đã tải" value={stats.totalPosts} />
+            <Statistic title={t('posts.stats.loadedPosts')} value={stats.totalPosts} />
           </Card>
         </Col>
         <Col span={8}>
@@ -322,7 +330,7 @@ export default function Posts() {
             <div className="stat-card__icon stat-card__icon--like">
               <LikeOutlined />
             </div>
-            <Statistic title="Tổng lượt thích" value={stats.totalLikes} />
+            <Statistic title={t('posts.stats.totalLikes')} value={stats.totalLikes} />
           </Card>
         </Col>
         <Col span={8}>
@@ -330,7 +338,7 @@ export default function Posts() {
             <div className="stat-card__icon stat-card__icon--comment">
               <MessageOutlined />
             </div>
-            <Statistic title="Tổng bình luận" value={stats.totalComments} />
+            <Statistic title={t('posts.stats.totalComments')} value={stats.totalComments} />
           </Card>
         </Col>
       </Row>
@@ -339,16 +347,16 @@ export default function Posts() {
         <Flex justify="space-between" align="center" className="section-header">
           <div className="section-title">
             <Typography.Title level={4} style={{ margin: 0 }}>
-              Danh sách bài đăng
+              {t('posts.page.title')}
             </Typography.Title>
             <Typography.Text type="secondary">
-              Theo dõi bài viết mới nhất từ cộng đồng
+              {t('posts.page.subtitle')}
             </Typography.Text>
           </div>
           <div className="posts-table-actions">
             <Input
               className="posts-search"
-              placeholder="Tìm theo tác giả, chủ đề, nội dung"
+              placeholder={t('posts.search.placeholder')}
               allowClear
               value={search}
               onChange={(event) => handleSearch(event.target.value)}
@@ -361,7 +369,7 @@ export default function Posts() {
               options={topicOptions}
               value={topicFilter}
               onChange={setTopicFilter}
-              placeholder="Lọc theo chủ đề"
+              placeholder={t('posts.filters.topicPlaceholder')}
             />
           </div>
         </Flex>
@@ -371,13 +379,14 @@ export default function Posts() {
           dataSource={filteredPosts}
           loading={loading}
           pagination={false}
+          locale={{ emptyText: t('posts.states.empty') }}
           rowKey="id"
           tableLayout="fixed"
         />
 
         <Flex justify="space-between" align="center" className="pagination-bar">
           <Typography.Text>
-            Hiển thị {totalFiltered} / {totalLoaded} bài đã tải
+            {t('posts.pagination.summary', { filtered: totalFiltered, loaded: totalLoaded })}
           </Typography.Text>
           <div className="load-more-actions">
             {hasMore ? (
@@ -387,11 +396,11 @@ export default function Posts() {
                 loading={loadingMore}
                 disabled={loading}
               >
-                Tải thêm
+                {t('posts.actions.loadMore')}
               </Button>
             ) : (
               <Typography.Text type="secondary">
-                Đã tải hết dữ liệu
+                {t('posts.states.allDataLoaded')}
               </Typography.Text>
             )}
           </div>
@@ -399,7 +408,7 @@ export default function Posts() {
       </Card>
 
       <Modal
-        title="Chi tiết bài đăng"
+        title={t('posts.detailModal.title')}
         open={viewModalOpen}
         onCancel={() => setViewModalOpen(false)}
         footer={null}
@@ -407,27 +416,27 @@ export default function Posts() {
         centered
       >
         <Descriptions bordered column={1} size="middle" className="post-detail-descriptions">
-          <Descriptions.Item label="Tác giả">
-            {selectedPost?.author?.fullName || '—'}
+          <Descriptions.Item label={t('posts.detailModal.labels.author')}>
+            {selectedPost?.author?.fullName || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Vai trò">
-            {selectedPost?.author?.role ? getRoleLabel(selectedPost.author.role) : '—'}
+          <Descriptions.Item label={t('posts.detailModal.labels.role')}>
+            {getRoleLabelByLocale(selectedPost?.author?.role)}
           </Descriptions.Item>
-          <Descriptions.Item label="Chủ đề">
-            {selectedPost?.topic?.nameVn || '—'}
+          <Descriptions.Item label={t('posts.detailModal.labels.topic')}>
+            {selectedPost?.topic?.nameVn || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Ngày đăng">
+          <Descriptions.Item label={t('posts.detailModal.labels.postedDate')}>
             {formatDate(selectedPost?.createdAt)}
           </Descriptions.Item>
-          <Descriptions.Item label="Lượt thích">
+          <Descriptions.Item label={t('posts.detailModal.labels.likes')}>
             {selectedPost?.likeCount ?? 0}
           </Descriptions.Item>
-          <Descriptions.Item label="Bình luận">
+          <Descriptions.Item label={t('posts.detailModal.labels.comments')}>
             {selectedPost?.commentCount ?? 0}
           </Descriptions.Item>
-          <Descriptions.Item label="Nội dung">
+          <Descriptions.Item label={t('posts.detailModal.labels.content')}>
             <Typography.Text className="post-detail-content">
-              {cleanContent(selectedPost?.content || '') || '—'}
+              {cleanContent(selectedPost?.content || '') || noDataText}
             </Typography.Text>
           </Descriptions.Item>
         </Descriptions>
