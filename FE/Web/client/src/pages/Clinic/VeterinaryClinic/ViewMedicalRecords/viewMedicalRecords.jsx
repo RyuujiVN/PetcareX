@@ -15,6 +15,7 @@ import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { getAdminInstance } from '../../../../services/apiClient'
 import {
     getMedicalByIdApi,
+    getMedicalByPetIClinicdApi,
     getMedicalByPetIdApi,
     getMedicalOrdersByMedicalIdApi,
     getMedicinesByMedicalIdApi,
@@ -250,7 +251,7 @@ function ViewMedicalRecords() {
 				const detail = await getMedicalByIdApi(getAdminInstance(), medicalId)
 				records = detail ? [detail] : []
 			} else if (resolvedPetId) {
-				const byPet = await getMedicalByPetIdApi(getAdminInstance(), resolvedPetId)
+				const byPet = await getMedicalByPetIClinicdApi(getAdminInstance(), resolvedPetId)
 				records = Array.isArray(byPet?.items)
 					? byPet.items
 					: Array.isArray(byPet?.data)

@@ -275,6 +275,78 @@
       }
     }
   },
+  "accountMenu": {
+    "defaults": {
+      "name": "User",
+      "meta": "Account"
+    },
+    "actions": {
+      "profile": "Profile",
+      "changePassword": "Change password",
+      "logout": "Log out"
+    },
+    "profileModal": {
+      "title": "Profile",
+      "upload": {
+        "changeAvatar": "Change avatar"
+      },
+      "fields": {
+        "fullName": "Full name",
+        "email": "Email",
+        "phone": "Phone number",
+        "address": "Address"
+      },
+      "placeholders": {
+        "fullName": "Enter full name",
+        "email": "Enter email",
+        "phone": "Enter phone number",
+        "address": "Enter address"
+      },
+      "validation": {
+        "fullNameRequired": "Please enter full name",
+        "emailRequired": "Please enter email",
+        "emailInvalid": "Invalid email format",
+        "phoneRequired": "Please enter phone number",
+        "phoneInvalid": "Phone number must contain exactly 10 digits and start with 0",
+        "addressRequired": "Please enter address"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "save": "Save changes"
+      }
+    },
+    "passwordModal": {
+      "title": "Change password",
+      "fields": {
+        "currentPassword": "Current password",
+        "newPassword": "New password",
+        "confirmPassword": "Confirm new password"
+      },
+      "validation": {
+        "currentRequired": "Please enter current password",
+        "newRequired": "Please enter new password",
+        "newMinLength": "New password must be at least {{count}} characters",
+        "confirmRequired": "Please confirm new password",
+        "confirmMismatch": "Confirm password does not match"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "save": "Update password",
+        "saving": "Updating..."
+      }
+    },
+    "messages": {
+      "profileLoadFailed": "Unable to load profile information",
+      "profileSaved": "Profile updated successfully",
+      "profileSaveFailed": "Unable to update profile",
+      "avatarUploading": "Uploading avatar...",
+      "avatarUploadSuccess": "Avatar uploaded successfully",
+      "avatarUploadFailed": "Unable to upload avatar",
+      "avatarMissingUrl": "Missing avatar URL from system",
+      "passwordChanged": "Password changed successfully",
+      "passwordChangeFailed": "Unable to change password"
+    }
+  },
   "common": {
     "noData": "—",
     "none": "None",

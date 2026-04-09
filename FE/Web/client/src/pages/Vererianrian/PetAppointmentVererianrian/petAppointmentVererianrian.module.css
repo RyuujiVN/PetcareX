@@ -23,16 +23,19 @@
   border-radius: 18px;
   border: 1px solid var(--vet-color-border);
   box-shadow: var(--vet-shadow-card);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .summaryIcon {
-  width: 40px;
-  height: 40px;
+  width: 52px;
+  height: 52px;
   border-radius: 12px;
   display: grid;
   place-items: center;
-  font-size: 18px;
-  margin-bottom: 12px;
+  font-size: 24px;
+  flex-shrink: 0;
 }
 
 .summaryIconGreen {
@@ -52,12 +55,32 @@
 
 .summaryTitle {
   color: var(--vet-color-text-disabled);
-  font-size: 15px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .summaryValue {
-  margin: 6px 0 0 !important;
+  margin: 0 !important;
   color: var(--vet-color-text-primary) !important;
+  text-align: center;
+}
+
+.summaryTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.summaryValueRow {
+  display: grid;
+  grid-template-columns: 52px 1fr 52px;
+  align-items: center;
+  width: 100%;
+}
+
+.summaryValueRow .summaryValue {
+  grid-column: 2;
 }
 
 .tablePanel {

@@ -13,6 +13,15 @@ export const getMedicalByClinicApi = (instance, page = 1, limit = 10) => {
 // Lấy danh sách hồ sơ bệnh án theo id pet
 export const getMedicalByPetIdApi = (instance, petId, page = 1, limit = 10) => {
   return instance
+    .get(`/medical/pet/${petId}`, {
+      params: { page, limit },
+    })
+    .then((response) => response.data)
+}
+
+// Lấy danh sách hồ sơ bệnh án theo id pet
+export const getMedicalByPetIClinicdApi = (instance, petId, page = 1, limit = 10) => {
+  return instance
     .get(`/medical/clinic/pet/${petId}`, {
       params: { page, limit },
     })
