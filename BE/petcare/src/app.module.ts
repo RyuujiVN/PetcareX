@@ -24,6 +24,7 @@ import { ChatbotModule } from './chatbot/chatbot.module';
 import { AiDiagnosisModule } from './ai-diagnosis/ai-diagnosis.module';
 import { NotificationModule } from './notification/notification.module';
 import { BullModule } from '@nestjs/bullmq';
+import { ClinicHomepageSettingModule } from './clinic-homepage-setting/clinic-homepage-setting.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { BullModule } from '@nestjs/bullmq';
     ChatbotModule,
     AiDiagnosisModule,
     NotificationModule,
+    ClinicHomepageSettingModule,
   ],
   controllers: [AppController],
   providers: [
