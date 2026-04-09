@@ -6,7 +6,6 @@ import 'package:provider/provider.dart';
 import '../../../../core/services/camera_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_notifier.dart';
-import '../../../../core/utils/logger.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import 'provider/community_provider.dart';
@@ -159,7 +158,6 @@ class _CreatePostPageState extends State<CreatePostPage> {
         }
       }
     } catch (e) {
-      AppLogger.logError("Error creating post", e); // Đã sửa tên hàm từ .error sang .logError
       if (mounted) {
         setState(() => _isLoading = false);
         _showQuickSnackBar(l10n.failed);

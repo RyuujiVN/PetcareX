@@ -38,7 +38,8 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final chatProvider = context.watch<ChatProvider>();
     final currentCount = chatProvider.messages.length;
-    if (currentCount != _lastMessageCount) {
+    final hasStreaming = chatProvider.messages.any((m) => m.isStreaming);
+    if (currentCount != _lastMessageCount || hasStreaming) {
       _lastMessageCount = currentCount;
       _scrollToBottom();
     }
@@ -163,7 +164,7 @@ class _ChatPageState extends State<ChatPage> {
 
   Widget _buildChatBubble(ChatMessage message) {
     final isMe = message.isUser;
-    final time = DateFormat('hh:mm a').format(message.createdAt);
+    final time = DateFormat('hh:mm a').format(message.createdAt.toLocal());
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -193,7 +194,9 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                   child: Text(
-                    message.content,
+                    message.isStreaming
+                        ? '${message.content}▍'
+                        : message.content,
                     style: TextStyle(color: isMe ? AppColors.onPrimary : AppColors.textDark, fontSize: 14, height: 1.4),
                   ),
                 ),

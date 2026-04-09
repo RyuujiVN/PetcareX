@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/utils/logger.dart';
 import '../../data/chat_repository.dart';
 import '../../data/chat_socket_service.dart';
 import '../../data/models/chat_models.dart';
@@ -44,12 +43,10 @@ class ChatProvider extends ChangeNotifier {
     };
 
     _socketService.onDisconnected = () {
-      AppLogger.logError('[CHAT][PROVIDER] socket disconnected');
       notifyListeners();
     };
 
     _socketService.onError = (error) {
-      AppLogger.logError('[CHAT][PROVIDER] socket error', error);
       _errorMessage = error?.toString() ?? 'Socket error';
       notifyListeners();
     };
@@ -64,9 +61,6 @@ class ChatProvider extends ChangeNotifier {
     };
 
     _socketService.onUserMessage = (serverMessage) {
-      AppLogger.logError(
-        '[CHAT][PROVIDER] received serverResponseMessage roomId=${serverMessage.roomId}',
-      );
       _replacePendingUserMessage(serverMessage);
       notifyListeners();
     };
@@ -76,10 +70,11 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     };
 
+    _socketService.onAiStreamDone = () {
+      _markStreamingDone();
+    };
+
     _socketService.onAiFinalMessage = (serverAiMessage) {
-      AppLogger.logError(
-        '[CHAT][PROVIDER] received serverResponseAIMessage roomId=${serverAiMessage.roomId}',
-      );
       _finalizeAiMessage(serverAiMessage);
       _upsertRoomWithMessage(serverAiMessage);
       notifyListeners();
@@ -87,26 +82,20 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> initialize() async {
-    AppLogger.logError('[CHAT][PROVIDER] initialize');
     await connectSocket();
     await fetchRooms();
   }
 
   Future<void> connectSocket() async {
-    AppLogger.logError('[CHAT][PROVIDER] connectSocket');
     await _socketService.connect();
   }
 
   Future<void> fetchRooms() async {
-    AppLogger.logError('[CHAT][PROVIDER] fetchRooms start');
     _isLoadingRooms = true;
     _errorMessage = null;
     notifyListeners();
     try {
       final result = await _repository.getRooms(limit: 20);
-      AppLogger.logError(
-        '[CHAT][PROVIDER] fetchRooms success count=${result.data.length}',
-      );
       _rooms = result.data;
       _rooms.sort(_roomSortComparer);
       if (_currentRoomId == null && _rooms.isNotEmpty) {
@@ -115,7 +104,6 @@ class ChatProvider extends ChangeNotifier {
         _socketService.joinRoom(_currentRoomId!);
       }
     } catch (e) {
-      AppLogger.logError('[CHAT][PROVIDER] fetchRooms error', e);
       _errorMessage = e.toString();
     } finally {
       _isLoadingRooms = false;
@@ -153,16 +141,12 @@ class ChatProvider extends ChangeNotifier {
 
     try {
       final result = await _repository.getMessages(targetRoomId, limit: 20);
-      AppLogger.logError(
-        '[CHAT][PROVIDER] fetchMessages roomId=$targetRoomId count=${result.data.length}',
-      );
       _messages = result.data;
       _hasMoreMessages = result.meta.hasMore;
       if (_messages.isNotEmpty) {
         _oldestMessageCursor = _messages.first.createdAt.toIso8601String();
       }
     } catch (e) {
-      AppLogger.logError('[CHAT][PROVIDER] fetchMessages error', e);
       _errorMessage = e.toString();
     } finally {
       _isLoadingMessages = false;
@@ -208,7 +192,6 @@ class ChatProvider extends ChangeNotifier {
     if (trimmed.isEmpty) return;
 
     if (_currentRoomId == null || _currentRoomId!.isEmpty) {
-      AppLogger.logError('[CHAT][PROVIDER] currentRoomId empty, creating room via REST');
       final createdRoom = await _repository.createRoom(
         name: trimmed.length > 24 ? '${trimmed.substring(0, 24)}...' : trimmed,
       );
@@ -240,24 +223,16 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      if (!_socketService.isConnected) {
-        AppLogger.logError('[CHAT][PROVIDER] socket not connected, reconnect');
-      }
       final connected = await _socketService.ensureConnected();
       if (!connected) {
-        AppLogger.logError('[CHAT][PROVIDER] socket connect timeout/fail');
         _markMessageAsError(localMessage.id);
         _errorMessage = 'Socket khong ket noi duoc';
         notifyListeners();
         return;
       }
-      AppLogger.logError(
-        '[CHAT][PROVIDER] sendUserMessage roomId=$_currentRoomId text="$trimmed"',
-      );
       _socketService.sendMessage(content: trimmed, roomId: _currentRoomId);
       _schedulePendingTimeout(localMessage.id);
     } catch (e) {
-      AppLogger.logError('[CHAT][PROVIDER] sendUserMessage error', e);
       _markMessageAsError(localMessage.id);
       notifyListeners();
     }
@@ -282,7 +257,8 @@ class ChatProvider extends ChangeNotifier {
         notifyListeners();
         return;
       }
-      _socketService.sendMessage(content: message.content, roomId: _currentRoomId);
+      _socketService.sendMessage(
+          content: message.content, roomId: _currentRoomId);
       _schedulePendingTimeout(messageId);
     } catch (_) {
       _messages[idx] = message.copyWith(status: ChatMessageStatus.error);
@@ -303,6 +279,9 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void _replacePendingUserMessage(ChatMessage serverMessage) {
+    // Deduplicate: skip if a message with this server ID already exists
+    if (_messages.any((m) => m.id == serverMessage.id)) return;
+
     final pendingIndex = _messages.lastIndexWhere(
       (msg) => msg.isUser && msg.status == ChatMessageStatus.sending,
     );
@@ -312,51 +291,81 @@ class ChatProvider extends ChangeNotifier {
         status: ChatMessageStatus.sent,
       );
     } else {
-      _messages = [..._messages, serverMessage.copyWith(status: ChatMessageStatus.sent)];
+      _messages = [
+        ..._messages,
+        serverMessage.copyWith(status: ChatMessageStatus.sent)
+      ];
     }
 
-    _currentRoomId = serverMessage.roomId.isNotEmpty ? serverMessage.roomId : _currentRoomId;
+    _currentRoomId =
+        serverMessage.roomId.isNotEmpty ? serverMessage.roomId : _currentRoomId;
     _upsertRoomWithMessage(serverMessage);
   }
 
   void _appendAiChunk(String chunk) {
-    if (_streamingMessageId == null) {
-      final aiMessage = ChatMessage(
-        id: _nextLocalMessageId(prefix: 'ai_stream'),
-        roomId: _currentRoomId ?? '',
-        role: 'assistant',
-        content: chunk,
-        createdAt: DateTime.now(),
-        status: ChatMessageStatus.sent,
-        isStreaming: true,
-      );
-      _streamingMessageId = aiMessage.id;
-      _messages = [..._messages, aiMessage];
-      return;
+    if (_streamingMessageId != null) {
+      final idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
+      if (idx != -1 && _messages[idx].isStreaming) {
+        _messages[idx] = _messages[idx].copyWith(
+          content: '${_messages[idx].content}$chunk',
+        );
+        return;
+      }
+      _streamingMessageId = null;
     }
 
-    final idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
-    if (idx == -1) return;
-    final current = _messages[idx];
-    _messages[idx] = current.copyWith(
-      content: '${current.content}$chunk',
+    final aiMessage = ChatMessage(
+      id: _nextLocalMessageId(prefix: 'ai_stream'),
+      roomId: _currentRoomId ?? '',
+      role: 'assistant',
+      content: chunk,
+      createdAt: DateTime.now(),
+      status: ChatMessageStatus.sent,
       isStreaming: true,
     );
+    _streamingMessageId = aiMessage.id;
+    _messages = [..._messages, aiMessage];
+  }
+
+  void _markStreamingDone() {
+    if (_streamingMessageId == null) return;
+    final idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
+    if (idx != -1) {
+      _messages[idx] = _messages[idx].copyWith(isStreaming: false);
+    }
+    _streamingMessageId = null;
+    notifyListeners();
   }
 
   void _finalizeAiMessage(ChatMessage finalMessage) {
+    // Deduplicate: if a message with this server ID already exists, just update it
+    final existingIdx = _messages.indexWhere((m) => m.id == finalMessage.id);
+    if (existingIdx != -1) {
+      _messages[existingIdx] = finalMessage.copyWith(
+        status: ChatMessageStatus.sent,
+        isStreaming: false,
+      );
+      _streamingMessageId = null;
+      return;
+    }
+
+    int idx = -1;
     if (_streamingMessageId != null) {
-      final idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
-      if (idx != -1) {
-        _messages[idx] = finalMessage.copyWith(
-          status: ChatMessageStatus.sent,
-          isStreaming: false,
-        );
-      } else {
-        _messages = [..._messages, finalMessage.copyWith(isStreaming: false)];
-      }
+      idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
     } else {
-      _messages = [..._messages, finalMessage.copyWith(isStreaming: false)];
+      idx = _messages.lastIndexWhere((m) => m.id.startsWith('ai_stream'));
+    }
+
+    if (idx != -1) {
+      _messages[idx] = finalMessage.copyWith(
+        status: ChatMessageStatus.sent,
+        isStreaming: false,
+      );
+    } else {
+      _messages = [
+        ..._messages,
+        finalMessage.copyWith(isStreaming: false)
+      ];
     }
     _streamingMessageId = null;
     _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
@@ -381,7 +390,8 @@ class ChatProvider extends ChangeNotifier {
         return;
       }
       if (_messages[idx].status == ChatMessageStatus.sending) {
-        _messages[idx] = _messages[idx].copyWith(status: ChatMessageStatus.error);
+        _messages[idx] =
+            _messages[idx].copyWith(status: ChatMessageStatus.error);
         _pendingMessageDeadline.remove(localMessageId);
         notifyListeners();
       }

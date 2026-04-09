@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
-
 import '../../../core/enums/appointment_status_enum.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_helper.dart';
@@ -38,7 +36,6 @@ class AppointmentService {
         throw Exception('Failed to load appointments: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('Error fetching appointments: $e');
       rethrow;
     }
   }
@@ -51,7 +48,6 @@ class AppointmentService {
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
-      debugPrint('Error cancelling appointment: $e');
       return false;
     }
   }
@@ -67,7 +63,6 @@ class AppointmentService {
       );
       return response.statusCode == 200;
     } catch (e) {
-      debugPrint('Error updating appointment status: $e');
       return false;
     }
   }

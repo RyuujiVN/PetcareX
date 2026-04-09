@@ -236,6 +236,36 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Tập trung hóa contract upload ảnh, giảm duplicate API giữa các module.
     - Dễ thay đổi backend storage strategy mà không phải sửa hàng loạt feature.
 
+## 💬 Streaming AI Chat Architecture (2026-04-09)
+
+### Kiến trúc streaming token-by-token
+- **Socket event flow:**
+    1. User gửi message → `ChatSocketService.sendMessage()` emit `message` + `sendMessage` events.
+    2. Backend xác nhận → emit `serverResponseMessage` (user message saved to DB).
+    3. AI streaming → emit nhiều `aiResponse` với `{ "type": "token", "token": "từng_chữ", ... }`.
+    4. AI hoàn thành → emit `aiResponse` với `{ "type": "done" }`.
+    5. Final DB record → emit `serverResponseAIMessage` hoặc `aiFinalMessage` (AI message saved to DB).
+- **Socket service** (`lib/features/chat/data/chat_socket_service.dart`):
+    - `onAiChunk` callback: nhận từng token khi `type == "token"` hoặc `"chunk"` hoặc empty.
+    - `onAiStreamDone` callback: signal khi `type == "done"`.
+    - `onAiFinalMessage` callback: nhận message cuối cùng từ DB.
+    - Đọc content từ field `token` > `answer` > `content` (fallback chain).
+- **Provider** (`lib/features/chat/presentation/provider/chat_provider.dart`):
+    - `_appendAiChunk()`: Token đầu tiên tạo `ChatMessage` mới với `isStreaming: true`, các token sau append vào `content`.
+    - `_markStreamingDone()`: Set `isStreaming: false`, clear `_streamingMessageId`. Gọi khi nhận `type: "done"`.
+    - `_finalizeAiMessage()`: Replace local streaming message bằng DB record từ server. Tìm theo `_streamingMessageId` hoặc fallback tìm message có id prefix `ai_stream`.
+    - Race condition handling: Nếu stream đã done nhưng token mới đến → tạo message streaming mới.
+- **UI** (`lib/features/chat/presentation/chat_page.dart`):
+    - Bubble message hiển thị cursor `▍` khi `message.isStreaming == true`.
+    - Auto-scroll-to-bottom khi đang streaming (check `hasStreaming`).
+    - State management: Provider pattern — `notifyListeners()` mỗi token → `context.watch<ChatProvider>()` rebuild.
+- **Cleanup khi dispose:** `ChatProvider.dispose()` gọi `_socketService.disconnect()` → disconnect + dispose socket.
+
+### Debug logging policy
+- Chat feature: **không có debug log** — tất cả `AppLogger.logError` đã xóa khỏi socket service và provider.
+- `AppLogger.logError()` luôn print prefix `"API ERROR"` — chỉ nên dùng cho actual errors, không dùng cho info/debug logging.
+- HTTP API logging (`AppLogger.logRequest/logResponse` trong `api_client.dart`) vẫn giữ nguyên, đã có guard `kDebugMode`.
+
 ## 📁 Trạng thái các tính năng
 
 ### 1. Hệ thống đa ngôn ngữ (i18n)
