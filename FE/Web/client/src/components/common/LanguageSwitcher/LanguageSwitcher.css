@@ -1,0 +1,18 @@
+.language-switcher-btn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-surface-page);
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.language-switcher-btn:hover {
+  border-color: var(--page-header-primary);
+  color: var(--page-header-primary);
+  box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-1);
+}

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { getUserProfileApi } from "../../data/Clinic/api/user";
+import { getUserProfileApi } from "../../services/userService";
+import { getAdminInstance } from "../../services/apiClient";
 import { getPrimaryRole } from "../../constants/authRole";
 import {
 	ADMIN_AUTH_STORAGE,
@@ -9,6 +10,7 @@ import {
 	removeAdminAuthItem,
 	setAdminAuthItem,
 } from "../../constants/authStorage";
+import { getToken, setToken as saveToken } from "../../utils/storage/tokenStorage";
 
 const AuthContext = createContext();
 
@@ -52,7 +54,7 @@ const mergeClinicMetadata = (profile, fallbackProfile = null) => {
 };
 
 export const AuthProvider = ({ children }) => {
-	const [token, setToken] = useState(getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey));
+	const [token, setToken] = useState(getToken());
 	const [userProfile, setUserProfile] = useState(null);
 	const [activeRole, setActiveRole] = useState(
 		getAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey) || null,
@@ -72,7 +74,7 @@ export const AuthProvider = ({ children }) => {
 				setAdminAuthItem(ADMIN_AUTH_STORAGE.activeRoleKey, cachedRole);
 			}
 
-			getUserProfileApi()
+			getUserProfileApi(getAdminInstance())
 				.then((res) => {
 					const mergedProfile = mergeClinicMetadata(res.data, cachedProfile);
 					setUserProfile(mergedProfile);
@@ -96,7 +98,7 @@ export const AuthProvider = ({ children }) => {
 
 	const login = (accessToken, profile = null) => {
 		clearLegacyAuthStorage();
-		setAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey, accessToken);
+		saveToken(accessToken);
 		if (profile) {
 			const mergedProfile = mergeClinicMetadata(profile, readStoredAdminProfile());
 			const resolvedRole = getPrimaryRole(mergedProfile);
@@ -119,7 +121,7 @@ export const AuthProvider = ({ children }) => {
 	const refreshUserProfile = async () => {
 		if (!token) return;
 		try {
-			const res = await getUserProfileApi();
+			const res = await getUserProfileApi(getAdminInstance());
 			const mergedProfile = mergeClinicMetadata(res.data, readStoredAdminProfile());
 			setUserProfile(mergedProfile);
 			setAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey, JSON.stringify(mergedProfile));

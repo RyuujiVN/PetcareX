@@ -30,7 +30,9 @@ import {
   message,
 } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
-import { createClinicApi, deleteClinicApi, getClinicListApi } from '../../../../data/admin/api/clinicApi'
+import { useTranslation } from 'react-i18next'
+import { createClinicApi, deleteClinicApi, getClinicListApi } from '../../../../services/clinicService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import './style.css'
 
 const getAbbreviation = (name) => {
@@ -53,6 +55,8 @@ const formatDate = (date) => {
 }
 
 export default function Clinics() {
+  const { t } = useTranslation('admin')
+  const noDataText = t('common.noData')
   const [clinicList, setClinicList] = useState([])
   const [pagination, setPagination] = useState({
     current: 1,
@@ -70,7 +74,7 @@ export default function Clinics() {
   const fetchClinics = useCallback(async (page, pageSize, keyword = '') => {
     setLoading(true)
     try {
-      const data = await getClinicListApi(page, pageSize, keyword)
+      const data = await getClinicListApi(getAdminInstance(), page, pageSize, keyword)
       const meta = data?.meta || {}
       setClinicList(data.items || [])
       setPagination({
@@ -79,11 +83,11 @@ export default function Clinics() {
         total: meta.totalItems || 0,
       })
     } catch (error) {
-      message.error(error.message || 'Không thể tải danh sách phòng khám')
+      message.error(error.message || t('clinics.messages.fetchFailed'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     fetchClinics(1, pagination.pageSize, '')
@@ -96,26 +100,28 @@ export default function Clinics() {
 
   const handleDelete = async (id) => {
     try {
-      await deleteClinicApi(id)
-      message.success('Xóa phòng khám thành công')
+      await deleteClinicApi(getAdminInstance(), id)
+      message.success(t('clinics.messages.deleteSuccess'))
       const nextPage = clinicList.length === 1 && pagination.current > 1
         ? pagination.current - 1
         : pagination.current
       fetchClinics(nextPage, pagination.pageSize, search.trim())
     } catch (error) {
-      message.error(error.message || 'Không thể xóa phòng khám')
+      message.error(error.message || t('clinics.messages.deleteFailed'))
     }
   }
 
   const handleDeleteWithConfirm = (clinic) => {
     Modal.confirm({
       centered: true,
-      title: 'Xác nhận xóa phòng khám',
+      title: t('clinics.confirmDelete.title'),
       icon: <InfoCircleOutlined style={{ color: 'var(--admin-color-warning)' }} />,
-      content: `Bạn có chắc muốn xóa phòng khám "${clinic?.name || 'này'}" không?`,
-      okText: 'Xóa',
+      content: t('clinics.confirmDelete.content', {
+        name: clinic?.name || t('common.thisItem'),
+      }),
+      okText: t('clinics.confirmDelete.ok'),
       okType: 'danger',
-      cancelText: 'Hủy',
+      cancelText: t('clinics.confirmDelete.cancel'),
       onOk: async () => {
         await handleDelete(clinic.id)
       },
@@ -131,7 +137,7 @@ export default function Clinics() {
     try {
       const values = await addForm.validateFields()
       setAddLoading(true)
-      await createClinicApi({
+      await createClinicApi(getAdminInstance(), {
         clinic: {
           name: values.clinicName,
           email: values.clinicEmail,
@@ -146,7 +152,7 @@ export default function Clinics() {
           password: values.adminPassword,
         },
       })
-      message.success('Thêm phòng khám thành công')
+      message.success(t('clinics.messages.createSuccess'))
       setAddModalOpen(false)
       fetchClinics(1, pagination.pageSize, search.trim())
     } catch (error) {
@@ -185,7 +191,7 @@ export default function Clinics() {
 
   const columns = [
     {
-      title: 'TÊN PHÒNG KHÁM',
+      title: t('clinics.table.columns.name'),
       dataIndex: 'name',
       key: 'name',
       render: (text) => (
@@ -194,45 +200,47 @@ export default function Clinics() {
             {getAbbreviation(text)}
           </Avatar>
           <Typography.Text className="clinic-name-ellipsis" title={text || ''}>
-            {text || '—'}
+            {text || noDataText}
           </Typography.Text>
         </Space>
       ),
     },
     {
-      title: 'SỐ ĐIỆN THOẠI',
+      title: t('clinics.table.columns.phone'),
       dataIndex: 'phone',
       key: 'phone',
+      render: (value) => value || noDataText,
     },
     {
-      title: 'ĐỊA CHỈ',
+      title: t('clinics.table.columns.address'),
       dataIndex: 'address',
       key: 'address',
       render: (value) => (
         <Typography.Text className="clinic-address-ellipsis" title={value || ''}>
-          {value || '—'}
+          {value || noDataText}
         </Typography.Text>
       ),
     },
     {
-      title: 'EMAIL',
+      title: t('clinics.table.columns.email'),
       dataIndex: 'email',
       key: 'email',
+      render: (value) => value || noDataText,
     },
     {
-      title: 'TRẠNG THÁI',
+      title: t('clinics.table.columns.status'),
       dataIndex: 'deleted',
       key: 'deleted',
       width: 150,
       align: 'center',
       render: (deleted) => (
         <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'} style={{ marginTop: 7 }}>
-          {deleted ? 'Dừng hoạt động' : 'Hoạt động'}
+          {deleted ? t('clinics.status.deleted') : t('clinics.status.active')}
         </Tag>
       ),
     },
     {
-      title: 'THAO TÁC',
+      title: t('clinics.table.columns.action'),
       key: 'action',
       width: 110,
       align: 'center',
@@ -269,7 +277,7 @@ export default function Clinics() {
             <div className="stat-card__icon stat-card__icon--clinic">
               <MedicineBoxOutlined />
             </div>
-            <Statistic title="Tổng số phòng khám" value={total} />
+            <Statistic title={t('clinics.stats.totalClinics')} value={total} />
           </Card>
         </Col>
       </Row>
@@ -279,16 +287,16 @@ export default function Clinics() {
         <Flex justify="space-between" align="center" className="section-header">
           <div className="section-title">
             <Typography.Title level={4} style={{ marginRight: 165 }}>
-              Danh sách phòng khám
+              {t('clinics.page.title')}
             </Typography.Title>
             <Typography.Text type="secondary">
-              Quản lý các phòng khám mới đăng ký và đang hoạt động
+              {t('clinics.page.subtitle')}
             </Typography.Text>
           </div>
           <div className="table-actions">
             <Input
               className="clinics-search"
-              placeholder="Tìm theo tên phòng khám hoặc SĐT"
+              placeholder={t('clinics.search.placeholder')}
               allowClear
               value={search}
               onChange={handleSearchChange}
@@ -296,7 +304,7 @@ export default function Clinics() {
               prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
             />
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              Thêm phòng khám
+              {t('clinics.actions.addClinic')}
             </Button>
           </div>
         </Flex>
@@ -313,7 +321,7 @@ export default function Clinics() {
         {/* ── Phân trang ── */}
         <Flex justify="space-between" align="center" className="pagination-bar">
           <Typography.Text>
-            Hiển thị {start}-{end} trên {total} phòng khám
+            {t('clinics.pagination.summary', { start, end, total })}
           </Typography.Text>
           <Pagination
             current={current}
@@ -327,12 +335,12 @@ export default function Clinics() {
 
       {/* ── Modal thêm phòng khám ── */}
       <Modal
-        title="Thêm phòng khám mới"
+        title={t('clinics.addModal.title')}
         open={addModalOpen}
         onCancel={() => setAddModalOpen(false)}
         onOk={handleAddSubmit}
-        okText="Thêm phòng khám"
-        cancelText="Hủy"
+        okText={t('clinics.addModal.ok')}
+        cancelText={t('clinics.addModal.cancel')}
         confirmLoading={addLoading}
         width={960}
         destroyOnClose
@@ -350,60 +358,60 @@ export default function Clinics() {
               <div className="add-clinic-form-section">
                 <div className="add-clinic-section-title">
                   <MedicineBoxOutlined />
-                  Thông tin phòng khám
+                  {t('clinics.addModal.sections.clinicInfo')}
                 </div>
 
                 <Form.Item
                   name="clinicName"
-                  label={requiredLabel('Tên phòng khám')}
-                  rules={[{ required: true, message: 'Vui lòng nhập tên phòng khám' }]}
+                  label={requiredLabel(t('clinics.addModal.labels.clinicName'))}
+                  rules={[{ required: true, message: t('clinics.addModal.validation.clinicNameRequired') }]}
                 >
                   <Input
                     prefix={<MedicineBoxOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                    placeholder="VD: Phòng khám thú y ABC"
+                    placeholder={t('clinics.addModal.placeholders.clinicName')}
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="clinicEmail"
-                  label={requiredLabel('Email phòng khám')}
+                  label={requiredLabel(t('clinics.addModal.labels.clinicEmail'))}
                   rules={[
-                    { required: true, message: 'Vui lòng nhập email' },
-                    { type: 'email', message: 'Email không hợp lệ' },
+                    { required: true, message: t('clinics.addModal.validation.emailRequired') },
+                    { type: 'email', message: t('clinics.addModal.validation.invalidEmail') },
                   ]}
                 >
                   <Input
                     prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                    placeholder="clinic@email.com"
+                    placeholder={t('clinics.addModal.placeholders.clinicEmail')}
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="clinicPhone"
-                  label={requiredLabel('Số điện thoại')}
+                  label={requiredLabel(t('clinics.addModal.labels.clinicPhone'))}
                   rules={[
-                    { required: true, message: 'Vui lòng nhập SĐT' },
-                    { pattern: /^0\d{9}$/, message: 'SĐT phải gồm 10 chữ số, bắt đầu bằng 0' },
+                    { required: true, message: t('clinics.addModal.validation.phoneRequired') },
+                    { pattern: /^0\d{9}$/, message: t('clinics.addModal.validation.phoneInvalid') },
                   ]}
                 >
                   <Input
                     prefix={<PhoneOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                    placeholder="0901234567"
+                    placeholder={t('clinics.addModal.placeholders.clinicPhone')}
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="clinicAddress"
-                  label={requiredLabel('Địa chỉ')}
-                  rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+                  label={requiredLabel(t('clinics.addModal.labels.clinicAddress'))}
+                  rules={[{ required: true, message: t('clinics.addModal.validation.addressRequired') }]}
                 >
-                  <Input placeholder="VD: 123 Nguyễn Văn Linh, Đà Nẵng" />
+                  <Input placeholder={t('clinics.addModal.placeholders.clinicAddress')} />
                 </Form.Item>
 
-                <Form.Item name="clinicDescription" label="Mô tả" className="clinic-description-item">
+                <Form.Item name="clinicDescription" label={t('clinics.addModal.labels.clinicDescription')} className="clinic-description-item">
                   <Input.TextArea
-                    rows={2}
-                    placeholder="Mô tả ngắn về phòng khám (không bắt buộc)"
+                    rows={1}
+                    placeholder={t('clinics.addModal.placeholders.clinicDescription')}
                     showCount
                     maxLength={500}
                   />
@@ -415,45 +423,45 @@ export default function Clinics() {
               <div className="add-clinic-form-section">
                 <div className="add-clinic-section-title">
                   <UserOutlined />
-                  Tài khoản quản trị phòng khám
+                  {t('clinics.addModal.sections.adminInfo')}
                 </div>
 
                 <Form.Item
                   name="adminFullName"
-                  label={requiredLabel('Họ và tên quản trị')}
-                  rules={[{ required: true, message: 'Vui lòng nhập họ tên' }]}
+                  label={requiredLabel(t('clinics.addModal.labels.adminFullName'))}
+                  rules={[{ required: true, message: t('clinics.addModal.validation.adminNameRequired') }]}
                 >
                   <Input
                     prefix={<UserOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                    placeholder="VD: Nguyễn Văn A"
+                    placeholder={t('clinics.addModal.placeholders.adminFullName')}
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="adminEmail"
-                  label={requiredLabel('Email đăng nhập')}
+                  label={requiredLabel(t('clinics.addModal.labels.adminEmail'))}
                   rules={[
-                    { required: true, message: 'Vui lòng nhập email' },
-                    { type: 'email', message: 'Email không hợp lệ' },
+                    { required: true, message: t('clinics.addModal.validation.adminEmailRequired') },
+                    { type: 'email', message: t('clinics.addModal.validation.invalidEmail') },
                   ]}
                 >
                   <Input
                     prefix={<MailOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                    placeholder="admin@email.com"
+                    placeholder={t('clinics.addModal.placeholders.adminEmail')}
                   />
                 </Form.Item>
 
                 <Form.Item
                   name="adminPassword"
-                  label={requiredLabel('Mật khẩu')}
+                  label={requiredLabel(t('clinics.addModal.labels.adminPassword'))}
                   rules={[
-                    { required: true, message: 'Vui lòng nhập mật khẩu' },
-                    { min: 6, message: 'Mật khẩu tối thiểu 6 ký tự' },
+                    { required: true, message: t('clinics.addModal.validation.passwordRequired') },
+                    { min: 6, message: t('clinics.addModal.validation.passwordMin') },
                   ]}
                 >
                   <Input.Password
                     prefix={<LockOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
-                    placeholder="Tối thiểu 6 ký tự"
+                    placeholder={t('clinics.addModal.placeholders.adminPassword')}
                   />
                 </Form.Item>
               </div>
@@ -464,7 +472,7 @@ export default function Clinics() {
 
       {/* ── Modal xem chi tiết phòng khám ── */}
       <Modal
-        title="Chi tiết phòng khám"
+        title={t('clinics.detailModal.title')}
         open={viewModalOpen}
         onCancel={() => setViewModalOpen(false)}
         footer={null}
@@ -472,26 +480,26 @@ export default function Clinics() {
         centered
       >
         <Descriptions column={1} size="middle" bordered className="clinic-detail-descriptions">
-          <Descriptions.Item label="Tên phòng khám">
-            {selectedClinic?.name || '—'}
+          <Descriptions.Item label={t('clinics.detailModal.labels.clinicName')}>
+            {selectedClinic?.name || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Email">
-            {selectedClinic?.email || '—'}
+          <Descriptions.Item label={t('clinics.detailModal.labels.email')}>
+            {selectedClinic?.email || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Số điện thoại">
-            {selectedClinic?.phone || '—'}
+          <Descriptions.Item label={t('clinics.detailModal.labels.phone')}>
+            {selectedClinic?.phone || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Địa chỉ">
-            {selectedClinic?.address || '—'}
+          <Descriptions.Item label={t('clinics.detailModal.labels.address')}>
+            {selectedClinic?.address || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Mô tả">
-            {selectedClinic?.description || '—'}
+          <Descriptions.Item label={t('clinics.detailModal.labels.description')}>
+            {selectedClinic?.description || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Trạng thái">
-            {selectedClinic?.deleted ? 'Dừng hoạt động' : 'Hoạt động'}
+          <Descriptions.Item label={t('clinics.detailModal.labels.status')}>
+            {selectedClinic?.deleted ? t('clinics.status.deleted') : t('clinics.status.active')}
           </Descriptions.Item>
-          <Descriptions.Item label="Ngày tạo">
-            {formatDate(selectedClinic?.createdAt)}
+          <Descriptions.Item label={t('clinics.detailModal.labels.createdAt')}>
+            {formatDate(selectedClinic?.createdAt) || noDataText}
           </Descriptions.Item>
         </Descriptions>
       </Modal>

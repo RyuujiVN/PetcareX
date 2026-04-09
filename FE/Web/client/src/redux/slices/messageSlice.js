@@ -1,45 +1,33 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit'
-import instance from '../../data/client/api/instance'
+import { getClientInstance } from '../../services/apiClient'
+import { getMessagesInRoomApi, sendMessageApi } from '../../services/chatService'
 
 const initialState = {
   messages: [],
   hasMoreMessage: true
 }
-
-// Lấy danh sách message trong room
+// Lấy danh sách message trong đoạn chat
 export const fetchMessageInRoom = createAsyncThunk(
   'message/fetchMessageInRoom',
   async ({ roomId, query }) => {
-    const response = await instance.get(`/room/${roomId}/messages`, {
-      params: query
-    })
-
-    return response.data
+    return getMessagesInRoomApi(getClientInstance(), roomId, query)
   },
 )
-
-// Lấy danh sách message trong room
+// Lấy danh sách message cũ trong đoạn chat
 export const fetchOldMessageInRoom = createAsyncThunk(
   'message/fetchOldMessageInRoom',
   async ({ roomId, query }) => {
-    const response = await instance.get(`/room/${roomId}/messages`, {
-      params: query
-    })
-
-    return response.data
+    return getMessagesInRoomApi(getClientInstance(), roomId, query)
   },
 )
-
 // Gửi message
 export const fetchSendMessage = createAsyncThunk(
   'message/fetchSendMessage',
   async (data) => {
-    const response = await instance.post(`message`, data)
-
-    return response.data
+    return sendMessageApi(getClientInstance(), data)
   },
 )
-
+// Slice message
 export const messageSlice = createSlice({
   name: 'message',
   initialState,
@@ -104,8 +92,7 @@ export const messageSlice = createSlice({
     })
   }
 })
-
-// Action creators are generated for each case reducer function
+// Export actions and reducer
 export const { addMessage, editAiMessage } = messageSlice.actions
 
 export default messageSlice.reducer

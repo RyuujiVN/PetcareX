@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Button, DatePicker, Empty, Spin, message } from 'antd'
 import { EyeOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons'
+import { Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { Typography } from 'antd'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
-	APPOINTMENT_STATUS,
-	getVeterinarianAppointmentsApi,
-} from '../../../data/Vererianrian/api/appointmentApi'
+    APPOINTMENT_STATUS,
+    getAppointmentsApi,
+} from '../../../services/appointmentService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import styles from './listMedicalRecords.module.css'
 
 const PAGE_SIZE = 4
@@ -25,36 +27,30 @@ const getCurrentVeterinarianUserId = () => {
 	}
 }
 
-const formatDate = (value) => {
-	if (!value) return 'Chưa cập nhật'
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
-	return date.toLocaleDateString('vi-VN')
-}
+const formatDate = (value, fallback) => formatDateDDMMYYYY(value, fallback)
 
-const formatTime = (value) => {
-	if (!value) return 'Chưa cập nhật'
-	return String(value).slice(0, 5)
-}
+const formatTime = (value, fallback) => formatTimeHHMM(value, fallback)
 
-const toPetRow = (item) => {
+const toPetRow = (item, t) => {
 	const pet = item?.pet || {}
 	const owner = pet?.owner || {}
+	const notUpdated = t('medicalRecords.list.states.notUpdated')
 
 	return {
 		id: String(item?.id || Math.random()),
 		appointmentId: item?.id,
 		medicalId: item?.medical?.id || '',
 		petId: pet?.id || '',
-		petName: pet?.name || 'Chưa cập nhật',
+		petName: pet?.name || notUpdated,
 		petAvatar: pet?.avatar || '',
-		ownerName: owner?.fullName || 'Chưa cập nhật',
-		createdDate: formatDate(item?.appointmentDate),
-		time: formatTime(item?.appointmentTime),
+		ownerName: owner?.fullName || notUpdated,
+		createdDate: formatDate(item?.appointmentDate, notUpdated),
+		time: formatTime(item?.appointmentTime, notUpdated),
 	}
 }
 
 export default function ListMedicalRecords() {
+	const { t } = useTranslation('vererianrian')
 	const navigate = useNavigate()
 	const [loading, setLoading] = useState(false)
 	const [selectedDate, setSelectedDate] = useState(dayjs())
@@ -64,7 +60,7 @@ export default function ListMedicalRecords() {
 	const fetchRecords = useCallback(async () => {
 		try {
 			setLoading(true)
-			const response = await getVeterinarianAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 500,
 				date: selectedDate.format('YYYY-MM-DD'),
@@ -79,16 +75,16 @@ export default function ListMedicalRecords() {
 					const veterinarianUserId = item?.veterinarian?.user?.id
 					return String(veterinarianUserId || '') === String(currentUserId)
 				})
-			const mappedRows = activeItems.map(toPetRow)
+			const mappedRows = activeItems.map((item) => toPetRow(item, t))
 			mappedRows.sort((a, b) => a.time.localeCompare(b.time))
 			setRows(mappedRows)
 		} catch (error) {
 			setRows([])
-			message.error(error?.message || 'Không thể tải danh sách hồ sơ bệnh án')
+			message.error(error?.message || t('medicalRecords.list.messages.loadError'))
 		} finally {
 			setLoading(false)
 		}
-	}, [selectedDate])
+	}, [selectedDate, t])
 
 	useEffect(() => {
 		fetchRecords()
@@ -107,7 +103,7 @@ export default function ListMedicalRecords() {
 
 	const handleViewRecords = (row) => {
 		if (!row?.petId) {
-			message.warning('Không tìm thấy thú cưng để xem chi tiết hồ sơ')
+			message.warning(t('medicalRecords.list.messages.missingPet'))
 			return
 		}
 
@@ -130,7 +126,7 @@ export default function ListMedicalRecords() {
 		<div className={styles.pageRoot}>
 			<section className={styles.tablePanel}>
 				<div className={styles.tablePanelHeader}>
-					<Typography.Title className={styles.panelTitle}>Hồ sơ bệnh án thú cưng</Typography.Title>
+					<Typography.Title className={styles.panelTitle}>{t('medicalRecords.list.title')}</Typography.Title>
 					<DatePicker
 						value={selectedDate}
 						onChange={(value) => setSelectedDate(value || dayjs())}
@@ -146,7 +142,7 @@ export default function ListMedicalRecords() {
 					</div>
 				) : rows.length === 0 ? (
 					<div className={styles.emptyWrap}>
-						<Empty description="Không có hồ sơ theo ngày đã chọn" />
+						<Empty description={t('medicalRecords.list.states.empty')} />
 					</div>
 				) : (
 					<>
@@ -154,11 +150,11 @@ export default function ListMedicalRecords() {
 							<table>
 								<thead>
 									<tr>
-										<th>THÚ CƯNG</th>
-										<th>CHỦ NUÔI</th>
-										<th>NGÀY TẠO</th>
-										<th>THỜI GIAN</th>
-										<th>THAO TÁC</th>
+										<th>{t('medicalRecords.list.table.pet')}</th>
+										<th>{t('medicalRecords.list.table.owner')}</th>
+										<th>{t('medicalRecords.list.table.createdDate')}</th>
+										<th>{t('medicalRecords.list.table.time')}</th>
+										<th>{t('medicalRecords.list.table.action')}</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -188,7 +184,7 @@ export default function ListMedicalRecords() {
 														onClick={() => handleViewRecords(row)}
 														style={{ backgroundColor: '#4672b4', borderColor: '#4672b4', color: '#fff' }}
 													>
-														<EyeOutlined /> Xem chi tiết
+														<EyeOutlined /> {t('medicalRecords.list.actions.viewDetail')}
 													</Button>
 												</div>
 											</td>
@@ -199,7 +195,12 @@ export default function ListMedicalRecords() {
 						</div>
 
 						<div className={styles.footerRow}>
-							<p>Hiển thị {paginatedRows.length} trong số {rows.length} lịch hẹn</p>
+							<p>
+								{t('medicalRecords.list.pagination.summary', {
+									shown: paginatedRows.length,
+									total: rows.length,
+								})}
+							</p>
 							<div className={styles.paginationArrows}>
 								<Button
 									shape="circle"

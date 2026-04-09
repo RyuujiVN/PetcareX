@@ -2,15 +2,16 @@ import { CalendarOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons
 import { Button, DatePicker, Empty, Input, Pagination, Select, Spin, Tag, message } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, getClinicAppointmentsApi } from '../../../../data/Clinic/api/appointmentApi'
-import { getClinicPetSpeciesApi } from '../../../../data/Clinic/api/petApi'
+import { getAdminInstance } from '../../../../services/apiClient'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
+import { getPetSpeciesApi } from '../../../../services/petService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
 import { getPetBreedLabel, getPetSpeciesLabel } from '../../../../utils/enumLabel'
 import styles from './listPetMedicalRecords.module.css'
 
 const PAGE_SIZE = 8
-const FALLBACK_TEXT = 'Không'
-const CONTACT_FALLBACK_TEXT = 'Chưa cập nhật được'
 
 const normalizeDate = (dateValue) => {
 	if (!dateValue) return ''
@@ -25,22 +26,21 @@ const normalizeDate = (dateValue) => {
 	return `${year}-${month}-${day}`
 }
 
-const formatDisplayDate = (dateValue) => {
-	if (!dateValue) return FALLBACK_TEXT
-	return new Date(dateValue).toLocaleDateString('vi-VN')
+const formatDisplayDate = (dateValue, _locale, fallbackText) => {
+	return formatDateDDMMYYYY(dateValue, fallbackText)
 }
 
-const formatDisplayTime = (timeValue) => (timeValue || '').slice(0, 5)
+const formatDisplayTime = (timeValue) => formatTimeHHMM(timeValue, '')
 
-const formatEnumLabel = (value) => {
-	return getPetSpeciesLabel(value, FALLBACK_TEXT)
+const formatEnumLabel = (value, fallbackText) => {
+	return getPetSpeciesLabel(value, fallbackText)
 }
 
-const formatSpeciesLabel = (species, breed) => {
-	const speciesLabel = getPetSpeciesLabel(species, FALLBACK_TEXT)
-	const breedLabel = getPetBreedLabel(breed, species, FALLBACK_TEXT)
+const formatSpeciesLabel = (species, breed, fallbackText) => {
+	const speciesLabel = getPetSpeciesLabel(species, fallbackText)
+	const breedLabel = getPetBreedLabel(breed, species, fallbackText)
 
-	if (!breedLabel || breedLabel === FALLBACK_TEXT) return speciesLabel
+	if (!breedLabel || breedLabel === fallbackText) return speciesLabel
 	return `${speciesLabel} (${breedLabel})`
 }
 
@@ -60,8 +60,12 @@ const sortByTimeAsc = (a, b) => {
 }
 
 export default function ListPetMedicalRecords() {
+	const { t, i18n } = useTranslation('clinic')
 	const navigate = useNavigate()
 	const location = useLocation()
+	const locale = i18n.language?.startsWith('en') ? 'en-GB' : 'vi-VN'
+	const fallbackText = t('medicalRecords.common.fallback')
+	const contactFallbackText = t('medicalRecords.common.contactFallback')
 	const isVeterinarianPortal = location.pathname.startsWith('/veterinarian')
 	const routePrefix = isVeterinarianPortal ? '/veterinarian' : '/clinic'
 	const [loading, setLoading] = useState(false)
@@ -76,7 +80,7 @@ export default function ListPetMedicalRecords() {
 	const fetchSpecies = useCallback(async () => {
 		try {
 			setLoadingSpecies(true)
-			const response = await getClinicPetSpeciesApi()
+			const response = await getPetSpeciesApi(getAdminInstance())
 			setSpeciesList(Array.isArray(response) ? response : [])
 		} catch {
 			setSpeciesList([])
@@ -89,7 +93,7 @@ export default function ListPetMedicalRecords() {
 		try {
 			setLoading(true)
 
-			const response = await getClinicAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 500,
 				date: selectedDate.format('YYYY-MM-DD'),
@@ -119,16 +123,16 @@ export default function ListPetMedicalRecords() {
 					appointmentId: firstAppointment?.id || '',
 					medicalId: firstAppointment?.medical?.id || '',
 					petId: String(petId),
-					name: pet?.name || 'Không rõ tên',
+					name: pet?.name || t('medicalRecords.common.unknownPetName'),
 					avatar: pet?.avatar || '',
 					breed: pet?.breed || '',
 					species: pet?.species || '',
-					speciesLabel: formatSpeciesLabel(pet?.species, pet?.breed),
+					speciesLabel: formatSpeciesLabel(pet?.species, pet?.breed, fallbackText),
 					dateOfBirth: pet?.dateOfBirth || '',
 					gender: pet?.gender,
 					weight: pet?.weight,
-					ownerName: owner?.fullName || 'Không rõ chủ nuôi',
-					ownerPhone: owner?.phone || CONTACT_FALLBACK_TEXT,
+					ownerName: owner?.fullName || t('medicalRecords.common.unknownOwner'),
+					ownerPhone: owner?.phone || contactFallbackText,
 					appointmentSummary: sortedAppointments
 						.map((appointment) => {
 							const time = formatDisplayTime(appointment?.appointmentTime)
@@ -136,7 +140,11 @@ export default function ListPetMedicalRecords() {
 						})
 						.join(', '),
 					revisitDateRaw: pickRevisitDate(firstAppointment),
-					revisitDateLabel: formatDisplayDate(pickRevisitDate(firstAppointment)),
+					revisitDateLabel: formatDisplayDate(
+						pickRevisitDate(firstAppointment),
+						locale,
+						fallbackText,
+					),
 					totalAppointments: sortedAppointments.length,
 					dateKey: normalizeDate(firstAppointment?.appointmentDate),
 				}
@@ -151,11 +159,11 @@ export default function ListPetMedicalRecords() {
 			})
 		} catch (error) {
 			setPetRows([])
-			message.error(error.message || 'Không thể tải danh sách sổ y tế điện tử')
+			message.error(error.message || t('medicalRecords.messages.fetchFailed'))
 		} finally {
 			setLoading(false)
 		}
-	}, [selectedDate, speciesList])
+	}, [contactFallbackText, fallbackText, locale, selectedDate, speciesList, t])
 
 	useEffect(() => {
 		fetchSpecies()
@@ -170,10 +178,10 @@ export default function ListPetMedicalRecords() {
 		const availableSpecies = speciesList.length > 0 ? speciesList : dataSpecies
 
 		return [
-			{ label: 'Tất cả loài', value: 'ALL' },
-			...availableSpecies.map((item) => ({ label: formatEnumLabel(item), value: item })),
+			{ label: t('medicalRecords.filters.allSpecies'), value: 'ALL' },
+			...availableSpecies.map((item) => ({ label: formatEnumLabel(item, fallbackText), value: item })),
 		]
-	}, [petRows, speciesList])
+	}, [fallbackText, petRows, speciesList, t])
 
 	const filteredRows = useMemo(() => {
 		const keyword = searchText.trim().toLowerCase()
@@ -205,7 +213,7 @@ export default function ListPetMedicalRecords() {
 
 	const onOpenMedicalRecord = (row) => {
 		if (!row?.petId) {
-			message.warning('Không tìm thấy thú cưng để mở sổ y tế')
+			message.warning(t('medicalRecords.messages.petNotFound'))
 			return
 		}
 
@@ -227,14 +235,14 @@ export default function ListPetMedicalRecords() {
 	return (
 		<div className={styles.content}>
 			<header className={styles.topHeader}>
-				<h1>Hồ sơ y tế điện tử của thú cưng</h1>
+				<h1>{t('medicalRecords.list.pageTitle')}</h1>
 			</header>
 
 			<section className={styles.mainPanel}>
 				<div className={styles.toolbar}>
 					<Input
 						className={styles.searchBox}
-						placeholder="Tìm theo ID, tên thú cưng hoặc tên chủ nuôi..."
+						placeholder={t('medicalRecords.list.searchPlaceholder')}
 						prefix={<SearchOutlined />}
 						value={searchText}
 						onChange={(event) => setSearchText(event.target.value)}
@@ -268,8 +276,8 @@ export default function ListPetMedicalRecords() {
 						<Empty
 							description={
 								<>
-									<div className={styles.emptyTitle}>Không có thú cưng phù hợp</div>
-									<div className={styles.emptyDescription}>Vui lòng đổi ngày hoặc bộ lọc loài để xem dữ liệu khác.</div>
+									<div className={styles.emptyTitle}>{t('medicalRecords.list.emptyTitle')}</div>
+									<div className={styles.emptyDescription}>{t('medicalRecords.list.emptyDescription')}</div>
 								</>
 							}
 						/>
@@ -279,12 +287,12 @@ export default function ListPetMedicalRecords() {
 						<table>
 							<thead>
 								<tr>
-									<th>ID & THÚ CƯNG</th>
-									<th>LOÀI</th>
-									<th>CHỦ NUÔI</th>
-									<th>NGÀY KHÁM</th>
-									<th>NGÀY TÁI KHÁM</th>
-									<th>THAO TÁC</th>
+									<th>{t('medicalRecords.list.columns.pet')}</th>
+									<th>{t('medicalRecords.list.columns.species')}</th>
+									<th>{t('medicalRecords.list.columns.owner')}</th>
+									<th>{t('medicalRecords.list.columns.examDate')}</th>
+									<th>{t('medicalRecords.list.columns.followUpDate')}</th>
+									<th>{t('medicalRecords.list.columns.actions')}</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -310,7 +318,7 @@ export default function ListPetMedicalRecords() {
 										<td>
 											<div className={styles.infoBlock}>
 												<strong>{row.appointmentSummary}</strong>
-												<p>{`${row.totalAppointments} lịch hẹn`}</p>
+												<p>{t('medicalRecords.list.appointmentCount', { count: row.totalAppointments })}</p>
 											</div>
 										</td>
 										<td>
@@ -324,7 +332,7 @@ export default function ListPetMedicalRecords() {
 													className={styles.viewDetailButton}
 													onClick={() => onOpenMedicalRecord(row)}
 												>
-													Xem chi tiết
+													{t('medicalRecords.list.viewDetail')}
 												</Button>
 											</div>
 										</td>

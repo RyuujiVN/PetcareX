@@ -1,50 +1,45 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit"
-import instance from "../../data/client/api/instance"
+import { getClientInstance } from "../../services/apiClient"
+import {
+  createRoomApi,
+  deleteRoomApi,
+  getAllRoomsApi,
+  renameRoomApi,
+} from "../../services/chatService"
 
 const initialState = {
   rooms: [],
 }
-
-// Lấy danh sách tất cả room
+// Lấy danh sách room
 export const fetchRooms = createAsyncThunk(
   "room/fetchRooms",
   async () => {
-    const response = await instance.get("/room")
-    return response.data
+    return getAllRoomsApi(getClientInstance())
   }
 )
-
-// Tạo mới room
+// Tạo room mới
 export const fetchCreateRoom = createAsyncThunk(
   'room/fetchCreateRoom',
   async (data) => {
-    const response = await instance.post("/room", data)
-
-    return response.data
+    return createRoomApi(getClientInstance(), data)
   },
 )
-
-// Chỉnh sửa tên room
+// Đổi tên room
 export const fetchRenameRoom = createAsyncThunk(
   'room/fetchRenameRoom',
   async ({ id, data }) => {
-    const response = await instance.patch(`/room/${id}`, data)
-
-    return response.data
+    return renameRoomApi(getClientInstance(), id, data)
   },
 )
-
-// Xoá room
+// Xóa room
 export const fetchDeleteRoom = createAsyncThunk(
   'room/fetchDeleteRoom',
   async ({ id }) => {
-    const response = await instance.delete(`/room/${id}`)
-
-    return response.data
+    return deleteRoomApi(getClientInstance(), id)
   },
 )
 
-
+// Slice room
 export const roomSlice = createSlice({
   name: 'room',
   initialState,
@@ -76,8 +71,7 @@ export const roomSlice = createSlice({
     })
   }
 })
-
-// Action creators are generated for each case reducer function
+// Export actions and reducer
 export const { addRoom } = roomSlice.actions
 
 export default roomSlice.reducer

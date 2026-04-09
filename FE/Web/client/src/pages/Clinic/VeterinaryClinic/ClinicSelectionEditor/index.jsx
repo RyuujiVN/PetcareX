@@ -1,19 +1,18 @@
 import { UploadOutlined } from '@ant-design/icons'
-import { Button, Card, Col, Divider, Form, Input, Modal, Row, Space, Typography, Upload, message } from 'antd'
+import { Button, Card, Col, Divider, Form, Input, Modal, Row, Space, Upload, message } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  buildClinicInfoContent,
-  formatClinicOpenHours,
-  getClinicInfoContent,
-  saveClinicInfoContent,
-} from '../../../../data/client/utils/clinicInfoStorage'
-import { uploadOneFileToCloudinary } from '../../../../data/shared/api/cloudinaryUploadFetch'
 import { useAuth } from '../../../../hooks/Clinic/AuthContext'
+import { uploadOneFileToCloudinary } from '../../../../services/cloudinaryService'
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
+import {
+    buildClinicInfoContent,
+    formatClinicOpenHours,
+    getClinicInfoContent,
+    saveClinicInfoContent,
+} from '../../../../utils/storage/clinicInfoStorage'
 import './styles.css'
-
-const { Title, Text } = Typography
 
 const buildFallbackClinicFromProfile = (profile) => {
   const clinicInfo =
@@ -32,6 +31,7 @@ const buildFallbackClinicFromProfile = (profile) => {
 }
 
 export default function ClinicSelectionEditor() {
+  const { t } = useTranslation('clinic')
   const [form] = Form.useForm()
   const { clinicId: clinicIdParam = '' } = useParams()
   const navigate = useNavigate()
@@ -66,7 +66,7 @@ export default function ClinicSelectionEditor() {
 
   useEffect(() => {
     if (!targetClinicId) {
-      message.error('Thiếu clinicId để chỉnh sửa thông tin phòng khám.')
+      message.error(t('clinicEditor.messages.missingClinicIdEdit'))
       navigate('/clinic/appointments', { replace: true })
       return
     }
@@ -78,17 +78,17 @@ export default function ClinicSelectionEditor() {
     form.setFieldsValue(nextData)
     setSavedSnapshot(nextData)
     setLoadingInit(false)
-  }, [form, navigate, targetClinicId, userProfile])
+  }, [form, navigate, t, targetClinicId, userProfile])
 
   useEffect(() => {
     if (!targetClinicId || !currentClinicId || deniedRef.current) return
 
     if (String(targetClinicId) !== String(currentClinicId)) {
       deniedRef.current = true
-      message.error('Bạn chỉ có thể chỉnh sửa thông tin của phòng khám đang đăng nhập.')
+      message.error(t('clinicEditor.messages.permissionDenied'))
       navigate('/clinic/appointments', { replace: true })
     }
-  }, [currentClinicId, navigate, targetClinicId])
+  }, [currentClinicId, navigate, t, targetClinicId])
 
   const handleUploadAvatar = async (file) => {
     try {
@@ -97,13 +97,13 @@ export default function ClinicSelectionEditor() {
       const nextUrl = uploaded?.url || uploaded?.file || ''
 
       if (!nextUrl) {
-        throw new Error('Không nhận được URL ảnh từ server')
+        throw new Error(t('clinicEditor.messages.avatarUrlMissing'))
       }
 
       form.setFieldValue('avatarUrl', nextUrl)
-      message.success('Tải ảnh đại diện thành công')
+      message.success(t('clinicEditor.messages.avatarUploadSuccess'))
     } catch (error) {
-      message.error(error?.message || 'Không thể tải ảnh đại diện')
+      message.error(error?.message || t('clinicEditor.messages.avatarUploadFailed'))
     } finally {
       setUploadingAvatar(false)
     }
@@ -113,12 +113,12 @@ export default function ClinicSelectionEditor() {
 
   const handleSave = async () => {
     if (!targetClinicId) {
-      message.error('Thiếu clinicId để lưu dữ liệu.')
+      message.error(t('clinicEditor.messages.missingClinicIdSave'))
       return
     }
 
     if (!currentClinicId || String(targetClinicId) !== String(currentClinicId)) {
-      message.error('Không có quyền chỉnh sửa phòng khám này.')
+      message.error(t('clinicEditor.messages.permissionDenied'))
       navigate('/clinic/appointments', { replace: true })
       return
     }
@@ -131,11 +131,11 @@ export default function ClinicSelectionEditor() {
       saveClinicInfoContent(targetClinicId, normalized, sourceClinicRef.current)
 
       setSavedSnapshot(normalized)
-      message.success('Lưu thành công')
+      message.success(t('clinicEditor.messages.saveSuccess'))
       window.location.reload()
     } catch (error) {
       if (!error?.errorFields) {
-        message.error(error?.message || 'Không thể lưu thông tin phòng khám')
+        message.error(error?.message || t('clinicEditor.messages.saveFailed'))
       }
     } finally {
       setSaving(false)
@@ -153,10 +153,10 @@ export default function ClinicSelectionEditor() {
     }
 
     Modal.confirm({
-      title: 'Xác nhận',
-      content: 'Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?',
-      okText: 'Tiếp tục chỉnh sửa',
-      cancelText: 'Hủy bỏ thay đổi',
+      title: t('clinicEditor.confirm.leaveTitle'),
+      content: t('clinicEditor.confirm.leaveContent'),
+      okText: t('clinicEditor.confirm.continueEditing'),
+      cancelText: t('clinicEditor.confirm.discardChanges'),
       closable: false,
       maskClosable: false,
       onCancel: discardAndExit,
@@ -172,105 +172,80 @@ export default function ClinicSelectionEditor() {
             <Col xs={24} lg={16}>
               <Space direction="vertical" size={12} className="editor-full-width">
                 <Form.Item
-                  label="Tên phòng khám"
+                  label={t('clinicEditor.fields.name')}
                   name="name"
                   rules={[
-                    { required: true, message: 'Vui lòng nhập tên phòng khám' },
-                    { max: 120, message: 'Tên phòng khám tối đa 120 ký tự' },
+                    { required: true, message: t('clinicEditor.validation.nameRequired') },
+                    { max: 120, message: t('clinicEditor.validation.nameMax') },
                   ]}
                 >
-                  <Input placeholder="Nhập tên phòng khám" maxLength={120} />
+                  <Input placeholder={t('clinicEditor.placeholders.name')} maxLength={120} />
                 </Form.Item>
 
                 <Form.Item
-                  label="Địa chỉ"
+                  label={t('clinicEditor.fields.address')}
                   name="address"
                   rules={[
-                    { required: true, message: 'Vui lòng nhập địa chỉ' },
-                    { min: 5, message: 'Địa chỉ cần ít nhất 5 ký tự' },
-                    { max: 220, message: 'Địa chỉ tối đa 220 ký tự' },
+                    { required: true, message: t('clinicEditor.validation.addressRequired') },
+                    { min: 5, message: t('clinicEditor.validation.addressMin') },
+                    { max: 220, message: t('clinicEditor.validation.addressMax') },
                   ]}
                 >
-                  <Input placeholder="Nhập địa chỉ phòng khám" maxLength={220} />
+                  <Input placeholder={t('clinicEditor.placeholders.address')} maxLength={220} />
                 </Form.Item>
 
                 <Form.Item
-                  label="Số điện thoại"
+                  label={t('clinicEditor.fields.phone')}
                   name="phone"
                   rules={[
-                    { required: true, message: 'Vui lòng nhập số điện thoại' },
+                    { required: true, message: t('clinicEditor.validation.phoneRequired') },
                     {
                       pattern: /^(\+84|0)\d{9}$/,
-                      message: 'Số điện thoại không hợp lệ (ví dụ: 0912345678 hoặc +84912345678)',
+                      message: t('clinicEditor.validation.phoneInvalid'),
                     },
                   ]}
                 >
-                  <Input placeholder="Nhập số điện thoại" maxLength={12} />
+                  <Input placeholder={t('clinicEditor.placeholders.phone')} maxLength={12} />
                 </Form.Item>
 
                 <Row gutter={12}>
-                  {/* <Col xs={24} md={12}>
-                    <Form.Item
-                      label="Ngày mở cửa"
-                      name="openingDays"
-                      rules={[
-                        { required: true, message: 'Vui lòng nhập ngày mở cửa' },
-                        { max: 80, message: 'Ngày mở cửa tối đa 80 ký tự' },
-                      ]}
-                    >
-                      <Input placeholder="Ví dụ: Thứ 2 - Chủ nhật" maxLength={80} />
-                    </Form.Item>
-                  </Col> */}
-                
                   <Col xs={24} md={6}>
                     <Form.Item
-                      label="Giờ mở cửa"
+                      label={t('clinicEditor.fields.openingTime')}
                       name="openingTime"
-                      rules={[{ required: true, message: 'Vui lòng nhập giờ mở cửa' }]}
+                      rules={[{ required: true, message: t('clinicEditor.validation.openingTimeRequired') }]}
                     >
                       <Input type="time" />
                     </Form.Item>
                   </Col>
                   <Col xs={24} md={6}>
                     <Form.Item
-                      label="Giờ đóng cửa"
+                      label={t('clinicEditor.fields.closingTime')}
                       name="closingTime"
-                      rules={[{ required: true, message: 'Vui lòng nhập giờ đóng cửa' }]}
+                      rules={[{ required: true, message: t('clinicEditor.validation.closingTimeRequired') }]}
                     >
                       <Input type="time" />
                     </Form.Item>
                   </Col>
-                  
-                   
                 </Row>
-
-                {/* <Form.Item
-                  label="URL ảnh đại diện"
-                  name="avatarUrl"
-                  rules={[{ required: true, message: 'Vui lòng tải ảnh đại diện phòng khám' }]}
-                >
-                  <Input placeholder="URL ảnh đại diện phòng khám" />
-                </Form.Item> */}
-
-          
               </Space>
             </Col>
 
             <Col xs={24} lg={8}>
-              <Card title="Xem trước sau khi thay đổi" className="clinic-preview-card">
+              <Card title={t('clinicEditor.preview.title')} className="clinic-preview-card">
                 <div className="clinic-preview-image-wrap">
                   {draftSnapshot.avatarUrl ? (
-                    <img src={draftSnapshot.avatarUrl} alt={draftSnapshot.name || 'Clinic avatar'} className="clinic-preview-image" />
+                    <img src={draftSnapshot.avatarUrl} alt={draftSnapshot.name || t('clinicEditor.preview.avatarAlt')} className="clinic-preview-image" />
                   ) : (
-                    <div className="clinic-preview-placeholder">Chưa có ảnh</div>
+                    <div className="clinic-preview-placeholder">{t('clinicEditor.preview.noImage')}</div>
                   )}
                 </div>
 
                 <div className="clinic-preview-content">
-                  <h3>{draftSnapshot.name || 'Tên phòng khám'}</h3>
-                  <p>{draftSnapshot.address || 'Địa chỉ phòng khám'}</p>
+                  <h3>{draftSnapshot.name || t('clinicEditor.preview.defaultClinicName')}</h3>
+                  <p>{draftSnapshot.address || t('clinicEditor.preview.defaultAddress')}</p>
                   <p>{previewTime || '08:00 - 20:00'}</p>
-                  <p>{draftSnapshot.phone || 'Số điện thoại'}</p>
+                  <p>{draftSnapshot.phone || t('clinicEditor.preview.defaultPhone')}</p>
                   <Col xs={24} md={6}>
                 <Upload 
                     style={{marginLeft: 150}}
@@ -280,7 +255,7 @@ export default function ClinicSelectionEditor() {
                   disabled={uploadingAvatar}
                 >
                   <Button icon={<UploadOutlined />} loading={uploadingAvatar}>
-                    Tải ảnh đại diện
+                    {t('clinicEditor.actions.uploadAvatar')}
                   </Button>
                 </Upload>
                    </Col>
@@ -292,9 +267,9 @@ export default function ClinicSelectionEditor() {
       </Card>
 
       <div className="clinic-selection-editor-actions">
-        <Button onClick={handleCancel}>Hủy</Button>
+        <Button onClick={handleCancel}>{t('clinicEditor.actions.cancel')}</Button>
         <Button type="primary" onClick={handleSave} loading={saving}>
-          Lưu thay đổi
+          {t('clinicEditor.actions.saveChanges')}
         </Button>
       </div>
 

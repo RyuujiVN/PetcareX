@@ -1,59 +1,57 @@
 import {
-	CalendarOutlined,
-	ExperimentOutlined,
-	FileDoneOutlined,
-	HeartOutlined,
-	MedicineBoxOutlined,
-	PrinterOutlined,
-	SmileOutlined,
-	UserOutlined,
-	WarningOutlined,
+    CalendarOutlined,
+    ExperimentOutlined,
+    FileDoneOutlined,
+    HeartOutlined,
+    MedicineBoxOutlined,
+    PrinterOutlined,
+    UserOutlined,
+    WarningOutlined
 } from '@ant-design/icons'
 import {
-	Button,
-	Card,
-	Col,
-	Divider,
-	Input,
-	Modal,
-	Row,
-	Spin,
-	Table,
-	Tag,
-	Typography,
-	message,
+    Button,
+    Card,
+    Col,
+    Divider,
+    Input,
+    Modal,
+    Row,
+    Spin,
+    Table,
+    Tag,
+    message
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { getAdminInstance } from '../../../../services/apiClient'
 import {
-	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-	APPOINTMENT_STATUS,
-	getClinicAppointmentByIdApi,
-} from '../../../../data/Clinic/api/appointmentApi'
-import { getClinicByIdApi } from '../../../../data/Clinic/api/clinicApi'
-import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../data/Clinic/api/invoiceApi'
+    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+    APPOINTMENT_STATUS,
+    getAppointmentByIdApi,
+} from '../../../../services/appointmentService'
+import { getClinicByIdApi } from '../../../../services/clinicService'
+import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../services/invoiceService'
 import {
-	getMedicalById,
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
-} from '../../../../data/Clinic/api/medicalApi'
-import { getClinicPetByIdApi } from '../../../../data/Clinic/api/petApi'
-import { getUserByIdApi, getUserProfileApi } from '../../../../data/Clinic/api/user'
-import { formatClinicOpenHours, getClinicInfoContent } from '../../../../data/client/utils/clinicInfoStorage'
+    getMedicalByIdApi,
+    getMedicalByPetIdApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicinesByMedicalIdApi,
+} from '../../../../services/medicalService'
+import { getPetByIdApi } from '../../../../services/petService'
+import { getUserByIdApi, getUserProfileApi } from '../../../../services/userService'
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
+import { formatClinicOpenHours, getClinicInfoContent } from '../../../../utils/storage/clinicInfoStorage'
 import styles from './petMedicalRecords.module.css'
 
-const FALLBACK_TEXT = 'Không'
-const CONTACT_FALLBACK_TEXT = 'Chưa cập nhật được'
+const FALLBACK_TEXT = '-'
+const CONTACT_FALLBACK_TEXT = '-'
 const { TextArea } = Input
 
-const formatDateLabel = (value, fallback = FALLBACK_TEXT) => {
-	if (!value) return fallback
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return fallback
-	return date.toLocaleDateString('vi-VN')
+const formatDateLabel = (value, _locale = 'vi-VN', fallback = FALLBACK_TEXT) => {
+	return formatDateDDMMYYYY(value, fallback)
 }
 
 const buildExamCode = (medicalId) => {
@@ -65,7 +63,8 @@ const parseConclusionSummary = (conclusionText, fallback = FALLBACK_TEXT) => {
 	const raw = String(conclusionText || '').trim()
 	if (!raw) return fallback
 
-	const summaryMatch = raw.match(/K(?:e|ế)t\s*lu(?:a|ậ)n\s*:\s*([^\n]+)/i)
+	const summaryMatch = raw.match(/(K(?:e|ế)t\s*lu(?:a|ậ)n|Conclusion)\s*:\s*([^\n]+)/i)
+	if (summaryMatch?.[2]?.trim()) return summaryMatch[2].trim()
 	return summaryMatch?.[1]?.trim() || raw
 }
 
@@ -119,8 +118,8 @@ const pickClinicValue = (candidates = [], blockedValues = []) => {
 	return ''
 }
 
-const resolveMedicineLabel = (item) => {
-	const medicineName = item?.medicine?.name || FALLBACK_TEXT
+const resolveMedicineLabel = (item, fallbackText = FALLBACK_TEXT) => {
+	const medicineName = item?.medicine?.name || fallbackText
 	const strength = item?.medicine?.strength || item?.medicine?.dosage || item?.medicine?.concentration || ''
 	const unitValue = item?.medicine?.unit || item?.medicine?.medicineUnit || item?.medicine?.unitType || ''
 	const unitLabel = unitValue ? getMedicineUnitLabel(unitValue, unitValue) : ''
@@ -137,10 +136,10 @@ const EMPTY_BILL_DATA = {
 	grandTotal: '0 VND',
 }
 
-const toCurrencyVnd = (value) => {
+const toCurrencyVnd = (value, locale = 'vi-VN', currencySuffix = 'VND') => {
 	const amount = Number(value || 0)
-	if (!Number.isFinite(amount) || amount <= 0) return '0 VND'
-	return `${amount.toLocaleString('vi-VN')} VND`
+	if (!Number.isFinite(amount) || amount <= 0) return `0 ${currencySuffix}`
+	return `${amount.toLocaleString(locale)} ${currencySuffix}`
 }
 
 const buildInvoiceCode = (medicalRecordId) => {
@@ -156,15 +155,15 @@ const escapeHtml = (value) =>
 		.replace(/"/g, '&quot;')
 		.replace(/'/g, '&#039;')
 
-const buildPrintRowsMarkup = (rows = []) => {
+const buildPrintRowsMarkup = (rows = [], emptyLabel = 'No data', fallbackText = FALLBACK_TEXT, zeroAmountLabel = '0 VND') => {
 	if (!Array.isArray(rows) || rows.length === 0) {
-		return '<tr><td colspan="2" class="empty-row">Không có dữ liệu</td></tr>'
+		return `<tr><td colspan="2" class="empty-row">${escapeHtml(emptyLabel)}</td></tr>`
 	}
 
 	return rows
 		.map(
 			(row) =>
-				`<tr><td>${escapeHtml(row?.name || FALLBACK_TEXT)}</td><td class="price">${escapeHtml(row?.amount || '0 VND')}</td></tr>`,
+				`<tr><td>${escapeHtml(row?.name || fallbackText)}</td><td class="price">${escapeHtml(row?.amount || zeroAmountLabel)}</td></tr>`,
 		)
 		.join('')
 }
@@ -275,11 +274,16 @@ function ReadonlyTextAreaField({ label, value, rows = 3 }) {
 }
 
 export default function PetMedicalRecords() {
+	const { t, i18n } = useTranslation('clinic')
 	const navigate = useNavigate()
 	const location = useLocation()
 	const { appointmentId } = useParams()
 	const isVeterinarianPortal = location.pathname.startsWith('/veterinarian')
 	const routePrefix = isVeterinarianPortal ? '/veterinarian' : '/clinic'
+	const locale = i18n.language?.startsWith('en') ? 'en-GB' : 'vi-VN'
+	const fallbackText = t('medicalRecords.common.fallback')
+	const contactFallbackText = t('medicalRecords.common.contactFallback')
+	const noDataCurrency = t('medicalRecords.common.zeroVnd')
 
 	const stateRecord = location?.state?.record || null
 	const [loading, setLoading] = useState(false)
@@ -302,7 +306,7 @@ export default function PetMedicalRecords() {
 
 			let resolvedAppointment = stateRecord
 			if (!resolvedAppointment || String(resolvedAppointment?.id) !== String(appointmentId)) {
-				resolvedAppointment = await getClinicAppointmentByIdApi(appointmentId)
+				resolvedAppointment = await getAppointmentByIdApi(getAdminInstance(), appointmentId)
 			}
 
 			const clinicIdFromAuth = getCurrentAdminClinicId()
@@ -315,8 +319,8 @@ export default function PetMedicalRecords() {
 			const preferredClinicId = clinicIdFromAppointment || clinicIdFromAuth || ''
 
 			const [profilePayload, initialClinicPayload] = await Promise.all([
-				getUserProfileApi().catch(() => null),
-				preferredClinicId ? getClinicByIdApi(preferredClinicId).catch(() => null) : Promise.resolve(null),
+				getUserProfileApi(getAdminInstance()).catch(() => null),
+				preferredClinicId ? getClinicByIdApi(getAdminInstance(), preferredClinicId).catch(() => null) : Promise.resolve(null),
 			])
 
 			const normalizedProfile = profilePayload?.data || profilePayload || null
@@ -325,7 +329,7 @@ export default function PetMedicalRecords() {
 
 			let resolvedClinicPayload = initialClinicPayload?.data || initialClinicPayload || null
 			if (!resolvedClinicPayload && finalClinicId && String(finalClinicId) !== String(preferredClinicId)) {
-				const retryClinicPayload = await getClinicByIdApi(finalClinicId).catch(() => null)
+				const retryClinicPayload = await getClinicByIdApi(getAdminInstance(), finalClinicId).catch(() => null)
 				resolvedClinicPayload = retryClinicPayload?.data || retryClinicPayload || null
 			}
 
@@ -349,11 +353,11 @@ export default function PetMedicalRecords() {
 				return
 			}
 
-			const medicalPayload = await getMedicalByPetId(resolvedPetId, 1, 200)
+			const medicalPayload = await getMedicalByPetIdApi(getAdminInstance(), resolvedPetId, 1, 200)
 			const medicalRecords = normalizeCollection(medicalPayload)
 			const matchedMedical = selectMedicalRecordByAppointment(medicalRecords, resolvedAppointment)
 			const detailedMedical = matchedMedical?.id
-				? await getMedicalById(matchedMedical.id).catch(() => matchedMedical)
+				? await getMedicalByIdApi(getAdminInstance(), matchedMedical.id).catch(() => matchedMedical)
 				: null
 			const finalMedical = detailedMedical || matchedMedical || null
 			const petIdForDetail = finalMedical?.petId || finalMedical?.pet?.id || matchedMedical?.petId || matchedMedical?.pet?.id || resolvedPetId
@@ -362,7 +366,7 @@ export default function PetMedicalRecords() {
 
 			if (!finalMedical?.id) {
 				const petPayload = petIdForDetail
-					? await getClinicPetByIdApi(petIdForDetail).catch(() => null)
+					? await getPetByIdApi(getAdminInstance(), petIdForDetail).catch(() => null)
 					: null
 				const ownerId =
 					petPayload?.ownerId ||
@@ -370,7 +374,7 @@ export default function PetMedicalRecords() {
 					resolvedAppointment?.ownerId ||
 					resolvedAppointment?.pet?.owner?.id
 				const ownerPayload = ownerId
-					? await getUserByIdApi(ownerId)
+					? await getUserByIdApi(getAdminInstance(), ownerId)
 						.then((response) => response?.data || null)
 						.catch(() => null)
 					: null
@@ -383,9 +387,9 @@ export default function PetMedicalRecords() {
 			}
 
 			const [ordersPayload, medicinesPayload, petPayload] = await Promise.all([
-				getMedicalOrdersByMedicalId(finalMedical.id).catch(() => []),
-				getMedicinesByMedicalId(finalMedical.id).catch(() => []),
-				petIdForDetail ? getClinicPetByIdApi(petIdForDetail).catch(() => null) : null,
+				getMedicalOrdersByMedicalIdApi(getAdminInstance(), finalMedical.id).catch(() => []),
+				getMedicinesByMedicalIdApi(getAdminInstance(), finalMedical.id).catch(() => []),
+				petIdForDetail ? getPetByIdApi(getAdminInstance(), petIdForDetail).catch(() => null) : null,
 			])
 			const ownerId =
 				petPayload?.ownerId ||
@@ -395,7 +399,7 @@ export default function PetMedicalRecords() {
 				resolvedAppointment?.ownerId ||
 				resolvedAppointment?.pet?.owner?.id
 			const ownerPayload = ownerId
-				? await getUserByIdApi(ownerId)
+				? await getUserByIdApi(getAdminInstance(), ownerId)
 					.then((response) => response?.data || null)
 					.catch(() => null)
 				: null
@@ -405,7 +409,7 @@ export default function PetMedicalRecords() {
 			setMedicalOrders(Array.isArray(ordersPayload) ? ordersPayload : [])
 			setMedicines(Array.isArray(medicinesPayload) ? medicinesPayload : [])
 		} catch (error) {
-			message.error(error?.message || 'Không thể tải dữ liệu phiếu khám')
+			message.error(error?.message || t('medicalRecords.messages.loadExamFailed'))
 			setMedicalRecord(null)
 			setPetDetail(null)
 			setOwnerDetail(null)
@@ -415,7 +419,7 @@ export default function PetMedicalRecords() {
 		} finally {
 			setLoading(false)
 		}
-	}, [appointmentId, stateRecord])
+	}, [appointmentId, stateRecord, t])
 
 	useEffect(() => {
 		loadExamDetail()
@@ -427,27 +431,27 @@ export default function PetMedicalRecords() {
 	)
 	const owner = useMemo(() => ownerDetail || pet?.owner || {}, [ownerDetail, pet])
 
-	const ownerName = medicalRecord?.customerName || owner?.fullName || appointment?.ownerName || FALLBACK_TEXT
-	const ownerEmail = medicalRecord?.email || owner?.email || appointment?.ownerEmail || FALLBACK_TEXT
-	const ownerPhone = medicalRecord?.phone || owner?.phone || appointment?.ownerPhone || CONTACT_FALLBACK_TEXT
-	const ownerAddress = medicalRecord?.address || owner?.address || appointment?.ownerAddress || CONTACT_FALLBACK_TEXT
-	const petName = medicalRecord?.petName || pet?.name || appointment?.petName || FALLBACK_TEXT
+	const ownerName = medicalRecord?.customerName || owner?.fullName || appointment?.ownerName || fallbackText
+	const ownerEmail = medicalRecord?.email || owner?.email || appointment?.ownerEmail || fallbackText
+	const ownerPhone = medicalRecord?.phone || owner?.phone || appointment?.ownerPhone || contactFallbackText
+	const ownerAddress = medicalRecord?.address || owner?.address || appointment?.ownerAddress || contactFallbackText
+	const petName = medicalRecord?.petName || pet?.name || appointment?.petName || fallbackText
 	const speciesCode = medicalRecord?.species || pet?.species
-	const speciesLabel = getPetSpeciesLabel(speciesCode, FALLBACK_TEXT)
-	const breedLabel = getPetBreedLabel(medicalRecord?.breed || pet?.breed, speciesCode, FALLBACK_TEXT)
-	const weightText = formatFieldValue(medicalRecord?.weight ?? pet?.weight)
-	const examName = getServiceLabel(medicalRecord?.name || appointment?.service, FALLBACK_TEXT)
-	const followUpDateText = formatDateLabel(medicalRecord?.followUpDate)
-	const temperatureText = formatFieldValue(medicalRecord?.temperature)
-	const heartRateText = formatFieldValue(medicalRecord?.heartRate)
+	const speciesLabel = getPetSpeciesLabel(speciesCode, fallbackText)
+	const breedLabel = getPetBreedLabel(medicalRecord?.breed || pet?.breed, speciesCode, fallbackText)
+	const weightText = formatFieldValue(medicalRecord?.weight ?? pet?.weight, fallbackText)
+	const examName = getServiceLabel(medicalRecord?.name || appointment?.service, fallbackText)
+	const followUpDateText = formatDateLabel(medicalRecord?.followUpDate, locale, fallbackText)
+	const temperatureText = formatFieldValue(medicalRecord?.temperature, fallbackText)
+	const heartRateText = formatFieldValue(medicalRecord?.heartRate, fallbackText)
 	const bloodPressureText =
 		medicalRecord?.systolic !== null &&
 		medicalRecord?.systolic !== undefined &&
 		medicalRecord?.diastolic !== null &&
 		medicalRecord?.diastolic !== undefined
 			? `${medicalRecord.systolic}/${medicalRecord.diastolic}`
-			: FALLBACK_TEXT
-	const conclusionSummary = parseConclusionSummary(medicalRecord?.conclusion)
+			: fallbackText
+	const conclusionSummary = parseConclusionSummary(medicalRecord?.conclusion, fallbackText)
 
 	const clinicPresentation = useMemo(() => {
 		const clinicId = appointment?.clinic?.id || appointment?.clinicId || clinicDetail?.id
@@ -472,7 +476,7 @@ export default function PetMedicalRecords() {
 					profileClinic?.name,
 					clinicProfile?.clinicName,
 					appointment?.clinic?.name,
-				], ['Phòng khám thú y']) || 'Phòng khám thú y',
+				], [t('medicalRecords.clinic.defaultName')]) || t('medicalRecords.clinic.defaultName'),
 			address:
 				pickClinicValue(
 					[
@@ -482,8 +486,8 @@ export default function PetMedicalRecords() {
 						appointment?.clinic?.address,
 						clinicProfile?.address,
 					],
-					[CONTACT_FALLBACK_TEXT],
-				) || CONTACT_FALLBACK_TEXT,
+					[contactFallbackText],
+				) || contactFallbackText,
 			phone:
 				pickClinicValue(
 					[
@@ -496,8 +500,8 @@ export default function PetMedicalRecords() {
 						appointment?.clinic?.phoneNumber,
 						clinicProfile?.phone,
 					],
-					[CONTACT_FALLBACK_TEXT],
-				) || CONTACT_FALLBACK_TEXT,
+					[contactFallbackText],
+				) || contactFallbackText,
 			openHours:
 				pickClinicValue(
 					[
@@ -506,8 +510,8 @@ export default function PetMedicalRecords() {
 						openHoursFromProfile,
 						appointment?.clinic?.timeDisplay,
 					],
-					['Chưa cập nhật được'],
-				) || 'Chưa cập nhật được',
+					[contactFallbackText],
+				) || contactFallbackText,
 		}
 	}, [
 		appointment?.clinic,
@@ -525,53 +529,55 @@ export default function PetMedicalRecords() {
 		clinicProfile?.clinicInfo,
 		clinicProfile?.clinicName,
 		clinicProfile?.phone,
+		contactFallbackText,
+		t,
 	])
 
 	const orderColumns = [
 		{
-			title: 'STT',
+			title: t('medicalRecords.petExam.table.index'),
 			dataIndex: 'index',
 			width: 70,
 			render: (_, __, index) => index + 1,
 		},
 		{
-			title: 'LOẠI XÉT NGHIỆM / CHẨN ĐOÁN HÌNH ẢNH',
+			title: t('medicalRecords.petExam.table.orderType'),
 			dataIndex: 'medicalOrder',
-			render: (medicalOrder) => medicalOrder?.nameVn || medicalOrder?.nameEng || FALLBACK_TEXT,
+			render: (medicalOrder) => medicalOrder?.nameVn || medicalOrder?.nameEng || fallbackText,
 		},
 		{
-			title: 'GHI CHÚ YÊU CẦU',
+			title: t('medicalRecords.petExam.table.orderNote'),
 			dataIndex: 'note',
-			render: (value) => value || FALLBACK_TEXT,
+			render: (value) => value || fallbackText,
 		},
 		{
-			title: 'TRẠNG THÁI',
+			title: t('medicalRecords.petExam.table.status'),
 			key: 'status',
 			width: 150,
-			render: () => <Tag color="blue">Đã chỉ định</Tag>,
+			render: () => <Tag color="blue">{t('medicalRecords.petExam.table.assigned')}</Tag>,
 		},
 	]
 
 	const medicineColumns = [
 		{
-			title: 'TÊN THUỐC / HÀM LƯỢNG',
+			title: t('medicalRecords.petExam.table.medicineName'),
 			dataIndex: 'medicine',
-			render: (_, item) => resolveMedicineLabel(item),
+			render: (_, item) => resolveMedicineLabel(item, fallbackText),
 		},
 		{
-			title: 'LIỀU DÙNG',
+			title: t('medicalRecords.petExam.table.dosage'),
 			dataIndex: 'quantity',
-			render: (value) => formatFieldValue(value),
+			render: (value) => formatFieldValue(value, fallbackText),
 		},
 		{
-			title: 'TẦN SUẤT',
+			title: t('medicalRecords.petExam.table.frequency'),
 			dataIndex: 'note',
-			render: (value) => formatFieldValue(value),
+			render: (value) => formatFieldValue(value, fallbackText),
 		},
 		{
-			title: 'GHI CHÚ',
+			title: t('medicalRecords.petExam.table.note'),
 			dataIndex: 'medicine',
-			render: (medicine) => formatFieldValue(medicine?.note),
+			render: (medicine) => formatFieldValue(medicine?.note, fallbackText),
 		},
 	]
 
@@ -583,8 +589,8 @@ export default function PetMedicalRecords() {
 			const quantity = Number(item?.quantity || 0)
 			const amount = unitPrice * quantity
 			return {
-				name: `${resolveMedicineLabel(item)}${quantity > 0 ? ` x${quantity}` : ''}`,
-				amount: toCurrencyVnd(amount),
+				name: `${resolveMedicineLabel(item, fallbackText)}${quantity > 0 ? ` x${quantity}` : ''}`,
+				amount: toCurrencyVnd(amount, locale, t('medicalRecords.common.currencyVnd')),
 				rawAmount: amount,
 			}
 		})
@@ -592,8 +598,8 @@ export default function PetMedicalRecords() {
 		const testItems = medicalOrders.map((item) => {
 			const amount = Number(item?.priceAtTime || 0)
 			return {
-				name: item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || 'Chỉ định xét nghiệm',
-				amount: toCurrencyVnd(amount),
+				name: item?.medicalOrder?.nameVn || item?.medicalOrder?.nameEng || t('medicalRecords.petExam.defaultOrderName'),
+				amount: toCurrencyVnd(amount, locale, t('medicalRecords.common.currencyVnd')),
 				rawAmount: amount,
 			}
 		})
@@ -604,30 +610,40 @@ export default function PetMedicalRecords() {
 			code: buildInvoiceCode(medicalRecord.id),
 			medicineItems,
 			testItems,
-			provisionalTotal: toCurrencyVnd(subtotal),
-			grandTotal: toCurrencyVnd(subtotal),
+			provisionalTotal: toCurrencyVnd(subtotal, locale, t('medicalRecords.common.currencyVnd')),
+			grandTotal: toCurrencyVnd(subtotal, locale, t('medicalRecords.common.currencyVnd')),
 		}
-	}, [medicalOrders, medicalRecord?.id, medicines])
+	}, [fallbackText, locale, medicalOrders, medicalRecord?.id, medicines, t])
 
 	const handlePrintInvoice = () => {
 		if (!medicalRecord?.id) {
-			message.warning('Chưa có phiếu khám để in hóa đơn')
+			message.warning(t('medicalRecords.messages.noExamToPrint'))
 			return
 		}
 
 		const invoiceCode = billData.code
 		const examCode = buildExamCode(medicalRecord?.id)
-		const examDate = formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)
-		const examTime = formatFieldValue(appointment?.appointmentTime || '', 'Không')
+		const examDate = formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate, locale, fallbackText)
+		const examTime = formatTimeHHMM(appointment?.appointmentTime, t('medicalRecords.common.none'))
 
-		const medicineRows = buildPrintRowsMarkup(billData.medicineItems)
-		const testRows = buildPrintRowsMarkup(billData.testItems)
+		const medicineRows = buildPrintRowsMarkup(
+			billData.medicineItems,
+			t('medicalRecords.petExam.invoice.noMedicineData'),
+			fallbackText,
+			noDataCurrency,
+		)
+		const testRows = buildPrintRowsMarkup(
+			billData.testItems,
+			t('medicalRecords.petExam.invoice.noOrderData'),
+			fallbackText,
+			noDataCurrency,
+		)
 
 		const html = `<!DOCTYPE html>
-<html lang="vi">
+<html lang="${escapeHtml(i18n.language?.startsWith('en') ? 'en' : 'vi')}">
 <head>
 	<meta charset="UTF-8" />
-	<title>Hóa đơn ${escapeHtml(invoiceCode)}</title>
+	<title>${escapeHtml(t('medicalRecords.petExam.invoice.title'))} ${escapeHtml(invoiceCode)}</title>
 	<style>
 		@page { size: A4; margin: 14mm; }
 		* { box-sizing: border-box; }
@@ -682,64 +698,64 @@ export default function PetMedicalRecords() {
 			<div class="brand">
 				<h1>${escapeHtml(clinicPresentation.name)}</h1>
 				<div class="brandInfo">
-					<p class="brandLine"><span class="brandLabel">Địa chỉ:</span><span class="brandValue">${escapeHtml(clinicPresentation.address)}</span></p>
-					<p class="brandLine"><span class="brandLabel">SĐT:</span><span class="brandValue">${escapeHtml(clinicPresentation.phone)}</span></p>
-					<p class="brandLine"><span class="brandLabel">Giờ mở:</span><span class="brandValue">${escapeHtml(clinicPresentation.openHours)}</span></p>
+					<p class="brandLine"><span class="brandLabel">${escapeHtml(t('medicalRecords.petExam.invoice.addressLabel'))}:</span><span class="brandValue">${escapeHtml(clinicPresentation.address)}</span></p>
+					<p class="brandLine"><span class="brandLabel">${escapeHtml(t('medicalRecords.petExam.invoice.phoneLabel'))}:</span><span class="brandValue">${escapeHtml(clinicPresentation.phone)}</span></p>
+					<p class="brandLine"><span class="brandLabel">${escapeHtml(t('medicalRecords.petExam.invoice.openHoursLabel'))}:</span><span class="brandValue">${escapeHtml(clinicPresentation.openHours)}</span></p>
 				</div>
 			</div>
 			<div class="meta">
-				<h2>HÓA ĐƠN KHÁM BỆNH</h2>
-				<p>Mã hóa đơn: ${escapeHtml(invoiceCode)}</p>
-				<p>Mã hồ sơ: ${escapeHtml(examCode)}</p>
-				<p>Ngày khám: ${escapeHtml(examDate)} ${escapeHtml(examTime !== 'Không' ? `- ${examTime}` : '')}</p>
+				<h2>${escapeHtml(t('medicalRecords.petExam.invoice.headerTitle'))}</h2>
+				<p>${escapeHtml(t('medicalRecords.petExam.invoice.codeLabel'))}: ${escapeHtml(invoiceCode)}</p>
+				<p>${escapeHtml(t('medicalRecords.petExam.invoice.examCodeLabel'))}: ${escapeHtml(examCode)}</p>
+				<p>${escapeHtml(t('medicalRecords.petExam.invoice.examDateLabel'))}: ${escapeHtml(examDate)} ${escapeHtml(examTime !== t('medicalRecords.common.none') ? `- ${examTime}` : '')}</p>
 			</div>
 		</header>
 		<section class="body">
 			<div class="grid">
 				<div class="box">
-					<h3>Khách hàng</h3>
-					<div class="row"><span class="label">Tên</span><span class="value">${escapeHtml(ownerName)}</span></div>
-					<div class="row"><span class="label">SĐT</span><span class="value">${escapeHtml(ownerPhone)}</span></div>
-					<div class="row"><span class="label">Địa chỉ</span><span class="value">${escapeHtml(ownerAddress)}</span></div>
+					<h3>${escapeHtml(t('medicalRecords.petExam.invoice.customerSection'))}</h3>
+					<div class="row"><span class="label">${escapeHtml(t('medicalRecords.petExam.invoice.nameLabel'))}</span><span class="value">${escapeHtml(ownerName)}</span></div>
+					<div class="row"><span class="label">${escapeHtml(t('medicalRecords.petExam.invoice.phoneLabel'))}</span><span class="value">${escapeHtml(ownerPhone)}</span></div>
+					<div class="row"><span class="label">${escapeHtml(t('medicalRecords.petExam.invoice.addressLabel'))}</span><span class="value">${escapeHtml(ownerAddress)}</span></div>
 				</div>
 				<div class="box">
-					<h3>Thú cưng</h3>
-					<div class="row"><span class="label">Tên</span><span class="value">${escapeHtml(petName)}</span></div>
-					<div class="row"><span class="label">Loài / Giống</span><span class="value">${escapeHtml(`${speciesLabel} / ${breedLabel}`)}</span></div>
-					<div class="row"><span class="label">Cân nặng</span><span class="value">${escapeHtml(weightText)} kg</span></div>
+					<h3>${escapeHtml(t('medicalRecords.petExam.invoice.petSection'))}</h3>
+					<div class="row"><span class="label">${escapeHtml(t('medicalRecords.petExam.invoice.nameLabel'))}</span><span class="value">${escapeHtml(petName)}</span></div>
+					<div class="row"><span class="label">${escapeHtml(t('medicalRecords.petExam.invoice.speciesBreedLabel'))}</span><span class="value">${escapeHtml(`${speciesLabel} / ${breedLabel}`)}</span></div>
+					<div class="row"><span class="label">${escapeHtml(t('medicalRecords.petExam.invoice.weightLabel'))}</span><span class="value">${escapeHtml(weightText)} kg</span></div>
 				</div>
 			</div>
 
 			<div class="section">
-				<h3 class="sectionTitle">Thuốc đã kê</h3>
+				<h3 class="sectionTitle">${escapeHtml(t('medicalRecords.petExam.invoice.medicineSection'))}</h3>
 				<table>
-					<thead><tr><th>Nội dung</th><th class="price">Thành tiền</th></tr></thead>
+					<thead><tr><th>${escapeHtml(t('medicalRecords.petExam.invoice.contentColumn'))}</th><th class="price">${escapeHtml(t('medicalRecords.petExam.invoice.amountColumn'))}</th></tr></thead>
 					<tbody>${medicineRows}</tbody>
 				</table>
 			</div>
 
 			<div class="section">
-				<h3 class="sectionTitle">Xét nghiệm & chỉ định</h3>
+				<h3 class="sectionTitle">${escapeHtml(t('medicalRecords.petExam.invoice.orderSection'))}</h3>
 				<table>
-					<thead><tr><th>Nội dung</th><th class="price">Thành tiền</th></tr></thead>
+					<thead><tr><th>${escapeHtml(t('medicalRecords.petExam.invoice.contentColumn'))}</th><th class="price">${escapeHtml(t('medicalRecords.petExam.invoice.amountColumn'))}</th></tr></thead>
 					<tbody>${testRows}</tbody>
 				</table>
 			</div>
 
 			<div class="summary">
-				<div class="line"><span>Tạm tính</span><strong>${escapeHtml(billData.provisionalTotal)}</strong></div>
-				<div class="line total"><span>Tổng cộng</span><strong>${escapeHtml(billData.grandTotal)}</strong></div>
+				<div class="line"><span>${escapeHtml(t('medicalRecords.petExam.invoice.provisionalTotal'))}</span><strong>${escapeHtml(billData.provisionalTotal)}</strong></div>
+				<div class="line total"><span>${escapeHtml(t('medicalRecords.petExam.invoice.grandTotal'))}</span><strong>${escapeHtml(billData.grandTotal)}</strong></div>
 			</div>
 
 			<div class="footer">
 				<div class="note">
-					<strong>Lời dặn bác sĩ:</strong><br/>
-					${escapeHtml(formatFieldValue(medicalRecord?.note))}
+					<strong>${escapeHtml(t('medicalRecords.petExam.invoice.doctorNote'))}:</strong><br/>
+					${escapeHtml(formatFieldValue(medicalRecord?.note, fallbackText))}
 				</div>
 				<div class="sign">
-					Ngày in: ${escapeHtml(formatDateLabel(new Date().toISOString()))}<br/>
-					Bác sĩ điều trị
-					<strong>${escapeHtml(medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || FALLBACK_TEXT)}</strong>
+					${escapeHtml(t('medicalRecords.petExam.invoice.printDate'))}: ${escapeHtml(formatDateLabel(new Date().toISOString(), locale, fallbackText))}<br/>
+					${escapeHtml(t('medicalRecords.petExam.invoice.attendingVet'))}
+					<strong>${escapeHtml(medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || fallbackText)}</strong>
 				</div>
 			</div>
 		</section>
@@ -749,13 +765,13 @@ export default function PetMedicalRecords() {
 
 		const printed = printViaHiddenIframe(html)
 		if (!printed) {
-			message.error('Không thể khởi tạo chế độ in. Vui lòng thử lại.')
+			message.error(t('medicalRecords.messages.printInitFailed'))
 		}
 	}
 
 	const openPaymentModal = () => {
 		if (!medicalRecord?.id) {
-			message.warning('Chưa có phiếu khám để thanh toán')
+			message.warning(t('medicalRecords.messages.noExamToPay'))
 			return
 		}
 		setIsPaymentModalOpen(true)
@@ -768,12 +784,12 @@ export default function PetMedicalRecords() {
 
 	const handleConfirmPayment = async () => {
 		if (!appointmentId) {
-			message.error('Không tìm thấy lịch khám để xác nhận thanh toán')
+			message.error(t('medicalRecords.messages.appointmentNotFoundForPayment'))
 			return
 		}
 
 		if (!medicalRecord?.id) {
-			message.error('Không tìm thấy hồ sơ bệnh án để thanh toán')
+			message.error(t('medicalRecords.messages.medicalNotFoundForPayment'))
 			return
 		}
 
@@ -788,10 +804,10 @@ export default function PetMedicalRecords() {
 				appointment?.pet?.owner?.id ||
 				''
 
-			await upsertPaidInvoiceByMedicalApi({
+			await upsertPaidInvoiceByMedicalApi(getAdminInstance(), {
 				medicalRecordId: medicalRecord.id,
 				petOwnerId,
-				note: 'Thanh toán tại phòng khám',
+				note: t('medicalRecords.petExam.payment.noteAtClinic'),
 			})
 
 			localStorage.setItem(
@@ -805,10 +821,10 @@ export default function PetMedicalRecords() {
 			)
 
 			setIsPaymentModalOpen(false)
-			message.success('Thanh toán thành công')
+			message.success(t('medicalRecords.messages.paymentSuccess'))
 			navigate(`${routePrefix}/appointments`)
 		} catch (error) {
-			message.error(error?.message || 'Không thể xác nhận thanh toán')
+			message.error(error?.message || t('medicalRecords.messages.paymentFailed'))
 		} finally {
 			setIsConfirmingPayment(false)
 		}
@@ -818,21 +834,10 @@ export default function PetMedicalRecords() {
 		<div className={styles.pageRoot}>
 			<div className={styles.pageWrap}>
 				<header className={styles.formHeader}>
-					<div className={styles.brandRow}>
-						<div className={styles.brandIcon}>
-							<SmileOutlined />
-						</div>
-						<div>
-							<Typography.Title level={3} className={styles.titleText}>
-								Hệ thống thú y chuyên nghiệp
-							</Typography.Title>
-						</div>
-					</div>
-
 					<div className={styles.headerMeta}>
-						<p>PHIẾU KHÁM BỆNH & CHỈ ĐỊNH</p>
-						<span>Mã hồ sơ: {buildExamCode(medicalRecord?.id)}</span>
-						<span>Ngày khám: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}</span>
+						<p>{t('medicalRecords.petExam.header.title')}</p>
+						<span style={{ marginRight: 135 }}>{t('medicalRecords.petExam.header.examCode')}: {buildExamCode(medicalRecord?.id)}</span>
+						<span style={{ marginRight: 155 }}>{t('medicalRecords.petExam.header.examDate')}: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate, locale, fallbackText)}</span>
 					</div>
 				</header>
 
@@ -840,78 +845,78 @@ export default function PetMedicalRecords() {
 					<Card className={styles.sectionCard}>
 						<Row gutter={[16, 8]}>
 							<Col xs={24} md={12} className={styles.fieldCol}>
-								<ReadonlyField label="TÊN PHIẾU KHÁM" value={examName} />
+								<ReadonlyField label={t('medicalRecords.petExam.fields.examName')} value={examName} />
 							</Col>
 							<Col xs={24} md={12} className={styles.fieldCol}>
-								<ReadonlyField label="NGÀY TÁI KHÁM" value={followUpDateText} />
+								<ReadonlyField label={t('medicalRecords.petExam.fields.followUpDate')} value={followUpDateText} />
 							</Col>
 						</Row>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><UserOutlined /> Thông tin khách hàng & Thú cưng</span>}>
+					<Card className={styles.sectionCard} title={<span><UserOutlined /> {t('medicalRecords.petExam.sections.customerPetInfo')}</span>}>
 						<Row gutter={[16, 8]}>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="TÊN KHÁCH HÀNG" value={ownerName} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="EMAIL" value={ownerEmail} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="SĐT" value={ownerPhone} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="ĐỊA CHỈ" value={ownerAddress} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="TÊN THÚ CƯNG" value={petName} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="LOÀI" value={speciesLabel} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="GIỐNG LOÀI" value={breedLabel} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="CÂN NẶNG (KG)" value={weightText} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.customerName')} value={ownerName} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.email')} value={ownerEmail} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.phone')} value={ownerPhone} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.address')} value={ownerAddress} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.petName')} value={petName} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.species')} value={speciesLabel} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.breed')} value={breedLabel} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.weightKg')} value={weightText} /></Col>
 						</Row>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><HeartOutlined /> Chỉ số sinh tồn</span>}>
+					<Card className={styles.sectionCard} title={<span><HeartOutlined /> {t('medicalRecords.petExam.sections.vitals')}</span>}>
 						<Row gutter={[16, 8]}>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="NHIỆT ĐỘ (°C)" value={temperatureText} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="NHỊP TIM (L/P/M)" value={heartRateText} /></Col>
-							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label="HUYẾT ÁP (MMHG)" value={bloodPressureText} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.temperature')} value={temperatureText} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.heartRate')} value={heartRateText} /></Col>
+							<Col xs={24} md={8} className={styles.fieldCol}><ReadonlyField label={t('medicalRecords.petExam.fields.bloodPressure')} value={bloodPressureText} /></Col>
 						</Row>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><WarningOutlined /> Thông tin lâm sàng</span>}>
-						<ReadonlyTextAreaField label="TRIỆU CHỨNG & TÌNH TRẠNG" value={medicalRecord?.symptoms} rows={3} />
-						<ReadonlyTextAreaField label="CHẨN ĐOÁN SƠ BỘ" value={medicalRecord?.diagnosis} rows={2} />
-						<ReadonlyTextAreaField label="KẾT LUẬN" value={conclusionSummary} rows={3} />
+					<Card className={styles.sectionCard} title={<span><WarningOutlined /> {t('medicalRecords.petExam.sections.clinicalInfo')}</span>}>
+						<ReadonlyTextAreaField label={t('medicalRecords.petExam.fields.symptoms')} value={medicalRecord?.symptoms} rows={3} />
+						<ReadonlyTextAreaField label={t('medicalRecords.petExam.fields.preDiagnosis')} value={medicalRecord?.diagnosis} rows={2} />
+						<ReadonlyTextAreaField label={t('medicalRecords.petExam.fields.conclusion')} value={conclusionSummary} rows={3} />
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><ExperimentOutlined /> Phiếu chỉ định xét nghiệm/X-Quang</span>}>
+					<Card className={styles.sectionCard} title={<span><ExperimentOutlined /> {t('medicalRecords.petExam.sections.orders')}</span>}>
 						<Table
 							rowKey={(row, index) => row?.id || `order-${index}`}
 							columns={orderColumns}
 							dataSource={medicalOrders}
 							pagination={false}
-							locale={{ emptyText: 'Chưa có chỉ định xét nghiệm' }}
+							locale={{ emptyText: t('medicalRecords.petExam.empty.noOrders') }}
 						/>
 					</Card>
 
-					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> Đơn thuốc chỉ định</span>}>
+					<Card className={styles.sectionCard} title={<span><MedicineBoxOutlined /> {t('medicalRecords.petExam.sections.medicines')}</span>}>
 						<Table
 							rowKey={(row, index) => row?.id || `medicine-${index}`}
 							columns={medicineColumns}
 							dataSource={medicines}
 							pagination={false}
-							locale={{ emptyText: 'Chưa có đơn thuốc' }}
+							locale={{ emptyText: t('medicalRecords.petExam.empty.noMedicines') }}
 						/>
 
 						<Divider className={styles.noteDivider} />
-						<ReadonlyTextAreaField label="LỜI DẶN BÁC SĨ" value={medicalRecord?.note || FALLBACK_TEXT} rows={3} />
+						<ReadonlyTextAreaField label={t('medicalRecords.petExam.fields.doctorNote')} value={medicalRecord?.note || fallbackText} rows={3} />
 
 						<div className={styles.doctorSign}>
 							<p>
-								<CalendarOutlined /> Ngày tạo: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate)}
+								<CalendarOutlined /> {t('medicalRecords.petExam.fields.createdDate')}: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate, locale, fallbackText)}
 							</p>
-							<strong>BÁC SĨ ĐIỀU TRỊ</strong>
-							<span>{medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || FALLBACK_TEXT}</span>
+							<strong>{t('medicalRecords.petExam.fields.attendingVet')}</strong>
+							<span>{medicalRecord?.veterinarian?.fullName || appointment?.veterinarianName || fallbackText}</span>
 						</div>
 					</Card>
 
 					<div className={styles.actionRow}>
 						<Button className={`${styles.actionBtn} ${styles.printBtn}`} icon={<PrinterOutlined />} onClick={handlePrintInvoice}>
-							In hóa đơn
+							{t('medicalRecords.petExam.actions.printInvoice')}
 						</Button>
 						<Button type="primary" className={`${styles.actionBtn} ${styles.payBtn}`} icon={<CalendarOutlined />} onClick={openPaymentModal}>
-							Thanh toán
+							{t('medicalRecords.petExam.actions.pay')}
 						</Button>
 					</div>
 
@@ -929,17 +934,17 @@ export default function PetMedicalRecords() {
 						<div className={styles.modalBody}>
 							<h3>
 								<FileDoneOutlined />
-								<span>Tóm tắt hóa đơn</span>
+								<span>{t('medicalRecords.petExam.payment.summaryTitle')}</span>
 							</h3>
 
-							<p className={styles.billCode}>MÃ HÓA ĐƠN: {billData.code}</p>
+							<p className={styles.billCode}>{t('medicalRecords.petExam.payment.invoiceCode')}: {billData.code}</p>
 							<div className={styles.modalClinicMeta}>
 								<span>{clinicPresentation.name}</span>
-								<span>Khách hàng: {ownerName}</span>
-								<span>Thú cưng: {petName}</span>
+								<span>{t('medicalRecords.petExam.payment.customerLabel')}: {ownerName}</span>
+								<span>{t('medicalRecords.petExam.payment.petLabel')}: {petName}</span>
 							</div>
 
-							<div className={styles.modalSectionTitle}>THUỐC ĐÃ KÊ ĐƠN</div>
+							<div className={styles.modalSectionTitle}>{t('medicalRecords.petExam.payment.medicineSection')}</div>
 							<div className={styles.modalList}>
 								{billData.medicineItems.length > 0 ? (
 									billData.medicineItems.map((item) => (
@@ -950,13 +955,13 @@ export default function PetMedicalRecords() {
 									))
 								) : (
 									<div className={styles.modalRow}>
-										<span>Không có dữ liệu thuốc</span>
-										<strong>0 VND</strong>
+										<span>{t('medicalRecords.petExam.payment.noMedicineData')}</span>
+										<strong>{noDataCurrency}</strong>
 									</div>
 								)}
 							</div>
 
-							<div className={styles.modalSectionTitle}>XÉT NGHIỆM & CHẨN ĐOÁN</div>
+							<div className={styles.modalSectionTitle}>{t('medicalRecords.petExam.payment.orderSection')}</div>
 							<div className={styles.modalList}>
 								{billData.testItems.length > 0 ? (
 									billData.testItems.map((item) => (
@@ -967,8 +972,8 @@ export default function PetMedicalRecords() {
 									))
 								) : (
 									<div className={styles.modalRow}>
-										<span>Không có dữ liệu chỉ định</span>
-										<strong>0 VND</strong>
+										<span>{t('medicalRecords.petExam.payment.noOrderData')}</span>
+										<strong>{noDataCurrency}</strong>
 									</div>
 								)}
 							</div>
@@ -976,12 +981,12 @@ export default function PetMedicalRecords() {
 							<div className={styles.divider} />
 
 							<div className={styles.modalRow}>
-								<span className={styles.provisionalLabel}>Tạm tính:</span>
+								<span className={styles.provisionalLabel}>{t('medicalRecords.petExam.payment.provisionalTotal')}:</span>
 								<strong>{billData.provisionalTotal}</strong>
 							</div>
 
 							<div className={styles.modalRowTotal}>
-								<span>Tổng cộng:</span>
+								<span>{t('medicalRecords.petExam.payment.grandTotal')}:</span>
 								<strong>{billData.grandTotal}</strong>
 							</div>
 
@@ -992,7 +997,7 @@ export default function PetMedicalRecords() {
 								disabled={isConfirmingPayment}
 							>
 								<CalendarOutlined />
-								<span>{isConfirmingPayment ? 'Đang xác nhận...' : 'Xác nhận thanh toán'}</span>
+								<span>{isConfirmingPayment ? t('medicalRecords.petExam.payment.confirming') : t('medicalRecords.petExam.payment.confirmButton')}</span>
 							</button>
 						</div>
 					</Modal>

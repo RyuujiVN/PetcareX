@@ -1,149 +1,137 @@
 import {
-  CalendarOutlined,
-  FileTextOutlined,
-  FormOutlined,
-  LogoutOutlined,
-  SearchOutlined,
-  UserOutlined
+    CalendarOutlined,
+    FileTextOutlined,
+    FormOutlined,
+    LogoutOutlined,
+    SearchOutlined,
+    UserOutlined
 } from '@ant-design/icons'
 import { Avatar, Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import { CiHospital1 } from "react-icons/ci"
 import { IoMdNotificationsOutline } from 'react-icons/io'
+import { useTranslation } from 'react-i18next'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
+import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageSwitcher'
+import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
+import useNotificationSocket from '../../hooks/useNotificationSocket'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
 const { Text } = Typography
 
-const menuItems = [
-  { key: 'appointments', label: 'Lịch hẹn', icon: CalendarOutlined, path: '/veterinarian/appointments' },
-  { key: 'records', label: 'Hồ sơ bệnh án', icon: FileTextOutlined, path: '/veterinarian/listRecords' },
-  { key: 'exam-slips', label: 'Phiếu khám', icon: FormOutlined, path: '/veterinarian/exam-forms' },
+const buildMenuItems = (t) => [
+  {
+    key: 'appointments',
+    label: t('layout.menu.appointments'),
+    icon: CalendarOutlined,
+    path: '/veterinarian/appointments',
+  },
+  {
+    key: 'records',
+    label: t('layout.menu.records'),
+    icon: FileTextOutlined,
+    path: '/veterinarian/listRecords',
+  },
+  {
+    key: 'exam-slips',
+    label: t('layout.menu.examForms'),
+    icon: FormOutlined,
+    path: '/veterinarian/exam-forms',
+  },
 ]
 
 const NOTIFICATION_TYPE_COLORS = {
   appointment: 'blue',
-  record: 'geekblue',
-  examSlip: 'orange',
+  'ai-diagnosis': 'purple',
   system: 'gold',
+  'forum-comment': 'cyan',
 }
 
-const getNotificationTypeLabel = (type) => {
-  if (type === 'appointment') return 'Lịch hẹn'
-  if (type === 'record') return 'Hồ sơ bệnh án'
-  if (type === 'examSlip') return 'Phiếu khám'
-  if (type === 'system') return 'Hệ thống'
-  return 'Khác'
+const getNotificationTypeLabel = (type, t) => {
+  if (type === 'appointment') return t('layout.notifications.types.appointment')
+  if (type === 'ai-diagnosis') return t('layout.notifications.types.aiDiagnosis')
+  if (type === 'system') return t('layout.notifications.types.system')
+  if (type === 'forum-comment') return t('layout.notifications.types.forumComment')
+  return t('layout.notifications.types.other')
 }
 
-const buildMockVeterinarianNotifications = (clinicName) => {
-  const now = Date.now()
-  const createTime = (minutesAgo) => new Date(now - minutesAgo * 60 * 1000).toISOString()
-
-  return [
-    {
-      id: 'vet-notify-01',
-      type: 'appointment',
-      createdAt: createTime(6),
-      title: 'Có lịch hẹn khám mới trong hôm nay',
-      description: `Lịch hẹn mới cho bé Misa tại ${clinicName} lúc 10:15 đã được xác nhận.`,
-    },
-    {
-      id: 'vet-notify-02',
-      type: 'appointment',
-      createdAt: createTime(42),
-      title: 'Lịch hẹn đã được khách cập nhật',
-      description: 'Khách hàng Trần Bảo An dời lịch tái khám của bé Gấu từ 14:30 sang 16:00.',
-    },
-    {
-      id: 'vet-notify-03',
-      type: 'record',
-      createdAt: createTime(130),
-      title: 'Có hồ sơ bệnh án cần hoàn thiện',
-      description: 'Hồ sơ MR-5412 của bé Mèo Mun còn thiếu mục chẩn đoán sau điều trị.',
-    },
-    {
-      id: 'vet-notify-04',
-      type: 'examSlip',
-      createdAt: createTime(255),
-      title: 'Phiếu khám đang chờ ký xác nhận',
-      description: 'Phiếu khám EX-884 cho ca nội soi tai của bé Corgi cần bạn xác nhận trước 18:00.',
-    },
-    {
-      id: 'vet-notify-05',
-      type: 'system',
-      createdAt: createTime(980),
-      title: 'Nhắc nhở lịch trực ngày mai',
-      description: 'Bạn có 8 lịch hẹn ngày mai. Vui lòng kiểm tra lại khung giờ và trạng thái chuẩn bị.',
-    },
-  ]
-}
-
-const formatNotificationTimeAgo = (dateValue) => {
+const formatNotificationTimeAgo = (dateValue, t) => {
   const createdAt = new Date(dateValue).getTime()
-  if (Number.isNaN(createdAt)) return 'Vừa xong'
+  if (Number.isNaN(createdAt)) return t('layout.notifications.time.justNow')
 
   const diff = Date.now() - createdAt
   const minute = 60 * 1000
   const hour = 60 * minute
   const day = 24 * hour
 
-  if (diff < minute) return 'Vừa xong'
-  if (diff < hour) return `${Math.floor(diff / minute)} phút trước`
-  if (diff < day) return `${Math.floor(diff / hour)} giờ trước`
-  return `${Math.floor(diff / day)} ngày trước`
+  if (diff < minute) return t('layout.notifications.time.justNow')
+  if (diff < hour) return t('layout.notifications.time.minutesAgo', { count: Math.floor(diff / minute) })
+  if (diff < day) return t('layout.notifications.time.hoursAgo', { count: Math.floor(diff / hour) })
+  return t('layout.notifications.time.daysAgo', { count: Math.floor(diff / day) })
 }
 
 const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
 
-const getClinicDisplayName = (profile) => {
+const getClinicDisplayName = (profile, fallbackName) => {
   return (
     profile?.clinicName ||
     profile?.clinicInfo?.name ||
     profile?.clinic?.name ||
     profile?.veterinarian?.clinic?.name ||
     profile?.adminClinic?.clinic?.name ||
-    'PetCareX'
+    fallbackName
   )
 }
 
 export default function AdminVererianrianLayout() {
+  const { t } = useTranslation('vererianrian')
   const location = useLocation()
   const navigate = useNavigate()
   const { token, userProfile, logout, activeRole } = useAuth()
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false)
-  const [notificationReadIds, setNotificationReadIds] = useState([])
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: 'all',
     eventType: 'all',
   })
+  const [, setTimeTick] = useState(0)
+
+  // Force re-render every 30s so time-ago labels stay fresh
+  useEffect(() => {
+    const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
   const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
   const hasVeterinarianRole = normalizedRoles.includes(RoleEnum.VETERINARIAN)
-  const clinicDisplayName = getClinicDisplayName(userProfile)
+  const menuItems = useMemo(() => buildMenuItems(t), [t])
+  const clinicDisplayName = getClinicDisplayName(userProfile, t('layout.defaultClinicName'))
   const hideSearchRoutes = [
     '/veterinarian/exam-forms/create',
     '/veterinarian/viewRecords',
   ]
   const isExamFormFocusMode = location.pathname === '/veterinarian/exam-forms/create'
-  const notificationItems = useMemo(
-    () => buildMockVeterinarianNotifications(clinicDisplayName),
-    [clinicDisplayName],
-  )
-  const notificationReadIdSet = useMemo(() => new Set(notificationReadIds), [notificationReadIds])
-  const unreadNotificationCount = useMemo(
-    () =>
-      notificationItems.reduce(
-        (count, item) => (notificationReadIdSet.has(item.id) ? count : count + 1),
-        0,
-      ),
-    [notificationItems, notificationReadIdSet],
-  )
+  const isViewPetMedicalRecordsRoute =
+    location.pathname === '/veterinarian/viewRecords' ||
+    location.pathname.startsWith('/veterinarian/viewRecords/')
+  const shouldUseMedicalRecordHeader = isViewPetMedicalRecordsRoute && !isExamFormFocusMode
+
+  const {
+    notifications: notificationItems,
+    readIdSet: notificationReadIdSet,
+    unreadCount: unreadNotificationCount,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+  } = useNotificationSocket({
+    storageKey: `ws_notif_vet:${userProfile?.id || 'default'}`,
+    token,
+    enabled: !!token,
+  })
+
   const filteredNotificationItems = useMemo(() => {
     return notificationItems.filter((item) => {
       if (notificationFilters.viewMode === 'unread' && notificationReadIdSet.has(item.id)) {
@@ -163,19 +151,6 @@ export default function AdminVererianrianLayout() {
   const handleLogout = () => {
     logout()
     navigate('/login', { replace: true })
-  }
-
-  const markNotificationAsRead = (notificationId) => {
-    if (!notificationId) return
-
-    setNotificationReadIds((prev) => {
-      if (prev.includes(notificationId)) return prev
-      return [...prev, notificationId]
-    })
-  }
-
-  const markAllNotificationsAsRead = () => {
-    setNotificationReadIds(notificationItems.map((item) => item.id))
   }
 
   useEffect(() => {
@@ -201,8 +176,13 @@ export default function AdminVererianrianLayout() {
     <div className={styles.notificationPanel}>
       <div className={styles.notificationPanelHeader}>
         <div>
-          <h3>Thông báo bác sĩ</h3>
-          <p>{`${unreadNotificationCount} chưa đọc / ${notificationItems.length} thông báo`}</p>
+          <h3>{t('layout.notifications.panelTitle')}</h3>
+          <p>
+            {t('layout.notifications.summary', {
+              unread: unreadNotificationCount,
+              total: notificationItems.length,
+            })}
+          </p>
         </div>
         <Button
           type="link"
@@ -211,7 +191,7 @@ export default function AdminVererianrianLayout() {
           disabled={unreadNotificationCount === 0}
           className={styles.markAllReadBtn}
         >
-          Đánh dấu đã đọc
+          {t('layout.notifications.markAllRead')}
         </Button>
       </div>
 
@@ -230,8 +210,8 @@ export default function AdminVererianrianLayout() {
           <Select
             size="middle"
             options={[
-              { value: 'all', label: 'Tất cả' },
-              { value: 'unread', label: 'Chưa đọc' },
+              { value: 'all', label: t('layout.notifications.filters.all') },
+              { value: 'unread', label: t('layout.notifications.filters.unread') },
             ]}
           />
         </Form.Item>
@@ -240,11 +220,10 @@ export default function AdminVererianrianLayout() {
           <Select
             size="middle"
             options={[
-              { value: 'all', label: 'Mọi loại' },
-              { value: 'appointment', label: 'Lịch hẹn' },
-              { value: 'record', label: 'Hồ sơ bệnh án' },
-              { value: 'examSlip', label: 'Phiếu khám' },
-              { value: 'system', label: 'Hệ thống' },
+              { value: 'all', label: t('layout.notifications.filters.allTypes') },
+              { value: 'appointment', label: t('layout.notifications.filters.appointment') },
+              { value: 'ai-diagnosis', label: t('layout.notifications.filters.aiDiagnosis') },
+              { value: 'system', label: t('layout.notifications.filters.system') },
             ]}
           />
         </Form.Item>
@@ -257,7 +236,7 @@ export default function AdminVererianrianLayout() {
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="Không có thông báo phù hợp"
+              description={t('layout.notifications.empty')}
             />
           ),
         }}
@@ -272,10 +251,10 @@ export default function AdminVererianrianLayout() {
             >
               <div className={styles.notificationItemTop}>
                 <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || 'default'}>
-                  {getNotificationTypeLabel(item.type)}
+                  {getNotificationTypeLabel(item.type, t)}
                 </Tag>
                 <Text className={styles.notificationTimeText}>
-                  {formatNotificationTimeAgo(item.createdAt)}
+                  {formatNotificationTimeAgo(item.createdAt, t)}
                 </Text>
               </div>
 
@@ -301,7 +280,7 @@ export default function AdminVererianrianLayout() {
               </div>
               <div>
                 <h2>{clinicDisplayName}</h2>
-                <p>PetcareX</p>
+                <p>{t('layout.brandSubtitle')}</p>
               </div>
             </div>
 
@@ -327,15 +306,15 @@ export default function AdminVererianrianLayout() {
           <div className={styles.profileCard}>
             <Avatar size={44} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
             <div className={styles.profileMeta}>
-              <h4>{userProfile?.fullName || 'Bác sĩ'}</h4>
-              <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN', 'vi')}</p>
+                <h4>{userProfile?.fullName || t('layout.defaultDoctorName')}</h4>
+              <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN')}</p>
             </div>
             <Button
               type="text"
               icon={<LogoutOutlined />}
               className={styles.logoutBtn}
               onClick={handleLogout}
-              aria-label="Đăng xuất"
+                aria-label={t('layout.aria.logout')}
             />
           </div>
         </aside>
@@ -343,43 +322,51 @@ export default function AdminVererianrianLayout() {
 
       <main className={`${styles.main} ${isExamFormFocusMode ? styles.mainFocus : ''}`}>
         {!isExamFormFocusMode ? (
-          <header className={styles.header}>
+          <header
+            className={`${styles.header} ${shouldUseMedicalRecordHeader ? styles.headerMedicalRecord : ''}`}
+          >
             <div className={styles.headerSearchWrap}>
-              {!shouldHideSearch ? (
+              {shouldUseMedicalRecordHeader ? (
+                <h1 className={styles.headerTitle}>{t('layout.medicalHeaderTitle')}</h1>
+              ) : !shouldHideSearch ? (
                 <Input
                   className={styles.searchInput}
                   prefix={<SearchOutlined />}
-                  placeholder="Tìm kiếm thú cưng, chủ nuôi..."
+                  placeholder={t('layout.searchPlaceholder')}
                 />
               ) : null}
             </div>
 
-            <Popover
-              trigger="click"
-              placement="bottomRight"
-              overlayClassName={styles.notificationPopoverOverlay}
-              content={notificationContent}
-              open={notificationPopoverOpen}
-              onOpenChange={setNotificationPopoverOpen}
-            >
-              <Button
-                type="text"
-                aria-label="Xem thông báo bác sĩ"
-                className={styles.notificationBellButton}
-                icon={(
-                  <Badge
-                    count={unreadNotificationCount}
-                    size="small"
-                    overflowCount={99}
-                    color="#1976ff"
-                  >
-                    <span className={styles.notificationBellIcon}>
-                      <IoMdNotificationsOutline />
-                    </span>
-                  </Badge>
-                )}
-              />
-            </Popover>
+            <div className={styles.headerActions}>
+              <LanguageSwitcher scope={LANGUAGE_SCOPE.veterinarian} />
+
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                overlayClassName={styles.notificationPopoverOverlay}
+                content={notificationContent}
+                open={notificationPopoverOpen}
+                onOpenChange={setNotificationPopoverOpen}
+              >
+                <Button
+                  type="text"
+                  aria-label={t('layout.aria.openNotifications')}
+                  className={styles.notificationBellButton}
+                  icon={(
+                    <Badge
+                      count={unreadNotificationCount}
+                      size="small"
+                      overflowCount={99}
+                      color="#1976ff"
+                    >
+                      <span className={styles.notificationBellIcon}>
+                        <IoMdNotificationsOutline />
+                      </span>
+                    </Badge>
+                  )}
+                />
+              </Popover>
+            </div>
           </header>
         ) : null}
 

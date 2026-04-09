@@ -2,20 +2,23 @@ import { Button, Form, Input, message, Spin } from 'antd';
 import React from 'react';
 import { FaPaw } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { forgotPasswordApi } from '../../../../data/client/api/auth';
+import { useTranslation } from 'react-i18next';
+import { forgotPasswordApi } from '../../../../services/authService';
+import { getClientInstance } from '../../../../services/apiClient';
 import './styles.css';
 
 export default function ForgotPassword() {
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      await forgotPasswordApi(values.email);
+      await forgotPasswordApi(getClientInstance(), values.email);
       message.success({
-        content: 'Mã OTP đã được gửi tới email của bạn. Vui lòng kiểm tra hộp thư đến hoặc thư mục spam.',
+        content: t('pages.auth.forgotPassword.otpSentSuccess'),
         duration: 3,
       });
       setTimeout(() => {
@@ -23,7 +26,7 @@ export default function ForgotPassword() {
       }, 1500);
     } catch (err) {
       message.error({
-        content: err.response?.data?.message || err.message || 'Có lỗi xảy ra. Vui lòng thử lại.',
+        content: err.response?.data?.message || err.message || t('pages.auth.forgotPassword.submitFailed'),
         duration: 3,
       });
     } finally {
@@ -57,13 +60,13 @@ export default function ForgotPassword() {
           </div>
 
           <div className="forgot-password-header">
-            <h1 className="forgot-password-title">Quên mật khẩu?</h1>
+            <h1 className="forgot-password-title">{t('pages.auth.forgotPassword.heading')}</h1>
             <p className="forgot-password-subtitle">
-              Đừng lo lắng! Nhập email liên kết với tài khoản của bạn và chúng tôi sẽ gửi mã OTP để bạn có thể khôi phục mật khẩu
+              {t('pages.auth.forgotPassword.subtitle')}
             </p>
           </div>
 
-          <Spin spinning={loading} tip="Đang gửi mã OTP...">
+          <Spin spinning={loading} tip={t('pages.auth.forgotPassword.sendingOtp')}>
             <Form
               form={form}
               layout="vertical"
@@ -72,20 +75,20 @@ export default function ForgotPassword() {
             >
               <Form.Item
                 name="email"
-                label={<span className="form-label">Địa chỉ Email</span>}
+                label={<span className="form-label">{t('pages.auth.forgotPassword.emailLabel')}</span>}
                 rules={[
                   {
                     required: true,
-                    message: 'Vui lòng nhập email',
+                    message: t('pages.auth.forgotPassword.validation.emailRequired'),
                   },
                   {
                     type: 'email',
-                    message: 'Email không hợp lệ',
+                    message: t('pages.auth.forgotPassword.validation.emailInvalid'),
                   },
                 ]}
               >
                 <Input
-                  placeholder="Nhập email của bạn"
+                  placeholder={t('pages.auth.forgotPassword.emailPlaceholder')}
                   className="form-input"
                   disabled={loading}
                 />
@@ -99,7 +102,7 @@ export default function ForgotPassword() {
                   loading={loading}
                   className="forgot-password-button"
                 >
-                  Gửi mã OTP
+                  {t('pages.auth.forgotPassword.sendOtp')}
                 </Button>
               </Form.Item>
             </Form>
@@ -112,13 +115,13 @@ export default function ForgotPassword() {
               className="back-login-link"
               disabled={loading}
             >
-              ← Quay lại Đăng nhập
+              {t('pages.auth.forgotPassword.backToLogin')}
             </Button>
           </div>
 
           <div className="contact-support-link">
-            <span>Bạn gặp khó khăn?</span>
-            <a href="/contact-support">Liên hệ bộ phận hỗ trợ</a>
+            <span>{t('pages.auth.forgotPassword.needHelp')}</span>
+            <a href="/contact-support">{t('pages.auth.forgotPassword.contactSupport')}</a>
           </div>
         </div>
       </div>

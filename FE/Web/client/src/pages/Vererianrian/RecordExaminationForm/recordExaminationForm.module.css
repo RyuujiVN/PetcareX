@@ -113,6 +113,28 @@
 	height: 40px;
 }
 
+.followUpControlRow {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+}
+
+.followUpDateField {
+	flex: 1;
+	margin-bottom: 0 !important;
+}
+
+.followUpDateCompact {
+	width: 82%;
+	min-width: 180px;
+}
+
+.followUpToggleField {
+	margin-bottom: 0 !important;
+	padding-top: 8px;
+	white-space: nowrap;
+}
+
 .vitalGrid {
 	display: grid;
 	grid-template-columns: repeat(3, minmax(0, 1fr));

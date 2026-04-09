@@ -13,6 +13,8 @@ import torch
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from transformers import TextIteratorStreamer, StoppingCriteria, StoppingCriteriaList
+
+from vision_pipeline import VisionAnalyzer
 from rag_pipeline import Retriever, LLMGenerator
 from structured_retriever import StructuredDBRetriever
 from database import engine, SessionLocal
@@ -36,22 +38,31 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 retriever: Retriever = None
 llm: LLMGenerator = None
 structured_retriever: StructuredDBRetriever = None
+vision_analyzer: VisionAnalyzer = None  
 llm_lock = threading.Lock()
 
-class StopGenerationCreteria(StoppingCriteria):
+class StopGenerationCriteria(StoppingCriteria):
     def __init__(self):
         self.stop_event = threading.Event()
 
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
         return self.stop_event.is_set()
-global_stop_criteria = StopGenerationCreteria()
+
+global_stop_criteria = StopGenerationCriteria()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global retriever, llm, structured_retriever
+    global retriever, llm, structured_retriever, vision_analyzer
     print("Loading models...")
     retriever = Retriever()
     llm = LLMGenerator()
+   
+    try:
+        vision_analyzer = VisionAnalyzer()
+    except Exception as e:
+        print(f"Không thể tải Model Vision: {e}. Tính năng nhận diện ảnh sẽ bị tắt.")
+        vision_analyzer = None
+
     structured_retriever = StructuredDBRetriever()
     if POSTGRES_DSN and structured_retriever.enabled:
         print("Structured DB retriever enabled.")
@@ -60,7 +71,6 @@ async def lifespan(app: FastAPI):
         print(f"Structured DB retriever not active: {reason}")
     print("API ready.")
     yield
-
 
 app = FastAPI(title="Vet Chatbot API", version="1.0.0", lifespan=lifespan)
 app.add_middleware(
@@ -131,25 +141,9 @@ def _should_query_structured_db(message: str) -> bool:
 def _has_medical_content(message: str) -> bool:
     q = (message or "").lower()
     markers = [
-        "triệu chứng",
-        "trieu chung",
-        "bệnh",
-        "benh",
-        "nôn",
-        "non",
-        "tiêu chảy",
-        "tieu chay",
-        "sốt",
-        "sot",
-        "ho",
-        "khó thở",
-        "kho tho",
-        "điều trị",
-        "dieu tri",
-        "thuốc",
-        "thuoc",
-        "chẩn đoán",
-        "chan doan",
+        "triệu chứng", "trieu chung", "bệnh", "benh", "nôn", "non", "tiêu chảy", "tieu chay", 
+        "sốt", "sot", "ho", "khó thở", "kho tho", "điều trị", "dieu tri", "thuốc", "thuoc", 
+        "chẩn đoán", "chan doan",
     ]
     return any(m in q for m in markers)
 
@@ -167,7 +161,8 @@ def _plan_retrieval(message: str) -> Tuple[bool, bool, Set[str]]:
 def health():
     return {
         "status": "ok",
-        "model": llm is not None,
+        "model_text": llm is not None,
+        "model_vision": vision_analyzer is not None,
         "structured_db_enabled": bool(structured_retriever and structured_retriever.enabled),
         "structured_db_error": getattr(structured_retriever, "init_error", None),
     }
@@ -181,12 +176,24 @@ async def handle_chat(sid, data):
         except json.JSONDecodeError:
             print(f"Lỗi: Data gửi lên không phải JSON hợp lệ: {data}")
             return
+            
     message = data.get("message", "").strip()
+    image_b64 = data.get("image", None) 
     room_id = data.get("room_id", "")
     user_id = data.get("user_id", "")
 
-    if not message:
+    if not message and not image_b64:
         return
+
+    loop = asyncio.get_running_loop()
+    if image_b64 and vision_analyzer is not None:
+        try:
+            await sio.emit('chat_response', {"type": "status", "status": "Đang phân tích hình ảnh..."}, to=sid)
+            vision_desc = await loop.run_in_executor(None, vision_analyzer.describe_image, image_b64)
+            message = f"[Hệ thống tự động phân tích ảnh do người dùng tải lên: {vision_desc}]\n\nCâu hỏi của người dùng: {message}"
+        except Exception as e:
+            print(f"Lỗi khi xử lý ảnh: {e}")
+            message = f"[Hệ thống lỗi khi xử lý ảnh. Vui lòng dựa vào mô tả của người dùng để tư vấn]\n\nCâu hỏi của người dùng: {message}"
 
     db = SessionLocal()
     try:
@@ -231,6 +238,7 @@ async def handle_chat(sid, data):
         )
         inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
         global_stop_criteria.stop_event.clear()
+        
         generate_kwargs = dict(
             **inputs,
             max_new_tokens=LLM_MAX_NEW_TOKENS,
@@ -241,7 +249,6 @@ async def handle_chat(sid, data):
             stopping_criteria=StoppingCriteriaList([global_stop_criteria]),
         )
 
-        loop = asyncio.get_running_loop()
         token_q = asyncio.Queue()
 
         def run_gen():
@@ -309,8 +316,6 @@ def create_triage(data: dict):
         "status": "success",
         "analysis": answer.strip(),
     }
-
-
 
 if __name__ == "__main__":
     import uvicorn

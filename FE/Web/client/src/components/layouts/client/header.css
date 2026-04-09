@@ -90,6 +90,12 @@
     border-radius: 2px;
 }
 
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .user-section {
     position: relative;
     display: flex;
@@ -158,7 +164,7 @@
 .notification-panel-content {
     flex: 1;
     min-height: 160px;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .notification-panel-loading,
@@ -229,6 +235,11 @@
 .notification-type-icon.forum-like {
     background: rgba(239, 68, 68, 0.14);
     color: #ef4444;
+}
+
+.notification-type-icon.ai-diagnosis {
+    background: rgba(139, 92, 246, 0.14);
+    color: #7c3aed;
 }
 
 .notification-item-text {
@@ -609,6 +620,10 @@
         padding: 8px 10px;
     }
 
+    .auth-section {
+        gap: 8px;
+    }
+
     .notification-panel-header {
         flex-direction: column;
         align-items: flex-start;
@@ -649,6 +664,10 @@
     .user-profile {
         gap: 6px;
         padding: 6px 8px;
+    }
+
+    .auth-section {
+        gap: 6px;
     }
 
     .user-avatar {
@@ -701,6 +720,10 @@
     .user-avatar {
         width: 30px;
         height: 30px;
+    }
+
+    .auth-section {
+        gap: 5px;
     }
 
     .user-dropdown {

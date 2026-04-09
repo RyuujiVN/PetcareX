@@ -8,45 +8,74 @@ import {
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { createComment, getReplies } from '../../../../data/client/api/commentApi'
+import { useTranslation } from 'react-i18next'
+import { createCommentApi, getRepliesApi } from '../../../../services/forumService'
 import { CLIENT_AUTH_STORAGE } from '../../../../constants/authStorage'
-import { uploadUserImagesApi, uploadUserImageApi } from '../../../../data/client/api/user'
+import { getClientInstance } from '../../../../services/apiClient'
+import { uploadUserImagesApi, uploadUserImageApi } from '../../../../services/userService'
 import {
-	createPost,
-	deletePost,
-	getCommentsByPostId,
-	getPosts,
-	likePost,
-	unlikePost,
-	updatePost,
-} from '../../../../data/client/api/postApi'
-import { getAllTopics } from '../../../../data/client/api/topicApi'
+	createPostApi,
+	deletePostApi,
+	getCommentsByPostIdApi,
+	getPostsApi,
+	likePostApi,
+	unlikePostApi,
+	updatePostApi,
+} from '../../../../services/forumService'
+import { getAllTopicsApi } from '../../../../services/forumService'
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import styles from './forum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
 const IMAGE_TOKEN_REGEX = /\[\[img:(.*?)\]\]/g
 const TITLE_TOKEN_REGEX = /^\s*\[\[title:(.*?)\]\]\s*/i
+const NO_TOPIC_TOKEN = '[[no-topic:1]]'
 const NO_TOPIC_VALUE = 'no-topic'
 const NO_TOPIC_FILTER_VALUE = 'none'
 const FEATURED_POST_LIMIT = 3
 const MAX_POST_IMAGES = 10
 
-const formatTimeAgo = (dateValue) => {
-	if (!dateValue) return 'Vừa xong'
+const TOPIC_TRANSLATION_KEYS = {
+	'cham soc thu cung hang ngay': 'pages.forum.topics.dailyCare',
+	'tiem phong va phong benh': 'pages.forum.topics.vaccinationAndPrevention',
+	'tu van trieu chung': 'pages.forum.topics.symptomConsulting',
+	'hau phau va phuc hoi': 'pages.forum.topics.postOpRecovery',
+	'dinh duong thu y': 'pages.forum.topics.veterinaryNutrition',
+	'kinh nghiem phong kham': 'pages.forum.topics.clinicExperience',
+}
+
+const normalizeTopicNameKey = (value = '') =>
+	String(value || '')
+		.trim()
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, ' ')
+		.trim()
+
+const translateTopicName = (topicName, t, language) => {
+	if (!topicName || !language?.startsWith('en')) return topicName
+	const topicKey = normalizeTopicNameKey(topicName)
+	const translationKey = TOPIC_TRANSLATION_KEYS[topicKey]
+	if (!translationKey) return topicName
+	return t(translationKey, { defaultValue: topicName })
+}
+
+const formatTimeAgo = (dateValue, t) => {
+	if (!dateValue) return t('pages.forum.justNow')
 
 	const created = new Date(dateValue).getTime()
-	if (Number.isNaN(created)) return 'Vừa xong'
+	if (Number.isNaN(created)) return t('pages.forum.justNow')
 
 	const diff = Date.now() - created
 	const minute = 60 * 1000
 	const hour = 60 * minute
 	const day = 24 * hour
 
-	if (diff < minute) return 'Vừa xong'
-	if (diff < hour) return `${Math.floor(diff / minute)} phút trước`
-	if (diff < day) return `${Math.floor(diff / hour)} giờ trước`
-	return `${Math.floor(diff / day)} ngày trước`
+	if (diff < minute) return t('pages.forum.justNow')
+	if (diff < hour) return t('pages.forum.minutesAgo', { count: Math.floor(diff / minute) })
+	if (diff < day) return t('pages.forum.hoursAgo', { count: Math.floor(diff / hour) })
+	return t('pages.forum.daysAgo', { count: Math.floor(diff / day) })
 }
 
 const normalizeTagType = (topicName = '') => {
@@ -61,17 +90,25 @@ const normalizeTagType = (topicName = '') => {
 	return 'kinh-nghiem-nuoi'
 }
 
-const getTopicDisplayName = (topic = {}) => topic?.nameVn || topic?.nameEng || topic?.name || ''
+const getTopicDisplayName = (topic = {}, { language, t } = {}) => {
+	const preferred = language?.startsWith('en')
+		? topic?.nameEng || topic?.nameVn || topic?.name || ''
+		: topic?.nameVn || topic?.nameEng || topic?.name || ''
+
+	return translateTopicName(preferred, t, language)
+}
 
 const getPostEngagementScore = (post = {}) => Number(post.likes || 0) + Number(post.comments || 0)
 
 const extractMediaFromContent = (rawContent = '') => {
+	const hasNoTopicToken = rawContent.includes(NO_TOPIC_TOKEN)
+	const normalizedContent = hasNoTopicToken ? rawContent.split(NO_TOPIC_TOKEN).join('').trim() : rawContent.trim()
 	const matches = [...rawContent.matchAll(IMAGE_TOKEN_REGEX)]
 	const images = matches
 		.map((match) => match?.[1]?.trim())
 		.filter((url) => Boolean(url))
 	const firstImage = images[0] || null
-	const withoutImageToken = rawContent.replace(IMAGE_TOKEN_REGEX, '').trim()
+	const withoutImageToken = normalizedContent.replace(IMAGE_TOKEN_REGEX, '').trim()
 	const titleMatch = withoutImageToken.match(TITLE_TOKEN_REGEX)
 	const title = titleMatch?.[1]?.trim() || ''
 	const cleanContent = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim()
@@ -81,13 +118,18 @@ const extractMediaFromContent = (rawContent = '') => {
 		text: cleanContent,
 		image: firstImage,
 		images,
+		isNoTopic: hasNoTopicToken,
 	}
 }
 
-const attachPostToContent = ({ title, text, imageUrls = [] }) => {
+const attachPostToContent = ({ title, text, imageUrls = [], isNoTopic = false, t }) => {
 	const normalizedTitle = title?.trim()
-	const normalizedText = text.trim() || 'Hình ảnh'
+	const normalizedText = text.trim() || t('pages.forum.imagePlaceholder')
 	const lines = []
+
+	if (isNoTopic) {
+		lines.push(NO_TOPIC_TOKEN)
+	}
 
 	if (normalizedTitle) {
 		lines.push(`[[title:${normalizedTitle}]]`)
@@ -100,14 +142,14 @@ const attachPostToContent = ({ title, text, imageUrls = [] }) => {
 	})
 
 	if (lines.length === 0) {
-		lines.push('Hình ảnh')
+		lines.push(t('pages.forum.imagePlaceholder'))
 	}
 
 	return lines.join('\n')
 }
 
-const attachCommentToContent = (text, imageUrl) => {
-	const normalizedText = text.trim() || 'Hình ảnh'
+const attachCommentToContent = (text, imageUrl, t) => {
+	const normalizedText = text.trim() || t('pages.forum.imagePlaceholder')
 	if (!imageUrl) return normalizedText
 
 	return `${normalizedText}\n[[img:${imageUrl}]]`
@@ -117,11 +159,11 @@ const toDataUrl = (file) =>
 	new Promise((resolve, reject) => {
 		const reader = new FileReader()
 		reader.onload = () => resolve(String(reader.result || ''))
-		reader.onerror = () => reject(new Error('Không thể đọc file ảnh'))
+		reader.onerror = () => reject(new Error('image-read-error'))
 		reader.readAsDataURL(file)
 	})
 
-const mapCommentToUi = (comment) => {
+	const mapCommentToUi = (comment, t) => {
 	const media = extractMediaFromContent(comment.content || '')
 
 	return {
@@ -132,40 +174,45 @@ const mapCommentToUi = (comment) => {
 		image: media.image,
 		replyCount: Number(comment.replyCount || 0),
 		createdAt: comment.createdAt,
-		time: formatTimeAgo(comment.createdAt),
+		time: formatTimeAgo(comment.createdAt, t),
 		user: {
 			id: comment.user?.id,
-			fullName: comment.user?.fullName || 'Người dùng',
+			fullName: comment.user?.fullName || t('header.user.defaultName'),
 			avatarUrl: comment.user?.avatarUrl || DEFAULT_COMPOSER_AVATAR,
 		},
 	}
 }
 
-const mapPostToUi = (post) => {
+const mapPostToUi = (post, t, language) => {
 	const media = extractMediaFromContent(post.content || '')
-	const topicName = getTopicDisplayName(post.topic)
+	const topicName = getTopicDisplayName(post.topic, { language, t })
+	const tagTypeName = getTopicDisplayName(post.topic, { language: 'vi', t })
+	const isNoTopic = media.isNoTopic || !post.topic?.id
 
 	return {
 		id: post.id,
 		authorId: post.author?.id,
-		author: post.author?.fullName || 'Người dùng',
+		author: post.author?.fullName || t('header.user.defaultName'),
 		title: media.title,
 		content: media.text,
 		image: media.image,
 		images: media.images,
-		time: formatTimeAgo(post.createdAt),
-		tag: (topicName || 'Bài viết').toUpperCase(),
-		tagType: normalizeTagType(topicName),
+		time: formatTimeAgo(post.createdAt, t),
+		tag: isNoTopic ? t('pages.forum.postTagDefault').toUpperCase() : (topicName || t('pages.forum.postTagDefault')).toUpperCase(),
+		tagType: isNoTopic ? 'no-topic' : normalizeTagType(tagTypeName),
 		likes: Number(post.likeCount || 0),
 		comments: Number(post.commentCount || 0),
 		createdAt: post.createdAt,
 		avatar: post.author?.avatarUrl || DEFAULT_COMPOSER_AVATAR,
 		liked: Boolean(post.liked),
-		rawTopicId: post.topic?.id,
+		rawTopicId: isNoTopic ? null : post.topic?.id,
+		actualTopicId: post.topic?.id || null,
+		noTopicSelected: isNoTopic,
 	}
 }
 
 function Forum() {
+	const { t, i18n } = useTranslation()
 	const navigate = useNavigate()
 	const [searchParams] = useSearchParams()
 	const composerRef = useRef(null)
@@ -216,39 +263,46 @@ function Forum() {
 		const mapped = apiTopics
 			.map((topic) => ({
 				id: String(topic.id),
-				label: getTopicDisplayName(topic),
+				label: getTopicDisplayName(topic, { language: i18n.language, t }),
 			}))
 			.filter((item) => item.id && item.label)
 
 		const unique = mapped.filter((item, index, arr) => arr.findIndex((value) => value.id === item.id) === index)
 
 		return unique
-	}, [apiTopics])
+	}, [apiTopics, i18n.language, t])
 
 	const topicFilterOptions = useMemo(
 		() => [
-			{ label: 'Tất cả chủ đề', value: 'all' },
-			{ label: 'Không chủ đề', value: NO_TOPIC_FILTER_VALUE },
+			{ label: t('pages.forum.topicFilter.all'), value: 'all' },
+			{ label: t('pages.forum.topicFilter.none'), value: NO_TOPIC_FILTER_VALUE },
 			...filteredTopics.map((topic) => ({
 				label: topic.label,
 				value: topic.id,
 			})),
 		],
-		[filteredTopics],
+		[filteredTopics, t],
 	)
 
 	const topicSelectOptions = useMemo(
 		() => [
-			{ value: NO_TOPIC_VALUE, label: 'Không chọn chủ đề' },
+			{ value: NO_TOPIC_VALUE, label: t('pages.forum.topicSelect.noTopic') },
 			...apiTopics
-				.filter((topic) => topic.id && getTopicDisplayName(topic))
+				.filter((topic) => topic.id && getTopicDisplayName(topic, { language: i18n.language, t }))
 				.map((topic) => ({
 					value: String(topic.id),
-					label: getTopicDisplayName(topic),
+					label: getTopicDisplayName(topic, { language: i18n.language, t }),
 				})),
 		],
-		[apiTopics],
+		[apiTopics, i18n.language, t],
 	)
+
+	const fallbackTopicId = useMemo(() => {
+		const firstAvailableTopic = apiTopics.find(
+			(topic) => topic.id && getTopicDisplayName(topic, { language: i18n.language, t }),
+		)
+		return firstAvailableTopic ? String(firstAvailableTopic.id) : null
+	}, [apiTopics, i18n.language, t])
 
 	const topicDropdownItems = useMemo(
 		() =>
@@ -282,7 +336,7 @@ function Forum() {
 		.slice(0, 3)
 		.map((item, index) => ({
 			...item,
-			score: `${item.count} Bài viết`,
+			score: `${item.count}`,
 			rank: `#${index + 1}`,
 		}))
 }, [apiPosts])
@@ -353,7 +407,7 @@ function Forum() {
 
 		const fileUrl = payload?.file || payload?.data?.file
 		if (!fileUrl) {
-			throw new Error('Không nhận được URL ảnh từ server')
+			throw new Error(t('pages.forum.uploadNoUrl'))
 		}
 
 		return fileUrl
@@ -362,10 +416,10 @@ function Forum() {
 	const loadPosts = async () => {
 		setLoadingPosts(true)
 		try {
-			const data = await getPosts({ limit: 1000 })
-			setApiPosts(Array.isArray(data) ? data.map(mapPostToUi) : [])
+			const data = await getPostsApi(getClientInstance(), { limit: 1000 })
+			setApiPosts(Array.isArray(data) ? data.map((item) => mapPostToUi(item, t, i18n.language)) : [])
 		} catch (error) {
-			message.error(error.message || 'Không thể tải danh sách bài viết')
+			message.error(error.message || t('pages.forum.loadPostsFailed'))
 		} finally {
 			setLoadingPosts(false)
 		}
@@ -375,10 +429,10 @@ function Forum() {
 		const loadInitialData = async () => {
 			setLoadingTopics(true)
 			try {
-				const topics = await getAllTopics()
+				const topics = await getAllTopicsApi(getClientInstance())
 				setApiTopics(Array.isArray(topics) ? topics : [])
 			} catch (error) {
-				message.error(error.message || 'Không thể tải chủ đề')
+				message.error(error.message || t('pages.forum.loadTopicsFailed'))
 			} finally {
 				setLoadingTopics(false)
 			}
@@ -387,7 +441,7 @@ function Forum() {
 		}
 
 		loadInitialData()
-	}, [])
+	}, [i18n.language, t])
 
 	const updateParams = (nextValues, options = {}) => {
 		const next = new URLSearchParams(searchParams)
@@ -404,12 +458,12 @@ function Forum() {
 
 	const handleCreatePost = async () => {
 		if (uploadingComposerImage) {
-			message.warning('Ảnh đang được tải lên, vui lòng đợi')
+			message.warning(t('pages.forum.validation.uploadingImage'))
 			return
 		}
 
 		if (!composerTitle.trim() && !composerText.trim() && composerImageFiles.length === 0) {
-			message.warning('Vui lòng nhập nội dung hoặc chọn ảnh trước khi đăng')
+			message.warning(t('pages.forum.validation.emptyPost'))
 			return
 		}
 
@@ -422,15 +476,27 @@ function Forum() {
 				imageUrls = await uploadUserImagesApi(composerImageFiles)
 			}
 
-			await createPost({
-				topicId: composerTopicId === NO_TOPIC_VALUE ? null : composerTopicId,
+			const isNoTopicSelected = composerTopicId === NO_TOPIC_VALUE
+			const resolvedTopicId = isNoTopicSelected ? fallbackTopicId : composerTopicId
+
+			if (!resolvedTopicId) {
+				message.error(t('pages.forum.validation.noTopicAvailable'))
+				return
+			}
+
+			const createPayload = {
+				topicId: resolvedTopicId,
 				content: attachPostToContent({
 					title: composerTitle,
 					text: composerText,
 					imageUrls,
+					isNoTopic: isNoTopicSelected,
+					t,
 				}),
-			})
-			message.success('Đăng bài thành công')
+			}
+
+			await createPostApi(getClientInstance(), createPayload)
+			message.success(t('pages.forum.postSuccess'))
 			setComposerText('')
 			setComposerTitle('')
 			setComposerTopicId(NO_TOPIC_VALUE)
@@ -439,7 +505,7 @@ function Forum() {
 			setIsComposerModalOpen(false)
 			await loadPosts()
 		} catch (error) {
-			message.error(error.message || 'Đăng bài thất bại')
+			message.error(error.message || t('pages.forum.postFailed'))
 		} finally {
 			setUploadingComposerImage(false)
 			setSubmittingPost(false)
@@ -453,7 +519,7 @@ function Forum() {
 	const handleStartEditPost = (post) => {
 		setMenuPostId(null)
 		if (!currentUserId || post.authorId !== currentUserId) {
-			message.warning('Bạn chỉ có thể chỉnh sửa bài viết của chính mình')
+			message.warning(t('pages.forum.validation.editOwnPostOnly'))
 			return
 		}
 
@@ -462,6 +528,7 @@ function Forum() {
 			title: post.title || '',
 			text: post.content || '',
 			topicId: post.rawTopicId ? String(post.rawTopicId) : NO_TOPIC_VALUE,
+			fallbackTopicId: post.actualTopicId ? String(post.actualTopicId) : fallbackTopicId,
 			imageFile: null,
 			imagePreview: post.image || '',
 			imageUrl: post.image || '',
@@ -496,7 +563,7 @@ function Forum() {
 					  }
 					: prev,
 			)
-			message.success('Tải ảnh bài viết thành công')
+			message.success(t('pages.forum.uploadPostImageSuccess'))
 		} catch (error) {
 			setEditingPost((prev) =>
 				prev
@@ -508,7 +575,11 @@ function Forum() {
 					  }
 					: prev,
 			)
-			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+			message.error(
+				error.message === 'image-read-error'
+					? t('pages.forum.readImageFailed')
+					: error.message || t('pages.forum.readImageFailed'),
+			)
 		} finally {
 			setUploadingEditImage(false)
 		}
@@ -520,33 +591,42 @@ function Forum() {
 		if (!editingPost) return
 
 		if (uploadingEditImage) {
-			message.warning('Ảnh đang được tải lên, vui lòng đợi')
+			message.warning(t('pages.forum.validation.uploadingImage'))
 			return
 		}
 
 		if (!editingPost.title.trim() && !editingPost.text.trim() && !editingPost.imagePreview) {
-			message.warning('Bài viết không được để trống hoàn toàn')
+			message.warning(t('pages.forum.validation.emptyPost'))
 			return
 		}
 
 		try {
 			setSubmittingEditPost(true)
 			const imageUrl = editingPost.imageUrl || null
+			const isNoTopicSelected = editingPost.topicId === NO_TOPIC_VALUE
+			const resolvedTopicId = isNoTopicSelected ? (editingPost.fallbackTopicId || fallbackTopicId) : editingPost.topicId
 
-			await updatePost(editingPost.id, {
-				topicId: editingPost.topicId === NO_TOPIC_VALUE ? null : editingPost.topicId,
+			if (!resolvedTopicId) {
+				message.error(t('pages.forum.validation.noTopicAvailableForUpdate'))
+				return
+			}
+
+			await updatePostApi(getClientInstance(), editingPost.id, {
+				topicId: resolvedTopicId,
 				content: attachPostToContent({
 					title: editingPost.title,
 					text: editingPost.text,
-					imageUrl,
+					imageUrls: imageUrl ? [imageUrl] : [],
+					isNoTopic: isNoTopicSelected,
+					t,
 				}),
 			})
 
-			message.success('Cập nhật bài viết thành công')
+			message.success(t('pages.forum.updatePostSuccess'))
 			closeEditModal()
 			await loadPosts()
 		} catch (error) {
-			message.error(error.message || 'Không thể cập nhật bài viết')
+			message.error(error.message || t('pages.forum.updatePostFailed'))
 		} finally {
 			setSubmittingEditPost(false)
 		}
@@ -555,28 +635,28 @@ function Forum() {
 	const handleDeletePost = (post) => {
 		setMenuPostId(null)
 		if (!currentUserId || post.authorId !== currentUserId) {
-			message.warning('Bạn chỉ có thể xóa bài viết của chính mình')
+			message.warning(t('pages.forum.validation.deleteOwnPostOnly'))
 			return
 		}
 
 		Modal.confirm({
-			title: 'Xóa bài viết',
-			content: 'Bạn có chắc chắn muốn xóa bài viết này không?',
-			okText: 'Xóa',
-			cancelText: 'Hủy',
+			title: t('pages.forum.confirmDelete.title'),
+			content: t('pages.forum.confirmDelete.content'),
+			okText: t('pages.forum.confirmDelete.okText'),
+			cancelText: t('pages.forum.confirmDelete.cancelText'),
 			okType: 'danger',
 			centered: true,
 			onOk: async () => {
 				try {
-					await deletePost(post.id)
-					message.success('Đã xóa bài viết')
+					await deletePostApi(getClientInstance(), post.id)
+					message.success(t('pages.forum.deleteSuccess'))
 					if (expandedPostId === post.id) {
 						setExpandedPostId(null)
 						updateParams({ post: '' })
 					}
 					await loadPosts()
 				} catch (error) {
-					message.error(error.message || 'Không thể xóa bài viết')
+					message.error(error.message || t('pages.forum.deleteFailed'))
 				}
 			},
 		})
@@ -588,14 +668,14 @@ function Forum() {
 
 		const remainingSlots = MAX_POST_IMAGES - composerImageFiles.length
 		if (remainingSlots <= 0) {
-			message.warning(`Bạn chỉ có thể chọn tối đa ${MAX_POST_IMAGES} ảnh`)
+			message.warning(t('pages.forum.maxImages', { count: MAX_POST_IMAGES }))
 			event.target.value = ''
 			return
 		}
 
 		const acceptedFiles = selectedFiles.slice(0, remainingSlots)
 		if (acceptedFiles.length < selectedFiles.length) {
-			message.warning(`Chỉ nhận tối đa ${MAX_POST_IMAGES} ảnh cho mỗi bài viết`)
+			message.warning(t('pages.forum.maxImagesPerPost', { count: MAX_POST_IMAGES }))
 		}
 
 		try {
@@ -603,7 +683,11 @@ function Forum() {
 			setComposerImageFiles((prev) => [...prev, ...acceptedFiles])
 			setComposerImagePreviews((prev) => [...prev, ...previews])
 		} catch (error) {
-			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+			message.error(
+				error.message === 'image-read-error'
+					? t('pages.forum.readImageFailed')
+					: error.message || t('pages.forum.readImageFailed'),
+			)
 		}
 
 		event.target.value = ''
@@ -627,7 +711,7 @@ function Forum() {
 
 		setProcessingLikeId(post.id)
 		try {
-			const response = nextLiked ? await likePost(post.id) : await unlikePost(post.id)
+			const response = nextLiked ? await likePostApi(getClientInstance(), post.id) : await unlikePostApi(getClientInstance(), post.id)
 			setApiPosts((prev) =>
 				prev.map((item) =>
 					item.id === post.id
@@ -642,7 +726,7 @@ function Forum() {
 
 			if (nextLiked) {
 				if (post.authorId && post.authorId !== currentUserId) {
-					message.success(`Đã thích bài viết của ${post.author}`)
+					message.success(t('pages.forum.likeSuccess', { author: post.author }))
 				}
 			}
 		} catch (error) {
@@ -657,7 +741,7 @@ function Forum() {
 						: item,
 				),
 			)
-			message.error(error.message || 'Không thể cập nhật lượt thích')
+			message.error(error.message || t('pages.forum.likeFailed'))
 		} finally {
 			setProcessingLikeId(null)
 		}
@@ -670,21 +754,21 @@ function Forum() {
 		}))
 
 		try {
-			const comments = await getCommentsByPostId(postId, { limit: 1000 })
+			const comments = await getCommentsByPostIdApi(getClientInstance(), postId, { limit: 1000 })
 			const topComments = Array.isArray(comments) ? comments : []
 
 			const commentThreads = await Promise.all(
 				topComments.map(async (comment) => {
 					let replies = []
 					if (Number(comment.replyCount || 0) > 0) {
-						const fetchedReplies = await getReplies({ parentId: comment.id, limit: 1000 })
+						const fetchedReplies = await getRepliesApi(getClientInstance(), { parentId: comment.id, limit: 1000 })
 						if (Array.isArray(fetchedReplies) && fetchedReplies.length > 0) {
-							replies = fetchedReplies.map(mapCommentToUi)
+							replies = fetchedReplies.map((reply) => mapCommentToUi(reply, t))
 						}
 					}
 
 					return {
-						main: mapCommentToUi(comment),
+						main: mapCommentToUi(comment, t),
 						replies,
 					}
 				}),
@@ -695,7 +779,7 @@ function Forum() {
 				[postId]: commentThreads,
 			}))
 		} catch (error) {
-			message.error(error.message || 'Không thể tải bình luận')
+			message.error(error.message || t('pages.forum.loadCommentsFailed'))
 		} finally {
 			setLoadingCommentsByPost((prev) => ({
 				...prev,
@@ -746,12 +830,16 @@ function Forum() {
 			setCommentImagePreview(await toDataUrl(file))
 			const uploadedUrl = await uploadImage(file)
 			setCommentImageUrl(uploadedUrl)
-			message.success('Tải ảnh bình luận thành công')
+			message.success(t('pages.forum.uploadCommentImageSuccess'))
 		} catch (error) {
 			setCommentImageFile(null)
 			setCommentImagePreview('')
 			setCommentImageUrl('')
-			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+			message.error(
+				error.message === 'image-read-error'
+					? t('pages.forum.readImageFailed')
+					: error.message || t('pages.forum.readImageFailed'),
+			)
 		} finally {
 			setUploadingCommentImage(false)
 		}
@@ -769,12 +857,16 @@ function Forum() {
 			setReplyImagePreview(await toDataUrl(file))
 			const uploadedUrl = await uploadImage(file)
 			setReplyImageUrl(uploadedUrl)
-			message.success('Tải ảnh phản hồi thành công')
+			message.success(t('pages.forum.uploadReplyImageSuccess'))
 		} catch (error) {
 			setReplyImageFile(null)
 			setReplyImagePreview('')
 			setReplyImageUrl('')
-			message.error(error.message || 'Không thể đọc ảnh đã chọn')
+			message.error(
+				error.message === 'image-read-error'
+					? t('pages.forum.readImageFailed')
+					: error.message || t('pages.forum.readImageFailed'),
+			)
 		} finally {
 			setUploadingReplyImage(false)
 		}
@@ -784,24 +876,24 @@ function Forum() {
 
 	const handleCreateComment = async (postId) => {
 		if (uploadingCommentImage) {
-			message.warning('Ảnh bình luận đang được tải lên, vui lòng đợi')
+			message.warning(t('pages.forum.validation.commentImageUploading'))
 			return
 		}
 
 		if (!commentText.trim() && !commentImageFile) {
-			message.warning('Vui lòng nhập bình luận hoặc chọn ảnh')
+			message.warning(t('pages.forum.validation.commentRequired'))
 			return
 		}
 
 		try {
 			setSubmittingComment(true)
 			const imageUrl = commentImageUrl || null
-			const createdComment = await createComment({
+			const createdComment = await createCommentApi(getClientInstance(), {
 				postId,
 				parentId: null,
-				content: attachCommentToContent(commentText, imageUrl),
+				content: attachCommentToContent(commentText, imageUrl, t),
 			})
-			const mappedComment = mapCommentToUi(createdComment)
+			const mappedComment = mapCommentToUi(createdComment, t)
 			setCommentsByPost((prev) => ({
 				...prev,
 				[postId]: [
@@ -828,7 +920,7 @@ function Forum() {
 				),
 			)
 		} catch (error) {
-			message.error(error.message || 'Không thể tạo bình luận')
+			message.error(error.message || t('pages.forum.createCommentFailed'))
 		} finally {
 			setSubmittingComment(false)
 		}
@@ -838,26 +930,26 @@ function Forum() {
 		if (!replyingComment?.postId || !replyingComment?.parentId) return
 
 		if (uploadingReplyImage) {
-			message.warning('Ảnh phản hồi đang được tải lên, vui lòng đợi')
+			message.warning(t('pages.forum.validation.replyImageUploading'))
 			return
 		}
 
 		if (!replyText.trim() && !replyImageFile) {
-			message.warning('Vui lòng nhập reply hoặc chọn ảnh')
+			message.warning(t('pages.forum.validation.replyRequired'))
 			return
 		}
 
 		try {
 			setSubmittingReply(true)
 			const imageUrl = replyImageUrl || null
-			const createdReply = await createComment({
+			const createdReply = await createCommentApi(getClientInstance(), {
 				postId: replyingComment.postId,
 				parentId: replyingComment.parentId,
-				content: attachCommentToContent(replyText, imageUrl),
+				content: attachCommentToContent(replyText, imageUrl, t),
 				
 			})
 
-			const mappedReply = mapCommentToUi(createdReply)
+			const mappedReply = mapCommentToUi(createdReply, t)
 			setCommentsByPost((prev) => ({
 				...prev,
 				[replyingComment.postId]: (prev[replyingComment.postId] || []).map((item) =>
@@ -886,7 +978,7 @@ function Forum() {
 				),
 			)
 		} catch (error) {
-			message.error(error.message || 'Không thể reply bình luận')
+			message.error(error.message || t('pages.forum.replyFailed'))
 		} finally {
 			setSubmittingReply(false)
 		}
@@ -943,11 +1035,11 @@ function Forum() {
 				<section ref={feedScrollRef} className={styles.leftColumn}>
 					<div className={styles.composeCard}>
 						<div className={styles.composeTop}>
-							<img src={composerAvatar} alt="avatar" className={styles.composeAvatar} />
+							<img src={composerAvatar} alt={t('pages.forum.avatarAlt')} className={styles.composeAvatar} />
 							<textarea
 								ref={composerRef}
 								className={styles.composeInput}
-								placeholder="Bạn muốn chia sẻ điều gì về thú cưng hôm nay?"
+								placeholder={t('pages.forum.placeholders.shareToday')}
 								readOnly
 								onClick={() => {
 									if (isComposerModalOpen) return
@@ -968,9 +1060,9 @@ function Forum() {
 									<button
 										type="button"
 										className={styles.topicFilterIconBtn}
-										title="Chọn chủ đề"
+										title={t('pages.forum.actions.selectTopicTitle')}
 									>
-										Chủ đề <FaFilter style={{ marginLeft: 6 }} />
+										{t('pages.forum.topic')} <FaFilter style={{ marginLeft: 6 }} />
 									</button>
 								</Dropdown>
 							</div>
@@ -978,7 +1070,7 @@ function Forum() {
 					</div>
 
 					<div className={styles.feedList}>
-						{loadingPosts ? <p className={styles.loadingText}>Đang tải bài viết...</p> : null}
+						{loadingPosts ? <p className={styles.loadingText}>{t('pages.forum.loadingPosts')}</p> : null}
 						{visiblePosts.map((post) => (
 							<article
 								key={post.id}
@@ -1001,7 +1093,7 @@ function Forum() {
 											</div>
 													<div className={styles.postTagRow}>
 														<span className={`${styles.postTag} ${styles[post.tagType]}`}>{post.tag}</span>
-														{post.isFeatured ? <span className={styles.featuredBadge}>Nổi bật</span> : null}
+															{post.isFeatured ? <span className={styles.featuredBadge}>{t('pages.forum.featured')}</span> : null}
 													</div>
 										</div>
 									</div>
@@ -1021,14 +1113,14 @@ function Forum() {
 										{menuPostId === post.id ? (
 											<div className={styles.postMenu} onClick={(event) => event.stopPropagation()}>
 												<button type="button" className={styles.postMenuItem} onClick={() => handleStartEditPost(post)}>
-													Chỉnh sửa
+													{t('common.actions.edit')}
 												</button>
 												<button
 													type="button"
 													className={`${styles.postMenuItem} ${styles.postMenuDanger}`}
 													onClick={() => handleDeletePost(post)}
 												>
-													Xóa
+													{t('common.actions.delete')}
 												</button>
 											</div>
 										) : null}
@@ -1051,7 +1143,7 @@ function Forum() {
 											>
 												<img
 													src={imageUrl}
-													alt={`Bài viết ${index + 1}`}
+																		alt={t('pages.forum.postImageAlt', { index: index + 1 })}
 													className={styles.postImage}
 													loading="lazy"
 													decoding="async"
@@ -1083,17 +1175,17 @@ function Forum() {
 								{expandedPostId === post.id ? (
 									<section className={styles.commentSection}>
 										<div className={styles.commentComposer}>
-											<img src={composerAvatar} alt="avatar" className={styles.commentAvatar} />
+											<img src={composerAvatar} alt={t('pages.forum.avatarAlt')} className={styles.commentAvatar} />
 											<div className={styles.commentFormWrap}>
 												<textarea
 													value={commentText}
 													onChange={(event) => setCommentText(event.target.value)}
-													placeholder="Viết bình luận..."
+													placeholder={t('pages.forum.placeholders.comment')}
 													className={styles.commentInput}
 												/>
 												{commentImagePreview ? (
 													<div className={styles.previewImageWrap}>
-														<img src={commentImagePreview} alt="preview" className={styles.previewImage} />
+															<img src={commentImagePreview} alt={t('pages.forum.commentImagePreviewAlt')} className={styles.previewImage} />
 														<button
 															type="button"
 															onClick={() => {
@@ -1104,7 +1196,7 @@ function Forum() {
 															className={styles.removeImageBtn}
 															disabled={uploadingCommentImage}
 														>
-															Gỡ ảnh
+															{t('pages.forum.actions.removeImage')}
 														</button>
 													</div>
 												) : null}
@@ -1121,20 +1213,20 @@ function Forum() {
 																onClick={() => commentImageInputRef.current?.click()}
 																disabled={uploadingCommentImage || submittingComment}
 															>
-														<FaImage /> Ảnh
+														<FaImage /> {t('pages.forum.actions.image')}
 													</button>
 													<button
 														type="button"
 														onClick={() => handleCreateComment(post.id)}
 																disabled={submittingComment || uploadingCommentImage}
 													>
-																{submittingComment ? 'Đang gửi...' : uploadingCommentImage ? 'Đang tải ảnh...' : 'Gửi'}
+																{submittingComment ? t('pages.forum.actions.sending') : uploadingCommentImage ? t('pages.forum.actions.uploadingImage') : t('pages.forum.actions.send')}
 													</button>
 												</div>
 											</div>
 										</div>
 
-										{loadingCommentsByPost[post.id] ? <p className={styles.loadingText}>Đang tải bình luận...</p> : null}
+										{loadingCommentsByPost[post.id] ? <p className={styles.loadingText}>{t('pages.forum.loadingComments')}</p> : null}
 
 										<div className={styles.commentList}>
 										{(commentsByPost[post.id] || []).map((thread) => (
@@ -1173,18 +1265,18 @@ function Forum() {
 																	setReplyImageUrl('')
 																}}
 															>
-																Reply
+															{t('pages.forum.actions.reply')}
 															</button>
 														</div>
 
 														{replyingComment?.parentId === thread.main.id && (
 															<div className={styles.replyComposer}>
-																<p>Đang reply cho {thread.main.user.fullName}</p>
+															<p>{t('pages.forum.replyingTo', { user: thread.main.user.fullName })}</p>
 
 																<textarea
 																	value={replyText}
 																	onChange={(e) => setReplyText(e.target.value)}
-																	placeholder="Viết reply..."
+																placeholder={t('pages.forum.placeholders.reply')}
 																	className={styles.commentInput}
 																/>
 
@@ -1192,7 +1284,7 @@ function Forum() {
 																	<div className={styles.previewImageWrap}>
 																		<img
 																			src={replyImagePreview}
-																			alt="reply preview"
+																			alt={t('pages.forum.replyImagePreviewAlt')}
 																			className={styles.previewImage}
 																		/>
 
@@ -1206,7 +1298,7 @@ function Forum() {
 																			className={styles.removeImageBtn}
 																			disabled={uploadingReplyImage}
 																		>
-																			Gỡ ảnh
+																			{t('pages.forum.actions.removeImage')}
 																		</button>
 																	</div>
 																)}
@@ -1225,7 +1317,7 @@ function Forum() {
 																		onClick={() => replyImageInputRef.current?.click()}
 																		disabled={uploadingReplyImage || submittingReply}
 																	>
-																		<FaImage /> Ảnh
+																	<FaImage /> {t('pages.forum.actions.image')}
 																	</button>
 
 																	<button
@@ -1233,7 +1325,7 @@ function Forum() {
 																		onClick={handleReplyComment}
 																		disabled={submittingReply || uploadingReplyImage}
 																	>
-																		{submittingReply ? 'Đang gửi...' : uploadingReplyImage ? 'Đang tải ảnh...' : 'Gửi reply'}
+																		{submittingReply ? t('pages.forum.actions.sending') : uploadingReplyImage ? t('pages.forum.actions.uploadingImage') : t('pages.forum.actions.sendReply')}
 																	</button>
 
 																	<button
@@ -1246,7 +1338,7 @@ function Forum() {
 																			setReplyImageUrl('')
 																		}}
 																	>
-																		Hủy
+																		{t('common.actions.cancel')}
 																	</button>
 																</div>
 															</div>
@@ -1267,7 +1359,7 @@ function Forum() {
 																<strong>{reply.user.fullName}</strong>
 																{reply.content ? <p>{reply.content}</p> : null}
 																{reply.image ? (
-																	<img src={reply.image} alt="reply" className={styles.commentImage} />
+																	<img src={reply.image} alt={t('pages.forum.replyImageAlt')} className={styles.commentImage} />
 																) : null}
 															</div>
 
@@ -1292,7 +1384,7 @@ function Forum() {
 					<div className={styles.rightColumnSticky}>
 						<section className={styles.sideCard}>
 							<header className={styles.sideTitle}>
-								<h2 style={{fontSize: 16, fontWeight: 'bold'}}>Người đóng góp hàng đầu</h2>
+								<h2 style={{fontSize: 16, fontWeight: 'bold'}}>{t('pages.forum.topContributors')}</h2>
 							</header>
 							<div className={styles.rankList}>
 								{topContributors.map((item) => (
@@ -1311,7 +1403,7 @@ function Forum() {
 							</div>
 
 							<button type="button" className={styles.sideAction} onClick={() => navigate('/user/profile')}>
-								Xem tất cả bảng xếp hạng
+								{t('pages.forum.viewAllRankings')}
 							</button>
 						</section>
 
@@ -1327,13 +1419,13 @@ function Forum() {
 					className={`${styles.composerModal} ${isComposerModalOpen ? styles.open : ''}`}
 					onClick={(e) => e.stopPropagation()}
 				>
-					<h3 style={{textAlign: 'center'}}>Tạo bài viết mới</h3>
-					<p style={{marginLeft: 3, fontWeight: 'bold'}}>Chủ đề bài viết</p>
+					<h3 style={{textAlign: 'center'}}>{t('pages.forum.createPostTitle')}</h3>
+					<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.postTopic')}</p>
 					<Select
 						value={composerTopicId || NO_TOPIC_VALUE}
 						onChange={(value) => setComposerTopicId(value)}
 						className={styles.topicSelectAntd}
-						placeholder="Chọn chủ đề bài viết"
+						placeholder={t('pages.forum.placeholders.choosePostTopic')}
 						options={topicSelectOptions}
 					/>
 
@@ -1341,14 +1433,14 @@ function Forum() {
 						value={composerText}
 						onChange={(event) => setComposerText(event.target.value)}
 						className={styles.composerModalInput}
-						placeholder="Bạn muốn chia sẻ điều gì về thú cưng hôm nay?"
+						placeholder={t('pages.forum.placeholders.shareToday')}
 					/>
 
 					{composerImagePreviews.length > 0 ? (
 						<div className={styles.previewImageWrap}>
 							{composerImagePreviews.map((preview, index) => (
 								<div key={`${preview}-${index}`} className={styles.previewImageItem}>
-									<img src={preview} alt={`post preview ${index + 1}`} className={styles.previewImage} />
+										<img src={preview} alt={t('pages.forum.postPreviewAlt', { index: index + 1 })} className={styles.previewImage} />
 									<button
 										type="button"
 										onClick={() => {
@@ -1358,7 +1450,7 @@ function Forum() {
 										className={styles.removeImageBtn}
 										disabled={uploadingComposerImage || submittingPost}
 									>
-										Gỡ ảnh
+										{t('pages.forum.actions.removeImage')}
 									</button>
 								</div>
 							))}
@@ -1379,16 +1471,16 @@ function Forum() {
 							onClick={() => postImageInputRef.current?.click()}
 							disabled={uploadingComposerImage || submittingPost}
 						>
-							<FaImage /> Chọn ảnh
+							<FaImage /> {t('pages.forum.actions.chooseImage')}
 						</button>
 						<button type="button" onClick={handleCreatePost} disabled={submittingPost || loadingTopics || uploadingComposerImage}>
-							{submittingPost ? 'Đang đăng...' : uploadingComposerImage ? 'Đang tải ảnh...' : 'Đăng bài'}
+							{submittingPost ? t('pages.forum.actions.posting') : uploadingComposerImage ? t('pages.forum.actions.uploadingImage') : t('pages.forum.actions.post')}
 						</button>
 						<button
 							type="button"
 							onClick={closeComposerModal}
 						>
-							Hủy
+							{t('common.actions.cancel')}
 						</button>
 					</div>
 				</div>
@@ -1397,15 +1489,15 @@ function Forum() {
 			{editingPost ? (
 				<div className={styles.composerModalOverlay} onClick={closeEditModal}>
 					<div className={styles.composerModal} onClick={(event) => event.stopPropagation()}>
-						<h3>Chỉnh sửa bài viết</h3>
-						<p style={{marginLeft: 3, fontWeight: 'bold'}}>Chủ đề</p>
+						<h3>{t('pages.forum.editPostTitle')}</h3>
+						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.topic')}</p>
 						<Select
 							value={editingPost.topicId || NO_TOPIC_VALUE}
 							onChange={(value) =>
 								setEditingPost((prev) => (prev ? { ...prev, topicId: value } : prev))
 							}
 							className={styles.topicSelectAntd}
-							placeholder="Chọn chủ đề"
+							placeholder={t('pages.forum.placeholders.chooseTopic')}
 							options={topicSelectOptions}
 						/>
 
@@ -1415,12 +1507,12 @@ function Forum() {
 								setEditingPost((prev) => (prev ? { ...prev, text: event.target.value } : prev))
 							}
 							className={styles.composerModalInput}
-							placeholder="Bạn muốn chỉnh sửa điều gì trong bài viết?"
+							placeholder={t('pages.forum.placeholders.editPost')}
 						/>
 
 						{editingPost.imagePreview ? (
 							<div className={styles.previewImageWrap}>
-								<img src={editingPost.imagePreview} alt="edit post preview" className={styles.previewImage} />
+								<img src={editingPost.imagePreview} alt={t('pages.forum.editPostPreviewAlt')} className={styles.previewImage} />
 								<button
 									type="button"
 									onClick={() =>
@@ -1438,7 +1530,7 @@ function Forum() {
 									}
 									className={styles.removeImageBtn}
 								>
-									Gỡ ảnh
+									{t('pages.forum.actions.removeImage')}
 								</button>
 							</div>
 						) : null}
@@ -1456,13 +1548,13 @@ function Forum() {
 								onClick={() => postImageInputRef.current?.click()}
 								disabled={uploadingEditImage || submittingEditPost}
 							>
-								<FaImage /> Chọn ảnh khác
+								<FaImage /> {t('pages.forum.actions.chooseAnotherImage')}
 							</button>
 							<button type="button" onClick={handleSaveEditedPost} disabled={submittingEditPost || loadingTopics || uploadingEditImage}>
-								{submittingEditPost ? 'Đang lưu...' : uploadingEditImage ? 'Đang tải ảnh...' : 'Lưu chỉnh sửa'}
+								{submittingEditPost ? t('pages.forum.actions.saving') : uploadingEditImage ? t('pages.forum.actions.uploadingImage') : t('pages.forum.actions.saveEdit')}
 							</button>
 							<button type="button" onClick={closeEditModal} disabled={uploadingEditImage || submittingEditPost}>
-								Hủy
+								{t('common.actions.cancel')}
 							</button>
 						</div>
 					</div>
@@ -1479,7 +1571,7 @@ function Forum() {
 				centered
 				width={900}
 			>
-				<img src={previewImageSrc} alt="preview" className={styles.previewModalImage} />
+				<img src={previewImageSrc} alt={t('pages.forum.previewImageAlt')} className={styles.previewModalImage} />
 			</Modal>
 
 			<ScrollToTopButton threshold={300} containerRef={feedScrollRef} />

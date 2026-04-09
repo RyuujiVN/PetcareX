@@ -1,18 +1,21 @@
 import {
-	FileAddOutlined,
-	LeftOutlined,
-	PlusCircleOutlined,
-	RightOutlined,
+    FileAddOutlined,
+    LeftOutlined,
+    PlusCircleOutlined,
+    RightOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
-	APPOINTMENT_STATUS,
-	getVeterinarianAppointmentsApi,
-} from '../../../data/Vererianrian/api/appointmentApi'
-import { getBreedLabel } from '../../../data/client/api/petApi'
+    APPOINTMENT_STATUS,
+    getAppointmentsApi,
+} from '../../../services/appointmentService'
+import { getBreedLabel } from '../../../services/petService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './listExaminationForm.module.css'
 
@@ -31,13 +34,10 @@ const getCurrentVeterinarianUserId = () => {
 }
 
 const formatDate = (value) => {
-	if (!value) return '--/--/----'
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return '--/--/----'
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(value, '--/--/----')
 }
 
-const toRecordRow = (item) => {
+const toRecordRow = (item, t) => {
 	const pet = item?.pet || {}
 	const owner = pet?.owner || {}
 
@@ -50,12 +50,12 @@ const toRecordRow = (item) => {
 		medical: item?.medical || null,
 		appointmentDate: item?.appointmentDate || null,
 		createdDate: formatDate(item?.appointmentDate),
-		appointmentTime: String(item?.appointmentTime || '').slice(0, 5),
+		appointmentTime: formatTimeHHMM(item?.appointmentTime, ''),
 		clinicId: item?.clinic?.id || item?.clinicId || '',
-		formName: getServiceLabel(item?.service, item?.service || 'Chưa cập nhật'),
-		petName: pet?.name || 'Chưa cập nhật',
+		formName: getServiceLabel(item?.service, item?.service || t('examForm.list.states.notUpdated')),
+		petName: pet?.name || t('examForm.list.states.notUpdated'),
 		petAvatar: pet?.avatar || '',
-		ownerName: owner?.fullName || 'Chưa cập nhật',
+		ownerName: owner?.fullName || t('examForm.list.states.notUpdated'),
 		ownerId: owner?.id || '',
 		ownerEmail: owner?.email || '',
 		petBreedLabel: getBreedLabel(pet?.breed, pet?.species),
@@ -64,6 +64,7 @@ const toRecordRow = (item) => {
 }
 
 export default function ListExaminationForm() {
+	const { t } = useTranslation('vererianrian')
 	const [loading, setLoading] = useState(false)
 	const [selectedDate, setSelectedDate] = useState(dayjs())
 	const [rows, setRows] = useState([])
@@ -75,7 +76,7 @@ export default function ListExaminationForm() {
 		inFlightRef.current = true
 		try {
 			if (!silent) setLoading(true)
-			const response = await getVeterinarianAppointmentsApi({
+			const response = await getAppointmentsApi(getAdminInstance(), {
 				page: 1,
 				limit: 500,
 				date: selectedDate.format('YYYY-MM-DD'),
@@ -90,17 +91,17 @@ export default function ListExaminationForm() {
 					const veterinarianUserId = item?.veterinarian?.user?.id
 					return String(veterinarianUserId || '') === String(currentUserId)
 				})
-			const mappedRows = activeItems.map(toRecordRow)
+			const mappedRows = activeItems.map((item) => toRecordRow(item, t))
 			mappedRows.sort((a, b) => String(a.appointmentTime).localeCompare(String(b.appointmentTime)))
 			setRows(mappedRows)
 		} catch (error) {
 			setRows([])
-			if (!silent) message.error(error?.message || 'Không thể tải danh sách phiếu khám')
+			if (!silent) message.error(error?.message || t('examForm.list.messages.loadError'))
 		} finally {
 			inFlightRef.current = false
 			setLoading(false)
 		}
-	}, [selectedDate])
+	}, [selectedDate, t])
 
 	useEffect(() => {
 		fetchAppointments()
@@ -134,7 +135,7 @@ export default function ListExaminationForm() {
 
 	const handleCreateExamination = (row) => {
 		if (!row?.appointmentId) {
-			message.warning('Không tìm thấy lịch hẹn để tạo phiếu khám')
+			message.warning(t('examForm.list.messages.missingAppointment'))
 			return
 		}
 
@@ -151,7 +152,7 @@ export default function ListExaminationForm() {
 			<section className={styles.tablePanel}>
 				<div className={styles.tablePanelHeader}>
 					<Typography.Title level={3} className={styles.panelTitle}>
-						Danh sách phiếu khám
+						{t('examForm.list.title')}
 					</Typography.Title>
 					<div className={styles.headerActions}>
 						<DatePicker
@@ -166,10 +167,10 @@ export default function ListExaminationForm() {
 							icon={<PlusCircleOutlined />}
 							className={styles.emergencyBtn}
 							onClick={handleCreateWalkIn}
-							aria-label="Tạo phiếu khám Vãng Lai"
-							title="Tạo phiếu khám Vãng Lai"
+							aria-label={t('examForm.list.actions.createWalkIn')}
+							title={t('examForm.list.actions.createWalkIn')}
 						>
-							Tạo phiếu khám Vãng Lai
+							{t('examForm.list.actions.createWalkIn')}
 						</Button>
 					</div>
 				</div>
@@ -180,7 +181,7 @@ export default function ListExaminationForm() {
 					</div>
 				) : rows.length === 0 ? (
 					<div className={styles.emptyWrap}>
-						<Empty description="Không có lịch hẹn theo ngày đã chọn" />
+						<Empty description={t('examForm.list.states.empty')} />
 					</div>
 				) : (
 					<>
@@ -188,11 +189,11 @@ export default function ListExaminationForm() {
 							<table>
 								<thead>
 									<tr>
-										<th>THÚ CƯNG</th>
-										<th>CHỦ NUÔI</th>
-										<th>NGÀY TẠO</th>
-										<th>TÊN PHIẾU KHÁM</th>
-										<th>THAO TÁC</th>
+										<th>{t('examForm.list.table.pet')}</th>
+										<th>{t('examForm.list.table.owner')}</th>
+										<th>{t('examForm.list.table.createdDate')}</th>
+										<th>{t('examForm.list.table.formName')}</th>
+										<th>{t('examForm.list.table.action')}</th>
 									</tr>
 								</thead>
 								<tbody>
@@ -220,7 +221,7 @@ export default function ListExaminationForm() {
 														icon={<FileAddOutlined />}
 														style={{ backgroundColor: '#4672b4', borderColor: '#4672b4' }}
 													>
-														{row.hasMedicalRecord ? 'Mở phiếu khám' : 'Tạo phiếu khám'}
+														{row.hasMedicalRecord ? t('examForm.list.actions.open') : t('examForm.list.actions.create')}
 													</Button>
 												</div>
 											</td>
@@ -231,7 +232,12 @@ export default function ListExaminationForm() {
 						</div>
 
 						<div className={styles.footerRow}>
-							<p>Hiển thị {paginatedRows.length} trong số {rows.length} lịch hẹn</p>
+							<p>
+								{t('examForm.list.pagination.summary', {
+									shown: paginatedRows.length,
+									total: rows.length,
+								})}
+							</p>
 							<div className={styles.paginationArrows}>
 								<Button
 									shape="circle"

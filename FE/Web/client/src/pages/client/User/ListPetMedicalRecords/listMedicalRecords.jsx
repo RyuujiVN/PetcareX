@@ -2,18 +2,20 @@ import React, { useState, useEffect } from 'react';
 import { Button, Spin, Empty, message, Modal, Dropdown } from 'antd';
 import { EyeOutlined, PlusOutlined, MoreOutlined } from '@ant-design/icons';
 import { createSearchParams, useNavigate } from 'react-router-dom';
-import { deletePetApi, getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi';
+import { useTranslation } from 'react-i18next';
+import { deletePetApi, getMyPetsApi, getBreedLabel } from '../../../../services/petService';
+import { getClientInstance } from '../../../../services/apiClient';
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import styles from './listMedicalRecords.module.css';
 
-const getPetAgeLabel = (dateOfBirth) => {
+const getPetAgeLabel = (dateOfBirth, t) => {
   if (!dateOfBirth) {
-    return 'Chưa rõ tuổi';
+    return t('pages.listPetMedicalRecords.unknownAge');
   }
 
   const birthDate = new Date(dateOfBirth);
   if (Number.isNaN(birthDate.getTime())) {
-    return 'Chưa rõ tuổi';
+    return t('pages.listPetMedicalRecords.unknownAge');
   }
 
   const now = new Date();
@@ -28,14 +30,15 @@ const getPetAgeLabel = (dateOfBirth) => {
   totalMonths = Math.max(totalMonths, 0);
 
   if (totalMonths >= 12) {
-    return `${Math.floor(totalMonths / 12)} tuổi`;
+    return t('pages.listPetMedicalRecords.ageYears', { count: Math.floor(totalMonths / 12) });
   }
 
-  return `${totalMonths} tháng tuổi`;
+  return t('pages.listPetMedicalRecords.ageMonths', { count: totalMonths });
 };
 
 const ListPetMedicalRecords = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -45,10 +48,10 @@ const ListPetMedicalRecords = () => {
     const fetchPets = async () => {
       try {
         setLoading(true);
-        const petData = await getMyPetsApi();
+        const petData = await getMyPetsApi(getClientInstance());
         setPets(Array.isArray(petData) ? petData : []);
       } catch (error) { 
-        message.error(error.message || 'Lỗi khi tải danh sách thú cưng');
+        message.error(error.message || t('pages.listPetMedicalRecords.loadFailed'));
       } finally {
         setLoading(false);
       }
@@ -70,19 +73,19 @@ const ListPetMedicalRecords = () => {
 
   const handleDelete = (petId) => {
     Modal.confirm({
-      title: 'Xóa thú cưng',
-      content: 'Bạn có chắc muốn xóa thú cưng này không?',
-      okText: 'Xóa',
-      cancelText: 'Hủy',
+      title: t('pages.listPetMedicalRecords.confirmDelete.title'),
+      content: t('pages.listPetMedicalRecords.confirmDelete.content'),
+      okText: t('pages.listPetMedicalRecords.confirmDelete.okText'),
+      cancelText: t('pages.listPetMedicalRecords.confirmDelete.cancelText'),
       okType: 'danger',
       centered: true,
       onOk: async () => {
         try {
-          await deletePetApi(petId);
+          await deletePetApi(getClientInstance(), petId);
           setPets((prev) => prev.filter((pet) => pet.id !== petId));
-          message.success('Xóa thú cưng thành công');
+          message.success(t('pages.listPetMedicalRecords.deleteSuccess'));
         } catch (error) {
-          message.error(error.message || 'Xóa thất bại');
+          message.error(error.message || t('pages.listPetMedicalRecords.deleteFailed'));
         }
       },
     });
@@ -105,9 +108,9 @@ const ListPetMedicalRecords = () => {
     <div className={styles['list-pet-wrapper']}>
       <div className={styles['list-pet-container']}>
         <div className={styles['list-pet-header-section']}>
-          <h1 className={styles['list-pet-title']}>Danh sách thú cưng của bạn</h1>
+          <h1 className={styles['list-pet-title']}>{t('pages.listPetMedicalRecords.title')}</h1>
           <p className={styles['list-pet-subtitle']}>
-            Chọn 1 trong các thú cưng của bạn
+            {t('pages.listPetMedicalRecords.subtitle')}
           </p>
           <Button
             type="primary"
@@ -115,7 +118,7 @@ const ListPetMedicalRecords = () => {
             className={styles['add-pet-btn']}
             onClick={() => navigate('/add-pet')}
           >
-            Thêm thú cưng mới
+            {t('pages.listPetMedicalRecords.addPet')}
           </Button>
         </div>
 
@@ -137,15 +140,15 @@ const ListPetMedicalRecords = () => {
                       <h3 className={styles['pet-name']}>{pet.name}</h3>
                       <div className={styles['card-header-actions']}>
                         <span className={styles['pet-age-badge']}>
-                          Tuổi: {getPetAgeLabel(pet.dateOfBirth)}
+                          {t('pages.listPetMedicalRecords.ageLabel')}: {getPetAgeLabel(pet.dateOfBirth, t)}
                         </span>
                         <Dropdown
                           trigger={['click']}
                           placement="bottomRight"
                           menu={{
                             items: [
-                              { key: 'edit', label: 'Chỉnh sửa thông tin thú cưng' },
-                              { key: 'delete', label: 'Xóa thú cưng', danger: true },
+                              { key: 'edit', label: t('pages.listPetMedicalRecords.actions.editPet') },
+                              { key: 'delete', label: t('pages.listPetMedicalRecords.actions.deletePet'), danger: true },
                             ],
                             onClick: ({ key }) => handleCardAction(key, pet.id),
                           }}
@@ -153,14 +156,14 @@ const ListPetMedicalRecords = () => {
                           <button
                             type="button"
                             className={styles['card-menu-btn']}
-                            aria-label="Tùy chọn thú cưng"
+                            aria-label={t('pages.listPetMedicalRecords.actions.petOptionsAria')}
                           >
                             <MoreOutlined />
                           </button>
                         </Dropdown>
                       </div>
                     </div>
-                    <p className={styles['pet-breed']}>Loài: {getBreedLabel(pet.breed, pet.species)}</p>
+                    <p className={styles['pet-breed']}>{t('pages.listPetMedicalRecords.speciesLabel')}: {getBreedLabel(pet.breed, pet.species)}</p>
 
                     <div className={styles['pet-action-group']}>
                       <Button
@@ -170,7 +173,7 @@ const ListPetMedicalRecords = () => {
                         block
                         onClick={() => handleViewMedicalRecords(pet.id)}
                       >
-                        Xem hồ sơ y tế
+                        {t('pages.listPetMedicalRecords.actions.viewMedicalRecords')}
                       </Button>
                     </div>
                   </div>
@@ -179,7 +182,7 @@ const ListPetMedicalRecords = () => {
             </div>
           ) : (
             <Empty
-              description="Chưa có thú cưng nào"
+              description={t('pages.listPetMedicalRecords.empty')}
               style={{ marginTop: '48px' }}
             />
           )}

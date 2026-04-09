@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import './styles.css';
 
 import { ManOutlined, WomanOutlined } from "@ant-design/icons";
@@ -12,10 +13,12 @@ import {
   getPetSpeciesApi,
   getSpeciesLabel,
   uploadPetAvatarApi,
-} from '../../../../data/client/api/petApi';
+} from '../../../../services/petService';
+import { getClientInstance } from '../../../../services/apiClient';
 
 export default function AddPet() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const [avatar, setAvatar] = useState(null);
   const [avatarFile, setAvatarFile] = useState(null);
@@ -60,10 +63,10 @@ export default function AddPet() {
     }
 
     if (totalMonths < 24) {
-      return `${totalMonths} tháng`;
+      return t('pages.addPet.age.months', { count: totalMonths });
     }
 
-    return `${Math.floor(totalMonths / 12)} tuổi`;
+    return t('pages.addPet.age.years', { count: Math.floor(totalMonths / 12) });
   };
 
   const handleFileChange = async (e) => {
@@ -80,16 +83,16 @@ export default function AddPet() {
       const nextAvatarUrl = uploadRes?.file || '';
 
       if (!nextAvatarUrl) {
-        throw new Error('Không nhận được URL ảnh từ server');
+        throw new Error(t('pages.addPet.uploadNoUrl'));
       }
 
       setUploadedAvatarUrl(nextAvatarUrl);
-      message.success('Tải ảnh thú cưng thành công');
+      message.success(t('pages.addPet.uploadSuccess'));
     } catch (error) {
       setAvatarFile(null);
       setAvatar(null);
       setUploadedAvatarUrl('');
-      message.error(error.message || 'Không thể tải ảnh thú cưng');
+      message.error(error.message || t('pages.addPet.uploadFailed'));
     } finally {
       setUploadingAvatar(false);
       e.target.value = '';
@@ -101,10 +104,10 @@ export default function AddPet() {
     const fetchSpecies = async () => {
       try {
         setLoadingMeta(true);
-        const speciesData = await getPetSpeciesApi();
+        const speciesData = await getPetSpeciesApi(getClientInstance());
         setSpeciesList(Array.isArray(speciesData) ? speciesData : []);
       } catch (error) {
-        message.error(error.message || 'Không thể tải danh sách loài');
+        message.error(error.message || t('pages.addPet.loadSpeciesFailed'));
       } finally {
         setLoadingMeta(false);
       }
@@ -123,7 +126,7 @@ export default function AddPet() {
     const fetchBreeds = async () => {
       try {
         setLoadingMeta(true);
-        const breedsData = await getBreedsBySpeciesApi(species);
+        const breedsData = await getBreedsBySpeciesApi(getClientInstance(), species);
         const nextBreeds = Array.isArray(breedsData) ? breedsData : [];
         setBreedList(nextBreeds);
 
@@ -131,7 +134,7 @@ export default function AddPet() {
           setBreed(nextBreeds[0] || '');
         }
       } catch (error) {
-        message.error(error.message || 'Không thể tải danh sách giống');
+        message.error(error.message || t('pages.addPet.loadBreedFailed'));
       } finally {
         setLoadingMeta(false);
       }
@@ -146,19 +149,19 @@ export default function AddPet() {
     }
 
     if (uploadingAvatar) {
-      message.warning('Ảnh đang được tải lên, vui lòng đợi trong giây lát');
+      message.warning(t('pages.addPet.validation.avatarUploading'));
       return;
     }
 
     if (!name || !species || !breed || !gender || !birthday || !weight) {
-      message.warning('Vui lòng điền đầy đủ thông tin bắt buộc');
+      message.warning(t('pages.addPet.validation.requiredFields'));
       return;
     }
 
     const matchedBreed = breedList.find((item) => item === breed) || '';
 
     if (!matchedBreed) {
-      message.warning('Vui lòng chọn giống hợp lệ theo loài đã chọn');
+      message.warning(t('pages.addPet.validation.invalidBreed'));
       return;
     }
 
@@ -169,7 +172,7 @@ export default function AddPet() {
     }
 
     if (!avatarUrl) {
-      message.warning('Vui lòng tải ảnh đại diện thú cưng');
+      message.warning(t('pages.addPet.validation.avatarRequired'));
       return;
     }
 
@@ -186,12 +189,12 @@ export default function AddPet() {
 
     try {
       setSubmitting(true);
-      await createPetApi(payload);
-      message.success('Thêm thú cưng mới thành công');
+      await createPetApi(getClientInstance(), payload);
+      message.success(t('pages.addPet.createSuccess'));
       setHasUnsavedChanges(false);
       navigate(-1);
     } catch (error) {
-      message.error(error.message || 'Không thể thêm thú cưng');
+      message.error(error.message || t('pages.addPet.createFailed'));
     } finally {
       setSubmitting(false);
     }
@@ -204,10 +207,10 @@ export default function AddPet() {
     }
 
     Modal.confirm({
-      title: 'Bạn có muốn lưu thay đổi?',
-      content: 'Bạn đang nhập dở thông tin thú cưng. Chọn Lưu thay đổi để lưu lại trước khi thoát.',
-      okText: 'Lưu thay đổi',
-      cancelText: 'Hủy thay đổi',
+      title: t('pages.addPet.confirmLeave.title'),
+      content: t('pages.addPet.confirmLeave.content'),
+      okText: t('pages.addPet.confirmLeave.okText'),
+      cancelText: t('pages.addPet.confirmLeave.cancelText'),
       centered: true,
       onOk: async () => {
         await handleSubmit();
@@ -230,16 +233,16 @@ export default function AddPet() {
     <div className="addPets-container">
       <div className="addPets-card">
         <div className="addPets-header">
-          <h1 className="addPets-title">Thêm thú cưng mới</h1>
+          <h1 className="addPets-title">{t('pages.addPet.header.title')}</h1>
           <p className="addPets-subtitle">
-            Vui lòng nhập đầy đủ thông tin để khởi tạo hồ sơ y tế cho thú cưng của bạn.
+            {t('pages.addPet.header.subtitle')}
           </p>
         </div>
 
         <form className="addPets-form" onSubmit={handleSubmit}>
 
           <div className="form-groups upload-group">
-            <label className="form-labels" style={{fontWeight: 'bold'}}>{requiredLabel('Ảnh đại diện thú cưng')}</label>
+            <label className="form-labels" style={{fontWeight: 'bold'}}>{requiredLabel(t('pages.addPet.fields.avatarLabel'))}</label>
             <div
               className="upload-box"
               onClick={() => {
@@ -255,14 +258,14 @@ export default function AddPet() {
                 <>
                   <FiCamera size={36} color="var(--c-13ecda)" />
                   <p className="upload-text">
-                    {uploadingAvatar ? 'Đang tải ảnh lên...' : 'Tải lên hình ảnh thú cưng của bạn'}
+                    {uploadingAvatar ? t('pages.addPet.uploadingImage') : t('pages.addPet.uploadHint')}
                   </p>
                   <button
                     type="button"
                     className="choose-file-button"
                     disabled={uploadingAvatar || submitting}
                   >
-                    Chọn tệp tin
+                    {t('pages.addPet.chooseFile')}
                   </button>
                 </>
               )}
@@ -278,14 +281,14 @@ export default function AddPet() {
           </div>
 
           <div className="basic-info-section">
-            <h2 className="section-title-small">Thông tin cơ bản</h2>
+            <h2 className="section-title-small">{t('pages.addPet.sections.basicInfo')}</h2>
             <div className="grid-two-column">
             <div className="form-groups">
-              <label className="form-labels">{requiredLabel('Tên thú cưng')}</label>
+              <label className="form-labels">{requiredLabel(t('pages.addPet.fields.petName'))}</label>
               <input
                 type="text"
                 className="form-input"
-                placeholder="VD: Buddy"
+                placeholder={t('pages.addPet.placeholders.petName')}
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value);
@@ -295,7 +298,7 @@ export default function AddPet() {
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">{requiredLabel('Loài')}</label>
+              <label className="form-labels">{requiredLabel(t('pages.addPet.fields.species'))}</label>
               <Select
                 style={{ width: '100%' }} 
                 value={species || undefined}
@@ -303,7 +306,7 @@ export default function AddPet() {
                   setSpecies(value);
                   setHasUnsavedChanges(true);
                 }}
-                placeholder="Chọn loài"
+                placeholder={t('pages.addPet.placeholders.species')}
                 loading={loadingMeta}
                 className="form-input"
                 options={speciesList.map(item => ({
@@ -314,7 +317,7 @@ export default function AddPet() {
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">{requiredLabel('Giống')}</label>
+              <label className="form-labels">{requiredLabel(t('pages.addPet.fields.breed'))}</label>
               <Select
                 style={{ width: '100%', height: '100%' }}
                 value={breed || undefined}
@@ -322,7 +325,7 @@ export default function AddPet() {
                   setBreed(value);
                   setHasUnsavedChanges(true);
                 }}
-                placeholder="Chọn giống"
+                placeholder={t('pages.addPet.placeholders.breed')}
                 loading={loadingMeta}
                 disabled={!species}
                 options={breedList.map(item => ({
@@ -333,7 +336,7 @@ export default function AddPet() {
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">{requiredLabel('Giới tính')}</label>
+              <label className="form-labels">{requiredLabel(t('pages.addPet.fields.gender'))}</label>
               <Radio.Group
                 value={gender}
                 onChange={(e) => {
@@ -345,21 +348,21 @@ export default function AddPet() {
                 <Radio.Button value="male" className="gender-radio">
                   <span className="gender-radio-content">
                     <ManOutlined />
-                    <span>Đực</span>
+                    <span>{t('pages.addPet.gender.male')}</span>
                   </span>
                 </Radio.Button>
 
                 <Radio.Button value="female" className="gender-radio">
                   <span className="gender-radio-content">
                     <WomanOutlined />
-                    <span>Cái</span>
+                    <span>{t('pages.addPet.gender.female')}</span>
                   </span>
                 </Radio.Button>
               </Radio.Group>
             </div>
 
             <div className="form-groups">
-            <label className="form-labels">{requiredLabel('Ngày sinh')}</label>
+            <label className="form-labels">{requiredLabel(t('pages.addPet.fields.birthday'))}</label>
             <input
               type="date"
               className="form-input date-input"
@@ -373,7 +376,7 @@ export default function AddPet() {
           </div>
 
             <div className="form-groups">
-              <label className="form-labels">Tuổi</label>
+              <label className="form-labels">{t('pages.addPet.fields.age')}</label>
               <input
                 type="text"
                 className="form-input age-display"
@@ -383,7 +386,7 @@ export default function AddPet() {
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">Màu lông / Đặc điểm</label>
+              <label className="form-labels">{t('pages.addPet.fields.features')}</label>
               <input
                 type="text"
                 className="form-input"
@@ -396,7 +399,7 @@ export default function AddPet() {
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">{requiredLabel('Cân nặng (kg)')}</label>
+              <label className="form-labels">{requiredLabel(t('pages.addPet.fields.weight'))}</label>
               <input
                 type="number"
                 className="form-input"
@@ -419,7 +422,7 @@ export default function AddPet() {
               onClick={handleCancel}
               disabled={submitting || uploadingAvatar}
             >
-              Hủy bỏ
+              {t('pages.addPet.actions.cancel')}
             </button>
             <button
                 type="submit"
@@ -428,12 +431,12 @@ export default function AddPet() {
               >
                 {submitting ? (
                   <>
-                    <span className="spinner"></span> Đang lưu...
+                    <span className="spinner"></span> {t('pages.addPet.actions.saving')}
                   </>
                 ) : uploadingAvatar ? (
-                  'Đang tải ảnh...'
+                  t('pages.addPet.actions.uploading')
                 ) : (
-                  'Thêm thú cưng mới'
+                  t('pages.addPet.actions.submit')
                 )}
               </button>
           </div>
