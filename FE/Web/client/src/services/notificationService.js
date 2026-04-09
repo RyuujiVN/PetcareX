@@ -115,7 +115,7 @@ const buildLikeCountNotifications = ({ ownPosts, previousLikeSnapshot }) => {
     const postId = normalizeText(post?.id);
     if (!postId) return;
 
-    const currentLikeCount = Number(post?.likeCount || 0);
+    const currentLikeCount = Number(post?.likeCount || 0);  
     const previousLikeCount = Number(previousLikeSnapshot?.[postId] ?? currentLikeCount);
     nextLikeSnapshot[postId] = currentLikeCount;
 
