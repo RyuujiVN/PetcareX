@@ -205,6 +205,18 @@ export default function AdminClinicLayout() {
   const isClinicEditorRoute =
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
+  const shouldEmbedActionBarInTopBar =
+    location.pathname === "/clinic/appointments" ||
+    location.pathname.startsWith("/clinic/appointments/") ||
+    location.pathname === "/clinic/revenue" ||
+    location.pathname.startsWith("/clinic/revenue/") ||
+    location.pathname.startsWith("/clinic/veterinarians") ||
+    location.pathname === "/clinic/exam-slips" ||
+    location.pathname.startsWith("/clinic/exam-slips/") ||
+    location.pathname === "/clinic/profile" ||
+    location.pathname.startsWith("/clinic/profile/") ||
+    location.pathname === "/clinic/medical-records" ||
+    location.pathname.startsWith("/clinic/medical-records/view");
 
   const {
     notifications: notificationItems,
@@ -492,7 +504,9 @@ export default function AdminClinicLayout() {
 
       <main className={styles.main}>
         {!isClinicEditorRoute ? (
-        <div className={styles.mainActionBar}>
+        <div
+          className={`${styles.mainActionBar} ${shouldEmbedActionBarInTopBar ? styles.mainActionBarEmbedded : ""}`}
+        >
           <div className={styles.mainActionGroup}>
             <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
 

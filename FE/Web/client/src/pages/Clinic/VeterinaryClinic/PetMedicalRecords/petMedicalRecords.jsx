@@ -832,6 +832,10 @@ export default function PetMedicalRecords() {
 
 	return (
 		<div className={styles.pageRoot}>
+			<header className={styles.topBar}>
+				<h1>{t('medicalRecords.petExam.header.title')}</h1>
+				<div className={styles.topBarActionSpacer} aria-hidden="true" />
+			</header>
 			<div className={styles.pageWrap}>
 				<header className={styles.formHeader}>
 					<div className={styles.headerMeta}>

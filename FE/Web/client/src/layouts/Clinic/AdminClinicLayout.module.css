@@ -138,6 +138,14 @@
   pointer-events: none;
 }
 
+.mainActionBarEmbedded {
+  position: absolute;
+  top: 8px;
+  right: 18px;
+  left: auto;
+  padding: 0;
+}
+
 .mainActionBar > * {
   pointer-events: auto;
 }

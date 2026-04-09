@@ -13,6 +13,11 @@
 	padding: 0 22px;
 }
 
+.topBarActionSpacer {
+	width: 132px;
+	flex-shrink: 0;
+}
+
 .content {
 	max-width: 900px;
 	margin: 0 auto;
@@ -84,6 +89,10 @@
 @media (max-width: 1024px) {
 	.topBar {
 		padding: 0 14px;
+	}
+
+	.topBarActionSpacer {
+		width: 116px;
 	}
 
 	.content h1 {

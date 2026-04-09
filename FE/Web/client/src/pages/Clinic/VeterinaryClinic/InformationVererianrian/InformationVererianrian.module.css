@@ -13,6 +13,11 @@
 	padding: 0 22px;
 }
 
+.topBarActionSpacer {
+	width: 132px;
+	flex-shrink: 0;
+}
+
 .searchIcon {
 	color: #8da5bf;
 	font-size: 14px;
@@ -105,6 +110,10 @@
 @media (max-width: 768px) {
 	.topBar {
 		padding: 0 14px;
+	}
+
+	.topBarActionSpacer {
+		width: 116px;
 	}
 
 	.content {

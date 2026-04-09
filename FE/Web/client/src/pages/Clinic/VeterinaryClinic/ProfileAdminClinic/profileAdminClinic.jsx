@@ -81,92 +81,99 @@ export default function AdminClinicProfile() {
 
   return (
     <div className={styles.adminProfilePage}>
-      <Card className={styles.adminProfileCard}>
-        {loading ? (
-          <div className={styles.adminProfileLoading}>
-            <Spin size="large" />
-          </div>
-        ) : (
-          <>
-            <Row gutter={[24, 24]} align="middle">
-              <Col xs={24} md={8} className={styles.adminProfileAvatarCol}>
-                <Avatar size={120} icon={<UserOutlined />} src={profileData?.avatarUrl || undefined} />
-              </Col>
-              <Col xs={24} md={16}>
-                <Title level={3} className={styles.adminProfileTitle}>
-                  {profileData?.fullName || t('profile.defaults.clinicName')}
-                </Title>
-                <Text type="secondary">{t('profile.page.subtitle')}</Text>
-              </Col>
-            </Row>
+      <header className={styles.topBar}>
+        <h1>{t('accountMenu.actions.profile')}</h1>
+        <div className={styles.topBarActionSpacer} aria-hidden="true" />
+      </header>
 
-            <div className={styles.adminProfileInfo}>
-              <div className={styles.infoRow}>
-                <span className={styles.label}>{t('profile.labels.role')}</span>
-                <span className={styles.value}>{getRoleLabel(profileData?.role || 'ADMIN_CLINIC')}</span>
-              </div>
-
-              <div className={styles.infoRow}>
-                <span className={styles.label}>{t('profile.labels.email')}</span>
-                <span className={styles.value}>
-                  <MailOutlined /> {profileData?.email || t('veterinarians.common.notUpdated')}
-                </span>
-              </div>
-
-              <Form
-                form={form}
-                layout="vertical"
-                onFinish={handleSave}
-                className={styles.editForm}
-                autoComplete="off"
-              >
-                <div className={styles.formRow}>
-                  <Form.Item
-                    label={<span className={styles.inlineLabel}>{t('profile.labels.phone')}</span>}
-                    name="phone"
-                    rules={[
-                      { required: true, message: t('profile.validation.phoneRequired') },
-                      {
-                        pattern: /^(\+84|0)\d{9}$/,
-                        message: t('profile.validation.phoneInvalid'),
-                      },
-                    ]}
-                  >
-                    <Input
-                      prefix={<PhoneOutlined />}
-                      placeholder={t('profile.placeholders.phone')}
-                      maxLength={12}
-                    />
-                  </Form.Item>
-                </div>
-
-                <div className={styles.formRow}>
-                  <Form.Item
-                    label={<span className={styles.inlineLabel}>{t('profile.labels.address')}</span>}
-                    name="address"
-                    rules={[
-                      { required: true, message: t('profile.validation.addressRequired') },
-                      { min: 5, message: t('profile.validation.addressMin') },
-                      { max: 200, message: t('profile.validation.addressMax') },
-                    ]}
-                  >
-                    <Input prefix={<EnvironmentOutlined />} placeholder={t('profile.placeholders.address')} maxLength={200} />
-                  </Form.Item>
-                </div>
-
-                <div className={styles.actions}>
-                  <Button onClick={handleCancel} disabled={saving}>
-                    {t('profile.actions.cancel')}
-                  </Button>
-                  <Button type="primary" htmlType="submit" loading={saving}>
-                    {t('profile.actions.save')}
-                  </Button>
-                </div>
-              </Form>
+      <div className={styles.pageBody}>
+        <Card className={styles.adminProfileCard}>
+          {loading ? (
+            <div className={styles.adminProfileLoading}>
+              <Spin size="large" />
             </div>
-          </>
-        )}
-      </Card>
+          ) : (
+            <>
+              <Row gutter={[24, 24]} align="middle">
+                <Col xs={24} md={8} className={styles.adminProfileAvatarCol}>
+                  <Avatar size={120} icon={<UserOutlined />} src={profileData?.avatarUrl || undefined} />
+                </Col>
+                <Col xs={24} md={16}>
+                  <Title level={3} className={styles.adminProfileTitle}>
+                    {profileData?.fullName || t('profile.defaults.clinicName')}
+                  </Title>
+                  <Text type="secondary">{t('profile.page.subtitle')}</Text>
+                </Col>
+              </Row>
+
+              <div className={styles.adminProfileInfo}>
+                <div className={styles.infoRow}>
+                  <span className={styles.label}>{t('profile.labels.role')}</span>
+                  <span className={styles.value}>{getRoleLabel(profileData?.role || 'ADMIN_CLINIC')}</span>
+                </div>
+
+                <div className={styles.infoRow}>
+                  <span className={styles.label}>{t('profile.labels.email')}</span>
+                  <span className={styles.value}>
+                    <MailOutlined /> {profileData?.email || t('veterinarians.common.notUpdated')}
+                  </span>
+                </div>
+
+                <Form
+                  form={form}
+                  layout="vertical"
+                  onFinish={handleSave}
+                  className={styles.editForm}
+                  autoComplete="off"
+                >
+                  <div className={styles.formRow}>
+                    <Form.Item
+                      label={<span className={styles.inlineLabel}>{t('profile.labels.phone')}</span>}
+                      name="phone"
+                      rules={[
+                        { required: true, message: t('profile.validation.phoneRequired') },
+                        {
+                          pattern: /^(\+84|0)\d{9}$/,
+                          message: t('profile.validation.phoneInvalid'),
+                        },
+                      ]}
+                    >
+                      <Input
+                        prefix={<PhoneOutlined />}
+                        placeholder={t('profile.placeholders.phone')}
+                        maxLength={12}
+                      />
+                    </Form.Item>
+                  </div>
+
+                  <div className={styles.formRow}>
+                    <Form.Item
+                      label={<span className={styles.inlineLabel}>{t('profile.labels.address')}</span>}
+                      name="address"
+                      rules={[
+                        { required: true, message: t('profile.validation.addressRequired') },
+                        { min: 5, message: t('profile.validation.addressMin') },
+                        { max: 200, message: t('profile.validation.addressMax') },
+                      ]}
+                    >
+                      <Input prefix={<EnvironmentOutlined />} placeholder={t('profile.placeholders.address')} maxLength={200} />
+                    </Form.Item>
+                  </div>
+
+                  <div className={styles.actions}>
+                    <Button onClick={handleCancel} disabled={saving}>
+                      {t('profile.actions.cancel')}
+                    </Button>
+                    <Button type="primary" htmlType="submit" loading={saving}>
+                      {t('profile.actions.save')}
+                    </Button>
+                  </div>
+                </Form>
+              </div>
+            </>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }
