@@ -15,10 +15,14 @@ import { CreatePetDTO } from './dtos/create-pet.dto';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { UpdatePetDTO } from './dtos/update-pet.dto.';
 import { PetSpeciesEnum } from 'src/common/enums/pet-species.enum';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('pet')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
+@RequiredRole(RoleEnum.CUSTOMER)
 export class PetController {
   constructor(private readonly petService: PetService) {}
 
@@ -38,6 +42,12 @@ export class PetController {
   @ApiOperation({ summary: 'Lấy danh sách giống theo loài' })
   getAllBreed(@Param('species') species: PetSpeciesEnum) {
     return this.petService.findAllBreed(species);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Lấy thông tin chi tiết của thú cưng' })
+  getInfoPet(@Param('id') id: string) {
+    return this.petService.findOneById(id);
   }
 
   @Post()
@@ -64,8 +74,8 @@ export class PetController {
 
   @Delete(':id')
   @ApiOperation({ summary: 'Xoá thú cưng' })
-  async deletePet(@Param('id') id: string) {
-    await this.petService.deletePet(id);
+  async deletePet(@Param('id') id: string, @Req() req) {
+    await this.petService.deletePet(id, req?.user?.id);
 
     return {
       message: 'Xoá thành công',

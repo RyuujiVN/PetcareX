@@ -1,39 +1,41 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { message, Spin } from 'antd';
-import { Select, Card, Avatar, Row, Col, Input, Form } from 'antd';
 import {
-  ClockCircleOutlined,
-  EnvironmentOutlined,
-  ExperimentOutlined,
-  MoonOutlined,
-  SmileOutlined,
-  SunOutlined,
-  UserOutlined,
+    ClockCircleOutlined,
+    EnvironmentOutlined,
+    ExperimentOutlined,
+    MoonOutlined,
+    SmileOutlined,
+    SunOutlined,
+    UserOutlined,
 } from '@ant-design/icons';
+import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './styles.css';
+import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import { useAuth } from '../../../../hooks/client/AuthContext';
-import { getMyPetsApi } from '../../../../data/client/api/petApi';
-import { getClinicByIdApi, getClinicListApi } from '../../../../data/client/api/clinicApi';
-import { getVeterinarianByClinicApi } from '../../../../data/client/api/veterinarianApi';
+import { getClientInstance } from '../../../../services/apiClient';
+import { generateAndStoreDiagnosisReport } from '../../../../services/appointmentDiagnosisService';
 import {
-  APPOINTMENT_STATUS,
-  createAppointmentApi,
-  getMyAppointmentsApi,
-  SERVICE_OPTIONS,
-} from '../../../../data/client/api/appointmentApi';
-import { getBreedLabel } from '../../../../data/client/api/petApi';
+    APPOINTMENT_STATUS,
+    createAppointmentApi,
+    getMyAppointmentsApi,
+    SERVICE_OPTIONS,
+} from '../../../../services/appointmentService';
+import { getClinicByIdApi, getClinicListApi } from '../../../../services/clinicService';
+import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
+import { getVeterinarianByClinicApi } from '../../../../services/veterinarianService';
+import './styles.css';
 
 const TIME_SLOT_GROUPS = [
   {
     key: 'morning',
-    label: 'Buổi sáng',
+    labelKey: 'pages.booking.timeSlots.morning',
     icon: SunOutlined,
     times: ['08:00', '08:30', '09:00', '09:30', '10:00', '10:30'],
   },
   {
     key: 'afternoon',
-    label: 'Buổi chiều',
+    labelKey: 'pages.booking.timeSlots.afternoon',
     icon: MoonOutlined,
     times: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
   },
@@ -50,12 +52,13 @@ const formatDate = (date) => {
 
 const toDateTimeValue = (dateStr, timeStr) => new Date(`${dateStr}T${timeStr}:00`);
 
-const getAppointmentDateLabel = (dateValue) => {
+const getAppointmentDateLabel = (dateValue, locale = 'vi-VN') => {
   if (!dateValue) return '';
-  return new Date(dateValue).toLocaleDateString('vi-VN');
+  return new Date(dateValue).toLocaleDateString(locale);
 };
 
 export default function BookingAppointment() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [showSummary, setShowSummary] = useState(false);
@@ -65,20 +68,22 @@ export default function BookingAppointment() {
   const serviceOptions = useMemo(() => {
     if (Array.isArray(SERVICE_OPTIONS)) {
       return SERVICE_OPTIONS.map((item) => ({
-        label: item,
+        label: t(`enums.service.${item}`, { defaultValue: item }),
         value: item,
       }));
     }
 
     if (SERVICE_OPTIONS && typeof SERVICE_OPTIONS === 'object') {
       return Object.entries(SERVICE_OPTIONS).map(([key, label]) => ({
-        label,
+        label: t(`enums.service.${key}`, { defaultValue: label }),
         value: key,
       }));
     }
 
     return [];
-  }, []);
+  }, [t]);
+
+  const dateLocale = i18n.language?.startsWith('en') ? 'en-US' : 'vi-VN';
 
   const serviceLabelByKey = useMemo(() => {
     return serviceOptions.reduce((acc, item) => {
@@ -133,14 +138,14 @@ export default function BookingAppointment() {
     const booked = myAppointments
       .filter((item) => item.veterinarian?.user?.id === selectedDoctor.userId)
       .filter((item) => formatDate(new Date(item.appointmentDate)) === selectedDate)
-      .filter((item) => item.status !== APPOINTMENT_STATUS.CANCELED)
+      .filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
       .map((item) => (item.appointmentTime || '').slice(0, 5));
 
     return new Set(booked);
   }, [myAppointments, selectedDate, selectedDoctor]);
 
   const fetchPets = async () => {
-    const data = await getMyPetsApi();
+    const data = await getMyPetsApi(getClientInstance());
     const petList = Array.isArray(data) ? data : [];
     setPets(petList);
     if (petList.length > 0) {
@@ -149,7 +154,7 @@ export default function BookingAppointment() {
   };
 
   const fetchClinics = async () => {
-    const res = await getClinicListApi(1, 50);
+    const res = await getClinicListApi(getClientInstance(), 1, 50);
     const clinicList = Array.isArray(res?.items) ? res.items : [];
     setClinics(clinicList);
     if (clinicList.length > 0) {
@@ -170,7 +175,7 @@ export default function BookingAppointment() {
   };
 
   const fetchAppointments = async () => {
-    const res = await getMyAppointmentsApi(1, 200);
+    const res = await getMyAppointmentsApi(getClientInstance(), 1, 200);
     setMyAppointments(Array.isArray(res?.items) ? res.items : []);
   };
 
@@ -181,7 +186,7 @@ export default function BookingAppointment() {
       return;
     }
 
-    const res = await getVeterinarianByClinicApi(nextClinicId, 1, 50);
+    const res = await getVeterinarianByClinicApi(getClientInstance(), nextClinicId, 1, 50);
     const doctorList = Array.isArray(res?.items) ? res.items : [];
     setDoctors(doctorList);
 
@@ -203,7 +208,7 @@ export default function BookingAppointment() {
       return;
     }
 
-    const detail = await getClinicByIdApi(nextClinicId);
+    const detail = await getClinicByIdApi(getClientInstance(), nextClinicId);
     setClinicDetail(detail || null);
   };
 
@@ -212,7 +217,7 @@ export default function BookingAppointment() {
       setLoading(true);
       await Promise.all([fetchPets(), fetchClinics(), fetchAppointments()]);
     } catch (error) {
-      message.error(error.message || 'Không thể tải dữ liệu đặt lịch');
+      message.error(error.message || t('pages.booking.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -234,7 +239,7 @@ export default function BookingAppointment() {
     }
 
     Promise.all([fetchDoctorsByClinic(clinicId), fetchClinicById(clinicId)]).catch((error) => {
-      message.error(error.message || 'Không thể tải dữ liệu phòng khám và bác sĩ');
+      message.error(error.message || t('pages.booking.loadClinicDoctorFailed'));
     });
   }, [clinicId]);
 
@@ -321,14 +326,14 @@ export default function BookingAppointment() {
 
   const validateSymptoms = (_, value) => {
     if (!value || !String(value).trim()) {
-      return Promise.reject(new Error('Vui lòng nhập triệu chứng'));
+      return Promise.reject(new Error(t('pages.booking.validation.symptomsRequired')));
     }
     return Promise.resolve();
   };
 
   const validateDateNotPast = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error('Vui lòng chọn ngày hẹn'));
+      return Promise.reject(new Error(t('pages.booking.validation.dateRequired')));
     }
 
     const pickedDate = new Date(`${value}T00:00:00`);
@@ -336,7 +341,7 @@ export default function BookingAppointment() {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
 
     if (pickedDate < todayStart) {
-      return Promise.reject(new Error('Không thể đặt lịch trong quá khứ'));
+      return Promise.reject(new Error(t('pages.booking.validation.dateInPast')));
     }
 
     return Promise.resolve();
@@ -344,20 +349,20 @@ export default function BookingAppointment() {
 
   const validateSelectedTime = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error('Vui lòng chọn giờ hẹn'));
+      return Promise.reject(new Error(t('pages.booking.validation.timeRequired')));
     }
 
     if (!selectedDate) {
-      return Promise.reject(new Error('Vui lòng chọn ngày hẹn trước'));
+      return Promise.reject(new Error(t('pages.booking.validation.selectDateFirst')));
     }
 
     const selectedDateTime = toDateTimeValue(selectedDate, value);
     if (selectedDateTime < new Date()) {
-      return Promise.reject(new Error('Không thể đặt lịch trong quá khứ'));
+      return Promise.reject(new Error(t('pages.booking.validation.dateInPast')));
     }
 
     if (unavailableTimes.has(value)) {
-      return Promise.reject(new Error('Khung giờ này đã có lịch, vui lòng chọn giờ khác'));
+      return Promise.reject(new Error(t('pages.booking.validation.timeUnavailable')));
     }
 
     return Promise.resolve();
@@ -365,7 +370,7 @@ export default function BookingAppointment() {
 
   const handleOpenSummary = async () => {
     if (!selectedPet?.id) {
-      message.warning('Vui lòng chọn thú cưng');
+      message.warning(t('pages.booking.validation.petRequired'));
       return;
     }
 
@@ -387,7 +392,7 @@ export default function BookingAppointment() {
 
   const handleConfirm = async () => {
     if (!selectedPet?.id) {
-      message.warning('Vui lòng chọn thú cưng');
+      message.warning(t('pages.booking.validation.petRequired'));
       return;
     }
 
@@ -417,22 +422,35 @@ export default function BookingAppointment() {
 
     try {
       setSubmitting(true);
-      const created = await createAppointmentApi(payload);
-      await fetchAppointments();
+      const created = await createAppointmentApi(getClientInstance(), payload);
 
       const appointmentData = {
         petName: created?.pet?.name || selectedPet.name,
         doctorName: created?.veterinarian?.user?.fullName || selectedDoctorName,
-        time: `${values.selectedTime} ${new Date(values.selectedDate).toLocaleDateString('vi-VN')}`,
+        time: `${values.selectedTime} ${new Date(values.selectedDate).toLocaleDateString(dateLocale)}`,
         service: serviceLabelByKey[values.service] || values.service,
         clinic: created?.clinic?.name || selectedClinic?.name || '',
         appointmentId: created?.id,
       };
 
+      setShowSummary(false);
+      setSubmitting(false);
       navigate('/success-booking', { state: { appointmentData } });
+
+      // Run auxiliary tasks in the background so success navigation is immediate.
+      void fetchAppointments().catch(() => undefined);
+
+      if (created?.id) {
+        void generateAndStoreDiagnosisReport({
+          appointmentId: created.id,
+          symptomsText: values.symptoms.trim(),
+          petName: created?.pet?.name || selectedPet?.name,
+          species: created?.pet?.species || selectedPet?.species,
+          appointmentDate: values.selectedDate,
+        }).catch(() => undefined);
+      }
     } catch (error) {
-      message.error(error.message || 'Đặt lịch thất bại');
-    } finally {
+      message.error(error.message || t('pages.booking.submitFailed'));
       setSubmitting(false);
     }
   };
@@ -440,14 +458,14 @@ export default function BookingAppointment() {
   return (
     <div className="booking-page">
       <header className="dashboard-header">
-        <h1 style={{marginRight: '46%', paddingTop: 30}}>Chào, {userProfile?.fullName || 'bạn'}!</h1>
-        <p style={{marginRight: '48%', paddingTop: 20}}>Cùng dành những điều tuyệt vời nhất cho các “bạn cưng” của bạn ngày hôm nay</p>
+        <h1 style={{marginRight: '46%', paddingTop: 30}}>{t('pages.booking.greeting', { name: userProfile?.fullName || t('pages.booking.defaultUserName') })}</h1>
+        <p style={{marginRight: '48%', paddingTop: 20}}>{t('pages.booking.subtitle')}</p>
       </header>
-      <Spin spinning={loading || submitting}>
+      <Spin spinning={loading}>
         <div className="booking-content">
           <div className="form-column">
             <section className="step">
-              <h2><span className="step-number">1</span> Chọn thú cưng của bạn</h2>
+              <h2><span className="step-number">1</span> {t('pages.booking.steps.choosePet')}</h2>
               <div className="pet-list"
                onMouseDown={(e) => {
                   const slider = e.currentTarget;
@@ -487,7 +505,7 @@ export default function BookingAppointment() {
                   style={{ cursor: 'pointer' }}
                 >
                   <span className="add-text" style={{ color: 'var(--color-brand-primary)' }}>
-                    Thêm thú cưng mới
+                    {t('pages.booking.addNewPet')}
                   </span>
                 </article>
                 {pets.map((p) => (
@@ -523,17 +541,17 @@ export default function BookingAppointment() {
 
             <section className="step">
               <h2>
-                <span className="step-number">2</span> Dịch vụ & Phòng khám
+                <span className="step-number">2</span> {t('pages.booking.steps.serviceClinic')}
               </h2>
               <Row gutter={16}>
                 <Col span={12}>
                   <Form.Item
-                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Chọn dịch vụ</span>}
+                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('pages.booking.form.serviceLabel')}</span>}
                     name="service"
-                    rules={[{ required: true, message: 'Vui lòng chọn dịch vụ' }]}
+                    rules={[{ required: true, message: t('pages.booking.validation.serviceRequired') }]}
                   >
                     <Select
-                      style={{ width: '100%', height: '70%' }}
+                      size="large"
                       options={serviceOptions}
                     />
                   </Form.Item>
@@ -541,12 +559,12 @@ export default function BookingAppointment() {
 
                 <Col span={12}>
                   <Form.Item
-                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Phòng khám gần bạn</span>}
+                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('pages.booking.form.clinicLabel')}</span>}
                     name="clinicId"
-                    rules={[{ required: true, message: 'Vui lòng chọn phòng khám' }]}
+                    rules={[{ required: true, message: t('pages.booking.validation.clinicRequired') }]}
                   >
                     <Select
-                      style={{ width: '100%', height: '70%' }}
+                      size="large"
                       disabled={Boolean(preselectedClinicId)}
                       options={clinics.map((item) => ({
                         label: item.name,
@@ -560,18 +578,19 @@ export default function BookingAppointment() {
 
             <section className="step">
               <h2>
-                <span className="step-number">3</span> Chọn Bác sĩ chuyên khoa
+                <span className="step-number">3</span> {t('pages.booking.steps.chooseDoctor')}
               </h2>
 
               <Row gutter={16} align="middle">
                 <Col span={12}>
                   <Form.Item
-                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Bác sĩ</span>}
+                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('common.labels.doctor')}</span>}
                     name="doctorId"
-                    rules={[{ required: true, message: 'Vui lòng chọn bác sĩ' }]}
+                    rules={[{ required: true, message: t('pages.booking.validation.doctorRequired') }]}
                   >
                     <Select
-                      style={{ width: '100%', marginBottom: 60 }}
+                      size="large"
+                      style={{marginBottom: 20}}
                       options={doctors.map((item) => ({
                         label: item.user?.fullName,
                         value: item.userId,
@@ -591,11 +610,11 @@ export default function BookingAppointment() {
 
                     <div>
                       <div style={{ fontWeight: 600, fontSize: 16 }}>
-                        {selectedDoctorName || 'Chưa chọn bác sĩ'}
+                        {selectedDoctorName || t('pages.booking.notSelectedDoctor')}
                       </div>
 
                       <div style={{ color: 'var(--color-text-secondary)' }}>
-                        {selectedDoctor?.specialty || 'Chưa có chuyên môn'}
+                        {selectedDoctor?.specialty ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, { defaultValue: getSpecialtyLabel(selectedDoctor.specialty, 'vi') }) : t('pages.booking.noSpecialty')}
                       </div>
                     </div>
                   </Card>
@@ -603,12 +622,12 @@ export default function BookingAppointment() {
               </Row>
               <div style={{ marginTop: 16 }}>
                 <Form.Item
-                  label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>Triệu chứng</span>}
+                  label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('common.labels.symptom')}</span>}
                   name="symptoms"
                   rules={[{ validator: validateSymptoms }]}
                 >
                   <Input.TextArea
-                    placeholder="Ghi triệu chứng của thú cưng"
+                    placeholder={t('pages.booking.form.symptomPlaceholder')}
                     rows={4}
                   />
                 </Form.Item>
@@ -616,24 +635,24 @@ export default function BookingAppointment() {
             </section>
 
             <section className="step">
-              <h2><span className="step-number">4</span> Chọn ngày & Giờ hẹn</h2>
+              <h2><span className="step-number">4</span> {t('pages.booking.steps.chooseDateTime')}</h2>
               <div className="date-time-selector">
                 <div className="calendar">
                   <div className="month-header" style={{color: 'var(--color-text-primary)'}}>
                     <button onClick={prevMonth}>&lt;</button>
-                    <span>Tháng {calendarMonth + 1}, {calendarYear}</span>
+                    <span>{t('pages.booking.calendar.monthLabel', { month: calendarMonth + 1, year: calendarYear })}</span>
                     <button onClick={nextMonth}>&gt;</button>
                   </div>
                   <table style={{color: 'var(--color-text-primary)'}}>
                     <thead>
                       <tr >
-                        <th>CN</th>
-                        <th>T2</th>
-                        <th>T3</th>
-                        <th>T4</th>
-                        <th>T5</th>
-                        <th>T6</th>
-                        <th>T7</th>
+                        <th>{t('pages.booking.calendar.days.sun')}</th>
+                        <th>{t('pages.booking.calendar.days.mon')}</th>
+                        <th>{t('pages.booking.calendar.days.tue')}</th>
+                        <th>{t('pages.booking.calendar.days.wed')}</th>
+                        <th>{t('pages.booking.calendar.days.thu')}</th>
+                        <th>{t('pages.booking.calendar.days.fri')}</th>
+                        <th>{t('pages.booking.calendar.days.sat')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -670,7 +689,7 @@ export default function BookingAppointment() {
                     <section key={group.key} className="time-slot-group">
                       <div className="time-slot-group-title">
                         <group.icon className="time-slot-icon" aria-hidden />
-                        <span >{group.label}</span>
+                        <span>{t(group.labelKey)}</span>
                       </div>
 
                       <div className="slots-grid">
@@ -716,10 +735,12 @@ export default function BookingAppointment() {
               <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '20px' }}>
           <button
             className="btn-confirm"
+            type="button"
+            disabled={submitting || loading}
             onClick={handleOpenSummary}
             style={{ width: '200px', border: '1px solid var(--color-brand-primary)' , padding: '10px', borderRadius:'10px', backgroundColor: 'var(--color-brand-primary)', color: 'var(--color-surface-card)' }}
           >
-            Xác nhận
+            {t('common.actions.confirm')}
           </button>
         </div>
             </section>
@@ -730,14 +751,14 @@ export default function BookingAppointment() {
       {showSummary && (
   <div className="summary-overlay">
     <div className="summary-modal">
-      <h3>Tóm tắt lịch hẹn</h3>
+      <h3>{t('pages.booking.summary.title')}</h3>
       {selectedPet && (
         <div className="summary-line">
           <span className="icon" aria-hidden>
             <SmileOutlined />
           </span>
           <div className="text">
-            <div className="label">THÚ CƯNG</div>
+            <div className="label">{t('pages.booking.summary.pet')}</div>
             <div className="value">
               {selectedPet.name} ({getBreedLabel(selectedPet.breed, selectedPet.species)})
             </div>
@@ -750,7 +771,7 @@ export default function BookingAppointment() {
           <ExperimentOutlined />
         </span>
         <div className="text">
-          <div className="label">DỊCH VỤ</div>
+          <div className="label">{t('pages.booking.summary.service')}</div>
           <div className="value">{serviceLabelByKey[service] || service}</div>
         </div>
       </div>
@@ -760,8 +781,8 @@ export default function BookingAppointment() {
           <UserOutlined />
         </span>
         <div className="text">
-          <div className="label">BÁC SĨ</div>
-          <div className="value">{selectedDoctorName || 'Chưa chọn'}</div>
+          <div className="label">{t('pages.booking.summary.doctor')}</div>
+          <div className="value">{selectedDoctorName || t('pages.booking.summary.notSelected')}</div>
         </div>
       </div>
 
@@ -770,8 +791,8 @@ export default function BookingAppointment() {
           <EnvironmentOutlined />
         </span>
         <div className="text">
-          <div className="label">PHÒNG KHÁM</div>
-          <div className="value">{selectedClinic?.name || 'Chưa chọn'}</div>
+          <div className="label">{t('pages.booking.summary.clinic')}</div>
+          <div className="value">{selectedClinic?.name || t('pages.booking.summary.notSelected')}</div>
         </div>
       </div>
 
@@ -780,9 +801,9 @@ export default function BookingAppointment() {
           <ClockCircleOutlined />
         </span>
         <div className="text">
-          <div className="label">THỜI GIAN</div>
+          <div className="label">{t('pages.booking.summary.time')}</div>
           <div className="value">
-            {selectedTime || 'Chưa chọn giờ'}, {getAppointmentDateLabel(selectedDate)}
+            {selectedTime || t('pages.booking.summary.notSelectedTime')}, {getAppointmentDateLabel(selectedDate, dateLocale)}
           </div>
         </div>
       </div>
@@ -790,16 +811,20 @@ export default function BookingAppointment() {
       <div className="modal-actions">
         <button
           className="btn-cancels"
+          type="button"
+          disabled={submitting}
           onClick={() => setShowSummary(false)}
         >
-          Quay lại
+          {t('common.actions.back')}
         </button>
 
         <button
           className="btn-confirms"
+          type="button"
+          disabled={submitting}
           onClick={handleConfirm}
         >
-          Xác nhận đặt lịch
+          {submitting ? t('pages.booking.submitting') : t('pages.booking.confirmBooking')}
         </button>
       </div>
     </div>
@@ -808,5 +833,4 @@ export default function BookingAppointment() {
     </div>
   );
 }
-
 

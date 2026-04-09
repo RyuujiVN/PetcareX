@@ -102,21 +102,21 @@
 }
 
 :root {
-  --pc-primary: #4672b4;
-  --pc-primary-hover: #3b5f97;
-  --pc-primary-rgb: 70, 114, 180;
+  --pc-primary: var(--color-brand-primary);
+  --pc-primary-hover: var(--color-brand-primary-hover);
+  --pc-primary-rgb: var(--color-brand-primary-rgb);
 
   --auth-primary: var(--pc-primary);
-  --auth-primary-hover: #3b6197;
+  --auth-primary-hover: var(--color-brand-primary-hover);
   --auth-primary-focus-shadow: rgba(var(--pc-primary-rgb), 0.2);
-  --auth-text-primary: #333;
-  --auth-text-secondary: #666;
-  --auth-text-light: #999;
-  --auth-border: #d9d9d9;
-  --auth-white: #fff;
+  --auth-text-primary: var(--color-text-primary);
+  --auth-text-secondary: var(--color-text-secondary);
+  --auth-text-light: var(--color-text-disabled);
+  --auth-border: var(--color-border-strong);
+  --auth-white: var(--color-surface-card);
 
   --user-primary: var(--pc-primary);
-  --user-primary-hover: #3b639e;
+  --user-primary-hover: var(--pc-primary-hover);
   --user-primary-alpha-10: rgba(var(--pc-primary-rgb), 0.1);
   --user-primary-alpha-20: rgba(var(--pc-primary-rgb), 0.2);
   --primary: var(--user-primary);
@@ -159,17 +159,6 @@ html {
   height: auto;
 }
 
-body {
-  width: 100%;
-  height: auto;
-  margin: 0;
-  padding: 0;
-  background-color: var(--color-surface-page);
-  color: var(--color-text-primary);
-  overflow-x: hidden;
-  overflow-y: scroll;
-  scrollbar-width: auto;
-}
 
 #root {
   width: 100%;

@@ -1,0 +1,379 @@
+import {
+    CalendarOutlined,
+    FileTextOutlined,
+    FormOutlined,
+    LogoutOutlined,
+    SearchOutlined,
+    UserOutlined
+} from '@ant-design/icons'
+import { Avatar, Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
+import { CiHospital1 } from "react-icons/ci"
+import { IoMdNotificationsOutline } from 'react-icons/io'
+import { useTranslation } from 'react-i18next'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
+import { getRoleLabel } from '../../constants/veterinaryLabels'
+import { RoleEnum } from '../../enum/role.enum'
+import { useAuth } from '../../hooks/Clinic/AuthContext'
+import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageSwitcher'
+import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
+import useNotificationSocket from '../../hooks/useNotificationSocket'
+import '../../styles/vererianrian/colorsToken.css'
+import styles from './AdminVererianrianLayout.module.css'
+
+const { Text } = Typography
+
+const buildMenuItems = (t) => [
+  {
+    key: 'appointments',
+    label: t('layout.menu.appointments'),
+    icon: CalendarOutlined,
+    path: '/veterinarian/appointments',
+  },
+  {
+    key: 'records',
+    label: t('layout.menu.records'),
+    icon: FileTextOutlined,
+    path: '/veterinarian/listRecords',
+  },
+  {
+    key: 'exam-slips',
+    label: t('layout.menu.examForms'),
+    icon: FormOutlined,
+    path: '/veterinarian/exam-forms',
+  },
+]
+
+const NOTIFICATION_TYPE_COLORS = {
+  appointment: 'blue',
+  'ai-diagnosis': 'purple',
+  system: 'gold',
+  'forum-comment': 'cyan',
+}
+
+const getNotificationTypeLabel = (type, t) => {
+  if (type === 'appointment') return t('layout.notifications.types.appointment')
+  if (type === 'ai-diagnosis') return t('layout.notifications.types.aiDiagnosis')
+  if (type === 'system') return t('layout.notifications.types.system')
+  if (type === 'forum-comment') return t('layout.notifications.types.forumComment')
+  return t('layout.notifications.types.other')
+}
+
+const formatNotificationTimeAgo = (dateValue, t) => {
+  const createdAt = new Date(dateValue).getTime()
+  if (Number.isNaN(createdAt)) return t('layout.notifications.time.justNow')
+
+  const diff = Date.now() - createdAt
+  const minute = 60 * 1000
+  const hour = 60 * minute
+  const day = 24 * hour
+
+  if (diff < minute) return t('layout.notifications.time.justNow')
+  if (diff < hour) return t('layout.notifications.time.minutesAgo', { count: Math.floor(diff / minute) })
+  if (diff < day) return t('layout.notifications.time.hoursAgo', { count: Math.floor(diff / hour) })
+  return t('layout.notifications.time.daysAgo', { count: Math.floor(diff / day) })
+}
+
+const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
+
+const getClinicDisplayName = (profile, fallbackName) => {
+  return (
+    profile?.clinicName ||
+    profile?.clinicInfo?.name ||
+    profile?.clinic?.name ||
+    profile?.veterinarian?.clinic?.name ||
+    profile?.adminClinic?.clinic?.name ||
+    fallbackName
+  )
+}
+
+export default function AdminVererianrianLayout() {
+  const { t } = useTranslation('vererianrian')
+  const location = useLocation()
+  const navigate = useNavigate()
+  const { token, userProfile, logout, activeRole } = useAuth()
+  const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false)
+  const [notificationFilters, setNotificationFilters] = useState({
+    viewMode: 'all',
+    eventType: 'all',
+  })
+  const [, setTimeTick] = useState(0)
+
+  // Force re-render every 30s so time-ago labels stay fresh
+  useEffect(() => {
+    const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000)
+    return () => window.clearInterval(id)
+  }, [])
+  const effectiveRole = activeRole || (userProfile ? getPrimaryRole(userProfile) : null)
+  const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : []
+  const hasVeterinarianRole = normalizedRoles.includes(RoleEnum.VETERINARIAN)
+  const menuItems = useMemo(() => buildMenuItems(t), [t])
+  const clinicDisplayName = getClinicDisplayName(userProfile, t('layout.defaultClinicName'))
+  const hideSearchRoutes = [
+    '/veterinarian/exam-forms/create',
+    '/veterinarian/viewRecords',
+  ]
+  const isExamFormFocusMode = location.pathname === '/veterinarian/exam-forms/create'
+  const isViewPetMedicalRecordsRoute =
+    location.pathname === '/veterinarian/viewRecords' ||
+    location.pathname.startsWith('/veterinarian/viewRecords/')
+  const shouldUseMedicalRecordHeader = isViewPetMedicalRecordsRoute && !isExamFormFocusMode
+
+  const {
+    notifications: notificationItems,
+    readIdSet: notificationReadIdSet,
+    unreadCount: unreadNotificationCount,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+  } = useNotificationSocket({
+    storageKey: `ws_notif_vet:${userProfile?.id || 'default'}`,
+    token,
+    enabled: !!token,
+  })
+
+  const filteredNotificationItems = useMemo(() => {
+    return notificationItems.filter((item) => {
+      if (notificationFilters.viewMode === 'unread' && notificationReadIdSet.has(item.id)) {
+        return false
+      }
+
+      if (notificationFilters.eventType !== 'all' && item.type !== notificationFilters.eventType) {
+        return false
+      }
+
+      return true
+    })
+  }, [notificationFilters, notificationItems, notificationReadIdSet])
+
+  const shouldHideSearch = hideSearchRoutes.includes(location.pathname)
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login', { replace: true })
+  }
+
+  useEffect(() => {
+    if (!token) {
+      navigate('/login', { replace: true })
+      return
+    }
+
+    if (!effectiveRole) return
+
+    // If user has both roles, keep current veterinarian portal instead of forcing clinic portal.
+    if (effectiveRole === RoleEnum.ADMIN_CLINIC && !hasVeterinarianRole) {
+      navigate('/clinic/appointments', { replace: true })
+      return
+    }
+
+    if (effectiveRole === RoleEnum.ADMIN) {
+      navigate('/admin/home', { replace: true })
+    }
+  }, [token, effectiveRole, hasVeterinarianRole, navigate])
+
+  const notificationContent = (
+    <div className={styles.notificationPanel}>
+      <div className={styles.notificationPanelHeader}>
+        <div>
+          <h3>{t('layout.notifications.panelTitle')}</h3>
+          <p>
+            {t('layout.notifications.summary', {
+              unread: unreadNotificationCount,
+              total: notificationItems.length,
+            })}
+          </p>
+        </div>
+        <Button
+          type="link"
+          size="small"
+          onClick={markAllNotificationsAsRead}
+          disabled={unreadNotificationCount === 0}
+          className={styles.markAllReadBtn}
+        >
+          {t('layout.notifications.markAllRead')}
+        </Button>
+      </div>
+
+      <Form
+        layout="inline"
+        className={styles.notificationFilterForm}
+        initialValues={notificationFilters}
+        onValuesChange={(_, values) => {
+          setNotificationFilters({
+            viewMode: values.viewMode || 'all',
+            eventType: values.eventType || 'all',
+          })
+        }}
+      >
+        <Form.Item name="viewMode" className={styles.notificationFilterItem}>
+          <Select
+            size="middle"
+            options={[
+              { value: 'all', label: t('layout.notifications.filters.all') },
+              { value: 'unread', label: t('layout.notifications.filters.unread') },
+            ]}
+          />
+        </Form.Item>
+
+        <Form.Item name="eventType" className={styles.notificationFilterItem}>
+          <Select
+            size="middle"
+            options={[
+              { value: 'all', label: t('layout.notifications.filters.allTypes') },
+              { value: 'appointment', label: t('layout.notifications.filters.appointment') },
+              { value: 'ai-diagnosis', label: t('layout.notifications.filters.aiDiagnosis') },
+              { value: 'system', label: t('layout.notifications.filters.system') },
+            ]}
+          />
+        </Form.Item>
+      </Form>
+
+      <List
+        className={styles.notificationList}
+        dataSource={filteredNotificationItems}
+        locale={{
+          emptyText: (
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={t('layout.notifications.empty')}
+            />
+          ),
+        }}
+        renderItem={(item) => {
+          const isRead = notificationReadIdSet.has(item.id)
+
+          return (
+            <List.Item
+              key={item.id}
+              className={`${styles.notificationItem} ${isRead ? '' : styles.notificationItemUnread}`}
+              onClick={() => markNotificationAsRead(item.id)}
+            >
+              <div className={styles.notificationItemTop}>
+                <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || 'default'}>
+                  {getNotificationTypeLabel(item.type, t)}
+                </Tag>
+                <Text className={styles.notificationTimeText}>
+                  {formatNotificationTimeAgo(item.createdAt, t)}
+                </Text>
+              </div>
+
+              <Text strong className={styles.notificationTitleText}>
+                {item.title}
+              </Text>
+              <Text className={styles.notificationDescText}>{item.description}</Text>
+            </List.Item>
+          )
+        }}
+      />
+    </div>
+  )
+
+  return (
+    <div className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''}`}>
+      {!isExamFormFocusMode ? (
+        <aside className={styles.sidebar}>
+          <div>
+            <div className={styles.brandWrap}>
+              <div className={styles.brandIcon}>
+                <CiHospital1 />
+              </div>
+              <div>
+                <h2>{clinicDisplayName}</h2>
+                <p>{t('layout.brandSubtitle')}</p>
+              </div>
+            </div>
+
+            <nav className={styles.menu}>
+              {menuItems.map((item) => {
+                const Icon = item.icon
+                const active = isMenuActive(location.pathname, item.path)
+
+                return (
+                  <NavLink
+                    key={item.key}
+                    to={item.path}
+                    className={`${styles.menuItem} ${active ? styles.menuItemActive : ''}`}
+                  >
+                    <Icon />
+                    <span>{item.label}</span>
+                  </NavLink>
+                )
+              })}
+            </nav>
+          </div>
+
+          <div className={styles.profileCard}>
+            <Avatar size={44} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
+            <div className={styles.profileMeta}>
+                <h4>{userProfile?.fullName || t('layout.defaultDoctorName')}</h4>
+              <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN')}</p>
+            </div>
+            <Button
+              type="text"
+              icon={<LogoutOutlined />}
+              className={styles.logoutBtn}
+              onClick={handleLogout}
+                aria-label={t('layout.aria.logout')}
+            />
+          </div>
+        </aside>
+      ) : null}
+
+      <main className={`${styles.main} ${isExamFormFocusMode ? styles.mainFocus : ''}`}>
+        {!isExamFormFocusMode ? (
+          <header
+            className={`${styles.header} ${shouldUseMedicalRecordHeader ? styles.headerMedicalRecord : ''}`}
+          >
+            <div className={styles.headerSearchWrap}>
+              {shouldUseMedicalRecordHeader ? (
+                <h1 className={styles.headerTitle}>{t('layout.medicalHeaderTitle')}</h1>
+              ) : !shouldHideSearch ? (
+                <Input
+                  className={styles.searchInput}
+                  prefix={<SearchOutlined />}
+                  placeholder={t('layout.searchPlaceholder')}
+                />
+              ) : null}
+            </div>
+
+            <div className={styles.headerActions}>
+              <LanguageSwitcher scope={LANGUAGE_SCOPE.veterinarian} />
+
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                overlayClassName={styles.notificationPopoverOverlay}
+                content={notificationContent}
+                open={notificationPopoverOpen}
+                onOpenChange={setNotificationPopoverOpen}
+              >
+                <Button
+                  type="text"
+                  aria-label={t('layout.aria.openNotifications')}
+                  className={styles.notificationBellButton}
+                  icon={(
+                    <Badge
+                      count={unreadNotificationCount}
+                      size="small"
+                      overflowCount={99}
+                      color="#1976ff"
+                    >
+                      <span className={styles.notificationBellIcon}>
+                        <IoMdNotificationsOutline />
+                      </span>
+                    </Badge>
+                  )}
+                />
+              </Popover>
+            </div>
+          </header>
+        ) : null}
+
+        <section className={`${styles.content} ${isExamFormFocusMode ? styles.contentFocus : ''}`}>
+          <Outlet />
+        </section>
+      </main>
+    </div>
+  )
+}

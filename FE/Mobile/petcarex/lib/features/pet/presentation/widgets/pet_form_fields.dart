@@ -11,6 +11,10 @@ import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/models/pet_models.dart';
 
 const double petWeightMax = 99.9;
+const double petAvatarSize = 200;
+const double petAvatarCompactSize = 200;
+const int petAvatarThumbnailSize = 200;
+const double petAvatarFallbackIconSize = 44;
 
 double? parsePetWeight(String? rawValue) {
   if (rawValue == null) {
@@ -122,21 +126,13 @@ String formatPetAgeFromBirthdate({
     return l10n.ageUnavailable;
   }
 
-  if (totalMonths < 1) {
-    return l10n.ageDisplayMinimumOneMonth;
-  }
-
   final years = totalMonths ~/ 12;
-  final months = totalMonths % 12;
 
   if (totalMonths < 24) {
-    if (years == 0) {
-      return l10n.ageMonths(months);
-    }
-    return l10n.ageDisplayYearsMonths(years, months);
+    return l10n.ageMonths(totalMonths);
   }
 
-  return l10n.ageDisplayYearsOnly(years);
+  return l10n.ageYears(years);
 }
 
 int? calculatePetAgeTotalMonths({
@@ -170,9 +166,11 @@ class PetAvatarPicker extends StatelessWidget {
   final String? avatarUrl;
   final bool isUploading;
   final VoidCallback onPickImage;
+  final VoidCallback? onAvatarTap;
   final String uploadLabel;
 
   final bool compactStyle;
+  final bool allowImagePick;
 
   const PetAvatarPicker({
     super.key,
@@ -180,8 +178,10 @@ class PetAvatarPicker extends StatelessWidget {
     required this.avatarUrl,
     required this.isUploading,
     required this.onPickImage,
+    this.onAvatarTap,
     this.uploadLabel = 'Upload',
     this.compactStyle = false,
+    this.allowImagePick = true,
   });
 
   @override
@@ -196,7 +196,7 @@ class PetAvatarPicker extends StatelessWidget {
         _buildAvatarCircle(),
         const SizedBox(height: 16),
         ElevatedButton(
-          onPressed: isUploading ? null : onPickImage,
+          onPressed: (!allowImagePick || isUploading) ? null : onPickImage,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primaryAlpha(0.12),
             foregroundColor: AppColors.primary,
@@ -229,15 +229,18 @@ class PetAvatarPicker extends StatelessWidget {
     return Stack(
       alignment: Alignment.bottomRight,
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.border,
-            border: Border.all(color: AppColors.primary, width: 3),
+        GestureDetector(
+          onTap: isUploading ? null : onAvatarTap,
+          child: Container(
+            width: petAvatarCompactSize,
+            height: petAvatarCompactSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.border,
+              border: Border.all(color: AppColors.primary, width: 3),
+            ),
+            child: ClipOval(child: _buildAvatarContent()),
           ),
-          child: ClipOval(child: _buildAvatarContent()),
         ),
         if (isUploading)
           Positioned.fill(
@@ -251,25 +254,26 @@ class PetAvatarPicker extends StatelessWidget {
               ),
             ),
           ),
-        Positioned(
-          bottom: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: isUploading ? null : onPickImage,
-            child: Container(
-              padding: const EdgeInsets.all(6),
-              decoration: const BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.camera_alt,
-                color: AppColors.secondary,
-                size: 16,
+        if (allowImagePick)
+          Positioned(
+            bottom: 0,
+            right: 0,
+            child: GestureDetector(
+              onTap: isUploading ? null : onPickImage,
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: const BoxDecoration(
+                  color: AppColors.primary,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.camera_alt,
+                  color: AppColors.secondary,
+                  size: 16,
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
@@ -278,19 +282,22 @@ class PetAvatarPicker extends StatelessWidget {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: AppColors.border,
+        GestureDetector(
+          onTap: isUploading ? null : onAvatarTap,
+          child: Container(
+            width: petAvatarSize,
+            height: petAvatarSize,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.border,
+            ),
+            child: ClipOval(child: _buildAvatarContent()),
           ),
-          child: ClipOval(child: _buildAvatarContent()),
         ),
         if (isUploading)
           Container(
-            width: 100,
-            height: 100,
+            width: petAvatarSize,
+            height: petAvatarSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.textAlpha(0.4),
@@ -304,34 +311,40 @@ class PetAvatarPicker extends StatelessWidget {
   }
 
   Widget _buildAvatarContent() {
+    final avatarSize = compactStyle ? petAvatarCompactSize : petAvatarSize;
+
     if (selectedImage != null) {
       return Image.file(
         selectedImage!,
         fit: BoxFit.cover,
-        width: 100,
-        height: 100,
+        width: avatarSize,
+        height: avatarSize,
       );
     }
     if (avatarUrl != null && avatarUrl!.startsWith('http')) {
       return CachedNetworkImage(
         imageUrl: ImageHelper.getThumbnailUrl(
           avatarUrl!,
-          width: 300,
-          height: 300,
+          width: petAvatarThumbnailSize,
+          height: petAvatarThumbnailSize,
         ),
         fit: BoxFit.cover,
-        width: 100,
-        height: 100,
+        width: avatarSize,
+        height: avatarSize,
         errorWidget: (context, url, error) => Icon(
           Icons.broken_image,
           color: AppColors.textAlpha(0.4),
-          size: 40,
+          size: petAvatarFallbackIconSize,
         ),
         placeholder: (context, url) =>
             const Center(child: CircularProgressIndicator()),
       );
     }
-    return Icon(Icons.camera_alt, color: AppColors.textAlpha(0.4), size: 40);
+    return Icon(
+      Icons.camera_alt,
+      color: AppColors.textAlpha(0.4),
+      size: petAvatarFallbackIconSize,
+    );
   }
 }
 
@@ -385,9 +398,7 @@ class PetGenderSelector extends StatelessWidget {
               ? AppColors.primaryAlpha(0.12)
               : AppColors.secondary,
           border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.border,
+            color: isSelected ? AppColors.primary : AppColors.border,
             width: 1.5,
           ),
           borderRadius: BorderRadius.circular(12),
@@ -482,9 +493,9 @@ class PetSpeciesBreedFields extends StatelessWidget {
           hint: Text(l10n.species, style: const TextStyle(fontSize: 14)),
           items: speciesList.map<DropdownMenuItem<String>>((species) {
             final translatedLabel =
-                PetSpeciesEnum.fromValue(species.id)?.getTranslatedName(
-                  context,
-                ) ??
+                PetSpeciesEnum.fromValue(
+                  species.id,
+                )?.getTranslatedName(context) ??
                 species.name;
 
             return DropdownMenuItem<String>(
@@ -537,8 +548,8 @@ class PetSpeciesBreedFields extends StatelessWidget {
                     isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
                   ).copyWith(
                     fillColor: isBreedEnabled
-                    ? AppColors.secondary
-                    : AppColors.background,
+                        ? AppColors.secondary
+                        : AppColors.background,
                   ),
               hint: Text(
                 isBreedEnabled ? l10n.breed : l10n.selectSpeciesFirst,
@@ -547,9 +558,9 @@ class PetSpeciesBreedFields extends StatelessWidget {
               items: isBreedEnabled
                   ? breedList.map<DropdownMenuItem<String>>((breed) {
                       final translatedLabel =
-                          PetBreedEnum.fromValue(breed.id)?.getTranslatedName(
-                            context,
-                          ) ??
+                          PetBreedEnum.fromValue(
+                            breed.id,
+                          )?.getTranslatedName(context) ??
                           breed.name;
 
                       return DropdownMenuItem<String>(

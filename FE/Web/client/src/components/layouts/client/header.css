@@ -8,13 +8,14 @@
     position: fixed;
     top: 0;
     left: 0;
+    right: 0;
     width: 100%;
     z-index: 100;
     height: var(--petcare-header-height);
     border: 1px solid var(--color-border-soft);
 }
 
-body {
+.client-layout-content {
     padding-top: var(--petcare-header-height);
 }
 
@@ -89,10 +90,203 @@ body {
     border-radius: 2px;
 }
 
+.auth-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .user-section {
     position: relative;
     display: flex;
     align-items: center;
+    gap: 10px;
+}
+
+.notification-bell-btn {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--color-border-soft);
+    background-color: var(--color-surface-page);
+    color: var(--color-text-primary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.notification-bell-btn:hover {
+    background-color: var(--color-border-soft);
+    box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-1);
+    color: var(--color-brand-muted);
+}
+
+.notification-bell-btn .ant-badge {
+    color: inherit;
+    line-height: 0;
+}
+
+.header-notification-popover .ant-popover-inner {
+    border-radius: 16px;
+    padding: 0;
+    overflow: hidden;
+}
+
+.notification-panel {
+    width: min(390px, calc(100vw - 20px));
+    max-height: min(560px, calc(100vh - 120px));
+    display: flex;
+    flex-direction: column;
+    background-color: var(--color-surface-card);
+}
+
+.notification-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.notification-panel-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.notification-filter-form {
+    padding: 10px 14px 8px;
+    border-bottom: 1px solid var(--color-border-soft);
+}
+
+.notification-panel-content {
+    flex: 1;
+    min-height: 160px;
+    overflow-y: auto;
+}
+
+.notification-panel-loading,
+.notification-panel-empty {
+    min-height: 220px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+}
+
+.notification-list {
+    height: 100%;
+    overflow-y: auto;
+    padding: 6px 10px 10px;
+}
+
+.notification-list-item {
+    padding: 0 !important;
+    border: none !important;
+}
+
+.notification-item {
+    width: 100%;
+    border: none;
+    background: transparent;
+    border-radius: 12px;
+    padding: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    text-align: left;
+    cursor: pointer;
+    position: relative;
+}
+
+.notification-item:hover {
+    background: var(--color-surface-page);
+}
+
+.notification-item.unread {
+    background: rgba(70, 114, 180, 0.12);
+}
+
+.notification-type-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--color-text-primary);
+    flex: 0 0 42px;
+}
+
+.notification-type-icon.appointment {
+    background: rgba(59, 130, 246, 0.16);
+    color: var(--color-info);
+}
+
+.notification-type-icon.forum-comment,
+.notification-type-icon.forum-reply {
+    background: rgba(14, 165, 233, 0.14);
+    color: #0284c7;
+}
+
+.notification-type-icon.forum-like {
+    background: rgba(239, 68, 68, 0.14);
+    color: #ef4444;
+}
+
+.notification-type-icon.ai-diagnosis {
+    background: rgba(139, 92, 246, 0.14);
+    color: #7c3aed;
+}
+
+.notification-item-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    padding-right: 12px;
+}
+
+.notification-item-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    line-height: 1.35;
+}
+
+.notification-item-description {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.notification-item-time {
+    font-size: 12px;
+    color: var(--color-brand-muted);
+}
+
+.notification-unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-info);
+    position: absolute;
+    right: 8px;
+    top: 15px;
+}
+
+.notification-sync-text {
+    display: block;
+    padding: 8px 14px 12px;
+    border-top: 1px solid var(--color-border-soft);
+    font-size: 12px;
 }
 
 
@@ -186,6 +380,7 @@ body {
     right: 0;
     margin-top: 12px;
     background-color: var(--color-surface-card);
+    border: 1px solid var(--color-border-soft);
     border-radius: 12px;
     box-shadow: 0 6px 20px var(--auto-rgba-0-0-0-0-12);
     min-width: 220px;
@@ -232,16 +427,161 @@ body {
     display: flex;
     align-items: center;
 }
-
-.dropdown-divider {
-    margin: 8px 0;
-    border: none;
-    border-top: 1px solid var(--color-border-soft);
-}
-
 .dropdown-item.logout:hover {
     color: var(--color-danger);
     background-color: var(--color-danger-soft);
+}
+
+.password-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(16, 26, 40, 0.46);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+}
+
+.password-modal {
+    position: relative;
+    width: min(460px, 100%);
+    background: var(--color-surface-card);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 18px 36px rgba(8, 18, 30, 0.22);
+}
+
+.password-modal-close {
+    position: absolute;
+    right: 12px;
+    top: 10px;
+    width: 30px;
+    height: 30px;
+    border: none;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.password-modal-close:hover {
+    background: var(--color-surface-page);
+    color: var(--color-text-primary);
+}
+
+.password-modal-title {
+    margin: 0 0 18px;
+    font-size: 24px;
+    color: var(--color-text-primary);
+}
+
+.password-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.password-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.password-form-group label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.password-input-wrap {
+    display: flex;
+    align-items: center;
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    background: var(--color-surface-card);
+}
+
+.password-input-wrap:focus-within {
+    border-color: var(--page-header-primary);
+    box-shadow: 0 0 0 2px rgba(71, 114, 180, 0.16);
+}
+
+.password-input-wrap input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 10px 12px;
+    font-size: 14px;
+}
+
+.password-visibility-btn {
+    border: none;
+    background: transparent;
+    color: var(--color-text-secondary);
+    width: 40px;
+    height: 36px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-visibility-btn:hover {
+    color: var(--color-text-primary);
+}
+
+.password-field-error {
+    margin: 0;
+    color: var(--color-danger);
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.password-modal-actions {
+    margin-top: 4px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.password-cancel-btn,
+.password-submit-btn {
+    height: 38px;
+    border-radius: 10px;
+    padding: 0 16px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.password-cancel-btn {
+    background: transparent;
+    border-color: var(--color-border);
+    color: var(--color-text-secondary);
+}
+
+.password-cancel-btn:hover {
+    border-color: var(--color-text-secondary);
+    color: var(--color-text-primary);
+}
+
+.password-submit-btn {
+    background: var(--page-header-primary);
+    color: var(--page-header-contrast);
+}
+
+.password-submit-btn:hover {
+    background: var(--page-header-primary-hover);
+}
+
+.password-cancel-btn:disabled,
+.password-submit-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
 }
 
 
@@ -269,6 +609,24 @@ body {
 
     .logo-icon {
         font-size: 28px;
+    }
+
+    .user-name {
+        display: none;
+    }
+
+    .user-profile {
+        gap: 8px;
+        padding: 8px 10px;
+    }
+
+    .auth-section {
+        gap: 8px;
+    }
+
+    .notification-panel-header {
+        flex-direction: column;
+        align-items: flex-start;
     }
 }
 
@@ -308,6 +666,10 @@ body {
         padding: 6px 8px;
     }
 
+    .auth-section {
+        gap: 6px;
+    }
+
     .user-avatar {
         width: 32px;
         height: 32px;
@@ -319,6 +681,14 @@ body {
 
     .user-dropdown {
         min-width: 200px;
+    }
+
+    .password-modal {
+        padding: 18px;
+    }
+
+    .password-modal-title {
+        font-size: 20px;
     }
 }
 
@@ -350,6 +720,10 @@ body {
     .user-avatar {
         width: 30px;
         height: 30px;
+    }
+
+    .auth-section {
+        gap: 5px;
     }
 
     .user-dropdown {

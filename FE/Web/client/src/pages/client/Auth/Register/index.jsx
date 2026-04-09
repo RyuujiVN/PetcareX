@@ -1,17 +1,25 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import { LockOutlined, MailOutlined, UserOutlined } from "@ant-design/icons";
 import {
-  Form,
-  Input,
-  Button,
-  Checkbox,
-  message,
-  Typography,
+    Button,
+    Checkbox,
+    Divider,
+    Form,
+    Input,
+    message,
+    Typography,
 } from "antd";
-import { UserOutlined, MailOutlined, LockOutlined } from "@ant-design/icons";
+import React from "react";
+import { useTranslation } from 'react-i18next';
+import { FcGoogle } from "react-icons/fc";
+import { useNavigate } from "react-router-dom";
+import { getFirebaseConfigError, isFirebaseGoogleAuthReady } from "../../../../config/firebaseClient";
+import { getAuthPortalByRole, getPostLoginPathByRole } from "../../../../constants/authRole";
+import { useAuth as useAdminAuth } from "../../../../hooks/Clinic/AuthContext";
+import { useAuth } from "../../../../hooks/client/AuthContext";
+import { getClientInstance } from "../../../../services/apiClient";
+import { registerApi } from "../../../../services/authService";
+import { authenticateClientWithGoogle } from "../../../../services/clientGoogleAuthService";
 import "./styles.css";
-import { registerApi } from "../../../../data/client/api/auth";
-import { FaPaw } from "react-icons/fa";
 
 const { Title, Text } = Typography;
 
@@ -19,46 +27,70 @@ export default function Register() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = React.useState(false);
+  const [googleLoading, setGoogleLoading] = React.useState(false);
+  const { t } = useTranslation();
+  const { login: clientLogin } = useAuth();
+  const { login: adminLogin } = useAdminAuth();
+  const hasGoogleAuth = isFirebaseGoogleAuthReady();
+  const googleConfigError = getFirebaseConfigError();
 
-  const validatePassword = (value) => {
+  const handleSuccessfulAuth = ({ accessToken, userInfo }) => {
+    const portal = getAuthPortalByRole(userInfo);
+    const redirectPath = getPostLoginPathByRole(userInfo);
+
+    if (portal === "admin") {
+      adminLogin(accessToken, userInfo);
+    } else {
+      clientLogin(accessToken, userInfo);
+    }
+
+    message.success(t('pages.auth.register.googleSuccess'));
+    navigate(redirectPath, { replace: true });
+  };
+
+  const validatePassword = (_, value) => {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
-    if (!value) return Promise.reject("Vui lòng nhập mật khẩu");
+
+    if (!value) return Promise.reject(t('pages.auth.register.validation.passwordRequired'));
     if (!regex.test(value)) {
-      return Promise.reject(
-        "Mật khẩu phải ≥8 ký tự, gồm chữ hoa, chữ thường và số"
-      );
+      return Promise.reject(t('pages.auth.register.validation.passwordComplexity'));
     }
+
     return Promise.resolve();
   };
 
-  const validateFullName = (value) => {
+  const validateFullName = (_, value) => {
     const regex = /^[\p{L}\s]+$/u;
-    if (!value) return Promise.reject("Vui lòng nhập họ và tên");
+
+    if (!value) return Promise.reject(t('pages.auth.register.validation.fullNameRequired'));
     if (!regex.test(value)) {
-      return Promise.reject("Họ tên không được chứa số hoặc ký tự đặc biệt");
+      return Promise.reject(t('pages.auth.register.validation.fullNameInvalid'));
     }
+
     return Promise.resolve();
   };
 
-  const validateEmail = (value) => {
+  const validateEmail = (_, value) => {
     const regex = /^\S+@\S+\.\S+$/;
-    if (!value) return Promise.reject("Vui lòng nhập email");
+
+    if (!value) return Promise.reject(t('pages.auth.register.validation.emailRequired'));
     if (!regex.test(value)) {
-      return Promise.reject("Email không hợp lệ");
+      return Promise.reject(t('pages.auth.register.validation.emailInvalid'));
     }
+
     return Promise.resolve();
   };
 
   const handleRegister = async (values) => {
     try {
       setLoading(true);
-      await registerApi({
+      await registerApi(getClientInstance(), {
         fullName: values.fullName,
         email: values.email,
         password: values.password,
       });
 
-      message.success("Đăng ký thành công");
+      message.success(t('pages.auth.register.success'));
       setTimeout(() => {
         navigate("/login");
       }, 1000);
@@ -67,12 +99,12 @@ export default function Register() {
         form.setFields([
           {
             name: "email",
-            errors: ["Email đã tồn tại"],
+            errors: [t('pages.auth.register.emailExisted')],
           },
         ]);
       } else {
         message.error(
-          error.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại"
+          error.response?.data?.message || t('pages.auth.register.failed')
         );
       }
     } finally {
@@ -80,12 +112,28 @@ export default function Register() {
     }
   };
 
+  const handleGoogleRegister = async () => {
+    try {
+      setGoogleLoading(true);
+
+      const authResult = await authenticateClientWithGoogle();
+      handleSuccessfulAuth({
+        accessToken: authResult.accessToken,
+        userInfo: authResult.userInfo,
+      });
+    } catch (error) {
+      message.error(error?.response?.data?.message || error?.message || t('pages.auth.register.googleFailed'));
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
   return (
     <div className="register-container">
-      <div style={{ padding: '40px 25px', background: 'white', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', width: '100%', maxWidth: '650px' }}>
+      <div style={{ padding: '40px 25px', background: 'var(--color-surface-card)', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <UserOutlined style={{ fontSize: '48px', color: 'var(--auth-primary)' }} />
-          <Title level={2} style={{ margin: '16px 0 8px' }}>Đăng ký tài khoản</Title>
+          <Title level={2} style={{ margin: '16px 0 8px' }}>{t('pages.auth.register.heading')}</Title>
         </div>
 
         <Form
@@ -97,63 +145,63 @@ export default function Register() {
         >
           <Form.Item
             name="fullName"
-            label="Họ và tên"
+            label={t('pages.auth.register.fullNameLabel')}
             rules={[
-              { required: true, message: "Vui lòng nhập họ và tên" },
+              { validator: validateFullName },
             ]}
           >
             <Input
-              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="Nhập họ và tên của bạn"
+              prefix={<UserOutlined style={{ color: 'var(--color-text-disabled)' }} />}
+              placeholder={t('pages.auth.register.fullNamePlaceholder')}
             />
           </Form.Item>
 
           <Form.Item
             name="email"
-            label="Email"
+            label={t('pages.auth.register.emailLabel')}
             rules={[
-              { required: true, message: "Vui lòng nhập email" },
+              { validator: validateEmail },
             ]}
           >
             <Input
               type="email"
-              prefix={<MailOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="example@email.com"
+              prefix={<MailOutlined style={{ color: 'var(--color-text-disabled)' }} />}
+              placeholder={t('pages.auth.register.emailPlaceholder')}
             />
           </Form.Item>
 
           <Form.Item
             name="password"
-            label="Mật khẩu"
+            label={t('pages.auth.register.passwordLabel')}
             rules={[
-              { required: true, message: "Vui lòng nhập mật khẩu" },
+              { validator: validatePassword },
             ]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="Nhập mật khẩu"
+              prefix={<LockOutlined style={{ color: 'var(--color-text-disabled)' }} />}
+              placeholder={t('pages.auth.register.passwordPlaceholder')}
             />
           </Form.Item>
 
           <Form.Item
             name="confirmPassword"
-            label="Xác nhận mật khẩu"
+            label={t('pages.auth.register.confirmPasswordLabel')}
             dependencies={["password"]}
             rules={[
-              { required: true, message: "Vui lòng xác nhận mật khẩu" },
+              { required: true, message: t('pages.auth.register.validation.confirmPasswordRequired') },
               ({ getFieldValue }) => ({
                 validator(_, value) {
                   if (!value || getFieldValue("password") === value) {
                     return Promise.resolve();
                   }
-                  return Promise.reject("Mật khẩu xác nhận không khớp");
+                  return Promise.reject(t('pages.auth.register.validation.confirmPasswordMismatch'));
                 },
               }),
             ]}
           >
             <Input.Password
-              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-              placeholder="Nhập lại mật khẩu"
+              prefix={<LockOutlined style={{ color: 'var(--color-text-disabled)' }} />}
+              placeholder={t('pages.auth.register.confirmPasswordPlaceholder')}
             />
           </Form.Item>
 
@@ -165,20 +213,20 @@ export default function Register() {
                 validator: (_, value) =>
                   value
                     ? Promise.resolve()
-                    : Promise.reject("Bạn phải đồng ý với điều khoản"),
+                    : Promise.reject(t('pages.auth.register.validation.agreeRequired')),
               },
             ]}
           >
             <Checkbox>
-              Tôi đồng ý với{" "}
+              {t('pages.auth.register.agreePrefix')}{" "}
               <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--auth-primary)' }}>
-                Điều khoản dịch vụ
+                {t('pages.auth.register.terms')}
               </a>{" "}
-              và{" "}
+              {t('pages.auth.register.and')}{" "}
               <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--auth-primary)' }}>
-                Chính sách bảo mật
+                {t('pages.auth.register.privacy')}
               </a>{" "}
-              của PetcareX
+              {t('pages.auth.register.agreeSuffix')}
             </Checkbox>
           </Form.Item>
 
@@ -188,21 +236,43 @@ export default function Register() {
               htmlType="submit"
               block
               loading={loading}
-              style={{ backgroundColor: 'var(--auth-primary)', color: 'white', fontWeight: 'bold', borderColor: 'var(--auth-primary)' }}
+              style={{ backgroundColor: 'var(--auth-primary)', color: 'var(--color-surface-card)', fontWeight: 'bold', borderColor: 'var(--auth-primary)' }}
             >
-              Tạo tài khoản
+              {t('pages.auth.register.createAccount')}
             </Button>
           </Form.Item>
         </Form>
 
+        <Divider style={{ borderColor: 'var(--color-border-strong)' }} plain>
+          {t('pages.auth.register.orContinueWith')}
+        </Divider>
+
+        {hasGoogleAuth ? (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
+            <Button
+              onClick={handleGoogleRegister}
+              icon={<FcGoogle />}
+              loading={googleLoading}
+              size="large"
+              style={{ width: 360, height: 44, borderRadius: 999, fontWeight: 600 }}
+            >
+              {t('pages.auth.register.continueWithGoogle')}
+            </Button>
+          </div>
+        ) : (
+          <Text type="secondary" style={{ display: 'block', textAlign: 'center' }}>
+            {googleConfigError}
+          </Text>
+        )}
+
         <div style={{ textAlign: 'center', marginTop: '16px' }}>
           <Text type="secondary">
-            Bạn đã có tài khoản? <a style={{ color: 'var(--auth-primary)', fontWeight: 'bold' }} onClick={() => navigate("/login")}>Đăng nhập ngay</a>
+            {t('pages.auth.register.haveAccount')} <a style={{ color: 'var(--auth-primary)', fontWeight: 'bold' }} onClick={() => navigate("/login")}>{t('pages.auth.register.loginNow')}</a>
           </Text>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: '#666' }}>
-          © 2026 PetcareX Việt Nam
+        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '12px', color: 'var(--color-text-muted)' }}>
+          {t('pages.auth.register.copyright')}
         </div>
       </div>
     </div>

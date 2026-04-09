@@ -1,0 +1,626 @@
+{
+	"sidebar": {
+		"brandSubtitle": "PetcareX",
+		"defaultClinicName": "PetCareX",
+		"defaultUser": "User",
+		"logoutAriaLabel": "Log out",
+		"notificationBellAriaLabel": "View clinic notifications",
+		"menu": {
+			"appointments": "Appointments",
+			"records": "Electronic Medical Records",
+			"revenue": "Revenue",
+			"doctors": "Veterinarians",
+			"forms": "View Examination Slips",
+			"homeEditor": "Edit Homepage",
+			"clinicEditor": "Edit Clinic Info"
+		},
+		"errors": {
+			"missingClinicId": "Cannot determine the clinicId of the current clinic"
+		},
+		"notifications": {
+			"panelTitle": "Clinic Notifications",
+			"summary": "{{unread}} unread / {{total}} notifications",
+			"markRead": "Mark all as read",
+			"empty": "No matching notifications",
+			"filters": {
+				"all": "All",
+				"unread": "Unread",
+				"allTypes": "All types",
+				"appointment": "Appointment",
+				"payment": "Payment",
+				"review": "Review",
+				"system": "System"
+			},
+			"types": {
+				"appointment": "Appointment",
+				"system": "System",
+				"review": "Review",
+				"payment": "Payment",
+				"other": "Other"
+			},
+			"time": {
+				"justNow": "Just now",
+				"minutesAgo": "{{count}} minutes ago",
+				"hoursAgo": "{{count}} hours ago",
+				"daysAgo": "{{count}} days ago"
+			},
+			"mock": {
+				"newAppointmentTitle": "New appointment booked by a customer",
+				"newAppointmentDescription": "Nguyen Minh An booked an appointment at {{clinicName}} for Mit with a General Checkup service at 09:30 today.",
+				"changedAppointmentTitle": "Customer changed appointment time",
+				"changedAppointmentDescription": "Le Thu Hang changed Bong's appointment from 14:00 to 15:30 for a booster vaccination.",
+				"paymentTitle": "Invoice payment completed",
+				"paymentDescription": "Invoice MR-2308 for Cun's visit was fully paid online.",
+				"reviewTitle": "You received a new 5-star review",
+				"reviewDescription": "Customer Pham Hai Dang left positive feedback for the pet dermatology service.",
+				"systemTitle": "Reminder for tomorrow's appointments",
+				"systemDescription": "You have 7 appointments tomorrow. Please confirm enough on-duty vets to avoid overload."
+			}
+		}
+	},
+	"appointments": {
+		"common": {
+			"missingFromAppointment": "Missing in appointment data",
+			"notUpdated": "Not updated",
+			"unknown": "Unknown",
+			"noNotes": "No notes",
+			"notAssigned": "Not assigned",
+			"male": "Male",
+			"female": "Female",
+			"monthsOld": "{{count}} months",
+			"yearsOld": "{{count}} years"
+		},
+		"card": {
+			"ownerPrefix": "Owner: {{owner}}"
+		},
+		"status": {
+			"paid": "Paid",
+			"unpaid": "Unpaid"
+		},
+		"messages": {
+			"fetchFailed": "Unable to load clinic appointments",
+			"updateSuccess": "Updated status to {{status}}",
+			"updateFailed": "Failed to update status",
+			"cancelSuccess": "Appointment has been canceled",
+			"cancelFailed": "Unable to cancel appointment"
+		},
+		"cancelModal": {
+			"title": "Delete booking",
+			"content": "Confirm canceling this booking?",
+			"okText": "Delete booking"
+		},
+		"searchPlaceholder": "Search pet, owner, service...",
+		"pageTitle": "Appointment Management",
+		"pageSubtitle": "Total {{count}} appointments for the current day.",
+		"filters": {
+			"examDate": "Exam date",
+			"examTime": "Exam time",
+			"timePlaceholder": "Select time slot"
+		},
+		"empty": "No appointments",
+		"detailModal": {
+			"title": "PET & APPOINTMENT DETAILS",
+			"actions": {
+				"deleteBooking": "Delete booking"
+			},
+			"petSectionTitle": "Pet Information",
+			"appointmentSectionTitle": "Appointment Information",
+			"fields": {
+				"petName": "Pet name:",
+				"birthAndAge": "Date of birth / Age:",
+				"species": "Species:",
+				"gender": "Gender:",
+				"breed": "Breed:",
+				"ownerName": "Owner name:",
+				"feature": "Identifying feature:",
+				"phone": "Phone:",
+				"clinic": "Clinic:",
+				"dateTime": "Date & time:",
+				"address": "Address:",
+				"service": "Service:",
+				"veterinarian": "Veterinarian:",
+				"status": "Status:",
+				"note": "Note:"
+			}
+		}
+	},
+	"veterinarians": {
+		"common": {
+			"notUpdated": "Not updated",
+			"cancel": "Cancel",
+			"save": "Save profile",
+			"uploadingImage": "Uploading image..."
+		},
+		"fields": {
+			"name": "Name",
+			"fullName": "Full name",
+			"specialty": "Specialty",
+			"email": "Email",
+			"password": "Password",
+			"phone": "Phone",
+			"address": "Address",
+			"role": "Role",
+			"joinDate": "Join date"
+		},
+		"validation": {
+			"nameRequired": "Please enter veterinarian name",
+			"specialtyRequired": "Please select a specialty",
+			"emailRequired": "Please enter email",
+			"emailInvalid": "Invalid email format",
+			"passwordRequired": "Please enter password",
+			"passwordMin": "Password must be at least 6 characters",
+			"passwordPolicy": "Password must contain at least one uppercase letter, one lowercase letter, and one digit",
+			"phoneRequired": "Please enter phone number",
+			"phoneFormat": "Phone number must be 10 digits (e.g. 0901234567)",
+			"phoneNoSpaces": "Phone number must not contain spaces",
+			"phoneDigitsOnly": "Phone number must contain digits only",
+			"phoneLength": "Phone number must be exactly 10 digits",
+			"addressRequired": "Please enter address",
+			"fullNameRequired": "Please enter full name",
+			"fullNameNoEdgeSpaces": "Full name must not contain leading or trailing spaces",
+			"fullNameNoDoubleSpaces": "Full name must not contain consecutive spaces",
+			"fullNameCharacters": "Full name can only contain letters and spaces"
+		},
+		"management": {
+			"searchPlaceholder": "Search veterinarians by name, email...",
+			"title": "Veterinary Team",
+			"subtitle": "Manage clinic veterinarian roster.",
+			"addButton": "Add new veterinarian",
+			"filters": {
+				"all": "All veterinarians",
+				"internalMedicine": "Internal medicine",
+				"surgery": "Surgery",
+				"ultrasound": "Ultrasound",
+				"vaccination": "Vaccination & prevention"
+			},
+			"states": {
+				"loading": "Loading veterinarian list...",
+				"empty": "No veterinarians match current filters"
+			},
+			"status": {
+				"active": "Active",
+				"inactive": "Inactive"
+			},
+			"pagination": {
+				"prev": "Previous",
+				"next": "Next",
+				"summary": "Page {{current}}/{{total}}"
+			}
+		},
+		"add": {
+			"pageTitle": "Add New Veterinarian",
+			"defaultName": "Name",
+			"submitButton": "Add veterinarian",
+			"placeholders": {
+				"name": "Enter veterinarian name",
+				"specialty": "Select specialty",
+				"email": "example@email.com",
+				"password": "Enter password",
+				"phone": "Enter phone number",
+				"address": "Enter address"
+			},
+			"messages": {
+				"avatarUploading": "Image is uploading, please wait",
+				"missingUserId": "Veterinarian created but userId was not returned",
+				"rollbackFailed": "Failed to update profile and automatic rollback failed. Please delete the newly created veterinarian manually.",
+				"contactUpdateFailed": "Unable to update phone/address. Account has been rolled back, please try again.",
+				"addSuccess": "Veterinarian added successfully",
+				"saveFailed": "Unable to save veterinarian information",
+				"avatarUrlMissing": "No image URL returned from server",
+				"avatarUploadSuccess": "Profile image uploaded successfully",
+				"avatarUploadFailed": "Unable to upload profile image"
+			},
+			"confirmDiscard": {
+				"title": "Leave with unsaved changes?",
+				"content": "You are entering information. Choose \"Save information\" to keep changes, or \"Leave without saving\".",
+				"okText": "Save information",
+				"cancelText": "Leave without saving"
+			}
+		},
+		"info": {
+			"pageTitle": "Veterinarian Information",
+			"editButton": "Edit profile",
+			"personalInfoTitle": "Personal information",
+			"messages": {
+				"avatarUploading": "Image is uploading, please wait",
+				"updateSuccess": "Veterinarian profile updated successfully",
+				"updateFailed": "Unable to update veterinarian profile",
+				"avatarUploadingWait": "Image is uploading, please wait until completion",
+				"avatarUrlMissing": "No image URL returned from server",
+				"avatarUploadSuccess": "Profile image uploaded successfully",
+				"avatarUploadFailed": "Unable to upload profile image"
+			},
+			"confirmDiscard": {
+				"title": "Discard edits",
+				"content": "You have unsaved changes. If you cancel now, those changes will be lost.",
+				"okText": "Discard changes",
+				"cancelText": "Continue editing"
+			},
+			"editModal": {
+				"title": "Edit Veterinarian Profile",
+				"changeAvatar": "Change profile image"
+			}
+		}
+	},
+	"medicalRecords": {
+		"common": {
+			"fallback": "N/A",
+			"contactFallback": "Not updated yet",
+			"none": "None",
+			"pet": "Pet",
+			"male": "Male",
+			"female": "Female",
+			"unknownOrder": "Unknown order",
+			"unknownOwner": "Unknown owner",
+			"unknownPetName": "Unknown pet",
+			"currencyVnd": "VND",
+			"zeroVnd": "0 VND"
+		},
+		"filters": {
+			"allSpecies": "All species"
+		},
+		"list": {
+			"pageTitle": "Medical Records",
+			"searchPlaceholder": "Search by pet name, owner, or breed...",
+			"emptyTitle": "No matching records",
+			"emptyDescription": "Try changing filters or search keywords.",
+			"appointmentCount": "{{count}} appointments",
+			"viewDetail": "View details",
+			"columns": {
+				"pet": "Pet",
+				"species": "Species / Breed",
+				"owner": "Owner",
+				"examDate": "Latest exam date",
+				"followUpDate": "Follow-up date",
+				"actions": "Actions"
+			}
+		},
+		"messages": {
+			"fetchFailed": "Failed to load medical records",
+			"petNotFound": "Pet information not found",
+			"loadFailed": "Unable to load medical records",
+			"loadFailedHint": "Unable to load medical records. Please try again or verify pet data.",
+			"loadExamFailed": "Unable to load examination data",
+			"noExamToPrint": "No examination record available for invoice printing",
+			"printInitFailed": "Unable to initialize printing mode. Please try again.",
+			"noExamToPay": "No examination record available for payment",
+			"appointmentNotFoundForPayment": "Appointment not found for payment confirmation",
+			"medicalNotFoundForPayment": "Medical record not found for payment",
+			"paymentSuccess": "Payment completed successfully",
+			"paymentFailed": "Failed to confirm payment"
+		},
+		"view": {
+			"pageTitle": "Detailed Record",
+			"timelineTitle": "Health timeline",
+			"loadingSuffix": "(loading...)",
+			"expand": "View details",
+			"collapse": "Collapse"
+		},
+		"timeline": {
+			"emptyHint": "No records to display yet. Please select a pet from the list to view the correct record.",
+			"examSlip": "Exam slip",
+			"left": {
+				"clinicName": "Clinic",
+				"examDate": "Exam date"
+			},
+			"right": {
+				"veterinarianName": "Veterinarian",
+				"followUpDate": "Follow-up date"
+			},
+			"vitals": {
+				"weight": "Weight",
+				"temperature": "Temperature",
+				"heartRate": "Heart rate",
+				"bloodPressure": "Blood pressure"
+			},
+			"detail": {
+				"symptoms": "Symptoms",
+				"diagnosis": "Diagnosis",
+				"conclusion": "Conclusion",
+				"note": "Doctor note",
+				"orders": "Lab orders",
+				"medicines": "Prescription"
+			}
+		},
+		"reminder": {
+			"followUpTitle": "Follow-up - {{petName}}",
+			"defaultTitle": "Medical reminder",
+			"createdDate": "Created on: {{date}}"
+		},
+		"clinic": {
+			"defaultName": "Veterinary clinic"
+		},
+		"petExam": {
+			"header": {
+				"title": "EXAMINATION & ORDERS",
+				"examCode": "Record code",
+				"examDate": "Exam date"
+			},
+			"sections": {
+				"customerPetInfo": "Customer & Pet Information",
+				"vitals": "Vital signs",
+				"clinicalInfo": "Clinical information",
+				"orders": "Lab/X-ray orders",
+				"medicines": "Prescription orders"
+			},
+			"fields": {
+				"examName": "EXAM NAME",
+				"followUpDate": "FOLLOW-UP DATE",
+				"customerName": "CUSTOMER NAME",
+				"email": "EMAIL",
+				"phone": "PHONE",
+				"address": "ADDRESS",
+				"petName": "PET NAME",
+				"species": "SPECIES",
+				"breed": "BREED",
+				"weightKg": "WEIGHT (KG)",
+				"temperature": "TEMPERATURE (°C)",
+				"heartRate": "HEART RATE (BPM)",
+				"bloodPressure": "BLOOD PRESSURE (MMHG)",
+				"symptoms": "SYMPTOMS & CONDITION",
+				"preDiagnosis": "PRELIMINARY DIAGNOSIS",
+				"conclusion": "CONCLUSION",
+				"doctorNote": "DOCTOR NOTE",
+				"createdDate": "Created date",
+				"attendingVet": "ATTENDING VETERINARIAN"
+			},
+			"table": {
+				"index": "No.",
+				"orderType": "LAB / IMAGING ORDER TYPE",
+				"orderNote": "REQUEST NOTE",
+				"status": "STATUS",
+				"assigned": "Assigned",
+				"medicineName": "MEDICINE / STRENGTH",
+				"dosage": "DOSAGE",
+				"frequency": "FREQUENCY",
+				"note": "NOTE"
+			},
+			"empty": {
+				"noOrders": "No lab orders yet",
+				"noMedicines": "No prescriptions yet"
+			},
+			"actions": {
+				"printInvoice": "Print invoice",
+				"pay": "Pay"
+			},
+			"defaultOrderName": "Lab order",
+			"invoice": {
+				"title": "Invoice",
+				"headerTitle": "MEDICAL INVOICE",
+				"codeLabel": "Invoice code",
+				"examCodeLabel": "Record code",
+				"examDateLabel": "Exam date",
+				"customerSection": "Customer",
+				"petSection": "Pet",
+				"nameLabel": "Name",
+				"phoneLabel": "Phone",
+				"addressLabel": "Address",
+				"openHoursLabel": "Open hours",
+				"speciesBreedLabel": "Species / Breed",
+				"weightLabel": "Weight",
+				"medicineSection": "Prescribed medicines",
+				"orderSection": "Tests & orders",
+				"contentColumn": "Item",
+				"amountColumn": "Amount",
+				"provisionalTotal": "Subtotal",
+				"grandTotal": "Grand total",
+				"doctorNote": "Doctor note",
+				"printDate": "Print date",
+				"attendingVet": "Attending veterinarian",
+				"noMedicineData": "No medicine data",
+				"noOrderData": "No order data"
+			},
+			"payment": {
+				"summaryTitle": "Invoice summary",
+				"invoiceCode": "INVOICE CODE",
+				"customerLabel": "Customer",
+				"petLabel": "Pet",
+				"medicineSection": "PRESCRIBED MEDICINES",
+				"orderSection": "TESTS & DIAGNOSIS",
+				"noMedicineData": "No medicine data",
+				"noOrderData": "No order data",
+				"provisionalTotal": "Subtotal",
+				"grandTotal": "Grand total",
+				"confirmButton": "Confirm payment",
+				"confirming": "Confirming...",
+				"noteAtClinic": "Paid at clinic"
+			}
+		}
+	},
+	"examForm": {
+		"common": {
+			"unknownAge": "Unknown age",
+			"monthsOld": "{{count}} months",
+			"yearsOld": "{{count}} years",
+			"unknownStatus": "Unknown",
+			"unknownPetName": "Unknown pet",
+			"unknownOwner": "Unknown owner",
+			"noNotes": "No notes"
+		},
+		"messages": {
+			"fetchFailed": "Failed to load examination slips",
+			"notFound": "Appointment information not found"
+		},
+		"filters": {
+			"allSpecies": "All species",
+			"selectDate": "Select exam date"
+		},
+		"list": {
+			"pageTitle": "Examination Slips",
+			"emptyTitle": "No examination data",
+			"emptyDescription": "Adjust filters to see more results.",
+			"viewExamSlip": "View exam slip",
+			"fields": {
+				"petName": "Pet name",
+				"age": "Age",
+				"species": "Species",
+				"owner": "Owner"
+			}
+		}
+	},
+	"homeEditor": {
+		"messages": {
+			"missingClinicIdEdit": "Missing clinicId to edit clinic homepage.",
+			"permissionDenied": "You can only edit the homepage of the currently signed-in clinic.",
+			"invalidImageType": "Please select a valid image file.",
+			"imageUrlMissing": "No image URL returned after upload.",
+			"uploadImageSuccess": "Image uploaded successfully.",
+			"uploadImageFailed": "Image upload failed.",
+			"unknownFile": "unknown file",
+			"galleryUploadSuccess": "Uploaded {{count}} gallery image(s).",
+			"galleryUploadFailed": "{{count}} gallery image(s) failed to upload.",
+			"missingClinicIdSave": "Missing clinicId to save data.",
+			"saveSuccess": "Saved successfully"
+		},
+		"confirm": {
+			"leaveTitle": "Confirmation",
+			"leaveContent": "Do you want to continue editing or discard changes?",
+			"continueEditing": "Continue editing",
+			"discardChanges": "Discard changes"
+		},
+		"sections": {
+			"hero": "Hero Section",
+			"about": "About Clinic",
+			"gallery": "Gallery",
+			"team": "Veterinary Team",
+			"location": "Clinic Location (Google Maps)"
+		},
+		"placeholders": {
+			"heroTitle": "Clinic name and welcome text",
+			"heroDescription": "Your clinic slogan",
+			"heroCtaText": "CTA button text",
+			"heroBannerImage": "Hero banner image (URL or public path)",
+			"aboutLabel": "About section label",
+			"aboutTitle": "About section title",
+			"aboutDescription": "About section content",
+			"aboutHighlightNumber": "Years your clinic has been established",
+			"aboutHighlightLabel": "Number of clinic branches",
+			"galleryTitle": "Gallery title",
+			"gallerySubtitle": "Gallery description",
+			"teamTitle": "Team section title",
+			"doctorName": "Doctor name",
+			"doctorImage": "Doctor image",
+			"locationTitle": "Location section title",
+			"locationSubtitle": "Short description",
+			"locationAddress": "Displayed address",
+			"locationMapEmbed": "Paste Google Maps embed link or full iframe"
+		},
+		"actions": {
+			"uploadImage": "Upload image",
+			"uploadGalleryImages": "Upload gallery images",
+			"uploading": "Uploading...",
+			"cancel": "Cancel",
+			"saveChanges": "Save changes"
+		},
+		"alt": {
+			"heroBanner": "Hero banner"
+		},
+		"gallery": {
+			"imageAlt": "Gallery image {{index}}",
+			"removeImageAria": "Remove gallery image {{index}}",
+			"empty": "No gallery images yet. Upload images to show them here."
+		},
+		"team": {
+			"addDoctor": "Add doctor",
+			"doctorCardTitle": "Doctor {{index}}",
+			"removeDoctorTitle": "Remove doctor",
+			"removeDoctorContent": "Do you want to remove this doctor?",
+			"removeDoctorConfirm": "Remove",
+			"removeDoctorImageAria": "Remove doctor image {{index}}"
+		},
+		"preview": {
+			"title": "Homepage preview after saving"
+		}
+	},
+	"clinicEditor": {
+		"messages": {
+			"missingClinicIdEdit": "Missing clinicId to edit clinic information.",
+			"permissionDenied": "You can only edit information for the currently signed-in clinic.",
+			"avatarUrlMissing": "No image URL returned from server",
+			"avatarUploadSuccess": "Profile image uploaded successfully",
+			"avatarUploadFailed": "Unable to upload profile image",
+			"missingClinicIdSave": "Missing clinicId to save data.",
+			"saveSuccess": "Saved successfully",
+			"saveFailed": "Unable to save clinic information"
+		},
+		"confirm": {
+			"leaveTitle": "Confirmation",
+			"leaveContent": "Do you want to continue editing or discard changes?",
+			"continueEditing": "Continue editing",
+			"discardChanges": "Discard changes"
+		},
+		"fields": {
+			"name": "Clinic name",
+			"address": "Address",
+			"phone": "Phone",
+			"openingTime": "Opening time",
+			"closingTime": "Closing time"
+		},
+		"validation": {
+			"nameRequired": "Please enter clinic name",
+			"nameMax": "Clinic name must be at most 120 characters",
+			"addressRequired": "Please enter address",
+			"addressMin": "Address must be at least 5 characters",
+			"addressMax": "Address must be at most 220 characters",
+			"phoneRequired": "Please enter phone number",
+			"phoneInvalid": "Invalid phone number (example: 0912345678 or +84912345678)",
+			"openingTimeRequired": "Please enter opening time",
+			"closingTimeRequired": "Please enter closing time"
+		},
+		"placeholders": {
+			"name": "Enter clinic name",
+			"address": "Enter clinic address",
+			"phone": "Enter phone number"
+		},
+		"preview": {
+			"title": "Preview after changes",
+			"noImage": "No image yet",
+			"avatarAlt": "Clinic profile image",
+			"defaultClinicName": "Clinic name",
+			"defaultAddress": "Clinic address",
+			"defaultPhone": "Phone"
+		},
+		"actions": {
+			"uploadAvatar": "Upload profile image",
+			"cancel": "Cancel",
+			"saveChanges": "Save changes"
+		}
+	},
+	"profile": {
+		"messages": {
+			"loadFailed": "Unable to load account information",
+			"cancelled": "Changes discarded",
+			"accountNotFound": "Account information not found for update",
+			"saveSuccess": "Profile saved successfully",
+			"saveFailed": "Unable to save profile"
+		},
+		"defaults": {
+			"clinicName": "Clinic"
+		},
+		"page": {
+			"subtitle": "Clinic profile"
+		},
+		"labels": {
+			"role": "Role",
+			"email": "Email",
+			"phone": "Phone",
+			"address": "Address"
+		},
+		"validation": {
+			"phoneRequired": "Please enter phone number",
+			"phoneInvalid": "Invalid phone number",
+			"addressRequired": "Please enter address",
+			"addressMin": "Address must be at least 5 characters",
+			"addressMax": "Address must be at most 200 characters"
+		},
+		"placeholders": {
+			"phone": "Enter phone number",
+			"address": "Enter address"
+		},
+		"actions": {
+			"cancel": "Cancel",
+			"save": "Save"
+		}
+	},
+	"common": {}
+}

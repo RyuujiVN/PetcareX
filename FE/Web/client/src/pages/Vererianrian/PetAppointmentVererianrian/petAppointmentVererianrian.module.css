@@ -1,0 +1,232 @@
+.pageWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.titleBlock :global(.ant-typography) {
+  margin-bottom: 0;
+}
+
+.titleBlock :global(h2.ant-typography) {
+  margin: 0;
+  color: var(--vet-color-text-heading);
+  font-size: 34px;
+}
+
+.titleBlock :global(.ant-typography + .ant-typography) {
+  color: var(--vet-color-text-disabled);
+  font-size: 16px;
+}
+
+.summaryCard {
+  border-radius: 18px;
+  border: 1px solid var(--vet-color-border);
+  box-shadow: var(--vet-shadow-card);
+}
+
+.summaryIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 18px;
+  margin-bottom: 12px;
+}
+
+.summaryIconGreen {
+  background: #dff6e8;
+  color: #37b86d;
+}
+
+.summaryIconOrange {
+  background: #fff1e3;
+  color: #f08b3b;
+}
+
+.summaryIconBlue {
+  background: var(--vet-color-accent-soft);
+  color: var(--vet-color-brand-primary);
+}
+
+.summaryTitle {
+  color: var(--vet-color-text-disabled);
+  font-size: 15px;
+}
+
+.summaryValue {
+  margin: 6px 0 0 !important;
+  color: var(--vet-color-text-primary) !important;
+}
+
+.tablePanel {
+  border-radius: 18px;
+  border: 1px solid var(--vet-color-border);
+  box-shadow: var(--vet-shadow-card);
+}
+
+.tableHeader {
+  margin-bottom: 10px;
+}
+
+.panelTitle {
+  margin: 0 !important;
+  font-size: 20px !important;
+  color: var(--vet-color-text-primary) !important;
+}
+
+.segmented {
+  background: var(--vet-color-surface-page);
+}
+
+.segmented :global(.ant-segmented-item-selected) {
+  color: var(--vet-color-brand-primary);
+}
+
+.tableHeadRow {
+  display: grid;
+  grid-template-columns: 1.6fr 1.6fr 1.6fr 1.6fr 1.6fr;
+  gap: 12px;
+  background: var(--vet-color-surface-page);
+  border: 1px solid var(--vet-color-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  color: var(--vet-color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: 1.6fr 1.6fr 1.6fr 1.6fr 1.6fr;
+  gap: 12px;
+  align-items: center;
+  border-bottom: 1px solid var(--vet-color-border-soft);
+  padding: 12px 8px;
+}
+
+.loadingWrap,
+.emptyText {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 160px;
+  color: var(--vet-color-text-disabled);
+}
+
+.petInfoCol {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.petAvatar {
+  background: var(--vet-color-surface-page);
+  color: var(--vet-color-text-secondary);
+  width: 50px;
+  height: 50px;
+}
+
+.petName {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--vet-color-text-primary);
+}
+
+.ownerName {
+  color: var(--vet-color-text-primary);
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.serviceTag,
+.statusTag {
+  border-radius: 999px;
+  border: none;
+  padding: 4px 10px;
+  font-size: 12px;
+  width: fit-content;
+}
+
+.serviceVaccine {
+  background: #dff8e8;
+  color: #2faa61;
+}
+
+.serviceGeneral {
+  background: var(--vet-color-accent-soft);
+  color: var(--vet-color-brand-primary);
+}
+
+.serviceSurgery {
+  background: #f2e4ff;
+  color: #a34ee3;
+}
+
+.serviceConsulting {
+  background: #f8efc9;
+  color: #aa8300;
+}
+
+.statusUpcoming {
+  background: #fff0e2;
+  color: #e9802d;
+}
+
+.statusInProgress {
+  background: var(--vet-color-accent-soft);
+  color: var(--vet-color-brand-primary);
+}
+
+.statusConfirmed {
+  background: #dff8e8;
+  color: #32b663;
+}
+
+.timeText {
+  color: var(--vet-color-text-primary);
+}
+
+.actionsCol :global(.ant-btn) {
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.primaryActionBtn {
+  background: var(--vet-btn-primary-bg) !important;
+  border-color: var(--vet-btn-primary-bg) !important;
+}
+
+.inProgressActionBtn {
+  background: #f08b3b !important;
+  border-color: #f08b3b !important;
+}
+
+.ghostActionBtn {
+  color: var(--vet-color-text-disabled);
+  border: 1px solid var(--vet-color-border-strong);
+}
+
+.tableFooter {
+  margin-top: 10px;
+}
+
+.tableFooter :global(.ant-typography) {
+  color: var(--vet-color-text-disabled);
+}
+
+@media (max-width: 992px) {
+  .tablePanel {
+    overflow-x: auto;
+  }
+
+  .tableHeadRow,
+  .tableRow,
+  .tableHeader,
+  .tableFooter {
+    min-width: 900px;
+  }
+}

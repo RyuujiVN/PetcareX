@@ -1,48 +1,87 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import * as icons from '@ant-design/icons';
 import * as antd from 'antd';
-import * as icons from '@ant-design/icons';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
+import { getClientInstance } from '../../../../services/apiClient';
 import {
-  APPOINTMENT_STATUS,
-  getMyAppointmentsApi,
-  updateAppointmentStatusApi,
-} from '../../../../data/client/api/appointmentApi';
-import { getBreedLabel } from '../../../../data/client/api/petApi';
+    generateAndStoreDiagnosisReport,
+    getStoredDiagnosisReport,
+} from '../../../../services/appointmentDiagnosisService';
+import {
+    APPOINTMENT_STATUS,
+    getMyAppointmentsApi,
+    updateAppointmentStatusApi,
+} from '../../../../services/appointmentService';
+import { getBreedLabel } from '../../../../services/petService';
+import { getAppointmentStatusLabel, getServiceLabel } from '../../../../utils/enumLabel';
+import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
 import './styles.css';
 
-const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
+const formatDate = (dateValue, locale) => new Date(dateValue).toLocaleDateString(locale);
 const formatTime = (timeValue) => (timeValue || '').slice(0, 5);
+const buildAppointmentsSignature = (items) =>
+  items
+    .map(
+      (item) =>
+        `${item?.id || ''}:${item?.status || ''}:${item?.appointmentDate || ''}:${item?.appointmentTime || ''}:${item?.updatedAt || ''}`,
+    )
+    .join('|');
 
-const calcDaysAgo = (dateValue) => {
-  const now = new Date();
-  const date = new Date(dateValue);
-  const ms = now.getTime() - date.getTime();
-  const days = Math.max(Math.floor(ms / (1000 * 60 * 60 * 24)), 0);
-
-  if (days === 0) return 'Hôm nay';
-  if (days < 7) return `${days} ngày`;
-  return `${Math.floor(days / 7)} tuần`;
+const APPOINTMENT_STATUS_TAG_COLOR = {
+  [APPOINTMENT_STATUS.BOOKED]: 'blue',
+  [APPOINTMENT_STATUS.IN_PROGRESS]: 'processing',
+  [APPOINTMENT_STATUS.COMPLETED]: 'success',
+  [APPOINTMENT_STATUS.CANCELLED]: 'error',
 };
 
 const AppointmentDetail = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
   const [activeTab, setActiveTab] = useState('upcoming');
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
+  const [isDiagnosisVisible, setIsDiagnosisVisible] = useState(false);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [diagnosisData, setDiagnosisData] = useState(null);
+  const [diagnosisAppointment, setDiagnosisAppointment] = useState(null);
+  const inFlightRef = useRef(false);
+  const hasLoadedOnceRef = useRef(false);
+  const lastDataSignatureRef = useRef('');
 
-  const fetchAppointments = useCallback(async () => {
+  const fetchAppointments = useCallback(async ({ silent = false } = {}) => {
+    if (inFlightRef.current) {
+      return;
+    }
+
+    inFlightRef.current = true;
+
     try {
-      setLoading(true);
-      const res = await getMyAppointmentsApi(1, 200);
-      setAppointments(Array.isArray(res?.items) ? res.items : []);
+      if (!hasLoadedOnceRef.current && !silent) {
+        setLoading(true);
+      }
+
+      const res = await getMyAppointmentsApi(getClientInstance(), 1, 200);
+      const nextItems = Array.isArray(res?.items) ? res.items : [];
+      const nextSignature = buildAppointmentsSignature(nextItems);
+
+      if (nextSignature !== lastDataSignatureRef.current) {
+        lastDataSignatureRef.current = nextSignature;
+        setAppointments(nextItems);
+      }
+
+      hasLoadedOnceRef.current = true;
     } catch (error) {
-      antd.message.error(error.message || 'Không thể tải lịch hẹn');
+      antd.message.error(error.message || t('pages.appointmentDetail.loadFailed'));
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchAppointments();
@@ -50,12 +89,12 @@ const AppointmentDetail = () => {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      fetchAppointments();
+      fetchAppointments({ silent: true });
     }, 20000);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        fetchAppointments();
+        fetchAppointments({ silent: true });
       }
     };
 
@@ -70,38 +109,39 @@ const AppointmentDetail = () => {
   const mappedAppointments = useMemo(() => {
     return appointments.map((item) => {
       const date = item.appointmentDate;
-      const dateText = formatDate(date);
+      const dateText = formatDate(date, dateLocale);
       const timeText = formatTime(item.appointmentTime);
 
       return {
         id: item.id,
         petId: item.pet?.id,
-        petName: item.pet?.name || 'Không rõ',
+        petName: item.pet?.name || t('pages.appointmentDetail.unknownPet'),
         breed: getBreedLabel(item.pet?.breed, item.pet?.species),
         avatar: item.pet?.avatar || '/gaugau.png',
-        clinic: item.clinic?.name || 'Không rõ',
-        clinicAddress: item.clinic?.address || 'Không rõ',
-        service: `Dịch vụ: ${item.service}`,
+        clinic: item.clinic?.name || t('pages.appointmentDetail.unknownClinic'),
+        clinicAddress: item.clinic?.address || t('pages.appointmentDetail.unknownAddress'),
+        service: getServiceLabel(item.service, `${item.service}`),
         date: dateText,
         time: timeText,
-        veterinarian: item.veterinarian?.user?.fullName || 'Không rõ',
+        veterinarian: item.veterinarian?.user?.fullName || t('pages.appointmentDetail.unknownDoctor'),
+        species: item.pet?.species || '',
         notes: item.note,
         rawDate: date,
         status: item.status,
-        daysAgo: calcDaysAgo(date),
+        statusLabel: getAppointmentStatusLabel(item.status, item.status),
       };
     });
-  }, [appointments]);
+  }, [appointments, dateLocale, t]);
 
   const upcomingAppointments = useMemo(() => {
     const now = new Date();
     return mappedAppointments.filter((item) => {
       const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
       const isFuture = dateTime >= now;
-      const isDone = item.status === APPOINTMENT_STATUS.DONE;
-      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      const isDone = item.status === APPOINTMENT_STATUS.COMPLETED;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELLED;
       return isFuture && !isDone && !isCanceled;
-    });
+    }).sort((a, b) => new Date(`${a.rawDate}T${a.time}:00`).getTime() - new Date(`${b.rawDate}T${b.time}:00`).getTime());
   }, [mappedAppointments]);
 
   const medicalHistory = useMemo(() => {
@@ -109,27 +149,27 @@ const AppointmentDetail = () => {
     return mappedAppointments.filter((item) => {
       const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
       const isPast = dateTime < now;
-      const isDone = item.status === APPOINTMENT_STATUS.DONE;
-      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      const isDone = item.status === APPOINTMENT_STATUS.COMPLETED;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELLED;
       return isPast || isDone || isCanceled;
-    });
+    }).sort((a, b) => new Date(`${b.rawDate}T${b.time}:00`).getTime() - new Date(`${a.rawDate}T${a.time}:00`).getTime());
   }, [mappedAppointments]);
 
   const handleCancelAppointment = (appointmentId) => {
     antd.Modal.confirm({
-      title: 'Hủy lịch khám',
-      content: 'Bạn chắc chắn muốn hủy lịch khám này không?',
-      okText: 'Có, hủy',
-      cancelText: 'Không, quay lại',
+      title: t('pages.appointmentDetail.confirmCancel.title'),
+      content: t('pages.appointmentDetail.confirmCancel.content'),
+      okText: t('pages.appointmentDetail.confirmCancel.okText'),
+      cancelText: t('pages.appointmentDetail.confirmCancel.cancelText'),
       okButtonProps: { danger: true },
       centered: true,
       async onOk() {
         try {
-          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELED);
-          antd.message.success('Hủy lịch khám thành công');
-          await fetchAppointments();
+          await updateAppointmentStatusApi(getClientInstance(), appointmentId, APPOINTMENT_STATUS.CANCELLED);
+          antd.message.success(t('pages.appointmentDetail.cancelSuccess'));
+          await fetchAppointments({ silent: true });
         } catch (error) {
-          antd.message.error(error.message || 'Không thể hủy lịch khám');
+          antd.message.error(error.message || t('pages.appointmentDetail.cancelFailed'));
         }
       },
     });
@@ -141,6 +181,35 @@ const handleViewDetails = (appointment) => {
   setSelectedAppointment(appointment);
   setIsModalVisible(true);
 };
+
+  const handleOpenDiagnosis = async (appointment) => {
+    setDiagnosisAppointment(appointment);
+    setDiagnosisData(null);
+    setIsDiagnosisVisible(true);
+    setDiagnosisLoading(true);
+
+    try {
+      const cached = getStoredDiagnosisReport(appointment.id);
+      if (cached) {
+        setDiagnosisData(cached);
+        return;
+      }
+
+      const report = await generateAndStoreDiagnosisReport({
+        appointmentId: appointment.id,
+        symptomsText: appointment.notes,
+        petName: appointment.petName,
+        species: appointment.species,
+        appointmentDate: appointment.rawDate,
+      });
+
+      setDiagnosisData(report);
+    } catch (error) {
+      antd.message.error(error.message || t('pages.appointmentDetail.diagnosisLoadFailed'));
+    } finally {
+      setDiagnosisLoading(false);
+    }
+  };
   const handleBookingNew = () => {
     navigate('/booking');
   };
@@ -164,8 +233,7 @@ const handleViewDetails = (appointment) => {
               <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
                 {appointment.petName} - {appointment.breed}
               </h3>
-              {isHistory && <antd.Tag color="blue">{appointment.daysAgo}</antd.Tag>}
-              {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: 'var(--color-info)' }} />}
+              <antd.Tag color={APPOINTMENT_STATUS_TAG_COLOR[appointment.status] || 'default'}>{appointment.statusLabel}</antd.Tag>
             </div>
 
             <div className="appointment-info">
@@ -197,7 +265,16 @@ const handleViewDetails = (appointment) => {
               icon={<icons.EyeOutlined />}
               onClick={() => handleViewDetails(appointment)}
             >
-              Xem chi tiết
+              {t('pages.appointmentDetail.actions.viewDetail')}
+            </antd.Button>
+            <antd.Button
+              style={{ backgroundColor: 'var(--color-text-secondary)', borderColor: 'var(--color-text-secondary)' }}
+              type="primary"
+              block
+              icon={<icons.ReadOutlined />}
+              onClick={() => handleOpenDiagnosis(appointment)}
+            >
+              {t('pages.appointmentDetail.actions.diagnosis')}
             </antd.Button>
             {!isHistory && (
               <antd.Button
@@ -206,7 +283,7 @@ const handleViewDetails = (appointment) => {
                 icon={<icons.DeleteOutlined />}
                 onClick={() => handleCancelAppointment(appointment.id)}
               >
-                Hủy lịch
+                {t('pages.appointmentDetail.actions.cancel')}
               </antd.Button>
             )}
           </antd.Space>
@@ -219,15 +296,15 @@ const handleViewDetails = (appointment) => {
     <div className="appointment-detail-wrapper">
       <div className="appointment-detail-container">
         <div className="appointment-header-section">
-          <h1>Lịch khám</h1>
-          <p>Quản lý các cuộc khám sức khỏe cho các bạn cưng của bạn</p>
+          <h1>{t('pages.appointmentDetail.title')}</h1>
+          <p>{t('pages.appointmentDetail.subtitle')}</p>
           <antd.Button
             type="primary"
             size="large"
             onClick={handleBookingNew}
             style={{ marginTop: '16px', backgroundColor: 'var(--page-appointment-primary)', borderColor: 'var(--page-appointment-primary)' }}
           >
-            + Đặt lịch khám mới
+            + {t('pages.appointmentDetail.bookNew')}
           </antd.Button>
         </div>
 
@@ -242,7 +319,7 @@ const handleViewDetails = (appointment) => {
               label: (
                 <span style={{ color: 'var(--page-appointment-primary)' }}>
                   <icons.CalendarOutlined style={{ color: 'var(--page-appointment-primary)', margin: '0 8px 0 0' }}/>
-                  Lịch sắp tới ({upcomingAppointments.length })
+                  {t('pages.appointmentDetail.tabs.upcoming')} ({upcomingAppointments.length })
                 </span>
               ),
               children: (
@@ -259,7 +336,7 @@ const handleViewDetails = (appointment) => {
                     </div>
                   ) : (
                     <antd.Empty
-                      description="Không có lịch khám sắp tới"
+                      description={t('pages.appointmentDetail.emptyUpcoming')}
                       style={{ marginTop: '48px' }}
                     />
                   )}
@@ -271,7 +348,7 @@ const handleViewDetails = (appointment) => {
               label: (
                 <span style={{ color: 'var(--page-appointment-primary)' }}>
                   <icons.MedicineBoxOutlined style={{ color: 'var(--page-appointment-primary)', margin: '0 8px 0 0' }} />
-                  Lịch sử khám ({medicalHistory.length})
+                  {t('pages.appointmentDetail.tabs.history')} ({medicalHistory.length})
                 </span>
               ),
               children: (
@@ -287,7 +364,7 @@ const handleViewDetails = (appointment) => {
                       ))}
                     </div>
                   ) : (
-                    <antd.Empty description="Chưa có lịch khám" style={{ marginTop: '48px' }} />
+                    <antd.Empty description={t('pages.appointmentDetail.emptyHistory')} style={{ marginTop: '48px' }} />
                   )}
                 </antd.Spin>
               ),
@@ -295,14 +372,14 @@ const handleViewDetails = (appointment) => {
           ]}
         />
         <antd.Modal
-          title="Chi tiết lịch khám"
+          title={t('pages.appointmentDetail.modal.title')}
           open={isModalVisible}
           onCancel={() => setIsModalVisible(false)}
           centered
           maskClosable={false}
           footer={[
             <antd.Button key="back" onClick={() => setIsModalVisible(false)}>
-              Đóng
+              {t('common.actions.close')}
             </antd.Button>,
             <antd.Button
               style={{ backgroundColor: 'var(--page-appointment-primary)', borderColor: 'var(--page-appointment-primary)' }}
@@ -313,7 +390,7 @@ const handleViewDetails = (appointment) => {
                 navigate(`/petProfile?id=${selectedAppointment.petId}`);
               }}
             >
-              Xem hồ sơ thú cưng
+              {t('pages.appointmentDetail.modal.viewPetProfile')}
             </antd.Button>,
           ]}
           width={700}
@@ -335,9 +412,9 @@ const handleViewDetails = (appointment) => {
 
         <antd.Col span={16}>
           <div className="info-header">
-            <h3 style={{fontSize: 17, fontWeight: 'bold'}}>Thông tin thú cưng</h3>
-            <p style={{marginBottom: 0, margin: 0}}><strong>Tên:</strong> {selectedAppointment.petName}</p>
-            <p style={{marginBottom: 0}}><strong>Giống loại:</strong> {selectedAppointment.breed}</p>
+            <h3 style={{fontSize: 17, fontWeight: 'bold'}}>{t('pages.appointmentDetail.modal.petInfoTitle')}</h3>
+            <p style={{marginBottom: 0, margin: 0}}><strong>{t('pages.appointmentDetail.modal.petName')}:</strong> {selectedAppointment.petName}</p>
+            <p style={{marginBottom: 0}}><strong>{t('pages.appointmentDetail.modal.breed')}:</strong> {selectedAppointment.breed}</p>
           </div>
         </antd.Col>
       </antd.Row>
@@ -345,26 +422,26 @@ const handleViewDetails = (appointment) => {
       <antd.Divider />
 
       <div className="appointment-detail-info">
-        <h3>Thông tin lịch khám</h3>
+        <h3>{t('pages.appointmentDetail.modal.appointmentInfoTitle')}</h3>
 
         <p>
-          <icons.CalendarOutlined /> <strong>Ngày:</strong> {selectedAppointment.date}
+          <icons.CalendarOutlined /> <strong>{t('pages.appointmentDetail.modal.date')}:</strong> {selectedAppointment.date}
         </p>
 
         <p>
-          <icons.ClockCircleOutlined /> <strong>Giờ:</strong> {selectedAppointment.time}
+          <icons.ClockCircleOutlined /> <strong>{t('pages.appointmentDetail.modal.time')}:</strong> {selectedAppointment.time}
         </p>
 
         <p>
-          <icons.EnvironmentOutlined /> <strong>Phòng khám:</strong> {selectedAppointment.clinic}
+          <icons.EnvironmentOutlined /> <strong>{t('pages.appointmentDetail.modal.clinic')}:</strong> {selectedAppointment.clinic}
         </p>
 
         <p>
-          <icons.UserOutlined /> <strong>Bác sĩ:</strong> {selectedAppointment.veterinarian}
+          <icons.UserOutlined /> <strong>{t('pages.appointmentDetail.modal.doctor')}:</strong> {selectedAppointment.veterinarian}
         </p>
 
         <p>
-          <icons.MedicineBoxOutlined /> <strong>Dịch vụ:</strong> {selectedAppointment.service}
+          <icons.MedicineBoxOutlined /> <strong>{t('pages.appointmentDetail.modal.service')}:</strong> {selectedAppointment.service}
         </p>
       </div>
 
@@ -372,7 +449,7 @@ const handleViewDetails = (appointment) => {
         <>
           <antd.Divider />
           <div className="appointment-notes">
-            <strong>Ghi chú:</strong>
+            <strong>{t('pages.appointmentDetail.modal.notes')}:</strong>
           <div className="notes-content modal-notes">
           {selectedAppointment.notes}
             </div>
@@ -382,7 +459,41 @@ const handleViewDetails = (appointment) => {
     </div>
           )}
         </antd.Modal>
+
+        <antd.Modal
+          open={isDiagnosisVisible}
+          onCancel={() => {
+            setIsDiagnosisVisible(false);
+            setDiagnosisData(null);
+            setDiagnosisAppointment(null);
+          }}
+          footer={null}
+          width={920}
+          centered
+          className="diagnosis-modal"
+          destroyOnClose
+        >
+          <div className="diagnosis-modal-shell">
+            {diagnosisLoading ? (
+              <div className="diagnosis-loading-wrap">
+                <antd.Spin size="large" />
+              </div>
+            ) : (
+              <PetDiagnosisContent
+                diagnosis={diagnosisData}
+                appointment={diagnosisAppointment}
+                onClose={() => {
+                  setIsDiagnosisVisible(false);
+                  setDiagnosisData(null);
+                  setDiagnosisAppointment(null);
+                }}
+                inModal
+              />
+            )}
+          </div>
+        </antd.Modal>
       </div>
+      <ScrollToTopButton threshold={300} />
     </div>
   );
 };

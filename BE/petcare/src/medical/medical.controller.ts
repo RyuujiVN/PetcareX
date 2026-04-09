@@ -26,21 +26,20 @@ import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order'
 import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
 import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
 import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('medical')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
   // ------------------------ Phiếu khám -----------------------------
-  @Get(':id')
-  @ApiOperation({ summary: 'Lấy thông tin phiếu khám chi tiết' })
-  async getDetail(@Param('id') id: string) {
-    return this.medicalService.findOneById(id);
-  }
 
   @Get('clinic')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Lấy danh sách phiếu khám bên phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
@@ -56,7 +55,15 @@ export class MedicalController {
     });
   }
 
+  @Get(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN, RoleEnum.CUSTOMER)
+  @ApiOperation({ summary: 'Lấy thông tin phiếu khám chi tiết' })
+  async getDetail(@Param('id') id: string) {
+    return this.medicalService.findOneById(id);
+  }
+
   @Get('pet/:petId')
+  @RequiredRole(RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Lấy danh sách phiếu khám của pet' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
@@ -73,6 +80,7 @@ export class MedicalController {
   }
 
   @Post('')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Tạo phiếu khám bệnh cho pet' })
   @ApiBody({
     type: CreateMedicalRecordDTO,
@@ -86,6 +94,7 @@ export class MedicalController {
   }
 
   @Put(':id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Cập nhật phiếu khám bệnh cho pet' })
   @ApiBody({
     type: UpdateMedicalRecordDTO,

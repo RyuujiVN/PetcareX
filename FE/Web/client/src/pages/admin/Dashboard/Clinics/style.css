@@ -1,0 +1,324 @@
+.clinics-page {
+  padding: 25px;
+  overflow: hidden;
+}
+
+/* ── Stat Cards ── */
+.stat-card {
+  border-radius: 12px;
+  border: none;
+}
+
+.stat-card .ant-card-body {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+}
+
+.stat-card__icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.stat-card--clinic {
+  background: var(--admin-stat-clinic-bg);
+}
+
+.stat-card__icon--clinic {
+  background: var(--admin-stat-clinic-icon);
+  color: #fff;
+}
+
+.stat-card--user {
+  background: var(--admin-stat-user-bg);
+}
+
+.stat-card__icon--user {
+  background: var(--admin-stat-user-icon);
+  color: #fff;
+}
+
+.stat-card--post {
+  background: var(--admin-stat-post-bg);
+}
+
+.stat-card__icon--post {
+  background: var(--admin-stat-post-icon);
+  color: #fff;
+}
+
+/* ── Table Card ── */
+.table-card {
+  border-radius: 12px;
+  box-shadow: var(--admin-shadow-sm);
+}
+
+.clinics-page .section-header {
+  margin-bottom: 16px;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+}
+
+.clinics-page .section-title {
+  min-width: 240px;
+}
+
+.clinics-page .table-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.clinics-search {
+  width: 320px;
+}
+
+.pagination-bar {
+  margin-top: 16px;
+  padding: 0 8px;
+}
+
+/* ── Table row spacing ── */
+.clinics-page .ant-table-wrapper .ant-table-tbody > tr > td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--admin-color-border);
+}
+
+.clinics-page .ant-table-wrapper .ant-table-tbody > tr > td,
+.clinics-page .ant-table-wrapper .ant-table-thead > tr > th {
+  vertical-align: middle;
+}
+
+.clinics-page .ant-table-wrapper .ant-table-thead > tr > th {
+  background: var(--admin-color-surface-soft);
+  color: var(--admin-color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+.clinic-name-ellipsis,
+.clinic-address-ellipsis {
+  display: inline-block;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.status-tag {
+  background: var(--admin-color-surface-soft);
+  border: 1px solid var(--admin-color-border);
+  color: var(--admin-color-text-secondary);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 118px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  line-height: normal;
+  white-space: nowrap;
+}
+
+.status-tag--active {
+  color: var(--admin-color-success);
+}
+
+.status-tag--inactive {
+  color: var(--admin-color-danger);
+}
+
+.clinics-page .ant-tag {
+  margin-inline-end: 0;
+}
+
+.table-action-group {
+  gap: 8px;
+}
+
+.table-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--admin-color-border);
+  color: var(--admin-color-text-secondary);
+  background: var(--admin-color-surface-card);
+}
+
+.table-action-btn.table-action-btn--view {
+  color: var(--admin-color-brand-primary);
+}
+
+.table-action-btn.table-action-btn--delete {
+  color: var(--admin-color-danger);
+}
+
+.table-action-btn:hover {
+  background: var(--admin-color-surface-soft);
+  border-color: var(--admin-color-border);
+}
+
+/* ── Add button blue style ── */
+.clinics-page .ant-btn-primary {
+  background: var(--admin-color-brand-primary);
+  border-color: var(--admin-color-brand-primary);
+}
+
+.clinics-page .ant-btn-primary:hover {
+  background: var(--admin-color-brand-primary-hover);
+  border-color: var(--admin-color-brand-primary-hover);
+}
+
+/* ── Add Clinic Modal ── */
+.add-clinic-modal .ant-modal-header {
+  padding: 20px 24px 12px;
+  border-bottom: none;
+}
+
+.add-clinic-modal .ant-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--admin-color-text-primary);
+}
+
+.add-clinic-modal .ant-modal-body {
+  padding: 0 24px 8px;
+}
+
+.add-clinic-modal .ant-modal-footer {
+  padding: 12px 24px 20px;
+  border-top: none;
+}
+
+.add-clinic-modal .ant-modal-footer .ant-btn-primary {
+  background: var(--admin-color-brand-primary);
+  border-color: var(--admin-color-brand-primary);
+}
+
+.add-clinic-modal .ant-modal-footer .ant-btn-primary:hover {
+  background: var(--admin-color-brand-primary-hover);
+  border-color: var(--admin-color-brand-primary-hover);
+}
+
+.add-clinic-form .ant-divider-inner-text {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.add-clinic-form .clinic-form-columns {
+  margin-top: 8px;
+}
+
+.add-clinic-form-section {
+  height: 100%;
+  padding: 16px 16px 4px;
+  border: 1px solid var(--admin-color-border);
+  border-radius: 12px;
+  background: var(--admin-color-surface-card);
+}
+
+.add-clinic-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--admin-color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.add-clinic-form .ant-form-item {
+  margin-bottom: 14px;
+}
+
+.add-clinic-form .clinic-description-item .ant-input-textarea {
+  display: block;
+  width: 100%;
+}
+
+.add-clinic-form .clinic-description-item textarea.ant-input:not([aria-hidden='true']) {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 9px 12px !important;
+  line-height: 1.5;
+}
+
+.add-clinic-form .clinic-description-item textarea.ant-input:not([aria-hidden='true'])::placeholder {
+  line-height: 1.5;
+}
+
+.add-clinic-form .clinic-description-item .ant-input-textarea-show-count::after {
+  margin-top: 4px;
+}
+
+.add-clinic-form .ant-form-item-label > label {
+  font-weight: 500;
+  color: var(--admin-color-text-primary);
+  white-space: normal;
+  line-height: 1.35;
+  height: auto;
+  align-items: flex-start;
+}
+
+.required-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.required-asterisk {
+  color: var(--admin-color-danger);
+  font-weight: 700;
+}
+
+.add-clinic-form .ant-input-textarea-show-count::after {
+  color: var(--admin-color-text-secondary);
+}
+
+.clinic-detail-descriptions .ant-descriptions-item-label {
+  width: 180px;
+  font-weight: bold;
+}
+
+@media (max-width: 768px) {
+  .clinics-page .section-title {
+    min-width: 100%;
+  }
+
+  .clinics-page .table-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    align-items: stretch;
+    margin-left: 0;
+  }
+
+  .clinics-search {
+    width: 100%;
+  }
+
+  .add-clinic-modal .ant-modal-body {
+    max-height: calc(100vh - 240px);
+    overflow-y: auto;
+  }
+}

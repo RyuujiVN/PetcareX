@@ -10,6 +10,7 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../data/models/pet_medical_record_models.dart';
 import '../data/models/pet_models.dart';
 import '../data/pet_medical_record_repository.dart';
+import '../data/pet_repository.dart';
 
 class PetMedicalRecordsPage extends StatefulWidget {
   final Pet pet;
@@ -22,12 +23,15 @@ class PetMedicalRecordsPage extends StatefulWidget {
 
 class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
   final PetMedicalRecordRepository _repository = PetMedicalRecordRepository();
+  final PetRepository _petRepository = PetRepository();
 
   bool _isLoading = false;
   String? _errorMessage;
   List<PetMedicalRecordSummary> _records = const [];
+  Pet? _petDetail;
 
   final Map<String, _RecordDetailState> _detailById = {};
+  final Map<String, bool> _detailExpandedById = {};
 
   @override
   void initState() {
@@ -36,21 +40,45 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
   }
 
   Future<void> _fetchRecords() async {
+    final petId = widget.pet.id.trim();
+    if (petId.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Không tìm thấy thú cưng để tải hồ sơ y tế.';
+        _records = const [];
+        _petDetail = null;
+      });
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
 
+    Pet? petDetail;
     try {
-      final records = await _repository.getMedicalRecordsByPetId(widget.pet.id);
+      petDetail = await _petRepository.getPetById(petId);
+    } catch (_) {
+      petDetail = null;
+    }
+
+    try {
+      final records = await _repository.getMedicalRecordsByPetId(petId);
       if (!mounted) return;
       setState(() {
         _records = records;
+        if (petDetail != null) {
+          _petDetail = petDetail;
+        }
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _errorMessage = e.toString();
+        if (petDetail != null) {
+          _petDetail = petDetail;
+        }
       });
     } finally {
       if (mounted) {
@@ -93,9 +121,11 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final pet = _petDetail ?? widget.pet;
     final breedLabel =
-        PetBreedEnum.fromValue(widget.pet.breed)?.getTranslatedName(context) ??
-        widget.pet.breed;
+      PetBreedEnum.fromValue(pet.breed)?.getTranslatedName(context) ??
+      pet.breed;
+    final petWeight = pet.weight > 0 ? pet.weight : null;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -120,10 +150,10 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
           children: [
             _buildPetHeaderCard(
-              petName: widget.pet.name,
+              petName: pet.name,
               breedLabel: breedLabel,
-              petWeight: widget.pet.weight,
-              avatarUrl: widget.pet.avatar,
+              petWeight: petWeight,
+              avatarUrl: pet.avatar,
             ),
             const SizedBox(height: 14),
             if (_isLoading)
@@ -148,9 +178,13 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
   Widget _buildPetHeaderCard({
     required String petName,
     required String breedLabel,
-    required double petWeight,
+    required double? petWeight,
     required String? avatarUrl,
   }) {
+    final petWeightLabel = petWeight == null
+        ? '--'
+        : '${petWeight.toStringAsFixed(1)} kg';
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -207,7 +241,7 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '$breedLabel • ${petWeight.toStringAsFixed(1)} kg',
+                  '$breedLabel • $petWeightLabel',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
@@ -315,8 +349,9 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
   }
 
   Widget _buildRecordDetail(PetMedicalRecordDetail detail, AppLocalizations l10n) {
-    final detailRows = <Widget>[
-      _buildDetailRow(l10n.medicalRecordCode, detail.id),
+    final isDetailExpanded = _detailExpandedById[detail.id] ?? false;
+
+    final basicRows = <Widget>[
       _buildDetailRow(
         l10n.medicalRecordClinicName,
         detail.clinicName,
@@ -333,6 +368,9 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
         l10n.medicalRecordWeightAtExam,
         detail.weight.isEmpty ? '--' : '${detail.weight} kg',
       ),
+    ];
+
+    final detailRows = <Widget>[
       _buildRichDetail(l10n.medicalRecordDiagnosis, detail.diagnosis),
       _buildRichDetail(l10n.medicalRecordSymptoms, detail.symptoms),
       _buildRichDetail(l10n.medicalRecordConclusion, detail.conclusion),
@@ -341,7 +379,59 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
       _buildMedicinesSection(detail.medicines, l10n),
     ];
 
-    return Column(children: detailRows);
+    return Column(
+      children: [
+        ...basicRows,
+        const SizedBox(height: 12),
+        Theme(
+          data: Theme.of(context).copyWith(dividerColor: AppColors.transparent),
+          child: ExpansionTile(
+            tilePadding: EdgeInsets.zero,
+            childrenPadding: EdgeInsets.zero,
+            initiallyExpanded: isDetailExpanded,
+            onExpansionChanged: (expanded) {
+              setState(() {
+                _detailExpandedById[detail.id] = expanded;
+              });
+            },
+            title: Container(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.primaryAlpha(0.05),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.primaryAlpha(0.2)),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  l10n.viewDetails,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+            trailing: Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Icon(
+                isDetailExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: AppColors.primary,
+              ),
+            ),
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Column(children: detailRows),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildDetailRow(String label, String value) {

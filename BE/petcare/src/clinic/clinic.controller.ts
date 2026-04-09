@@ -23,14 +23,23 @@ import { CreateClinicWithAdminDTO } from './dtos/create-clinic-with-admin.dto';
 import { ClinicService } from './clinic.service';
 import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('clinic')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class ClinicController {
   constructor(private readonly clinicService: ClinicService) {}
 
   @Get()
+  @RequiredRole(
+    RoleEnum.ADMIN,
+    RoleEnum.ADMIN_CLINIC,
+    RoleEnum.VETERINARIAN,
+    RoleEnum.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Phân trang phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
@@ -53,12 +62,19 @@ export class ClinicController {
   }
 
   @Get(':id')
+  @RequiredRole(
+    RoleEnum.ADMIN,
+    RoleEnum.ADMIN_CLINIC,
+    RoleEnum.VETERINARIAN,
+    RoleEnum.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Chi tiết phòng khám' })
   getDetailClinic(@Param('id') id: string): Promise<Clinic> {
     return this.clinicService.findOneById(id);
   }
 
   @Post()
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Tạo mới phòng khám' })
   @ApiBody({
     type: CreateClinicWithAdminDTO,
@@ -68,6 +84,7 @@ export class ClinicController {
   }
 
   @Put(':id')
+  @RequiredRole(RoleEnum.ADMIN, RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Chỉnh sửa thông tin phòng khám' })
   @ApiBody({
     type: UpdateClinicDTO,
@@ -84,10 +101,8 @@ export class ClinicController {
   }
 
   @Delete(':id')
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Xoá phòng khám' })
-  @ApiBody({
-    type: UpdateClinicDTO,
-  })
   async deleteClinic(@Param('id') id: string) {
     await this.clinicService.deleteClinic(id);
 

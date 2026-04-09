@@ -8,10 +8,9 @@
 
 .list-pet-container {
   width: 100%;
-  max-width: 1400px;
-  padding-right: 250px;
-  padding-left: 100px;
-  margin: 30px 150px;
+  max-width: 1600px;
+  padding: 0 100px;
+  margin: 0 auto;
 }
 
 .list-pet-header-section {
@@ -36,327 +35,215 @@
   margin: 0;
 }
 
-.pet-lists {   
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.pet-item {
-  background: white;
-  padding: 24px 32px;
-  border-radius: 12px;
-  border: 1px solid var(--color-border);
-  box-shadow: 0 1px 2px var(--auto-rgba-0-0-0-0-03);
-  transition: all 0.3s ease;
-}
-
-.pet-item:hover {
-  box-shadow: 0 4px 12px var(--auto-rgba-0-0-0-0-1);
-  border-color: var(--page-listpet-primary);
-}
-
-.pet-avatar-col {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.pet-avatar {
-  width: 100%;
-  max-width: 140px;
-  height: 140px;
-  object-fit: cover;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-1);
-}
-
-.pet-info-col {
-  display: flex;
-  align-items: center;
-}
-
-.pet-info {
-  width: 100%;
-}
-
-.pet-name {
-  font-size: 18px;
+.add-pet-btn {
+  margin-top: 16px;
+  height: 42px !important;
+  border-radius: 10px !important;
   font-weight: 600;
-  margin: 0;
-  color: var(--color-text-primary);
+  background: #4672b4 !important;
+  border-color: #4672b4 !important;
 }
 
-.pet-action-col {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.add-pet-btn:hover,
+.add-pet-btn:focus {
+  background: #3f67a3 !important;
+  border-color: #3f67a3 !important;
 }
 
-.view-detail-btn {
-  background-color: var(--page-listpet-primary) !important;
-  border-color: var(--page-listpet-primary) !important;
-  color: white !important;
-  font-weight: 500;
-  border-radius: 8px;
-  min-width: 140px;
-  height: 40px;
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
 }
 
-.view-detail-btn:hover {
-  background-color: var(--page-listpet-primary-hover) !important;
-  border-color: var(--page-listpet-primary-hover) !important;
-  box-shadow: 0 2px 8px var(--color-brand-primary-alpha-20);
+.pet-card {
+  border: 1px solid #e8ecf3;
+  border-radius: 18px;
+  background: #fff;
+  overflow: hidden;
+  box-shadow: 0 3px 7px rgba(24, 38, 58, 0.04);
 }
 
-.view-detail-btn:active {
-  background-color: var(--page-listpet-primary-active) !important;
-  border-color: var(--page-listpet-primary-active) !important;
+.pet-image-wrap {
+  height: 220px;
+  background: #f3f5fa;
 }
 
-@media (max-width: 768px) {
-  .list-pet-header-section {
-    padding: 24px;
-  }
-
-  .list-pet-title {
-    font-size: 20px;
-  }
-
-  .pet-item {
-    padding: 16px;
-  }
-
-  .pet-avatar {
-    max-width: 100px;
-    height: 100px;
-  }
-
-  .pet-avatar-col {
-    margin-bottom: 12px;
-  }
-
-  .pet-action-col {
-    margin-top: 12px;
-  }
-}
-
-.appointment-pet-image img {
+.pet-image {
   width: 100%;
-  max-width: 120px;
-  aspect-ratio: 1;
-  border-radius: 8px;
+  height: 100%;
   object-fit: cover;
 }
 
-.status-tag {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 11px;
-  padding: 2px 8px;
-  border-radius: 12px;
+.card-body {
+  padding: 14px;
 }
 
-.appointment-content-col {
-  padding: 0 16px;
-}
-
-.appointment-content {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.pet-name {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.appointment-info-item {
+.card-header {
   display: flex;
   align-items: flex-start;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.info-icon {
-  font-size: 14px;
-  color: var(--page-listpet-primary);
-  margin-top: 2px;
-  flex-shrink: 0;
-}
-
-.appointment-info-item .label {
-  font-size: 14px;
-  color: var(--color-text-primary);
-  font-weight: 500;
-}
-
-.appointment-info-item .address {
-  font-size: 12px;
-  color: var(--color-text-secondary);
-  margin: 4px 0 0 0;
-}
-
-.info-row {
+.card-header-actions {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
-  color: var(--color-text-muted);
 }
 
-.info-row .value {
-  color: var(--color-text-primary);
-  font-weight: 500;
-}
-
-.action-col {
-  display: flex;
+.pet-age-badge {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-}
-
-.action-col .ant-btn {
-  padding: 4px 12px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: #4672b4;
+  color: #ffffff;
   font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
 }
 
-.action-col .ant-btn-primary {
-  background: var(--page-listpet-primary);
-  border-color: var(--page-listpet-primary);
-  color: white;
+.card-menu-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #d7e1ef;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #5f6f86;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-menu-btn:hover {
+  background: #f3f7fd;
+  color: #3f67a3;
+}
+
+.pet-name {
+  margin: 0;
+  font-size: 23px;
+  color: #162336;
+  line-height: 1.2;
+}
+
+.pet-breed {
+  margin: 8px 0 0;
+  color: #5e6d82;
+  font-size: 18px;
   font-weight: 500;
 }
 
-.action-col .ant-btn-primary:hover {
-  background: var(--page-listpet-primary-hover);
-  border-color: var(--page-listpet-primary-hover);
+.pet-action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-.action-col .ant-btn-text {
-  color: var(--color-text-disabled) !important;
-}
-
-.modal-contents {
-  padding: 16px 0;
-}
-
-.modal-contents h3 {
-  font-size: 16px;
+.view-detail-btn {
+  width: 100% !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  color: #fff !important;
+  font-size: 15px;
   font-weight: 600;
-  margin-bottom: 12px;
-  color: var(--color-text-primary);
+  background: #4672b4 !important;
+  border-color: #4672b4 !important;
 }
 
-.modal-contents p {
-  margin: 8px 0;
+.view-detail-btn:hover,
+.view-detail-btn:focus {
+  background: #4672b4 !important;
+  border-color: #4672b4 !important;
+}
+
+.view-record-btn {
+  width: 100% !important;
+  height: 42px !important;
+  border-radius: 12px !important;
+  color: #4672b4 !important;
+  border-color: #4672b4 !important;
   font-size: 14px;
-  color: var(--color-text-muted);
+  font-weight: 600;
 }
 
-.modal-contents strong {
-  color: var(--color-text-primary);
+.view-record-btn:hover,
+.view-record-btn:focus {
+  color: #3f67a3 !important;
+  border-color: #3f67a3 !important;
+}
+
+.delete-btn {
+  width: 100% !important;
+  height: 42px !important;
+  border-radius: 12px !important;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 :global(.ant-empty) {
   padding: 48px 0;
 }
 
-:global(.ant-badge-count) {
-  background-color: var(--color-danger);
-  font-size: 11px;
-  padding: 0 6px;
-  margin-left: 8px;
+@media (max-width: 1600px) {
+  .cards-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
-@media (max-width: 992px) {
-  .appointment-card {
-    padding: 16px;
+@media (max-width: 1200px) {
+  .list-pet-container {
+    padding: 0 40px;
   }
 
-  .appointment-content-col {
-    padding: 0;
+  .list-pet-header-section {
+    padding: 28px;
+  }
+
+  .list-pet-title {
+    font-size: 24px;
+  }
+
+  .cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .appointment-detail-container {
-    margin: 16px auto;
-    padding: 0 12px;
+  .list-pet-wrapper {
+    padding: 20px 0;
   }
 
-  .appointment-header-section {
-    padding: 24px;
-    margin-bottom: 16px;
+  .list-pet-container {
+    padding: 0 14px;
   }
 
-  .appointment-header-section h1 {
-    font-size: 22px;
+  .list-pet-header-section {
+    padding: 20px;
   }
 
-  .tabs-wrapper {
-    padding: 16px;
+  .list-pet-title {
+    font-size: 20px;
   }
 
-  .pet-image-col {
-    margin-bottom: 12px;
+  .cards-grid {
+    grid-template-columns: 1fr;
   }
 
-  .appointment-pet-image img {
-    max-width: 100px;
-  }
-
-  .action-col {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .action-col .ant-btn {
-    font-size: 12px;
-    padding: 4px 8px;
-  }
-}
-
-@media (max-width: 576px) {
-  .appointment-detail-container {
-    padding: 0 8px;
-  }
-
-  .appointment-header-section {
-    padding: 16px;
-  }
-
-  .appointment-header-section h1 {
-    font-size: 18px;
-  }
-
-  .tabs-wrapper {
-    padding: 12px;
-  }
-
-  .appointment-card {
-    padding: 12px;
-  }
-
-  .appointment-tabs .ant-tabs-tab {
-    font-size: 13px;
-    padding: 8px 12px;
+  .pet-image-wrap {
+    height: 200px;
   }
 
   .pet-name {
-    font-size: 14px;
+    font-size: 24px;
   }
 
-  .action-col {
-    gap: 4px;
-  }
-
-  .action-col .ant-btn {
-    padding: 2px 6px;
-    font-size: 11px;
+  .pet-breed {
+    font-size: 16px;
   }
 }
 

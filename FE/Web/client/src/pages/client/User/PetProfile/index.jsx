@@ -1,4 +1,6 @@
 import {
+  ManOutlined,
+  WomanOutlined,
   CameraOutlined,
   UserOutlined,
   CalendarOutlined
@@ -11,8 +13,8 @@ import {
   InputNumber,
   Select,
   message,
+  Modal,
   Card,
-  Avatar,
   Space,
   Spin,
   Radio,
@@ -21,7 +23,9 @@ import {
 
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { getUserProfileApi } from "../../../../data/client/api/user";
+import { useTranslation } from 'react-i18next';
+import { getUserProfileApi } from "../../../../services/userService";
+import { getClientInstance } from "../../../../services/apiClient";
 import {
   getBreedLabel,
   getPetByIdApi,
@@ -31,7 +35,7 @@ import {
   getSpeciesLabel,
   uploadPetAvatarApi,
   updatePetApi,
-} from "../../../../data/client/api/petApi";
+} from "../../../../services/petService";
 
 import dayjs from "dayjs";
 
@@ -40,16 +44,19 @@ import "./styles.css";
 export default function PetProfile() {
   const [form] = Form.useForm();
   const [searchParams] = useSearchParams();
+  const { t } = useTranslation();
 
   const [loading, setLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
-  const [avatarFile, setAvatarFile] = useState(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('');
   const [petData, setPetData] = useState(null);
   const [ownerName, setOwnerName] = useState("");
   const [speciesList, setSpeciesList] = useState([]);
   const [breedList, setBreedList] = useState([]);
   const [selectedSpeciesId, setSelectedSpeciesId] = useState("");
   const [currentPetId, setCurrentPetId] = useState("");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const navigate = useNavigate();
 
@@ -96,28 +103,28 @@ export default function PetProfile() {
 
   const fetchUser = async () => {
     try {
-      const res = await getUserProfileApi();
+      const res = await getUserProfileApi(getClientInstance());
       setOwnerName(res.data?.fullName || "");
     } catch (error) {
-      message.warning("Không lấy được thông tin người dùng");
+      message.warning(t('pages.petProfile.loadUserFailed'));
     }
   };
 
   const fetchSpecies = async () => {
     try {
-      const speciesData = await getPetSpeciesApi();
+      const speciesData = await getPetSpeciesApi(getClientInstance());
       setSpeciesList(Array.isArray(speciesData) ? speciesData : []);
     } catch (error) {
-      message.error(error.message || "Không thể tải danh sách loài");
+      message.error(error.message || t('pages.petProfile.loadSpeciesFailed'));
     }
   };
 
   const fetchBreedsBySpecies = async (speciesId) => {
     try {
-      const breedsData = await getBreedsBySpeciesApi(speciesId);
+      const breedsData = await getBreedsBySpeciesApi(getClientInstance(), speciesId);
       setBreedList(Array.isArray(breedsData) ? breedsData : []);
     } catch (error) {
-      message.error(error.message || "Không thể tải danh sách giống");
+      message.error(error.message || t('pages.petProfile.loadBreedFailed'));
     }
   };
 
@@ -130,14 +137,14 @@ export default function PetProfile() {
 
       if (petIdFromQuery) {
         try {
-          petInfo = await getPetByIdApi(petIdFromQuery);
+          petInfo = await getPetByIdApi(getClientInstance(), petIdFromQuery);
         } catch (error) {
           petInfo = null;
         }
       }
 
       if (!petInfo) {
-        const pets = await getMyPetsApi();
+        const pets = await getMyPetsApi(getClientInstance());
         const petList = Array.isArray(pets) ? pets : [];
         petInfo = petIdFromQuery
           ? petList.find((item) => item.id === petIdFromQuery)
@@ -145,7 +152,7 @@ export default function PetProfile() {
       }
 
       if (!petInfo) {
-        message.warning("Chưa có thú cưng");
+        message.warning(t('pages.petProfile.noPet'));
         return;
       }
 
@@ -180,19 +187,20 @@ export default function PetProfile() {
       });
 
       setImagePreview(mappedPetData.avatar);
-      setAvatarFile(null);
+      setUploadedAvatarUrl(mappedPetData.avatar || '');
+      setHasUnsavedChanges(false);
     } catch (error) {
-      message.error(error.message || "Không thể tải thông tin thú cưng!");
+      message.error(error.message || t('pages.petProfile.loadFailed'));
     } finally {
       setLoading(false);
     }
   };
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    setAvatarFile(file);
+    setUploadingAvatar(true);
 
     const reader = new FileReader();
 
@@ -201,11 +209,35 @@ export default function PetProfile() {
     };
 
     reader.readAsDataURL(file);
+
+    try {
+      const uploadResult = await uploadPetAvatarApi(file);
+      const nextAvatarUrl = uploadResult?.file || '';
+
+      if (!nextAvatarUrl) {
+        throw new Error(t('pages.petProfile.uploadNoUrl'));
+      }
+
+      setUploadedAvatarUrl(nextAvatarUrl);
+      message.success(t('pages.petProfile.uploadSuccess'));
+    } catch (error) {
+      setImagePreview(petData?.avatar || null);
+      setUploadedAvatarUrl(petData?.avatar || '');
+      message.error(error.message || t('pages.petProfile.uploadFailed'));
+    } finally {
+      setUploadingAvatar(false);
+      e.target.value = "";
+    }
   };
 
   const handleSubmit = async (values) => {
+    if (uploadingAvatar) {
+      message.warning(t('pages.petProfile.validation.avatarUploading'));
+      return;
+    }
+
     if (!currentPetId) {
-      message.error("Không tìm thấy thú cưng để cập nhật");
+      message.error(t('pages.petProfile.validation.petNotFound'));
       return;
     }
 
@@ -215,18 +247,14 @@ export default function PetProfile() {
       "";
 
     if (!matchedBreed) {
-      message.warning("Vui lòng chọn giống hợp lệ");
+      message.warning(t('pages.petProfile.validation.invalidBreed'));
       return;
     }
 
     try {
       setLoading(true);
 
-      let avatarUrl = petData?.avatar || "";
-      if (avatarFile) {
-        const uploadResult = await uploadPetAvatarApi(avatarFile);
-        avatarUrl = uploadResult?.file || avatarUrl;
-      }
+      const avatarUrl = uploadedAvatarUrl || petData?.avatar || "";
 
       const updatePayload = {
         name: values.petName,
@@ -239,7 +267,7 @@ export default function PetProfile() {
         avatar: avatarUrl,
       };
 
-      await updatePetApi(currentPetId, updatePayload);
+      await updatePetApi(getClientInstance(), currentPetId, updatePayload);
 
       setPetData((prev) => ({
         ...prev,
@@ -254,21 +282,34 @@ export default function PetProfile() {
         avatar: avatarUrl,
       }));
 
-      setAvatarFile(null);
+      setHasUnsavedChanges(false);
 
-      message.success("Cập nhật thông tin thú cưng thành công!");
+      message.success(t('pages.petProfile.updateSuccess'));
       navigate(-1);
     } catch (error) {
-      message.error(error.message || "Cập nhật thất bại!");
+      message.error(error.message || t('pages.petProfile.updateFailed'));
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    fetchPetData();
-    message.info("Đã hủy thay đổi");
-    navigate(-1);
+    if (!hasUnsavedChanges) {
+      navigate(-1);
+      return;
+    }
+
+    Modal.confirm({
+      title: t('pages.petProfile.confirmCancel.title'),
+      content: t('pages.petProfile.confirmCancel.content'),
+      okText: t('pages.petProfile.confirmCancel.okText'),
+      cancelText: t('pages.petProfile.confirmCancel.cancelText'),
+      centered: true,
+      onOk: () => {
+        message.info(t('pages.petProfile.confirmCancel.successInfo'));
+        navigate(-1);
+      },
+    });
   };
 
   if (loading && !petData) {
@@ -289,22 +330,34 @@ export default function PetProfile() {
 
       <div className="profile-wrapper">
 
-        <div className="profile-header">
-
-          <h2 className="profile-title">Thông tin thú cưng</h2>
-
+        {/* <div className="profile-header"> */}
           <div className="profile-avatar-section">
 
-            <div className="profile-avatar-container">
+            <div
+              className={`profile-cover ${imagePreview ? "has-cover-image" : "no-cover-image"}`}
+              style={
+                imagePreview
+                  ? {
+                      backgroundImage: `linear-gradient(120deg, rgba(13, 26, 53, 0.3) 8%, rgba(40, 93, 170, 0.26) 62%, rgba(116, 160, 220, 0.22) 100%), url(${imagePreview})`,
+                    }
+                  : undefined
+              }
+            >
 
-              <Avatar
-                size={120}
-                src={imagePreview}
-                icon={<UserOutlined />}
-                className="profile-avatar"
-              />
+              {!imagePreview && (
+                <div className="profile-cover-placeholder">
+                  <UserOutlined />
+                </div>
+              )}
 
-              <label htmlFor="avatar-upload" className="avatar-upload-btn">
+              <label
+                htmlFor="avatar-upload"
+                className="cover-upload-btn"
+                style={{
+                  opacity: uploadingAvatar || loading ? 0.5 : 1,
+                  pointerEvents: uploadingAvatar || loading ? "none" : "auto",
+                }}
+              >
                 <CameraOutlined />
               </label>
 
@@ -313,6 +366,7 @@ export default function PetProfile() {
                 type="file"
                 accept="image/*"
                 onChange={handleImageChange}
+                disabled={uploadingAvatar || loading}
                 style={{ display: "none" }}
               />
 
@@ -321,20 +375,11 @@ export default function PetProfile() {
             <div className="profile-info-header">
 
               <h2 className="profile-name">
-                {petData?.petName || "Tên thú cưng"}
+                {petData?.petName || t('pages.petProfile.defaultPetName')}
               </h2>
-
-              <p className="profile-subtitle">
-
-                {petAge
-                  ? `${petAge} tuổi • ${petData?.weight || 0} kg`
-                  : "• tuổi • kg"}
-
-              </p>
-
             </div>
 
-          </div>
+          {/* </div> */}
 
         </div>
 
@@ -344,6 +389,7 @@ export default function PetProfile() {
             form={form}
             layout="vertical"
             onFinish={handleSubmit}
+            onValuesChange={() => setHasUnsavedChanges(true)}
             autoComplete="off"
             requiredMark={false}
           >
@@ -351,16 +397,16 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label="Tên thú cưng"
+                label={t('pages.petProfile.fields.petName')}
                 name="petName"
                 className="form-col"
-                rules={[{ required: true, message: "Nhập tên thú cưng" }]}
+                rules={[{ required: true, message: t('pages.petProfile.validation.petNameRequired') }]}
               >
                 <Input size="large" />
               </Form.Item>
 
               <Form.Item
-                label="Loài"
+                label={t('pages.petProfile.fields.species')}
                 name="species"
                 className="form-col"
                 rules={[{ required: true }]}
@@ -380,15 +426,15 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label="Giống"
+                label={t('pages.petProfile.fields.breed')}
                 name="breed"
                 className="form-col"
-                rules={[{ required: true, message: "Chọn giống" }]}
+                rules={[{ required: true, message: t('pages.petProfile.validation.breedRequired') }]}
               >
                 <Select
                   size="large"
                   showSearch
-                  placeholder="Chọn giống"
+                  placeholder={t('pages.petProfile.placeholders.breed')}
                   className="pet-breed-select"
                   options={breedList.map((item) => ({
                     label: getBreedLabel(item, selectedSpeciesId),
@@ -403,17 +449,23 @@ export default function PetProfile() {
               </Form.Item>
 
               <Form.Item
-                label="Giới tính"
+                label={t('pages.petProfile.fields.gender')}
                 name="gender"
                 className="form-col"
                 rules={[{ required: true }]}
               >
                 <Radio.Group className="pet-gender-group">
                   <Radio.Button value="Đực" className="pet-gender-btn">
-                    Đực
+                    <span className="pet-gender-content">
+                      <ManOutlined />
+                      <span>{t('pages.petProfile.gender.male')}</span>
+                    </span>
                   </Radio.Button>
                   <Radio.Button value="Cái" className="pet-gender-btn ">
-                    Cái
+                    <span className="pet-gender-content">
+                      <WomanOutlined />
+                      <span>{t('pages.petProfile.gender.female')}</span>
+                    </span>
                   </Radio.Button>
                 </Radio.Group>
               </Form.Item>
@@ -423,21 +475,21 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label="Tuổi thú cưng"
+                label={t('pages.petProfile.fields.age')}
                 name="birthDate"
-                rules={[{ required: true, message: "Chọn ngày sinh" }]}
+                rules={[{ required: true, message: t('pages.petProfile.validation.birthDateRequired') }]}
               >
 
                 <DatePicker
                   size="large"
                   style={{ width: "100%" }}
                   suffixIcon={<CalendarOutlined />}
-                  placeholder="Chọn ngày sinh"
+                  placeholder={t('pages.petProfile.placeholders.birthDate')}
 
                   format={(value) => {
                     if (!value) return "";
                     const age = dayjs().diff(value, "year");
-                    return `${age} tuổi`;
+                    return t('pages.petProfile.age.years', { count: age });
                   }}
 
                   onChange={(date) => {
@@ -455,7 +507,7 @@ export default function PetProfile() {
               </Form.Item>
 
               <Form.Item
-                label="Cân nặng (kg)"
+                label={t('pages.petProfile.fields.weight')}
                 name="weight"
                 className="form-col"
                 rules={[{ required: true }]}
@@ -471,7 +523,7 @@ export default function PetProfile() {
             </div>
 
             <Form.Item
-              label="Màu lông / Đặc điểm"
+              label={t('pages.petProfile.fields.features')}
               name="features"
             >
               <Input.TextArea rows={4} />
@@ -485,8 +537,9 @@ export default function PetProfile() {
                   size="large"
                   className="btn-cancel"
                   onClick={handleCancel}
+                  disabled={loading || uploadingAvatar}
                 >
-                  Hủy
+                  {t('pages.petProfile.actions.cancel')}
                 </Button>
 
                 <Button
@@ -495,8 +548,9 @@ export default function PetProfile() {
                   className="btn-submit"
                   htmlType="submit"
                   loading={loading}
+                  disabled={loading || uploadingAvatar}
                 >
-                  Lưu thay đổi
+                  {uploadingAvatar ? t('pages.petProfile.actions.uploading') : t('pages.petProfile.actions.save')}
                 </Button>
 
               </Space>
@@ -514,4 +568,3 @@ export default function PetProfile() {
   );
 
 }
-

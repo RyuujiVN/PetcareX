@@ -120,6 +120,12 @@ input.form-input[type="text"] {
   color: var(--c-cbd5e1);
 }
 
+.required-mark {
+  color: var(--color-danger);
+  margin-left: 2px;
+  font-weight: 700;
+}
+
 .basic-info-section {
   background: var(--color-surface-card);
   padding: 20px 25px;
@@ -185,6 +191,14 @@ input.form-input[type="text"] {
   font-size: 16px;
 }
 
+.gender-radio-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
+}
+
 
 .button-group {
   display: flex;
@@ -207,6 +221,13 @@ input.form-input[type="text"] {
 .cancel-button:hover {
   background: var(--color-surface-soft);
   color: var(--primary);
+}
+
+.cancel-button:disabled,
+.submit-button:disabled,
+.choose-file-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .submit-button {

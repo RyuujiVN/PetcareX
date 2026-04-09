@@ -4,13 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ForumComment } from '../entities/forum_comment.entity';
-import { DataSource, Repository } from 'typeorm';
-import { CreateCommentDTO } from './dtos/create-comment.dto';
-import { User } from 'src/user/entities/user.entity';
-import { ForumPost } from '../entities/forum_post.entity';
-import { UpdateCommentDTO } from './dtos/update-comment.dto';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { User } from 'src/user/entities/user.entity';
+import { DataSource, Repository } from 'typeorm';
+import { ForumComment } from '../entities/forum_comment.entity';
+import { ForumPost } from '../entities/forum_post.entity';
+import { CreateCommentDTO } from './dtos/create-comment.dto';
+import { UpdateCommentDTO } from './dtos/update-comment.dto';
 import {
   CommentPagination,
   CommentReplyPagination,
@@ -119,8 +119,8 @@ export class CommentService {
       const comment = await commentRepo.findOne({ where: { id: id } });
 
       if (!comment) throw new NotFoundException('Không tìm thấy bình luận');
-      if (comment.userId !== user.id || user.role !== RoleEnum.ADMIN)
-        throw new NotFoundException('Không có quyền xoá bình luận này');
+      if (comment.userId !== user.id && user.role !== RoleEnum.ADMIN)
+        throw new ForbiddenException('Không có quyền xoá bình luận này');
 
       // 2. Xoá bình luận
       await commentRepo.delete({ id: id });

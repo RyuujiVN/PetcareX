@@ -1,11 +1,15 @@
-﻿import { useEffect, useRef, useState } from "react";
-import { message, Spin } from "antd";
+﻿import { message, Spin } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getClinicByIdApi, getClinicListApi } from "../../../../data/client/api/clinicApi";
+import { getClientInstance } from "../../../../services/apiClient";
+import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
+import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
 export default function ClinicSelection() {
+  const { t } = useTranslation();
   const [clinics, setClinics] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -18,22 +22,25 @@ export default function ClinicSelection() {
     const fetchClinics = async () => {
       try {
         setLoading(true);
-        const response = await getClinicListApi(1, 50, "");
+        const response = await getClinicListApi(getClientInstance(), 1, 50, "");
         const clinicItems = Array.isArray(response?.items) ? response.items : [];
 
         if (!mounted) return;
 
-        const normalized = clinicItems.map((clinic) => ({
-          ...clinic,
-          time: "8:00 - 20:00 (Thứ 2 - Chủ nhật)",
-          image: clinic.avatarUrl || "/miniPet.png",
-          rating: 5,
-          reviews: 0,
-        }));
+        const normalized = clinicItems.map((clinic) => {
+          const clinicInfo = getClinicInfoContent(clinic.id, clinic);
+
+          return {
+            ...clinic,
+            ...clinicInfo,
+            time: clinicInfo.timeDisplay || "8:00 - 20:00",
+            image: clinicInfo.avatarUrl || clinic.avatarUrl || "/miniPet.png",
+          };
+        });
 
         setClinics(normalized);
       } catch (error) {
-        message.error(error.message || "Không thể tải danh sách phòng khám");
+        message.error(error.message || t("pages.home.clinicSelection.loadListFailed"));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -47,7 +54,7 @@ export default function ClinicSelection() {
   }, []);
 
   const filtered = clinics.filter((c) =>
-    c.name.toLowerCase().includes(searchText.toLowerCase())
+    (c.name || "").toLowerCase().includes(searchText.toLowerCase())
   );
 
 useEffect(() => {
@@ -73,17 +80,21 @@ useEffect(() => {
   const handleChoose = async (clinic) => {
     try {
       setLoading(true);
-      const clinicDetail = await getClinicByIdApi(clinic.id);
+      const clinicDetail = await getClinicByIdApi(getClientInstance(), clinic.id);
+      const clinicInfo = getClinicInfoContent(clinic.id, clinicDetail || clinic);
       sessionStorage.setItem("selectedClinicId", String(clinic.id));
 
       navigate("/clinic", {
         state: {
-          clinic: clinicDetail,
+          clinic: {
+            ...clinicDetail,
+            ...clinicInfo,
+          },
           selectedClinicId: String(clinic.id),
         },
       });
     } catch (error) {
-      message.error(error.message || "Không thể tải chi tiết phòng khám");
+      message.error(error.message || t("pages.home.clinicSelection.loadDetailFailed"));
     } finally {
       setLoading(false);
     }
@@ -92,7 +103,7 @@ useEffect(() => {
   return (
     <div className="clinic-page">
       <div className="clinic-header">
-        <h2>Danh sách phòng khám đối tác</h2>
+        <h2>{t("pages.home.clinicSelection.title")}</h2>
 
         <div className="search-form">
           <div className="search-input-wrapper">
@@ -101,7 +112,7 @@ useEffect(() => {
             <input
               type="text"
               className="clinic-search"
-              placeholder="Tìm kiếm theo tên"
+              placeholder={t("pages.home.clinicSelection.searchPlaceholder")}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
@@ -137,19 +148,18 @@ useEffect(() => {
                 <p className="clinic-time" title={clinic.time}>
                   {clinic.time}
                 </p>
-              </div>
 
-              <div className="clinic-meta">
-                <span className="rating">
-                  {clinic.rating} ⭐ ({clinic.reviews})
-                </span>
+                {clinic.phone ? (
+                  <p className="clinic-phone" title={clinic.phone}> 
+                   <p>{t("common.labels.phone")}: {clinic.phone}</p>
+                  </p>
+                ) : null}
               </div>
-
               <button
                 className="btn-choose"
                 onClick={() => handleChoose(clinic)}
               >
-                Chọn
+                {t("pages.home.clinicSelection.chooseButton")}
               </button>
             </div>
           ))}

@@ -128,6 +128,7 @@
   "medicalRecordMedicines": "Thuốc",
   "medicalRecordNoOrders": "Chưa có phiếu chỉ định",
   "medicalRecordNoMedicines": "Chưa có thuốc",
+  "viewDetails": "Xem chi tiết",
   "profileUpdateSuccess": "Cập nhật thông tin thành công!",
   "petCreateSuccess": "Thêm thú cưng thành công!",
   "petUpdateSuccess": "Chỉnh sửa thú cưng thành công!",
