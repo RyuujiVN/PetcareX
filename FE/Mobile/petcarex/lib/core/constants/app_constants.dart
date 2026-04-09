@@ -1,4 +1,4 @@
-﻿import '../configs/app_config.dart';
+import '../configs/app_config.dart';
 // bỏ qua lỗi về tên 
 // ignore_for_file: constant_identifier_names
 
@@ -21,6 +21,8 @@ class AppConstants {
   static const String END_POINT_COMMENT = '${AppConfig.apiPrefix}/comment';
   static const String END_POINT_TOPIC = '${AppConfig.apiPrefix}/topic';
   static const String END_POINT_INVOICE = '${AppConfig.apiPrefix}/invoice';
+  static const String END_POINT_ROOM = '${AppConfig.apiPrefix}/room';
+  static const String END_POINT_MESSAGE = '${AppConfig.apiPrefix}/message';
 
   // Cloudinary Endpoints
   static const String END_POINT_CLOUDINARY_UPLOAD_ONE_FILE =

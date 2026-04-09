@@ -96,6 +96,9 @@ class ApiHelper {
   static String invoiceByIdEndpoint(String invoiceId) =>
       '${AppConstants.END_POINT_INVOICE}/$invoiceId';
 
+  static String roomMessagesEndpoint(String roomId) =>
+      '${AppConstants.END_POINT_ROOM}/$roomId/messages';
+
   // Query endpoint helpers
   static String appointmentMyEndpoint({int page = 1, int limit = 10}) =>
       buildEndpoint(
@@ -177,6 +180,29 @@ class ApiHelper {
       'parentId': parentId,
       'limit': limit,
       'createdAt': lastCreatedAt,
+    },
+  );
+
+  static String chatRoomsEndpoint({
+    int limit = 10,
+    String? createdAt,
+  }) => buildEndpoint(
+    AppConstants.END_POINT_ROOM,
+    queryParameters: <String, Object?>{
+      'limit': limit,
+      'createdAt': createdAt,
+    },
+  );
+
+  static String chatMessagesEndpoint(
+    String roomId, {
+    int limit = 10,
+    String? createdAt,
+  }) => buildEndpoint(
+    roomMessagesEndpoint(roomId),
+    queryParameters: <String, Object?>{
+      'limit': limit,
+      'createdAt': createdAt,
     },
   );
 }
