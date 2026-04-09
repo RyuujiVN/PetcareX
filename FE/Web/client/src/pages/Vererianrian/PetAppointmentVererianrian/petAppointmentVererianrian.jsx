@@ -328,12 +328,12 @@ export default function PetAppointmentVererianrian() {
             <Card className={styles.summaryCard}>
               <div className={styles.summaryTopRow}>
                 <div className={`${styles.summaryIcon} ${styles[card.iconClassName]}`}>{card.icon}</div>
-                <Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
-              </div>
-              <div className={styles.summaryValueRow}>
-                <Typography.Title level={2} className={styles.summaryValue}>
-                  {card.value}
-                </Typography.Title>
+                <div className={styles.summaryContent}>
+                  <Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
+                  <Typography.Title level={2} className={styles.summaryValue}>
+                    {card.value}
+                  </Typography.Title>
+                </div>
               </div>
             </Card>
           </Col>

@@ -23,18 +23,22 @@
   border-radius: 18px;
   border: 1px solid var(--vet-color-border);
   box-shadow: var(--vet-shadow-card);
+}
+
+.summaryCard :global(.ant-card-body) {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 20px;
 }
 
 .summaryIcon {
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
   border-radius: 12px;
   display: grid;
   place-items: center;
-  font-size: 24px;
+  font-size: 27px;
   flex-shrink: 0;
 }
 
@@ -55,32 +59,30 @@
 
 .summaryTitle {
   color: var(--vet-color-text-disabled);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
 }
 
 .summaryValue {
   margin: 0 !important;
   color: var(--vet-color-text-primary) !important;
-  text-align: center;
+  text-align: left;
+  font-size: 30px !important;
+  line-height: 1.1 !important;
 }
 
 .summaryTopRow {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-}
-
-.summaryValueRow {
-  display: grid;
-  grid-template-columns: 52px 1fr 52px;
-  align-items: center;
+  gap: 14px;
   width: 100%;
 }
 
-.summaryValueRow .summaryValue {
-  grid-column: 2;
+.summaryContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .tablePanel {
@@ -91,6 +93,8 @@
 
 .tableHeader {
   margin-bottom: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .panelTitle {
@@ -101,6 +105,7 @@
 
 .segmented {
   background: var(--vet-color-surface-page);
+  margin-left: auto;
 }
 
 .segmented :global(.ant-segmented-item-selected) {
@@ -242,6 +247,14 @@
 }
 
 @media (max-width: 992px) {
+  .tableHeader {
+    justify-content: flex-start;
+  }
+
+  .segmented {
+    margin-left: 0;
+  }
+
   .tablePanel {
     overflow-x: auto;
   }
