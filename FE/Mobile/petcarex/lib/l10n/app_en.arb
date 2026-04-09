@@ -334,5 +334,89 @@
   "petBreedBirdParrot": "Parrot",
   "petBreedBirdBudgerigar": "Budgerigar",
   "petBreedRabbitDutch": "Dutch Rabbit",
-  "petBreedRabbitLionhead": "Lionhead Rabbit"
+  "petBreedRabbitLionhead": "Lionhead Rabbit",
+
+  "notifTitle": "Notifications",
+  "notifMarkAllRead": "Read all",
+  "notifFilterAll": "All",
+  "notifFilterUnread": "Unread",
+  "notifEmpty": "No notifications yet",
+
+  "notifAppointmentBooked": "New appointment",
+  "notifAppointmentCancelled": "Appointment cancelled",
+  "notifAppointmentStatusUpdated": "Appointment updated",
+  "notifAppointmentReminder": "Appointment reminder",
+  "notifAiDiagnosis": "AI diagnosis ready",
+  "notifFollowUpReminder": "Follow-up reminder",
+  "notifCommentReply": "New comment",
+  "notifGeneral": "Notification",
+
+  "notifAppointmentBookedDesc": "{userName} booked an appointment on {date} at {time}",
+  "@notifAppointmentBookedDesc": {
+    "placeholders": {
+      "userName": {"type": "String"},
+      "date": {"type": "String"},
+      "time": {"type": "String"}
+    }
+  },
+  "notifAppointmentCancelledDesc": "Appointment on {date} at {time} has been cancelled",
+  "@notifAppointmentCancelledDesc": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "time": {"type": "String"}
+    }
+  },
+  "notifAppointmentCancelledByClinicDesc": "Clinic {clinicName} has cancelled your appointment",
+  "@notifAppointmentCancelledByClinicDesc": {
+    "placeholders": {
+      "clinicName": {"type": "String"}
+    }
+  },
+  "notifAppointmentStatusUpdatedDesc": "{userName} updated the appointment status",
+  "@notifAppointmentStatusUpdatedDesc": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "notifAppointmentReminderDesc": "You have an appointment on {date} at {time}",
+  "@notifAppointmentReminderDesc": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "time": {"type": "String"}
+    }
+  },
+  "notifAiDiagnosisDesc": "AI diagnosis result for {petName} is ready",
+  "@notifAiDiagnosisDesc": {
+    "placeholders": {
+      "petName": {"type": "String"}
+    }
+  },
+  "notifFollowUpReminderDesc": "Follow-up reminder on {date}",
+  "@notifFollowUpReminderDesc": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "notifCommentReplyDesc": "Someone replied to your comment",
+
+  "notifTimeJustNow": "Just now",
+  "notifTimeMinutesAgo": "{minutes} min ago",
+  "@notifTimeMinutesAgo": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "notifTimeHoursAgo": "{hours} hr ago",
+  "@notifTimeHoursAgo": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "notifTimeDaysAgo": "{days} days ago",
+  "@notifTimeDaysAgo": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "notifTimeLongAgo": "Long ago"
 }

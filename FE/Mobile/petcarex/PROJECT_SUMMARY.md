@@ -583,3 +583,58 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 3. **Android USB (mặc định):** Chạy `flutter run` (debug) để kích hoạt auto reverse qua Gradle.
 4. **Nếu cần set reverse thủ công:** `adb reverse tcp:3000 tcp:3000` rồi `flutter run`.
 5. **Quy ước ghi file bằng PowerShell (tránh lỗi tiếng Việt):** Khi dùng `Set-Content` hoặc `Out-File`, luôn bắt buộc chỉ định `-Encoding UTF8`.
+
+## 🔔 Notification Integration (2026-07)
+
+### Tổng quan
+Tích hợp hệ thống thông báo realtime vào Mobile App, đồng bộ UX với Web FE. Sử dụng **WebSocket (socket.io)** cho push realtime và **REST API** cho lịch sử + thao tác đọc.
+
+### Kiến trúc
+- **Pattern:** Provider (ChangeNotifier) — nhất quán với toàn bộ app.
+- **Realtime:** `socket_io_client` kết nối namespace `/notification`, xác thực JWT qua `handshake.auth.accessToken`.
+- **REST API:**
+  - `GET /api/notification?limit=20&filter=ALL|UNREAD&createdAt=<cursor>` — phân trang cursor-based.
+  - `PATCH /api/notification/mark-one/:id` — đánh dấu đã đọc 1 thông báo.
+  - `PATCH /api/notification/mark-all` — đánh dấu đã đọc tất cả.
+- **Socket event:** `severSendNotification` (tên event từ BE, giữ nguyên).
+
+### Notification Types (NotificationEnum)
+| Type | Mô tả |
+|------|--------|
+| `APPOINTMENT_BOOKED` | Lịch hẹn mới được đặt |
+| `APPOINTMENT_CANCELLED` | Lịch hẹn bị hủy |
+| `APPOINTMENT_STATUS_UPDATED_BY_CLIENT` | Khách hàng cập nhật trạng thái |
+| `APPOINTMENT_REMINDER` | Nhắc lịch hẹn sắp tới |
+| `AI_DIAGNOSIS` | Kết quả chẩn đoán AI |
+| `FOLLOW_UP_REMINDER` | Nhắc tái khám |
+| `COMMENT_REPLY` | Có người trả lời bình luận |
+
+### Files mới tạo
+| File | Vai trò |
+|------|---------|
+| `lib/features/notification/data/models/notification_model.dart` | Parse payload từ BE, helper getters cho target fields |
+| `lib/features/notification/data/repositories/notification_repository.dart` | REST API calls (get, mark-one, mark-all) |
+| `lib/core/services/notification_socket_service.dart` | WebSocket connection, reconnect (15 attempts, 3s delay) |
+| `lib/features/notification/presentation/provider/notification_provider.dart` | State management: list, unread count, filter, optimistic updates |
+| `lib/features/notification/presentation/screens/notification_screen.dart` | Màn hình danh sách thông báo (filter, pull-to-refresh, infinite scroll) |
+| `lib/features/notification/presentation/widgets/notification_item.dart` | Widget item thông báo (icon theo type, unread dot, relative time) |
+
+### Files đã sửa
+| File | Thay đổi |
+|------|----------|
+| `lib/core/constants/app_constants.dart` | Thêm `END_POINT_NOTIFICATION` |
+| `lib/main.dart` | Đăng ký `NotificationProvider` vào MultiProvider |
+| `lib/features/home/presentation/home_page.dart` | Bell icon badge hiển thị `totalUnread` (cap 99+), navigate sang NotificationScreen |
+| `lib/features/main_navigation/presentation/main_navigation_wrapper.dart` | Init notification (socket + fetch) sau khi mount |
+| `lib/features/account/presentation/account_page.dart` | Cleanup notification khi logout |
+| `lib/l10n/app_vi.arb` | Thêm 25+ i18n keys cho notification |
+| `lib/l10n/app_en.arb` | Thêm 25+ i18n keys cho notification |
+
+### UX Features
+- **Badge:** Hiển thị số thông báo chưa đọc trên bell icon ở Home, giới hạn hiển thị 99+.
+- **Filter:** Tab All / Unread để lọc nhanh.
+- **Optimistic update:** Đánh dấu đọc cập nhật UI ngay lập tức, gọi API background.
+- **Tap navigation:** Chạm thông báo → đánh dấu đọc + chuyển đến tab tương ứng (Appointments/Community).
+- **Pull-to-refresh:** Kéo xuống để tải lại danh sách.
+- **Infinite scroll:** Tự động load thêm khi cuộn đến cuối.
+- **Cleanup on logout:** Ngắt socket, reset state khi đăng xuất.

@@ -10,6 +10,7 @@ import '../../../../features/appointment/presentation/provider/appointment_provi
 import '../../../../features/booking/presentation/booking_page.dart';
 import '../../../../features/community/presentation/community_page.dart';
 import '../../../../features/home/presentation/home_page.dart';
+import '../../../../features/notification/presentation/provider/notification_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
 
 class MainNavigationWrapper extends StatefulWidget {
@@ -29,6 +30,15 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
   final Set<int> _initializedPages = {0};
   final List<Widget?> _pages = List<Widget?>.filled(5, null);
+
+  @override
+  void initState() {
+    super.initState();
+    // Init notification socket + fetch initial data after login
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationProvider>().init();
+    });
+  }
 
   void setSelectedIndex(int index) {
     final wasInitialized = _initializedPages.contains(index);
