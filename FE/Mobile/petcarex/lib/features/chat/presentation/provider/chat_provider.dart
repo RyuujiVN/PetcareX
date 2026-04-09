@@ -18,6 +18,7 @@ class ChatProvider extends ChangeNotifier {
   bool _hasMoreMessages = true;
   String? _oldestMessageCursor;
   String? _streamingMessageId;
+  bool _isWaitingAi = false;
   int _localMessageSeed = 0;
   final Map<String, DateTime> _pendingMessageDeadline = {};
 
@@ -29,6 +30,7 @@ class ChatProvider extends ChangeNotifier {
   bool get isLoadingMessages => _isLoadingMessages;
   bool get isLoadingMoreMessages => _isLoadingMoreMessages;
   bool get isConnected => _socketService.isConnected;
+  bool get isWaitingAi => _isWaitingAi;
 
   ChatProvider() {
     _bindSocketEvents();
@@ -230,9 +232,12 @@ class ChatProvider extends ChangeNotifier {
         notifyListeners();
         return;
       }
+      _isWaitingAi = true;
+      notifyListeners();
       _socketService.sendMessage(content: trimmed, roomId: _currentRoomId);
       _schedulePendingTimeout(localMessage.id);
     } catch (e) {
+      _isWaitingAi = false;
       _markMessageAsError(localMessage.id);
       notifyListeners();
     }
@@ -266,6 +271,21 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  bool get isAiResponding => _isWaitingAi || _streamingMessageId != null;
+
+  void stopAiResponse() {
+    _socketService.stopStream();
+    _isWaitingAi = false;
+    if (_streamingMessageId != null) {
+      final idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
+      if (idx != -1) {
+        _messages[idx] = _messages[idx].copyWith(isStreaming: false);
+      }
+      _streamingMessageId = null;
+    }
+    notifyListeners();
+  }
+
   void startNewConversation() {
     if (_currentRoomId != null) {
       _socketService.leaveRoom(_currentRoomId!);
@@ -273,12 +293,16 @@ class ChatProvider extends ChangeNotifier {
     _currentRoomId = null;
     _messages = [];
     _streamingMessageId = null;
+    _isWaitingAi = false;
     _oldestMessageCursor = null;
     _hasMoreMessages = true;
     notifyListeners();
   }
 
   void _replacePendingUserMessage(ChatMessage serverMessage) {
+    // Only handle user messages here; AI messages arrive via onAiFinalMessage
+    if (!serverMessage.isUser) return;
+
     // Deduplicate: skip if a message with this server ID already exists
     if (_messages.any((m) => m.id == serverMessage.id)) return;
 
@@ -303,6 +327,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void _appendAiChunk(String chunk) {
+    _isWaitingAi = false;
+
     if (_streamingMessageId != null) {
       final idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
       if (idx != -1 && _messages[idx].isStreaming) {
@@ -313,6 +339,11 @@ class ChatProvider extends ChangeNotifier {
       }
       _streamingMessageId = null;
     }
+
+    // Prevent duplicate: don't create a new streaming message if the last
+    // message is already a completed AI response (e.g. ai_message event
+    // fires after aiResponse stream already finished).
+    if (_messages.isNotEmpty && !_messages.last.isUser) return;
 
     final aiMessage = ChatMessage(
       id: _nextLocalMessageId(prefix: 'ai_stream'),
@@ -328,6 +359,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void _markStreamingDone() {
+    _isWaitingAi = false;
     if (_streamingMessageId == null) return;
     final idx = _messages.indexWhere((m) => m.id == _streamingMessageId);
     if (idx != -1) {
@@ -368,6 +400,11 @@ class ChatProvider extends ChangeNotifier {
       ];
     }
     _streamingMessageId = null;
+
+    // Clean up any orphaned local streaming messages that weren't replaced
+    _messages.removeWhere(
+        (m) => m.id.startsWith('ai_stream') && m.id != finalMessage.id);
+
     _messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
   }
 
