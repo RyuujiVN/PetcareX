@@ -12,6 +12,7 @@ import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
     getMedicalByIdApi,
+    getMedicalByPetIClinicdApi,
     getMedicalByPetIdApi,
     getMedicalOrdersByMedicalIdApi,
     getMedicinesByMedicalIdApi,
@@ -224,7 +225,7 @@ export default function ViewPetMedicalRecords() {
 				const detail = await getMedicalByIdApi(getAdminInstance(), medicalId)
 				records = detail ? [detail] : []
 			} else if (petId) {
-				const byPet = await getMedicalByPetIdApi(getAdminInstance(), petId, 1, 200)
+				const byPet = await getMedicalByPetIClinicdApi(getAdminInstance(), petId, 1, 200)
 				records = Array.isArray(byPet?.items)
 					? byPet.items
 					: Array.isArray(byPet?.data)

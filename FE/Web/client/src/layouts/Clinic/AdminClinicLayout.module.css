@@ -89,12 +89,7 @@
 }
 
 .profileBox {
-  border-top: 1px solid #e6ebf4;
-  padding: 14px 4px 0;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
+  display: block;
 }
 
 .profileInfo {

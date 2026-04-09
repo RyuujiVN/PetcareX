@@ -16,13 +16,35 @@
   padding: 20px 24px;
 }
 
+.stat-card .ant-statistic {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-card .ant-statistic-title,
+.stat-card .ant-statistic-content {
+  text-align: left;
+}
+
+.stat-card .ant-statistic-title {
+  margin-bottom: 0;
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.stat-card .ant-statistic-content {
+  font-size: 30px;
+  line-height: 1.1;
+}
+
 .stat-card__icon {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   border-radius: 12px;
   display: grid;
   place-items: center;
-  font-size: 22px;
+  font-size: 26px;
   flex-shrink: 0;
 }
 

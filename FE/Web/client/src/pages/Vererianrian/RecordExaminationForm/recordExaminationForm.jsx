@@ -52,6 +52,7 @@ import {
 	deleteMedicalOrderApi,
 	deleteMedicineApi,
 	getMedicalByIdApi,
+	getMedicalByPetIClinicdApi,
 	getMedicalByPetIdApi,
 	getMedicalOrderCatalogApi,
 	getMedicalOrdersByMedicalIdApi,
@@ -623,7 +624,7 @@ export default function RecordExaminationForm() {
 			}
 
 			try {
-				const payload = await getMedicalByPetIdApi(getAdminInstance(),petId, 1, 200)
+				const payload = await getMedicalByPetIClinicdApi(getAdminInstance(),petId, 1, 200)
 				const records = Array.isArray(payload?.items)
 					? payload.items
 					: Array.isArray(payload?.data)
@@ -724,7 +725,7 @@ export default function RecordExaminationForm() {
 			try {
 				setHistoryLoading(true)
 				// TODO: Check pet owner's sharing permission before displaying medical records.
-				const payload = await getMedicalByPetIdApi(getAdminInstance(),historyPetId, 1, 200)
+				const payload = await getMedicalByPetIClinicdApi(getAdminInstance(),historyPetId, 1, 200)
 				let records = normalizeCollection(payload)
 				if (!active) return
 
