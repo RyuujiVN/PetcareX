@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
-import { Button, Card, Row, Col, Divider, Space, message, QRCode } from 'antd';
-import { CheckCircleOutlined, CalendarOutlined, UserOutlined, ClockCircleOutlined, MedicineBoxOutlined } from '@ant-design/icons';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { CalendarOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { Button, Card, Col, Divider, message, Row } from 'antd';
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { getServiceLabel } from '../../../../utils/enumLabel';
 import './styles.css';
 
 const SuccessBooking = () => {
@@ -83,7 +84,7 @@ const SuccessBooking = () => {
                 <span className="label-text">Dịch vụ</span>
               </Col>
               <Col xs={24} sm={12} className="summary-value">
-                <span className="value-text">{appointmentData.service}</span>
+                <span className="value-text">{getServiceLabel(appointmentData.service, appointmentData.service)}</span>
               </Col>
             </Row>
           </div>
@@ -110,4 +111,3 @@ const SuccessBooking = () => {
 };
 
 export default SuccessBooking;
-

@@ -17,6 +17,8 @@ import { SenderEnum } from 'src/common/enums/sender.enum';
 import { ChatbotRoom } from './entities/chatbot-room.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import axios from 'axios';
+import { MessageSend } from './message/types/message-send.type';
 
 @WebSocketGateway({
   cors: { origin: '*' },
@@ -26,7 +28,7 @@ export class ChatBotGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  private server: Server;
 
   constructor(
     private readonly messageService: MessageService,
@@ -54,52 +56,74 @@ export class ChatBotGateway
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
+    client.disconnect();
   }
 
   @SubscribeMessage('message')
   async handleMessage(client: Socket, payload: CreateMessageDTO) {
-    // Phải lưu trước khi createMessage — service sẽ gán payload.roomId khi tạo room mới,
-    // nên sau đó `!payload.roomId` sẽ luôn false và không emit serverResponseNewRoom.
-    const isFirstMessageNewRoom = !payload.roomId;
+    try {
+      const isFirstMessageNewRoom = !payload.roomId;
 
-    // Tạo mới message
-    const userId = client.data.user?.id;
-    const message = await this.messageService.createMessage(payload, userId);
+      // Tạo mới message
+      const userId = client.data.user?.id;
+      const message = await this.messageService.createMessage(payload, userId);
 
-    // Nếu client chưa có `roomId` (tin nhắn đầu tiên) thì sẽ tạo room mới và sau đó để client join room lại.
-    if (isFirstMessageNewRoom) {
-      const roomId = message.roomId;
-      const room = await this.roomRepository.findOne({
-        where: { id: roomId },
-      });
+      // Nếu client chưa có `roomId` (tin nhắn đầu tiên) thì sẽ tạo room mới và sau đó để client join room lại.
+      if (isFirstMessageNewRoom) {
+        const roomId = message.roomId;
+        const room = await this.roomRepository.findOne({
+          where: { id: roomId },
+        });
 
-      client.join(roomId);
-      client.emit('serverResponseNewRoom', room);
+        await client.join(roomId);
+        client.emit('serverResponseNewRoom', room);
+      }
+
+      // Gửi lại message về client
+      client.emit('serverResponseMessage', message);
+
+      const messageSend: MessageSend = {
+        message: payload.content,
+        user_id: userId,
+        room_id: payload.roomId,
+      };
+
+      // Gọi api message
+      if (payload.image) {
+        const response = await axios.get(payload.image, {
+          responseType: 'arraybuffer',
+        });
+
+        const image = response.data;
+
+        messageSend.image = Buffer.from(image).toString('base64');
+      }
+
+      // Gửi message cho AI
+      this.aiClientService.sendMessage(messageSend);
+    } catch (error: any) {
+      const errorPayload = {
+        message:
+          error?.message ||
+          'Có lỗi xảy ra khi gửi tin nhắn. Vui lòng thử lại sau.',
+        code: error?.code,
+        stage: 'handleMessage',
+      };
+
+      client.emit('serverResponseError', errorPayload);
     }
-
-    // Gửi lại message về client
-    client.emit('serverResponseMessage', message);
-
-    const messageSend = {
-      message: payload.content,
-      user_id: userId,
-      room_id: payload.roomId,
-    };
-
-    // Gửi message cho AI
-    this.aiClientService.sendMessage(messageSend);
   }
 
   @SubscribeMessage('joinRoom')
-  handleJoinRoom(client: Socket, payload: any) {
+  async handleJoinRoom(client: Socket, payload: any) {
     if (!payload?.roomId) return;
-    client.join(payload.roomId);
+    await client.join(payload.roomId);
   }
 
   @SubscribeMessage('leaveRoom')
-  handleLeaveRoom(client: Socket, payload: any) {
+  async handleLeaveRoom(client: Socket, payload: any) {
     if (!payload?.roomId) return;
-    client.leave(payload.roomId);
+    await client.leave(payload.roomId);
   }
 
   @SubscribeMessage('stopStream')

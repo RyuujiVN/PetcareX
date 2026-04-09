@@ -88,7 +88,6 @@
 	border-radius: 14px;
 	background: #f0f3f7;
 	min-height: 36px;
-	padding: 14px;
 	resize: none;
 	color: #6e7f95;
 	font-size: 16px;
@@ -346,14 +345,20 @@
 	overflow-wrap: anywhere; 
 }
 
+.postImageGrid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 10px;
+}
+
 .postImageFrame {
 	width: 100%;
 	max-width: 100%;
 	height: clamp(260px, 36vw, 500px);
 	max-height: 500px;
 	display: block;
-	align-items: center;
-	justify-content: center;
+	padding: 0;
+	border: none;
 	border-radius: 14px;
 	background: #ffffff;
 	overflow: hidden;
@@ -501,6 +506,16 @@
 	align-items: center;
 	gap: 8px;
 	flex-wrap: wrap;
+}
+
+.previewImageItem {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 4px;
+	border: 1px solid #e4ebf2;
+	border-radius: 10px;
+	background: #ffffff;
 }
 
 .previewImage {

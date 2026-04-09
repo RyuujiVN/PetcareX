@@ -1,32 +1,37 @@
-﻿import React, { useCallback, useEffect, useMemo, useState } from 'react';
+﻿import * as icons from '@ant-design/icons';
 import * as antd from 'antd';
-import * as icons from '@ant-design/icons';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   APPOINTMENT_STATUS,
   getMyAppointmentsApi,
   updateAppointmentStatusApi,
-} from '../../../../data/client/api/appointmentApi'; 
-import { getBreedLabel } from '../../../../data/client/api/petApi';
-import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
+} from '../../../../data/client/api/appointmentApi';
 import {
   generateAndStoreDiagnosisReport,
   getStoredDiagnosisReport,
 } from '../../../../data/client/api/appointmentDiagnosis';
+import { getBreedLabel } from '../../../../data/client/api/petApi';
+import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
+import { getAppointmentStatusLabel, getServiceLabel } from '../../../../utils/enumLabel';
+import { PetDiagnosisContent } from '../PetDiagnosis/petDiagnosis';
 import './styles.css';
 
 const formatDate = (dateValue) => new Date(dateValue).toLocaleDateString('vi-VN');
 const formatTime = (timeValue) => (timeValue || '').slice(0, 5);
+const buildAppointmentsSignature = (items) =>
+  items
+    .map(
+      (item) =>
+        `${item?.id || ''}:${item?.status || ''}:${item?.appointmentDate || ''}:${item?.appointmentTime || ''}:${item?.updatedAt || ''}`,
+    )
+    .join('|');
 
-const calcDaysAgo = (dateValue) => {
-  const now = new Date();
-  const date = new Date(dateValue);
-  const ms = now.getTime() - date.getTime();
-  const days = Math.max(Math.floor(ms / (1000 * 60 * 60 * 24)), 0);
-
-  if (days === 0) return 'Hôm nay';
-  if (days < 7) return `${days} ngày`;
-  return `${Math.floor(days / 7)} tuần`;
+const APPOINTMENT_STATUS_TAG_COLOR = {
+  [APPOINTMENT_STATUS.BOOKED]: 'blue',
+  [APPOINTMENT_STATUS.IN_PROGRESS]: 'processing',
+  [APPOINTMENT_STATUS.COMPLETED]: 'success',
+  [APPOINTMENT_STATUS.CANCELLED]: 'error',
 };
 
 const AppointmentDetail = () => {
@@ -40,15 +45,36 @@ const AppointmentDetail = () => {
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [diagnosisData, setDiagnosisData] = useState(null);
   const [diagnosisAppointment, setDiagnosisAppointment] = useState(null);
+  const inFlightRef = useRef(false);
+  const hasLoadedOnceRef = useRef(false);
+  const lastDataSignatureRef = useRef('');
 
-  const fetchAppointments = useCallback(async () => {
+  const fetchAppointments = useCallback(async ({ silent = false } = {}) => {
+    if (inFlightRef.current) {
+      return;
+    }
+
+    inFlightRef.current = true;
+
     try {
-      setLoading(true);
+      if (!hasLoadedOnceRef.current && !silent) {
+        setLoading(true);
+      }
+
       const res = await getMyAppointmentsApi(1, 200);
-      setAppointments(Array.isArray(res?.items) ? res.items : []);
+      const nextItems = Array.isArray(res?.items) ? res.items : [];
+      const nextSignature = buildAppointmentsSignature(nextItems);
+
+      if (nextSignature !== lastDataSignatureRef.current) {
+        lastDataSignatureRef.current = nextSignature;
+        setAppointments(nextItems);
+      }
+
+      hasLoadedOnceRef.current = true;
     } catch (error) {
       antd.message.error(error.message || 'Không thể tải lịch hẹn');
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
   }, []);
@@ -59,12 +85,12 @@ const AppointmentDetail = () => {
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
-      fetchAppointments();
+      fetchAppointments({ silent: true });
     }, 20000);
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        fetchAppointments();
+        fetchAppointments({ silent: true });
       }
     };
 
@@ -90,7 +116,7 @@ const AppointmentDetail = () => {
         avatar: item.pet?.avatar || '/gaugau.png',
         clinic: item.clinic?.name || 'Không rõ',
         clinicAddress: item.clinic?.address || 'Không rõ',
-        service: `${item.service}`,
+        service: getServiceLabel(item.service, `${item.service}`),
         date: dateText,
         time: timeText,
         veterinarian: item.veterinarian?.user?.fullName || 'Không rõ',
@@ -98,7 +124,7 @@ const AppointmentDetail = () => {
         notes: item.note,
         rawDate: date,
         status: item.status,
-        daysAgo: calcDaysAgo(date),
+        statusLabel: getAppointmentStatusLabel(item.status, item.status),
       };
     });
   }, [appointments]);
@@ -108,10 +134,10 @@ const AppointmentDetail = () => {
     return mappedAppointments.filter((item) => {
       const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
       const isFuture = dateTime >= now;
-      const isDone = item.status === APPOINTMENT_STATUS.DONE;
-      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      const isDone = item.status === APPOINTMENT_STATUS.COMPLETED;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELLED;
       return isFuture && !isDone && !isCanceled;
-    });
+    }).sort((a, b) => new Date(`${a.rawDate}T${a.time}:00`).getTime() - new Date(`${b.rawDate}T${b.time}:00`).getTime());
   }, [mappedAppointments]);
 
   const medicalHistory = useMemo(() => {
@@ -119,10 +145,10 @@ const AppointmentDetail = () => {
     return mappedAppointments.filter((item) => {
       const dateTime = new Date(`${item.rawDate}T${item.time}:00`);
       const isPast = dateTime < now;
-      const isDone = item.status === APPOINTMENT_STATUS.DONE;
-      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELED;
+      const isDone = item.status === APPOINTMENT_STATUS.COMPLETED;
+      const isCanceled = item.status === APPOINTMENT_STATUS.CANCELLED;
       return isPast || isDone || isCanceled;
-    });
+    }).sort((a, b) => new Date(`${b.rawDate}T${b.time}:00`).getTime() - new Date(`${a.rawDate}T${a.time}:00`).getTime());
   }, [mappedAppointments]);
 
   const handleCancelAppointment = (appointmentId) => {
@@ -135,9 +161,9 @@ const AppointmentDetail = () => {
       centered: true,
       async onOk() {
         try {
-          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELED);
+          await updateAppointmentStatusApi(appointmentId, APPOINTMENT_STATUS.CANCELLED);
           antd.message.success('Hủy lịch khám thành công');
-          await fetchAppointments();
+          await fetchAppointments({ silent: true });
         } catch (error) {
           antd.message.error(error.message || 'Không thể hủy lịch khám');
         }
@@ -203,8 +229,7 @@ const handleViewDetails = (appointment) => {
               <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '600' }}>
                 {appointment.petName} - {appointment.breed}
               </h3>
-              {isHistory && <antd.Tag color="blue">{appointment.daysAgo}</antd.Tag>}
-              {!isHistory && <antd.Badge count={appointment.status} style={{ backgroundColor: 'var(--color-info)' }} />}
+              <antd.Tag color={APPOINTMENT_STATUS_TAG_COLOR[appointment.status] || 'default'}>{appointment.statusLabel}</antd.Tag>
             </div>
 
             <div className="appointment-info">
@@ -464,6 +489,7 @@ const handleViewDetails = (appointment) => {
           </div>
         </antd.Modal>
       </div>
+      <ScrollToTopButton threshold={300} />
     </div>
   );
 };

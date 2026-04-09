@@ -1,9 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Row, Col, Button, Spin, Empty, message } from 'antd';
-import { EyeOutlined } from '@ant-design/icons';
+import { Button, Spin, Empty, message, Modal, Dropdown } from 'antd';
+import { EyeOutlined, PlusOutlined, MoreOutlined } from '@ant-design/icons';
 import { createSearchParams, useNavigate } from 'react-router-dom';
-import { getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi';
+import { deletePetApi, getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi';
+import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import styles from './listMedicalRecords.module.css';
+
+const getPetAgeLabel = (dateOfBirth) => {
+  if (!dateOfBirth) {
+    return 'Chưa rõ tuổi';
+  }
+
+  const birthDate = new Date(dateOfBirth);
+  if (Number.isNaN(birthDate.getTime())) {
+    return 'Chưa rõ tuổi';
+  }
+
+  const now = new Date();
+  let totalMonths =
+    (now.getFullYear() - birthDate.getFullYear()) * 12 +
+    (now.getMonth() - birthDate.getMonth());
+
+  if (now.getDate() < birthDate.getDate()) {
+    totalMonths -= 1;
+  }
+
+  totalMonths = Math.max(totalMonths, 0);
+
+  if (totalMonths >= 12) {
+    return `${Math.floor(totalMonths / 12)} tuổi`;
+  }
+
+  return `${totalMonths} tháng tuổi`;
+};
 
 const ListPetMedicalRecords = () => {
   const navigate = useNavigate();
@@ -18,7 +47,7 @@ const ListPetMedicalRecords = () => {
         setLoading(true);
         const petData = await getMyPetsApi();
         setPets(Array.isArray(petData) ? petData : []);
-      } catch (error) {
+      } catch (error) { 
         message.error(error.message || 'Lỗi khi tải danh sách thú cưng');
       } finally {
         setLoading(false);
@@ -28,11 +57,46 @@ const ListPetMedicalRecords = () => {
     fetchPets();
   }, []);
 
-  const handleViewDetails = (petId) => {
+  const handleViewMedicalRecords = (petId) => {
     navigate({
       pathname: '/medical-records',
       search: createSearchParams({ petId: String(petId) }).toString(),
     });
+  };
+
+  const handleEditPetInfo = (petId) => {
+    navigate(`/petProfile?id=${petId}`);
+  };
+
+  const handleDelete = (petId) => {
+    Modal.confirm({
+      title: 'Xóa thú cưng',
+      content: 'Bạn có chắc muốn xóa thú cưng này không?',
+      okText: 'Xóa',
+      cancelText: 'Hủy',
+      okType: 'danger',
+      centered: true,
+      onOk: async () => {
+        try {
+          await deletePetApi(petId);
+          setPets((prev) => prev.filter((pet) => pet.id !== petId));
+          message.success('Xóa thú cưng thành công');
+        } catch (error) {
+          message.error(error.message || 'Xóa thất bại');
+        }
+      },
+    });
+  };
+
+  const handleCardAction = (actionKey, petId) => {
+    if (actionKey === 'edit') {
+      handleEditPetInfo(petId);
+      return;
+    }
+
+    if (actionKey === 'delete') {
+      handleDelete(petId);
+    }
   };
 
 
@@ -45,46 +109,72 @@ const ListPetMedicalRecords = () => {
           <p className={styles['list-pet-subtitle']}>
             Chọn 1 trong các thú cưng của bạn
           </p>
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            className={styles['add-pet-btn']}
+            onClick={() => navigate('/add-pet')}
+          >
+            Thêm thú cưng mới
+          </Button>
         </div>
 
         <Spin spinning={loading}>
           {pets.length > 0 ? (
-            <div className={styles['pet-lists']}>
+            <div className={styles['cards-grid']}>
               {pets.map((pet) => (
-                <div key={pet.id} className={styles['pet-item']}>
-                  <Row gutter={[16, 16]} align="middle">
-                    <Col xs={24} sm={6} className={styles['pet-avatar-col']}>
-                      <img
-                        src={pet.avatar || '/gaugau.png'}
-                        alt={pet.name}
-                        className={styles['pet-avatar']}
-                      />
-                    </Col>
+                <article key={pet.id} className={styles['pet-card']}>
+                  <div className={styles['pet-image-wrap']}>
+                    <img
+                      src={pet.avatar || '/gaugau.png'}
+                      alt={pet.name}
+                      className={styles['pet-image']}
+                    />
+                  </div>
 
-                    <Col xs={24} sm={12} className={styles['pet-info-col']}>
-                      <div className={styles['pet-info']}>
-                        <h3 className={styles['pet-name']}>
-                          {pet.name} <br />
-                          {getBreedLabel(pet.breed, pet.species)}
-                        </h3>
-                      </div>
-                    </Col>
-
-                    <Col xs={24} sm={6} className={styles['pet-action-col']}>
-                      <div className={styles['pet-action-group']}>
-                        <Button
-                          type="primary"
-                          className={styles['view-detail-btn']}
-                          icon={<EyeOutlined />}
-                          block
-                          onClick={() => handleViewDetails(pet.id)}
+                  <div className={styles['card-body']}>
+                    <div className={styles['card-header']}>
+                      <h3 className={styles['pet-name']}>{pet.name}</h3>
+                      <div className={styles['card-header-actions']}>
+                        <span className={styles['pet-age-badge']}>
+                          Tuổi: {getPetAgeLabel(pet.dateOfBirth)}
+                        </span>
+                        <Dropdown
+                          trigger={['click']}
+                          placement="bottomRight"
+                          menu={{
+                            items: [
+                              { key: 'edit', label: 'Chỉnh sửa thông tin thú cưng' },
+                              { key: 'delete', label: 'Xóa thú cưng', danger: true },
+                            ],
+                            onClick: ({ key }) => handleCardAction(key, pet.id),
+                          }}
                         >
-                          Xem chi tiết
-                        </Button>                       
+                          <button
+                            type="button"
+                            className={styles['card-menu-btn']}
+                            aria-label="Tùy chọn thú cưng"
+                          >
+                            <MoreOutlined />
+                          </button>
+                        </Dropdown>
                       </div>
-                    </Col>
-                  </Row>
-                </div>
+                    </div>
+                    <p className={styles['pet-breed']}>Loài: {getBreedLabel(pet.breed, pet.species)}</p>
+
+                    <div className={styles['pet-action-group']}>
+                      <Button
+                        type="primary"
+                        className={styles['view-detail-btn']}
+                        icon={<EyeOutlined />}
+                        block
+                        onClick={() => handleViewMedicalRecords(pet.id)}
+                      >
+                        Xem hồ sơ y tế
+                      </Button>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
           ) : (
@@ -95,6 +185,7 @@ const ListPetMedicalRecords = () => {
           )}
         </Spin>
       </div>
+      <ScrollToTopButton threshold={300} />
     </div>
   );
 };

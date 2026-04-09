@@ -29,6 +29,8 @@ instance.interceptors.response.use(
 
   (error) => {
 
+    console.log(error)
+
     console.log(error?.response?.data || error)
 
     const responseData = error.response?.data;

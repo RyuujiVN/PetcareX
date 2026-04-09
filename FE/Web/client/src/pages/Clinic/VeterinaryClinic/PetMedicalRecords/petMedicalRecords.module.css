@@ -1,0 +1,388 @@
+.pageRoot {
+	min-height: 100%;
+	padding: 18px 20px 22px;
+	background: #eef2f7;
+}
+
+.pageWrap {
+	max-width: 1040px;
+	margin: 0 auto;
+}
+
+.formHeader {
+	background: #fff;
+	border: 1px solid #dfe7ef;
+	border-radius: 16px;
+	padding: 16px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	margin-bottom: 14px;
+}
+
+.brandRow {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.brandIcon {
+	width: 38px;
+	height: 38px;
+	border-radius: 50%;
+	background: #4672b4;
+	color: #fff;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 20px;
+}
+
+.titleText {
+	margin: 0 !important;
+	font-size: 20px !important;
+	font-weight: 800 !important;
+	line-height: 1.2 !important;
+	color: #1f324d !important;
+}
+
+.headerMeta {
+	text-align: right;
+	display: grid;
+	gap: 2px;
+}
+
+.headerMeta p {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 800;
+	color: #4672b4;
+}
+
+.headerMeta span {
+	display: block;
+	font-size: 13px;
+	font-weight: 600;
+	color: #697f9d;
+}
+
+.sectionCard {
+	border-radius: 16px;
+	border: 1px solid #dde5ee;
+	box-shadow: 0 3px 14px rgba(31, 54, 84, 0.05);
+	margin-bottom: 14px;
+}
+
+.sectionCard :global(.ant-card-head) {
+	min-height: 58px;
+}
+
+.sectionCard :global(.ant-card-head-title) {
+	padding: 14px 0;
+}
+
+.sectionCard :global(.ant-card-head-title) {
+	font-size: 18px;
+	font-weight: 800;
+	color: #1d304d;
+}
+
+.sectionCard :global(.ant-card-body) {
+	padding: 18px 20px 16px;
+}
+
+.sectionCard :global(.ant-card-head-title span) {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.readonlyField {
+	margin-bottom: 0;
+}
+
+.readonlyField + .readonlyField {
+	margin-top: 10px;
+}
+
+.fieldCol {
+	display: flex;
+}
+
+.fieldCol .readonlyField {
+	width: 100%;
+}
+
+.fieldLabel {
+	margin: 0 0 6px;
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.25;
+	color: #73859d;
+}
+
+.readonlyField :global(.ant-input),
+.readonlyField :global(.ant-input-textarea textarea) {
+	background: #f7f9fc;
+	border-radius: 10px;
+	border-color: #dce5ef;
+	color: #1f334f;
+}
+
+.readonlyField :global(.ant-input) {
+	height: 42px;
+}
+
+.readonlyField :global(.ant-input[readonly]),
+.readonlyField :global(.ant-input-textarea textarea[readonly]) {
+	cursor: default;
+}
+
+.noteDivider {
+	margin: 14px 0;
+}
+
+.doctorSign {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 4px;
+	margin-top: 6px;
+}
+
+.doctorSign p {
+	margin: 0;
+	font-size: 12px;
+	color: #6d809a;
+	font-weight: 600;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.doctorSign strong {
+	font-size: 13px;
+	color: #1f334f;
+}
+
+.doctorSign span {
+	font-size: 14px;
+	font-weight: 700;
+	color: #1f334f;
+}
+
+.actionRow {
+	display: flex;
+	justify-content: flex-end;
+	align-items: center;
+	gap: 10px;
+	padding-bottom: 4px;
+}
+
+.actionBtn {
+	height: 40px;
+	padding: 0 20px;
+	border-radius: 999px;
+	font-weight: 700;
+	box-shadow: none;
+}
+
+.printBtn {
+	background: #fff !important;
+	border-color: #c8d5e4 !important;
+	color: #355279 !important;
+
+}
+
+.printBtn:hover {
+	background: #f3f7fb !important;
+	border-color: #a9bfd6 !important;
+	color: #2a4a72 !important;
+}
+
+.payBtn {
+	background: #4672b4 !important;
+	border-color: #4672b4 !important;
+	color: #fff !important;
+}
+
+.payBtn:hover {
+	background: #13c1b6 !important;
+	border-color: #13c1b6 !important;
+}
+
+.paymentModal :global(.ant-modal-content) {
+	border-radius: 20px;
+	border: 1px solid #d8e2f0;
+	padding: 0;
+	overflow: hidden;
+	box-shadow: 0 20px 44px rgba(26, 53, 94, 0.2);
+}
+
+.paymentModal :global(.ant-modal-body) {
+	padding: 0;
+}
+
+.modalBody {
+	padding: 22px;
+	background: radial-gradient(circle at right top, #f1f6ff 0%, #ffffff 45%);
+}
+
+.modalBody h3 {
+	margin: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 22px;
+	font-weight: 800;
+	color: #1d304d;
+}
+
+.billCode {
+	margin: 10px 0 12px;
+	font-size: 14px;
+	font-weight: 800;
+	color: #5a7191;
+	text-align: center;
+}
+
+.modalClinicMeta {
+	display: grid;
+	gap: 6px;
+	margin-bottom: 12px;
+}
+
+.modalClinicMeta span {
+	display: inline-block;
+	font-size: 12px;
+	font-weight: 600;
+	color: #4e668a;
+	background: #eff4fb;
+	border: 1px solid #dbe6f5;
+	border-radius: 999px;
+	padding: 5px 10px;
+	width: fit-content;
+}
+
+.modalSectionTitle {
+	margin: 10px 0 8px;
+	font-size: 13px;
+	font-weight: 800;
+	color: #7a8fa9;
+	letter-spacing: 0.2px;
+}
+
+.modalList {
+	display: grid;
+	gap: 6px;
+}
+
+.modalRow {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 12px;
+	font-size: 14px;
+	color: #2e3e58;
+}
+
+.modalRow strong {
+	font-weight: 800;
+	color: #1e2f4a;
+	white-space: nowrap;
+}
+
+.divider {
+	margin: 12px 0;
+	border-top: 1px dashed #d5dfeb;
+}
+
+.provisionalLabel {
+	color: #6c829e;
+}
+
+.modalRowTotal {
+	margin-top: 2px;
+	display: flex;
+	justify-content: space-between;
+	align-items: baseline;
+	font-size: 15px;
+	font-weight: 800;
+	color: #1d304d;
+}
+
+.modalRowTotal strong {
+	font-size: 17px;
+}
+
+.confirmButton {
+	margin-top: 14px;
+	width: 100%;
+	height: 44px;
+	border: none;
+	border-radius: 999px;
+	background: #4672b4;
+	color: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	font-size: 14px;
+	font-weight: 800;
+	cursor: pointer;
+}
+
+.confirmButton:hover {
+	background: #13c1b6;
+}
+
+.confirmButton:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+@media (max-width: 992px) {
+	.pageRoot {
+		padding: 14px 12px 16px;
+	}
+
+	.formHeader {
+		flex-direction: column;
+		align-items: flex-start;
+		padding: 14px;
+	}
+
+	.headerMeta {
+		text-align: left;
+		width: 100%;
+	}
+
+	.doctorSign {
+		align-items: flex-start;
+	}
+
+	.sectionCard :global(.ant-card-body) {
+		padding: 14px;
+	}
+
+	.actionRow {
+		justify-content: flex-start;
+	}
+}
+
+@media (max-width: 768px) {
+	.actionRow {
+		position: sticky;
+		bottom: 0;
+		z-index: 8;
+		justify-content: stretch;
+		flex-direction: column;
+		background: linear-gradient(180deg, rgba(238, 242, 247, 0) 0%, rgba(238, 242, 247, 0.95) 32%, rgba(238, 242, 247, 1) 100%);
+		padding-top: 12px;
+	}
+
+	.actionBtn {
+		width: 100%;
+	}
+}

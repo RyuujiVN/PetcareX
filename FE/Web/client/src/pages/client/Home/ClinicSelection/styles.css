@@ -136,6 +136,14 @@
   -webkit-box-orient: vertical;
 }
 
+.clinic-phone {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+  margin-top: 8px !important;
+}
+
 .clinic-address {
   -webkit-line-clamp: 2;
 }
@@ -143,15 +151,6 @@
 .clinic-time {
   margin-top: 8px !important;
   -webkit-line-clamp: 1;
-}
-
-.clinic-meta {
-  padding: 0 20px 16px;
-}
-
-.rating {
-  font-size: 13px;
-  color: var(--color-text-secondary);
 }
 
 .btn-choose {

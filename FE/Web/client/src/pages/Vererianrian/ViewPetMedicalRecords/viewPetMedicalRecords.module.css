@@ -1,0 +1,391 @@
+.pageRoot {
+	max-height: 100%;
+}
+
+.pageHeader {
+	height: 64px;
+	display: flex;
+	align-items: center;
+	border-bottom: 1px solid var(--vet-color-border);
+	background: var(--vet-color-surface-card);
+	padding: 0 24px;
+}
+
+.pageHeader h1 {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 800;
+	color: var(--vet-color-text-heading);
+}
+
+.petSection {
+	margin-top: 12px;
+	padding: 14px 18px;
+	background: var(--vet-color-surface-card);
+	border: 1px solid var(--vet-color-border-soft);
+	border-radius: 14px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+	box-shadow: var(--vet-shadow-card);
+}
+
+.petMainInfo {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+}
+
+.petAvatar,
+.petAvatarFallback {
+	width: 74px;
+	height: 74px;
+	border-radius: 16px;
+	border: 2px solid var(--vet-pet-avatar-border);
+}
+
+.petAvatar {
+	object-fit: cover;
+}
+
+.petAvatarFallback {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	background: var(--vet-pet-avatar-fallback-bg);
+	color: var(--vet-pet-avatar-fallback-color);
+	font-size: 30px;
+}
+
+.petSection h2 {
+	margin: 0;
+	font-size: 25px;
+	line-height: 1.1;
+	font-weight: 800;
+	color: var(--vet-pet-name-color);
+}
+
+.petMeta {
+	margin: 4px 0 8px;
+	font-size: 20px;
+	font-weight: 700;
+	color: var(--vet-pet-meta-color);
+}
+
+.petSubMeta {
+	margin: 0;
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--vet-pet-submeta-color);
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.backButton {
+	border-radius: 999px;
+	height: 38px;
+	padding: 0 14px;
+	font-size: 14px;
+	font-weight: 700;
+	color: var(--vet-color-text-secondary);
+	border: 1px solid var(--vet-color-border-strong);
+	background: var(--vet-color-surface-card);
+}
+
+.timelinePanel {
+	margin-top: 12px;
+	padding: 14px;
+	background: var(--vet-color-surface-card);
+	border: 1px solid var(--vet-color-border-soft);
+	border-radius: 14px;
+	box-shadow: var(--vet-shadow-card);
+}
+
+.timelinePanel h3 {
+	margin: 0 0 14px;
+	font-size: 18px;
+	font-weight: 800;
+	color: var(--vet-color-text-primary);
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.timelinePanel h3 :global(svg) {
+	color: var(--vet-color-brand-primary);
+}
+
+.timelineWrap {
+	position: relative;
+	padding-left: 34px;
+}
+
+.timelineWrap::before {
+	content: '';
+	position: absolute;
+	left: 14px;
+	top: 14px;
+	bottom: 18px;
+	width: 2px;
+	background: var(--vet-color-border);
+}
+
+.timelineItem {
+	position: relative;
+	margin-bottom: 14px;
+}
+
+.timelineItem:last-child {
+	margin-bottom: 0;
+}
+
+.timelineMarker {
+	position: absolute;
+	left: -34px;
+	top: 14px;
+	width: 26px;
+	height: 26px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 12px;
+	color: #ffffff;
+	border: 2px solid #ffffff;
+	box-shadow: 0 2px 9px rgba(31, 46, 65, 0.16);
+	background: var(--vet-color-brand-primary);
+}
+
+.timelineCard {
+	width: 100%;
+	text-align: left;
+	background: #f9fbfd;
+	border: 1px solid #e5ebf2;
+	border-radius: 12px;
+	padding: 14px;
+	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.timelineCard:hover {
+	transform: translateY(-1px);
+	border-color: #d6e1ed;
+	box-shadow: 0 6px 18px rgba(24, 45, 75, 0.08);
+}
+
+.cardHeader {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 10px;
+	flex-wrap: wrap;
+}
+
+.headerMain {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.cardTitle {
+	margin: 0;
+	font-size: 28px;
+	font-weight: 800;
+	color: #2d3c50;
+}
+
+.recordDate {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--vet-color-text-secondary);
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.recordDate :global(svg) {
+	color: var(--vet-color-brand-primary);
+}
+
+.headerActions {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+	margin-left: auto;
+}
+
+.expandButton {
+	border-radius: 10px;
+	border: 1px solid var(--vet-color-border-strong);
+	background: var(--vet-color-surface-page);
+	color: var(--vet-color-text-primary);
+	font-size: 12px;
+	font-weight: 700;
+	padding: 6px 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.expandButton:hover {
+	border-color: var(--vet-color-brand-primary);
+	color: var(--vet-color-brand-primary);
+}
+
+.recordMetaGrid {
+	margin-top: 8px;
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 8px 24px;
+}
+
+.recordMetaGrid p {
+	margin: 0 0 4px;
+	color: #f17a3f;
+	font-size: 14px;
+	font-weight: 700;
+}
+
+.recordMetaGrid p strong {
+	color: #f17a3f;
+}
+
+.recordMetaGrid p:last-child {
+	margin-bottom: 0;
+}
+
+.statusTag {
+	border-radius: 999px;
+	padding: 4px 10px;
+	font-size: 10px;
+	font-weight: 800;
+	white-space: nowrap;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.statusTag.done::before {
+	content: '';
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--vet-status-done-dot);
+}
+
+.statusTag.pending::before {
+	content: '';
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: var(--vet-status-pending-dot);
+}
+
+.done {
+	color: var(--vet-status-done-text);
+	background: var(--vet-status-done-bg);
+}
+
+.pending {
+	color: var(--vet-status-pending-text);
+	background: var(--vet-status-pending-bg);
+}
+
+.divider {
+	margin: 10px 0;
+	border-top: 1px solid #e4ebf3;
+}
+
+.detailsBlock {
+	display: grid;
+	gap: 10px;
+}
+
+.detailsBlock p {
+	margin: 0 0 6px;
+	font-size: 17px;
+	font-weight: 600;
+	color: #51637a;
+	line-height: 1.45;
+}
+
+.detailVitalsGrid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 6px 18px;
+}
+
+.detailColumn {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr);
+	gap: 6px;
+}
+
+.detailsBlock p span {
+	font-weight: 900;
+	color: var(--vet-color-brand-primary);
+}
+
+.emptyState,
+.loadingWrap {
+	min-height: 260px;
+	display: grid;
+	place-items: center;
+	border: 1px dashed var(--vet-color-border);
+	border-radius: 10px;
+	background: var(--vet-color-surface-soft);
+	color: var(--vet-color-text-muted);
+	font-size: 14px;
+	font-weight: 600;
+}
+
+@media (max-width: 992px) {
+	.pageRoot {
+		padding: 0 10px 14px;
+	}
+
+	.pageHeader {
+		margin: 0 -10px;
+	}
+
+	.pageHeader h1 {
+		font-size: 24px;
+	}
+
+	.petSection {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.petSection h2 {
+		font-size: 22px;
+	}
+
+	.petMeta {
+		font-size: 16px;
+	}
+
+	.cardHeader {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	.cardTitle {
+		font-size: 22px;
+	}
+
+	.headerActions {
+		width: 100%;
+		justify-content: space-between;
+	}
+
+	.recordMetaGrid {
+		grid-template-columns: 1fr;
+		gap: 8px;
+	}
+
+}

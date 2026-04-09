@@ -6,5 +6,5 @@ export class UpdateAppointmentStatusDTO {
   @ApiProperty({ enum: AppointmentStatusEnum })
   @IsEnum(AppointmentStatusEnum)
   @IsNotEmpty({ message: 'Trạng thái không được để trống' })
-  status: string;
+  status: AppointmentStatusEnum;
 }

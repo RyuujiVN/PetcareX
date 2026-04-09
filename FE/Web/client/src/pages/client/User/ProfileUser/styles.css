@@ -13,7 +13,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding-top: 50px;
+  padding-top: 70px;
   background: var(--color-surface-soft);
 }
 
@@ -26,11 +26,11 @@
 
 .profile-wrapper {
   width: 100%;
-  max-width: 480px;
+  max-width: 700px;
   background: var(--bg-white);
   border-radius: 16px;
   box-shadow: var(--shadow-lg);
-  overflow: hidden;
+  overflow: visible;
   position: relative;
 }
 
@@ -54,38 +54,38 @@
   transform: translateX(-4px);
 }
 
-.profile-header {
-  background: linear-gradient( white);
-  padding: 30px 20px;
-  color: white;
-  text-align: center;
-}
-
 .profile-avatar-section {
-  margin-bottom: 24px;
-}
-
-.profile-avatar-container {
-  position: relative;
-  display: inline-block;
   margin-bottom: 20px;
 }
 
-.profile-avatar {
-  width: 120px !important;
-  height: 120px !important;
-  border: 6px solid white;
-  box-shadow: var(--shadow-lg);
-  background: var(--bg-light);
+.profile-cover {
+  position: relative;
+  height: 250px;
+  border-radius: 24px;
+  overflow: hidden;
 }
 
-.avatar-upload-btn {
+.profile-cover.has-cover-image {
+  background-size: auto, cover;
+  background-position: center, center;
+}
+
+.profile-cover-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 60px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.cover-upload-btn {
   position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 40px;
-  height: 40px;
-  background: var(--primary-color);
+  right: 16px;
+  bottom: 16px;
+  width: 44px;
+  height: 44px;
+  background: rgba(16, 24, 40, 0.75);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -93,43 +93,33 @@
   cursor: pointer;
   font-size: 18px;
   color: white;
-  border: 3px solid white;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
   transition: all 0.3s ease;
 }
 
-.avatar-upload-btn:hover {
-  background: var(--primary-hover);
-  transform: scale(1.1);
+.cover-upload-btn:hover {
+  background: rgba(18, 107, 240, 0.9);
+  transform: translateY(-2px);
 }
 
-.avatar-upload-btn input {
+.cover-upload-btn input {
   display: none;
 }
 
 .profile-info-header {
+  margin-top: 20px;
   margin-bottom: 12px;
+  text-align: center;
 }
 
 .profile-name {
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 700;
   margin: 0 0 8px;
   color: var(--color-text-primary);
+  line-height: 1.1;
 }
-
-.profile-subtitles {
-  font-size: 14px;
-  color: var(--color-danger);
-  margin: 0;
-}
-
-.profile-titles{
-    font-size: 28px;
-    font-weight: 700;
-    margin-right: 63%;
-    color: var(--color-text-primary);
-}
-
 
 .profile-form-card {
   border: none !important;
@@ -286,7 +276,7 @@
 }
 
 @media (max-width: 768px) {
-  .profile-container {
+  .profile-containers {
     padding: 20px 15px;
   }
 
@@ -295,8 +285,13 @@
     border-radius: 12px;
   }
 
-  .profile-header {
-    padding: 30px 20px;
+  .profile-headers {
+    padding: 20px 20px 0;
+  }
+
+  .profile-cover {
+    height: 210px;
+    border-radius: 20px;
   }
 
   .profile-form-card {
@@ -312,19 +307,35 @@
     gap: 16px;
   }
 
-  .profile-avatar {
-    width: 100px !important;
-    height: 100px !important;
+  .profile-cover-placeholder {
+    font-size: 52px;
+  }
+
+  .cover-upload-btn {
+    width: 40px;
+    height: 40px;
+    right: 12px;
+    bottom: 12px;
+    font-size: 16px;
+  }
+
+  .profile-info-header {
+    margin-top: 18px;
   }
 
   .profile-name {
-    font-size: 24px;
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
   }
 }
 
 @media (max-width: 480px) {
-  .profile-header {
-    padding: 24px 16px;
+  .profile-headers {
+    padding: 18px 16px 0;
+  }
+
+  .profile-cover {
+    height: 170px;
+    border-radius: 16px;
   }
 
   .profile-form-card {
@@ -349,14 +360,26 @@
     flex: unset;
   }
 
-  .profile-avatar {
-    width: 80px !important;
-    height: 80px !important;
+  .profile-cover-placeholder {
+    font-size: 42px;
+  }
+
+  .cover-upload-btn {
+    width: 36px;
+    height: 36px;
+    right: 10px;
+    bottom: 10px;
+    font-size: 15px;
+  }
+
+  .profile-info-header {
+    margin-top: 16px;
   }
 
   .profile-name {
-    font-size: 20px;
+    font-size: clamp(1.6rem, 9vw, 2rem);
   }
+
 }
 
 @keyframes fadeIn {

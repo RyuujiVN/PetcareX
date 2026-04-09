@@ -3,6 +3,7 @@ import { message, Spin } from "antd";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClinicByIdApi, getClinicListApi } from "../../../../data/client/api/clinicApi";
+import { getClinicInfoContent } from "../../../../data/client/utils/clinicInfoStorage";
 import "./styles.css";
 
 export default function ClinicSelection() {
@@ -23,13 +24,16 @@ export default function ClinicSelection() {
 
         if (!mounted) return;
 
-        const normalized = clinicItems.map((clinic) => ({
-          ...clinic,
-          time: "8:00 - 20:00 (Thứ 2 - Chủ nhật)",
-          image: clinic.avatarUrl || "/miniPet.png",
-          rating: 5,
-          reviews: 0,
-        }));
+        const normalized = clinicItems.map((clinic) => {
+          const clinicInfo = getClinicInfoContent(clinic.id, clinic);
+
+          return {
+            ...clinic,
+            ...clinicInfo,
+            time: clinicInfo.timeDisplay || "8:00 - 20:00",
+            image: clinicInfo.avatarUrl || clinic.avatarUrl || "/miniPet.png",
+          };
+        });
 
         setClinics(normalized);
       } catch (error) {
@@ -47,7 +51,7 @@ export default function ClinicSelection() {
   }, []);
 
   const filtered = clinics.filter((c) =>
-    c.name.toLowerCase().includes(searchText.toLowerCase())
+    (c.name || "").toLowerCase().includes(searchText.toLowerCase())
   );
 
 useEffect(() => {
@@ -74,11 +78,15 @@ useEffect(() => {
     try {
       setLoading(true);
       const clinicDetail = await getClinicByIdApi(clinic.id);
+      const clinicInfo = getClinicInfoContent(clinic.id, clinicDetail || clinic);
       sessionStorage.setItem("selectedClinicId", String(clinic.id));
 
       navigate("/clinic", {
         state: {
-          clinic: clinicDetail,
+          clinic: {
+            ...clinicDetail,
+            ...clinicInfo,
+          },
           selectedClinicId: String(clinic.id),
         },
       });
@@ -137,14 +145,13 @@ useEffect(() => {
                 <p className="clinic-time" title={clinic.time}>
                   {clinic.time}
                 </p>
-              </div>
 
-              <div className="clinic-meta">
-                <span className="rating">
-                  {clinic.rating} ⭐ ({clinic.reviews})
-                </span>
+                {clinic.phone ? (
+                  <p className="clinic-phone" title={clinic.phone}> 
+                   <p>SĐT: {clinic.phone}</p>
+                  </p>
+                ) : null}
               </div>
-
               <button
                 className="btn-choose"
                 onClick={() => handleChoose(clinic)}

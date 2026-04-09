@@ -1,14 +1,14 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
-import { FaPaw } from "react-icons/fa";
+import { ManOutlined, WomanOutlined } from "@ant-design/icons";
+import { message, Modal, Radio, Select } from 'antd';
 import { FiCamera } from "react-icons/fi";
-import { message, Radio, Select } from 'antd';
 import {
   createPetApi,
-  getBreedsBySpeciesApi,
   getBreedLabel,
+  getBreedsBySpeciesApi,
   getPetSpeciesApi,
   getSpeciesLabel,
   uploadPetAvatarApi,
@@ -32,6 +32,7 @@ export default function AddPet() {
   const [submitting, setSubmitting] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const fileInputRef = useRef();
 
   const calculateAgeFromDate = (dateValue) => {
@@ -42,14 +43,27 @@ export default function AddPet() {
     const today = new Date();
     const birthDate = new Date(dateValue);
 
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age -= 1;
+    if (Number.isNaN(birthDate.getTime())) {
+      return '';
     }
 
-    return `${Math.max(age, 0)} tuổi`;
+    let totalMonths =
+      (today.getFullYear() - birthDate.getFullYear()) * 12 +
+      (today.getMonth() - birthDate.getMonth());
+
+    if (today.getDate() < birthDate.getDate()) {
+      totalMonths -= 1;
+    }
+
+    if (totalMonths < 0) {
+      return '';
+    }
+
+    if (totalMonths < 24) {
+      return `${totalMonths} tháng`;
+    }
+
+    return `${Math.floor(totalMonths / 12)} tuổi`;
   };
 
   const handleFileChange = async (e) => {
@@ -59,6 +73,7 @@ export default function AddPet() {
     setAvatarFile(file);
     setAvatar(URL.createObjectURL(file));
     setUploadingAvatar(true);
+    setHasUnsavedChanges(true);
 
     try {
       const uploadRes = await uploadPetAvatarApi(file);
@@ -126,7 +141,9 @@ export default function AddPet() {
   }, [species]);
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    if (e) {
+      e.preventDefault();
+    }
 
     if (uploadingAvatar) {
       message.warning('Ảnh đang được tải lên, vui lòng đợi trong giây lát');
@@ -171,6 +188,7 @@ export default function AddPet() {
       setSubmitting(true);
       await createPetApi(payload);
       message.success('Thêm thú cưng mới thành công');
+      setHasUnsavedChanges(false);
       navigate(-1);
     } catch (error) {
       message.error(error.message || 'Không thể thêm thú cưng');
@@ -178,6 +196,34 @@ export default function AddPet() {
       setSubmitting(false);
     }
   };
+
+  const handleCancel = () => {
+    if (!hasUnsavedChanges) {
+      navigate(-1);
+      return;
+    }
+
+    Modal.confirm({
+      title: 'Bạn có muốn lưu thay đổi?',
+      content: 'Bạn đang nhập dở thông tin thú cưng. Chọn Lưu thay đổi để lưu lại trước khi thoát.',
+      okText: 'Lưu thay đổi',
+      cancelText: 'Hủy thay đổi',
+      centered: true,
+      onOk: async () => {
+        await handleSubmit();
+      },
+      onCancel: () => {
+        setHasUnsavedChanges(false);
+        navigate(-1);
+      },
+    });
+  };
+
+  const requiredLabel = (text) => (
+    <>
+      {text} <span className="required-mark">*</span>
+    </>
+  );
 
   return (
     
@@ -193,7 +239,7 @@ export default function AddPet() {
         <form className="addPets-form" onSubmit={handleSubmit}>
 
           <div className="form-groups upload-group">
-            <label className="form-labels" style={{fontWeight: 'bold'}}>Ảnh đại diện thú cưng</label>
+            <label className="form-labels" style={{fontWeight: 'bold'}}>{requiredLabel('Ảnh đại diện thú cưng')}</label>
             <div
               className="upload-box"
               onClick={() => {
@@ -235,22 +281,28 @@ export default function AddPet() {
             <h2 className="section-title-small">Thông tin cơ bản</h2>
             <div className="grid-two-column">
             <div className="form-groups">
-              <label className="form-labels">Tên thú cưng</label>
+              <label className="form-labels">{requiredLabel('Tên thú cưng')}</label>
               <input
                 type="text"
                 className="form-input"
                 placeholder="VD: Buddy"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  setHasUnsavedChanges(true);
+                }}
               />
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">Loài</label>
+              <label className="form-labels">{requiredLabel('Loài')}</label>
               <Select
                 style={{ width: '100%' }} 
                 value={species || undefined}
-                onChange={(value) => setSpecies(value)}
+                onChange={(value) => {
+                  setSpecies(value);
+                  setHasUnsavedChanges(true);
+                }}
                 placeholder="Chọn loài"
                 loading={loadingMeta}
                 className="form-input"
@@ -262,11 +314,14 @@ export default function AddPet() {
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">Giống</label>
+              <label className="form-labels">{requiredLabel('Giống')}</label>
               <Select
                 style={{ width: '100%', height: '100%' }}
                 value={breed || undefined}
-                onChange={(value) => setBreed(value)}
+                onChange={(value) => {
+                  setBreed(value);
+                  setHasUnsavedChanges(true);
+                }}
                 placeholder="Chọn giống"
                 loading={loadingMeta}
                 disabled={!species}
@@ -278,30 +333,42 @@ export default function AddPet() {
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">Giới tính</label>
+              <label className="form-labels">{requiredLabel('Giới tính')}</label>
               <Radio.Group
                 value={gender}
-                onChange={(e) => setGender(e.target.value)}
+                onChange={(e) => {
+                  setGender(e.target.value);
+                  setHasUnsavedChanges(true);
+                }}
                 className="gender-radio-group"
               >
                 <Radio.Button value="male" className="gender-radio">
-                  Đực
+                  <span className="gender-radio-content">
+                    <ManOutlined />
+                    <span>Đực</span>
+                  </span>
                 </Radio.Button>
 
                 <Radio.Button value="female" className="gender-radio">
-                  Cái
+                  <span className="gender-radio-content">
+                    <WomanOutlined />
+                    <span>Cái</span>
+                  </span>
                 </Radio.Button>
               </Radio.Group>
             </div>
 
             <div className="form-groups">
-            <label className="form-labels">Ngày sinh</label>
+            <label className="form-labels">{requiredLabel('Ngày sinh')}</label>
             <input
               type="date"
               className="form-input date-input"
               value={birthday}
               max={new Date().toISOString().split('T')[0]} 
-              onChange={(e) => setBirthday(e.target.value)}
+              onChange={(e) => {
+                setBirthday(e.target.value);
+                setHasUnsavedChanges(true);
+              }}
             />
           </div>
 
@@ -321,18 +388,24 @@ export default function AddPet() {
                 type="text"
                 className="form-input"
                 value={color}
-                onChange={(e) => setColor(e.target.value)}
+                onChange={(e) => {
+                  setColor(e.target.value);
+                  setHasUnsavedChanges(true);
+                }}
               />
             </div>
 
             <div className="form-groups">
-              <label className="form-labels">Cân nặng (kg)</label>
+              <label className="form-labels">{requiredLabel('Cân nặng (kg)')}</label>
               <input
                 type="number"
                 className="form-input"
                 step="0.1"
                 value={weight}
-                onChange={(e) => setWeight(e.target.value)}
+                onChange={(e) => {
+                  setWeight(e.target.value);
+                  setHasUnsavedChanges(true);
+                }}
               />
             </div>
 
@@ -343,7 +416,7 @@ export default function AddPet() {
             <button
               type="button"
               className="cancel-button"
-              onClick={() => navigate(-1)}
+              onClick={handleCancel}
               disabled={submitting || uploadingAvatar}
             >
               Hủy bỏ
@@ -369,4 +442,3 @@ export default function AddPet() {
     </div>
   );
 }
-

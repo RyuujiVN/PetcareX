@@ -1,6 +1,6 @@
-﻿import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import "./styles.css";
-
+import { ScheduleOutlined, LaptopOutlined, RobotOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { TbCircleCheck } from "react-icons/tb";
 import { IoCloseCircle } from "react-icons/io5";
 import { MdPets } from "react-icons/md";
@@ -19,38 +19,38 @@ export default function HomePage() {
   const navigate = useNavigate();
 
   const stats = [
-     { number: '30+', label: 'PHÒNG KHÁM TẠI VIỆT NAM' },
-     { number: '50,000+', label: 'NGƯỜI DÙNG HỆ THỐNG' },
-     { number: '999+', label: 'NGUỒN DỮ LIỆU THÚ CƯNG ĐA DẠNG' },
-     { number: '24/7', label: 'HỔ TRỢ CHỦ NUÔI LIÊN TỤC' }
+      { number: '30+', label: 'PHÒNG KHÁM TẠI VIỆT NAM' },
+      { number: '50,000+', label: 'NGƯỜI DÙNG HỆ THỐNG' },
+      { number: '999+', label: 'NGUỒN DỮ LIỆU THÚ CƯNG ĐA DẠNG' },
+      { number: '24/7', label: 'HỖ TRỢ CHỦ NUÔI LIÊN TỤC' }
   ];
 
   const technologies = [
     {
       id: 1,
       title: "Đặt lịch khám trực tuyến",
-      icon: "📱",
+      icon: <ScheduleOutlined />,
       description:
         "Kết nối chủ nuôi và bác sĩ nhanh chóng, giảm thời gian chờ đợi tại phòng khám."
     },
     {
       id: 2,
       title: "Sổ y tế điện tử",
-      icon: "📖",
+      icon: <LaptopOutlined />,
       description:
         "Lưu trữ lịch sử khám, phẫu thuật, tiêm phòng trọn đời cho từng thú cưng."
     },
     {
       id: 3,
-      title: "Hổ trợ ChatBot AI",
-      icon: "🤖",
+      title: "Hỗ trợ ChatBot AI",
+      icon: <RobotOutlined />,
       description:
         "Tư vấn sức khỏe sơ bộ 24/7, nhắc lịch tiêm chủng thông minh."
     },
     {
       id: 4,
-      title: "Diễn đàn cộng cồng",
-      icon: "👥",
+      title: "Diễn đàn cộng đồng",
+      icon: <UsergroupAddOutlined />,
       description:
         "Nơi chia sẻ kinh nghiệm chăm sóc, tìm kiếm thú cưng lạc và kết nối yêu thương."
     }
@@ -58,18 +58,18 @@ export default function HomePage() {
   const challenges = [
     {
       id: 1,
-      title: 'Hỗ sợ bệnh án thủ công',
+      title: 'Hồ sơ bệnh án thú cưng',
       description: 'Dễ mất lạc, khó tra cứu lịch sử khám chữa từ các cơ sở khác nhau'
     },
     {
       id: 2,
       title: 'Đặt lịch khám khó khăn',
-      description: 'Phải gọi điện thoại, dễ sai lịch hoặc quên lịch khám'
+      description: 'Phải gọi điện thoại, dễ sai lệch hoặc quên lịch khám'
     },
     {
       id: 3,
       title: 'Quản lý rời rạc',
-      description: 'Khó theo dõi được doanh thu, từ sổ thuộc và nhân sự bị rối rạc'
+      description: 'Khó theo dõi doanh thu, tồn kho thuốc và nhân sự bị rời rạc'
     }
   ];
 
@@ -77,7 +77,7 @@ export default function HomePage() {
     {
       id: 1,
       title: 'Số hóa hồ sơ toàn diện',
-      description: 'Lưu trữ đầm mây an toàn, truy cập mọi lúc mọi nơi, lịch sử minh bạch'
+      description: 'Lưu trữ đám mây an toàn, truy cập mọi lúc mọi nơi, lịch sử minh bạch'
     },
     {
       id: 2,
@@ -97,12 +97,12 @@ export default function HomePage() {
         <>
             <FcDepartment size={40}/> Phòng khám thú y
         </>),
-      description: "Hệ thống quản lý phòng khám chuyên nghiệp. Tối ưu quy trình, quản lý nhân sự, kho thuốc và chăm sóc khách hàng tự động.",
-      actionText: "Đăng ký Phòng khám",
+          description: "Hệ thống quản lý phòng khám chuyên nghiệp. Tối ưu quy trình, quản lý nhân sự, kho thuốc và chăm sóc khách hàng tự động.",
+          actionText: "Đăng ký Phòng khám",
       color: "green",
       items: [
         "Quản lý lịch hẹn & tiếp đón",
-        "Quản lý kho được & bán hàng POS",
+        "Quản lý kho dược & bán hàng POS",
         "Báo cáo doanh thu chi tiết"
       ]
     },
@@ -117,7 +117,7 @@ export default function HomePage() {
       actionText: "Tải App ngay",
       color: "orange",
       items: [
-        "Lưu trữ hồ sơ sức khỏe trong đời",
+        "Lưu trữ hồ sơ sức khỏe trọn đời",
         "Đặt lịch bác sĩ uy tín gần nhất",
         "Nhắc lịch tiêm & tẩy giun"
       ]
@@ -180,7 +180,7 @@ export default function HomePage() {
 
       <section className="challenges-sections">
         <div className="section-container">
-          <h2 className="section-title">Thách thức & Giải pháp</h2>
+          <h2 className="section-titles">Thách thức & Giải pháp</h2>
           <p className="section-subtitle">
             Chúng tôi hiểu những khó khăn trong việc quản lý truyền thống và mang đến công nghệ để giải quyết triệt để
           </p>
@@ -228,7 +228,7 @@ export default function HomePage() {
     
       <section className="technology-section">
         <div className="section-container">
-          <h2 className="section-title">Công Nghệ Phục Vụ Thú Cưng</h2>
+          <h2 className="section-titles">Công Nghệ Phục Vụ Thú Cưng</h2>
 
           <div className="technology-grid">
             {technologies.map((tech) => (
@@ -282,7 +282,7 @@ export default function HomePage() {
             <h2 className="security-title">Cam kết An toàn & Bảo mật</h2>
 
             <p className="security-description">
-              Chúng tôi xây dựng hệ sinh thái PetcareX dựa trên sự tin cậy. Dữ liệu của bạn được bảo về bằng các tiêu chuẩn bảo mật cao nhất, phân quyền chi tiết (RBAC) đảm bảo chỉ những người được ủy quyền mới có thể truy cập thông tin nhạy cảm.
+              Chúng tôi xây dựng hệ sinh thái PetcareX dựa trên sự tin cậy. Dữ liệu của bạn được bảo vệ bằng các tiêu chuẩn bảo mật cao nhất, phân quyền chi tiết (RBAC) đảm bảo chỉ những người được ủy quyền mới có thể truy cập thông tin nhạy cảm.
             </p>
 
             <div className="security-features">
@@ -310,7 +310,7 @@ export default function HomePage() {
         <div className="section-container">
           <h2 className="cta-title">Sẵn sàng chăm sóc thú cưng tốt hơn?</h2>
           <p className="cta-subtitle">
-            Tham gia cùng cộng đồng hơn 30+ phòng khám và 50.000+ chủ nuôi tin dùng PetcareX.
+            Tham gia cộng đồng hơn 30+ phòng khám và 50.000+ chủ nuôi tin dùng PetcareX.
           </p>
 
           <div className="cta-buttons">
@@ -326,5 +326,4 @@ export default function HomePage() {
     </div>
   );
 }
-
 

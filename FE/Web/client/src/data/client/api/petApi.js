@@ -1,45 +1,29 @@
-import instance from './instance';
+import {
+  getPetBreedLabel,
+  getPetSpeciesLabel,
+  humanizeEnumValue,
+} from '../../../utils/enumLabel';
 import { uploadOneFileToCloudinary } from '../../shared/api/cloudinaryUploadFetch';
+import instance from './instance';
 
 export const getEnumLabel = (value) => {
   if (!value) return '';
-
-  const normalized = String(value).trim();
-  if (!normalized) return '';
-
-  return normalized
-    .replace(/_/g, ' ')
-    .toLowerCase()
-    .replace(/\b\w/g, (char) => char.toUpperCase());
+  return humanizeEnumValue(value, '');
 };
 
-export const getSpeciesLabel = (species) => getEnumLabel(species) || 'Chua cap nhat loai';
+export const getSpeciesLabel = (species) => getPetSpeciesLabel(species, 'Chưa cập nhật loài');
 
-export const getBreedLabel = (breed, species) => {
-  const rawBreed =
-    typeof breed === 'object' && breed !== null
-      ? breed.name || breed.id || ''
-      : breed || '';
-
-  if (!rawBreed) return 'Chua cap nhat giong';
-
-  const rawValue = String(rawBreed).trim();
-  const speciesPrefix = species ? `${String(species).trim()}_` : '';
-
-  if (speciesPrefix && rawValue.startsWith(speciesPrefix)) {
-    return getEnumLabel(rawValue.slice(speciesPrefix.length));
-  }
-
-  const matchedPrefix = rawValue.match(/^[A-Z]+_/);
-  if (matchedPrefix) {
-    return getEnumLabel(rawValue.slice(matchedPrefix[0].length));
-  }
-
-  return getEnumLabel(rawValue);
-};
+export const getBreedLabel = (breed, species) =>
+  getPetBreedLabel(breed, species, 'Chưa cập nhật giống');
 
 export const getMyPetsApi = () => {
-  return instance.get('/pet').then((response) => response.data);
+  return instance.get('/pet').then((response) => {
+    const data = response.data;
+    if (Array.isArray(data)) return data;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.data)) return data.data;
+    return [];
+  });
 };
 
 export const getPetByIdApi = (petId) => {

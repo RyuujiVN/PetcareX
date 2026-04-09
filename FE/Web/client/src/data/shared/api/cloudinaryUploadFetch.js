@@ -2,6 +2,7 @@ import {
   ADMIN_AUTH_STORAGE,
   CLIENT_AUTH_STORAGE,
   LEGACY_AUTH_STORAGE,
+  getAdminAuthItem,
 } from '../../../constants/authStorage';
 
 const API_BASE_URL = (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/+$/, '');
@@ -39,7 +40,7 @@ const normalizeErrorMessage = (payload, fallbackMessage) => {
 const getAuthToken = () => {
   return (
     localStorage.getItem(CLIENT_AUTH_STORAGE.tokenKey) ||
-    localStorage.getItem(ADMIN_AUTH_STORAGE.tokenKey) ||
+    getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey) ||
     localStorage.getItem(LEGACY_AUTH_STORAGE.tokenKey) ||
     ''
   );
@@ -100,6 +101,28 @@ export const uploadOneFileToCloudinary = async (file) => {
   };
 };
 
+export const uploadOneFileResize = async (file) => {
+  if (!file) {
+    throw new Error('Vui long chon file truoc khi tai len');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const payload = await postMultipartFormData('/cloudinary/upload/file-resize', formData);
+  const fileUrl = extractCloudinaryUrl(payload);
+
+  if (!fileUrl) {
+    throw new Error('Khong nhan duoc URL anh tu server');
+  }
+
+  return {
+    ...payload,
+    file: fileUrl,
+    url: fileUrl,
+  };
+};
+
 export const uploadMultipleFilesToCloudinary = async (files) => {
   const fileList = Array.from(files || []).filter(Boolean);
 
@@ -124,10 +147,10 @@ export const uploadMultipleFilesToCloudinary = async (files) => {
       const fileUrl = extractCloudinaryUrl(item);
       return fileUrl
         ? {
-            ...item,
-            file: fileUrl,
-            url: fileUrl,
-          }
+          ...item,
+          file: fileUrl,
+          url: fileUrl,
+        }
         : null;
     })
     .filter(Boolean);

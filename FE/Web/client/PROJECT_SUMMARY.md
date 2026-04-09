@@ -48,6 +48,10 @@ Entry tại `src/main.jsx`:
 
 ### 3) Scroll behavior
 - `src/ScrollToTop.jsx` reset vị trí cuộn mỗi lần đổi `pathname`.
+- Có component dùng chung `src/components/common/ScrollToTopButton/ScrollToTopButton.jsx`:
+  - Chỉ hiện khi cuộn quá ngưỡng (mặc định 300px), hỗ trợ animation fade/slide.
+  - Dùng cho cả `ListPetMedicalRecords`, `Forum` và `AppointmentDetail`.
+  - `Forum` gắn vào scroll container nội bộ (`leftColumn`) thay vì chỉ theo window scroll.
 
 ### 4) State và realtime
 - Redux store:
@@ -137,14 +141,34 @@ Chức năng chính:
 - Login/register thường + Google login/register.
 - Role-based redirect sau đăng nhập.
 - Validation form đầy đủ.
+- Header client có popup `Đổi mật khẩu` trong dropdown tài khoản:
+  - Field: mật khẩu hiện tại, mật khẩu mới, xác nhận mật khẩu mới.
+  - Có toggle hiện/ẩn ký tự cho từng field.
+  - Validate inline (required, độ dài tối thiểu, confirm khớp) và gọi API `POST /auth/change-password`.
+  - Sau đổi mật khẩu thành công, FE tự động lấy `accessToken` mới từ response backend và cập nhật vào AuthContext + localStorage qua `login(newToken)`, đảm bảo session liên tục không cần đăng nhập lại.
 
 ### 2) Home & chọn phòng khám
 - `/home`: landing/marketing.
 - `/choose-clinic`: lấy clinic từ API, lưu `selectedClinicId` vào sessionStorage, điều hướng `/clinic`.
-- `/clinic`: nội dung marketing + CTA đẩy sang `/booking`.
+- Dữ liệu card phòng khám ở `/choose-clinic` có thể được cá nhân hóa theo từng clinic bằng localStorage key `clinicInfo_{clinicId}` (avatar/tên/địa chỉ/ngày-giờ mở cửa/số điện thoại), fallback về dữ liệu API nếu chưa có dữ liệu lưu.
+- `/clinic`: load nội dung HomePageClinic theo phòng khám được chọn (`selectedClinicId`) và CTA đẩy sang `/booking`.
+- Dữ liệu HomePageClinic được tách theo key localStorage `homePage_{clinicId}` (fallback về default content nếu chưa có dữ liệu lưu).
+- Phần giới thiệu bệnh viện chỉ hiển thị ~100 từ đầu + nút `Đọc thêm`; bấm `Đọc thêm` mở popup hiển thị toàn bộ nội dung, đóng bằng nút `X`.
 
 ### 3) Booking Appointment
 Luồng đang chạy:
+
+### 4) Walk-in (Phiếu khám vãng lai)
+- Nút **"Tạo phiếu khám Vãng Lai"** ở trang danh sách phiếu khám, mở form tạo mới không cần lịch hẹn.
+- Luồng xử lý:
+  - Tra cứu khách hàng theo email (cần backend hỗ trợ search email hoặc endpoint riêng).
+  - Nếu chưa có tài khoản: tự tạo với password tạm `Baophan1234` (placeholder, backend sẽ thay bằng random + gửi email).
+  - Tra cứu thú cưng theo tên + chủ nhân (cần backend hỗ trợ filter theo ownerId).
+  - Nếu chưa có: tạo thú cưng mới rồi mới tạo phiếu khám.
+- Loại phiếu khám (walk-in): dropdown bắt buộc lấy từ `ServiceEnum`, label tiếng Việt qua `getServiceLabel`.
+- Hiển thị loading state và thông báo kết quả theo từng bước.
+- **Phiếu khám có lịch hẹn**: ẩn toàn bộ phần thông tin khách hàng & thú cưng trên UI (không ảnh hưởng payload gửi API).
+- **Walk-in**: ẩn tab Hồ sơ y tế vì chưa có pet lịch sử rõ ràng.
 1. Chọn pet.
 2. Chọn dịch vụ + clinic.
 3. Chọn bác sĩ + nhập triệu chứng.
@@ -156,10 +180,18 @@ Luồng đang chạy:
 ### 4) Appointment Detail
 - Lấy `GET /appointment/my`.
 - Tab `Lịch sắp tới` và `Lịch sử khám`.
+  - Walk-in Emergency flow: tạo user/pet trước khi tạo phiếu khám.
+  - Ẩn UI khách hàng/thú cưng khi có lịch hẹn.
+- Cả 2 tab đều hiển thị **trạng thái lịch hẹn** (Chờ khám/Đang khám/Đã hoàn thành/Đã hủy) thay vì badge thời gian kiểu `Hôm nay`, `x ngày`.
 - Auto refresh 20 giây + refresh khi tab active lại.
 - Hủy lịch (PATCH status).
 - Xem chi tiết lịch.
+- `src/data/Vererianrian/api/userApi.js`:
+  - Tra cứu user theo email và tạo user tạm.
+- `src/data/Vererianrian/api/petApi.js`:
+  - Tra cứu pet theo owner và tạo pet mới cho walk-in.
 - Mở modal chẩn đoán AI (`PetDiagnosisContent`).
+- Đã tích hợp `ScrollToTopButton` dùng chung cho trang lịch hẹn (áp dụng cho cả 2 tab section).
 
 ### 5) PetDiagnosis (AI report)
 - Module `appointmentDiagnosis.js`:
@@ -170,14 +202,28 @@ Luồng đang chạy:
 
 ### 6) Pet Management
 - Add pet: species/breed theo API, upload avatar rồi tạo pet.
-- List pet: xem + xóa pet.
+- List pet (`ListPetMedicalRecords`):
+  - Hiển thị thêm tuổi thú cưng ở góc phải trên card, tính từ `dateOfBirth`.
+  - Format tuổi: `X tuổi` (>= 1 năm) hoặc `X tháng tuổi` (< 1 năm).
+  - Thêm menu ba chấm (`...`) trên card: chỉnh sửa thông tin thú cưng + xóa thú cưng (kèm confirm dialog).
+  - Giữ nút `Xem hồ sơ y tế` hiển thị độc lập ngoài dropdown.
 - Pet profile: xem/sửa thông tin pet, cập nhật ảnh.
 
 ### 7) Medical Records
 - List pet trước khi vào hồ sơ.
 - Medical records lấy theo `petId` hoặc `medicalId`.
-- Enrich từng record bằng medical orders + medicines.
+- Các màn chi tiết có thể enrich record bằng medical orders + medicines (ví dụ: RecordExaminationForm).
 - Render timeline + reminder block.
+- Tên phiếu khám được map từ enum dịch vụ sang tiếng Việt (nếu backend trả enum).
+- Ngày tái khám không có dữ liệu hiển thị `Không` thay vì `Chưa cập nhật`.
+- Timeline chi tiết bổ sung các chỉ số sinh tồn (cân nặng, nhiệt độ, nhịp tim, huyết áp).
+- Đơn thuốc hiển thị thêm đơn vị (Viên, Gói, Ống...) nếu có.
+- Phía chủ nuôi đã bổ sung hiển thị `Chỉ định xét nghiệm`; nếu không có dữ liệu chỉ định sẽ hiện `Không có`.
+- Nhãn ngày trong timeline hồ sơ y tế đã thống nhất `Ngày khám` (không dùng `Ngày tạo hồ sơ`).
+- Thứ tự hiển thị phần nội dung chi tiết đã được thống nhất: `Chẩn đoán` -> `Kết luận` -> `Lời dặn bác sĩ` -> `Chỉ định xét nghiệm` -> `Đơn thuốc`.
+- Bấm `Xem chi tiết` để mở toàn bộ chỉ số sinh tồn và nội dung chẩn đoán/kết luận/triệu chứng/lời dặn.
+- Danh sách được sắp xếp mới nhất trước để giảm thao tác cuộn khi có nhiều hồ sơ.
+- Tab `Hồ sơ y tế` trong RecordExaminationForm dùng cơ chế thu gọn tương tự; khi mở chi tiết, nhãn thông tin hiển thị tông xanh để đồng bộ trải nghiệm đọc.
 
 ### 8) Forum
 - Đã nối API thật:
@@ -189,6 +235,7 @@ Luồng đang chạy:
   - `[[title:...]]`
   - `[[img:...]]`
 - Có lọc chủ đề, ranking contributor, featured post theo engagement.
+- Đã tích hợp `ScrollToTopButton` dùng chung, bám theo scroll của cột feed (`leftColumn`).
 
 ### 9) ChatBot AI
 - Không còn là UI mock thuần.
@@ -202,6 +249,7 @@ Luồng đang chạy:
 ### 1) Auth & layout
 - Dùng login chung `/login`.
 - Sidebar quản trị + profile menu + đổi mật khẩu trong layout.
+- Sidebar có nút `Chỉnh Sửa Trang Chủ` ngay dưới `Xem phiếu khám`; nút mở tab mới tới route editor của chính phòng khám đang đăng nhập.
 
 ### 2) Appointment Management
 - Lấy lịch khám từ API, có filter ngày/giờ/search.
@@ -217,19 +265,82 @@ Luồng đang chạy:
   - JWT payload,
   - fallback gọi profile API.
 - Có CRUD bác sĩ + filter + phân trang + upload avatar.
+- Form "Thêm mới bác sĩ" (`AddNewVererianrian`) bắt buộc nhập 6 field: Tên, Chuyên khoa, Email, Mật khẩu, Số điện thoại, Địa chỉ.
+  - Luồng tạo bác sĩ chia 2 bước API:
+    1. `POST /veterinarian` chỉ gửi 5 field: `fullName`, `email`, `password`, `clinicId`, `specialty`.
+    2. `PUT /user/{userId}` gửi `phone`, `address`, `avatarUrl` (nếu có) để cập nhật thông tin liên lạc.
+  - Nếu bước 2 thất bại → rollback bằng `DELETE /veterinarian/{userId}` để tránh tài khoản rỗng trong DB.
+  - Số điện thoại validate đúng 10 số bắt đầu bằng `0` (regex `^0\d{9}$`).
+  - Địa chỉ bắt buộc nhập.
 
 ### 4) Exam Slips & Medical Records
 - `ListPetExaminationRecords`: đã dùng API appointment để liệt kê thú cưng theo lịch khám.
 - `ListPetMedicalRecords`: đã dùng API appointment để nhóm hồ sơ theo pet.
 - `ViewMedicalRecords`: đã dùng API medical thật để xem timeline chi tiết.
+- `PetMedicalRecords`: ưu tiên hydrate thông tin thú cưng bằng `GET /pet/:id` khi chỉ có `petId` từ phiếu khám hoặc appointment.
+- `PetMedicalRecords` (màn xem phiếu khám phía phòng khám) đã được chuẩn hóa UI tiếng Việt có dấu, đồng bộ căn lề/spacing giữa label-input để bỏ lệch hàng.
+- Phần `Loài` và `Giống loài` trên `PetMedicalRecords` đã chuyển sang dùng helper tập trung `getPetSpeciesLabel` + `getPetBreedLabel` (không hiển thị enum thô).
+- Tên phiếu khám ở `PetMedicalRecords` ưu tiên map qua `getServiceLabel` để hiển thị nhãn dịch vụ thân thiện khi backend trả enum.
+- Đơn thuốc ở `PetMedicalRecords` đã map đơn vị thuốc enum bằng `getMedicineUnitLabel` (ví dụ `AMPOULE` -> `Ống`), không hiển thị enum thô.
+- Quy ước fallback cho nhóm màn hồ sơ y tế phía phòng khám:
+  - Mặc định dữ liệu trống hiển thị `Không`.
+  - Riêng `SĐT` và `Địa chỉ` chủ nuôi hiển thị `Chưa cập nhật được`.
+- `PetMedicalRecords` đã bổ sung hydrate dữ liệu đầy đủ theo chuỗi API: `GET /medical/pet/:petId` -> `GET /medical/:id` -> `GET /pet/:id` -> `GET /user/:id` để giảm thiếu dữ liệu ở phần chỉ số và thông tin chủ nuôi.
+- `ViewMedicalRecords` đã bổ sung gọi `GET /pet/:id` để điền đủ ngày sinh/giới tính thú cưng khi payload từ medical list thiếu trường chi tiết.
+- `ListPetMedicalRecords` đã đồng bộ nhãn loài/giống theo helper enum tập trung và áp dụng quy tắc fallback mới cho số điện thoại.
+- Luồng hóa đơn phía phòng khám đã đổi: thao tác `In hóa đơn` và `Thanh toán` thực hiện trực tiếp tại `PetMedicalRecords` (không còn điều hướng qua màn `PetMedicalBill`).
+- Màn thanh toán trong `PetMedicalRecords` dùng modal tóm tắt chi phí thuốc + chỉ định xét nghiệm, sau đó gọi `upsertPaidInvoiceByMedicalApi` và phát `APPOINTMENT_PAYMENT_SYNC_EVENT_KEY` để đồng bộ trạng thái lịch hẹn.
+- Nút `In hóa đơn` ở `PetMedicalRecords` đã dùng template in A4 riêng (mở cửa sổ in chuyên biệt), không in toàn bộ màn hình hiện tại.
+- Template in hóa đơn gồm: thông tin phòng khám, thông tin khách hàng/thú cưng, bảng thuốc, bảng chỉ định, tạm tính/tổng cộng, lời dặn bác sĩ, chữ ký bác sĩ.
+- Nguồn dữ liệu phòng khám cho template in ưu tiên theo thứ tự: `clinicInfoStorage` (đã chỉnh ở ClinicSelectionEditor) -> `GET /clinic/:id` (nguồn chính để lấy địa chỉ/SĐT phòng khám) -> dữ liệu `appointment.clinic` -> `GET /user/profile` (fallback phone/address).
+- Màn `PetMedicalRecords` resolve `clinicId` theo chuỗi: appointment/state -> auth storage/token/profile (`getCurrentAdminClinicId`) để giảm trường hợp thiếu `clinicId` khi payload lịch hẹn không hydrate đầy đủ quan hệ clinic.
+- Với metadata in hóa đơn, các giá trị placeholder như `Chưa cập nhật được` sẽ không ghi đè dữ liệu thật từ API/profile nếu các nguồn sau có dữ liệu hợp lệ.
+- Header template in giữ bố cục 2 cột trái/phải (không tự stack xuống 2 hàng); khối trái dùng nhãn ngắn + value mềm để địa chỉ dài xuống nhiều dòng tự nhiên, tránh khoảng trắng thô và vẫn giữ cân bằng thị giác với khối meta bên phải.
+- Để tránh popup `about:blank` bị chặn, luồng in hiện tại ưu tiên in qua iframe ẩn trong cùng tab (không mở tab/cửa sổ mới).
 
 ### 5) Các màn còn template/mock trong admin clinic
-- `PetMedicalRecords`: dữ liệu cứng (template phiếu khám).
-- `PetMedicalBill`: dữ liệu tiền thuốc/xét nghiệm cứng; chỉ phần xác nhận thanh toán có gọi API cập nhật status appointment.
+- Luồng `PetMedicalBill` đã được loại bỏ khỏi route để giảm thao tác lặp; nghiệp vụ thanh toán/in hóa đơn được dồn về `PetMedicalRecords`.
 
 ### 6) Admin Clinic Profile
 - Lấy profile `/user/profile`.
 - Cho sửa phone/address và đồng bộ lại context.
+
+### 7) HomePageClinic Editor (ADMIN_CLINIC)
+- Route editor: `/clinic/home-editor/:clinicId` (nằm trong `AdminClinicLayout`).
+- Editor chỉ cho phép sửa **nội dung bên trong** HomePageClinic (banner, giới thiệu, tính năng, đội ngũ bác sĩ, dịch vụ, community), không chỉnh Header/Footer.
+- Cơ chế phân quyền chỉnh sửa:
+  - Chỉ admin clinic đăng nhập mới mở được editor qua sidebar.
+  - Chỉ được sửa dữ liệu của clinic hiện tại; nếu `clinicId` trên URL khác clinic đang đăng nhập thì bị chặn và điều hướng về trang quản trị lịch hẹn.
+- Cơ chế lưu dữ liệu:
+  - Lưu theo từng clinic bằng localStorage key `homePage_{clinicId}`.
+  - Dữ liệu giữa các phòng khám độc lập hoàn toàn, không ghi đè chéo.
+- Nút cuối trang:
+  - `Lưu thay đổi`: lưu theo `clinicId`, toast `Lưu thành công`, sau đó reload trang.
+  - `Hủy`: nếu có thay đổi chưa lưu thì hiện confirm `Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?`.
+- Có khối `Xem trước trang chủ sau khi lưu`; phần giới thiệu trong preview cũng áp dụng logic 100 từ + popup `Đọc thêm` tương tự chế độ xem người dùng.
+
+### 8) ClinicSelection Editor (ADMIN_CLINIC)
+- Route editor: `/clinic/clinic-editor/:clinicId` (nằm trong `AdminClinicLayout`).
+- Sidebar có nút `Chỉnh Sửa Phòng Khám` đặt ngay dưới `Chỉnh Sửa Trang Chủ`, mở editor bằng tab mới theo đúng `clinicId` đang đăng nhập.
+- Cơ chế phân quyền chỉnh sửa:
+  - Chỉ admin clinic đăng nhập mới mở được editor qua sidebar.
+  - Chỉ được chỉnh sửa dữ liệu của clinic hiện tại; nếu `clinicId` trên URL khác clinic đang đăng nhập thì bị chặn và điều hướng về trang quản trị lịch hẹn.
+- Cơ chế lưu dữ liệu:
+  - Lưu theo từng clinic bằng localStorage key `clinicInfo_{clinicId}`.
+  - Dữ liệu giữa các phòng khám độc lập hoàn toàn, không ghi đè chéo.
+  - Trang `/choose-clinic` đọc dữ liệu theo `clinicId` để hiển thị card thông tin đã chỉnh sửa.
+- Các field trong form chỉnh sửa:
+  - Ảnh đại diện phòng khám (upload ảnh, lưu `avatarUrl`).
+  - Tên phòng khám.
+  - Địa chỉ.
+  - Số điện thoại.
+  - Ngày mở cửa (`openingDays`).
+  - Giờ mở cửa (`openingTime`).
+  - Giờ đóng cửa (`closingTime`).
+  - Trường hiển thị thời gian được chuẩn hóa thành `timeDisplay` để render card ở `/choose-clinic`.
+- Nút cuối trang:
+  - `Lưu thay đổi`: lưu theo `clinicId`, toast `Lưu thành công`, sau đó reload trang.
+  - `Hủy`: nếu có thay đổi chưa lưu thì hiện confirm `Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?`.
 
 ## Super Admin Portal (ADMIN) - Trạng thái tính năng
 
@@ -276,30 +387,84 @@ Luồng đang chạy:
 ## Veterinarian Portal - Trạng thái tính năng
 
 ### 1) Lịch hẹn bác sĩ
-- `PetAppointmentVererianrian` hiện chủ yếu dùng dữ liệu mock cứng (summary card + danh sách lịch).
+- `PetAppointmentVererianrian` đã dùng API thật theo ngày hiện tại.
+- Nút **"Bắt đầu khám"**:
+  - Lần đầu nhấn (khi `BOOKED`): mở tab mới tới `/veterinarian/exam-forms/create?appointmentId=<id>` và gọi `PATCH /appointment/:id` để chuyển trạng thái sang `IN_PROGRESS`.
+  - UI danh sách lịch hẹn đổi ngay sang `IN_PROGRESS` (optimistic update) và sync lại bằng refetch nhẹ sau khi API thành công.
+  - Khi đã `IN_PROGRESS`, nút vẫn bấm được để mở lại tab phiếu khám, không gọi API đổi trạng thái lần nữa.
+- Việc chuyển `COMPLETED` không làm thủ công ở màn danh sách lịch nữa; trạng thái hoàn tất đồng bộ sau khi lưu phiếu khám.
 
 ### 2) Hồ sơ bệnh án
 - `ListMedicalRecords`: lấy từ API appointment theo ngày, xem chi tiết hồ sơ.
 - `ViewPetMedicalRecords`: lấy medical records thật theo `petId/medicalId`, render timeline.
+  - Giao diện đã đồng bộ với client MedicalRecords: timeline marker, icon pet và nhịp bố cục giống nhau.
+  - Rule bảo mật ở màn bác sĩ: phần meta chỉ hiển thị `Ngày khám` và `Ngày tái khám`, ẩn tên phòng khám và tên bác sĩ khám.
+  - Layout phần mở chi tiết được tinh gọn để đọc liền mạch; nội dung được gom theo một luồng text duy nhất thay vì tách block dưới cùng.
+  - Gọi trực tiếp `GET /api/pet/{id}` để lấy đầy đủ thông tin thú cưng (dateOfBirth, breed, gender, weight) thay vì chỉ dựa vào nested pet data trong medical record.
+  - Enrich records với medical orders + medicines để hiển thị đơn thuốc trong chi tiết.
+- Timeline chi tiết hiển thị thêm chỉ số sinh tồn và map tên phiếu khám theo enum dịch vụ.
+- Ngày tái khám trống hiển thị `Không`, đơn thuốc hiển thị đơn vị nếu có.
 
 ### 3) Phiếu khám
-- `ListExaminationForm`: lấy lịch hẹn theo ngày, tạo phiếu khám hoặc xóa lịch.
+- `ListExaminationForm`: lấy lịch hẹn theo ngày, điều hướng vào phiếu khám theo `appointmentId`.
+  - Có auto-refresh khi tab được focus lại (focus + visibilitychange listener) để đồng bộ trạng thái sau khi phiếu khám được tạo ở tab khác.
+  - Dùng `inFlightRef` chống duplicate request khi tab focus nhanh liên tục.
+  - Silent refresh không hiển thị loading spinner hoặc error toast.
 - `RecordExaminationForm`: đã nối API thật:
-  - tạo medical record,
-  - cập nhật follow-up/note,
-  - tạo medical orders,
-  - tạo medicines,
-  - tự cập nhật appointment sang `COMPLETED`.
+  - tạo medical record ở lần lưu đầu,
+  - cập nhật lại chính medical record đó ở các lần sau,
+  - đồng bộ lại medical orders + medicines theo lần lưu mới,
+  - tự cập nhật appointment sang `COMPLETED` khi lưu thành công.
+  - Tab "Hồ sơ y tế": lấy toàn bộ medical history theo `petId`, sắp xếp mới nhất trước và hiển thị đơn thuốc + chỉ định.
+  - Tab "Hồ sơ y tế" (màn bác sĩ) áp dụng rule bảo mật: meta chỉ còn `Ngày khám` và `Ngày tái khám`.
+  - Phần mở rộng card lịch sử đã bỏ block liệt kê riêng ở cuối, chuyển sang flow nội dung thống nhất để giao diện mượt và dễ đọc hơn.
+  - Tab "Hồ sơ y tế": ưu tiên hydrate thông tin thú cưng bằng `GET /pet/:id` khi chỉ có `petId`.
+  - Walk-in: ẩn tab Hồ sơ y tế, chỉ hiển thị ở phiếu khám có lịch hẹn.
+  - TODO bảo mật: cần kiểm tra quyền chia sẻ hồ sơ của chủ nuôi trước khi hiển thị (đánh dấu trực tiếp trong code).
+- **Lưu ý quan trọng về hydrate medical record khi mở lại phiếu khám**:
+  - Backend Appointment entity **KHÔNG có relation** tới MedicalRecord → `appointment.medical` luôn null từ API.
+  - Khi mở lại phiếu khám, hệ thống dùng `getMedicalByPetId` (list API) để tìm record, sau đó **luôn gọi `getMedicalById`** (detail API) để lấy đầy đủ dữ liệu bao gồm vital signs (`temperature`, `heartRate`, `systolic`, `diastolic`, `weight`).
+  - List API (`GET /medical/pet/{petId}`) **KHÔNG trả về** vital signs — chỉ detail API (`GET /medical/{id}`) mới trả đầy đủ.
+  - Nếu detail API fail → fallback về data từ list API (vital signs sẽ trống nhưng form không crash).
+- Cơ chế khóa chỉnh sửa 15 phút:
+  - Mốc thời gian tính từ `medical.createdAt` (server).
+  - Trong 15 phút: cho phép chỉnh sửa, có hiển thị đếm ngược thời gian còn lại.
+  - Hết 15 phút: form chuyển read-only, input và nút chỉnh sửa bị disable/ẩn.
+  - FE có fallback đồng hồ cục bộ (midpoint request) khi không đọc được `Date` header / `serverTime` do CORS, nhằm tránh cảnh báo sync sai trong khi vẫn giữ khóa 15 phút ổn định mà không cần sửa BE.
+  - Nếu thiếu `createdAt`: UI hiển thị cảnh báo yêu cầu backend trả `createdAt` cho medical.
+
+### 5) Vị trí file chính cho luồng "Bắt đầu khám" + khóa 15 phút
+- `src/pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian.jsx`:
+  - Handler mở tab mới khi bấm "Bắt đầu khám".
+  - Logic chuyển `BOOKED -> IN_PROGRESS` và giữ nút bấm lại được ở trạng thái `IN_PROGRESS`.
+- `src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx`:
+  - Điều hướng tới trang phiếu khám theo `appointmentId`.
+  - Nút "Tạo phiếu khám Vãng Lai" mở form walk-in.
+  - Mang theo dữ liệu `medical` của appointment để hydrate form.
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:
+  - Cơ chế lock chỉnh sửa 15 phút.
+  - Hiển thị countdown + cảnh báo hết hạn.
+  - Chế độ read-only sau khi hết hạn.
+  - Tab Hồ sơ y tế: appointment -> petId -> medical history.
+  - TODO: kiểm tra quyền chia sẻ hồ sơ trước khi hiển thị.
+- `src/data/Vererianrian/api/appointmentApi.js`:
+  - `getVeterinarianServerNowApi()` dùng đồng bộ clock server cho countdown.
+- `src/data/Vererianrian/api/medicalApi.js`:
+  - API create/update medical record và CRUD medical orders/medicines phục vụ lưu/cập nhật phiếu khám.
+  - `getMedicalByPetId`, `getMedicalOrdersByMedicalId`, `getMedicinesByMedicalId` dùng cho tab hồ sơ y tế.
 
 ## Styling & Design System
 
 ### 1) Token CSS
-- `src/styles/client/colorsToken.css`
-- `src/styles/adminClinic/colorsToken.css`
-- `src/styles/admin/colorsToken.css` (biến màu riêng cho super admin: sidebar dark, stat cards, brand)
+- `src/styles/client/colorsToken.css` — biến màu cho client portal (prefix `--color-*`, `--page-*`).
+- `src/styles/Clinic/colorsToken.css` — biến màu cho admin clinic portal (prefix `--color-*`, `--page-*`).
+- `src/styles/admin/colorsToken.css` — biến màu riêng cho super admin: sidebar dark, stat cards, brand (prefix `--admin-*`).
+- `src/styles/vererianrian/colorsToken.css` — biến màu cho veterinarian portal (prefix `--vet-*`): brand, surface, border, text, status tag, pet card, record meta, shadow, button, timeline marker.
 
 Thư mục `styles/admin/colorsToken.css` chứa thêm biến sidebar dark theme (`--admin-sidebar-*`) và stat cards (`--admin-stat-*`).
 Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
+
+**Quy ước veterinarian CSS**: Toàn bộ CSS module trong `pages/Vererianrian/` và `layouts/Vererianrian/` đã chuyển sang dùng CSS variables `--vet-*` thay vì hardcode màu. File token được import tại `AdminVererianrianLayout.jsx`.
 
 ### 2) Global style
 - `src/index.css` chứa:
@@ -332,11 +497,26 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 2. Kéo thả card giữa các trạng thái.
 3. Patch trạng thái lên backend.
 
+### 3.1) HomePageClinic personalization
+1. Admin clinic mở `Chỉnh Sửa Trang Chủ` từ sidebar (new tab theo `clinicId` hiện tại).
+2. Chỉnh nội dung, lưu vào localStorage key `homePage_{clinicId}`.
+3. Người dùng chọn phòng khám ở `/choose-clinic` sẽ xem `/clinic` theo đúng dữ liệu đã lưu của clinic đó.
+4. Ở chế độ xem người dùng chỉ có CTA `Đặt lịch khám ngay`; không có nút quản trị `Lưu/Hủy`.
+
+### 3.2) ClinicSelection personalization
+1. Admin clinic mở `Chỉnh Sửa Phòng Khám` từ sidebar (new tab theo `clinicId` hiện tại).
+2. Chỉnh thông tin card phòng khám và lưu vào localStorage key `clinicInfo_{clinicId}`.
+3. Trang `/choose-clinic` hiển thị thông tin card theo đúng dữ liệu đã lưu của clinic tương ứng, fallback về dữ liệu API khi chưa có dữ liệu lưu.
+4. Dữ liệu từng phòng khám độc lập theo `clinicId`, không ghi đè lẫn nhau.
+
 ### 4) Veterinarian exam workflow
-1. Chọn lịch hẹn từ danh sách phiếu khám.
-2. Điền form khám.
-3. Lưu medical record + chỉ định + thuốc.
-4. Đồng bộ trạng thái appointment sang `COMPLETED`.
+1. Bác sĩ bấm "Bắt đầu khám" từ danh sách lịch hẹn.
+2. Hệ thống mở tab mới vào phiếu khám theo `appointmentId` (có thể mở lại tab nếu lỡ đóng) và cập nhật trạng thái lịch hẹn sang `IN_PROGRESS`.
+3. Danh sách lịch hẹn đổi trạng thái ngay bằng optimistic update, sau đó refetch nhẹ để đồng bộ.
+4. Tab Hồ sơ y tế: lấy `petId` từ lịch hẹn -> `getMedicalByPetId` -> đơn thuốc + chỉ định (TODO kiểm tra quyền chia sẻ).
+5. Bác sĩ điền/lưu phiếu khám.
+6. Sau lần tạo đầu tiên, bác sĩ chỉ được chỉnh sửa trong 15 phút kể từ `createdAt`.
+7. Lưu thành công sẽ đồng bộ trạng thái appointment sang `COMPLETED`.
 
 ## Điểm mạnh hiện tại
 - Tách rõ 4 portal client/admin clinic/veterinarian/super admin theo route + layout.
@@ -355,20 +535,18 @@ Style component đặt cạnh page (`pages/admin/Dashboard/Clinics/style.css`).
 - Hiện chủ yếu dựa interceptor 401 để redirect.
 
 ### 3) Một số màn còn mock/template
-- `adminClinic/PetMedicalRecords`
-- `adminClinic/PetMedicalBill`
 - `adminVererianrian/PetAppointmentVererianrian`
 
 ### 4) Một số route điều hướng chưa khớp route khai báo
-- Điều hướng tới `/admin/clinic/medical-records/view` nhưng chưa có route tương ứng.
-- Điều hướng tới `/admin/clinic/exam-slips/:appointmentId/bill` nhưng chưa có route tương ứng.
-- `PetAppointmentVererianrian` điều hướng tới `/admin/veterinarian/exam-slips/:id` nhưng route hiện có là `/admin/veterinarian/exam-forms/*`.
+- Route thực tế đang dùng là nhóm `/clinic/*` và `/veterinarian/*`; các đường dẫn legacy `/admin/clinic/*`, `/admin/veterinarian/*` được redirect.
+- Cần tiếp tục rà soát các link cũ có prefix `/admin/*` để tránh nhầm lẫn khi maintain.
 
 ### 5) Socket URL đang hardcoded
 - `src/socket/socket.js` dùng cố định `http://localhost:3000/chat`, chưa đưa vào env.
 
 ### 6) Token CSS trùng lặp
-- Client/Admin token gần như giống nhau, nên cân nhắc single source.
+- Client/Clinic token gần như giống nhau, nên cân nhắc single source.
+- Veterinarian token (`--vet-*`) đã tách riêng và áp dụng cho toàn bộ portal bác sĩ.
 
 ### 7) Một số dữ liệu UI vẫn hardcoded
 - Nhiều block marketing và thông tin clinic (rating/time/demo content).
@@ -410,10 +588,107 @@ Ghi chú:
 - Enum folder chưa có `clinic-status.enum.ts`. Trang Clinics dùng local constant `CLINIC_STATUS` tạm thời.
 - Cần backend cung cấp enum clinic status để đồng bộ FE.
 
+## Chuẩn hóa Enum Label Tiếng Việt (2026-04)
+
+### Mục tiêu
+- Loại bỏ hiển thị raw enum như `BOOKED`, `IN_PROGRESS`, `PERIODIC_HEALTH_CHECK` trên UI.
+- Loại bỏ mapping rải rác/hardcode trùng lặp trong nhiều component.
+- Đảm bảo toàn bộ web client dùng **một nguồn dịch enum tiếng Việt duy nhất**.
+
+### Nguồn dịch tập trung (single source of truth)
+- `src/constants/enumLabels.js`
+  - Chứa toàn bộ mapping enum -> nhãn tiếng Việt theo domain:
+    - Appointment status, service, role, veterinary specialty
+    - Pet species, pet breed
+    - Invoice status, sender, medicine unit
+    - Medical record completion status
+
+### Utility dùng chung
+- `src/utils/enumLabel.js`
+  - Cung cấp API chuẩn để lấy nhãn:
+    - `getEnumLabel(enumKey, value)`
+    - `getAppointmentStatusLabel(...)`
+    - `getServiceLabel(...)`
+    - `getRoleLabel(...)`
+    - `getVeterinarySpecialtyLabel(...)`
+    - `getPetSpeciesLabel(...)`
+    - `getPetBreedLabel(...)`
+    - `getInvoiceStatusLabel(...)`
+    - `getMedicalRecordStatusLabel(...)`
+  - Có fallback an toàn (`Chưa cập nhật`) và chuẩn hóa key (`trim`, uppercase, normalize `_`).
+
+### Tương thích ngược
+- `src/constants/veterinaryLabels.js` giữ nguyên tên hàm public (`getRoleLabel`, `getSpecialtyLabel`, `getSpecialtyOptions`) nhưng delegate sang `src/utils/enumLabel.js`.
+- `src/data/client/api/appointmentApi.js` và `src/data/Clinic/api/appointmentApi.js` giữ export cũ (`SERVICE_OPTIONS`, `APPOINTMENT_STATUS_LABEL`) nhưng dữ liệu lấy từ `src/constants/enumLabels.js`.
+- `src/data/client/api/petApi.js` giữ API cũ (`getSpeciesLabel`, `getBreedLabel`) nhưng dùng mapping tập trung.
+
+### Quy tắc maintain bắt buộc
+1. Không hardcode nhãn enum tiếng Việt trực tiếp trong page/component.
+2. Không tạo thêm mapping enum cục bộ trong component (object/switch/ternary) nếu đã có trong `enumLabels.js`.
+3. Mọi enum mới từ backend phải bổ sung vào `src/constants/enumLabels.js` trước khi render UI.
+4. Component chỉ gọi helper từ `src/utils/enumLabel.js` (hoặc wrapper tương thích) để hiển thị label.
+
+### Chuẩn canonical cho Appointment Status
+- Canonical frontend chỉ dùng: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`.
+- Không dùng biến thể sai chính tả của `CANCELLED` trong hằng số public hoặc mapping label.
+- `src/data/client/api/appointmentApi.js` có bước normalize dữ liệu cũ (`SUCCESS`, `DONE`, và biến thể CANCEL*ED) về canonical status trước khi render UI.
+
+## Bug Fix Log: Đồng bộ dữ liệu sau tạo phiếu khám (2026-04)
+
+### Vấn đề gốc
+1. Sau khi bác sĩ tạo phiếu khám → danh sách phiếu khám không cập nhật trạng thái mới.
+2. Mở lại phiếu khám vừa tạo → vital signs (nhiệt độ, nhịp tim, huyết áp, cân nặng) bị trống.
+
+### Nguyên nhân đã xác định
+1. **List API trả thiếu dữ liệu**: `GET /medical/pet/{petId}` (findAllPaginationByPet) chỉ select `id, name, diagnosis, symptoms, conclusion, note, createdAt, followUpDate`. KHÔNG select `temperature, heartRate, systolic, diastolic, weight`. Code cũ dùng trực tiếp data từ list API mà không gọi detail API để lấy đầy đủ.
+2. **ListExaminationForm không có cơ chế refresh**: Phiếu khám mở trong tab mới, nhưng tab gốc (danh sách) không có focus/visibility listener nên không biết phiếu khám đã được tạo.
+3. **Appointment entity không có relation tới MedicalRecord**: Backend `appointment.entity.ts` không có field `medical`, nên `item?.medical?.id` luôn null từ API appointment. Phát hiện phiếu khám chỉ dựa vào `status === COMPLETED`.
+
+### Cách fix đã áp dụng
+1. **RecordExaminationForm** (`hydrateLatestMedicalRecord`): Khi tìm được medical record match từ list API → luôn gọi `getMedicalById(id)` để lấy record đầy đủ vital signs. Fallback về data list nếu detail API fail.
+2. **ListExaminationForm**: Thêm focus + visibilitychange listener với silent refresh + inFlightRef chống duplicate. Khi bác sĩ quay lại tab danh sách → tự refetch → nút đổi từ "Tạo phiếu khám" sang "Mở phiếu khám".
+
+### Luồng hoàn chỉnh sau fix
+1. Bác sĩ bấm "Tạo phiếu khám" → mở tab mới `/veterinarian/exam-forms/create?appointmentId=...`
+2. Điền form → lưu → `POST /medical` tạo record → extract `medicalId` từ response
+3. `POST /medical/medical-order` và `POST /medical/medicine` dùng `medicalId` vừa nhận
+4. `PATCH /appointment/:id` cập nhật status → `COMPLETED`
+5. Navigate về `/veterinarian/exam-forms` (trong tab phiếu khám)
+6. Khi quay lại tab danh sách gốc → focus listener trigger silent refetch → UI đồng bộ
+7. Mở lại phiếu khám → `getMedicalByPetId` tìm record → `getMedicalById` lấy đầy đủ → form populate vital signs đúng
+
+### Điểm cần chú ý để không tái phát
+- **Không dùng data từ list API cho form edit**: List API chỉ phục vụ danh sách, thiếu nhiều field. Luôn gọi detail API khi cần dữ liệu đầy đủ.
+- **Cross-tab sync**: Mọi màn mở phiếu khám bằng `window.open` đều cần focus/visibility listener ở tab gốc.
+- **Backend chưa có appointment→medical relation**: Phát hiện medical record chỉ dựa vào status COMPLETED và fuzzy scoring theo ngày/clinic. Nếu backend thêm relation sau, cần cập nhật logic `hasMedicalRecord` và `hydrateLatestMedicalRecord`.
+
+## Bug Fix Log: Token không cập nhật sau đổi mật khẩu (2026-04)
+
+### Vấn đề gốc
+- Sau khi đổi mật khẩu thành công, FE không lấy `accessToken` mới từ response backend.
+- Token cũ vẫn nằm trong localStorage và AuthContext, dùng cho mọi request tiếp theo.
+
+### Nguyên nhân đã xác định
+- **FE bỏ qua response**: `handleSubmitChangePassword` trong `header.jsx` gọi `await changePasswordApi(...)` nhưng không gán response, không extract `accessToken`.
+
+### Tại sao user chưa gặp lỗi ngay
+- JWT stateless: token cũ vẫn valid đến khi hết hạn (7 ngày), nên user không bị logout.
+- Tuy nhiên, nếu tương lai thêm token blacklist/rotation, token cũ sẽ bị reject ngay lập tức → user bị logout bất ngờ.
+
+### Cách fix đã áp dụng (chỉ FE)
+- **FE `header.jsx`**: Lấy `response` từ `changePasswordApi`, extract `response.data.accessToken`, gọi `login(newToken)` để cập nhật AuthContext + localStorage. AuthContext tự trigger `useEffect` re-fetch user profile.
+
+### Ghi chú cho BE (chưa sửa, cần báo team BE)
+- `auth.service.ts` method `changePassword` dùng `avatar_url` trong JWT payload, trong khi method `login` dùng `avatarUrl`. Không nhất quán nhưng **không ảnh hưởng FE** vì FE chỉ dùng chuỗi JWT nguyên vẹn, không decode payload.
+
+### Lưu ý khi maintain
+- API `POST /auth/change-password` luôn trả `{ message, accessToken }`. FE bắt buộc phải dùng `accessToken` mới này.
+- Clinic portal có export `changePasswordApi` trong `src/data/Clinic/api/auth.js` nhưng chưa dùng. Khi triển khai đổi mật khẩu cho Clinic/Vet portal, phải áp dụng cùng pattern: lấy token mới từ response và gọi `login()`.
+
 ## Backlog ưu tiên đề xuất (Web)
 1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.
-3. Sửa các route điều hướng chưa khớp khai báo (medical-records/view, bill, exam-slips).
+3. Rà soát và dọn các đường dẫn legacy `/admin/*` còn sót trong code/component để thống nhất route canonical.
 4. Thay mock bằng API thật cho các màn admin/veterinarian còn template.
 5. Đưa `SOCKET_URL` vào env (`VITE_SOCKET_URL`) thay vì hardcoded.
 6. Gộp token CSS thành single-source để giảm duplicate.

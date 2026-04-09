@@ -23,14 +23,23 @@ import { TopicService } from './topic.service';
 import { UpdateTopicDTO } from './dtos/update-topic.dto';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { RoleGuard } from 'src/common/guards/role.guard';
+import { RequiredRole } from 'src/common/decorators/roles.decorator';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('topic')
 @ApiBearerAuth('JWT-auth')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class TopicController {
   constructor(private readonly topicService: TopicService) {}
 
   @Get()
+  @RequiredRole(
+    RoleEnum.ADMIN,
+    RoleEnum.ADMIN_CLINIC,
+    RoleEnum.VETERINARIAN,
+    RoleEnum.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Lấy danh sách chủ đề có phân trang' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
@@ -53,12 +62,19 @@ export class TopicController {
   }
 
   @Get('get-all')
+  @RequiredRole(
+    RoleEnum.ADMIN,
+    RoleEnum.ADMIN_CLINIC,
+    RoleEnum.VETERINARIAN,
+    RoleEnum.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Lấy danh sách chủ đề không phân trang' })
   getAll(): Promise<ForumTopic[]> {
     return this.topicService.findAll();
   }
 
   @Post('')
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Tạo mới chủ đề' })
   @ApiBody({
     type: CreateTopicDTO,
@@ -68,6 +84,7 @@ export class TopicController {
   }
 
   @Put(':id')
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Chỉnh sửa chủ đề' })
   @ApiBody({
     type: UpdateTopicDTO,
@@ -84,6 +101,7 @@ export class TopicController {
   }
 
   @Delete(':id')
+  @RequiredRole(RoleEnum.ADMIN)
   @ApiOperation({ summary: 'Xoá chủ đề' })
   async deleteTopic(@Param('id') id: string) {
     await this.topicService.deleteTopic(id);

@@ -120,6 +120,12 @@ input.form-input[type="text"] {
   color: var(--c-cbd5e1);
 }
 
+.required-mark {
+  color: var(--color-danger);
+  margin-left: 2px;
+  font-weight: 700;
+}
+
 .basic-info-section {
   background: var(--color-surface-card);
   padding: 20px 25px;
@@ -183,6 +189,14 @@ input.form-input[type="text"] {
   justify-content: center;
   border-radius: 12px !important;
   font-size: 16px;
+}
+
+.gender-radio-content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  line-height: 1;
 }
 
 

@@ -9,13 +9,33 @@ import {
 import { Dropdown, Input, Modal, message } from "antd";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import socket from "../../../../socket/socket";
 import {
   fetchCreateRoom,
   fetchDeleteRoom,
   fetchRooms,
   fetchRenameRoom,
 } from "../../../../redux/slices/roomSlice";
+import chatSocket from "../../../../socket/chatSocket";
+
+const TITLE_PREVIEW_LIMIT = 28;
+
+const formatConversationTitle = (value) => {
+  const full = (value || "Cuộc trò chuyện mới").trim();
+
+  if (full.length <= TITLE_PREVIEW_LIMIT) {
+    return {
+      full,
+      short: full,
+      isLong: false,
+    };
+  }
+
+  return {
+    full,
+    short: `${full.slice(0, TITLE_PREVIEW_LIMIT)}...`,
+    isLong: true,
+  };
+};
 
 export default function ChatBotAI() {
   const dispatch = useDispatch();
@@ -28,14 +48,15 @@ export default function ChatBotAI() {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [renameRoomId, setRenameRoomId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
+  const [hoveredRoomId, setHoveredRoomId] = useState(null);
 
   const handleNavigateRoom = (id) => {
     navigate(`/chatbot/${id}`);
   };
 
   useEffect(() => {
-    if (!socket.connected) {
-      socket.connect();
+    if (!chatSocket.connected) {
+      chatSocket.connect();
     }
 
     const fetchRoomsData = async () => {
@@ -49,8 +70,8 @@ export default function ChatBotAI() {
     fetchRoomsData();
 
     return () => {
-      if (socket.connected) {
-        socket.disconnect();
+      if (chatSocket.connected) {
+        chatSocket.disconnect();
       }
     };
   }, [dispatch]);
@@ -136,53 +157,72 @@ export default function ChatBotAI() {
         <div className="conversations-label">LỊCH SỬ GẦN ĐÂY</div>
 
         <div className="conversations-list">
-          {rooms.map((conv) => (
-            <div
-              key={conv.id}
-              className={`conversation-item ${activeConversation === conv.id ? "active" : ""}`}
-              onClick={() => handleNavigateRoom(conv.id)}
-            >
-              <div className="conversation-info">
-                <p className="conversation-title">{conv.name}</p>
-              </div>
+          {rooms.map((conv) =>
+            (() => {
+              const titleInfo = formatConversationTitle(conv.name);
+              const isHovered = hoveredRoomId === conv.id;
 
-              <div
-                className="conversation-actions"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Dropdown
-                  trigger={["click"]}
-                  menu={{
-                    items: [
-                      {
-                        key: "rename",
-                        icon: <EditOutlined />,
-                        label: "Sửa tên",
-                      },
-                      {
-                        key: "delete",
-                        icon: <DeleteOutlined />,
-                        label: "Xoá",
-                        danger: true,
-                      },
-                    ],
-                    onClick: ({ key }) => {
-                      if (key === "rename") openRenameModal(conv);
-                      if (key === "delete") handleDeleteConversation(conv.id);
-                    },
-                  }}
+              return (
+                <div
+                  key={conv.id}
+                  className={`conversation-item ${activeConversation === conv.id ? "active" : ""}`}
+                  onClick={() => handleNavigateRoom(conv.id)}
                 >
-                  <button
-                    type="button"
-                    className="conversation-more-btn"
-                    aria-label="Tùy chọn"
+                  <div className="conversation-info">
+                    <p
+                      className={`conversation-title ${titleInfo.isLong ? "is-long" : ""} ${isHovered ? "is-hovered" : ""}`}
+                      title={titleInfo.full}
+                      onMouseEnter={() => setHoveredRoomId(conv.id)}
+                      onMouseLeave={() => setHoveredRoomId(null)}
+                    >
+                      <span>
+                        {titleInfo.isLong && !isHovered
+                          ? titleInfo.short
+                          : titleInfo.full}
+                      </span>
+                    </p>
+                  </div>
+
+                  <div
+                    className="conversation-actions"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    <EllipsisOutlined />
-                  </button>
-                </Dropdown>
-              </div>
-            </div>
-          ))}
+                    <Dropdown
+                      trigger={["click"]}
+                      menu={{
+                        items: [
+                          {
+                            key: "rename",
+                            icon: <EditOutlined />,
+                            label: "Sửa tên",
+                          },
+                          {
+                            key: "delete",
+                            icon: <DeleteOutlined />,
+                            label: "Xoá",
+                            danger: true,
+                          },
+                        ],
+                        onClick: ({ key }) => {
+                          if (key === "rename") openRenameModal(conv);
+                          if (key === "delete")
+                            handleDeleteConversation(conv.id);
+                        },
+                      }}
+                    >
+                      <button
+                        type="button"
+                        className="conversation-more-btn"
+                        aria-label="Tùy chọn"
+                      >
+                        <EllipsisOutlined />
+                      </button>
+                    </Dropdown>
+                  </div>
+                </div>
+              );
+            })(),
+          )}
         </div>
       </aside>
 

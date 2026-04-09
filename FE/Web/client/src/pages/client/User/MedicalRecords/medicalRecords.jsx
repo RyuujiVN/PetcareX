@@ -1,14 +1,14 @@
+import { message } from 'antd'
+import { useCallback, useEffect, useState } from 'react'
 import {
 	FaBell,
-	FaCalendarCheck,
 	FaCakeCandles,
+	FaCalendarCheck,
 	FaDog,
 	FaMars,
 	FaShieldDog,
 	FaSyringe,
 } from 'react-icons/fa6'
-import { message } from 'antd'
-import { useCallback, useEffect, useState } from 'react'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import {
@@ -17,7 +17,8 @@ import {
 	getMedicalOrdersByMedicalId,
 	getMedicinesByMedicalId,
 } from '../../../../data/client/api/medicalApi'
-import { getMyPetsApi, getBreedLabel } from '../../../../data/client/api/petApi'
+import { getBreedLabel, getMyPetsApi } from '../../../../data/client/api/petApi'
+import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './medicalRecords.module.css'
 
 const EMPTY_TIMELINE = []
@@ -63,6 +64,48 @@ const formatDate = (value) => {
 	return date.toLocaleDateString('vi-VN')
 }
 
+const formatFollowUpDate = (value) => {
+	const resolved = formatDate(value)
+	return resolved === 'Chưa cập nhật' ? 'Không' : resolved
+}
+
+const resolveRecordTitle = (name, fallback = 'Phiếu khám chưa đặt tên') => {
+	if (!name) return fallback
+	return getServiceLabel(name, name) || fallback
+}
+
+const resolveExamDate = (record) =>
+	formatDate(
+		record?.appointment?.appointmentDate ||
+			record?.appointmentDate ||
+			record?.examDate ||
+			record?.visitDate ||
+			record?.createdAt,
+	)
+
+const formatVitalValue = (value, suffix = '') => {
+	if (value === null || value === undefined || value === '') return 'Chưa cập nhật'
+	return suffix ? `${value} ${suffix}` : String(value)
+}
+
+const formatBloodPressure = (systolic, diastolic) => {
+	if (!systolic && !diastolic) return 'Chưa cập nhật'
+	if (systolic && diastolic) return `${systolic}/${diastolic} mmHg`
+	return `${systolic || diastolic} mmHg`
+}
+
+const resolveMedicineUnitLabel = (item) => {
+	const unitValue =
+		item?.medicine?.unit ||
+		item?.medicine?.medicineUnit ||
+		item?.medicine?.unitType ||
+		item?.unit ||
+		item?.unitType ||
+		''
+	if (!unitValue) return ''
+	return getMedicineUnitLabel(unitValue, unitValue)
+}
+
 const normalizeMedicalErrorMessage = (error) => {
 	const rawMessage = error?.message || 'Không thể tải hồ sơ khám bệnh'
 	const normalized = rawMessage.trim().toLowerCase()
@@ -75,62 +118,77 @@ const normalizeMedicalErrorMessage = (error) => {
 }
 
 const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = []) => {
-	// const orderSummary =
-	// 	medicalOrders.length > 0
-	// 		? medicalOrders
-	// 				.map((order) => order.medicalOrder?.name)
-	// 				.filter(Boolean)
-	// 				.join(', ')
-	// 		: 'Chưa có chỉ định'
+	const orderSummary =
+		medicalOrders.length > 0
+			? medicalOrders
+					.map(
+						(order) =>
+							order?.medicalOrder?.nameVn ||
+							order?.medicalOrder?.nameEng ||
+							order?.medicalOrder?.name ||
+							'Chỉ định chưa xác định',
+					)
+					.join(', ')
+			: 'Không có'
 
 	const medicineSummary =
-	medicines.length > 0
-		? medicines.map((medicine, index) => {
-				const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
-				const quantity = medicine.quantity ? ` (${medicine.quantity})` : ''
+		medicines.length > 0
+			? medicines.map((medicine) => {
+					const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
+					const unitLabel = resolveMedicineUnitLabel(medicine)
+					const quantity = medicine.quantity
+						? ` (${medicine.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
+						: ''
 
-				return (
-					<div key={index}>
-						{medicineName}{quantity}
-					</div>
-				)
-			})
-		: 'Chưa kê thuốc'
+					return `${medicineName}${quantity}`
+				})
+				.join(', ')
+			: 'Không có'
 
 	const hasConclusion = Boolean(record?.conclusion)
-	const status = hasConclusion ? 'ĐÃ HOÀN THÀNH' : 'CHƯA HOÀN THÀNH'
+	const status = getMedicalRecordStatusLabel(hasConclusion, { uppercase: true })
 	const statusType = hasConclusion ? 'done' : 'pending'
 
 	let markerType = 'checkup'
 	if (medicalOrders.length > 0) markerType = 'vaccine'
 	if (medicines.length > 0) markerType = 'skin'
 
+	const vitalRows = [
+		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
+		{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
+		{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
+		{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
+	]
+
+	const detailRows = [
+		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
+		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
+		{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
+		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
+		{ label: 'Chỉ định xét nghiệm', value: orderSummary },
+		{ label: 'Đơn thuốc', value: medicineSummary },
+	]
+
 	return {
 		id: record?.id || `record-${Date.now()}`,
 		markerType,
-		title: record?.name || 'Phiếu khám chưa đặt tên',
+		title: resolveRecordTitle(record?.name),
 		status,
 		statusType,
 		leftInfo: [
 			{ label: 'Tên phòng khám', value: record?.clinic?.name || 'Chưa cập nhật' },
-			{ label: 'Ngày tạo hồ sơ', value: formatDate(record?.createdAt) },
+			{ label: 'Ngày khám', value: resolveExamDate(record) },
 		],
 		rightInfo: [
 			{
 				label: 'Tên bác sĩ',
 				value: record?.veterinarian?.fullName || 'Chưa cập nhật',
 			},
-			{ label: 'Ngày tái khám', value: formatDate(record?.followUpDate) },
+			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
 
 		],
-		detailRows: [
-			{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
-			{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
-			{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
-			{ label: 'Thuốc', value: medicineSummary },
-			{ label: 'Ghi chú', value: record?.note || 'Chưa cập nhật' },
-			// { label: 'Phiếu chỉ định', value: orderSummary },
-		],
+		vitalRows,
+		detailRows,
 	}
 }
 
@@ -147,8 +205,8 @@ const mapMedicalToReminder = (record) => {
 	return {
 		id: `reminder-medical-${record?.id || Date.now()}`,
 		type: 'vaccine',
-		title: record?.name || 'Nhắc lịch khám',
-		subtitle: `Ngày tạo: ${formatDate(record?.createdAt)}`,
+		title: resolveRecordTitle(record?.name, 'Nhắc lịch khám'),
+		subtitle: `Ngày khám: ${resolveExamDate(record)}`,
 	}
 }
 
@@ -198,6 +256,16 @@ function MedicalRecords() {
 						: Array.isArray(byPet)
 							? byPet
 							: []
+			}
+
+			if (!medicalId && records.length > 0) {
+				records = await Promise.all(
+					records.map(async (record) => {
+						if (!record?.id) return record
+						const detail = await getMedicalById(record.id).catch(() => null)
+						return detail ? { ...record, ...detail } : record
+					}),
+				)
 			}
 
 			if (records.length === 0 && selectedPet) {
@@ -357,11 +425,20 @@ function MedicalRecords() {
 									<div className={styles.recordDivider} />
 
 									<div className={styles.recordDetails}>
-										{record.detailRows.map((line) => (
-											<p key={`${record.id}-${line.label}`}>
-												<span>{line.label}:</span> {line.value}
-											</p>
-										))}
+										<div className={styles.recordVitalsGrid}>
+											{record.vitalRows.map((line) => (
+												<p key={`${record.id}-${line.label}`}>
+													<span>{line.label}:</span> {line.value}
+												</p>
+											))}
+										</div>
+										<div className={styles.recordDetailColumn}>
+											{record.detailRows.map((line) => (
+												<p key={`${record.id}-${line.label}`}>
+													<span>{line.label}:</span> {line.value}
+												</p>
+											))}
+										</div>
 									</div>
 								</div>
 								</div>
@@ -410,4 +487,3 @@ function MedicalRecords() {
 }
 
 export default MedicalRecords
-
