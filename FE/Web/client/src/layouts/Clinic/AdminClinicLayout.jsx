@@ -23,131 +23,125 @@ import {
   message,
 } from "antd";
 import { useEffect, useMemo, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/Clinic/AuthContext";
-import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
-import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
+import { useTranslation } from "react-i18next";
 import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { RoleEnum } from "../../enum/role.enum";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
+import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
+import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
+import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
 import { getRoleLabel } from "../../constants/veterinaryLabels";
+import { RoleEnum } from "../../enum/role.enum";
+import { useAuth } from "../../hooks/Clinic/AuthContext";
+import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import styles from "./AdminClinicLayout.module.css";
-import notifySocket from "../../socket/notifySocket";
 
 const { Text } = Typography;
 
-const menuItems = [
+const menuItemConfigs = [
   {
     key: "appointments",
-    label: "Lịch hẹn",
+    labelKey: "sidebar.menu.appointments",
     icon: CalendarOutlined,
     path: "/clinic/appointments",
   },
   {
     key: "records",
-    label: "Sổ y tế điện tử",
+    labelKey: "sidebar.menu.records",
     icon: MedicineBoxOutlined,
     path: "/clinic/medical-records",
   },
   {
     key: "revenue",
-    label: "Doanh thu",
+    labelKey: "sidebar.menu.revenue",
     icon: LineChartOutlined,
     path: "/clinic/revenue",
   },
   {
     key: "doctors",
-    label: "Bác sĩ",
+    labelKey: "sidebar.menu.doctors",
     icon: TeamOutlined,
     path: "/clinic/veterinarians",
   },
   {
     key: "forms",
-    label: "Xem phiếu khám",
+    labelKey: "sidebar.menu.forms",
     icon: FileSearchOutlined,
     path: "/clinic/exam-slips",
   },
 ];
 
-const CLINIC_NOTIFICATION_READ_STORAGE_KEY =
-  "clinic_layout_notification_read_ids";
 const NOTIFICATION_TYPE_COLORS = {
   appointment: "blue",
-  system: "gold",
-  review: "purple",
   payment: "green",
+  review: "purple",
+  "ai-diagnosis": "purple",
+  system: "gold",
+  "forum-comment": "cyan",
 };
 
-const getNotificationTypeLabel = (type) => {
-  if (type === "appointment") return "Lịch hẹn";
-  if (type === "system") return "Hệ thống";
-  if (type === "review") return "Đánh giá";
-  if (type === "payment") return "Thanh toán";
-  return "Khác";
+const getNotificationTypeLabel = (type, t) => {
+  if (type === "appointment") {
+    return t("sidebar.notifications.types.appointment", {
+      defaultValue: "Lịch hẹn",
+    });
+  }
+  if (type === "payment") {
+    return t("sidebar.notifications.types.payment", {
+      defaultValue: "Thanh toán",
+    });
+  }
+  if (type === "review") {
+    return t("sidebar.notifications.types.review", {
+      defaultValue: "Đánh giá",
+    });
+  }
+  if (type === "ai-diagnosis") {
+    return t("sidebar.notifications.types.aiDiagnosis", {
+      defaultValue: "Chẩn đoán AI",
+    });
+  }
+  if (type === "forum-comment") {
+    return t("sidebar.notifications.types.forumComment", {
+      defaultValue: "Bình luận",
+    });
+  }
+  if (type === "system") {
+    return t("sidebar.notifications.types.system", {
+      defaultValue: "Hệ thống",
+    });
+  }
+
+  return t("sidebar.notifications.types.other", {
+    defaultValue: "Khác",
+  });
 };
 
-const buildMockClinicNotifications = (clinicName) => {
-  const now = Date.now();
-  const createTime = (minutesAgo) =>
-    new Date(now - minutesAgo * 60 * 1000).toISOString();
-
-  return [
-    {
-      id: "clinic-notify-01",
-      type: "appointment",
-      createdAt: createTime(3),
-      title: "Có lịch khám mới từ khách hàng",
-      description: `Nguyễn Minh An vừa đặt lịch tại ${clinicName} cho bé Mít với dịch vụ Khám tổng quát lúc 09:30 hôm nay.`,
-    },
-    {
-      id: "clinic-notify-02",
-      type: "appointment",
-      createdAt: createTime(26),
-      title: "Khách hàng đã đổi khung giờ khám",
-      description:
-        "Lê Thu Hằng đã đổi lịch cho bé Bông từ 14:00 sang 15:30, dịch vụ Tiêm phòng nhắc lại.",
-    },
-    {
-      id: "clinic-notify-03",
-      type: "payment",
-      createdAt: createTime(95),
-      title: "Thanh toán hóa đơn thành công",
-      description:
-        "Hóa đơn MR-2308 cho lịch khám của bé Cún đã được thanh toán online đầy đủ.",
-    },
-    {
-      id: "clinic-notify-04",
-      type: "review",
-      createdAt: createTime(300),
-      title: "Bạn nhận được đánh giá mới 5 sao",
-      description:
-        "Khách hàng Phạm Hải Đăng để lại phản hồi tốt về dịch vụ Khám da liễu cho thú cưng.",
-    },
-    {
-      id: "clinic-notify-05",
-      type: "system",
-      createdAt: createTime(1380),
-      title: "Nhắc nhở lịch hẹn ngày mai",
-      description:
-        "Bạn có 7 lịch hẹn vào ngày mai. Hãy xác nhận đủ bác sĩ trực để tránh quá tải.",
-    },
-  ];
-};
-
-const formatNotificationTimeAgo = (dateValue) => {
+const formatNotificationTimeAgo = (dateValue, t) => {
   const createdAt = new Date(dateValue).getTime();
-  if (Number.isNaN(createdAt)) return "Vừa xong";
+  if (Number.isNaN(createdAt)) return t("sidebar.notifications.time.justNow");
 
   const diff = Date.now() - createdAt;
   const minute = 60 * 1000;
   const hour = 60 * minute;
   const day = 24 * hour;
 
-  if (diff < minute) return "Vừa xong";
-  if (diff < hour) return `${Math.floor(diff / minute)} phút trước`;
-  if (diff < day) return `${Math.floor(diff / hour)} giờ trước`;
-  return `${Math.floor(diff / day)} ngày trước`;
+  if (diff < minute) return t("sidebar.notifications.time.justNow");
+  if (diff < hour) {
+    return t("sidebar.notifications.time.minutesAgo", {
+      count: Math.floor(diff / minute),
+    });
+  }
+  if (diff < day) {
+    return t("sidebar.notifications.time.hoursAgo", {
+      count: Math.floor(diff / hour),
+    });
+  }
+  return t("sidebar.notifications.time.daysAgo", {
+    count: Math.floor(diff / day),
+  });
 };
 
 const isMenuActive = (pathname, path) => {
@@ -158,20 +152,19 @@ const isMenuActive = (pathname, path) => {
   return pathname === path || pathname.startsWith(`${path}/`);
 };
 
-const getClinicDisplayName = (profile) => {
+const getClinicDisplayName = (profile, t) => {
   return (
     profile?.clinicName ||
     profile?.clinicInfo?.name ||
     profile?.clinic?.name ||
     profile?.veterinarian?.clinic?.name ||
     profile?.adminClinic?.clinic?.name ||
-    "PetCareX"
+    t("sidebar.defaultClinicName")
   );
 };
 
 const handoffAdminAuthToNewTab = () => {
   const authKeys = [
-    ADMIN_AUTH_STORAGE.tokenKey,
     ADMIN_AUTH_STORAGE.userInfoKey,
     ADMIN_AUTH_STORAGE.activeRoleKey,
   ];
@@ -187,44 +180,48 @@ const handoffAdminAuthToNewTab = () => {
 };
 
 export default function AdminClinicLayout() {
+  const { t } = useTranslation("clinic");
   const navigate = useNavigate();
   const location = useLocation();
   const { token, userProfile, logout, activeRole } = useAuth();
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
-  const [notificationReadIds, setNotificationReadIds] = useState([]);
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: "all",
     eventType: "all",
   });
+  const [, setTimeTick] = useState(0);
+
+  // Force re-render every 30s so time-ago labels stay fresh
+  useEffect(() => {
+    const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
   const effectiveRole =
     activeRole || (userProfile ? getPrimaryRole(userProfile) : null);
   const normalizedRoles = userProfile ? getNormalizedRoles(userProfile) : [];
   const hasClinicRole = normalizedRoles.includes(RoleEnum.ADMIN_CLINIC);
-  const clinicDisplayName = getClinicDisplayName(userProfile);
+  const clinicDisplayName = getClinicDisplayName(userProfile, t);
   const clinicId = getCurrentAdminClinicId(userProfile);
   const notificationScopeKey = clinicId || userProfile?.id || "default";
   const shouldHideNotificationBell =
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
 
-  const notificationItems = useMemo(
-    () => buildMockClinicNotifications(clinicDisplayName),
-    [clinicDisplayName],
-  );
+  const {
+    notifications: notificationItems,
+    readIdSet: notificationReadIdSet,
+    unreadCount: unreadNotificationCount,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+  } = useNotificationSocket({
+    storageKey: `ws_notif_clinic:${notificationScopeKey}`,
+    token,
+    enabled: !!token,
+  });
 
-  const notificationReadIdSet = useMemo(
-    () => new Set(notificationReadIds),
-    [notificationReadIds],
-  );
-
-  const unreadNotificationCount = useMemo(
-    () =>
-      notificationItems.reduce(
-        (count, item) =>
-          notificationReadIdSet.has(item.id) ? count : count + 1,
-        0,
-      ),
-    [notificationItems, notificationReadIdSet],
+  const menuItems = useMemo(
+    () => menuItemConfigs.map((item) => ({ ...item, label: t(item.labelKey) })),
+    [t],
   );
 
   const filteredNotificationItems = useMemo(() => {
@@ -248,30 +245,6 @@ export default function AdminClinicLayout() {
   }, [notificationFilters, notificationItems, notificationReadIdSet]);
 
   useEffect(() => {
-    const storageKey = `${CLINIC_NOTIFICATION_READ_STORAGE_KEY}:${notificationScopeKey}`;
-
-    try {
-      const storedIds = JSON.parse(
-        window.localStorage.getItem(storageKey) || "[]",
-      );
-      if (Array.isArray(storedIds)) {
-        setNotificationReadIds(storedIds);
-        return;
-      }
-    } catch {}
-
-    setNotificationReadIds([]);
-  }, [notificationScopeKey]);
-
-  useEffect(() => {
-    const storageKey = `${CLINIC_NOTIFICATION_READ_STORAGE_KEY}:${notificationScopeKey}`;
-    window.localStorage.setItem(
-      storageKey,
-      JSON.stringify(notificationReadIds.slice(-300)),
-    );
-  }, [notificationReadIds, notificationScopeKey]);
-
-  useEffect(() => {
     if (!token) {
       navigate("/login", { replace: true });
       return;
@@ -289,42 +262,14 @@ export default function AdminClinicLayout() {
     }
   }, [token, effectiveRole, hasClinicRole, navigate]);
 
-  useEffect(() => {
-    if (!notifySocket.connected) notifySocket.connect();
-
-    notifySocket.on("severSendNotification", (data) => {
-      console.log(data);
-    });
-
-    return () => {
-      notifySocket.off("severSendNotification", (data) => {
-        console.log(data);
-      });
-      notifySocket.disconnect();
-    };
-  }, []);
-
   const handleLogout = () => {
     logout();
     navigate("/login", { replace: true });
   };
 
-  const markNotificationAsRead = (notificationId) => {
-    if (!notificationId) return;
-
-    setNotificationReadIds((prev) => {
-      if (prev.includes(notificationId)) return prev;
-      return [...prev, notificationId];
-    });
-  };
-
-  const markAllNotificationsAsRead = () => {
-    setNotificationReadIds(notificationItems.map((item) => item.id));
-  };
-
   const openHomePageEditor = () => {
     if (!clinicId) {
-      message.error("Không xác định được clinicId của phòng khám hiện tại");
+      message.error(t("sidebar.errors.missingClinicId"));
       return;
     }
 
@@ -336,7 +281,7 @@ export default function AdminClinicLayout() {
 
   const openClinicSelectionEditor = () => {
     if (!clinicId) {
-      message.error("Không xác định được clinicId của phòng khám hiện tại");
+      message.error(t("sidebar.errors.missingClinicId"));
       return;
     }
 
@@ -350,8 +295,13 @@ export default function AdminClinicLayout() {
     <div className={styles.notificationPanel}>
       <div className={styles.notificationPanelHeader}>
         <div>
-          <h3>Thông báo phòng khám</h3>
-          <p>{`${unreadNotificationCount} chưa đọc / ${notificationItems.length} thông báo`}</p>
+          <h3>{t("sidebar.notifications.panelTitle")}</h3>
+          <p>
+            {t("sidebar.notifications.summary", {
+              unread: unreadNotificationCount,
+              total: notificationItems.length,
+            })}
+          </p>
         </div>
         <Button
           type="link"
@@ -360,7 +310,7 @@ export default function AdminClinicLayout() {
           disabled={unreadNotificationCount === 0}
           className={styles.markAllReadBtn}
         >
-          Đánh dấu đã đọc
+          {t("sidebar.notifications.markRead")}
         </Button>
       </div>
 
@@ -379,8 +329,11 @@ export default function AdminClinicLayout() {
           <Select
             size="middle"
             options={[
-              { value: "all", label: "Tất cả" },
-              { value: "unread", label: "Chưa đọc" },
+              { value: "all", label: t("sidebar.notifications.filters.all") },
+              {
+                value: "unread",
+                label: t("sidebar.notifications.filters.unread"),
+              },
             ]}
           />
         </Form.Item>
@@ -389,11 +342,48 @@ export default function AdminClinicLayout() {
           <Select
             size="middle"
             options={[
-              { value: "all", label: "Mọi loại" },
-              { value: "appointment", label: "Lịch hẹn" },
-              { value: "payment", label: "Thanh toán" },
-              { value: "review", label: "Đánh giá" },
-              { value: "system", label: "Hệ thống" },
+              {
+                value: "all",
+                label: t("sidebar.notifications.filters.allTypes", {
+                  defaultValue: "Mọi loại",
+                }),
+              },
+              {
+                value: "appointment",
+                label: t("sidebar.notifications.filters.appointment", {
+                  defaultValue: "Lịch hẹn",
+                }),
+              },
+              {
+                value: "payment",
+                label: t("sidebar.notifications.filters.payment", {
+                  defaultValue: "Thanh toán",
+                }),
+              },
+              {
+                value: "review",
+                label: t("sidebar.notifications.filters.review", {
+                  defaultValue: "Đánh giá",
+                }),
+              },
+              {
+                value: "ai-diagnosis",
+                label: t("sidebar.notifications.filters.aiDiagnosis", {
+                  defaultValue: "Chẩn đoán AI",
+                }),
+              },
+              {
+                value: "forum-comment",
+                label: t("sidebar.notifications.filters.forumComment", {
+                  defaultValue: "Bình luận",
+                }),
+              },
+              {
+                value: "system",
+                label: t("sidebar.notifications.filters.system", {
+                  defaultValue: "Hệ thống",
+                }),
+              },
             ]}
           />
         </Form.Item>
@@ -406,7 +396,7 @@ export default function AdminClinicLayout() {
           emptyText: (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description="Không có thông báo phù hợp"
+              description={t("sidebar.notifications.empty")}
             />
           ),
         }}
@@ -421,10 +411,10 @@ export default function AdminClinicLayout() {
             >
               <div className={styles.notificationItemTop}>
                 <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || "default"}>
-                  {getNotificationTypeLabel(item.type)}
+                  {getNotificationTypeLabel(item.type, t)}
                 </Tag>
                 <Text className={styles.notificationTimeText}>
-                  {formatNotificationTimeAgo(item.createdAt)}
+                  {formatNotificationTimeAgo(item.createdAt, t)}
                 </Text>
               </div>
 
@@ -451,7 +441,7 @@ export default function AdminClinicLayout() {
             </div>
             <div>
               <h2>{clinicDisplayName}</h2>
-              <p>PetcareX</p>
+              <p>{t("sidebar.brandSubtitle")}</p>
             </div>
           </div>
 
@@ -477,7 +467,7 @@ export default function AdminClinicLayout() {
               className={`${styles.menuItem} ${styles.menuButton} ${location.pathname.startsWith("/clinic/home-editor/") ? styles.menuItemActive : ""}`}
             >
               <HomeOutlined />
-              <span>Chỉnh Sửa Trang Chủ</span>
+              <span>{t("sidebar.menu.homeEditor")}</span>
             </button>
 
             <button
@@ -486,7 +476,7 @@ export default function AdminClinicLayout() {
               className={`${styles.menuItem} ${styles.menuButton} ${location.pathname.startsWith("/clinic/clinic-editor/") ? styles.menuItemActive : ""}`}
             >
               <EditOutlined />
-              <span>Chỉnh Sửa Phòng Khám</span>
+              <span>{t("sidebar.menu.clinicEditor")}</span>
             </button>
           </nav>
         </div>
@@ -499,8 +489,8 @@ export default function AdminClinicLayout() {
               icon={<UserOutlined />}
             />
             <div>
-              <h4>{userProfile?.fullName || "Người dùng"}</h4>
-              <p>{getRoleLabel(userProfile?.role || "ADMIN_CLINIC", "vi")}</p>
+              <h4>{userProfile?.fullName || t("sidebar.defaultUser")}</h4>
+              <p>{getRoleLabel(userProfile?.role || "ADMIN_CLINIC")}</p>
             </div>
           </div>
 
@@ -509,14 +499,17 @@ export default function AdminClinicLayout() {
             icon={<LogoutOutlined />}
             className={styles.logoutBtn}
             onClick={handleLogout}
-            aria-label="Đăng xuất"
+            aria-label={t("sidebar.logoutAriaLabel")}
           ></Button>
         </div>
       </aside>
 
       <main className={styles.main}>
-        {!shouldHideNotificationBell ? (
-          <div className={styles.mainActionBar}>
+        <div className={styles.mainActionBar}>
+          <div className={styles.mainActionGroup}>
+            <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
+
+            {!shouldHideNotificationBell ? (
             <Popover
               trigger="click"
               placement="bottomRight"
@@ -527,7 +520,7 @@ export default function AdminClinicLayout() {
             >
               <Button
                 type="text"
-                aria-label="Xem thông báo phòng khám"
+                aria-label={t("sidebar.notificationBellAriaLabel")}
                 className={styles.notificationBellButton}
                 icon={
                   <Badge
@@ -543,8 +536,9 @@ export default function AdminClinicLayout() {
                 }
               />
             </Popover>
+            ) : null}
           </div>
-        ) : null}
+        </div>
 
         <Outlet />
       </main>

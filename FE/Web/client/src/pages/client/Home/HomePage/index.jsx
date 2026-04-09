@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import "./styles.css";
 import { ScheduleOutlined, LaptopOutlined, RobotOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { TbCircleCheck } from "react-icons/tb";
@@ -16,78 +17,75 @@ import { AiOutlineRise } from "react-icons/ai";
 
 
 export default function HomePage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const stats = [
-      { number: '30+', label: 'PHÒNG KHÁM TẠI VIỆT NAM' },
-      { number: '50,000+', label: 'NGƯỜI DÙNG HỆ THỐNG' },
-      { number: '999+', label: 'NGUỒN DỮ LIỆU THÚ CƯNG ĐA DẠNG' },
-      { number: '24/7', label: 'HỖ TRỢ CHỦ NUÔI LIÊN TỤC' }
+      { number: '30+', label: t('pages.home.homePage.stats.items.clinics') },
+      { number: '50,000+', label: t('pages.home.homePage.stats.items.users') },
+      { number: '999+', label: t('pages.home.homePage.stats.items.data') },
+      { number: '24/7', label: t('pages.home.homePage.stats.items.support') }
   ];
 
   const technologies = [
     {
       id: 1,
-      title: "Đặt lịch khám trực tuyến",
+      title: t('pages.home.homePage.technologies.items.onlineBooking.title'),
       icon: <ScheduleOutlined />,
-      description:
-        "Kết nối chủ nuôi và bác sĩ nhanh chóng, giảm thời gian chờ đợi tại phòng khám."
+      description: t('pages.home.homePage.technologies.items.onlineBooking.description')
     },
     {
       id: 2,
-      title: "Sổ y tế điện tử",
+      title: t('pages.home.homePage.technologies.items.medicalRecord.title'),
       icon: <LaptopOutlined />,
-      description:
-        "Lưu trữ lịch sử khám, phẫu thuật, tiêm phòng trọn đời cho từng thú cưng."
+      description: t('pages.home.homePage.technologies.items.medicalRecord.description')
     },
     {
       id: 3,
-      title: "Hỗ trợ ChatBot AI",
+      title: t('pages.home.homePage.technologies.items.aiChatbot.title'),
       icon: <RobotOutlined />,
-      description:
-        "Tư vấn sức khỏe sơ bộ 24/7, nhắc lịch tiêm chủng thông minh."
+      description: t('pages.home.homePage.technologies.items.aiChatbot.description')
     },
     {
       id: 4,
-      title: "Diễn đàn cộng đồng",
+      title: t('pages.home.homePage.technologies.items.communityForum.title'),
       icon: <UsergroupAddOutlined />,
-      description:
-        "Nơi chia sẻ kinh nghiệm chăm sóc, tìm kiếm thú cưng lạc và kết nối yêu thương."
+      description: t('pages.home.homePage.technologies.items.communityForum.description')
     }
   ];
   const challenges = [
     {
       id: 1,
-      title: 'Hồ sơ bệnh án thú cưng',
-      description: 'Dễ mất lạc, khó tra cứu lịch sử khám chữa từ các cơ sở khác nhau'
+      title: t('pages.home.homePage.challenges.items.medicalRecord.title'),
+      description: t('pages.home.homePage.challenges.items.medicalRecord.description')
     },
     {
       id: 2,
-      title: 'Đặt lịch khám khó khăn',
-      description: 'Phải gọi điện thoại, dễ sai lệch hoặc quên lịch khám'
+      title: t('pages.home.homePage.challenges.items.booking.title'),
+      description: t('pages.home.homePage.challenges.items.booking.description')
     },
     {
       id: 3,
-      title: 'Quản lý rời rạc',
-      description: 'Khó theo dõi doanh thu, tồn kho thuốc và nhân sự bị rời rạc'
+      title: t('pages.home.homePage.challenges.items.management.title'),
+      description: t('pages.home.homePage.challenges.items.management.description')
     }
   ];
 
   const solutions = [
     {
       id: 1,
-      title: 'Số hóa hồ sơ toàn diện',
-      description: 'Lưu trữ đám mây an toàn, truy cập mọi lúc mọi nơi, lịch sử minh bạch'
+      title: t('pages.home.homePage.solutions.items.digitalRecord.title'),
+      description: t('pages.home.homePage.solutions.items.digitalRecord.description')
     },
     {
       id: 2,
-      title: 'Đặt lịch Online 24/7',
-      description: 'Thao tác nhanh trên App/Web, nhắc lịch tự động qua Zalo/SMS'
+      title: t('pages.home.homePage.solutions.items.onlineBooking.title'),
+      description: t('pages.home.homePage.solutions.items.onlineBooking.description')
     },
     {
       id: 3,
-      title: 'Báo cáo & Phân tích',
-      description: 'Dashboard quản trị trực quan, tối ưu hóa vận hành phòng khám'
+      title: t('pages.home.homePage.solutions.items.analytics.title'),
+      description: t('pages.home.homePage.solutions.items.analytics.description')
     }
   ];
   const features = [
@@ -95,31 +93,30 @@ export default function HomePage() {
       id: 1,
       title: (
         <>
-            <FcDepartment size={40}/> Phòng khám thú y
+            <FcDepartment size={40}/> {t('pages.home.homePage.features.clinic.title')}
         </>),
-          description: "Hệ thống quản lý phòng khám chuyên nghiệp. Tối ưu quy trình, quản lý nhân sự, kho thuốc và chăm sóc khách hàng tự động.",
-          actionText: "Đăng ký Phòng khám",
+          description: t('pages.home.homePage.features.clinic.description'),
+          actionText: t('pages.home.homePage.features.clinic.actionText'),
       color: "green",
       items: [
-        "Quản lý lịch hẹn & tiếp đón",
-        "Quản lý kho dược & bán hàng POS",
-        "Báo cáo doanh thu chi tiết"
+        t('pages.home.homePage.features.clinic.items.appointments'),
+        t('pages.home.homePage.features.clinic.items.inventory'),
+        t('pages.home.homePage.features.clinic.items.revenue')
       ]
     },
     {
       id: 2,
       title: (
         <>
-            <FcManager size={40}/>Người nuôi thú cưng
+            <FcManager size={40}/>{t('pages.home.homePage.features.owner.title')}
         </>),
-      description:
-        "Sổ sức khỏe điện tử cho thú cưng ngay trên điện thoại. Đặt lịch khám, mua sắm và nhận tư vấn từ chuyên gia dễ dàng.",
-      actionText: "Tải App ngay",
+      description: t('pages.home.homePage.features.owner.description'),
+      actionText: t('pages.home.homePage.features.owner.actionText'),
       color: "orange",
       items: [
-        "Lưu trữ hồ sơ sức khỏe trọn đời",
-        "Đặt lịch bác sĩ uy tín gần nhất",
-        "Nhắc lịch tiêm & tẩy giun"
+        t('pages.home.homePage.features.owner.items.lifetimeRecord'),
+        t('pages.home.homePage.features.owner.items.findDoctor'),
+        t('pages.home.homePage.features.owner.items.reminder')
       ]
     }
   ];
@@ -134,27 +131,26 @@ export default function HomePage() {
           <div className="hero-content">
             <div className="hero-badge">
               <span className="badge-dot"></span>
-              Giải pháp #1 tại Việt Nam
+              {t('pages.home.homePage.heroBadge')}
             </div>
 
             <h1 className="hero-title">
-              PetcareX - Hệ thống chăm sóc và quản lý thú cưng toàn diện
+              {t('pages.home.homePage.heroTitle')}
             </h1>
 
             <p className="hero-description">
-              Chuyển đổi số toàn diện cho phòng khám thú y và mang lại trải nghiệm chăm sóc
-              y tế tốt nhất, hiện đại nhất cho thú cưng của bạn.
+              {t('pages.home.homePage.heroDescription')}
             </p>
 
             <div className="hero-buttons">
               <button className="btn btn-primary" onClick={handleLogin}>
                 <MdPets size={20}/> 
-                Tải ứng dụng ngay
+                {t('pages.home.homePage.downloadApp')}
               </button>
 
               <button className="btn btn-secondary-hero" onClick={handleRegister}>
                 <FcDepartment size={20}/> 
-                Chọn phòng khám
+                {t('pages.home.homePage.chooseClinic')}
               </button>
             </div>
           </div>
@@ -164,7 +160,7 @@ export default function HomePage() {
 
       <section className="stats-section">
         <div className="stats-containers">
-          <h2> <AiOutlineRise size={45} color="var(--c-eb524d)"/> Cung cấp công cụ chăm sóc thú cưng toàn diện</h2>
+          <h2> <AiOutlineRise size={45} color="var(--c-eb524d)"/> {t('pages.home.homePage.stats.title')}</h2>
 
           <div className="stats-grid">
             {stats.map((stat) => (
@@ -180,15 +176,15 @@ export default function HomePage() {
 
       <section className="challenges-sections">
         <div className="section-container">
-          <h2 className="section-titles">Thách thức & Giải pháp</h2>
+          <h2 className="section-titles">{t('pages.home.homePage.challenges.title')}</h2>
           <p className="section-subtitle">
-            Chúng tôi hiểu những khó khăn trong việc quản lý truyền thống và mang đến công nghệ để giải quyết triệt để
+            {t('pages.home.homePage.challenges.subtitle')}
           </p>
 
           <div className="challenges-solutions-grid">
             <div className="challenges-column">
               <div className="column-header challenges-header">
-                <span className="badge badge-red">THỰC TRẠNG</span>
+                <span className="badge badge-red">{t('pages.home.homePage.challenges.badges.reality')}</span>
               </div>
 
               <div className="items-list">
@@ -206,7 +202,7 @@ export default function HomePage() {
 
             <div className="solutions-column">
               <div className="column-header solutions-header">
-                <span className="badge badge-green">GIẢI PHÁP PETCAREX</span>
+                <span className="badge badge-green">{t('pages.home.homePage.challenges.badges.solution')}</span>
               </div>
 
               <div className="items-list">
@@ -228,7 +224,7 @@ export default function HomePage() {
     
       <section className="technology-section">
         <div className="section-container">
-          <h2 className="section-titles">Công Nghệ Phục Vụ Thú Cưng</h2>
+          <h2 className="section-titles">{t('pages.home.homePage.technologies.title')}</h2>
 
           <div className="technology-grid">
             {technologies.map((tech) => (
@@ -279,27 +275,27 @@ export default function HomePage() {
               <MdSecurity size={50} color="var(--color-info)"/>
             </div>
 
-            <h2 className="security-title">Cam kết An toàn & Bảo mật</h2>
+            <h2 className="security-title">{t('pages.home.homePage.security.title')}</h2>
 
             <p className="security-description">
-              Chúng tôi xây dựng hệ sinh thái PetcareX dựa trên sự tin cậy. Dữ liệu của bạn được bảo vệ bằng các tiêu chuẩn bảo mật cao nhất, phân quyền chi tiết (RBAC) đảm bảo chỉ những người được ủy quyền mới có thể truy cập thông tin nhạy cảm.
+              {t('pages.home.homePage.security.description')}
             </p>
 
             <div className="security-features">
               <div className="security-feature-box">
                 <FcLock size={40}/>
-                <h4>Mã hóa dữ liệu</h4>
-                <p>Bảo vệ toàn bộ thông tin bằng tiêu chuẩn SSL/TLS</p>
+                <h4>{t('pages.home.homePage.security.items.encryption.title')}</h4>
+                <p>{t('pages.home.homePage.security.items.encryption.description')}</p>
               </div>
               <div className="security-feature-box">
                 <TbLockAccess size={40}/>
-                <h4>Quản lý quyền truy cập</h4>
-                <p>Phân quyền chi tiết RBAC cho mỗi người dùng</p>
+                <h4>{t('pages.home.homePage.security.items.access.title')}</h4>
+                <p>{t('pages.home.homePage.security.items.access.description')}</p>
               </div>
               <div className="security-feature-box">
                 <FcStatistics size={40}/>
-                <h4>Kiểm toán hoạt động</h4>
-                <p>Ghi lại mọi thao tác cho mục đích quản lý</p>
+                <h4>{t('pages.home.homePage.security.items.audit.title')}</h4>
+                <p>{t('pages.home.homePage.security.items.audit.description')}</p>
               </div>
             </div>
           </div>
@@ -308,17 +304,17 @@ export default function HomePage() {
 
       <section className="cta-section">
         <div className="section-container">
-          <h2 className="cta-title">Sẵn sàng chăm sóc thú cưng tốt hơn?</h2>
+          <h2 className="cta-title">{t('pages.home.homePage.cta.title')}</h2>
           <p className="cta-subtitle">
-            Tham gia cộng đồng hơn 30+ phòng khám và 50.000+ chủ nuôi tin dùng PetcareX.
+            {t('pages.home.homePage.cta.subtitle')}
           </p>
 
           <div className="cta-buttons">
             <button className="btn-cta btn-cta-primary" onClick={handleRegister}>
-              Đăng ký miễn phí
+              {t('pages.home.homePage.cta.registerFree')}
             </button>
             <button className="btn-cta btn-cta-secondary">
-              Liên hệ tư vấn
+              {t('pages.home.homePage.cta.contact')}
             </button>
           </div>
         </div>

@@ -2,12 +2,14 @@ import { CameraOutlined, HomeOutlined, MailOutlined, PhoneOutlined, UserOutlined
 import { Button, Card, Form, Input, message, Space, Spin } from 'antd';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   getUserListApi,
   getUserProfileApi,
   updateUserProfileApi,
   uploadAvatarApi,
-} from '../../../../data/client/api/user';
+} from '../../../../services/userService';
+import { getClientInstance } from '../../../../services/apiClient';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import './styles.css';
 
@@ -16,6 +18,7 @@ const normalizePhone = (value) => String(value || '').trim();
 
 export default function ProfileUser() {
   const [form] = Form.useForm();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -30,7 +33,7 @@ export default function ProfileUser() {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
-      const res = await getUserProfileApi();
+      const res = await getUserProfileApi(getClientInstance());
       const data = res.data;
       setProfileData(data);
       setAvatarUrl(data.avatarUrl || null);
@@ -41,8 +44,8 @@ export default function ProfileUser() {
         address: data.address || '',
       });
     } catch (error) {
-      console.error('Lỗi tải dữ liệu hồ sơ:', error);
-      message.error('Không thể tải thông tin hồ sơ!');
+      console.error('Failed to load profile data:', error);
+      message.error(t('pages.profile.loadFailed'));
     } finally {
       setLoading(false);
     }
@@ -62,9 +65,9 @@ export default function ProfileUser() {
       formData.append('file', file);
       const res = await uploadAvatarApi(formData);
       setAvatarUrl(res.data.file);
-      message.success('Tải ảnh lên thành công!');
+      message.success(t('pages.profile.uploadSuccess'));
     } catch (error) {
-      message.error('Tải ảnh thất bại!');
+      message.error(t('pages.profile.uploadFailed'));
       setAvatarUrl(profileData?.avatarUrl || null);
     } finally {
       setUploadingAvatar(false);
@@ -101,11 +104,11 @@ export default function ProfileUser() {
         updateData.avatarUrl !== currentData.avatarUrl;
 
       if (!hasChanges) {
-        message.info('Không có thay đổi để lưu');
+        message.info(t('pages.profile.noChanges'));
         return;
       }
 
-      const userListRes = await getUserListApi(1, 1000, '');
+      const userListRes = await getUserListApi(getClientInstance(), 1, 1000, '');
       const userItems = Array.isArray(userListRes?.data?.items) ? userListRes.data.items : [];
       const duplicatedEmail = userItems.some(
         (user) => user?.id !== profileData?.id && normalizeEmail(user?.email) === updateData.email,
@@ -115,22 +118,22 @@ export default function ProfileUser() {
       );
 
       if (duplicatedEmail) {
-        message.error('Email đã được sử dụng bởi tài khoản khác');
+        message.error(t('pages.profile.duplicateEmail'));
         return;
       }
 
       if (duplicatedPhone) {
-        message.error('Số điện thoại đã được sử dụng bởi tài khoản khác');
+        message.error(t('pages.profile.duplicatePhone'));
         return;
       }
 
-      await updateUserProfileApi(profileData.id, updateData);
+      await updateUserProfileApi(getClientInstance(), profileData.id, updateData);
       setProfileData((prev) => ({ ...prev, ...updateData }));
       await refreshUserProfile();
-      message.success('Cập nhật hồ sơ thành công!');
+      message.success(t('pages.profile.updateSuccess'));
       navigate(-1);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || 'Cập nhật hồ sơ thất bại!';
+      const errorMsg = error.response?.data?.message || t('pages.profile.updateFailed');
       message.error(errorMsg);
     } finally {
       setLoading(false);
@@ -139,7 +142,7 @@ export default function ProfileUser() {
 
   const handleCancel = () => {
     fetchProfileData();
-    message.info('Đã hủy thay đổi');
+    message.info(t('pages.profile.cancelInfo'));
     navigate(-1);
   };
   if (loading && !profileData) {
@@ -195,7 +198,7 @@ export default function ProfileUser() {
 
             <div className="profile-info-header">
               <h2 className="profile-name">
-                {profileData?.fullName || 'Người dùng'}
+                {profileData?.fullName || t('header.user.defaultName')}
               </h2>
             </div>
           </div>
@@ -211,36 +214,36 @@ export default function ProfileUser() {
           >
             <div className="form-row">
               <Form.Item
-                label="Tên"
+                label={t('pages.profile.fields.name')}
                 name="name"
                 className="form-col"
                 rules={[
-                  { required: true, message: 'Vui lòng nhập tên của bạn!' },
-                  { min: 2, message: 'Tên phải có ít nhất 2 ký tự!' }
+                  { required: true, message: t('pages.profile.validation.nameRequired') },
+                  { min: 2, message: t('pages.profile.validation.nameMin') }
                 ]}
               >
                 <Input
                   prefix={<UserOutlined />}
-                  placeholder="Nhập tên của bạn"
+                  placeholder={t('pages.profile.placeholders.name')}
                   size="large"
                   className="form-input"
                 />
               </Form.Item>
               <Form.Item
-                label="Số điện thoại"
+                label={t('pages.profile.fields.phone')}
                 name="phone"
                 className="form-col"
                 rules={[
-                  { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                  { required: true, message: t('pages.profile.validation.phoneRequired') },
                   { 
                     pattern: /^(\d{10}|\d{11})$/, 
-                    message: 'Số điện thoại không đúng định dạng!' 
+                    message: t('pages.profile.validation.phoneInvalid') 
                   }
                 ]}
               >
                 <Input
                   prefix={<PhoneOutlined />}
-                  placeholder="090 123 4567"
+                  placeholder={t('pages.profile.placeholders.phone')}
                   size="large"
                   className="form-input"
                 />
@@ -249,32 +252,32 @@ export default function ProfileUser() {
 
             <div className="form-row">
               <Form.Item
-                label="Email"
+                label={t('pages.profile.fields.email')}
                 name="email"
                 className="form-col"
                 rules={[
-                  { required: true, message: 'Vui lòng nhập email!' },
-                  { type: 'email', message: 'Email không đúng định dạng!' }
+                  { required: true, message: t('pages.profile.validation.emailRequired') },
+                  { type: 'email', message: t('pages.profile.validation.emailInvalid') }
                 ]}
               >
                 <Input
                   prefix={<MailOutlined />}
-                  placeholder="Nhập email của bạn"
+                  placeholder={t('pages.profile.placeholders.email')}
                   size="large"
                   className="form-input"
                 />
               </Form.Item>
                  <Form.Item
-              label="Địa chỉ"
+              label={t('pages.profile.fields.address')}
               name="address"
               rules={[
-                { required: true, message: 'Vui lòng nhập địa chỉ!' },
-                { min: 5, message: 'Địa chỉ phải có ít nhất 5 ký tự!' }
+                { required: true, message: t('pages.profile.validation.addressRequired') },
+                { min: 5, message: t('pages.profile.validation.addressMin') }
               ]}
             >
               <Input
                 prefix={<HomeOutlined />}
-                placeholder="Nhập địa chỉ của bạn"
+                placeholder={t('pages.profile.placeholders.address')}
                 size="large"
                 className="form-input"
               />
@@ -288,7 +291,7 @@ export default function ProfileUser() {
                   onClick={handleCancel}
                   disabled={uploadingAvatar || loading}
                 >
-                  Hủy
+                  {t('pages.profile.actions.cancel')}
                 </Button>
                 <Button
                   type="primary"
@@ -298,7 +301,7 @@ export default function ProfileUser() {
                   loading={loading}
                   disabled={uploadingAvatar}
                 >
-                  {uploadingAvatar ? 'Đang tải ảnh...' : 'Lưu thay đổi'}
+                  {uploadingAvatar ? t('pages.profile.actions.uploading') : t('pages.profile.actions.save')}
                 </Button>
               </Space>
             </Form.Item>

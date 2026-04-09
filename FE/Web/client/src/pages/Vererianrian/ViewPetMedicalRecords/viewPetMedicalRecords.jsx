@@ -1,39 +1,41 @@
 import {
-	DownOutlined,
-	UpOutlined,
+    DownOutlined,
+    UpOutlined,
 } from '@ant-design/icons'
 import { Spin, message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
 import { FaCakeCandles, FaDog, FaMars } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useSearchParams } from 'react-router-dom'
+import i18n from '../../../i18n'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
-	getMedicalById,
-	getMedicalByPetId,
-	getMedicalOrdersByMedicalId,
-	getMedicinesByMedicalId,
-} from '../../../data/Vererianrian/api/medicalApi'
-import { getVeterinarianPetByIdApi } from '../../../data/Vererianrian/api/petApi'
-import { getBreedLabel } from '../../../data/client/api/petApi'
-import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
+    getMedicalByIdApi,
+    getMedicalByPetIdApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicinesByMedicalIdApi,
+} from '../../../services/medicalService'
+import { getBreedLabel, getPetByIdApi } from '../../../services/petService'
+import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
+import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './viewPetMedicalRecords.module.css'
 
-const DEFAULT_PET = {
-	name: 'Chưa có dữ liệu thú cưng',
+const tVet = (key, options = {}) => i18n.t(key, { ns: 'vererianrian', ...options })
+
+const buildDefaultPet = () => ({
+	name: tVet('medicalRecords.detail.pet.nameFallback'),
 	avatar: '',
-	breedText: 'Chưa cập nhật giống',
-	birthday: 'Chưa cập nhật',
+	breedText: tVet('medicalRecords.detail.pet.breedFallback'),
+	birthday: tVet('medicalRecords.detail.pet.birthdayFallback'),
 	rawBirthday: '',
-	ageText: 'Chưa cập nhật tuổi',
-	gender: 'Chưa cập nhật',
-	weight: 'Chưa cập nhật',
-}
+	ageText: tVet('medicalRecords.detail.pet.ageFallback'),
+	gender: tVet('medicalRecords.detail.pet.genderFallback'),
+	weight: tVet('medicalRecords.detail.pet.weightFallback'),
+})
 
 const formatDate = (value) => {
-	if (!value) return 'Chưa cập nhật'
-	const date = new Date(value)
-	if (Number.isNaN(date.getTime())) return 'Chưa cập nhật'
-	return date.toLocaleDateString('vi-VN')
+	return formatDateDDMMYYYY(value, tVet('medicalRecords.detail.states.notUpdated'))
 }
 
 const resolveExamDate = (record) =>
@@ -47,38 +49,40 @@ const resolveExamDate = (record) =>
 
 const formatFollowUpDate = (value) => {
 	const resolved = formatDate(value)
-	return resolved === 'Chưa cập nhật' ? 'Không' : resolved
+	return resolved === tVet('medicalRecords.detail.states.notUpdated')
+		? tVet('medicalRecords.detail.states.none')
+		: resolved
 }
 
-const resolveRecordTitle = (name, fallback = 'Phiếu khám') => {
+const resolveRecordTitle = (name, fallback = tVet('medicalRecords.detail.record.titleFallback')) => {
 	if (!name) return fallback
 	return getServiceLabel(name, name) || fallback
 }
 
 const formatVitalValue = (value, suffix = '') => {
-	if (value === null || value === undefined || value === '') return 'Chưa cập nhật'
+	if (value === null || value === undefined || value === '') return tVet('medicalRecords.detail.states.notUpdated')
 	return suffix ? `${value} ${suffix}` : String(value)
 }
 
 const formatBloodPressure = (systolic, diastolic) => {
-	if (!systolic && !diastolic) return 'Chưa cập nhật'
+	if (!systolic && !diastolic) return tVet('medicalRecords.detail.states.notUpdated')
 	if (systolic && diastolic) return `${systolic}/${diastolic} mmHg`
 	return `${systolic || diastolic} mmHg`
 }
 
 const formatGender = (gender) => {
-	if (typeof gender === 'boolean') return gender ? 'Đực' : 'Cái'
-	if (!gender) return 'Chưa cập nhật'
+	if (typeof gender === 'boolean') return gender ? tVet('medicalRecords.detail.pet.male') : tVet('medicalRecords.detail.pet.female')
+	if (!gender) return tVet('medicalRecords.detail.pet.genderFallback')
 	const normalizedGender = String(gender).trim().toLowerCase()
-	if (normalizedGender === 'male') return 'Đực'
-	if (normalizedGender === 'female') return 'Cái'
+	if (normalizedGender === 'male') return tVet('medicalRecords.detail.pet.male')
+	if (normalizedGender === 'female') return tVet('medicalRecords.detail.pet.female')
 	return String(gender)
 }
 
 const getAgeText = (birthday) => {
-	if (!birthday) return 'Chưa cập nhật tuổi'
+	if (!birthday) return tVet('medicalRecords.detail.pet.ageFallback')
 	const birthDate = new Date(birthday)
-	if (Number.isNaN(birthDate.getTime())) return 'Chưa cập nhật tuổi'
+	if (Number.isNaN(birthDate.getTime())) return tVet('medicalRecords.detail.pet.ageFallback')
 
 	const now = new Date()
 	let totalMonths =
@@ -89,23 +93,23 @@ const getAgeText = (birthday) => {
 		totalMonths -= 1
 	}
 
-	if (totalMonths < 0) return 'Chưa cập nhật tuổi'
-	if (totalMonths < 24) return `${totalMonths} tháng`
-	return `${Math.floor(totalMonths / 12)} tuổi`
+	if (totalMonths < 0) return tVet('medicalRecords.detail.pet.ageFallback')
+	if (totalMonths < 24) return tVet('medicalRecords.detail.pet.ageMonths', { count: totalMonths })
+	return tVet('medicalRecords.detail.pet.ageYears', { count: Math.floor(totalMonths / 12) })
 }
 
 const toPetSummary = (pet) => {
-	if (!pet) return DEFAULT_PET
+	if (!pet) return buildDefaultPet()
 
 	return {
-		name: pet?.name || DEFAULT_PET.name,
+		name: pet?.name || tVet('medicalRecords.detail.pet.nameFallback'),
 		avatar: pet?.avatar || '',
-		breedText: getBreedLabel(pet?.breed || pet?.breedName, pet?.species) || 'Chưa cập nhật giống',
+		breedText: getBreedLabel(pet?.breed || pet?.breedName, pet?.species) || tVet('medicalRecords.detail.pet.breedFallback'),
 		rawBirthday: pet?.dateOfBirth || '',
 		birthday: formatDate(pet?.dateOfBirth),
 		ageText: getAgeText(pet?.dateOfBirth),
 		gender: formatGender(pet?.gender),
-		weight: pet?.weight ? `${pet.weight} kg` : DEFAULT_PET.weight,
+		weight: pet?.weight ? `${pet.weight} kg` : tVet('medicalRecords.detail.pet.weightFallback'),
 	}
 }
 
@@ -133,15 +137,15 @@ const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 							order?.medicalOrder?.nameVn ||
 							order?.medicalOrder?.nameEng ||
 							order?.medicalOrder?.name ||
-							'Chỉ định chưa xác định',
+							tVet('medicalRecords.detail.record.orderFallback'),
 					)
 					.join(', ')
-			: 'Không có'
+			: tVet('medicalRecords.detail.record.none')
 
 	const medicineSummary =
 		medicines.length > 0
 			? medicines.map((medicine) => {
-					const medicineName = medicine.medicine?.name || 'Thuốc chưa xác định'
+					const medicineName = medicine.medicine?.name || tVet('medicalRecords.detail.record.medicineFallback')
 					const unitLabel = resolveMedicineUnitLabel(medicine)
 					const quantity = medicine.quantity
 						? ` (${medicine.quantity}${unitLabel ? ` ${unitLabel}` : ''})`
@@ -150,52 +154,54 @@ const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 					return `${medicineName}${quantity}`
 				})
 				.join(', ')
-			: 'Không có'
+			: tVet('medicalRecords.detail.record.none')
 
 	const vitalRows = [
-		{ label: 'Cân nặng', value: formatVitalValue(record?.weight, 'kg') },
-		{ label: 'Nhiệt độ', value: formatVitalValue(record?.temperature, '°C') },
-		{ label: 'Nhịp tim', value: formatVitalValue(record?.heartRate, 'l/p/m') },
-		{ label: 'Huyết áp', value: formatBloodPressure(record?.systolic, record?.diastolic) },
+		{ label: tVet('medicalRecords.detail.labels.weight'), value: formatVitalValue(record?.weight, 'kg') },
+		{ label: tVet('medicalRecords.detail.labels.temperature'), value: formatVitalValue(record?.temperature, '°C') },
+		{ label: tVet('medicalRecords.detail.labels.heartRate'), value: formatVitalValue(record?.heartRate, 'l/p/m') },
+		{ label: tVet('medicalRecords.detail.labels.bloodPressure'), value: formatBloodPressure(record?.systolic, record?.diastolic) },
 	]
 
 	const detailRows = [
-		{ label: 'Triệu chứng', value: record?.symptoms || 'Chưa cập nhật' },
-		{ label: 'Chẩn đoán', value: record?.diagnosis || 'Chưa cập nhật' },
-		{ label: 'Kết luận', value: record?.conclusion || 'Chưa cập nhật' },
-		{ label: 'Lời dặn bác sĩ', value: record?.note || 'Chưa cập nhật' },
-		{ label: 'Chỉ định xét nghiệm', value: orderSummary },
-		{ label: 'Đơn thuốc', value: medicineSummary },
+		{ label: tVet('medicalRecords.detail.labels.symptoms'), value: record?.symptoms || tVet('medicalRecords.detail.states.notUpdated') },
+		{ label: tVet('medicalRecords.detail.labels.diagnosis'), value: record?.diagnosis || tVet('medicalRecords.detail.states.notUpdated') },
+		{ label: tVet('medicalRecords.detail.labels.conclusion'), value: record?.conclusion || tVet('medicalRecords.detail.states.notUpdated') },
+		{ label: tVet('medicalRecords.detail.labels.doctorAdvice'), value: record?.note || tVet('medicalRecords.detail.states.notUpdated') },
+		{ label: tVet('medicalRecords.detail.labels.orders'), value: orderSummary },
+		{ label: tVet('medicalRecords.detail.labels.medicines'), value: medicineSummary },
 	]
 
 	return {
 		id: String(record?.id || Math.random()),
 		title: resolveRecordTitle(record?.name),
-		status: getMedicalRecordStatusLabel(done, { uppercase: true }),
+		status: done ? tVet('medicalRecords.detail.status.done') : tVet('medicalRecords.detail.status.pending'),
 		statusType: done ? 'done' : 'pending',
 		examDate: resolveExamDate(record),
 		leftInfo: [
-			{ label: 'Ngày khám', value: resolveExamDate(record) },
+			{ label: tVet('medicalRecords.detail.labels.examDate'), value: resolveExamDate(record) },
 		],
-		rightInfo: [
-			{ label: 'Ngày tái khám', value: formatFollowUpDate(record?.followUpDate) },
-		],
+		rightInfo: record?.followUpDate
+			? [{ label: tVet('medicalRecords.detail.labels.followUpDate'), value: formatFollowUpDate(record?.followUpDate) }]
+			: [],
 		vitalRows,
 		detailRows,
 	}
 }
 
 export default function ViewPetMedicalRecords() {
+	const { i18n: i18nInstance } = useTranslation('vererianrian')
 	const location = useLocation()
 	const [searchParams] = useSearchParams()
 	const [loading, setLoading] = useState(false)
 	const [timeline, setTimeline] = useState([])
-	const [petSummary, setPetSummary] = useState(DEFAULT_PET)
+	const [petSummary, setPetSummary] = useState(() => buildDefaultPet())
 	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
 
 	const selectedRecord = location?.state?.record
 	const medicalId = searchParams.get('medicalId')
 	const petId = searchParams.get('petId')
+	const currentLanguage = i18nInstance.resolvedLanguage || i18nInstance.language
 
 	const loadMedicalTimeline = useCallback(async () => {
 		try {
@@ -204,7 +210,7 @@ export default function ViewPetMedicalRecords() {
 			// Fetch pet detail from API if petId is available
 			if (petId) {
 				try {
-					const petDetail = await getVeterinarianPetByIdApi(petId)
+					const petDetail = await getPetByIdApi(getAdminInstance(), petId)
 					if (petDetail) {
 						setPetSummary(toPetSummary(petDetail))
 					}
@@ -215,10 +221,10 @@ export default function ViewPetMedicalRecords() {
 
 			let records = []
 			if (medicalId) {
-				const detail = await getMedicalById(medicalId)
+				const detail = await getMedicalByIdApi(getAdminInstance(), medicalId)
 				records = detail ? [detail] : []
 			} else if (petId) {
-				const byPet = await getMedicalByPetId(petId, 1, 200)
+				const byPet = await getMedicalByPetIdApi(getAdminInstance(), petId, 1, 200)
 				records = Array.isArray(byPet?.items)
 					? byPet.items
 					: Array.isArray(byPet?.data)
@@ -232,7 +238,7 @@ export default function ViewPetMedicalRecords() {
 				records = await Promise.all(
 					records.map(async (record) => {
 						if (!record?.id) return record
-						const detail = await getMedicalById(record.id).catch(() => null)
+						const detail = await getMedicalByIdApi(getAdminInstance(), record.id).catch(() => null)
 						return detail ? { ...record, ...detail } : record
 					}),
 				)
@@ -264,8 +270,8 @@ export default function ViewPetMedicalRecords() {
 			const enrichedRecords = await Promise.all(
 				records.map(async (record) => {
 					const [medicalOrders, medicines] = await Promise.all([
-						getMedicalOrdersByMedicalId(record.id).catch(() => []),
-						getMedicinesByMedicalId(record.id).catch(() => []),
+						getMedicalOrdersByMedicalIdApi(getAdminInstance(), record.id).catch(() => []),
+						getMedicinesByMedicalIdApi(getAdminInstance(), record.id).catch(() => []),
 					])
 
 					return {
@@ -292,12 +298,12 @@ export default function ViewPetMedicalRecords() {
 			}
 		} catch (error) {
 			setTimeline([])
-			setPetSummary(DEFAULT_PET)
-			message.error(error?.message || 'Không thể tải hồ sơ chi tiết')
+			setPetSummary(buildDefaultPet())
+			message.error(error?.message || tVet('medicalRecords.detail.messages.loadError'))
 		} finally {
 			setLoading(false)
 		}
-	}, [medicalId, petId, selectedRecord])
+	}, [medicalId, petId, selectedRecord, currentLanguage])
 
 	const toggleExpandedRecord = useCallback((recordId) => {
 		setExpandedRecords((prev) => {
@@ -319,10 +325,6 @@ export default function ViewPetMedicalRecords() {
 
 	return (
 		<div className={styles.pageRoot}>
-			<header className={styles.pageHeader}>
-				<h1>Hồ sơ y tế điện tử</h1>
-			</header>
-
 			<section className={styles.petSection}>
 				<div className={styles.petMainInfo}>
 					{petSummary.avatar ? (
@@ -350,7 +352,7 @@ export default function ViewPetMedicalRecords() {
 
 			<section className={styles.timelinePanel}>
 				<h3>
-					<MdHealthAndSafety /> Dòng thời gian sức khỏe
+					<MdHealthAndSafety /> {tVet('medicalRecords.detail.title')}
 				</h3>
 
 				{loading ? (
@@ -358,7 +360,7 @@ export default function ViewPetMedicalRecords() {
 						<Spin size="large" />
 					</div>
 				) : timeline.length === 0 ? (
-					<div className={styles.emptyState}>Không có dữ liệu hồ sơ bệnh án để hiển thị.</div>
+					<div className={styles.emptyState}>{tVet('medicalRecords.detail.states.empty')}</div>
 				) : (
 					<div className={styles.timelineWrap}>
 						{timeline.map((item) => {
@@ -386,13 +388,15 @@ export default function ViewPetMedicalRecords() {
 													onClick={() => toggleExpandedRecord(item.id)}
 													aria-expanded={isExpanded}
 												>
-													{isExpanded ? 'Thu gọn' : 'Xem chi tiết'}
+														{isExpanded ? tVet('medicalRecords.detail.actions.collapse') : tVet('medicalRecords.detail.actions.expand')}
 													{isExpanded ? <UpOutlined /> : <DownOutlined />}
 												</button>
 											</div>
 										</div>
 
-										<div className={styles.recordMetaGrid}>
+										<div
+											className={`${styles.recordMetaGrid} ${item.rightInfo.length === 0 ? styles.recordMetaGridSingle : ''}`}
+										>
 											<div>
 												{item.leftInfo.map((line) => (
 													<p key={`${item.id}-${line.label}-left`}>

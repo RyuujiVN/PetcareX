@@ -335,6 +335,11 @@
 	background: #e2f8eb;
 }
 
+.no-topic {
+	color: #5f7287;
+	background: #edf2f7;
+}
+
 .postContent {
 	margin: 14px 0;
 	color: #3d4d61;

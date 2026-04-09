@@ -1,4 +1,5 @@
 import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../constants/authStorage';
+import { getToken } from '../utils/storage/tokenStorage';
 
 const decodeJwtPayload = (token) => {
   try {
@@ -51,7 +52,7 @@ export const getClinicIdFromAdminStorage = () => {
 };
 
 export const getClinicIdFromAdminToken = () => {
-  const token = getAdminAuthItem(ADMIN_AUTH_STORAGE.tokenKey);
+  const token = getToken();
   const payload = decodeJwtPayload(token);
   const clinicId = payload?.clinicId || '';
   return clinicId ? String(clinicId) : '';

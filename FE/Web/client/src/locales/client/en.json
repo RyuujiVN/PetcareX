@@ -1,0 +1,1048 @@
+{
+  "languageSwitcher": {
+    "switchToEnglish": "🇬🇧 EN",
+    "switchToVietnamese": "🇻🇳 VI",
+    "ariaSwitchToEnglish": "Switch language to English",
+    "ariaSwitchToVietnamese": "Switch language to Vietnamese"
+  },
+  "header": {
+    "logo": "PetCareX",
+    "nav": {
+      "home": "Home",
+      "appointments": "Appointments",
+      "myPets": "My Pets",
+      "forum": "Forum",
+      "chatbot": "AI Chat Bot"
+    },
+    "auth": {
+      "register": "Register",
+      "login": "Log in"
+    },
+    "user": {
+      "defaultName": "User",
+      "avatarAlt": "User avatar",
+      "profile": "Profile",
+      "changePassword": "Change password",
+      "logout": "Log out"
+    },
+    "notifications": {
+      "title": "Notifications",
+      "refresh": "Refresh",
+      "markAsRead": "Mark as read",
+      "all": "All",
+      "unread": "Unread",
+      "empty": "No notifications yet",
+      "syncedAt": "Updated at",
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} minutes ago",
+      "hoursAgo": "{{count}} hours ago",
+      "daysAgo": "{{count}} days ago",
+      "openAria": "Open notifications list",
+      "partialLoadWarning": "Notifications were partially loaded, please try again later",
+      "loadError": "Unable to load notifications",
+      "appointmentDescription": "{{date}} {{time}} - {{service}} at {{clinic}}",
+      "petFallback": "Pet",
+      "clinicFallback": "Clinic",
+      "serviceFallback": "Consultation service",
+      "postWithImageFallback": "Post with image",
+      "imageSentFallback": "Sent an image",
+      "forumLikeTitle": "Your post received {{count}} new like(s)",
+      "forumCommentTitle": "{{name}} commented on your post",
+      "forumReplyToCommentTitle": "{{name}} replied to your comment",
+      "forumReplyInPostTitle": "{{name}} replied in your post",
+      "forumActorFallback": "User"
+    },
+    "passwordModal": {
+      "title": "Change password",
+      "closeAria": "Close change password popup",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "confirmNewPassword": "Confirm new password",
+      "cancel": "Cancel",
+      "submit": "Confirm",
+      "submitting": "Changing password...",
+      "validation": {
+        "currentRequired": "Please enter your current password",
+        "newRequired": "Please enter a new password",
+        "newMinLength": "New password must be at least {{count}} characters",
+        "confirmRequired": "Please confirm your new password",
+        "confirmMismatch": "Password confirmation does not match"
+      },
+      "success": "Password changed successfully",
+      "error": "Unable to change password"
+    }
+  },
+  "footer": {
+    "social": {
+      "websiteAria": "Website",
+      "emailAria": "Email",
+      "phoneAria": "Phone"
+    },
+    "about": {
+      "title": "PetCareX",
+      "description": "A comprehensive technology platform connecting the pet care ecosystem in Vietnam. For the health of your four-legged friends."
+    },
+    "products": {
+      "title": "Products",
+      "management": "Management Software",
+      "ownerApp": "Pet Owner App",
+      "booking": "Online Booking",
+      "pricing": "Pricing"
+    },
+    "company": {
+      "title": "Company",
+      "aboutUs": "About us",
+      "careers": "Careers",
+      "news": "News",
+      "partners": "Partners"
+    },
+    "contact": {
+      "title": "Contact",
+      "address": "Building G 102 Hoang Minh Thao, Da Nang City"
+    },
+    "copyright": "© 2026 PetCareX. All rights reserved.",
+    "links": {
+      "terms": "Terms of use",
+      "privacy": "Privacy policy"
+    }
+  },
+  "common": {
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "close": "Close",
+      "delete": "Delete",
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "back": "Back",
+      "continue": "Continue",
+      "viewDetail": "View details",
+      "readMore": "Read more",
+      "retry": "Retry"
+    },
+    "states": {
+      "loading": "Loading...",
+      "empty": "No data",
+      "updating": "Updating...",
+      "notUpdated": "Not updated",
+      "notAvailable": "Not available",
+      "unknown": "Unknown"
+    },
+    "labels": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "date": "Date",
+      "time": "Time",
+      "status": "Status",
+      "service": "Service",
+      "doctor": "Doctor",
+      "clinic": "Clinic",
+      "note": "Note",
+      "symptom": "Symptom",
+      "search": "Search"
+    },
+    "placeholders": {
+      "select": "Please select",
+      "input": "Please enter",
+      "search": "Type to search"
+    },
+    "dialogs": {
+      "confirmDeleteTitle": "Confirm deletion",
+      "confirmDeleteContent": "Are you sure you want to delete this item?",
+      "confirmCancelTitle": "Confirm cancellation",
+      "confirmCancelContent": "Are you sure you want to cancel this action?"
+    },
+    "aria": {
+      "scrollToTop": "Scroll to top"
+    }
+  },
+  "enums": {
+    "appointmentStatus": {
+      "BOOKED": "Booked",
+      "SUCCESS": "Booked",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed",
+      "DONE": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "service": {
+      "PERIODIC_HEALTH_CHECK": "Periodic health check",
+      "MEDICAL_EXAMINATION": "Medical examination",
+      "VACCINATION": "Vaccination",
+      "DEWORMING": "Deworming",
+      "ULTRASOUND_AND_TEST": "Ultrasound and tests",
+      "SURGERY": "Surgery",
+      "EMERGENCY": "Emergency"
+    },
+    "role": {
+      "ADMIN": "System administrator",
+      "ADMIN_CLINIC": "Clinic admin",
+      "VETERINARIAN": "Veterinarian",
+      "CUSTOMER": "Customer"
+    },
+    "petSpecies": {
+      "DOG": "Dog",
+      "CAT": "Cat",
+      "BIRD": "Bird",
+      "RABBIT": "Rabbit"
+    },
+    "petBreed": {
+      "DOG_GOLDEN_RETRIEVER": "Golden Retriever",
+      "DOG_POODLE": "Poodle",
+      "DOG_POMERANIAN": "Pomeranian",
+      "DOG_CORGI": "Corgi",
+      "DOG_HUSKY": "Husky",
+      "DOG_LABRADOR": "Labrador",
+      "DOG_SHIBA_INU": "Shiba Inu",
+      "CAT_BRITISH_SHORTHAIR": "British Shorthair",
+      "CAT_BRITISH_LONGHAIR": "British Longhair",
+      "CAT_PERSIAN": "Persian",
+      "CAT_SIAMESE": "Siamese",
+      "CAT_BENGAL": "Bengal",
+      "BIRD_RED_WHISKERED_BULBUL": "Red-whiskered Bulbul",
+      "BIRD_PARROT": "Parrot",
+      "BIRD_BUDGERIGAR": "Budgerigar",
+      "RABBIT_DUTCH": "Dutch Rabbit",
+      "RABBIT_LIONHEAD": "Lionhead Rabbit"
+    },
+    "invoiceStatus": {
+      "PAID": "Paid",
+      "UNPAID": "Unpaid"
+    },
+    "sender": {
+      "USER": "User",
+      "AI": "AI"
+    },
+    "medicineUnit": {
+      "PILL": "Pill",
+      "BLISTER": "Blister",
+      "CAPSULE": "Capsule",
+      "SACHET": "Sachet",
+      "BOTTLE": "Bottle",
+      "VIAL": "Vial",
+      "AMPOULE": "Ampoule",
+      "ML": "ml",
+      "MG": "mg"
+    },
+    "medicalRecordStatus": {
+      "DONE": "Completed",
+      "COMPLETED": "Completed",
+      "PENDING": "Pending",
+      "INCOMPLETE": "Pending"
+    },
+    "veterinarySpecialty": {
+      "GENERAL_EXAMINATION": "General examination",
+      "INTERNAL_MEDICINE": "Internal medicine",
+      "SURGERY": "Surgery",
+      "ULTRASOUND": "Diagnostic imaging",
+      "VACCINATION_AND_PREVENTION": "Vaccination and prevention"
+    }
+  },
+  "pages": {
+    "auth": {
+      "login": {
+        "title": "Log in",
+        "googleLoginFailed": "Google sign-in failed.",
+        "success": "Logged in successfully!",
+        "welcome": "Welcome to the PetcareX community",
+        "invalidCredentials": "Incorrect email or password!",
+        "emailLabel": "Email",
+        "emailPlaceholder": "Enter your email",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Enter your password",
+        "forgotPassword": "Forgot password?",
+        "submit": "Log in",
+        "orContinueWith": "Or continue with",
+        "continueWithGoogle": "Continue with Google",
+        "noAccount": "Don't have an account?",
+        "registerNow": "Register now",
+        "validation": {
+          "emailRequired": "Please enter email to log in!",
+          "emailInvalid": "Invalid email format!",
+          "passwordRequired": "Please enter password to log in!",
+          "passwordMin": "Password must be at least 6 characters!"
+        }
+      },
+      "register": {
+        "title": "Register",
+        "success": "Registration successful",
+        "googleSuccess": "Google sign-in successful!",
+        "googleFailed": "Google sign-in failed.",
+        "heading": "Create account",
+        "fullNameLabel": "Full name",
+        "fullNamePlaceholder": "Enter your full name",
+        "emailLabel": "Email",
+        "emailPlaceholder": "example@email.com",
+        "passwordLabel": "Password",
+        "passwordPlaceholder": "Enter password",
+        "confirmPasswordLabel": "Confirm password",
+        "confirmPasswordPlaceholder": "Re-enter password",
+        "agreePrefix": "I agree to",
+        "terms": "Terms of service",
+        "and": "and",
+        "privacy": "Privacy policy",
+        "agreeSuffix": "of PetcareX",
+        "createAccount": "Create account",
+        "orContinueWith": "Or continue with",
+        "continueWithGoogle": "Continue with Google",
+        "haveAccount": "Already have an account?",
+        "loginNow": "Log in now",
+        "copyright": "© 2026 PetcareX Vietnam",
+        "emailExisted": "Email already exists",
+        "failed": "Registration failed. Please try again",
+        "validation": {
+          "fullNameRequired": "Please enter full name",
+          "fullNameInvalid": "Full name must not contain numbers or special characters",
+          "emailRequired": "Please enter email",
+          "emailInvalid": "Invalid email",
+          "passwordRequired": "Please enter password",
+          "passwordComplexity": "Password must be at least 8 characters and include uppercase, lowercase, and number",
+          "confirmPasswordRequired": "Please confirm password",
+          "confirmPasswordMismatch": "Password confirmation does not match",
+          "agreeRequired": "You must agree to the terms"
+        }
+      },
+      "forgotPassword": {
+        "title": "Forgot password",
+        "heading": "Forgot password?",
+        "subtitle": "Don't worry! Enter the email linked to your account and we will send an OTP code so you can recover your password",
+        "sendingOtp": "Sending OTP code...",
+        "emailLabel": "Email address",
+        "emailPlaceholder": "Enter your email",
+        "sendOtp": "Send OTP code",
+        "backToLogin": "← Back to Login",
+        "needHelp": "Need help?",
+        "contactSupport": "Contact support team",
+        "otpSentSuccess": "OTP code has been sent to your email. Please check your inbox or spam folder.",
+        "submitFailed": "Something went wrong. Please try again.",
+        "validation": {
+          "emailRequired": "Please enter email",
+          "emailInvalid": "Invalid email"
+        }
+      },
+      "resetPassword": {
+        "title": "Reset password",
+        "heading": "Reset password",
+        "otpSentTo": "OTP code has been sent to",
+        "otpLabel": "Enter OTP code",
+        "otpPlaceholder": "Enter 6-digit OTP code",
+        "otpExpiresIn": "OTP expires in:",
+        "otpExpiredShort": "OTP has expired",
+        "resendOtp": "Resend OTP",
+        "resendOtpCooldown": "Resend OTP ({{seconds}}s)",
+        "newPasswordLabel": "Enter new password",
+        "confirmPasswordLabel": "Confirm new password",
+        "updating": "Updating...",
+        "submit": "Reset password",
+        "backToLogin": "← Back to Login",
+        "enterEmailFirst": "Please enter email first",
+        "otpExpired": "OTP has expired. Please request a new OTP.",
+        "invalidEmail": "Invalid email",
+        "otpResent": "OTP has been resent. Please check your email",
+        "resendFailed": "Unable to resend OTP",
+        "success": "Password has been reset successfully",
+        "failed": "Reset password failed",
+        "validation": {
+          "otpRequired": "Please enter OTP code",
+          "otpInvalid": "OTP must be 6 digits",
+          "newPasswordRequired": "Please enter new password",
+          "newPasswordMin": "Password must be at least 6 characters",
+          "newPasswordComplexity": "Password must include uppercase, lowercase, number, and special character",
+          "confirmPasswordRequired": "Please confirm password",
+          "confirmPasswordMismatch": "Password does not match"
+        }
+      }
+    },
+    "home": {
+      "homePage": {
+        "heroBadge": "#1 solution in Vietnam",
+        "heroTitle": "PetcareX - A comprehensive pet care and management system",
+        "heroDescription": "Drive complete digital transformation for veterinary clinics and deliver the best, most modern healthcare experience for your pets.",
+        "downloadApp": "Download app now",
+        "chooseClinic": "Choose clinic",
+        "stats": {
+          "title": "Providing a comprehensive pet care toolkit",
+          "items": {
+            "clinics": "CLINICS IN VIETNAM",
+            "users": "SYSTEM USERS",
+            "data": "DIVERSE PET DATA SOURCES",
+            "support": "CONTINUOUS OWNER SUPPORT"
+          }
+        },
+        "challenges": {
+          "title": "Challenges & Solutions",
+          "subtitle": "We understand the challenges of traditional management and deliver technology to solve them comprehensively",
+          "badges": {
+            "reality": "CURRENT SITUATION",
+            "solution": "PETCAREX SOLUTION"
+          },
+          "items": {
+            "medicalRecord": {
+              "title": "Pet medical records",
+              "description": "Easy to lose and difficult to retrieve treatment history across different facilities"
+            },
+            "booking": {
+              "title": "Difficult appointment booking",
+              "description": "Phone calls are required, leading to mistakes or missed appointments"
+            },
+            "management": {
+              "title": "Fragmented management",
+              "description": "Difficult to track revenue, medicine inventory, and staffing cohesively"
+            }
+          }
+        },
+        "solutions": {
+          "items": {
+            "digitalRecord": {
+              "title": "Comprehensive digital records",
+              "description": "Secure cloud storage, anytime-anywhere access, transparent history"
+            },
+            "onlineBooking": {
+              "title": "24/7 online booking",
+              "description": "Fast app/web flow with automatic reminders via Zalo/SMS"
+            },
+            "analytics": {
+              "title": "Reporting & Analytics",
+              "description": "Visual management dashboard to optimize clinic operations"
+            }
+          }
+        },
+        "technologies": {
+          "title": "Technology for Better Pet Care",
+          "items": {
+            "onlineBooking": {
+              "title": "Online appointment booking",
+              "description": "Connect pet owners and veterinarians quickly, reducing clinic waiting time."
+            },
+            "medicalRecord": {
+              "title": "Digital medical record",
+              "description": "Store lifelong visit, surgery, and vaccination history for each pet."
+            },
+            "aiChatbot": {
+              "title": "AI ChatBot support",
+              "description": "Provide 24/7 preliminary health guidance and smart vaccination reminders."
+            },
+            "communityForum": {
+              "title": "Community forum",
+              "description": "A place to share care experience, find lost pets, and connect with compassion."
+            }
+          }
+        },
+        "features": {
+          "clinic": {
+            "title": "Veterinary clinic",
+            "description": "A professional clinic management system. Optimize processes, staff, inventory, and automated customer care.",
+            "actionText": "Register clinic",
+            "items": {
+              "appointments": "Appointment & reception management",
+              "inventory": "Pharmacy inventory & POS sales",
+              "revenue": "Detailed revenue reporting"
+            }
+          },
+          "owner": {
+            "title": "Pet owner",
+            "description": "A digital pet health book right on your phone. Book appointments, shop, and receive expert advice with ease.",
+            "actionText": "Get the app",
+            "items": {
+              "lifetimeRecord": "Lifelong health record storage",
+              "findDoctor": "Book trusted nearby veterinarians",
+              "reminder": "Vaccination & deworming reminders"
+            }
+          }
+        },
+        "security": {
+          "title": "Security & Privacy Commitment",
+          "description": "We build the PetcareX ecosystem on trust. Your data is protected by top security standards, and detailed RBAC permissions ensure only authorized users can access sensitive information.",
+          "items": {
+            "encryption": {
+              "title": "Data encryption",
+              "description": "Protect all information with SSL/TLS standards"
+            },
+            "access": {
+              "title": "Access control",
+              "description": "Detailed RBAC permissions for every user"
+            },
+            "audit": {
+              "title": "Activity auditing",
+              "description": "Record all actions for management and compliance"
+            }
+          }
+        },
+        "cta": {
+          "title": "Ready to care for your pets better?",
+          "subtitle": "Join a community of 30+ clinics and 50,000+ pet owners who trust PetCareX.",
+          "registerFree": "Register for free",
+          "contact": "Contact sales"
+        }
+      },
+      "clinicSelection": {
+        "title": "Choose the right clinic",
+        "searchPlaceholder": "Search by clinic name",
+        "chooseButton": "Choose",
+        "loadListFailed": "Unable to load clinic list",
+        "loadDetailFailed": "Unable to load clinic details"
+      },
+      "homePageClinic": {
+        "mapIframeTitle": "Google Maps clinic address",
+        "aboutModalFallbackTitle": "Clinic introduction",
+        "galleryAltFallback": "Clinic image {{index}}",
+        "aboutLabel": "About",
+        "featuresTitle": "Everything your little friend needs",
+        "communityTitle": "PetCareX community forum",
+        "content": {
+          "hero": {
+            "title": "PetCar - The best beginning for your pet's life starts here",
+            "description": "A top pet care brand in Vietnam, always putting the interests of pets and owners first.",
+            "ctaText": "Book an appointment now"
+          },
+          "about": {
+            "label": "About",
+            "title": "PetCar Veterinary Hospital",
+            "description": "Founded in 2021, PetCar Veterinary Clinic is proud to be one of Vietnam's leading veterinary hospitals. Over the years, PetCar has earned customer trust and companionship. With diverse services, PetCar always brings memorable and high-quality experiences to customers.",
+            "highlightNumber": "20 YEARS",
+            "highlightLabel": "5 BRANCHES"
+          },
+          "gallerySection": {
+            "title": "PHOTO GALLERY",
+            "subtitle": "Daily activities at the clinic."
+          },
+          "galleryImages": {
+            "1": "Clinic activities",
+            "2": "Clinic team",
+            "3": "Community events",
+            "4": "Everyday moments",
+            "5": "Internal activities",
+            "6": "Veterinarian at clinic",
+            "7": "Work moments",
+            "8": "Professional team",
+            "9": "Clinic life"
+          },
+          "location": {
+            "title": "CLINIC ADDRESS",
+            "subtitle": "Find your way to the clinic quickly via Google Maps.",
+            "address": "240 Phan Dang Luu, Ward 1, Phu Nhuan District, Ho Chi Minh City"
+          },
+          "team": {
+            "title": "CLINIC TEAM"
+          },
+          "doctors": {
+            "1": "MSc. Nguyen Van A - Internal Medicine Veterinarian",
+            "2": "MSc. Le Thi B - Surgery Veterinarian",
+            "3": "MSc. Tran Tien C - Veterinarian",
+            "4": "MSc. Pham Kim D - Diagnostic Imaging Veterinarian"
+          }
+        }
+      },
+      "chatbot": {
+        "title": "AI Chat Bot",
+        "newRoomFailed": "Unable to create a new conversation",
+        "renameFailed": "Failed to rename chat room",
+        "deleteFailed": "Failed to delete chat room",
+        "newConversationDefaultName": "New conversation",
+        "newConversationButton": "New conversation",
+        "recentHistory": "RECENT HISTORY",
+        "assistantTitle": "PetCareX AI Assistant",
+        "confirmDelete": {
+          "title": "Delete conversation?",
+          "content": "Are you sure you want to delete this conversation?",
+          "okText": "Delete",
+          "cancelText": "Cancel"
+        },
+        "renameModal": {
+          "title": "Rename conversation",
+          "okText": "Save",
+          "cancelText": "Cancel",
+          "placeholder": "Enter conversation name"
+        },
+        "actions": {
+          "rename": "Rename",
+          "delete": "Delete",
+          "optionsAria": "Options"
+        },
+        "validation": {
+          "emptyRoomName": "Room name must not be empty"
+        },
+        "messageBox": {
+          "emptyState": "What do you need today?",
+          "loadingOldMessages": "Loading older messages...",
+          "userImageAlt": "User uploaded image",
+          "answering": "Responding...",
+          "attachImage": "Attach image",
+          "previewAlt": "Preview",
+          "removeImage": "Remove image",
+          "inputPlaceholder": "Enter your question...",
+          "aiResponding": "AI is responding",
+          "uploadingImage": "Uploading image...",
+          "uploadingImageLong": "Uploading images...",
+          "send": "Send",
+          "disclaimer": "AI information is for reference only. Please consult a veterinarian for accurate advice.",
+          "uploadFailed": "Image upload failed",
+          "roomNameSingleImage": "User uploaded image",
+          "roomNameMultiImages": "{{count}} user uploaded images",
+          "validation": {
+            "imageOnly": "Only image files are allowed"
+          }
+        }
+      }
+    },
+    "booking": {
+      "title": "Book appointment",
+      "loadFailed": "Unable to load booking data",
+      "loadClinicDoctorFailed": "Unable to load clinic and doctor data",
+      "submitFailed": "Booking failed",
+      "defaultUserName": "there",
+      "greeting": "Hello, {{name}}!",
+      "subtitle": "Give your furry friends the best care today",
+      "addNewPet": "Add new pet",
+      "steps": {
+        "choosePet": "Choose your pet",
+        "serviceClinic": "Service & Clinic",
+        "chooseDoctor": "Choose specialist",
+        "chooseDateTime": "Choose date & time"
+      },
+      "form": {
+        "serviceLabel": "Select service",
+        "clinicLabel": "Nearby clinic",
+        "symptomPlaceholder": "Describe your pet's symptoms"
+      },
+      "validation": {
+        "petRequired": "Please choose a pet",
+        "serviceRequired": "Please choose a service",
+        "clinicRequired": "Please choose a clinic",
+        "doctorRequired": "Please choose a doctor",
+        "symptomsRequired": "Please enter symptoms",
+        "dateRequired": "Please choose an appointment date",
+        "dateInPast": "Cannot book in the past",
+        "timeRequired": "Please choose an appointment time",
+        "selectDateFirst": "Please choose a date first",
+        "timeUnavailable": "This time slot is unavailable, please choose another"
+      },
+      "notSelectedDoctor": "No doctor selected",
+      "noSpecialty": "No specialty available",
+      "calendar": {
+        "monthLabel": "Month {{month}}, {{year}}",
+        "days": {
+          "sun": "Sun",
+          "mon": "Mon",
+          "tue": "Tue",
+          "wed": "Wed",
+          "thu": "Thu",
+          "fri": "Fri",
+          "sat": "Sat"
+        }
+      },
+      "timeSlots": {
+        "morning": "Morning",
+        "afternoon": "Afternoon"
+      },
+      "summary": {
+        "title": "Appointment summary",
+        "pet": "PET",
+        "service": "SERVICE",
+        "doctor": "DOCTOR",
+        "clinic": "CLINIC",
+        "time": "TIME",
+        "notSelected": "Not selected",
+        "notSelectedTime": "No time selected"
+      },
+      "submitting": "Booking appointment...",
+      "confirmBooking": "Confirm booking"
+    },
+    "successBooking": {
+      "title": "Appointment booked successfully!",
+      "subtitle": "Your appointment has been recorded. Please review the details below.",
+      "summaryTitle": "Appointment summary",
+      "petName": "Pet name",
+      "doctor": "Specialist doctor",
+      "time": "Appointment time",
+      "service": "Service",
+      "goToAppointments": "Go to My Appointments",
+      "notFound": "Cannot find the recently booked appointment data"
+    },
+    "appointmentDetail": {
+      "title": "My appointments",
+      "subtitle": "Manage health check appointments for your pets",
+      "bookNew": "Book new appointment",
+      "loadFailed": "Unable to load appointments",
+      "cancelSuccess": "Appointment cancelled successfully",
+      "cancelFailed": "Unable to cancel appointment",
+      "diagnosisLoadFailed": "Unable to load AI diagnosis",
+      "unknownPet": "Unknown",
+      "unknownClinic": "Unknown",
+      "unknownAddress": "Unknown",
+      "unknownDoctor": "Unknown",
+      "tabs": {
+        "upcoming": "Upcoming",
+        "history": "Medical history"
+      },
+      "emptyUpcoming": "No upcoming appointments",
+      "emptyHistory": "No appointments yet",
+      "actions": {
+        "viewDetail": "View details",
+        "diagnosis": "Diagnosis",
+        "cancel": "Cancel appointment"
+      },
+      "confirmCancel": {
+        "title": "Cancel appointment",
+        "content": "Are you sure you want to cancel this appointment?",
+        "okText": "Yes, cancel",
+        "cancelText": "No, go back"
+      },
+      "modal": {
+        "title": "Appointment details",
+        "viewPetProfile": "View pet profile",
+        "petInfoTitle": "Pet information",
+        "petName": "Name",
+        "breed": "Breed",
+        "appointmentInfoTitle": "Appointment information",
+        "date": "Date",
+        "time": "Time",
+        "clinic": "Clinic",
+        "doctor": "Doctor",
+        "service": "Service",
+        "notes": "Notes"
+      }
+    },
+    "addPet": {
+      "title": "Add pet",
+      "uploadNoUrl": "Did not receive image URL from server",
+      "uploadSuccess": "Pet image uploaded successfully",
+      "uploadFailed": "Unable to upload pet image",
+      "createSuccess": "New pet added successfully",
+      "createFailed": "Unable to add pet",
+      "loadSpeciesFailed": "Unable to load species list",
+      "loadBreedFailed": "Unable to load breed list",
+      "uploadingImage": "Uploading image...",
+      "uploadHint": "Upload your pet image",
+      "chooseFile": "Choose file",
+      "header": {
+        "title": "Add a new pet",
+        "subtitle": "Please provide complete information to initialize your pet's medical profile."
+      },
+      "sections": {
+        "basicInfo": "Basic information"
+      },
+      "fields": {
+        "avatarLabel": "Pet avatar",
+        "petName": "Pet name",
+        "species": "Species",
+        "breed": "Breed",
+        "gender": "Gender",
+        "birthday": "Date of birth",
+        "age": "Age",
+        "features": "Coat color / Features",
+        "weight": "Weight (kg)"
+      },
+      "placeholders": {
+        "petName": "E.g. Buddy",
+        "species": "Select species",
+        "breed": "Select breed"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female"
+      },
+      "age": {
+        "months": "{{count}} months",
+        "years": "{{count}} years"
+      },
+      "validation": {
+        "avatarUploading": "Image is uploading, please wait a moment",
+        "requiredFields": "Please fill all required fields",
+        "invalidBreed": "Please select a valid breed for the chosen species",
+        "avatarRequired": "Please upload a pet avatar"
+      },
+      "confirmLeave": {
+        "title": "Do you want to save changes?",
+        "content": "You are entering pet information. Choose Save changes to save before leaving.",
+        "okText": "Save changes",
+        "cancelText": "Discard changes"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "saving": "Saving...",
+        "uploading": "Uploading image...",
+        "submit": "Add new pet"
+      }
+    },
+    "petProfile": {
+      "title": "Pet profile",
+      "updateSuccess": "Pet profile updated successfully!",
+      "updateFailed": "Update failed!",
+      "loadUserFailed": "Unable to get user information",
+      "loadSpeciesFailed": "Unable to load species list",
+      "loadBreedFailed": "Unable to load breed list",
+      "noPet": "No pets yet",
+      "loadFailed": "Unable to load pet information!",
+      "uploadNoUrl": "Did not receive image URL from server",
+      "uploadSuccess": "Pet image uploaded successfully",
+      "uploadFailed": "Unable to upload pet image",
+      "defaultPetName": "Pet name",
+      "fields": {
+        "petName": "Pet name",
+        "species": "Species",
+        "breed": "Breed",
+        "gender": "Gender",
+        "age": "Pet age",
+        "weight": "Weight (kg)",
+        "features": "Coat color / Features"
+      },
+      "placeholders": {
+        "breed": "Select breed",
+        "birthDate": "Select birth date"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female"
+      },
+      "age": {
+        "years": "{{count}} years"
+      },
+      "validation": {
+        "avatarUploading": "Image is uploading, please wait",
+        "petNotFound": "Cannot find pet to update",
+        "invalidBreed": "Please select a valid breed",
+        "petNameRequired": "Please enter pet name",
+        "breedRequired": "Please select breed",
+        "birthDateRequired": "Please select birth date"
+      },
+      "confirmCancel": {
+        "title": "Discard changes",
+        "content": "You are editing pet information. Are you sure you want to discard unsaved changes and go back?",
+        "okText": "Discard and go back",
+        "cancelText": "Continue editing",
+        "successInfo": "Changes discarded"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "uploading": "Uploading image...",
+        "save": "Save changes"
+      }
+    },
+    "listPetMedicalRecords": {
+      "title": "Your pet list",
+      "subtitle": "Choose one of your pets",
+      "addPet": "Add new pet",
+      "loadFailed": "Failed to load pet list",
+      "unknownAge": "Unknown age",
+      "ageYears": "{{count}} years old",
+      "ageMonths": "{{count}} months old",
+      "ageLabel": "Age",
+      "speciesLabel": "Species",
+      "empty": "No pets yet",
+      "confirmDelete": {
+        "title": "Delete pet",
+        "content": "Are you sure you want to delete this pet?",
+        "okText": "Delete",
+        "cancelText": "Cancel"
+      },
+      "deleteSuccess": "Pet deleted successfully",
+      "deleteFailed": "Delete failed",
+      "actions": {
+        "editPet": "Edit pet information",
+        "deletePet": "Delete pet",
+        "petOptionsAria": "Pet options",
+        "viewMedicalRecords": "View medical records"
+      }
+    },
+    "medicalRecords": {
+      "title": "Medical records",
+      "loadFailed": "Unable to load medical records",
+      "internalServerError": "Unable to load medical records. Please try again or check pet data.",
+      "petNotFound": "Selected pet not found. Please try again from the pet list.",
+      "timelineTitle": "Health timeline",
+      "emptyTimelineHint": "No records to display. Select a pet from the list to view the correct profile.",
+      "remindersTitle": "Important reminders",
+      "emptyReminders": "No important reminders yet.",
+      "bookNow": "Book now",
+      "bookingService": "Book appointment",
+      "defaultPetName": "Pet",
+      "defaultPetSummary": {
+        "name": "No pet selected",
+        "breedName": "Breed not updated"
+      },
+      "gender": {
+        "male": "Male",
+        "female": "Female"
+      },
+      "recordFallbackTitle": "Unnamed medical record",
+      "record": {
+        "weight": "Weight",
+        "temperature": "Temperature",
+        "heartRate": "Heart rate",
+        "bloodPressure": "Blood pressure",
+        "symptoms": "Symptoms",
+        "diagnosis": "Diagnosis",
+        "conclusion": "Conclusion",
+        "doctorNote": "Doctor note",
+        "medicalOrders": "Medical orders",
+        "prescription": "Prescription",
+        "clinicName": "Clinic name",
+        "examDate": "Exam date",
+        "doctorName": "Doctor name",
+        "followUpDate": "Follow-up date"
+      },
+      "actions": {
+        "collapse": "Collapse",
+        "viewDetail": "View details"
+      },
+      "reminders": {
+        "followUpTitle": "Follow-up - {{name}}",
+        "defaultTitle": "Appointment reminder",
+        "examDate": "Exam date: {{date}}"
+      }
+    },
+    "profile": {
+      "title": "User profile",
+      "updateSuccess": "Profile updated successfully!",
+      "loadFailed": "Unable to load profile information!",
+      "updateFailed": "Profile update failed!",
+      "uploadSuccess": "Image uploaded successfully!",
+      "uploadFailed": "Image upload failed!",
+      "noChanges": "No changes to save",
+      "duplicateEmail": "Email is already used by another account",
+      "duplicatePhone": "Phone number is already used by another account",
+      "cancelInfo": "Changes discarded",
+      "fields": {
+        "name": "Name",
+        "phone": "Phone",
+        "email": "Email",
+        "address": "Address"
+      },
+      "validation": {
+        "nameRequired": "Please enter your name!",
+        "nameMin": "Name must be at least 2 characters!",
+        "phoneRequired": "Please enter phone number!",
+        "phoneInvalid": "Invalid phone number format!",
+        "emailRequired": "Please enter email!",
+        "emailInvalid": "Invalid email format!",
+        "addressRequired": "Please enter address!",
+        "addressMin": "Address must be at least 5 characters!"
+      },
+      "placeholders": {
+        "name": "Enter your name",
+        "phone": "090 123 4567",
+        "email": "Enter your email",
+        "address": "Enter your address"
+      },
+      "actions": {
+        "cancel": "Cancel",
+        "uploading": "Uploading image...",
+        "save": "Save changes"
+      }
+    },
+    "forum": {
+      "title": "Forum",
+      "loadPostsFailed": "Unable to load posts",
+      "postSuccess": "Post created successfully",
+      "postFailed": "Failed to create post",
+      "loadTopicsFailed": "Unable to load topics",
+      "loadCommentsFailed": "Unable to load comments",
+      "updatePostSuccess": "Post updated successfully",
+      "updatePostFailed": "Unable to update post",
+      "deleteSuccess": "Post deleted",
+      "deleteFailed": "Unable to delete post",
+      "uploadNoUrl": "Did not receive image URL from server",
+      "uploadPostImageSuccess": "Post image uploaded successfully",
+      "uploadCommentImageSuccess": "Comment image uploaded successfully",
+      "uploadReplyImageSuccess": "Reply image uploaded successfully",
+      "readImageFailed": "Unable to read selected image",
+      "createCommentFailed": "Unable to create comment",
+      "replyFailed": "Unable to reply to comment",
+      "likeSuccess": "Liked {{author}}'s post",
+      "likeFailed": "Unable to update likes",
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} minutes ago",
+      "hoursAgo": "{{count}} hours ago",
+      "daysAgo": "{{count}} days ago",
+      "topic": "Topic",
+      "featured": "Featured",
+      "topContributors": "Top contributors",
+      "viewAllRankings": "View full rankings",
+      "createPostTitle": "Create a new post",
+      "editPostTitle": "Edit post",
+      "postTopic": "Post topic",
+      "loadingPosts": "Loading posts...",
+      "loadingComments": "Loading comments...",
+      "avatarAlt": "Avatar",
+      "postTagDefault": "Post",
+      "imagePlaceholder": "Image",
+      "maxImages": "You can select up to {{count}} images",
+      "maxImagesPerPost": "Maximum {{count}} images per post",
+      "replyingTo": "Replying to {{user}}",
+      "postImageAlt": "Post {{index}}",
+      "postPreviewAlt": "Post preview image {{index}}",
+      "editPostPreviewAlt": "Edit post preview image",
+      "commentImagePreviewAlt": "Comment preview image",
+      "replyImagePreviewAlt": "Reply preview image",
+      "replyImageAlt": "Reply image",
+      "previewImageAlt": "Preview image",
+      "topicFilter": {
+        "all": "All topics",
+        "none": "No topic"
+      },
+      "topicSelect": {
+        "noTopic": "No topic"
+      },
+      "topics": {
+        "dailyCare": "Daily pet care",
+        "vaccinationAndPrevention": "Vaccination and prevention",
+        "symptomConsulting": "Symptom consulting",
+        "postOpRecovery": "Post-op and recovery",
+        "veterinaryNutrition": "Veterinary nutrition",
+        "clinicExperience": "Clinic experience"
+      },
+      "placeholders": {
+        "shareToday": "What do you want to share about your pet today?",
+        "comment": "Write a comment...",
+        "reply": "Write a reply...",
+        "choosePostTopic": "Choose a post topic",
+        "chooseTopic": "Choose a topic",
+        "editPost": "What do you want to edit in this post?"
+      },
+      "actions": {
+        "selectTopicTitle": "Choose topic",
+        "removeImage": "Remove image",
+        "image": "Image",
+        "sending": "Sending...",
+        "uploadingImage": "Uploading image...",
+        "send": "Send",
+        "reply": "Reply",
+        "sendReply": "Send reply",
+        "chooseImage": "Choose image",
+        "posting": "Posting...",
+        "post": "Post",
+        "chooseAnotherImage": "Choose another image",
+        "saveEdit": "Save changes"
+      },
+      "confirmDelete": {
+        "title": "Delete post",
+        "content": "Are you sure you want to delete this post?",
+        "okText": "Delete",
+        "cancelText": "Cancel"
+      },
+      "validation": {
+        "uploadingImage": "Image is uploading, please wait",
+        "emptyPost": "Please enter content or choose an image before posting",
+        "noTopicAvailable": "No available topic to create post. Please try again later",
+        "noTopicAvailableForUpdate": "No available topic to update post. Please try again later",
+        "editOwnPostOnly": "You can only edit your own post",
+        "deleteOwnPostOnly": "You can only delete your own post",
+        "commentImageUploading": "Comment image is uploading, please wait",
+        "commentRequired": "Please enter a comment or choose an image",
+        "replyImageUploading": "Reply image is uploading, please wait",
+        "replyRequired": "Please enter a reply or choose an image"
+      }
+    },
+    "petDiagnosis": {
+      "title": "AI diagnosis report",
+      "closeAria": "Close report",
+      "unknownDate": "Unknown date",
+      "defaultPetName": "pet",
+      "emptyReport": "No AI diagnosis data available for this appointment.",
+      "reportTitle": "AI preliminary diagnosis report for {{petName}}"
+    }
+  }
+}

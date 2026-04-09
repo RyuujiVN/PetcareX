@@ -4,13 +4,14 @@ import { createRoot } from 'react-dom/client'
 import { Provider } from 'react-redux'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
+import { initFirebaseAnalytics } from './config/firebaseClient'
 import { AuthProvider as AdminAuthProvider } from './hooks/Clinic/AuthContext'
 import { AuthProvider as ClientAuthProvider } from './hooks/client/AuthContext'
+import './i18n'
 import './index.css'
 import { store } from './redux/store.js'
 import './styles/Clinic/colorsToken.css'
 import './styles/client/colorsToken.css'
-import { initFirebaseAnalytics } from './data/client/utils/firebaseClient'
 
 initFirebaseAnalytics().catch(() => undefined);
 

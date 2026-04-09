@@ -25,8 +25,9 @@ import {
   message,
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { getRoleLabel } from '../../../../constants/veterinaryLabels'
-import { deleteUserApi, getUserListApi } from '../../../../data/admin/api/userApi'
+import { useTranslation } from 'react-i18next'
+import { deleteUserApi, getUserListApi } from '../../../../services/userService'
+import { getAdminInstance } from '../../../../services/apiClient'
 import './style.css'
 
 const getAbbreviation = (name) => {
@@ -82,7 +83,8 @@ const fetchAllUsersByKeyword = async (keyword = '') => {
   const items = []
 
   while (page <= totalPages) {
-    const data = await getUserListApi(page, limit, keyword)
+    const response = await getUserListApi(getAdminInstance(), page, limit, keyword)
+    const data = response?.data
     const currentItems = data?.items || []
     const meta = data?.meta || {}
     items.push(...currentItems)
@@ -94,6 +96,8 @@ const fetchAllUsersByKeyword = async (keyword = '') => {
 }
 
 export default function Users() {
+  const { t } = useTranslation('admin')
+  const noDataText = t('common.noData')
   const [allUsers, setAllUsers] = useState([])
   const [pagination, setPagination] = useState({
     current: 1,
@@ -130,20 +134,26 @@ export default function Users() {
         current: 1,
       }))
     } catch (error) {
-      message.error(error.message || 'Không thể tải danh sách người dùng')
+      message.error(error.message || t('users.messages.fetchFailed'))
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   const fetchRoleStats = useCallback(async () => {
     try {
       const items = await fetchAllUsersByKeyword('')
       setStats(buildRoleStats(items))
     } catch (error) {
-      message.error(error.message || 'Không thể tải thống kê người dùng')
+      message.error(error.message || t('users.messages.statsFailed'))
     }
-  }, [buildRoleStats])
+  }, [buildRoleStats, t])
+
+  const getRoleLabelByLocale = (role) => {
+    const normalizedRole = normalizeRole(role)
+    if (!normalizedRole) return t('users.role.none')
+    return t(`users.role.${normalizedRole}`, { defaultValue: t('users.role.none') })
+  }
 
   useEffect(() => {
     fetchUsers('')
@@ -173,9 +183,9 @@ export default function Users() {
   }, [pagination.current, pagination.pageSize, roleFilteredUsers])
 
   const roleFilterOptions = [
-    { value: USER_ROLE_FILTERS.ALL, label: 'Tất cả' },
-    { value: USER_ROLE_FILTERS.CUSTOMER, label: 'Khách hàng' },
-    { value: USER_ROLE_FILTERS.VETERINARIAN, label: 'Bác sĩ' },
+    { value: USER_ROLE_FILTERS.ALL, label: t('users.filters.all') },
+    { value: USER_ROLE_FILTERS.CUSTOMER, label: t('users.filters.customer') },
+    { value: USER_ROLE_FILTERS.VETERINARIAN, label: t('users.filters.veterinarian') },
   ]
 
   const handlePageChange = (page, pageSize) => {
@@ -210,24 +220,26 @@ export default function Users() {
 
   const handleDelete = async (userId) => {
     try {
-      await deleteUserApi(userId)
-      message.success('Đã cập nhật trạng thái người dùng')
+      await deleteUserApi(getAdminInstance(), userId)
+      message.success(t('users.messages.updateSuccess'))
       const keyword = search.trim()
       await Promise.all([fetchUsers(keyword), fetchRoleStats()])
     } catch (error) {
-      message.error(error.message || 'Không thể cập nhật trạng thái người dùng')
+      message.error(error.message || t('users.messages.updateFailed'))
     }
   }
 
   const handleDeleteWithConfirm = (record) => {
     Modal.confirm({
       centered: true,
-      title: 'Xác nhận dừng hoạt động',
+      title: t('users.confirmDeactivate.title'),
       icon: <InfoCircleOutlined style={{ color: 'var(--admin-color-warning)' }} />,
-      content: `Bạn có chắc muốn dừng hoạt động tài khoản "${record?.fullName || 'này'}" không?`,
-      okText: 'Dừng hoạt động',
+      content: t('users.confirmDeactivate.content', {
+        name: record?.fullName || t('common.thisItem'),
+      }),
+      okText: t('users.confirmDeactivate.ok'),
       okType: 'danger',
-      cancelText: 'Hủy',
+      cancelText: t('users.confirmDeactivate.cancel'),
       onOk: async () => {
         await handleDelete(record.id)
       },
@@ -241,7 +253,7 @@ export default function Users() {
 
   const columns = [
     {
-      title: 'TÊN NGƯỜI DÙNG',
+      title: t('users.table.columns.name'),
       dataIndex: 'fullName',
       key: 'fullName',
       render: (text, record) => (
@@ -253,59 +265,59 @@ export default function Users() {
             {!record.avatarUrl ? getAbbreviation(text) : null}
           </Avatar>
           <Typography.Text className="user-name-ellipsis" title={text || ''}>
-            {text || '—'}
+            {text || noDataText}
           </Typography.Text>
         </Space>
       ),
     },
     {
-      title: 'SỐ ĐIỆN THOẠI',
+      title: t('users.table.columns.phone'),
       dataIndex: 'phone',
       key: 'phone',
-      render: (value) => value || '—',
+      render: (value) => value || noDataText,
     },
     {
-      title: 'ĐỊA CHỈ',
+      title: t('users.table.columns.address'),
       dataIndex: 'address',
       key: 'address',
       render: (value) => (
         <Typography.Text className="user-address-ellipsis" title={value || ''}>
-          {value || '—'}
+          {value || noDataText}
         </Typography.Text>
       ),
     },
     {
-      title: 'EMAIL',
+      title: t('users.table.columns.email'),
       dataIndex: 'email',
       key: 'email',
-      render: (value) => value || '—',
+      render: (value) => value || noDataText,
     },
     {
-      title: 'VAI TRÒ',
+      title: t('users.table.columns.role'),
       dataIndex: 'role',
       key: 'role',
       width: 150,
       align: 'center',
       render: (role) => (
         <Tag className={ROLE_CLASSNAMES[role] || 'role-tag'}>
-          {role ? getRoleLabel(role) : 'Không'}
+          {getRoleLabelByLocale(role)}
         </Tag>
       ),
     },
     {
-      title: 'TRẠNG THÁI',
+      title: t('users.table.columns.status'),
       dataIndex: 'deleted',
       key: 'deleted',
       width: 150,
       align: 'center',
       render: (deleted) => (
         <Tag className={deleted ? 'status-tag status-tag--inactive' : 'status-tag status-tag--active'} style={{ marginTop: 7}}>
-          {deleted ? 'Dừng hoạt động' : 'Hoạt động'}
+          {deleted ? t('users.status.inactive') : t('users.status.active')}
         </Tag>
       ),
     },
     {
-      title: 'THAO TÁC',
+      title: t('users.table.columns.action'),
       key: 'action',
       width: 110,
       align: 'center',
@@ -342,7 +354,7 @@ export default function Users() {
             <div className="stat-card__icon stat-card__icon--user">
               <UserOutlined />
             </div>
-            <Statistic title="Tổng số người dùng" value={stats.totalCustomers} />
+            <Statistic title={t('users.stats.totalUsers')} value={stats.totalCustomers} />
           </Card>
         </Col>
         <Col xs={24} md={12}>
@@ -350,7 +362,7 @@ export default function Users() {
             <div className="stat-card__icon stat-card__icon--vet">
               <UserOutlined />
             </div>
-            <Statistic title="Tổng số bác sĩ" value={stats.totalVeterinarians} />
+            <Statistic title={t('users.stats.totalVeterinarians')} value={stats.totalVeterinarians} />
           </Card>
         </Col>
       </Row>
@@ -359,16 +371,16 @@ export default function Users() {
         <Flex justify="space-between" align="center" className="section-header">
           <div className="section-title">
             <Typography.Title level={4} style={{ margin: 0 }}>
-              Danh sách người dùng
+              {t('users.page.title')}
             </Typography.Title>
             <Typography.Text type="secondary">
-              Quản lý tài khoản đăng ký trong hệ thống
+              {t('users.page.subtitle')}
             </Typography.Text>
           </div>
           <div className="users-table-actions">
             <Input
               className="users-search"
-              placeholder="Tìm kiếm theo tên hoặc email"
+              placeholder={t('users.search.placeholder')}
               allowClear
               value={search}
               onChange={handleSearchChange}
@@ -381,7 +393,7 @@ export default function Users() {
               options={roleFilterOptions}
               value={roleFilter}
               onChange={handleRoleFilter}
-              placeholder="Lọc theo vai trò"
+              placeholder={t('users.filters.rolePlaceholder')}
             />
           </div>
         </Flex>
@@ -391,13 +403,14 @@ export default function Users() {
           dataSource={pagedUsers}
           loading={loading}
           pagination={false}
+          locale={{ emptyText: t('users.states.empty') }}
           rowKey="id"
           scroll={{ x: 1180 }}
         />
 
         <Flex justify="space-between" align="center" className="pagination-bar">
           <Typography.Text>
-            Hiển thị {start}-{end} trên {total} người dùng
+            {t('users.pagination.summary', { start, end, total })}
           </Typography.Text>
           <Pagination
             current={current}
@@ -410,7 +423,7 @@ export default function Users() {
       </Card>
 
       <Modal
-        title="Chi tiết người dùng"
+        title={t('users.detailModal.title')}
         open={viewModalOpen}
         onCancel={() => setViewModalOpen(false)}
         footer={null}
@@ -418,28 +431,28 @@ export default function Users() {
         centered
       >
         <Descriptions bordered column={1} size="middle" className="user-detail-descriptions">
-          <Descriptions.Item label="Họ và tên">
-            {selectedUser?.fullName || '—'}
+          <Descriptions.Item label={t('users.detailModal.labels.fullName')}>
+            {selectedUser?.fullName || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Email">
-            {selectedUser?.email || '—'}
+          <Descriptions.Item label={t('users.detailModal.labels.email')}>
+            {selectedUser?.email || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Số điện thoại">
-            {selectedUser?.phone || '—'}
+          <Descriptions.Item label={t('users.detailModal.labels.phone')}>
+            {selectedUser?.phone || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Địa chỉ">
-            {selectedUser?.address || '—'}
+          <Descriptions.Item label={t('users.detailModal.labels.address')}>
+            {selectedUser?.address || noDataText}
           </Descriptions.Item>
-          <Descriptions.Item label="Vai trò">
-            {selectedUser?.role ? getRoleLabel(selectedUser.role) : 'Không'}
+          <Descriptions.Item label={t('users.detailModal.labels.role')}>
+            {getRoleLabelByLocale(selectedUser?.role)}
           </Descriptions.Item>
-          <Descriptions.Item label="Trạng thái">
-            {selectedUser?.deleted ? 'Dừng hoạt động' : 'Hoạt động'}
+          <Descriptions.Item label={t('users.detailModal.labels.status')}>
+            {selectedUser?.deleted ? t('users.status.inactive') : t('users.status.active')}
           </Descriptions.Item>
-          <Descriptions.Item label="Ngày tạo">
+          <Descriptions.Item label={t('users.detailModal.labels.createdAt')}>
             {formatDate(selectedUser?.createdAt)}
           </Descriptions.Item>
-          <Descriptions.Item label="Ngày cập nhật">
+          <Descriptions.Item label={t('users.detailModal.labels.updatedAt')}>
             {formatDate(selectedUser?.updatedAt)}
           </Descriptions.Item>
         </Descriptions>

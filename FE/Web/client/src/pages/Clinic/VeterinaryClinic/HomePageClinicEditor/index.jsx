@@ -1,13 +1,14 @@
 import { CloseOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Divider, Input, Modal, Row, Space, Typography, message, Upload } from 'antd';
+import { Button, Card, Col, Divider, Input, message, Modal, Row, Space, Typography, Upload } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
+import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
 import { useAuth } from '../../../../hooks/Clinic/AuthContext';
-import HomePageClinic from '../../../client/Home/HomePageClinic';
-import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../data/shared/api/cloudinaryUploadFetch';
-import { getClinicHomeContent, saveClinicHomeContent } from '../../../../data/client/utils/clinicHomeStorage';
-import { buildClinicHomeContent } from '../../../../data/client/utils/homePageClinicContent';
+import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../services/cloudinaryService';
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';
+import { getClinicHomeContent, saveClinicHomeContent } from '../../../../utils/storage/clinicHomeStorage';
+import HomePageClinic from '../../../client/Home/HomePageClinic';
 import './styles.css';
 
 const { TextArea } = Input;
@@ -29,6 +30,7 @@ const normalizeMapEmbedValue = (rawValue) => {
 };
 
 export default function HomePageClinicEditor() {
+  const { t } = useTranslation('clinic');
   const { clinicId: clinicIdParam = '' } = useParams();
   const navigate = useNavigate();
   const { userProfile } = useAuth();
@@ -44,7 +46,7 @@ export default function HomePageClinicEditor() {
 
   useEffect(() => {
     if (!targetClinicId) {
-      message.error('Thiếu clinicId để chỉnh sửa trang chủ phòng khám.');
+      message.error(t('homeEditor.messages.missingClinicIdEdit'));
       navigate('/clinic/appointments', { replace: true });
       return;
     }
@@ -52,17 +54,17 @@ export default function HomePageClinicEditor() {
     const nextContent = getClinicHomeContent(targetClinicId);
     setDraftContent(nextContent);
     setSavedContent(nextContent);
-  }, [targetClinicId, navigate]);
+  }, [navigate, t, targetClinicId]);
 
   useEffect(() => {
     if (!targetClinicId || !currentClinicId || deniedRef.current) return;
 
     if (String(targetClinicId) !== String(currentClinicId)) {
       deniedRef.current = true;
-      message.error('Bạn chỉ có thể chỉnh sửa trang chủ của phòng khám đang đăng nhập.');
+      message.error(t('homeEditor.messages.permissionDenied'));
       navigate('/clinic/appointments', { replace: true });
     }
-  }, [targetClinicId, currentClinicId, navigate]);
+  }, [currentClinicId, navigate, t, targetClinicId]);
 
   const isDirty = useMemo(
     () => JSON.stringify(draftContent) !== JSON.stringify(savedContent),
@@ -102,7 +104,7 @@ export default function HomePageClinicEditor() {
     }
 
     if (!isImageFile(file)) {
-      message.error('Vui lòng chọn đúng file ảnh.');
+      message.error(t('homeEditor.messages.invalidImageType'));
       return false;
     }
 
@@ -112,13 +114,13 @@ export default function HomePageClinicEditor() {
       const imageUrl = payload?.url || payload?.file || '';
 
       if (!imageUrl) {
-        throw new Error('Không nhận được URL ảnh sau khi upload.');
+        throw new Error(t('homeEditor.messages.imageUrlMissing'));
       }
 
       onSuccess(imageUrl);
-      message.success('Tải ảnh lên thành công.');
+      message.success(t('homeEditor.messages.uploadImageSuccess'));
     } catch (error) {
-      message.error(error?.message || 'Tải ảnh thất bại.');
+      message.error(error?.message || t('homeEditor.messages.uploadImageFailed'));
     } finally {
       setUploadingField('');
     }
@@ -137,7 +139,7 @@ export default function HomePageClinicEditor() {
         .map((imageUrl, index) => ({
           id: `gallery-${Date.now()}-${index}`,
           image: imageUrl,
-          alt: `Ảnh thư viện ${currentImages.length + index + 1}`,
+          alt: t('homeEditor.gallery.imageAlt', { index: currentImages.length + index + 1 }),
         }));
 
       return {
@@ -166,7 +168,7 @@ export default function HomePageClinicEditor() {
 
     const imageFiles = selectedFiles.filter(isImageFile);
     if (!imageFiles.length) {
-      message.error('Vui lòng chọn đúng file ảnh.');
+      message.error(t('homeEditor.messages.invalidImageType'));
       return;
     }
 
@@ -177,7 +179,7 @@ export default function HomePageClinicEditor() {
       const imageUrl = payload?.url || payload?.file || '';
 
       if (!imageUrl) {
-        throw new Error('Thiếu URL ảnh sau khi upload.');
+        throw new Error(t('homeEditor.messages.imageUrlMissing'));
       }
 
       return imageUrl;
@@ -193,7 +195,7 @@ export default function HomePageClinicEditor() {
 
           uploadedUrls.push(...batchUrls);
           if (batchUrls.length < imageFiles.length) {
-            failedFiles.push(...imageFiles.slice(batchUrls.length).map((file) => file.name || 'file không xác định'));
+            failedFiles.push(...imageFiles.slice(batchUrls.length).map((file) => file.name || t('homeEditor.messages.unknownFile')));
           }
         } catch {
           const settledResults = await Promise.allSettled(imageFiles.map((file) => uploadOneFile(file)));
@@ -201,7 +203,7 @@ export default function HomePageClinicEditor() {
             if (result.status === 'fulfilled' && result.value) {
               uploadedUrls.push(result.value);
             } else {
-              failedFiles.push(imageFiles[index]?.name || 'file không xác định');
+              failedFiles.push(imageFiles[index]?.name || t('homeEditor.messages.unknownFile'));
             }
           });
         }
@@ -210,7 +212,7 @@ export default function HomePageClinicEditor() {
           const imageUrl = await uploadOneFile(imageFiles[0]);
           uploadedUrls.push(imageUrl);
         } catch {
-          failedFiles.push(imageFiles[0]?.name || 'file không xác định');
+          failedFiles.push(imageFiles[0]?.name || t('homeEditor.messages.unknownFile'));
         }
       }
     } finally {
@@ -219,11 +221,11 @@ export default function HomePageClinicEditor() {
 
     if (uploadedUrls.length) {
       appendGalleryImages(uploadedUrls);
-      message.success(`Đã tải lên ${uploadedUrls.length} ảnh thư viện.`);
+      message.success(t('homeEditor.messages.galleryUploadSuccess', { count: uploadedUrls.length }));
     }
 
     if (failedFiles.length) {
-      message.warning(`Có ${failedFiles.length} ảnh tải lên thất bại.`);
+      message.warning(t('homeEditor.messages.galleryUploadFailed', { count: failedFiles.length }));
     }
   };
 
@@ -260,11 +262,11 @@ export default function HomePageClinicEditor() {
 
   const confirmRemoveDoctor = (doctorIndex) => {
     Modal.confirm({
-      title: 'Xóa bác sĩ',
-      content: 'Bạn có muốn xóa bác sĩ này không?',
-      okText: 'Xóa',
+      title: t('homeEditor.team.removeDoctorTitle'),
+      content: t('homeEditor.team.removeDoctorContent'),
+      okText: t('homeEditor.team.removeDoctorConfirm'),
       okType: 'danger',
-      cancelText: 'Hủy',
+      cancelText: t('homeEditor.actions.cancel'),
       centered: true,
       onOk: () => removeDoctor(doctorIndex),
     });
@@ -276,7 +278,7 @@ export default function HomePageClinicEditor() {
 
   const handleSave = async () => {
     if (!targetClinicId) {
-      message.error('Thiếu clinicId để lưu dữ liệu.');
+      message.error(t('homeEditor.messages.missingClinicIdSave'));
       return;
     }
 
@@ -285,7 +287,7 @@ export default function HomePageClinicEditor() {
       const normalized = cloneContent(draftContent);
       saveClinicHomeContent(targetClinicId, normalized);
       setSavedContent(normalized);
-      message.success('Lưu thành công');
+      message.success(t('homeEditor.messages.saveSuccess'));
       window.location.reload();
     } finally {
       setSaving(false);
@@ -303,10 +305,10 @@ export default function HomePageClinicEditor() {
     }
 
     Modal.confirm({
-      title: 'Xác nhận',
-      content: 'Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?',
-      okText: 'Tiếp tục chỉnh sửa',
-      cancelText: 'Hủy bỏ thay đổi',
+      title: t('homeEditor.confirm.leaveTitle'),
+      content: t('homeEditor.confirm.leaveContent'),
+      okText: t('homeEditor.confirm.continueEditing'),
+      cancelText: t('homeEditor.confirm.discardChanges'),
       centered: true,
       closable: false,
       maskClosable: false,
@@ -318,30 +320,30 @@ export default function HomePageClinicEditor() {
   return (
     <div className="clinic-home-editor-page">
       <Space direction="vertical" size={16} className="clinic-home-editor-content">
-        <Card title="Phần đầu trang">
+        <Card title={t('homeEditor.sections.hero')}>
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.hero.title}
               onChange={(event) => updateNestedField('hero', 'title', event.target.value)}
-              placeholder="Tên phòng khám và lời chào mừng"
+              placeholder={t('homeEditor.placeholders.heroTitle')}
             />
             <TextArea
               value={draftContent.hero.description}
               onChange={(event) => updateNestedField('hero', 'description', event.target.value)}
               rows={3}
-              placeholder="Slogan riêng cho phòng khám của bạn"
+              placeholder={t('homeEditor.placeholders.heroDescription')}
             />
             <Input
               value={draftContent.hero.ctaText}
               onChange={(event) => updateNestedField('hero', 'ctaText', event.target.value)}
-              placeholder="Nội dung nút CTA"
+              placeholder={t('homeEditor.placeholders.heroCtaText')}
             />
 
             <Space.Compact className="editor-image-input-row">
               <Input
                 value={draftContent.hero.bannerImage || ''}
                 onChange={(event) => updateNestedField('hero', 'bannerImage', event.target.value)}
-                placeholder="Ảnh banner đầu trang (URL hoặc đường dẫn public)"
+                placeholder={t('homeEditor.placeholders.heroBannerImage')}
               />
 
               {/* Upload Photo Banner */}
@@ -355,72 +357,72 @@ export default function HomePageClinicEditor() {
                 }}
               >
                 <Button icon={<UploadOutlined />}>
-                  Tải ảnh lên
+                  {t('homeEditor.actions.uploadImage')}
                 </Button>
               </Upload>
             </Space.Compact>
 
             {draftContent.hero.bannerImage ? (
-              <img src={draftContent.hero.bannerImage} alt="Banner đầu trang" className="editor-image-preview editor-banner-preview" />
+              <img src={draftContent.hero.bannerImage} alt={t('homeEditor.alt.heroBanner')} className="editor-image-preview editor-banner-preview" />
             ) : null}
           </Space>
         </Card>
 
-        <Card title="Giới thiệu bệnh viện">
+        <Card title={t('homeEditor.sections.about')}>
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.about.label}
               onChange={(event) => updateNestedField('about', 'label', event.target.value)}
-              placeholder="Nhãn phần giới thiệu"
+              placeholder={t('homeEditor.placeholders.aboutLabel')}
             />
             <Input
               value={draftContent.about.title}
               onChange={(event) => updateNestedField('about', 'title', event.target.value)}
-              placeholder="Tiêu đề phần giới thiệu"
+              placeholder={t('homeEditor.placeholders.aboutTitle')}
             />
             <TextArea
               value={draftContent.about.description}
               onChange={(event) => updateNestedField('about', 'description', event.target.value)}
               rows={6}
-              placeholder="Nội dung giới thiệu"
+              placeholder={t('homeEditor.placeholders.aboutDescription')}
             />
             <Row gutter={12}>
               <Col xs={24} md={12}>
                 <Input
                   value={draftContent.about.highlightNumber}
                   onChange={(event) => updateNestedField('about', 'highlightNumber', event.target.value)}
-                  placeholder="Số năm thành lập phòng khám của bạn"
+                  placeholder={t('homeEditor.placeholders.aboutHighlightNumber')}
                 />
               </Col>
               <Col xs={24} md={12}>
                 <Input
                   value={draftContent.about.highlightLabel}
                   onChange={(event) => updateNestedField('about', 'highlightLabel', event.target.value)}
-                  placeholder="Số chi nhánh phòng khám của bạn"
+                  placeholder={t('homeEditor.placeholders.aboutHighlightLabel')}
                 />
               </Col>
             </Row>
           </Space>
         </Card>
 
-        <Card title="Thư viện ảnh">
+        <Card title={t('homeEditor.sections.gallery')}>
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.gallerySection.title}
               onChange={(event) => updateNestedField('gallerySection', 'title', event.target.value)}
-              placeholder="Tiêu đề thư viện ảnh"
+              placeholder={t('homeEditor.placeholders.galleryTitle')}
             />
             <TextArea
               value={draftContent.gallerySection.subtitle}
               onChange={(event) => updateNestedField('gallerySection', 'subtitle', event.target.value)}
               rows={2}
-              placeholder="Mô tả thư viện ảnh"
+              placeholder={t('homeEditor.placeholders.gallerySubtitle')}
             />
 
             {/* Upload Photo Library   */}
             <label className="ant-btn ant-btn-default editor-upload-button editor-gallery-upload-button">
               <UploadOutlined />
-              <span>{isFieldUploading('gallery-images') ? 'Đang tải...' : 'Tải ảnh thư viện'}</span>
+              <span>{isFieldUploading('gallery-images') ? t('homeEditor.actions.uploading') : t('homeEditor.actions.uploadGalleryImages')}</span>
               <input
                 type="file"
                 accept="image/*"
@@ -443,26 +445,26 @@ export default function HomePageClinicEditor() {
                         type="button"
                         className="editor-remove-image-button"
                         onClick={() => removeGalleryImage(index)}
-                        aria-label={`Xóa ảnh thư viện ${index + 1}`}
+                        aria-label={t('homeEditor.gallery.removeImageAria', { index: index + 1 })}
                       >
                         <CloseOutlined />
                       </button>
-                      <img src={item.image} alt={item.alt || `Ảnh thư viện ${index + 1}`} className="editor-gallery-preview-image" />
+                      <img src={item.image} alt={item.alt || t('homeEditor.gallery.imageAlt', { index: index + 1 })} className="editor-gallery-preview-image" />
                     </div>
                   ))}
               </div>
             ) : (
-              <div className="editor-gallery-empty">Chưa có ảnh thư viện. Hãy tải ảnh lên để hiển thị tại đây.</div>
+              <div className="editor-gallery-empty">{t('homeEditor.gallery.empty')}</div>
             )}
           </Space>
         </Card>
 
         <div ref={teamSectionRef}>
           <Card
-            title="Đội ngũ bác sĩ"
+            title={t('homeEditor.sections.team')}
             extra={
               <Button type="dashed" onClick={addDoctor}>
-                Thêm bác sĩ
+                {t('homeEditor.team.addDoctor')}
               </Button>
             }
           >
@@ -470,16 +472,16 @@ export default function HomePageClinicEditor() {
             <Input
               value={draftContent.teamSection.title}
               onChange={(event) => updateNestedField('teamSection', 'title', event.target.value)}
-              placeholder="Tiêu đề khối đội ngũ"
+              placeholder={t('homeEditor.placeholders.teamTitle')}
             />
             {draftContent.doctors.map((doctor, index) => (
               <Card
                 key={doctor.id || index}
                 size="small"
-                title={`Bác sĩ ${index + 1}`}
+                title={t('homeEditor.team.doctorCardTitle', { index: index + 1 })}
                 extra={
                   <Button type="text" danger onClick={() => confirmRemoveDoctor(index)}>
-                    Xóa
+                    {t('homeEditor.team.removeDoctorConfirm')}
                   </Button>
                 }
               >
@@ -487,13 +489,13 @@ export default function HomePageClinicEditor() {
                   <Input
                     value={doctor.name}
                     onChange={(event) => updateListField('doctors', index, 'name', event.target.value)}
-                    placeholder="Tên bác sĩ"
+                    placeholder={t('homeEditor.placeholders.doctorName')}
                   />
                   <Space.Compact className="editor-image-input-row">
                     <Input
                       value={doctor.image}
                       onChange={(event) => updateListField('doctors', index, 'image', event.target.value)}
-                      placeholder="Ảnh bác sĩ"
+                      placeholder={t('homeEditor.placeholders.doctorImage')}
                     />
 
                     {/* Upload Image for Doctor */}
@@ -508,7 +510,7 @@ export default function HomePageClinicEditor() {
                       }
                     >
                       <Button icon={<UploadOutlined />} disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)}>
-                        <span>{isFieldUploading(`doctor-image-${index}`) ? 'Đang tải...' : 'Tải ảnh'}</span>
+                        <span>{isFieldUploading(`doctor-image-${index}`) ? t('homeEditor.actions.uploading') : t('homeEditor.actions.uploadImage')}</span>
                       </Button>
                     </Upload>
                   </Space.Compact>
@@ -519,11 +521,11 @@ export default function HomePageClinicEditor() {
                         type="button"
                         className="editor-remove-image-button"
                         onClick={() => removeDoctorImage(index)}
-                        aria-label={`Xóa ảnh bác sĩ ${index + 1}`}
+                        aria-label={t('homeEditor.team.removeDoctorImageAria', { index: index + 1 })}
                       >
                         <CloseOutlined />
                       </button>
-                      <img src={doctor.image} alt={doctor.name || `Bác sĩ ${index + 1}`} className="editor-image-preview" />
+                      <img src={doctor.image} alt={doctor.name || t('homeEditor.team.doctorCardTitle', { index: index + 1 })} className="editor-image-preview" />
                     </div>
                   ) : null}
                 </Space>
@@ -533,46 +535,46 @@ export default function HomePageClinicEditor() {
           </Card>
         </div>
 
-        <Card title="Địa chỉ phòng khám (Google Maps)">
+        <Card title={t('homeEditor.sections.location')}>
           <Space direction="vertical" size={12} className="editor-full-width">
             <Input
               value={draftContent.locationSection.title}
               onChange={(event) => updateNestedField('locationSection', 'title', event.target.value)}
-              placeholder="Tiêu đề phần địa chỉ"
+              placeholder={t('homeEditor.placeholders.locationTitle')}
             />
             <TextArea
               value={draftContent.locationSection.subtitle}
               onChange={(event) => updateNestedField('locationSection', 'subtitle', event.target.value)}
               rows={2}
-              placeholder="Mô tả ngắn"
+              placeholder={t('homeEditor.placeholders.locationSubtitle')}
             />
             <Input
               value={draftContent.locationSection.address}
               onChange={(event) => updateNestedField('locationSection', 'address', event.target.value)}
-              placeholder="Địa chỉ hiển thị"
+              placeholder={t('homeEditor.placeholders.locationAddress')}
             />
             <Input
               value={draftContent.locationSection.mapEmbedUrl}
               onChange={(event) =>
                 updateNestedField('locationSection', 'mapEmbedUrl', normalizeMapEmbedValue(event.target.value))
               }
-              placeholder="Dán link nhúng Google Maps hoặc cả đoạn iframe"
+              placeholder={t('homeEditor.placeholders.locationMapEmbed')}
             />
           </Space>
         </Card>
       </Space>
 
       <div className="clinic-home-editor-actions">
-        <Button onClick={handleCancel}>Hủy</Button>
+        <Button onClick={handleCancel}>{t('homeEditor.actions.cancel')}</Button>
         <Button type="primary" onClick={handleSave} loading={saving}>
-          Lưu thay đổi
+          {t('homeEditor.actions.saveChanges')}
         </Button>
       </div>
 
       <Divider />
 
       <div className="clinic-home-preview-block">
-        <Title level={3}>Xem trước trang chủ sau khi lưu</Title>
+        <Title level={3}>{t('homeEditor.preview.title')}</Title>
         <HomePageClinic clinicId={targetClinicId} forcedContent={draftContent} showBookingButton={false} />
       </div>
     </div>

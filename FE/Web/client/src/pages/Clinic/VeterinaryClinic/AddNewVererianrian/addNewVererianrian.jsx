@@ -1,36 +1,37 @@
-import { useState } from 'react'
 import {
-	Avatar,
-	Button,
-	Card,
-	Col,
-	Form,
-	Input,
-	Modal,
-	Row,
-	Select,
-	Space,
-	message,
-	Upload,
-} from 'antd'
-import {
-	CameraOutlined,
-	EnvironmentOutlined,
-	EyeInvisibleOutlined,
-	EyeTwoTone,
-	LockOutlined,
-	MailOutlined,
-	PhoneOutlined,
-	SaveOutlined,
-	UserOutlined,
+    CameraOutlined,
+    EnvironmentOutlined,
+    EyeInvisibleOutlined,
+    EyeTwoTone,
+    LockOutlined,
+    MailOutlined,
+    PhoneOutlined,
+    SaveOutlined,
+    UserOutlined,
 } from '@ant-design/icons'
+import {
+    Avatar,
+    Button,
+    Card,
+    Col,
+    Form,
+    Input,
+    message,
+    Modal,
+    Row,
+    Select,
+    Space,
+    Upload,
+} from 'antd'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { uploadUserImageApi, updateUserProfileApi } from '../../../../data/Clinic/api/user'
 import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
+import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
+import { getAdminInstance } from '../../../../services/apiClient'
+import { updateUserProfileApi, uploadUserImageApi } from '../../../../services/userService'
 import styles from './addNewVererianrian.module.css'
 
-const specialtyOptions = getSpecialtyOptions('vi')
 const passwordPolicyRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
 
 const defaultFormValues = {
@@ -43,6 +44,7 @@ const defaultFormValues = {
 }
 
 export default function AddNewVererianrian() {
+	const { t, i18n } = useTranslation('clinic')
 	const navigate = useNavigate()
 	const [form] = Form.useForm()
 	const [messageApi, contextHolder] = message.useMessage()
@@ -52,6 +54,7 @@ export default function AddNewVererianrian() {
 	const [avatarPreview, setAvatarPreview] = useState('')
 	const [avatarUploading, setAvatarUploading] = useState(false)
 	const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState('')
+	const specialtyOptions = useMemo(() => getSpecialtyOptions(), [i18n.language])
 
 	const navigateToListWithFlash = (text) => {
 		sessionStorage.setItem('veterinarianFlashMessage', text)
@@ -60,7 +63,7 @@ export default function AddNewVererianrian() {
 
 	const handleSubmit = async (values) => {
 		if (avatarUploading) {
-			messageApi.warning('Ảnh đang được tải lên, vui lòng đợi')
+			messageApi.warning(t('veterinarians.add.messages.avatarUploading'))
 			return
 		}
 
@@ -81,7 +84,7 @@ export default function AddNewVererianrian() {
 			})
 
 			if (!created?.userId) {
-				throw new Error('Tạo bác sĩ thành công nhưng không nhận được userId')
+				throw new Error(t('veterinarians.add.messages.missingUserId'))
 			}
 
 			// Bước 2: Cập nhật SĐT, địa chỉ, avatar qua PUT /user/{id}
@@ -90,21 +93,21 @@ export default function AddNewVererianrian() {
 				if (uploadedAvatarUrl) {
 					updateData.avatarUrl = uploadedAvatarUrl
 				}
-				await updateUserProfileApi(created.userId, updateData)
+				await updateUserProfileApi(getAdminInstance(), created.userId, updateData)
 			} catch (updateError) {
 				// Rollback: xóa bác sĩ vừa tạo để tránh dữ liệu rỗng
 				try {
 					await removeVeterinarian(created.userId)
 				} catch {
 					// Nếu rollback cũng thất bại
-					throw new Error('Cập nhật thông tin thất bại và không thể tự hủy tài khoản. Vui lòng xóa thủ công bác sĩ vừa tạo.')
+					throw new Error(t('veterinarians.add.messages.rollbackFailed'))
 				}
-				throw new Error('Không thể cập nhật SĐT/địa chỉ. Tài khoản đã được hủy, vui lòng thử lại.')
+				throw new Error(t('veterinarians.add.messages.contactUpdateFailed'))
 			}
 
-			navigateToListWithFlash('Thêm bác sĩ mới thành công')
+			navigateToListWithFlash(t('veterinarians.add.messages.addSuccess'))
 		} catch (error) {
-			messageApi.error(error.message || 'Không thể lưu thông tin bác sĩ')
+			messageApi.error(error.message || t('veterinarians.add.messages.saveFailed'))
 		} finally {
 			setIsSubmitting(false)
 		}
@@ -126,7 +129,7 @@ export default function AddNewVererianrian() {
 			await handleSubmit(values)
 		} catch (error) {
 			if (error?.errorFields) return
-			messageApi.error(error.message || 'Không thể lưu thông tin bác sĩ')
+			messageApi.error(error.message || t('veterinarians.add.messages.saveFailed'))
 		}
 	}
 
@@ -137,10 +140,10 @@ export default function AddNewVererianrian() {
 		}
 
 		Modal.confirm({
-			title: 'Bạn muốn thoát thay đổi?',
-			content: 'Bạn đang nhập thông tin. Chọn "Lưu thông tin" để lưu, hoặc "Thoát không lưu".',
-			okText: 'Lưu thông tin',
-			cancelText: 'Thoát không lưu',
+			title: t('veterinarians.add.confirmDiscard.title'),
+			content: t('veterinarians.add.confirmDiscard.content'),
+			okText: t('veterinarians.add.confirmDiscard.okText'),
+			cancelText: t('veterinarians.add.confirmDiscard.cancelText'),
 			onOk: saveProfileWithValidation,
 			onCancel: () => {
 				navigate('/clinic/veterinarians')
@@ -160,16 +163,16 @@ export default function AddNewVererianrian() {
 			const avatarUrl = uploaded?.url || uploaded?.file || uploaded?.secure_url || uploaded?.data?.url || ''
 
 			if (!avatarUrl) {
-				throw new Error('Không nhận được URL ảnh từ server')
+				throw new Error(t('veterinarians.add.messages.avatarUrlMissing'))
 			}
 
 			setUploadedAvatarUrl(avatarUrl)
-			messageApi.success('Tải ảnh đại diện thành công')
+			messageApi.success(t('veterinarians.add.messages.avatarUploadSuccess'))
 		} catch (error) {
 			setAvatarFile(null)
 			setAvatarPreview('')
 			setUploadedAvatarUrl('')
-			messageApi.error(error.message || 'Không thể tải ảnh đại diện')
+			messageApi.error(error.message || t('veterinarians.add.messages.avatarUploadFailed'))
 		} finally {
 			setAvatarUploading(false)
 		}
@@ -188,7 +191,7 @@ export default function AddNewVererianrian() {
 		<div className={styles.page}>
 			{contextHolder}
 			<header className={styles.topBar}>
-				<h1 style={{fontSize: 24, fontWeight: 'bold'}}>Thêm mới bác sĩ</h1>
+				<h1 style={{fontSize: 24, fontWeight: 'bold'}}>{t('veterinarians.add.pageTitle')}</h1>
 			</header>
 
 			<section className={styles.content}>
@@ -212,7 +215,7 @@ export default function AddNewVererianrian() {
 						</Upload>
 					</div>
 
-					<h2>{fullNamePreview || 'Tên'}</h2>
+					<h2>{fullNamePreview || t('veterinarians.add.defaultName')}</h2>
 
 					<Form
 						layout="vertical"
@@ -225,52 +228,52 @@ export default function AddNewVererianrian() {
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="fullName"
-									label="Tên"
-									rules={[{ required: true, message: 'Vui lòng nhập tên bác sĩ' }]}
+									label={t('veterinarians.fields.name')}
+									rules={[{ required: true, message: t('veterinarians.validation.nameRequired') }]}
 								>
-									<Input prefix={<UserOutlined />} placeholder="Nhập tên bác sĩ" />
+									<Input prefix={<UserOutlined />} placeholder={t('veterinarians.add.placeholders.name')} />
 								</Form.Item>
 							</Col>
 
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="specialty"
-									label="Chuyên khoa"
-									rules={[{ required: true, message: 'Vui lòng chọn chuyên khoa' }]}
+									label={t('veterinarians.fields.specialty')}
+									rules={[{ required: true, message: t('veterinarians.validation.specialtyRequired') }]}
 								>
-									<Select  size="large" options={specialtyOptions} placeholder="Chọn chuyên khoa"/>
+									<Select  size="large" options={specialtyOptions} placeholder={t('veterinarians.add.placeholders.specialty')}/>
 								</Form.Item>
 							</Col>
 
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="email"
-									label="Email"
+									label={t('veterinarians.fields.email')}
 									rules={[
-										{ required: true, message: 'Vui lòng nhập email' },
-										{ type: 'email', message: 'Email không đúng định dạng' },
+										{ required: true, message: t('veterinarians.validation.emailRequired') },
+										{ type: 'email', message: t('veterinarians.validation.emailInvalid') },
 									]}
 								>
-									<Input prefix={<MailOutlined />} placeholder="example@email.com" />
+									<Input prefix={<MailOutlined />} placeholder={t('veterinarians.add.placeholders.email')} />
 								</Form.Item>
 							</Col>
 
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="password"
-									label="Mật khẩu"
+									label={t('veterinarians.fields.password')}
 									rules={[
-										{ required: true, message: 'Vui lòng nhập mật khẩu' },
-										{ min: 6, message: 'Mật khẩu tối thiểu là 6 ký tự' },
+										{ required: true, message: t('veterinarians.validation.passwordRequired') },
+										{ min: 6, message: t('veterinarians.validation.passwordMin') },
 										{
 											pattern: passwordPolicyRegex,
-											message: 'Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số',
+											message: t('veterinarians.validation.passwordPolicy'),
 										},
 									]}
 								>
 									<Input.Password
 										prefix={<LockOutlined />}
-										placeholder="Nhập mật khẩu"
+										placeholder={t('veterinarians.add.placeholders.password')}
 										iconRender={(visible) => (visible ? <EyeTwoTone /> : <EyeInvisibleOutlined />)}
 									/>
 								</Form.Item>
@@ -279,33 +282,33 @@ export default function AddNewVererianrian() {
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="phone"
-									label="Số điện thoại"
+									label={t('veterinarians.fields.phone')}
 									rules={[
-										{ required: true, message: 'Vui lòng nhập số điện thoại' },
+										{ required: true, message: t('veterinarians.validation.phoneRequired') },
 										{
 											pattern: /^0\d{9}$/,
-											message: 'Số điện thoại phải đúng 10 số (VD: 0901234567)',
+											message: t('veterinarians.validation.phoneFormat'),
 										},
 									]}
 								>
-									<Input prefix={<PhoneOutlined />} placeholder="Nhập số điện thoại" />
+									<Input prefix={<PhoneOutlined />} placeholder={t('veterinarians.add.placeholders.phone')} />
 								</Form.Item>
 							</Col>
 
 							<Col xs={24} md={12}>
 								<Form.Item
 									name="address"
-									label="Địa chỉ"
-									rules={[{ required: true, message: 'Vui lòng nhập địa chỉ' }]}
+									label={t('veterinarians.fields.address')}
+									rules={[{ required: true, message: t('veterinarians.validation.addressRequired') }]}
 								>
-									<Input prefix={<EnvironmentOutlined />} placeholder="Nhập địa chỉ" />
+									<Input prefix={<EnvironmentOutlined />} placeholder={t('veterinarians.add.placeholders.address')} />
 								</Form.Item>
 							</Col>
 						</Row>
 
 						<div className={styles.formActions}>
 							<Space>
-								<Button onClick={handleCancel} disabled={saving || isSubmitting || avatarUploading}>Hủy</Button>
+								<Button onClick={handleCancel} disabled={saving || isSubmitting || avatarUploading}>{t('veterinarians.common.cancel')}</Button>
 								<Button
 									type="primary"
 									htmlType="submit"
@@ -313,7 +316,7 @@ export default function AddNewVererianrian() {
 									loading={saving || isSubmitting}
 									disabled={avatarUploading}
 								>
-									{avatarUploading ? 'Đang tải ảnh...' : 'Thêm bác sĩ'}
+									{avatarUploading ? t('veterinarians.common.uploadingImage') : t('veterinarians.add.submitButton')}
 								</Button>
 							</Space>
 						</div>

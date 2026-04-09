@@ -1,29 +1,32 @@
-import { useEffect, useMemo, useState } from 'react'
-import { message } from 'antd'
-import { FaBell, FaEnvelope, FaPhone, FaPlus } from 'react-icons/fa'
-import { useNavigate } from 'react-router-dom'
-import useVeterinarians from '../../../../data/Clinic/api/useVeterinarians'
-import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels'
-import styles from './vererianrianManagement.module.css'
 import { SearchOutlined } from '@ant-design/icons'
+import { message } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { FaEnvelope, FaPhone, FaPlus } from 'react-icons/fa'
+import { useNavigate } from 'react-router-dom'
+import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
+import styles from './vererianrianManagement.module.css'
 
 const PAGE_SIZE = 12
-
-const filterItems = [
-	{ label: 'Tất cả bác sĩ', specialty: '' },
-	{ label: getSpecialtyLabel('INTERNAL_MEDICINE', 'vi'), specialty: 'INTERNAL_MEDICINE' },
-	{ label: getSpecialtyLabel('SURGERY', 'vi'), specialty: 'SURGERY' },
-	{ label: getSpecialtyLabel('ULTRASOUND', 'vi'), specialty: 'ULTRASOUND' },
-	{ label: getSpecialtyLabel('VACCINATION_AND_PREVENTION', 'vi'), specialty: 'VACCINATION_AND_PREVENTION' },
-]
 
 const defaultDoctorImage =
 	'https://images.unsplash.com/photo-1612531386530-97286d97c2d2?auto=format&fit=crop&w=960&q=80'
 
 export default function VeterinarianManagement() {
+	const { t } = useTranslation('clinic')
 	const navigate = useNavigate()
 	const [messageApi, contextHolder] = message.useMessage()
-	const [selectedFilter, setSelectedFilter] = useState(filterItems[0].specialty)
+	const filterItems = useMemo(
+		() => [
+			{ label: t('veterinarians.management.filters.all'), specialty: '' },
+			{ label: t('veterinarians.management.filters.internalMedicine'), specialty: 'INTERNAL_MEDICINE' },
+			{ label: t('veterinarians.management.filters.surgery'), specialty: 'SURGERY' },
+			{ label: t('veterinarians.management.filters.ultrasound'), specialty: 'ULTRASOUND' },
+			{ label: t('veterinarians.management.filters.vaccination'), specialty: 'VACCINATION_AND_PREVENTION' },
+		],
+		[t],
+	)
+	const [selectedFilter, setSelectedFilter] = useState('')
 	const [searchValue, setSearchValue] = useState('')
 	const [debouncedSearch, setDebouncedSearch] = useState('')
 	const [currentPage, setCurrentPage] = useState(1)
@@ -62,15 +65,22 @@ export default function VeterinarianManagement() {
 	const doctors = useMemo(() => {
 		return veterinarians.map((item) => ({
 			userId: item?.userId,
-			name: item?.user?.fullName || 'Chưa cập nhật',
-			specialty: getSpecialtyLabel(item?.specialty, 'vi'),
-			phone: item?.user?.phone || 'Chưa cập nhật',
-			email: item?.user?.email || 'Chưa cập nhật',
+			name: item?.user?.fullName || t('veterinarians.common.notUpdated'),
+			specialty: item?.specialty
+				? t(`enums.veterinarySpecialty.${item.specialty}`, {
+					defaultValue: t('veterinarians.common.notUpdated'),
+				})
+				: t('veterinarians.common.notUpdated'),
+			phone: item?.user?.phone || t('veterinarians.common.notUpdated'),
+			email: item?.user?.email || t('veterinarians.common.notUpdated'),
+			status: item?.user?.deleted
+				? t('veterinarians.management.status.inactive')
+				: t('veterinarians.management.status.active'),
 			statusType: item?.user?.deleted ? 'leave' : 'ready',
 			image: item?.user?.avatarUrl || defaultDoctorImage,
 			raw: item,
 		}))
-	}, [veterinarians])
+	}, [t, veterinarians])
 
 	const handleOpenInformation = (doctor) => {
 		sessionStorage.setItem('selectedVeterinarian', JSON.stringify(doctor.raw))
@@ -87,7 +97,7 @@ export default function VeterinarianManagement() {
 					<SearchOutlined />
 					<input
 						type="text"
-						placeholder="Tìm kiếm bác sĩ theo tên, email..."
+						placeholder={t('veterinarians.management.searchPlaceholder')}
 						value={searchValue}
 						onChange={(event) => setSearchValue(event.target.value)}
 					/>
@@ -98,8 +108,8 @@ export default function VeterinarianManagement() {
 				<div className={styles.stickyPanel}>
 					<div className={styles.titleRow}>
 						<div>
-							<h1 style={{fontSize: 25, fontWeight: 'bold'}}>Đội ngũ Bác sĩ</h1>
-							<p>Quản lý danh sách bác sĩ của phòng khám.</p>
+							<h1 style={{fontSize: 25, fontWeight: 'bold'}}>{t('veterinarians.management.title')}</h1>
+							<p>{t('veterinarians.management.subtitle')}</p>
 						</div>
 
 						<button
@@ -107,7 +117,7 @@ export default function VeterinarianManagement() {
 							className={styles.addButton}
 							onClick={() => navigate('/clinic/veterinarians/add-new')}
 						>
-							<FaPlus /> Thêm bác sĩ mới
+							<FaPlus /> {t('veterinarians.management.addButton')}
 						</button>
 					</div>
 
@@ -128,13 +138,13 @@ export default function VeterinarianManagement() {
 
 				<div className={styles.cardGrid}>
 					{loading && (
-						<div className={styles.stateText}>Đang tải danh sách bác sĩ...</div>
+						<div className={styles.stateText}>{t('veterinarians.management.states.loading')}</div>
 					)}
 
 					{!loading && error && <div className={styles.stateText}>{error}</div>}
 
 					{!loading && !error && doctors.length === 0 && (
-						<div className={styles.stateText}>Không có bác sĩ phù hợp với bộ lọc hiện tại</div>
+						<div className={styles.stateText}>{t('veterinarians.management.states.empty')}</div>
 					)}
 
 					{!loading &&
@@ -180,10 +190,13 @@ export default function VeterinarianManagement() {
 						onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
 						disabled={loading || currentPage <= 1}
 					>
-						Trang trước
+						{t('veterinarians.management.pagination.prev')}
 					</button>
 					<span className={styles.paginationText}>
-						Trang {pagination.currentPage || currentPage}/{pagination.totalPages || 1}
+						{t('veterinarians.management.pagination.summary', {
+							current: pagination.currentPage || currentPage,
+							total: pagination.totalPages || 1,
+						})}
 					</span>
 					<button
 						type="button"
@@ -195,7 +208,7 @@ export default function VeterinarianManagement() {
 						}
 						disabled={loading || currentPage >= (pagination.totalPages || 1)}
 					>
-						Trang sau
+						{t('veterinarians.management.pagination.next')}
 					</button>
 				</div>
 			</section>

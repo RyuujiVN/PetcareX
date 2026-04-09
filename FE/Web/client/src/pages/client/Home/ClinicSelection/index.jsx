@@ -1,12 +1,15 @@
-﻿import { useEffect, useRef, useState } from "react";
-import { message, Spin } from "antd";
+﻿import { message, Spin } from "antd";
+import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getClinicByIdApi, getClinicListApi } from "../../../../data/client/api/clinicApi";
-import { getClinicInfoContent } from "../../../../data/client/utils/clinicInfoStorage";
+import { getClientInstance } from "../../../../services/apiClient";
+import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
+import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
 export default function ClinicSelection() {
+  const { t } = useTranslation();
   const [clinics, setClinics] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
@@ -19,7 +22,7 @@ export default function ClinicSelection() {
     const fetchClinics = async () => {
       try {
         setLoading(true);
-        const response = await getClinicListApi(1, 50, "");
+        const response = await getClinicListApi(getClientInstance(), 1, 50, "");
         const clinicItems = Array.isArray(response?.items) ? response.items : [];
 
         if (!mounted) return;
@@ -37,7 +40,7 @@ export default function ClinicSelection() {
 
         setClinics(normalized);
       } catch (error) {
-        message.error(error.message || "Không thể tải danh sách phòng khám");
+        message.error(error.message || t("pages.home.clinicSelection.loadListFailed"));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -77,7 +80,7 @@ useEffect(() => {
   const handleChoose = async (clinic) => {
     try {
       setLoading(true);
-      const clinicDetail = await getClinicByIdApi(clinic.id);
+      const clinicDetail = await getClinicByIdApi(getClientInstance(), clinic.id);
       const clinicInfo = getClinicInfoContent(clinic.id, clinicDetail || clinic);
       sessionStorage.setItem("selectedClinicId", String(clinic.id));
 
@@ -91,7 +94,7 @@ useEffect(() => {
         },
       });
     } catch (error) {
-      message.error(error.message || "Không thể tải chi tiết phòng khám");
+      message.error(error.message || t("pages.home.clinicSelection.loadDetailFailed"));
     } finally {
       setLoading(false);
     }
@@ -100,7 +103,7 @@ useEffect(() => {
   return (
     <div className="clinic-page">
       <div className="clinic-header">
-        <h2>Danh sách phòng khám đối tác</h2>
+        <h2>{t("pages.home.clinicSelection.title")}</h2>
 
         <div className="search-form">
           <div className="search-input-wrapper">
@@ -109,7 +112,7 @@ useEffect(() => {
             <input
               type="text"
               className="clinic-search"
-              placeholder="Tìm kiếm theo tên"
+              placeholder={t("pages.home.clinicSelection.searchPlaceholder")}
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
             />
@@ -148,7 +151,7 @@ useEffect(() => {
 
                 {clinic.phone ? (
                   <p className="clinic-phone" title={clinic.phone}> 
-                   <p>SĐT: {clinic.phone}</p>
+                   <p>{t("common.labels.phone")}: {clinic.phone}</p>
                   </p>
                 ) : null}
               </div>
@@ -156,7 +159,7 @@ useEffect(() => {
                 className="btn-choose"
                 onClick={() => handleChoose(clinic)}
               >
-                Chọn
+                {t("pages.home.clinicSelection.chooseButton")}
               </button>
             </div>
           ))}

@@ -6,7 +6,7 @@ PetCareX Web Client là ứng dụng frontend cho 3 nhóm người dùng chính:
 - Admin Clinic Portal: Quản lý phòng khám (quản lý lịch hẹn, bác sĩ, hồ sơ khám).
 - Veterinarian Portal: Bác sĩ thú y (quản lý lịch, lập phiếu khám, xem hồ sơ bệnh án).
 
-Dự án được xây dựng theo kiến trúc route-based, tách khá rõ theo từng portal trong `src/pages`, `src/layouts`, `src/data`, `src/hooks`.
+Dự án được xây dựng theo kiến trúc route-based, tách theo từng portal trong `src/pages`, `src/layouts`, đồng thời chuẩn hóa lớp dùng chung theo `src/services`, `src/hooks`, `src/utils`, `src/constants`, `src/config`.
 
 ## Tech Stack
 - Frontend core: React 19 + Vite 7.
@@ -18,6 +18,79 @@ Dự án được xây dựng theo kiến trúc route-based, tách khá rõ theo
 - Markdown rendering: `react-markdown` + `remark-gfm`.
 - Social auth: Firebase Web SDK (`firebase/app`, `firebase/auth`, `firebase/analytics`).
 - Styling: CSS Modules + CSS page-level + token CSS variables.
+
+## Chuẩn hóa cấu trúc thư mục (2026-04-07, cập nhật 2026-04-09)
+
+### Cấu trúc chuẩn hiện tại (rút gọn)
+- `src/services/`: API calls và business orchestration (notification aggregation, AI diagnosis, Google auth bridge).
+- `src/hooks/`: custom hooks theo role/domain (`client`, `Clinic`, ...).
+- `src/config/`: cấu hình tích hợp (Firebase) và static content config theo module.
+- `src/utils/`: utility thuần; riêng nhóm lưu trữ đặt trong `src/utils/storage/`.
+- `src/constants/`: enum labels, auth storage keys, role mapping, magic values.
+- `src/components/`: shared UI components.
+- `src/pages/`, `src/layouts/`, `src/routes/`: route-level screens, layout và router.
+- `src/data/`: **đã loại bỏ hoàn toàn** — folder đã xóa khỏi repo, không được tái tạo.
+
+### Refactor loại bỏ trùng lặp data/ vs services/ (2026-04-09)
+Lần refactor này xóa 2 file dead code trong `src/data/` vốn trùng hoàn toàn với bản chính:
+- `data/client/utils/clientGoogleAuth.js` → bản chính: `services/clientGoogleAuthService.js`
+- `data/client/utils/clinicHomeStorage.js` → bản chính: `utils/storage/clinicHomeStorage.js`
+
+Không có consumer nào import từ `data/`, nên không cần cập nhật import. Folder `src/data/` đã xóa hoàn toàn.
+
+### Danh sách services hiện tại
+| File | Mô tả |
+|---|---|
+| `apiClient.js` | Axios instance factory (client/admin/vet) |
+| `appointmentService.js` | CRUD lịch hẹn |
+| `appointmentDiagnosisService.js` | AI diagnosis cho phiếu khám |
+| `authService.js` | Login, register, Google OAuth API |
+| `chatService.js` | Chat rooms & messages |
+| `clientGoogleAuthService.js` | Google auth orchestration (Firebase → BE) |
+| `clinicService.js` | CRUD phòng khám |
+| `cloudinaryService.js` | Upload ảnh Cloudinary |
+| `forumService.js` | Diễn đàn |
+| `invoiceService.js` | Hóa đơn |
+| `medicalService.js` | Hồ sơ y tế & phiếu khám |
+| `notificationService.js` | Thông báo |
+| `petService.js` | CRUD thú cưng |
+| `userService.js` | User profile |
+| `veterinarianService.js` | CRUD bác sĩ thú y |
+
+### Quy ước thêm file mới
+1. Endpoint REST/HTTP mới phải đặt trong `src/services/<domain>Service.js`.
+2. Business flow tổng hợp nhiều service (không phải UI) đặt ở `src/services/`.
+3. Custom hook đặt ở `src/hooks/<RoleOrDomain>/`.
+4. Static config hoặc third-party bootstrap đặt ở `src/config/`.
+5. Local/session storage helper đặt ở `src/utils/storage/`.
+6. **Tuyệt đối không tạo file trong `src/data/`** — folder này đã bị xóa và không được tái tạo dưới bất kỳ hình thức nào.
+7. Mọi lần di chuyển file phải cập nhật import và chạy build để xác nhận không vỡ luồng.
+
+### Chuẩn hóa ngày giờ hiển thị (cập nhật 2026-04-07)
+
+Để đồng nhất với chuẩn thông báo (notification), toàn bộ màn hình **Clinic Portal** và **Veterinarian Portal** đã chuyển sang dùng utility chung:
+
+- `src/utils/dateTimeFormat.js`
+  - `formatDateDDMMYYYY(value, fallback)` -> chuẩn `DD-MM-YYYY` (có số 0 đầu)
+  - `formatTimeHHMM(value, fallback)` -> chuẩn `HH:mm` (có số 0 đầu, xử lý cả dữ liệu có giây)
+
+#### Quy ước bắt buộc khi hiển thị ngày giờ
+1. Không format trực tiếp bằng `new Date(...).toLocaleDateString('vi-VN')` trong page components của Clinic/Veterinarian.
+2. Không cắt giờ thủ công bằng `.slice(0, 5)` để tránh lệch format khi backend trả về dữ liệu khác chuẩn.
+3. Luôn dùng helper từ `src/utils/dateTimeFormat.js` để bảo đảm đồng nhất UI giữa các màn.
+4. Notification cache cũ trong `localStorage` được tự normalize lại khi mở app qua `src/hooks/useNotificationSocket.js` để chuyển các mô tả lịch hẹn từ ISO/raw string sang chuẩn `DD-MM-YYYY` và `HH:mm`.
+
+#### Các màn hình đã migrate sang formatter chung
+- `src/pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement.jsx`
+- `src/pages/Clinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian.jsx`
+- `src/pages/Clinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords.jsx`
+- `src/pages/Clinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords.jsx`
+- `src/pages/Clinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords.jsx`
+- `src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx`
+- `src/pages/Vererianrian/ListMedicalRecords/listMedicalRecords.jsx`
+- `src/pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian.jsx`
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`
+- `src/pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords.jsx`
 
 ## Kiến trúc ứng dụng
 
@@ -59,7 +132,7 @@ Entry tại `src/main.jsx`:
   - `messageSlice`: danh sách message theo room, load phân trang cũ, stream token AI.
 - Socket realtime:
   - Kết nối `http://localhost:3000/chat` (hardcoded).
-  - Auth qua `clientAccessToken`.
+  - Auth qua `accessToken` (đọc từ `getToken()` — xem mục Token Storage bên dưới).
 
 ## Authentication & Role Split
 
@@ -73,14 +146,24 @@ Mỗi context quản lý:
 - `login/logout`
 - `refreshUserProfile`
 
-### 2) Storage key tách biệt
-- Client:
-  - `clientAccessToken`
-  - `clientUserInfo`
-- Admin:
-  - `adminAccessToken`
-  - `adminUserInfo`
-- Legacy keys (`accessToken`, `userInfo`) luôn được clear để tránh nhiễu phiên.
+### 2) Token Storage — Quy ước chuẩn (cập nhật 2026-04-07)
+
+**Nguyên tắc:** Toàn bộ 4 role (CUSTOMER, ADMIN, ADMIN_CLINIC, VETERINARIAN) dùng **một key duy nhất `accessToken`** trong `localStorage`.
+
+| Mục | Giá trị |
+|---|---|
+| Storage key | `accessToken` |
+| Storage type | `localStorage` (shared cross-tab) |
+| Header gửi BE | `Authorization: Bearer <token>` |
+| Utility tập trung | `src/utils/storage/tokenStorage.js` (`getToken`, `setToken`, `removeToken`) |
+| Constants | `src/constants/authStorage.js` |
+
+**UserInfo storage** (không đổi):
+- Client: `clientUserInfo` trong `localStorage`
+- Admin: `adminUserInfo` trong `sessionStorage` (tab-scoped)
+- Admin active role: `adminActiveRole` trong `sessionStorage`
+
+**Legacy keys** (`clientAccessToken`, `adminAccessToken`, `userInfo`) được tự động xóa khi login/logout qua `clearLegacyAuthStorage()`.
 
 ### 3) Login chung + RBAC hậu đăng nhập
 - Màn login chung: `/login`.
@@ -107,25 +190,60 @@ Mỗi context quản lý:
 ### 1) Base URL
 - `VITE_API_URL` (fallback: `http://localhost:3000/api`).
 
-### 2) Axios instances
-- `src/data/client/api/instance.js`
-- `src/data/admin/api/instance.js`
-- `src/data/adminClinic/api/instance.js`
-- `src/data/adminVererianrian/api/instance.js`
+### 2) Kiến trúc tập trung — `src/services/`
 
-Chức năng chính:
-- Auto attach Bearer token đúng storage key.
-- Normalize error message backend.
-- 401 -> clear auth và redirect `/login`.
+Toàn bộ API layer đã được refactor thành service tập trung trong `src/services/` (API wrappers + business service), mỗi endpoint chỉ định nghĩa **đúng 1 lần**. Không còn duplicate giữa các role.
 
-### 3) Fetch wrappers còn tồn tại
-- `src/data/client/api/forumFetchClient.js`
-- `src/data/client/api/medicalApi.js`
-- `src/data/shared/api/cloudinaryUploadFetch.js`
+#### Factory & Instances — `src/services/apiClient.js`
+- **2 lazy singleton** axios instance thay cho 4 instance cũ:
+  - `getClientInstance()` — dùng `CLIENT_AUTH_STORAGE` (localStorage) cho client portal.
+  - `getAdminInstance()` — dùng `ADMIN_AUTH_STORAGE` (sessionStorage) cho admin/clinic/vet portal.
+- `applyResponseInterceptor(instance, clearFn)` — interceptor chung: normalize error message backend, 401 → clear auth + redirect `/login`.
+- Export: `getClientInstance()`, `getAdminInstance()`, `API_BASE_URL`.
 
-=> Codebase vẫn đang chạy song song Axios và Fetch.
+#### Quy ước gọi API
+- Mọi service function nhận `instance` làm tham số đầu tiên (trừ cloudinary upload).
+- Consumer chọn instance phù hợp role: `loginApi(getClientInstance(), payload)` hoặc `getUserListApi(getAdminInstance(), ...)`.
+- Service function trả về **full axios response** — consumer tự unwrap `.data` khi cần.
 
-### 4) Các nhóm API nổi bật
+#### Danh sách service file
+
+| File | Domain | Endpoints chính |
+|------|--------|----------------|
+| `apiClient.js` | Foundation | `getClientInstance()`, `getAdminInstance()`, `API_BASE_URL` |
+| `authService.js` | Auth | `loginApi`, `registerApi`, `loginGoogleApi`, `forgotPasswordApi`, `resetPasswordApi`, `changePasswordApi` |
+| `userService.js` | User | `getUserListApi`, `getUserProfileApi`, `getUserByIdApi`, `updateUserProfileApi`, `deleteUserApi`, `uploadAvatarApi`, `uploadUserImageApi`, `uploadUserImagesApi` |
+| `petService.js` | Pet | `getMyPetsApi`, `getPetByIdApi`, `createPetApi`, `updatePetApi`, `deletePetApi`, `getPetSpeciesApi`, `getBreedsBySpeciesApi`, `getPetsByOwnerApi`, `uploadPetAvatarApi` + utility re-export `getEnumLabel`, `getSpeciesLabel`, `getBreedLabel` |
+| `appointmentService.js` | Appointment | `getMyAppointmentsApi` (client), `getAppointmentsApi` (clinic/vet, client-side filter), `getAppointmentByIdApi`, `createAppointmentApi`, `updateAppointmentStatusApi`, `deleteAppointmentApi`, `getServerNowApi` + constants `APPOINTMENT_STATUS`, `SERVICE_OPTIONS` |
+| `clinicService.js` | Clinic | `getClinicListApi`, `getClinicByIdApi`, `createClinicApi`, `updateClinicApi`, `deleteClinicApi`, `uploadClinicAvatarApi` |
+| `medicalService.js` | Medical | 15+ endpoint: CRUD medical record, medical order, medicine. Backward-compatible aliases: `createMedicalRecordApi`, `getMedicalOrderCatalogApi`, `getMedicineCatalogApi` |
+| `veterinarianService.js` | Veterinarian | `getVeterinariansApi`, `getVeterinarianByClinicApi`, `createVeterinarianApi`, `updateVeterinarianApi`, `deleteVeterinarianApi` |
+| `invoiceService.js` | Invoice | `getInvoiceByMedicalRecordIdApi`, `createInvoiceApi`, `updateInvoiceApi`, `upsertPaidInvoiceByMedicalApi` + `INVOICE_STATUS` |
+| `forumService.js` | Forum | Post CRUD + like/unlike, Topic CRUD, Comment/Reply CRUD, `getCommentsByPostIdApi`, `getRepliesApi` |
+| `chatService.js` | Chatbot | `getAllRoomsApi`, `getMessagesInRoomApi`, `createRoomApi`, `renameRoomApi`, `deleteRoomApi`, `sendMessageApi` |
+| `cloudinaryService.js` | Upload | `uploadOneFileToCloudinary`, `uploadMultipleFilesToCloudinary` — dùng native `fetch()` cho multipart FormData, tự detect token từ CLIENT hoặc ADMIN storage |
+| `notificationService.js` | Notification Orchestration | tổng hợp notification từ appointment + forum |
+| `appointmentDiagnosisService.js` | AI Diagnosis Orchestration | WebSocket AI diagnosis + fallback + local cache |
+| `clientGoogleAuthService.js` | Auth Orchestration | bridge Firebase Google token -> backend `/auth/login-google` |
+
+#### Business logic modules (sau chuẩn hóa)
+- `src/services/notificationService.js` — tổng hợp notification từ appointment + forum.
+- `src/services/appointmentDiagnosisService.js` — WebSocket AI diagnosis, fallback markdown, cache local theo appointment.
+- `src/hooks/Clinic/useVeterinarians.js` — React hook quản lý veterinarian list, delegate sang `services/`.
+- `src/config/firebaseClient.js` — Firebase bootstrap + analytics + popup token.
+- `src/services/clientGoogleAuthService.js` — xử lý Google login/register phía client.
+- `src/utils/storage/clinicInfoStorage.js` — helper localStorage cho card phòng khám.
+- `src/utils/storage/clinicHomeStorage.js` — helper localStorage cho nội dung HomePage theo clinic.
+- `src/config/homePageClinicContent.js` — default content + builder cho HomePageClinic.
+
+#### Cách thêm API mới đúng chuẩn
+1. Xác định domain → mở service file tương ứng trong `src/services/`.
+2. Thêm function với signature `export const doSomethingApi = async (instance, ...params) => { ... }`.
+3. Consumer import function + instance getter: `import { doSomethingApi } from '../../services/myService'` + `import { getClientInstance } from '../../services/apiClient'`.
+4. Gọi: `const response = await doSomethingApi(getClientInstance(), payload)`.
+5. **Không tạo file API mới** trong `src/data/*` (đã loại bỏ) — mọi endpoint phải nằm trong `src/services/`.
+
+### 3) Các nhóm API endpoint
 - Auth: `/auth/login`, `/auth/register`, `/auth/login-google`, `/auth/forgot-password`, `/auth/reset-password`, `/auth/change-password`.
 - User: `/user/profile`, `/user/:id`, upload cloudinary.
 - Pet: `/pet`, `/pet/:id`, `/pet/species`, `/pet/species/:species/breed`.
@@ -186,10 +304,10 @@ Luồng đang chạy:
 - Auto refresh 20 giây + refresh khi tab active lại.
 - Hủy lịch (PATCH status).
 - Xem chi tiết lịch.
-- `src/data/Vererianrian/api/userApi.js`:
-  - Tra cứu user theo email và tạo user tạm.
-- `src/data/Vererianrian/api/petApi.js`:
-  - Tra cứu pet theo owner và tạo pet mới cho walk-in.
+- `src/services/userService.js`:
+  - Tra cứu user theo email và tạo user tạm (`getUserByIdApi`).
+- `src/services/petService.js`:
+  - Tra cứu pet theo owner (`getPetsByOwnerApi`) và tạo pet mới cho walk-in (`createPetApi`).
 - Mở modal chẩn đoán AI (`PetDiagnosisContent`).
 - Đã tích hợp `ScrollToTopButton` dùng chung cho trang lịch hẹn (áp dụng cho cả 2 tab section).
 
@@ -367,13 +485,13 @@ Luồng đang chạy:
   - `DELETE /api/clinic/:id` — xóa phòng khám (có Popconfirm).
   - `POST /api/clinic` — thêm phòng khám mới qua Modal (thông tin phòng khám + tài khoản admin clinic).
 - Modal "Thêm phòng khám mới": 2 section (thông tin phòng khám: tên, email, SĐT, địa chỉ, mô tả; tài khoản quản trị: họ tên, email, mật khẩu). Có validation form đầy đủ.
-- API layer riêng: `src/data/admin/api/` (instance.js dùng `ADMIN_AUTH_STORAGE`, clinicApi.js có 5 hàm CRUD).
+- API layer tập trung: `src/services/clinicService.js` (5 hàm CRUD) + `src/services/apiClient.js` (`getAdminInstance()` dùng `ADMIN_AUTH_STORAGE`).
 
 ### 3) Users Management (pages/admin/Dashboard/Users)
 - UI dùng cùng token màu admin (`styles/admin/colorsToken.css`), layout thống nhất với Clinics.
 - Danh sách người dùng phân trang + tìm kiếm theo tên/email.
 - Cột hiển thị: avatar/tên, SĐT, địa chỉ, ngày tạo, email, vai trò, trạng thái.
-- API: `GET /api/user?page&limit&search` qua `src/data/admin/api/userApi.js`.
+- API: `GET /api/user?page&limit&search` qua `src/services/userService.js` (`getUserListApi`).
 
 ### 4) Posts Management (pages/admin/Dashboard/Posts)
 - UI thống nhất với Clinics/Users (stat cards + bảng + thanh tìm kiếm).
@@ -447,11 +565,11 @@ Luồng đang chạy:
   - Chế độ read-only sau khi hết hạn.
   - Tab Hồ sơ y tế: appointment -> petId -> medical history.
   - TODO: kiểm tra quyền chia sẻ hồ sơ trước khi hiển thị.
-- `src/data/Vererianrian/api/appointmentApi.js`:
-  - `getVeterinarianServerNowApi()` dùng đồng bộ clock server cho countdown.
-- `src/data/Vererianrian/api/medicalApi.js`:
+- `src/services/appointmentService.js`:
+  - `getServerNowApi()` dùng đồng bộ clock server cho countdown.
+- `src/services/medicalService.js`:
   - API create/update medical record và CRUD medical orders/medicines phục vụ lưu/cập nhật phiếu khám.
-  - `getMedicalByPetId`, `getMedicalOrdersByMedicalId`, `getMedicinesByMedicalId` dùng cho tab hồ sơ y tế.
+  - `getMedicalByPetIdApi`, `getMedicalOrdersByMedicalIdApi`, `getMedicinesByMedicalIdApi` dùng cho tab hồ sơ y tế.
 
 ## Styling & Design System
 
@@ -619,8 +737,8 @@ Ghi chú:
 
 ### Tương thích ngược
 - `src/constants/veterinaryLabels.js` giữ nguyên tên hàm public (`getRoleLabel`, `getSpecialtyLabel`, `getSpecialtyOptions`) nhưng delegate sang `src/utils/enumLabel.js`.
-- `src/data/client/api/appointmentApi.js` và `src/data/Clinic/api/appointmentApi.js` giữ export cũ (`SERVICE_OPTIONS`, `APPOINTMENT_STATUS_LABEL`) nhưng dữ liệu lấy từ `src/constants/enumLabels.js`.
-- `src/data/client/api/petApi.js` giữ API cũ (`getSpeciesLabel`, `getBreedLabel`) nhưng dùng mapping tập trung.
+- `src/services/appointmentService.js` export `SERVICE_OPTIONS`, `APPOINTMENT_STATUS_LABEL` — dữ liệu lấy từ `src/constants/enumLabels.js`.
+- `src/services/petService.js` re-export `getSpeciesLabel`, `getBreedLabel` — dùng mapping tập trung từ `src/utils/enumLabel.js`.
 
 ### Quy tắc maintain bắt buộc
 1. Không hardcode nhãn enum tiếng Việt trực tiếp trong page/component.
@@ -631,7 +749,7 @@ Ghi chú:
 ### Chuẩn canonical cho Appointment Status
 - Canonical frontend chỉ dùng: `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`.
 - Không dùng biến thể sai chính tả của `CANCELLED` trong hằng số public hoặc mapping label.
-- `src/data/client/api/appointmentApi.js` có bước normalize dữ liệu cũ (`SUCCESS`, `DONE`, và biến thể CANCEL*ED) về canonical status trước khi render UI.
+- `src/services/appointmentService.js` có bước normalize dữ liệu cũ (`SUCCESS`, `DONE`, và biến thể CANCEL*ED) về canonical status trước khi render UI.
 
 ## Bug Fix Log: Đồng bộ dữ liệu sau tạo phiếu khám (2026-04)
 
@@ -683,16 +801,267 @@ Ghi chú:
 
 ### Lưu ý khi maintain
 - API `POST /auth/change-password` luôn trả `{ message, accessToken }`. FE bắt buộc phải dùng `accessToken` mới này.
-- Clinic portal có export `changePasswordApi` trong `src/data/Clinic/api/auth.js` nhưng chưa dùng. Khi triển khai đổi mật khẩu cho Clinic/Vet portal, phải áp dụng cùng pattern: lấy token mới từ response và gọi `login()`.
+- `changePasswordApi` trong `src/services/authService.js` dùng chung cho mọi portal. Khi triển khai đổi mật khẩu cho Clinic/Vet portal, phải áp dụng cùng pattern: lấy token mới từ response và gọi `login()`.
+
+## Bug Fix Log: Lỗi khởi tạo phiếu khám + không tải catalog Thuốc/Chỉ định (2026-04-06)
+
+### Vấn đề gốc
+1. Bác sĩ bấm `Bắt đầu khám` mở tab `/veterinarian/exam-forms/create?appointmentId=...` thì xuất hiện toast lỗi ngay khi mount: `Cannot read properties of undefined (reading 'get')`.
+2. Trong form phiếu khám, bấm `Thêm thuốc` hoặc `Thêm chỉ định` thì dropdown danh sách trống vì không tải được catalog.
+
+### Nguyên nhân đã xác định
+1. `src/services/medicalService.js` quy ước toàn bộ hàm nhận `instance` ở tham số đầu (`(instance, ...)`), bao gồm cả alias catalog (`getMedicalOrderCatalogApi`, `getMedicineCatalogApi`) và nhóm create/update medical.
+2. `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` gọi nhiều hàm medical service **thiếu tham số instance**.
+3. Khi mount form, `loadMetaData` gọi catalog thiếu instance nên ném TypeError trước khi gửi request HTTP; lỗi bị bắt tại catch và hiển thị toast `Không thể tải dữ liệu phiếu khám`.
+
+### Cách fix đã áp dụng
+1. Chuẩn hóa toàn bộ call tới medical service trong `RecordExaminationForm` theo đúng chữ ký: luôn truyền `getAdminInstance()` làm tham số đầu.
+2. Sửa cả 2 nhóm call:
+  - Nhóm khởi tạo metadata (catalog chỉ định/thuốc) khi mount form.
+  - Nhóm lưu dữ liệu (create/update medical record, create chỉ định, create thuốc) cho cả luồng thường và walk-in.
+3. Giữ nguyên toàn bộ nghiệp vụ hiện có; chỉ sửa wiring API để loại bỏ false error và khôi phục tải dữ liệu.
+
+### Trạng thái sau fix
+1. Mở tab phiếu khám từ `Bắt đầu khám` không còn toast lỗi giả ngay khi vào form.
+2. Dropdown `Chọn loại chỉ định` và `Chọn thuốc` nạp dữ liệu bình thường khi thêm dòng.
+3. Luồng lưu phiếu không còn rủi ro TypeError do thiếu instance ở nhóm API medical.
+
+### Điểm dễ tái phát và cách phòng ngừa
+1. Các alias service (`getMedicalOrderCatalogApi`, `getMedicineCatalogApi`, `createMedicalRecordApi`, ...) vẫn giữ chữ ký `(instance, ...)`; alias **không** tự bind instance.
+2. Khi thêm API mới trong `src/services/`, bắt buộc follow rule: consumer luôn truyền đúng instance (`getAdminInstance()` hoặc `getClientInstance()`).
+3. Trước khi merge các màn form lớn, cần grep nhanh các call service theo pattern `*Api(` để phát hiện call thiếu instance sớm.
+
+## Bug Fix: loadMetaData resilience & loadHistoryRecords error suppression (2026-04-07)
+
+### Vấn đề
+1. `loadMetaData` trong `RecordExaminationForm` dùng `Promise.all` → **1 API fail = toàn bộ fail** → error toast xuất hiện + catalog Thuốc/Chỉ định **không bao giờ được set** → Select dropdown trống.
+2. `hydrateByAppointmentId()` chạy **tuần tự trước** `Promise.all` trong cùng `try/catch` → appointment fetch fail kéo theo catalog loading không bao giờ chạy.
+3. `loadHistoryRecords` throws `message.error()` cho non-critical data (tab Hồ sơ y tế) → toast lỗi không cần thiết khi chưa chuyển sang tab đó.
+
+### Nguyên nhân kiến trúc
+- `Appointment` entity KHÔNG có relation với `MedicalRecord` → `appointment.medical` luôn `null` khi fetch từ `GET /appointment`
+- `GET /appointment` KHÔNG select `owner.email` → `ownerEmail` luôn rỗng
+- `loadMetaData` gộp 5 concern khác nhau (appointment hydration + 4 catalogs) vào 1 try/catch duy nhất
+
+### Fix đã áp dụng
+
+| File | Thay đổi | Lý do |
+|------|----------|-------|
+| `RecordExaminationForm` | Wrap `hydrateByAppointmentId()` trong try/catch riêng | Appointment fail không block catalog loading |
+| `RecordExaminationForm` | Đổi `Promise.all` → `Promise.allSettled` cho 4 catalogs | Mỗi catalog load độc lập, 1 fail không kéo theo cái khác |
+| `RecordExaminationForm` | Set state từ từng settled result | Catalog nào thành công thì set, catalog nào fail thì log warning |
+| `RecordExaminationForm` | `loadHistoryRecords` catch: `message.error()` → `console.warn()` | History load fail không gây toast lỗi trên tab Phiếu khám |
+
+### Trạng thái sau fix
+1. Mở tab phiếu khám → không còn toast lỗi nếu chỉ 1 API fail
+2. Catalog Thuốc/Chỉ định load độc lập → dropdown có data ngay cả khi appointment hydration hoặc species API fail
+3. History tab errors chỉ log ra console, không ảnh hưởng UX tab Phiếu khám chính
+
+### Phòng ngừa tái phát
+1. **Không dùng `Promise.all` cho các API calls không phụ thuộc nhau** — luôn dùng `Promise.allSettled` khi các calls có thể fail independently
+2. **Tách concern mount-time**: appointment hydration, catalog loading, history loading phải có error boundary riêng
+3. **`message.error()` chỉ dùng cho lỗi trực tiếp ảnh hưởng UX hiện tại** — non-critical hoặc lazy-loaded data chỉ log console
+
+## I18n Migration Status (Client/Clinic/Veterinarian/Admin) - 2026-04-08
+
+### Trạng thái tổng quan
+- Client portal: ✓ Hoàn tất i18n.
+- Clinic portal: ✓ Hoàn tất i18n.
+- Veterinarian portal (`vererianrian`): ✓ Hoàn tất i18n theo 4 nhóm ưu tiên.
+- Super Admin portal (`admin`): ✓ Hoàn tất i18n theo 4 nhóm ưu tiên.
+
+### Cấu trúc locale hiện tại
+- `src/locales/client/vi.json`
+- `src/locales/client/en.json`
+- `src/locales/clinic/vi.json`
+- `src/locales/clinic/en.json`
+- `src/locales/vererianrian/vi.json`
+- `src/locales/vererianrian/en.json`
+- `src/locales/admin/vi.json`
+- `src/locales/admin/en.json`
+
+### I18n Core Config (cập nhật)
+- `src/i18n.js` đã khai báo đủ 4 namespace:
+  - `client`
+  - `clinic`
+  - `vererianrian`
+  - `admin`
+- Resource map hiện tại:
+  - `vi.client`, `vi.clinic`, `vi.vererianrian`, `vi.admin`
+  - `en.client`, `en.clinic`, `en.vererianrian`, `en.admin`
+- Vẫn giữ:
+  - `defaultNS: 'client'`
+  - `fallbackNS: 'client'`
+  - `lng` lấy từ `getInitialLanguage()` (đọc localStorage `lang` dùng chung cho cả 4 portal)
+  - `fallbackLng: 'vi'`
+
+### Super Admin I18n Migration (theo nhóm)
+
+#### Nhóm 1 — Layout / Sidebar / Header / Notification Panel
+- `src/layouts/admin/AdminLayout.jsx`
+- Đã migrate toàn bộ text hiển thị:
+  - Sidebar/menu, brand subtitle, profile fallback.
+  - Header title.
+  - Notification panel (title, tab, empty state, mark-all-read).
+  - Time-ago labels (`justNow`, `minutesAgo`, `hoursAgo`, `daysAgo`) qua namespace `admin`.
+  - Logout/open-notification aria/title.
+
+#### Nhóm 2 — Clinics Management
+- `src/pages/admin/Dashboard/Clinics/index.jsx`
+- Đã migrate:
+  - Stat card, table column labels, search placeholder, pagination summary.
+  - Add clinic modal (section title, label, placeholder, validation message).
+  - Delete confirm modal + toast success/error.
+  - Status labels: `active`, `deleted`.
+
+#### Nhóm 3 — Users Management
+- `src/pages/admin/Dashboard/Users/index.jsx`
+- Đã migrate:
+  - Stats, page title/subtitle, search/filter placeholder.
+  - Table columns + empty state.
+  - Role labels qua key `users.role.*` (`CUSTOMER`, `ADMIN`, `ADMIN_CLINIC`, `VETERINARIAN`).
+  - Status labels + confirm deactivate + toast.
+
+#### Nhóm 4 — Posts Management
+- `src/pages/admin/Dashboard/Posts/index.jsx`
+- Đã migrate:
+  - Stats, page title/subtitle, search/topic filter placeholder.
+  - Table columns, load-more button, all-loaded state.
+  - Empty state + delete confirm + toast.
+  - Detail modal labels.
+
+### Validation sau migrate
+- Build production (`npm run build`): thành công sau mỗi nhóm migrate.
+- Rà soát toàn bộ 4 file Super Admin: không còn hardcode text UI (trừ comment code).
+- Không thay đổi business logic; chỉ thay text hiển thị và wiring i18n.
+
+### Quy ước maintain bắt buộc
+- Mọi text UI mới của Super Admin phải dùng namespace `admin`.
+- Không hardcode text mới trong component; luôn thêm key vào cả:
+  - `src/locales/admin/vi.json`
+  - `src/locales/admin/en.json`
+- Không trộn key chéo namespace giữa `client`, `clinic`, `vererianrian`, `admin`.
+## Notification System (integrated 2026-04-07)
+
+### BE Notification Mechanism
+- **Protocol:** WebSocket via Socket.io
+- **Namespace:** `/notification`
+- **Authentication:** JWT token passed in `handshake.auth.accessToken`
+- **Event (server → client):** `severSendNotification` (note: "sever" is a typo in BE, not "server")
+- **Room isolation:** Each user joins a room = their `user.id`; notifications are emitted to that room
+
+### BE Notification Entity
+```
+id:          UUID (auto-generated)
+recipientId: UUID (FK → user.id)
+senderId:    UUID | null
+senderType:  'USER' | 'CLINIC' | 'SYSTEM'
+type:        NotificationEnum (see below)
+isRead:      boolean (default: false)
+target:      JSONB (flexible payload, varies by type)
+createdAt:   Date (auto)
+```
+
+### Notification Types (NotificationEnum)
+| Type | Status | Recipient | Target Payload |
+|------|--------|-----------|----------------|
+| `APPOINTMENT_BOOKED` | Active | Clinic Admin + Vet | `{ appointmentDate, appointmentTime, appointmentId, userName }` |
+| `AI_DIAGNOSIS` | Active | Pet Owner | `{ appointmentId, aiDiagnosisId, petName }` |
+| `APPOINTMENT_CANCELLED` | Defined, not triggered | — | — |
+| `APPOINTMENT_REMINDER` | Defined, not triggered | — | — |
+| `FOLLOW_UP_REMINDER` | Defined, not triggered | — | — |
+| `COMMENT_REPLY` | Defined, not triggered | — | — |
+
+### BE Limitation
+- **No REST endpoints** for notifications. Controller and Service are empty stubs.
+- Cannot fetch notification history, mark as read on server, or paginate from BE.
+- All persistence and read-state management is handled FE-side via localStorage.
+
+### FE Integration Architecture (Hướng A — FE-only)
+
+#### Shared Hook: `hooks/useNotificationSocket.js`
+- Creates its own Socket.io connection (not the singleton `notifySocket.js`)
+- Accepts `{ storageKey, token, enabled }` params
+- Receives `severSendNotification` events, maps raw BE data via `mapBeNotification()`
+- Persists notifications + read IDs in localStorage
+- Exposes: `notifications`, `readIdSet`, `unreadCount`, `markAsRead()`, `markAllAsRead()`, `connected`
+- Handles: auto-reconnect (15 attempts, exponential backoff), cleanup on unmount
+
+#### Layout Integration
+
+| Layout | Hook storageKey | Data Source |
+|--------|----------------|-------------|
+| **Client Header** (`components/layouts/client/header.jsx`) | N/A (inline socket) | API polling (60s) + WebSocket merged |
+| **Clinic Admin** (`layouts/Clinic/AdminClinicLayout.jsx`) | `ws_notif_clinic:{scopeKey}` | WebSocket only |
+| **Veterinarian** (`layouts/Vererianrian/AdminVererianrianLayout.jsx`) | `ws_notif_vet:{userId}` | WebSocket only |
+| **Super Admin** (`layouts/admin/AdminLayout.jsx`) | `ws_notif_admin:{userId}` | WebSocket only |
+
+#### Client Header (special case)
+- Keeps existing `notificationService.js` which polls appointment/forum APIs every 60s
+- Additionally connects WebSocket to receive realtime BE notifications (e.g., `AI_DIAGNOSIS`)
+- Both sources merge into the same `notificationItems` state
+- Read IDs stored in localStorage scoped by `userId`
+
+### Files Changed (2026-04-07)
+| Action | File |
+|--------|------|
+| **Created** | `hooks/useNotificationSocket.js` |
+| **Modified** | `layouts/Clinic/AdminClinicLayout.jsx` — removed mock data, integrated hook |
+| **Modified** | `layouts/Vererianrian/AdminVererianrianLayout.jsx` — removed mock data, integrated hook |
+| **Modified** | `layouts/admin/AdminLayout.jsx` — removed mock data, integrated hook |
+| **Modified** | `components/layouts/client/header.jsx` — added WebSocket alongside API polling |
+| **Modified** | `components/layouts/client/header.css` — added `ai-diagnosis` icon style |
+
+### Mock Data Removed
+
+### Time-ago Labels — Periodic Refresh (cập nhật 2026-04-07)
+- `formatNotificationTimeAgo()` tính `Date.now() - createdAt` tại thời điểm render → nếu component không re-render, nhãn "Vừa xong" bị đóng băng.
+- **Fix:** Mỗi layout có `setTimeTick` state cập nhật mỗi **30 giây** → ép re-render → time-ago labels luôn cập nhật.
+- Áp dụng: `header.jsx`, `AdminClinicLayout.jsx`, `AdminVererianrianLayout.jsx`.
+- `formatNotificationTimeAgo` tồn tại độc lập trong mỗi layout (không abstract), trả về: "Vừa xong" / "X phút trước" / "X giờ trước" / "X ngày trước".
+
+### Notification UI Fixes (cập nhật 2026-04-07)
+
+#### 1. Client time-ago "Vừa xong" cho lịch hẹn tương lai
+- **Nguyên nhân:** `buildAppointmentNotifications()` trong `notificationService.js` dùng ngày/giờ *lịch hẹn* làm `createdAt` → lịch hẹn tương lai có `diff < 0` → luôn hiển thị "Vừa xong".
+- **Fix:** Ưu tiên `appointment.createdAt` (timestamp DB) → `createdAt` phản ánh thời điểm đặt lịch, không phải thời điểm khám.
+
+#### 2. Notification panel không scroll được (Client)
+- **Nguyên nhân:** `.notification-panel-content` trong `header.css` có `overflow: hidden`.
+- **Fix:** Đổi thành `overflow-y: auto`. Admin/Vet CSS Modules đã có scroll sẵn.
+
+#### 3. Date format chuẩn hóa dd-mm-yyyy HH:mm
+- **Trước:** ISO string `2026-04-07T00:00:00.000Z` hoặc `2026-04-07 16:00:00` hiển thị thô.
+- **Sau:** `07-04-2026 lúc 16:00` (dd-mm-yyyy, HH:mm không giây).
+- **Helpers:** `formatDateDDMMYYYY()` + `formatTimeHHMM()` — khai báo cục bộ trong:
+  - `services/notificationService.js` (client portal)
+  - `hooks/useNotificationSocket.js` (admin/vet portals)
+
+#### Files Changed (notification UI fixes)
+| Action | File |
+|--------|------|
+| **Modified** | `services/notificationService.js` — thêm formatters, đổi createdAt sang DB timestamp |
+| **Modified** | `hooks/useNotificationSocket.js` — thêm formatters, áp dụng cho 3 notification types |
+| **Modified** | `components/layouts/client/header.css` — `overflow: hidden` → `overflow-y: auto` |
+
+### Mock Data Removed (trước đó)
+- `buildMockClinicNotifications()` from AdminClinicLayout (5 hardcoded items)
+- `buildMockVeterinarianNotifications()` from AdminVererianrianLayout (5 hardcoded items)
+- `MOCK_ADMIN_NOTIFICATIONS` from AdminLayout (6 hardcoded items)
+- Old `notifySocket` import + console.log-only listener from AdminClinicLayout
+
+### Services Directory Convention
+All API service files live in `services/` with pattern `{domain}Service.js`.
+The `notificationService.js` provides client-side notification aggregation from appointment/forum APIs (not mock — real data). It remains in use for the client header.
 
 ## Backlog ưu tiên đề xuất (Web)
-1. Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.
+1. ~~Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.~~ ✓ Đã hoàn thành — toàn bộ API tập trung trong `src/services/`, chỉ Cloudinary upload dùng native `fetch()`.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.
 3. Rà soát và dọn các đường dẫn legacy `/admin/*` còn sót trong code/component để thống nhất route canonical.
 4. Thay mock bằng API thật cho các màn admin/veterinarian còn template.
 5. Đưa `SOCKET_URL` vào env (`VITE_SOCKET_URL`) thay vì hardcoded.
 6. Gộp token CSS thành single-source để giảm duplicate.
-7. Tiếp tục chuẩn hóa i18n và giảm hardcoded text tiếng Việt trong UI.
+7. ~~Mở rộng chuẩn hóa i18n cho phần ngoài client portal (admin/clinic/veterinarian) và các text mới phát sinh.~~ ✓ Đã hoàn thành toàn bộ 4 portal (client + clinic + vererianrian + admin); tiếp tục maintain key mới phát sinh.
 8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
 9. Hoàn thiện trang super admin còn lại: Overview.
 10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).

@@ -227,9 +227,9 @@
   border-color: var(--admin-color-brand-primary-hover);
 }
 
-.posts-page .post-detail-descriptions .ant-descriptions-item-label {
+.post-detail-descriptions .ant-descriptions-item-label {
   width: 180px;
-  font-weight: 600;
+  font-weight: bold;
 }
 
 .posts-page .post-detail-content {

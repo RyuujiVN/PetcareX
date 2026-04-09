@@ -1,5 +1,6 @@
 import { ArrowUpOutlined } from '@ant-design/icons';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './ScrollToTopButton.module.css';
 
 const getScrollTop = (scrollContainer) => {
@@ -23,6 +24,7 @@ const smoothScrollTop = (scrollContainer) => {
 
 export default function ScrollToTopButton({ threshold = 300, containerRef = null }) {
   const [visible, setVisible] = useState(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     const target = containerRef?.current || window;
@@ -46,7 +48,7 @@ export default function ScrollToTopButton({ threshold = 300, containerRef = null
   return (
     <button
       type="button"
-      aria-label="Cuộn lên đầu trang"
+      aria-label={t('common.aria.scrollToTop')}
       className={`${styles.scrollToTopButton} ${visible ? styles.visible : ''}`}
       onClick={handleScrollToTop}
     >
