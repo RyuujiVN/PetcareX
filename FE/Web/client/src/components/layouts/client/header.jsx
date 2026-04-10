@@ -323,11 +323,11 @@ function Header() {
         });
 
         socket.on("connect", () => {
-            console.log("[Client Header] ✅ Socket notification connected:", socket.id);
+            console.log("[Client Header]  Socket notification connected:", socket.id);
         });
 
         socket.on("severSendNotification", (data) => {
-            console.log("[Client Header] 📩 Nhận notification từ BE:", data);
+            console.log("[Client Header]  Nhận notification từ BE:", data);
             const mapped = mapBeNotification(data);
             if (!mapped) return;
 
@@ -608,7 +608,7 @@ function Header() {
                 </nav>
 
                 <div className="auth-section">
-                    <LanguageSwitcher />
+                    <LanguageSwitcher /> 
                     {token ? (
                         <div className="user-section" ref={accountMenuRef}>
                             <Popover

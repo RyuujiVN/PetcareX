@@ -1,12 +1,17 @@
 .language-switcher-btn {
   height: 36px;
-  padding: 0 12px;
+  min-width: 72px;
+  padding: 0 10px;
   border-radius: 999px;
   border: 1px solid var(--color-border-soft);
   background: var(--color-surface-page);
   color: var(--color-text-primary);
   font-size: 13px;
   font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -15,4 +20,15 @@
   border-color: var(--page-header-primary);
   color: var(--page-header-primary);
   box-shadow: 0 2px 8px var(--auto-rgba-0-0-0-0-1);
+}
+
+.language-switcher-flag {
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  object-fit: cover;
+}
+
+.language-switcher-label {
+  line-height: 1;
 }
