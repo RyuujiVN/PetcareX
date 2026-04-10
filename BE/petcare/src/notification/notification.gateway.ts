@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import { Logger } from '@nestjs/common';
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -18,11 +19,12 @@ export class NotificationGateway
 {
   @WebSocketServer()
   private server: Server;
+  private readonly logger = new Logger(NotificationGateway.name);
 
   constructor(private readonly authService: AuthService) {}
 
   async handleConnection(client: Socket, ...args: any[]) {
-    console.log('user connected: ', client.id);
+    this.logger.log(`User connected: ${client.id}`);
     try {
       const accessToken = client.handshake.auth?.accessToken;
 
@@ -31,14 +33,13 @@ export class NotificationGateway
       client.data.user = user;
       await client.join(user.id);
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error.message, error.stack);
       client.disconnect();
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`user disconnect`, client.id);
+    this.logger.warn(`User disconnected: ${client.id}`);
     client.disconnect();
   }
 
