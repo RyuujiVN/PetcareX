@@ -34,6 +34,7 @@ import { getClinicByIdApi } from '../../../../services/clinicService'
 import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../services/invoiceService'
 import {
     getMedicalByIdApi,
+    getMedicalByPetIClinicdApi,
     getMedicalByPetIdApi,
     getMedicalOrdersByMedicalIdApi,
     getMedicinesByMedicalIdApi,
@@ -353,7 +354,7 @@ export default function PetMedicalRecords() {
 				return
 			}
 
-			const medicalPayload = await getMedicalByPetIdApi(getAdminInstance(), resolvedPetId, 1, 200)
+			const medicalPayload = await getMedicalByPetIClinicdApi(getAdminInstance(), resolvedPetId, 1, 200)
 			const medicalRecords = normalizeCollection(medicalPayload)
 			const matchedMedical = selectMedicalRecordByAppointment(medicalRecords, resolvedAppointment)
 			const detailedMedical = matchedMedical?.id
@@ -840,8 +841,8 @@ export default function PetMedicalRecords() {
 				<header className={styles.formHeader}>
 					<div className={styles.headerMeta}>
 						<p>{t('medicalRecords.petExam.header.title')}</p>
-						<span style={{ marginRight: 135 }}>{t('medicalRecords.petExam.header.examCode')}: {buildExamCode(medicalRecord?.id)}</span>
-						<span style={{ marginRight: 155 }}>{t('medicalRecords.petExam.header.examDate')}: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate, locale, fallbackText)}</span>
+						<span>{t('medicalRecords.petExam.header.examCode')}: {buildExamCode(medicalRecord?.id)}</span>
+						<span>{t('medicalRecords.petExam.header.examDate')}: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate, locale, fallbackText)}</span>
 					</div>
 				</header>
 
