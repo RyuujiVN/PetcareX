@@ -13,6 +13,11 @@
 	padding: 0 18px;
 }
 
+.topBarActionSpacer {
+	width: 132px;
+	flex-shrink: 0;
+}
+
 .content {
 	padding: 26px 26px 22px;
 }
@@ -220,6 +225,10 @@
 	.topBar {
 		padding: 0 12px;
 		gap: 10px;
+	}
+
+	.topBarActionSpacer {
+		width: 116px;
 	}
 
 	.content {

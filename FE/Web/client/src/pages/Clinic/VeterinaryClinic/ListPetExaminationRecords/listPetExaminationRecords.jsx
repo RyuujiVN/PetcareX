@@ -191,6 +191,7 @@ export default function ListPetExaminationRecords() {
 				<div className={styles.titleBlock}>
 					<h1 style={{fontSize: 25}}>{t('examForm.list.pageTitle')}</h1>
 				</div>
+				<div className={styles.topBarActionSpacer} aria-hidden="true" />
 			</header>
 
 			<section className={styles.content}>

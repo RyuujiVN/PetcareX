@@ -16,6 +16,7 @@ import { RoleEnum } from "../../enum/role.enum";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
+import { getAdminInstance } from "../../services/apiClient";
 import "../../styles/admin/colorsToken.css";
 import styles from "./AdminLayout.module.css";
 
@@ -97,6 +98,7 @@ export default function AdminLayout() {
     storageKey: `ws_notif_admin:${userProfile?.id || "default"}`,
     token,
     enabled: !!token,
+    instance: getAdminInstance(),
   });
 
   const displayNotifications = useMemo(() => {

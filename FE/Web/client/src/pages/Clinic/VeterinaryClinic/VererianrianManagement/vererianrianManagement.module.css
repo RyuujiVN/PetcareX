@@ -4,9 +4,6 @@
 }
 
 .topBar {
-	position: sticky;
-	top: 0;
-	z-index: 30;
 	height: 64px;
 	border-bottom: 1px solid #dfe5ee;
 	background: #fff;
@@ -14,6 +11,11 @@
 	align-items: center;
 	justify-content: space-between;
 	padding: 0 22px;
+}
+
+.topBarActionSpacer {
+	width: 132px;
+	flex-shrink: 0;
 }
 
 .searchBox {
@@ -37,7 +39,7 @@
 
 .stickyPanel {
 	position: sticky;
-	top: 64px;
+	top: 0;
 	z-index: 20;
 	background: #eff2f6;
 	padding-bottom: 12px;
@@ -246,10 +248,13 @@
 		padding: 0 14px;
 	}
   	.searchBox {
-    	width: calc(100% - 48px);
+    	width: 100%;
   	}
+	.topBarActionSpacer {
+		width: 116px;
+	}
 	.stickyPanel {
-		top: 64px;
+		top: 0;
 	}
 	.titleRow {
 		flex-direction: column;

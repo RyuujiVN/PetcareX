@@ -50,7 +50,27 @@
       "forumCommentTitle": "{{name}} commented on your post",
       "forumReplyToCommentTitle": "{{name}} replied to your comment",
       "forumReplyInPostTitle": "{{name}} replied in your post",
-      "forumActorFallback": "User"
+      "forumActorFallback": "User",
+      "events": {
+        "actorFallback": "customer",
+        "petFallback": "pet",
+        "appointmentBookedTitle": "New appointment from {{name}}",
+        "appointmentBookedDescription": "Date {{date}} at {{time}}",
+        "appointmentCancelledTitle": "Appointment canceled",
+        "appointmentCancelledDescription": "The appointment on {{date}} at {{time}} has been canceled.",
+        "appointmentReminderTitle": "Appointment reminder",
+        "appointmentReminderDescription": "You have an appointment on {{date}} at {{time}}.",
+        "appointmentStatusUpdatedByClientTitle": "Customer updated appointment status",
+        "appointmentStatusUpdatedByClientDescription": "Customer updated appointment status for {{date}} at {{time}}.",
+        "aiDiagnosisTitle": "AI diagnosis result for {{petName}}",
+        "aiDiagnosisDescription": "AI health analysis is ready.",
+        "followUpReminderTitle": "Follow-up reminder",
+        "followUpReminderWithPetDescription": "It is time for a follow-up visit for {{petName}}.",
+        "followUpReminderDescription": "You have an upcoming follow-up appointment.",
+        "commentReplyTitle": "Someone replied to your comment",
+        "commentReplyFallbackDescription": "See details in forum.",
+        "defaultTitle": "New notification"
+      }
     },
     "passwordModal": {
       "title": "Change password",

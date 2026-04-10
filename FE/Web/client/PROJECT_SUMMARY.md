@@ -22,7 +22,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 ## Chuẩn hóa cấu trúc thư mục (2026-04-07, cập nhật 2026-04-09)
 
 ### Cấu trúc chuẩn hiện tại (rút gọn)
-- `src/services/`: API calls và business orchestration (notification aggregation, AI diagnosis, Google auth bridge).
+- `src/services/`: API calls và business orchestration (notification REST/socket integration, AI diagnosis, Google auth bridge).
 - `src/hooks/`: custom hooks theo role/domain (`client`, `Clinic`, ...).
 - `src/config/`: cấu hình tích hợp (Firebase) và static content config theo module.
 - `src/utils/`: utility thuần; riêng nhóm lưu trữ đặt trong `src/utils/storage/`.
@@ -78,7 +78,7 @@ Không có consumer nào import từ `data/`, nên không cần cập nhật imp
 1. Không format trực tiếp bằng `new Date(...).toLocaleDateString('vi-VN')` trong page components của Clinic/Veterinarian.
 2. Không cắt giờ thủ công bằng `.slice(0, 5)` để tránh lệch format khi backend trả về dữ liệu khác chuẩn.
 3. Luôn dùng helper từ `src/utils/dateTimeFormat.js` để bảo đảm đồng nhất UI giữa các màn.
-4. Notification cache cũ trong `localStorage` được tự normalize lại khi mở app qua `src/hooks/useNotificationSocket.js` để chuyển các mô tả lịch hẹn từ ISO/raw string sang chuẩn `DD-MM-YYYY` và `HH:mm`.
+4. Notification mapper dùng chung trong `src/services/notificationService.js` chuẩn hóa mô tả lịch hẹn theo `DD-MM-YYYY` và `HH:mm` từ payload backend.
 
 #### Các màn hình đã migrate sang formatter chung
 - `src/pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement.jsx`
@@ -222,12 +222,12 @@ Toàn bộ API layer đã được refactor thành service tập trung trong `sr
 | `forumService.js` | Forum | Post CRUD + like/unlike, Topic CRUD, Comment/Reply CRUD, `getCommentsByPostIdApi`, `getRepliesApi` |
 | `chatService.js` | Chatbot | `getAllRoomsApi`, `getMessagesInRoomApi`, `createRoomApi`, `renameRoomApi`, `deleteRoomApi`, `sendMessageApi` |
 | `cloudinaryService.js` | Upload | `uploadOneFileToCloudinary`, `uploadMultipleFilesToCloudinary` — dùng native `fetch()` cho multipart FormData, tự detect token từ CLIENT hoặc ADMIN storage |
-| `notificationService.js` | Notification Orchestration | tổng hợp notification từ appointment + forum |
+| `notificationService.js` | Notification API + Mapping | gọi REST `/notification/*`, map payload BE sang UI model, đồng bộ trạng thái đọc |
 | `appointmentDiagnosisService.js` | AI Diagnosis Orchestration | WebSocket AI diagnosis + fallback + local cache |
 | `clientGoogleAuthService.js` | Auth Orchestration | bridge Firebase Google token -> backend `/auth/login-google` |
 
 #### Business logic modules (sau chuẩn hóa)
-- `src/services/notificationService.js` — tổng hợp notification từ appointment + forum.
+- `src/services/notificationService.js` — wrapper API thông báo (list/mark-one/mark-all) + mapper UI dùng chung.
 - `src/services/appointmentDiagnosisService.js` — WebSocket AI diagnosis, fallback markdown, cache local theo appointment.
 - `src/hooks/Clinic/useVeterinarians.js` — React hook quản lý veterinarian list, delegate sang `services/`.
 - `src/config/firebaseClient.js` — Firebase bootstrap + analytics + popup token.
@@ -510,17 +510,15 @@ Luồng đang chạy:
 ## Veterinarian Portal - Trạng thái tính năng
 
 ### 1) Lịch hẹn bác sĩ
-- `PetAppointmentVererianrian` đã dùng API thật theo ngày hiện tại.
-- Cụm summary card (`Lịch hôm nay`, `Đang khám`, `Đã hoàn thành`) đã chỉnh lại UI:
+- Danh sách lịch hẹn bác sĩ chỉ hiển thị theo **ngày hiện tại** (local date `YYYY-MM-DD`); không hiển thị trộn ngày khác.
+- Có cơ chế tự đồng bộ mốc ngày (interval + focus + visibility) để khi qua ngày mới, danh sách tự chuyển sang lịch của ngày mới mà không cần reload trang.
   - icon lớn hơn,
   - icon + tiêu đề nằm ngang hàng ở dòng trên,
   - số liệu nằm giữa, cân đối theo trục của tiêu đề.
 - Nút **"Bắt đầu khám"**:
-  - Lần đầu nhấn (khi `BOOKED`): mở tab mới tới `/veterinarian/exam-forms/create?appointmentId=<id>` và gọi `PATCH /appointment/:id` để chuyển trạng thái sang `IN_PROGRESS`.
-  - UI danh sách lịch hẹn đổi ngay sang `IN_PROGRESS` (optimistic update) và sync lại bằng refetch nhẹ sau khi API thành công.
+- Trên route editor, ẩn cụm action bar góc phải (Language Switcher + Notification bell) để tập trung chỉnh sửa nội dung.
   - Khi đã `IN_PROGRESS`, nút vẫn bấm được để mở lại tab phiếu khám, không gọi API đổi trạng thái lần nữa.
-- Việc chuyển `COMPLETED` không làm thủ công ở màn danh sách lịch nữa; trạng thái hoàn tất đồng bộ sau khi lưu phiếu khám.
-
+- Trên route editor, ẩn cụm action bar góc phải (Language Switcher + Notification bell), đồng nhất với HomePageClinic Editor.
 ### 2) Hồ sơ bệnh án
 - `ListMedicalRecords`: lấy từ API appointment theo ngày, xem chi tiết hồ sơ.
 - `ViewPetMedicalRecords`: lấy medical records thật theo `petId/medicalId`, render timeline.
@@ -959,118 +957,84 @@ Ghi chú:
   - `src/locales/admin/vi.json`
   - `src/locales/admin/en.json`
 - Không trộn key chéo namespace giữa `client`, `clinic`, `vererianrian`, `admin`.
-## Notification System (integrated 2026-04-07)
+## Notification System (updated 2026-04-09)
 
 ### BE Notification Mechanism
-- **Protocol:** WebSocket via Socket.io
-- **Namespace:** `/notification`
-- **Authentication:** JWT token passed in `handshake.auth.accessToken`
-- **Event (server → client):** `severSendNotification` (note: "sever" is a typo in BE, not "server")
-- **Room isolation:** Each user joins a room = their `user.id`; notifications are emitted to that room
+- **Protocol:** REST + WebSocket (Socket.io)
+- **REST endpoints (đang có thật ở BE):**
+  - `GET /notification?limit=<number>&filter=<ALL|UNREAD>&createdAt=<optional>`
+  - `PATCH /notification/mark-one/:id`
+  - `PATCH /notification/mark-all`
+- **Socket namespace:** `/notification`
+- **Authentication:** JWT token truyền qua `handshake.auth.accessToken`
+- **Event (server -> client):** `severSendNotification` (giữ nguyên theo BE)
 
 ### BE Notification Entity
 ```
 id:          UUID (auto-generated)
-recipientId: UUID (FK → user.id)
-senderId:    UUID | null
-senderType:  'USER' | 'CLINIC' | 'SYSTEM'
-type:        NotificationEnum (see below)
+recipientId: UUID (FK -> user.id)
+type:        NotificationEnum
 isRead:      boolean (default: false)
-target:      JSONB (flexible payload, varies by type)
+target:      JSONB
 createdAt:   Date (auto)
 ```
 
 ### Notification Types (NotificationEnum)
-| Type | Status | Recipient | Target Payload |
-|------|--------|-----------|----------------|
-| `APPOINTMENT_BOOKED` | Active | Clinic Admin + Vet | `{ appointmentDate, appointmentTime, appointmentId, userName }` |
-| `AI_DIAGNOSIS` | Active | Pet Owner | `{ appointmentId, aiDiagnosisId, petName }` |
-| `APPOINTMENT_CANCELLED` | Defined, not triggered | — | — |
-| `APPOINTMENT_REMINDER` | Defined, not triggered | — | — |
-| `FOLLOW_UP_REMINDER` | Defined, not triggered | — | — |
-| `COMMENT_REPLY` | Defined, not triggered | — | — |
+- `APPOINTMENT_BOOKED`
+- `APPOINTMENT_CANCELLED`
+- `APPOINTMENT_STATUS_UPDATED_BY_CLIENT`
+- `APPOINTMENT_REMINDER`
+- `AI_DIAGNOSIS`
+- `FOLLOW_UP_REMINDER`
+- `COMMENT_REPLY`
 
-### BE Limitation
-- **No REST endpoints** for notifications. Controller and Service are empty stubs.
-- Cannot fetch notification history, mark as read on server, or paginate from BE.
-- All persistence and read-state management is handled FE-side via localStorage.
+### FE Integration Architecture (backend-first)
 
-### FE Integration Architecture (Hướng A — FE-only)
+#### Service Layer: `src/services/notificationService.js`
+- `getNotificationsApi(instance, { limit, filter, createdAt })` -> gọi `GET /notification`
+- `markNotificationAsReadApi(instance, id)` -> gọi `PATCH /notification/mark-one/:id`
+- `markAllNotificationsAsReadApi(instance)` -> gọi `PATCH /notification/mark-all`
+- `mapBeNotification(raw)` -> map payload BE sang UI model dùng chung
+- `loadClientNotifications(...)` giữ compatibility cho Client Header nhưng dữ liệu lấy trực tiếp từ BE notification API
 
-#### Shared Hook: `hooks/useNotificationSocket.js`
-- Creates its own Socket.io connection (not the singleton `notifySocket.js`)
-- Accepts `{ storageKey, token, enabled }` params
-- Receives `severSendNotification` events, maps raw BE data via `mapBeNotification()`
-- Persists notifications + read IDs in localStorage
-- Exposes: `notifications`, `readIdSet`, `unreadCount`, `markAsRead()`, `markAllAsRead()`, `connected`
-- Handles: auto-reconnect (15 attempts, exponential backoff), cleanup on unmount
+#### Shared Hook: `src/hooks/useNotificationSocket.js`
+- Vẫn subscribe realtime qua socket namespace `/notification`
+- Bổ sung hydrate danh sách notification từ REST API khi mount
+- Poll đồng bộ mỗi 60 giây + refetch khi tab active trở lại
+- Tự refetch khi đổi ngôn ngữ (`languageChanged`) để remap tiêu đề/mô tả notification theo locale hiện tại
+- `markAsRead`/`markAllAsRead` đồng bộ trực tiếp lên backend (không còn local-only)
+- Exposes: `notifications`, `readIdSet`, `unreadCount`, `markAsRead()`, `markAllAsRead()`, `connected`, `loading`, `refreshNotifications()`
 
 #### Layout Integration
+| Layout | Data Source |
+|--------|-------------|
+| **Client Header** (`components/layouts/client/header.jsx`) | REST `/notification` + socket realtime |
+| **Clinic Admin** (`layouts/Clinic/AdminClinicLayout.jsx`) | Hook dùng REST + socket |
+| **Veterinarian** (`layouts/Vererianrian/AdminVererianrianLayout.jsx`) | Hook dùng REST + socket |
+| **Super Admin** (`layouts/admin/AdminLayout.jsx`) | Hook dùng REST + socket |
 
-| Layout | Hook storageKey | Data Source |
-|--------|----------------|-------------|
-| **Client Header** (`components/layouts/client/header.jsx`) | N/A (inline socket) | API polling (60s) + WebSocket merged |
-| **Clinic Admin** (`layouts/Clinic/AdminClinicLayout.jsx`) | `ws_notif_clinic:{scopeKey}` | WebSocket only |
-| **Veterinarian** (`layouts/Vererianrian/AdminVererianrianLayout.jsx`) | `ws_notif_vet:{userId}` | WebSocket only |
-| **Super Admin** (`layouts/admin/AdminLayout.jsx`) | `ws_notif_admin:{userId}` | WebSocket only |
-
-#### Client Header (special case)
-- Keeps existing `notificationService.js` which polls appointment/forum APIs every 60s
-- Additionally connects WebSocket to receive realtime BE notifications (e.g., `AI_DIAGNOSIS`)
-- Both sources merge into the same `notificationItems` state
-- Read IDs stored in localStorage scoped by `userId`
-
-### Files Changed (2026-04-07)
-| Action | File |
-|--------|------|
-| **Created** | `hooks/useNotificationSocket.js` |
-| **Modified** | `layouts/Clinic/AdminClinicLayout.jsx` — removed mock data, integrated hook |
-| **Modified** | `layouts/Vererianrian/AdminVererianrianLayout.jsx` — removed mock data, integrated hook |
-| **Modified** | `layouts/admin/AdminLayout.jsx` — removed mock data, integrated hook |
-| **Modified** | `components/layouts/client/header.jsx` — added WebSocket alongside API polling |
-| **Modified** | `components/layouts/client/header.css` — added `ai-diagnosis` icon style |
-
-### Mock Data Removed
-
-### Time-ago Labels — Periodic Refresh (cập nhật 2026-04-07)
+### Time-ago Labels — Periodic Refresh
 - `formatNotificationTimeAgo()` tính `Date.now() - createdAt` tại thời điểm render → nếu component không re-render, nhãn "Vừa xong" bị đóng băng.
 - **Fix:** Mỗi layout có `setTimeTick` state cập nhật mỗi **30 giây** → ép re-render → time-ago labels luôn cập nhật.
 - Áp dụng: `header.jsx`, `AdminClinicLayout.jsx`, `AdminVererianrianLayout.jsx`.
 - `formatNotificationTimeAgo` tồn tại độc lập trong mỗi layout (không abstract), trả về: "Vừa xong" / "X phút trước" / "X giờ trước" / "X ngày trước".
 
-### Notification UI Fixes (cập nhật 2026-04-07)
-
-#### 1. Client time-ago "Vừa xong" cho lịch hẹn tương lai
-- **Nguyên nhân:** `buildAppointmentNotifications()` trong `notificationService.js` dùng ngày/giờ *lịch hẹn* làm `createdAt` → lịch hẹn tương lai có `diff < 0` → luôn hiển thị "Vừa xong".
-- **Fix:** Ưu tiên `appointment.createdAt` (timestamp DB) → `createdAt` phản ánh thời điểm đặt lịch, không phải thời điểm khám.
-
-#### 2. Notification panel không scroll được (Client)
-- **Nguyên nhân:** `.notification-panel-content` trong `header.css` có `overflow: hidden`.
-- **Fix:** Đổi thành `overflow-y: auto`. Admin/Vet CSS Modules đã có scroll sẵn.
-
-#### 3. Date format chuẩn hóa dd-mm-yyyy HH:mm
-- **Trước:** ISO string `2026-04-07T00:00:00.000Z` hoặc `2026-04-07 16:00:00` hiển thị thô.
-- **Sau:** `07-04-2026 lúc 16:00` (dd-mm-yyyy, HH:mm không giây).
-- **Helpers:** `formatDateDDMMYYYY()` + `formatTimeHHMM()` — khai báo cục bộ trong:
-  - `services/notificationService.js` (client portal)
-  - `hooks/useNotificationSocket.js` (admin/vet portals)
-
-#### Files Changed (notification UI fixes)
+### Files Changed (notification API integration 2026-04-09)
 | Action | File |
 |--------|------|
-| **Modified** | `services/notificationService.js` — thêm formatters, đổi createdAt sang DB timestamp |
-| **Modified** | `hooks/useNotificationSocket.js` — thêm formatters, áp dụng cho 3 notification types |
-| **Modified** | `components/layouts/client/header.css` — `overflow: hidden` → `overflow-y: auto` |
-
-### Mock Data Removed (trước đó)
-- `buildMockClinicNotifications()` from AdminClinicLayout (5 hardcoded items)
-- `buildMockVeterinarianNotifications()` from AdminVererianrianLayout (5 hardcoded items)
-- `MOCK_ADMIN_NOTIFICATIONS` from AdminLayout (6 hardcoded items)
-- Old `notifySocket` import + console.log-only listener from AdminClinicLayout
+| **Modified** | `src/services/notificationService.js` — chuyển sang backend notification REST + mapper dùng chung |
+| **Modified** | `src/hooks/useNotificationSocket.js` — hydrate REST + sync mark read lên backend + realtime socket |
+| **Modified** | `src/components/layouts/client/header.jsx` — bỏ local read-state, dùng `isRead` từ backend |
+| **Modified** | `src/locales/client/vi.json` — bổ sung key i18n cho notification events |
+| **Modified** | `src/locales/client/en.json` — bổ sung key i18n cho notification events |
+| **Modified** | `src/utils/enumLabel.js` — `getVeterinarySpecialtyOptions()` trả label theo i18n runtime |
+| **Modified** | `src/layouts/admin/AdminLayout.jsx` — truyền `getAdminInstance()` vào notification hook |
+| **Modified** | `src/layouts/Clinic/AdminClinicLayout.jsx` — truyền `getAdminInstance()` vào notification hook |
+| **Modified** | `src/layouts/Vererianrian/AdminVererianrianLayout.jsx` — truyền `getAdminInstance()` vào notification hook |
 
 ### Services Directory Convention
 All API service files live in `services/` with pattern `{domain}Service.js`.
-The `notificationService.js` provides client-side notification aggregation from appointment/forum APIs (not mock — real data). It remains in use for the client header.
+`notificationService.js` hiện là service API chuẩn cho notification backend (không còn tổng hợp từ appointment/forum ở FE).
 
 ## Backlog ưu tiên đề xuất (Web)
 1. ~~Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.~~ ✓ Đã hoàn thành — toàn bộ API tập trung trong `src/services/`, chỉ Cloudinary upload dùng native `fetch()`.

@@ -376,6 +376,7 @@ function ViewMedicalRecords() {
 		<div className={styles.pageRoot}>
             <header className={styles.topHeader}>
 				<h1>{t('medicalRecords.view.pageTitle')}</h1>
+				<div className={styles.topHeaderActionSpacer} aria-hidden="true" />
             </header>
 			<main className={styles.pageContent}>
 				<section className={styles.petCard}>

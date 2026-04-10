@@ -18,6 +18,7 @@ import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageS
 import PortalAccountMenu from '../../components/common/PortalAccountMenu/PortalAccountMenu'
 import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
 import useNotificationSocket from '../../hooks/useNotificationSocket'
+import { getAdminInstance } from '../../services/apiClient'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
@@ -129,6 +130,7 @@ export default function AdminVererianrianLayout() {
     storageKey: `ws_notif_vet:${userProfile?.id || 'default'}`,
     token,
     enabled: !!token,
+    instance: getAdminInstance(),
   })
 
   const filteredNotificationItems = useMemo(() => {

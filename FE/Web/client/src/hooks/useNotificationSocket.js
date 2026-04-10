@@ -1,190 +1,143 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
-import { formatDateDDMMYYYY, formatTimeHHMM } from '../utils/dateTimeFormat';
+import i18n from '../i18n';
+import { getClientInstance } from '../services/apiClient';
+import {
+  getNotificationsApi,
+  mapBeNotification,
+  markAllNotificationsAsReadApi,
+  markNotificationAsReadApi,
+} from '../services/notificationService';
 
 const SOCKET_BASE_URL =
   (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api\/?$/, '');
 const SOCKET_URL = `${SOCKET_BASE_URL}/notification`;
 
 const MAX_STORED_NOTIFICATIONS = 200;
-const MAX_STORED_READ_IDS = 500;
+const REFRESH_INTERVAL_MS = 60000;
 const RECONNECT_ATTEMPTS = 15;
 const RECONNECT_DELAY_MS = 3000;
 const RECONNECT_DELAY_MAX_MS = 15000;
 
-const formatNotificationDate = (value) =>
-  formatDateDDMMYYYY(value, String(value || '').trim());
-
-const formatNotificationTime = (value) =>
-  formatTimeHHMM(value, String(value || '').trim());
-
-const buildAppointmentDescription = (beType, target) => {
-  const dateText = formatNotificationDate(target?.appointmentDate);
-  const timeText = formatNotificationTime(target?.appointmentTime);
-
-  if (beType === 'APPOINTMENT_BOOKED') {
-    return `Ngày ${dateText} lúc ${timeText}`;
-  }
-
-  if (beType === 'APPOINTMENT_CANCELLED') {
-    return `Lịch hẹn ngày ${dateText} lúc ${timeText} đã bị hủy.`;
-  }
-
-  if (beType === 'APPOINTMENT_REMINDER') {
-    return `Bạn có lịch hẹn vào ngày ${dateText} lúc ${timeText}.`;
-  }
-
-  return '';
+const safeDateValue = (value) => {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const normalizeStoredNotification = (item) => {
-  if (!item || !item.id) return null;
+const sortAndLimitNotifications = (items = []) => {
+  const dedupMap = new Map();
 
-  if (
-    item.beType === 'APPOINTMENT_BOOKED' ||
-    item.beType === 'APPOINTMENT_CANCELLED' ||
-    item.beType === 'APPOINTMENT_REMINDER'
-  ) {
-    return {
-      ...item,
-      description: buildAppointmentDescription(item.beType, item.target),
-    };
-  }
+  items.forEach((item) => {
+    if (!item?.id) return;
 
-  return item;
-};
-
-const readStorageJson = (key, fallback) => {
-  try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw);
-  } catch {
-    return fallback;
-  }
-};
-
-/**
- * Maps a raw BE notification entity to a display-friendly shape
- * used by all layout notification panels.
- */
-export const mapBeNotification = (raw) => {
-  if (!raw || !raw.id) return null;
-
-  const base = {
-    id: raw.id,
-    createdAt: raw.createdAt,
-    senderType: raw.senderType,
-    beType: raw.type,
-    target: raw.target,
-  };
-
-  switch (raw.type) {
-    case 'APPOINTMENT_BOOKED':
-      return {
-        ...base,
-        type: 'appointment',
-        title: `Lịch hẹn mới từ ${raw.target?.userName || 'khách hàng'}`,
-        description: buildAppointmentDescription(raw.type, raw.target),
-        href: null,
-      };
-
-    case 'APPOINTMENT_CANCELLED':
-      return {
-        ...base,
-        type: 'appointment',
-        title: 'Lịch hẹn đã bị hủy',
-        description: buildAppointmentDescription(raw.type, raw.target),
-        href: null,
-      };
-
-    case 'APPOINTMENT_REMINDER':
-      return {
-        ...base,
-        type: 'system',
-        title: 'Nhắc nhở lịch hẹn',
-        description: buildAppointmentDescription(raw.type, raw.target),
-        href: null,
-      };
-
-    case 'AI_DIAGNOSIS':
-      return {
-        ...base,
-        type: 'ai-diagnosis',
-        title: `Kết quả chẩn đoán AI cho ${raw.target?.petName || 'thú cưng'}`,
-        description: 'Kết quả phân tích sức khỏe từ AI đã sẵn sàng.',
-        href: '/appointments',
-      };
-
-    case 'FOLLOW_UP_REMINDER':
-      return {
-        ...base,
-        type: 'system',
-        title: 'Nhắc nhở tái khám',
-        description: raw.target?.petName
-          ? `Đã đến lịch tái khám cho ${raw.target.petName}.`
-          : 'Bạn có lịch tái khám sắp tới.',
-        href: '/appointments',
-      };
-
-    case 'COMMENT_REPLY':
-      return {
-        ...base,
-        type: 'forum-comment',
-        title: 'Có người trả lời bình luận của bạn',
-        description: raw.target?.content || 'Xem chi tiết trong diễn đàn.',
-        href: raw.target?.postId ? `/forum?post=${raw.target.postId}` : '/forum',
-      };
-
-    default:
-      return {
-        ...base,
-        type: 'system',
-        title: 'Thông báo mới',
-        description: '',
-        href: null,
-      };
-  }
-};
-
-/**
- * Custom hook that manages a Socket.io connection to the BE notification
- * gateway, persists received notifications in localStorage, and exposes
- * read/unread management helpers.
- *
- * @param {object}  options
- * @param {string}  options.storageKey  - localStorage prefix (unique per role/user)
- * @param {string}  options.token       - JWT access token for the WebSocket handshake
- * @param {boolean} [options.enabled]   - set to false to skip connecting (default true)
- */
-export default function useNotificationSocket({ storageKey, token, enabled = true }) {
-  const [notifications, setNotifications] = useState([]);
-  const [readIds, setReadIds] = useState([]);
-  const [connected, setConnected] = useState(false);
-  const socketRef = useRef(null);
-  const storageKeyRef = useRef(storageKey);
-  storageKeyRef.current = storageKey;
-
-  // ── Load persisted data when storageKey changes ──
-  useEffect(() => {
-    if (!storageKey) return;
-
-    const items = readStorageJson(`${storageKey}:items`, []);
-    const stored = readStorageJson(`${storageKey}:read`, []);
-
-    const normalizedItems = (Array.isArray(items) ? items : [])
-      .map(normalizeStoredNotification)
-      .filter(Boolean);
-
-    try {
-      localStorage.setItem(`${storageKey}:items`, JSON.stringify(normalizedItems));
-    } catch {
-      // non-critical
+    const existing = dedupMap.get(item.id);
+    if (!existing) {
+      dedupMap.set(item.id, item);
+      return;
     }
 
-    setNotifications(normalizedItems);
-    setReadIds(Array.isArray(stored) ? stored : []);
-  }, [storageKey]);
+    const existingTime = safeDateValue(existing.createdAt)?.getTime() || 0;
+    const currentTime = safeDateValue(item.createdAt)?.getTime() || 0;
+
+    if (currentTime > existingTime) {
+      dedupMap.set(item.id, { ...item, isRead: Boolean(item.isRead || existing.isRead) });
+      return;
+    }
+
+    dedupMap.set(existing.id, { ...existing, isRead: Boolean(existing.isRead || item.isRead) });
+  });
+
+  return Array.from(dedupMap.values())
+    .sort((a, b) => {
+      const first = safeDateValue(a?.createdAt)?.getTime() || 0;
+      const second = safeDateValue(b?.createdAt)?.getTime() || 0;
+      return second - first;
+    })
+    .slice(0, MAX_STORED_NOTIFICATIONS);
+};
+
+const isNotFoundNotificationError = (error) => {
+  if (error?.response?.status === 404) return true;
+  const message = String(error?.message || '').toLowerCase();
+  return message.includes('không tìm thấy thông báo') || message.includes('khong tim thay thong bao');
+};
+
+/**
+ * Shared notification hook for all portals.
+ * - Hydrates initial/history notifications from backend REST API.
+ * - Subscribes realtime updates from the notification socket namespace.
+ * - Syncs read/unread state back to backend with mark-one/mark-all APIs.
+ */
+export default function useNotificationSocket({
+  storageKey,
+  token,
+  enabled = true,
+  instance,
+}) {
+  const [notifications, setNotifications] = useState([]);
+  const [connected, setConnected] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const socketRef = useRef(null);
+  const storageKeyRef = useRef(storageKey || 'unknown');
+  storageKeyRef.current = storageKey || 'unknown';
+  const apiInstance = instance || getClientInstance();
+
+  const refreshNotifications = useCallback(async () => {
+    if (!enabled || !token) return;
+
+    setLoading(true);
+    try {
+      const payload = await getNotificationsApi(apiInstance, {
+        limit: MAX_STORED_NOTIFICATIONS,
+      });
+
+      setNotifications(Array.isArray(payload?.items) ? payload.items : []);
+    } catch {
+      // ignore fetch failures; socket stream still works
+    } finally {
+      setLoading(false);
+    }
+  }, [apiInstance, enabled, token]);
+
+  useEffect(() => {
+    if (!enabled || !token) {
+      setNotifications([]);
+      return undefined;
+    }
+
+    void refreshNotifications();
+
+    const intervalId = window.setInterval(() => {
+      void refreshNotifications();
+    }, REFRESH_INTERVAL_MS);
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshNotifications();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [enabled, token, refreshNotifications]);
+
+  useEffect(() => {
+    if (!enabled || !token) return undefined;
+
+    const handleLanguageChanged = () => {
+      void refreshNotifications();
+    };
+
+    i18n.on('languageChanged', handleLanguageChanged);
+
+    return () => {
+      i18n.off('languageChanged', handleLanguageChanged);
+    };
+  }, [enabled, token, refreshNotifications]);
 
   // ── Socket connection ──
   useEffect(() => {
@@ -217,16 +170,7 @@ export default function useNotificationSocket({ storageKey, token, enabled = tru
       if (!mapped) return;
 
       setNotifications((prev) => {
-        if (prev.some((n) => n.id === mapped.id)) return prev;
-
-        const next = [mapped, ...prev].slice(0, MAX_STORED_NOTIFICATIONS);
-        const key = storageKeyRef.current;
-        if (key) {
-          try {
-            localStorage.setItem(`${key}:items`, JSON.stringify(next));
-          } catch { /* quota exceeded – non-critical */ }
-        }
-        return next;
+        return sortAndLimitNotifications([mapped, ...prev]);
       });
     });
 
@@ -238,43 +182,39 @@ export default function useNotificationSocket({ storageKey, token, enabled = tru
     };
   }, [enabled, token]);
 
-  // ── Persist helpers ──
-  const persistReadIds = useCallback(
-    (nextIds) => {
-      if (!storageKey) return;
-      try {
-        localStorage.setItem(
-          `${storageKey}:read`,
-          JSON.stringify(nextIds.slice(-MAX_STORED_READ_IDS)),
-        );
-      } catch { /* non-critical */ }
-    },
-    [storageKey],
-  );
+  const markAsRead = useCallback(async (id) => {
+    if (!id) return;
 
-  const markAsRead = useCallback(
-    (id) => {
-      if (!id) return;
-      setReadIds((prev) => {
-        if (prev.includes(id)) return prev;
-        const next = [...prev, id];
-        persistReadIds(next);
-        return next;
-      });
-    },
-    [persistReadIds],
-  );
+    setNotifications((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, isRead: true } : item)),
+    );
 
-  const markAllAsRead = useCallback(() => {
-    setReadIds((prev) => {
-      const allIds = notifications.map((n) => n.id);
-      const merged = Array.from(new Set([...prev, ...allIds]));
-      persistReadIds(merged);
-      return merged;
-    });
-  }, [notifications, persistReadIds]);
+    try {
+      await markNotificationAsReadApi(apiInstance, id);
+    } catch (error) {
+      if (isNotFoundNotificationError(error)) return;
+      void refreshNotifications();
+    }
+  }, [apiInstance, refreshNotifications]);
 
-  const readIdSet = useMemo(() => new Set(readIds), [readIds]);
+  const markAllAsRead = useCallback(async () => {
+    const hasUnread = notifications.some((item) => !item.isRead);
+    if (!hasUnread) return;
+
+    setNotifications((prev) => prev.map((item) => ({ ...item, isRead: true })));
+
+    try {
+      await markAllNotificationsAsReadApi(apiInstance);
+    } catch (error) {
+      if (isNotFoundNotificationError(error)) return;
+      void refreshNotifications();
+    }
+  }, [apiInstance, notifications, refreshNotifications]);
+
+  const readIdSet = useMemo(() => {
+    const ids = notifications.filter((item) => item?.isRead).map((item) => item.id);
+    return new Set(ids);
+  }, [notifications]);
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !readIdSet.has(n.id)).length,
@@ -288,5 +228,7 @@ export default function useNotificationSocket({ storageKey, token, enabled = tru
     markAsRead,
     markAllAsRead,
     connected,
+    loading,
+    refreshNotifications,
   };
 }

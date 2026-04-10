@@ -192,6 +192,7 @@ export default function AddNewVererianrian() {
 			{contextHolder}
 			<header className={styles.topBar}>
 				<h1 style={{fontSize: 24, fontWeight: 'bold'}}>{t('veterinarians.add.pageTitle')}</h1>
+				<div className={styles.topBarActionSpacer} aria-hidden="true" />
 			</header>
 
 			<section className={styles.content}>

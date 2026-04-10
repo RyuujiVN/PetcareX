@@ -236,6 +236,7 @@ export default function ListPetMedicalRecords() {
 		<div className={styles.content}>
 			<header className={styles.topHeader}>
 				<h1>{t('medicalRecords.list.pageTitle')}</h1>
+				<div className={styles.topHeaderActionSpacer} aria-hidden="true" />
 			</header>
 
 			<section className={styles.mainPanel}>

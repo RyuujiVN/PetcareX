@@ -50,7 +50,27 @@
       "forumCommentTitle": "{{name}} đã bình luận bài viết của bạn",
       "forumReplyToCommentTitle": "{{name}} đã phản hồi bình luận của bạn",
       "forumReplyInPostTitle": "{{name}} đã phản hồi trong bài viết của bạn",
-      "forumActorFallback": "Người dùng"
+      "forumActorFallback": "Người dùng",
+      "events": {
+        "actorFallback": "khách hàng",
+        "petFallback": "thú cưng",
+        "appointmentBookedTitle": "Lịch hẹn mới từ {{name}}",
+        "appointmentBookedDescription": "Ngày {{date}} lúc {{time}}",
+        "appointmentCancelledTitle": "Lịch hẹn đã bị hủy",
+        "appointmentCancelledDescription": "Lịch hẹn ngày {{date}} lúc {{time}} đã bị hủy.",
+        "appointmentReminderTitle": "Nhắc nhở lịch hẹn",
+        "appointmentReminderDescription": "Bạn có lịch hẹn vào ngày {{date}} lúc {{time}}.",
+        "appointmentStatusUpdatedByClientTitle": "Khách hàng đã cập nhật lịch hẹn",
+        "appointmentStatusUpdatedByClientDescription": "Khách hàng đã cập nhật trạng thái lịch hẹn ngày {{date}} lúc {{time}}.",
+        "aiDiagnosisTitle": "Kết quả chẩn đoán AI cho {{petName}}",
+        "aiDiagnosisDescription": "Kết quả phân tích sức khỏe từ AI đã sẵn sàng.",
+        "followUpReminderTitle": "Nhắc nhở tái khám",
+        "followUpReminderWithPetDescription": "Đã đến lịch tái khám cho {{petName}}.",
+        "followUpReminderDescription": "Bạn có lịch tái khám sắp tới.",
+        "commentReplyTitle": "Có người trả lời bình luận của bạn",
+        "commentReplyFallbackDescription": "Xem chi tiết trong diễn đàn.",
+        "defaultTitle": "Thông báo mới"
+      }
     },
     "passwordModal": {
       "title": "Đổi mật khẩu",
