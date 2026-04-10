@@ -8,10 +8,14 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 import { useAuth } from "../../../hooks/client/AuthContext";
-import { mapBeNotification } from "../../../hooks/useNotificationSocket";
 import { getClientInstance } from "../../../services/apiClient";
 import { changePasswordApi } from "../../../services/authService";
-import { loadClientNotifications } from "../../../services/notificationService";
+import {
+    loadClientNotifications,
+    mapBeNotification,
+    markAllNotificationsAsReadApi,
+    markNotificationAsReadApi,
+} from "../../../services/notificationService";
 import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
 
@@ -20,8 +24,6 @@ const WS_BASE_URL =
 const NOTIFICATION_SOCKET_URL = `${WS_BASE_URL}/notification`;
 
 const MIN_PASSWORD_LENGTH = 8;
-const NOTIFICATION_READ_STORAGE_KEY = "client_header_notification_read_ids";
-const NOTIFICATION_LIKE_SNAPSHOT_STORAGE_KEY = "client_header_notification_like_snapshot";
 
 const INITIAL_PASSWORD_FORM = {
     currentPassword: "",
@@ -41,18 +43,13 @@ const INITIAL_PASSWORD_VISIBILITY = {
     confirmPassword: false,
 };
 
-const getScopedStorageKey = (baseKey, userId) => `${baseKey}:${userId}`;
-
-const readStorageJson = (key, fallbackValue) => {
-    if (!key) return fallbackValue;
-
-    try {
-        const raw = localStorage.getItem(key);
-        if (!raw) return fallbackValue;
-        return JSON.parse(raw);
-    } catch {
-        return fallbackValue;
-    }
+const isNotFoundNotificationError = (error) => {
+    if (error?.response?.status === 404) return true;
+    const normalizedMessage = String(error?.message || "").toLowerCase();
+    return (
+        normalizedMessage.includes("không tìm thấy thông báo") ||
+        normalizedMessage.includes("khong tim thay thong bao")
+    );
 };
 
 const formatNotificationTimeAgo = (dateValue, t) => {
@@ -97,7 +94,7 @@ const renderNotificationIcon = (type) => {
 };
 
 function Header() {
-    const { t } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -111,7 +108,6 @@ function Header() {
         return () => window.clearInterval(id);
     }, []);
     const [notificationFilter, setNotificationFilter] = useState("all");
-    const [notificationReadIds, setNotificationReadIds] = useState([]);
     const [notificationLastSyncedAt, setNotificationLastSyncedAt] = useState("");
     const [changingPassword, setChangingPassword] = useState(false);
     const [passwordForm, setPasswordForm] = useState(INITIAL_PASSWORD_FORM);
@@ -123,66 +119,28 @@ function Header() {
     });
     const [passwordVisible, setPasswordVisible] = useState(INITIAL_PASSWORD_VISIBILITY);
     const accountMenuRef = useRef(null);
-    const likeSnapshotRef = useRef({});
     const notificationRequestInFlightRef = useRef(false);
     const navigate = useNavigate();
     const { login, logout, token, userProfile } = useAuth();
     const currentUserId = String(userProfile?.id || "");
 
-    const notificationReadIdSet = useMemo(() => new Set(notificationReadIds), [notificationReadIds]);
+    const notificationReadIdSet = useMemo(
+        () => new Set(notificationItems.filter((item) => item?.isRead).map((item) => item.id)),
+        [notificationItems],
+    );
 
     const unreadNotificationCount = useMemo(
-        () => notificationItems.reduce((count, item) => (notificationReadIdSet.has(item.id) ? count : count + 1), 0),
-        [notificationItems, notificationReadIdSet],
+        () => notificationItems.reduce((count, item) => (item?.isRead ? count : count + 1), 0),
+        [notificationItems],
     );
 
     const filteredNotificationItems = useMemo(() => {
         if (notificationFilter === "unread") {
-            return notificationItems.filter((item) => !notificationReadIdSet.has(item.id));
+            return notificationItems.filter((item) => !item?.isRead);
         }
 
         return notificationItems;
-    }, [notificationFilter, notificationItems, notificationReadIdSet]);
-
-    const persistReadNotificationIds = useCallback(
-        (nextReadIds) => {
-            if (!currentUserId) return;
-
-            const key = getScopedStorageKey(NOTIFICATION_READ_STORAGE_KEY, currentUserId);
-            localStorage.setItem(key, JSON.stringify(nextReadIds.slice(-500)));
-        },
-        [currentUserId],
-    );
-
-    const persistLikeSnapshot = useCallback(
-        (snapshot) => {
-            if (!currentUserId) return;
-
-            const key = getScopedStorageKey(NOTIFICATION_LIKE_SNAPSHOT_STORAGE_KEY, currentUserId);
-            localStorage.setItem(key, JSON.stringify(snapshot || {}));
-        },
-        [currentUserId],
-    );
-
-    const markNotificationsAsRead = useCallback(
-        (ids = []) => {
-            if (!Array.isArray(ids) || ids.length === 0) return;
-
-            setNotificationReadIds((prev) => {
-                const next = new Set(prev);
-                ids.forEach((id) => {
-                    if (id) {
-                        next.add(id);
-                    }
-                });
-
-                const nextList = Array.from(next);
-                persistReadNotificationIds(nextList);
-                return nextList;
-            });
-        },
-        [persistReadNotificationIds],
-    );
+    }, [notificationFilter, notificationItems]);
 
     const refreshNotifications = useCallback(
         async ({ silent = false } = {}) => {
@@ -194,14 +152,11 @@ function Header() {
 
             try {
                 const payload = await loadClientNotifications({
-                    userId: currentUserId,
-                    previousLikeSnapshot: likeSnapshotRef.current,
+                    instance: getClientInstance(),
+                    limit: 120,
                 });
 
                 setNotificationItems(Array.isArray(payload?.items) ? payload.items : []);
-
-                likeSnapshotRef.current = payload?.nextLikeSnapshot || {};
-                persistLikeSnapshot(likeSnapshotRef.current);
                 setNotificationLastSyncedAt(new Date().toISOString());
 
                 if (payload?.hasPartialFailure && !silent) {
@@ -216,8 +171,45 @@ function Header() {
                 notificationRequestInFlightRef.current = false;
             }
         },
-        [currentUserId, persistLikeSnapshot, token],
+        [currentUserId, token],
     );
+
+    const markNotificationAsRead = useCallback(async (notificationId) => {
+        if (!notificationId) return;
+
+        setNotificationItems((prev) =>
+            prev.map((item) =>
+                item.id === notificationId
+                    ? {
+                        ...item,
+                        isRead: true,
+                    }
+                    : item,
+            ),
+        );
+
+        try {
+            await markNotificationAsReadApi(getClientInstance(), notificationId);
+        } catch (error) {
+            if (!isNotFoundNotificationError(error)) {
+                void refreshNotifications({ silent: true });
+            }
+        }
+    }, [refreshNotifications]);
+
+    const markAllNotificationItemsAsRead = useCallback(async () => {
+        if (unreadNotificationCount === 0) return;
+
+        setNotificationItems((prev) => prev.map((item) => ({ ...item, isRead: true })));
+
+        try {
+            await markAllNotificationsAsReadApi(getClientInstance());
+        } catch (error) {
+            if (!isNotFoundNotificationError(error)) {
+                void refreshNotifications({ silent: true });
+            }
+        }
+    }, [refreshNotifications, unreadNotificationCount]);
 
     const handleAccountClick = () => {
         setIsNotificationOpen(false);
@@ -287,24 +279,12 @@ function Header() {
     useEffect(() => {
         if (!token || !currentUserId) {
             setNotificationItems([]);
-            setNotificationReadIds([]);
             setNotificationLastSyncedAt("");
-            likeSnapshotRef.current = {};
             return;
         }
 
-        const readKey = getScopedStorageKey(NOTIFICATION_READ_STORAGE_KEY, currentUserId);
-        const likeSnapshotKey = getScopedStorageKey(NOTIFICATION_LIKE_SNAPSHOT_STORAGE_KEY, currentUserId);
-
-        const storedReadIds = readStorageJson(readKey, []);
-        const storedLikeSnapshot = readStorageJson(likeSnapshotKey, {});
-
-        setNotificationReadIds(Array.isArray(storedReadIds) ? storedReadIds : []);
-        likeSnapshotRef.current =
-            storedLikeSnapshot && typeof storedLikeSnapshot === "object" ? storedLikeSnapshot : {};
-
         void refreshNotifications({ silent: true });
-    }, [currentUserId, refreshNotifications, token]);
+    }, [currentUserId, i18n.language, refreshNotifications, token]);
 
     useEffect(() => {
         if (!token || !currentUserId) {
@@ -343,16 +323,19 @@ function Header() {
         });
 
         socket.on("connect", () => {
-            console.log("[Client Header] ✅ Socket notification connected:", socket.id);
+            console.log("[Client Header]  Socket notification connected:", socket.id);
         });
 
         socket.on("severSendNotification", (data) => {
-            console.log("[Client Header] 📩 Nhận notification từ BE:", data);
+            console.log("[Client Header]  Nhận notification từ BE:", data);
             const mapped = mapBeNotification(data);
             if (!mapped) return;
 
             setNotificationItems((prev) => {
-                if (prev.some((n) => n.id === mapped.id)) return prev;
+                if (prev.some((n) => n.id === mapped.id)) {
+                    return prev.map((item) => (item.id === mapped.id ? { ...item, ...mapped } : item));
+                }
+
                 return [mapped, ...prev].slice(0, 120);
             });
         });
@@ -366,7 +349,7 @@ function Header() {
     const handleClickNotificationItem = (item) => {
         if (!item?.id) return;
 
-        markNotificationsAsRead([item.id]);
+        void markNotificationAsRead(item.id);
         setIsNotificationOpen(false);
 
         if (item.href) {
@@ -375,7 +358,7 @@ function Header() {
     };
 
     const handleMarkAllNotificationsAsRead = () => {
-        markNotificationsAsRead(notificationItems.map((item) => item.id));
+        void markAllNotificationItemsAsRead();
     };
 
     const notificationPanel = (
@@ -625,7 +608,7 @@ function Header() {
                 </nav>
 
                 <div className="auth-section">
-                    <LanguageSwitcher />
+                    <LanguageSwitcher /> 
                     {token ? (
                         <div className="user-section" ref={accountMenuRef}>
                             <Popover

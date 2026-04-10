@@ -2,11 +2,9 @@ import {
     CalendarOutlined,
     FileTextOutlined,
     FormOutlined,
-    LogoutOutlined,
     SearchOutlined,
-    UserOutlined
 } from '@ant-design/icons'
-import { Avatar, Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography } from 'antd'
+import { Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import { CiHospital1 } from "react-icons/ci"
 import { IoMdNotificationsOutline } from 'react-icons/io'
@@ -17,8 +15,10 @@ import { getRoleLabel } from '../../constants/veterinaryLabels'
 import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageSwitcher'
+import PortalAccountMenu from '../../components/common/PortalAccountMenu/PortalAccountMenu'
 import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
 import useNotificationSocket from '../../hooks/useNotificationSocket'
+import { getAdminInstance } from '../../services/apiClient'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
@@ -92,7 +92,7 @@ export default function AdminVererianrianLayout() {
   const { t } = useTranslation('vererianrian')
   const location = useLocation()
   const navigate = useNavigate()
-  const { token, userProfile, logout, activeRole } = useAuth()
+  const { token, userProfile, login, logout, refreshUserProfile, activeRole } = useAuth()
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false)
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: 'all',
@@ -130,6 +130,7 @@ export default function AdminVererianrianLayout() {
     storageKey: `ws_notif_vet:${userProfile?.id || 'default'}`,
     token,
     enabled: !!token,
+    instance: getAdminInstance(),
   })
 
   const filteredNotificationItems = useMemo(() => {
@@ -147,11 +148,6 @@ export default function AdminVererianrianLayout() {
   }, [notificationFilters, notificationItems, notificationReadIdSet])
 
   const shouldHideSearch = hideSearchRoutes.includes(location.pathname)
-
-  const handleLogout = () => {
-    logout()
-    navigate('/login', { replace: true })
-  }
 
   useEffect(() => {
     if (!token) {
@@ -304,17 +300,16 @@ export default function AdminVererianrianLayout() {
           </div>
 
           <div className={styles.profileCard}>
-            <Avatar size={44} src={userProfile?.avatarUrl || undefined} icon={<UserOutlined />} />
-            <div className={styles.profileMeta}>
-                <h4>{userProfile?.fullName || t('layout.defaultDoctorName')}</h4>
-              <p>{getRoleLabel(userProfile?.role || 'VETERINARIAN')}</p>
-            </div>
-            <Button
-              type="text"
-              icon={<LogoutOutlined />}
-              className={styles.logoutBtn}
-              onClick={handleLogout}
-                aria-label={t('layout.aria.logout')}
+            <PortalAccountMenu
+              namespace="vererianrian"
+              userProfile={userProfile}
+              login={login}
+              logout={logout}
+              refreshUserProfile={refreshUserProfile}
+              onAfterLogout={() => navigate('/login', { replace: true })}
+              defaultName={t('layout.defaultDoctorName')}
+              defaultMeta={t('layout.defaultDoctorRole')}
+              metaText={getRoleLabel(userProfile?.role || 'VETERINARIAN')}
             />
           </div>
         </aside>

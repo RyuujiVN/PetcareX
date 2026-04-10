@@ -1,310 +1,291 @@
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../utils/dateTimeFormat';
 import i18n from '../i18n';
-import { getAppointmentStatusLabel, getServiceLabel } from '../utils/enumLabel';
 import { getClientInstance } from './apiClient';
-import { getMyAppointmentsApi } from './appointmentService';
-import { getCommentsByPostIdApi, getPostsApi, getRepliesApi } from './forumService';
 
-const MAX_APPOINTMENTS = 120;
-const MAX_FORUM_POSTS = 120;
-const MAX_OWN_POSTS_SCAN = 10;
-const MAX_COMMENTS_PER_POST = 40;
-const MAX_REPLIES_PER_COMMENT = 30;
-const MAX_REPLY_THREADS_PER_POST = 12;
-const MAX_NOTIFICATIONS = 120;
+const DEFAULT_LIMIT = 120;
 
-const IMAGE_TOKEN_REGEX = /\[\[img:(.*?)\]\]/g;
-const TITLE_TOKEN_REGEX = /^\s*\[\[title:(.*?)\]\]\s*/i;
+export const NOTIFICATION_FILTER = {
+  ALL: 'ALL',
+  UNREAD: 'UNREAD',
+};
 
 const normalizeText = (value) => String(value || '').trim();
-const t = (key, options) => i18n.t(key, options);
-
-const formatDateDDMMYYYY = (value) => {
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return String(value || '');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  return `${dd}-${mm}-${d.getFullYear()}`;
-};
-
-const formatTimeHHMM = (value) => {
-  const text = String(value || '').trim();
-  const match = text.match(/(\d{1,2}):(\d{2})/);
-  return match ? `${match[1].padStart(2, '0')}:${match[2]}` : text;
-};
+const t = (key, defaultValue, options = {}) =>
+  i18n.t(key, { defaultValue, ...options });
 
 const safeDateValue = (value) => {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return null;
-  return date;
+  return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const formatAppointmentDateTime = (appointmentDate, appointmentTime) => {
-  const dateText = normalizeText(appointmentDate);
-  const timeText = normalizeText(appointmentTime);
+const formatNotificationDate = (value) =>
+  formatDateDDMMYYYY(value, normalizeText(value));
 
-  if (!dateText || !timeText) return null;
+const formatNotificationTime = (value) =>
+  formatTimeHHMM(value, normalizeText(value));
 
-  const date = safeDateValue(`${dateText}T${timeText}`);
-  return date ? date.toISOString() : null;
-};
+const buildAppointmentDescription = (beType, target = {}) => {
+  const dateText = formatNotificationDate(target?.appointmentDate);
+  const timeText = formatNotificationTime(target?.appointmentTime);
 
-const buildPostPreview = (content = '') => {
-  const withoutImageToken = String(content || '').replace(IMAGE_TOKEN_REGEX, '').trim();
-  const withoutTitleToken = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim();
-
-  if (!withoutTitleToken) {
-    return t('header.notifications.postWithImageFallback');
+  if (beType === 'APPOINTMENT_BOOKED') {
+    return t(
+      'header.notifications.events.appointmentBookedDescription',
+      'Date {{date}} at {{time}}',
+      {
+        date: dateText,
+        time: timeText,
+      },
+    );
   }
 
-  if (withoutTitleToken.length <= 110) {
-    return withoutTitleToken;
+  if (beType === 'APPOINTMENT_CANCELLED') {
+    return t(
+      'header.notifications.events.appointmentCancelledDescription',
+      'The appointment on {{date}} at {{time}} has been canceled.',
+      {
+        date: dateText,
+        time: timeText,
+      },
+    );
   }
 
-  return `${withoutTitleToken.slice(0, 110).trim()}...`;
+  if (beType === 'APPOINTMENT_REMINDER') {
+    return t(
+      'header.notifications.events.appointmentReminderDescription',
+      'You have an appointment on {{date}} at {{time}}.',
+      {
+        date: dateText,
+        time: timeText,
+      },
+    );
+  }
+
+  if (beType === 'APPOINTMENT_STATUS_UPDATED_BY_CLIENT') {
+    return t(
+      'header.notifications.events.appointmentStatusUpdatedByClientDescription',
+      'Customer updated appointment status for {{date}} at {{time}}.',
+      {
+        date: dateText,
+        time: timeText,
+      },
+    );
+  }
+
+  return '';
 };
 
-const buildCommentPreview = (content = '') => {
-  const cleaned = String(content || '').replace(IMAGE_TOKEN_REGEX, '').trim();
-  if (!cleaned) return t('header.notifications.imageSentFallback');
+export const mapBeNotification = (raw) => {
+  if (!raw || !raw.id) return null;
 
-  if (cleaned.length <= 100) return cleaned;
-  return `${cleaned.slice(0, 100).trim()}...`;
-};
+  const normalizedType = normalizeText(raw.type).toUpperCase();
+  const base = {
+    id: raw.id,
+    createdAt: raw.createdAt || new Date().toISOString(),
+    beType: normalizedType,
+    target: raw.target || {},
+    isRead: Boolean(raw.isRead),
+    href: null,
+  };
 
-const buildAppointmentNotifications = (appointments = []) => {
-  return appointments
-    .map((appointment) => {
-      const appointmentDate = normalizeText(appointment?.appointmentDate);
-      const appointmentTime = normalizeText(appointment?.appointmentTime);
-      const status = normalizeText(appointment?.status);
-
-      if (!appointmentDate || !appointmentTime || !status) return null;
-
-      const createdAt = normalizeText(appointment?.createdAt) || formatAppointmentDateTime(appointmentDate, appointmentTime) || new Date().toISOString();
-      const petName = normalizeText(appointment?.pet?.name) || t('header.notifications.petFallback');
-      const clinicName = normalizeText(appointment?.clinic?.name) || t('header.notifications.clinicFallback');
-      const serviceLabel = getServiceLabel(
-        appointment?.service,
-        normalizeText(appointment?.service) || t('header.notifications.serviceFallback'),
-      );
-      const statusLabel = getAppointmentStatusLabel(status, status);
-
+  switch (normalizedType) {
+    case 'APPOINTMENT_BOOKED':
       return {
-        id: `appointment-${appointment.id}-${status}-${appointmentDate}-${appointmentTime}`,
+        ...base,
         type: 'appointment',
-        title: `${statusLabel}: ${petName}`,
-        description: t('header.notifications.appointmentDescription', {
-          date: formatDateDDMMYYYY(appointmentDate),
-          time: formatTimeHHMM(appointmentTime),
-          service: serviceLabel,
-          clinic: clinicName,
-        }),
-        createdAt,
+        title: t(
+          'header.notifications.events.appointmentBookedTitle',
+          'New appointment from {{name}}',
+          {
+            name:
+              raw.target?.userName ||
+              t('header.notifications.events.actorFallback', 'customer'),
+          },
+        ),
+        description: buildAppointmentDescription(normalizedType, raw.target),
+      };
+
+    case 'APPOINTMENT_CANCELLED':
+      return {
+        ...base,
+        type: 'appointment',
+        title: t(
+          'header.notifications.events.appointmentCancelledTitle',
+          'Appointment canceled',
+        ),
+        description: buildAppointmentDescription(normalizedType, raw.target),
+      };
+
+    case 'APPOINTMENT_REMINDER':
+      return {
+        ...base,
+        type: 'system',
+        title: t(
+          'header.notifications.events.appointmentReminderTitle',
+          'Appointment reminder',
+        ),
+        description: buildAppointmentDescription(normalizedType, raw.target),
+      };
+
+    case 'APPOINTMENT_STATUS_UPDATED_BY_CLIENT':
+      return {
+        ...base,
+        type: 'appointment',
+        title: t(
+          'header.notifications.events.appointmentStatusUpdatedByClientTitle',
+          'Customer updated appointment status',
+        ),
+        description: buildAppointmentDescription(normalizedType, raw.target),
+      };
+
+    case 'AI_DIAGNOSIS':
+      return {
+        ...base,
+        type: 'ai-diagnosis',
+        title: t(
+          'header.notifications.events.aiDiagnosisTitle',
+          'AI diagnosis result for {{petName}}',
+          {
+            petName:
+              raw.target?.petName ||
+              t('header.notifications.events.petFallback', 'pet'),
+          },
+        ),
+        description: t(
+          'header.notifications.events.aiDiagnosisDescription',
+          'AI health analysis is ready.',
+        ),
         href: '/appointments',
       };
-    })
-    .filter(Boolean);
+
+    case 'FOLLOW_UP_REMINDER':
+      return {
+        ...base,
+        type: 'system',
+        title: t(
+          'header.notifications.events.followUpReminderTitle',
+          'Follow-up reminder',
+        ),
+        description: raw.target?.petName
+          ? t(
+              'header.notifications.events.followUpReminderWithPetDescription',
+              'It is time for a follow-up visit for {{petName}}.',
+              { petName: raw.target.petName },
+            )
+          : t(
+              'header.notifications.events.followUpReminderDescription',
+              'You have an upcoming follow-up appointment.',
+            ),
+        href: '/appointments',
+      };
+
+    case 'COMMENT_REPLY':
+      return {
+        ...base,
+        type: 'forum-comment',
+        title: t(
+          'header.notifications.events.commentReplyTitle',
+          'Someone replied to your comment',
+        ),
+        description:
+          raw.target?.content ||
+          t(
+            'header.notifications.events.commentReplyFallbackDescription',
+            'See details in forum.',
+          ),
+        href: raw.target?.postId ? `/forum?post=${raw.target.postId}` : '/forum',
+      };
+
+    default:
+      return {
+        ...base,
+        type: 'system',
+        title: t('header.notifications.events.defaultTitle', 'New notification'),
+        description: '',
+      };
+  }
 };
 
-const buildLikeCountNotifications = ({ ownPosts, previousLikeSnapshot }) => {
-  const nextLikeSnapshot = { ...(previousLikeSnapshot || {}) };
-  const notifications = [];
-  const hasSnapshotHistory = Object.keys(previousLikeSnapshot || {}).length > 0;
-
-  ownPosts.forEach((post) => {
-    const postId = normalizeText(post?.id);
-    if (!postId) return;
-
-    const currentLikeCount = Number(post?.likeCount || 0);  
-    const previousLikeCount = Number(previousLikeSnapshot?.[postId] ?? currentLikeCount);
-    nextLikeSnapshot[postId] = currentLikeCount;
-
-    if (!hasSnapshotHistory) return;
-    if (currentLikeCount <= previousLikeCount) return;
-
-    const delta = currentLikeCount - previousLikeCount;
-    notifications.push({
-      id: `forum-like-${postId}-${currentLikeCount}`,
-      type: 'forum-like',
-      title: t('header.notifications.forumLikeTitle', { count: delta }),
-      description: buildPostPreview(post?.content),
-      createdAt: new Date().toISOString(),
-      href: `/forum?post=${postId}`,
-    });
-  });
-
-  return { notifications, nextLikeSnapshot };
-};
-
-const buildCommentAndReplyNotifications = async ({ ownPosts, userId }) => {
-  const interactionNotifications = [];
-
-  const commentTasks = ownPosts
-    .filter((post) => Number(post?.commentCount || 0) > 0)
-    .slice(0, MAX_OWN_POSTS_SCAN)
-    .map(async (post) => {
-      const postId = normalizeText(post?.id);
-      if (!postId) return;
-
-      const comments = await getCommentsByPostIdApi(getClientInstance(), postId, { limit: MAX_COMMENTS_PER_POST });
-      if (!Array.isArray(comments) || comments.length === 0) return;
-
-      const replyTasks = [];
-      let replyThreadCount = 0;
-
-      comments.forEach((comment) => {
-        const commentAuthorId = normalizeText(comment?.user?.id);
-        const commentId = normalizeText(comment?.id);
-
-        if (commentId && commentAuthorId && commentAuthorId !== userId) {
-          const actorName = normalizeText(comment?.user?.fullName) || t('header.notifications.forumActorFallback');
-          interactionNotifications.push({
-            id: `forum-comment-${commentId}`,
-            type: 'forum-comment',
-            title: t('header.notifications.forumCommentTitle', { name: actorName }),
-            description: buildCommentPreview(comment?.content),
-            createdAt: normalizeText(comment?.createdAt) || new Date().toISOString(),
-            href: `/forum?post=${postId}`,
-            avatarUrl: normalizeText(comment?.user?.avatarUrl),
-          });
-        }
-
-        const replyCount = Number(comment?.replyCount || 0);
-        if (!commentId || replyCount <= 0 || replyThreadCount >= MAX_REPLY_THREADS_PER_POST) return;
-
-        replyThreadCount += 1;
-
-        replyTasks.push(
-          getRepliesApi(getClientInstance(), {
-            parentId: commentId,
-            limit: MAX_REPLIES_PER_COMMENT,
-          }).then((replies) => ({ replies, comment }))
-        );
-      });
-
-      const replyResults = await Promise.allSettled(replyTasks);
-      replyResults.forEach((result) => {
-        if (result.status !== 'fulfilled') return;
-
-        const { replies, comment } = result.value;
-        if (!Array.isArray(replies) || replies.length === 0) return;
-
-        replies.forEach((reply) => {
-          const replyId = normalizeText(reply?.id);
-          const replyAuthorId = normalizeText(reply?.user?.id);
-          if (!replyId || !replyAuthorId || replyAuthorId === userId) return;
-
-          const isReplyToCurrentUser = normalizeText(comment?.user?.id) === userId;
-          const actorName = normalizeText(reply?.user?.fullName) || t('header.notifications.forumActorFallback');
-          interactionNotifications.push({
-            id: `forum-reply-${replyId}`,
-            type: 'forum-reply',
-            title: isReplyToCurrentUser
-              ? t('header.notifications.forumReplyToCommentTitle', { name: actorName })
-              : t('header.notifications.forumReplyInPostTitle', { name: actorName }),
-            description: buildCommentPreview(reply?.content),
-            createdAt: normalizeText(reply?.createdAt) || new Date().toISOString(),
-            href: `/forum?post=${postId}`,
-            avatarUrl: normalizeText(reply?.user?.avatarUrl),
-          });
-        });
-      });
-    });
-
-  await Promise.allSettled(commentTasks);
-  return interactionNotifications;
-};
-
-const sortAndLimitNotifications = (items = []) => {
+const normalizeNotificationList = (items = [], limit = DEFAULT_LIMIT) => {
   const dedupMap = new Map();
 
   items.forEach((item) => {
-    if (!item?.id) return;
+    const mapped = mapBeNotification(item);
+    if (!mapped?.id) return;
 
-    const existing = dedupMap.get(item.id);
+    const existing = dedupMap.get(mapped.id);
     if (!existing) {
-      dedupMap.set(item.id, item);
+      dedupMap.set(mapped.id, mapped);
       return;
     }
 
     const existingTime = safeDateValue(existing.createdAt)?.getTime() || 0;
-    const currentTime = safeDateValue(item.createdAt)?.getTime() || 0;
+    const currentTime = safeDateValue(mapped.createdAt)?.getTime() || 0;
 
-    if (currentTime > existingTime) {
-      dedupMap.set(item.id, item);
+    if (currentTime >= existingTime) {
+      dedupMap.set(mapped.id, mapped);
     }
   });
 
   return Array.from(dedupMap.values())
     .sort((a, b) => {
-      const first = safeDateValue(a?.createdAt)?.getTime() || 0;
-      const second = safeDateValue(b?.createdAt)?.getTime() || 0;
-      return second - first;
+      const left = safeDateValue(a?.createdAt)?.getTime() || 0;
+      const right = safeDateValue(b?.createdAt)?.getTime() || 0;
+      return right - left;
     })
-    .slice(0, MAX_NOTIFICATIONS);
+    .slice(0, limit);
 };
 
-export const loadClientNotifications = async ({ userId, previousLikeSnapshot = {} }) => {
-  const normalizedUserId = normalizeText(userId);
+export const getNotificationsApi = async (
+  instance,
+  { limit = DEFAULT_LIMIT, filter = NOTIFICATION_FILTER.ALL, createdAt } = {},
+) => {
+  const normalizedFilter =
+    normalizeText(filter).toUpperCase() === NOTIFICATION_FILTER.UNREAD
+      ? NOTIFICATION_FILTER.UNREAD
+      : NOTIFICATION_FILTER.ALL;
 
-  if (!normalizedUserId) {
-    return {
-      items: [],
-      nextLikeSnapshot: previousLikeSnapshot,
-      hasPartialFailure: false,
-    };
-  }
-
-  const [appointmentResult, postsResult] = await Promise.allSettled([
-    getMyAppointmentsApi(getClientInstance(), 1, MAX_APPOINTMENTS),
-    getPostsApi(getClientInstance(), { limit: MAX_FORUM_POSTS }),
-  ]);
-
-  let hasPartialFailure = false;
-  let appointmentNotifications = [];
-  let ownPosts = [];
-
-  if (appointmentResult.status === 'fulfilled') {
-    const appointmentPayload = appointmentResult.value;
-    const appointmentItems = Array.isArray(appointmentPayload?.items) ? appointmentPayload.items : [];
-    appointmentNotifications = buildAppointmentNotifications(appointmentItems);
-  } else {
-    hasPartialFailure = true;
-  }
-
-  if (postsResult.status === 'fulfilled') {
-    const posts = Array.isArray(postsResult.value) ? postsResult.value : [];
-    ownPosts = posts
-      .filter((post) => normalizeText(post?.author?.id) === normalizedUserId)
-      .slice(0, MAX_OWN_POSTS_SCAN);
-  } else {
-    hasPartialFailure = true;
-  }
-
-  const { notifications: likeNotifications, nextLikeSnapshot } = buildLikeCountNotifications({
-    ownPosts,
-    previousLikeSnapshot,
+  const response = await instance.get('/notification', {
+    params: {
+      limit,
+      filter: normalizedFilter,
+      ...(createdAt ? { createdAt } : {}),
+    },
   });
 
-  let commentAndReplyNotifications = [];
-  try {
-    commentAndReplyNotifications = await buildCommentAndReplyNotifications({
-      ownPosts,
-      userId: normalizedUserId,
-    });
-  } catch {
-    hasPartialFailure = true;
-  }
-
-  const items = sortAndLimitNotifications([
-    ...appointmentNotifications,
-    ...likeNotifications,
-    ...commentAndReplyNotifications,
-  ]);
+  const payload = response?.data || {};
+  const rawItems = Array.isArray(payload?.data) ? payload.data : [];
 
   return {
-    items,
-    nextLikeSnapshot,
-    hasPartialFailure,
+    items: normalizeNotificationList(rawItems, limit),
+    totalUnread: Number(payload?.totalUnread || 0),
+  };
+};
+
+export const markNotificationAsReadApi = async (instance, notificationId) => {
+  if (!notificationId) return null;
+
+  const response = await instance.patch(`/notification/mark-one/${notificationId}`);
+  return response?.data;
+};
+
+export const markAllNotificationsAsReadApi = async (instance) => {
+  const response = await instance.patch('/notification/mark-all');
+  return response?.data;
+};
+
+export const loadClientNotifications = async ({
+  instance = getClientInstance(),
+  limit = DEFAULT_LIMIT,
+  filter = NOTIFICATION_FILTER.ALL,
+  previousLikeSnapshot = {},
+} = {}) => {
+  const payload = await getNotificationsApi(instance, { limit, filter });
+
+  return {
+    items: payload.items,
+    totalUnread: payload.totalUnread,
+    nextLikeSnapshot: previousLikeSnapshot,
+    hasPartialFailure: false,
   };
 };

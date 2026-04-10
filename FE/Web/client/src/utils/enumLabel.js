@@ -199,5 +199,5 @@ export const getMedicalRecordStatusLabel = (valueOrDone, options = {}) => {
 export const getVeterinarySpecialtyOptions = () =>
   Object.entries(VETERINARY_SPECIALTY_LABELS).map(([value, label]) => ({
     value,
-    label,
+    label: getVeterinarySpecialtyLabel(value, label),
   }))

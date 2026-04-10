@@ -89,12 +89,7 @@
 }
 
 .profileBox {
-  border-top: 1px solid #e6ebf4;
-  padding: 14px 4px 0;
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
+  display: block;
 }
 
 .profileInfo {
@@ -134,11 +129,21 @@
 }
 
 .mainActionBar {
+  position: sticky;
+  top: 10px;
   z-index: 55;
-  height: 0;
   display: flex;
   justify-content: flex-end;
-  padding: 0 18px;
+  padding: 8px 18px 0;
+  pointer-events: none;
+}
+
+.mainActionBarEmbedded {
+  position: absolute;
+  top: 8px;
+  right: 18px;
+  left: auto;
+  padding: 0;
 }
 
 .mainActionBar > * {
@@ -147,7 +152,6 @@
 
 .mainActionGroup {
   display: inline-flex;
-  margin-top: 28px;
   align-items: center;
   gap: 10px;
 }
@@ -325,7 +329,7 @@
 
   .mainActionBar {
     top: 6px;
-    padding: 0 10px;
+    padding: 6px 10px 0;
   }
 
   .notificationBellButton {

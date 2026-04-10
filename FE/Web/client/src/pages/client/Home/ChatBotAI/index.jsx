@@ -1,27 +1,26 @@
+import React, { useEffect, useState } from "react";
+import "./styles.css";
+import { MessageCircle, Plus } from "lucide-react";
 import {
   DeleteOutlined,
   EditOutlined,
   EllipsisOutlined,
 } from "@ant-design/icons";
 import { Dropdown, Input, Modal, message } from "antd";
-import { MessageCircle, Plus } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useTranslation } from 'react-i18next';
-import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCreateRoom,
   fetchDeleteRoom,
-  fetchRenameRoom,
   fetchRooms,
+  fetchRenameRoom,
 } from "../../../../redux/slices/roomSlice";
-import socket from "../../../../socket/chatSocket";
-import "./styles.css";
+import chatSocket from "../../../../socket/chatSocket";
 
 const TITLE_PREVIEW_LIMIT = 28;
 
-const formatConversationTitle = (value, t) => {
-  const full = (value || t('pages.home.chatbot.newConversationDefaultName')).trim();
+const formatConversationTitle = (value) => {
+  const full = (value || "Cuộc trò chuyện mới").trim();
 
   if (full.length <= TITLE_PREVIEW_LIMIT) {
     return {
@@ -42,7 +41,6 @@ export default function ChatBotAI() {
   const dispatch = useDispatch();
   const rooms = useSelector((state) => state.room.rooms || []);
   const navigate = useNavigate();
-  const { t } = useTranslation();
 
   const { roomId } = useParams();
   const activeConversation = roomId;
@@ -57,8 +55,8 @@ export default function ChatBotAI() {
   };
 
   useEffect(() => {
-    if (!socket.connected) {
-      socket.connect();
+    if (!chatSocket.connected) {
+      chatSocket.connect();
     }
 
     const fetchRoomsData = async () => {
@@ -72,8 +70,8 @@ export default function ChatBotAI() {
     fetchRoomsData();
 
     return () => {
-      if (socket.connected) {
-        socket.disconnect();
+      if (chatSocket.connected) {
+        chatSocket.disconnect();
       }
     };
   }, [dispatch]);
@@ -81,13 +79,13 @@ export default function ChatBotAI() {
   const handleCreateNewConversation = async () => {
     try {
       const created = await dispatch(
-        fetchCreateRoom({ name: t('pages.home.chatbot.newConversationDefaultName') }),
+        fetchCreateRoom({ name: "Cuộc trò chuyện mới" }),
       ).unwrap();
       if (created?.id) {
         navigate(`/chatbot/${created.id}`);
       }
     } catch (error) {
-      message.error(error?.message || t('pages.home.chatbot.newRoomFailed'));
+      message.error(error?.message || "Không thể tạo cuộc trò chuyện mới");
     }
   };
 
@@ -100,7 +98,7 @@ export default function ChatBotAI() {
   const handleRenameOk = async () => {
     const name = renameValue.trim();
     if (!name) {
-      message.warning(t('pages.home.chatbot.validation.emptyRoomName'));
+      message.warning("Tên phòng không được để trống");
       return;
     }
 
@@ -115,7 +113,7 @@ export default function ChatBotAI() {
       setRenameRoomId(null);
       setRenameValue("");
     } catch (error) {
-      message.error(error?.message || t('pages.home.chatbot.renameFailed'));
+      message.error(error?.message || "Đổi tên phòng chat thất bại");
     }
   };
 
@@ -127,11 +125,11 @@ export default function ChatBotAI() {
 
   const handleDeleteConversation = async (id) => {
     Modal.confirm({
-      title: t('pages.home.chatbot.confirmDelete.title'),
-      content: t('pages.home.chatbot.confirmDelete.content'),
-      okText: t('pages.home.chatbot.confirmDelete.okText'),
+      title: "Xoá cuộc trò chuyện?",
+      content: "Bạn có chắc muốn xoá cuộc trò chuyện này không?",
+      okText: "Xoá",
       okButtonProps: { danger: true },
-      cancelText: t('pages.home.chatbot.confirmDelete.cancelText'),
+      cancelText: "Huỷ",
       onOk: async () => {
         try {
           await dispatch(fetchDeleteRoom({ id })).unwrap();
@@ -139,7 +137,7 @@ export default function ChatBotAI() {
             navigate(`/chatbot`);
           }
         } catch (error) {
-          message.error(error?.message || t('pages.home.chatbot.deleteFailed'));
+          message.error(error?.message || "Xoá phòng chat thất bại");
         }
       },
     });
@@ -153,15 +151,15 @@ export default function ChatBotAI() {
           onClick={handleCreateNewConversation}
         >
           <Plus size={20} />
-          <span>{t('pages.home.chatbot.newConversationButton')}</span>
+          <span>Cuộc trò chuyện mới</span>
         </button>
 
-        <div className="conversations-label">{t('pages.home.chatbot.recentHistory')}</div>
+        <div className="conversations-label">LỊCH SỬ GẦN ĐÂY</div>
 
         <div className="conversations-list">
-          {rooms.map((conv) => (
+          {rooms.map((conv) =>
             (() => {
-              const titleInfo = formatConversationTitle(conv.name, t);
+              const titleInfo = formatConversationTitle(conv.name);
               const isHovered = hoveredRoomId === conv.id;
 
               return (
@@ -177,7 +175,11 @@ export default function ChatBotAI() {
                       onMouseEnter={() => setHoveredRoomId(conv.id)}
                       onMouseLeave={() => setHoveredRoomId(null)}
                     >
-                      <span>{titleInfo.isLong && !isHovered ? titleInfo.short : titleInfo.full}</span>
+                      <span>
+                        {titleInfo.isLong && !isHovered
+                          ? titleInfo.short
+                          : titleInfo.full}
+                      </span>
                     </p>
                   </div>
 
@@ -192,25 +194,26 @@ export default function ChatBotAI() {
                           {
                             key: "rename",
                             icon: <EditOutlined />,
-                            label: t('pages.home.chatbot.actions.rename'),
+                            label: "Sửa tên",
                           },
                           {
                             key: "delete",
                             icon: <DeleteOutlined />,
-                            label: t('pages.home.chatbot.actions.delete'),
+                            label: "Xoá",
                             danger: true,
                           },
                         ],
                         onClick: ({ key }) => {
                           if (key === "rename") openRenameModal(conv);
-                          if (key === "delete") handleDeleteConversation(conv.id);
+                          if (key === "delete")
+                            handleDeleteConversation(conv.id);
                         },
                       }}
                     >
                       <button
                         type="button"
                         className="conversation-more-btn"
-                        aria-label={t('pages.home.chatbot.actions.optionsAria')}
+                        aria-label="Tùy chọn"
                       >
                         <EllipsisOutlined />
                       </button>
@@ -218,8 +221,8 @@ export default function ChatBotAI() {
                   </div>
                 </div>
               );
-            })()
-          ))}
+            })(),
+          )}
         </div>
       </aside>
 
@@ -227,7 +230,7 @@ export default function ChatBotAI() {
         <header className="chatbot-header">
           <div className="header-content">
             <MessageCircle className="header-icon" size={24} />
-            <h1>{t('pages.home.chatbot.assistantTitle')}</h1>
+            <h1>Trợ lý AI PetCareX</h1>
           </div>
         </header>
 
@@ -235,17 +238,17 @@ export default function ChatBotAI() {
       </div>
 
       <Modal
-        title={t('pages.home.chatbot.renameModal.title')}
+        title="Sửa tên cuộc trò chuyện"
         open={isRenameOpen}
         onOk={handleRenameOk}
         onCancel={handleRenameCancel}
-        okText={t('pages.home.chatbot.renameModal.okText')}
-        cancelText={t('pages.home.chatbot.renameModal.cancelText')}
+        okText="Lưu"
+        cancelText="Huỷ"
       >
         <Input
           value={renameValue}
           onChange={(e) => setRenameValue(e.target.value)}
-          placeholder={t('pages.home.chatbot.renameModal.placeholder')}
+          placeholder="Nhập tên cuộc trò chuyện"
           maxLength={50}
           autoFocus
           onPressEnter={handleRenameOk}

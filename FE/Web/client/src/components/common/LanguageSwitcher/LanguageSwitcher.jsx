@@ -4,11 +4,17 @@ import { getLanguageForScope, LANGUAGE_SCOPE, setLanguageForScope } from '../../
 import './LanguageSwitcher.css';
 
 const normalizeLanguage = (value) => (String(value || '').toLowerCase().startsWith('en') ? 'en' : 'vi');
+const FLAG_BY_LANGUAGE = {
+  vi: '/flagVN.png',
+  en: '/flagel.png',
+};
 
 const LanguageSwitcher = ({ scope = LANGUAGE_SCOPE.client }) => {
   const { i18n, t } = useTranslation();
   const currentLanguage = normalizeLanguage(i18n.resolvedLanguage || i18n.language);
   const isVietnamese = currentLanguage === 'vi';
+  const currentFlag = isVietnamese ? FLAG_BY_LANGUAGE.vi : FLAG_BY_LANGUAGE.en;
+  const currentLanguageLabel = isVietnamese ? 'VI' : 'EN';
 
   useEffect(() => {
     const savedLanguage = getLanguageForScope(scope);
@@ -31,7 +37,12 @@ const LanguageSwitcher = ({ scope = LANGUAGE_SCOPE.client }) => {
       aria-label={isVietnamese ? t('languageSwitcher.ariaSwitchToEnglish') : t('languageSwitcher.ariaSwitchToVietnamese')}
       title={isVietnamese ? t('languageSwitcher.switchToEnglish') : t('languageSwitcher.switchToVietnamese')}
     >
-      {isVietnamese ? t('languageSwitcher.switchToEnglish') : t('languageSwitcher.switchToVietnamese')}
+      <img
+        src={currentFlag}
+        className="language-switcher-flag"
+        alt={isVietnamese ? 'Vietnamese' : 'English'}
+      />
+      <span className="language-switcher-label">{currentLanguageLabel}</span>
     </button>
   );
 };

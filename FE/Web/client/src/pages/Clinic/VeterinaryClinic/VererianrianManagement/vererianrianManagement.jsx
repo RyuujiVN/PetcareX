@@ -102,6 +102,7 @@ export default function VeterinarianManagement() {
 						onChange={(event) => setSearchValue(event.target.value)}
 					/>
 				</div>
+				<div className={styles.topBarActionSpacer} aria-hidden="true" />
 			</header>
 
 			<section className={styles.content}>

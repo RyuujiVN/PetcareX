@@ -1,11 +1,9 @@
 import {
   FileTextOutlined,
-  LogoutOutlined,
   MedicineBoxOutlined,
   TeamOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
-import { Avatar, Badge } from "antd";
+import { Badge } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
@@ -16,7 +14,9 @@ import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { RoleEnum } from "../../enum/role.enum";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
+import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
+import { getAdminInstance } from "../../services/apiClient";
 import "../../styles/admin/colorsToken.css";
 import styles from "./AdminLayout.module.css";
 
@@ -81,7 +81,7 @@ export default function AdminLayout() {
   const { t } = useTranslation("admin");
   const navigate = useNavigate();
   const location = useLocation();
-  const { token, userProfile, logout, activeRole } = useAuth();
+  const { token, userProfile, logout, login, refreshUserProfile, activeRole } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationTab, setNotificationTab] = useState("all");
   const notificationPanelRef = useRef(null);
@@ -98,6 +98,7 @@ export default function AdminLayout() {
     storageKey: `ws_notif_admin:${userProfile?.id || "default"}`,
     token,
     enabled: !!token,
+    instance: getAdminInstance(),
   });
 
   const displayNotifications = useMemo(() => {
@@ -142,11 +143,6 @@ export default function AdminLayout() {
     };
   }, []);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-  };
-
   return (
     <div className={styles.layout}>
       {/* ── Sidebar ── */}
@@ -180,25 +176,16 @@ export default function AdminLayout() {
         </div>
 
         <div className={styles.profileBox}>
-          <div className={styles.profileInfo}>
-            <Avatar
-              size={38}
-              src={userProfile?.avatarUrl || undefined}
-              icon={<UserOutlined />}
-            />
-            <div>
-              <h4>{userProfile?.fullName || t("layout.profile.defaultName")}</h4>
-              <p>{userProfile?.email || t("layout.profile.defaultEmail")}</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className={styles.logoutBtn}
-            onClick={handleLogout}
-            title={t("layout.actions.logout")}
-          >
-            <LogoutOutlined />
-          </button>
+          <PortalAccountMenu
+            namespace="admin"
+            userProfile={userProfile}
+            login={login}
+            logout={logout}
+            refreshUserProfile={refreshUserProfile}
+            onAfterLogout={() => navigate("/login", { replace: true })}
+            defaultName={t("layout.profile.defaultName")}
+            defaultMeta={t("layout.profile.defaultEmail")}
+          />
         </div>
       </aside>
 

@@ -13,7 +13,7 @@ import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authSto
 import { getAdminInstance } from '../../../services/apiClient'
 import {
     APPOINTMENT_STATUS,
-    getAppointmentsApi,
+    getMyAppointmentsApi,
     updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { formatTimeHHMM } from '../../../utils/dateTimeFormat'
@@ -21,7 +21,26 @@ import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './petAppointmentVererianrian.module.css'
 
 const PAGE_SIZE = 4
-const TODAY_DATE = new Date().toISOString().slice(0, 10)
+
+const getCurrentLocalDate = () => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+const normalizeDate = (value) => {
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
 
 const getCurrentVeterinarianUserId = () => {
   try {
@@ -74,6 +93,7 @@ const buildAppointmentsSignature = (items) =>
 export default function PetAppointmentVererianrian() {
   const { t } = useTranslation('vererianrian')
   const [activeTab, setActiveTab] = useState('all')
+  const [currentDate, setCurrentDate] = useState(getCurrentLocalDate)
   const [loading, setLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [allAppointments, setAllAppointments] = useState([])
@@ -119,17 +139,14 @@ export default function PetAppointmentVererianrian() {
         setIsRefreshing(true)
       }
 
-      const response = await getAppointmentsApi(getAdminInstance(), {
-        page: 1,
-        limit: 500,
-        date: TODAY_DATE,
-      })
+      const response = await getMyAppointmentsApi(getAdminInstance(), 1, 500)
 
       const currentUserId = getCurrentVeterinarianUserId()
       const items = Array.isArray(response?.items) ? response.items : []
 
       const filtered = items
         .filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
+        .filter((item) => normalizeDate(item?.appointmentDate) === currentDate)
         .filter((item) => {
           if (!currentUserId) return true
           const veterinarianUserId = item?.veterinarian?.user?.id
@@ -153,7 +170,32 @@ export default function PetAppointmentVererianrian() {
       setLoading(false)
       setIsRefreshing(false)
     }
-  }, [t])
+  }, [currentDate, t])
+
+  useEffect(() => {
+    const syncCurrentDate = () => {
+      const nextDate = getCurrentLocalDate()
+      setCurrentDate((prevDate) => (prevDate === nextDate ? prevDate : nextDate))
+    }
+
+    syncCurrentDate()
+
+    const intervalId = window.setInterval(syncCurrentDate, 60000)
+
+    const onFocus = () => syncCurrentDate()
+    const onVisibilityChange = () => {
+      if (!document.hidden) syncCurrentDate()
+    }
+
+    window.addEventListener('focus', onFocus)
+    document.addEventListener('visibilitychange', onVisibilityChange)
+
+    return () => {
+      window.clearInterval(intervalId)
+      window.removeEventListener('focus', onFocus)
+      document.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+  }, [])
 
   useEffect(() => {
     fetchTodayAppointments()
@@ -326,11 +368,15 @@ export default function PetAppointmentVererianrian() {
         {summaryCards.map((card) => (
           <Col xs={24} lg={8} key={card.key}>
             <Card className={styles.summaryCard}>
-              <div className={`${styles.summaryIcon} ${styles[card.iconClassName]}`}>{card.icon}</div>
-              <Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
-              <Typography.Title level={2} className={styles.summaryValue}>
-                {card.value}
-              </Typography.Title>
+              <div className={styles.summaryTopRow}>
+                <div className={`${styles.summaryIcon} ${styles[card.iconClassName]}`}>{card.icon}</div>
+                <div className={styles.summaryContent}>
+                  <Typography.Text className={styles.summaryTitle}>{card.title}</Typography.Text>
+                  <Typography.Title level={2} className={styles.summaryValue}>
+                    {card.value}
+                  </Typography.Title>
+                </div>
+              </div>
             </Card>
           </Col>
         ))}

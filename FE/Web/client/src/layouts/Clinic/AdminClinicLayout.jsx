@@ -4,13 +4,10 @@ import {
   FileSearchOutlined,
   HomeOutlined,
   LineChartOutlined,
-  LogoutOutlined,
   MedicineBoxOutlined,
   TeamOutlined,
-  UserOutlined,
 } from "@ant-design/icons";
 import {
-  Avatar,
   Badge,
   Button,
   Empty,
@@ -35,7 +32,9 @@ import { getRoleLabel } from "../../constants/veterinaryLabels";
 import { RoleEnum } from "../../enum/role.enum";
 import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
+import { getAdminInstance } from "../../services/apiClient";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
+import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import styles from "./AdminClinicLayout.module.css";
 
 const { Text } = Typography;
@@ -183,7 +182,7 @@ export default function AdminClinicLayout() {
   const { t } = useTranslation("clinic");
   const navigate = useNavigate();
   const location = useLocation();
-  const { token, userProfile, logout, activeRole } = useAuth();
+  const { token, userProfile, login, logout, refreshUserProfile, activeRole } = useAuth();
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: "all",
@@ -203,9 +202,21 @@ export default function AdminClinicLayout() {
   const clinicDisplayName = getClinicDisplayName(userProfile, t);
   const clinicId = getCurrentAdminClinicId(userProfile);
   const notificationScopeKey = clinicId || userProfile?.id || "default";
-  const shouldHideNotificationBell =
+  const isClinicEditorRoute =
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
+  const shouldEmbedActionBarInTopBar =
+    location.pathname === "/clinic/appointments" ||
+    location.pathname.startsWith("/clinic/appointments/") ||
+    location.pathname === "/clinic/revenue" ||
+    location.pathname.startsWith("/clinic/revenue/") ||
+    location.pathname.startsWith("/clinic/veterinarians") ||
+    location.pathname === "/clinic/exam-slips" ||
+    location.pathname.startsWith("/clinic/exam-slips/") ||
+    location.pathname === "/clinic/profile" ||
+    location.pathname.startsWith("/clinic/profile/") ||
+    location.pathname === "/clinic/medical-records" ||
+    location.pathname.startsWith("/clinic/medical-records/view");
 
   const {
     notifications: notificationItems,
@@ -217,6 +228,7 @@ export default function AdminClinicLayout() {
     storageKey: `ws_notif_clinic:${notificationScopeKey}`,
     token,
     enabled: !!token,
+    instance: getAdminInstance(),
   });
 
   const menuItems = useMemo(
@@ -261,11 +273,6 @@ export default function AdminClinicLayout() {
       navigate("/admin/home", { replace: true });
     }
   }, [token, effectiveRole, hasClinicRole, navigate]);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/login", { replace: true });
-  };
 
   const openHomePageEditor = () => {
     if (!clinicId) {
@@ -482,34 +489,27 @@ export default function AdminClinicLayout() {
         </div>
 
         <div className={styles.profileBox}>
-          <div className={styles.profileInfo}>
-            <Avatar
-              size={42}
-              src={userProfile?.avatarUrl || undefined}
-              icon={<UserOutlined />}
-            />
-            <div>
-              <h4>{userProfile?.fullName || t("sidebar.defaultUser")}</h4>
-              <p>{getRoleLabel(userProfile?.role || "ADMIN_CLINIC")}</p>
-            </div>
-          </div>
-
-          <Button
-            type="text"
-            icon={<LogoutOutlined />}
-            className={styles.logoutBtn}
-            onClick={handleLogout}
-            aria-label={t("sidebar.logoutAriaLabel")}
-          ></Button>
+          <PortalAccountMenu
+            namespace="clinic"
+            userProfile={userProfile}
+            login={login}
+            logout={logout}
+            refreshUserProfile={refreshUserProfile}
+            onAfterLogout={() => navigate("/login", { replace: true })}
+            defaultName={t("sidebar.defaultUser")}
+            metaText={getRoleLabel(userProfile?.role || "ADMIN_CLINIC")}
+          />
         </div>
       </aside>
 
       <main className={styles.main}>
-        <div className={styles.mainActionBar}>
+        {!isClinicEditorRoute ? (
+        <div
+          className={`${styles.mainActionBar} ${shouldEmbedActionBarInTopBar ? styles.mainActionBarEmbedded : ""}`}
+        >
           <div className={styles.mainActionGroup}>
             <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
 
-            {!shouldHideNotificationBell ? (
             <Popover
               trigger="click"
               placement="bottomRight"
@@ -536,9 +536,9 @@ export default function AdminClinicLayout() {
                 }
               />
             </Popover>
-            ) : null}
           </div>
         </div>
+        ) : null}
 
         <Outlet />
       </main>

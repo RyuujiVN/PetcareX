@@ -1,4 +1,31 @@
 .adminProfilePage {
+  min-height: 100%;
+  background: #f5f7fb;
+}
+
+.topBar {
+  height: 58px;
+  background: #ffffff;
+  border-bottom: 1px solid #dce4ef;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+}
+
+.topBar h1 {
+  margin: 0;
+  font-size: 23px;
+  font-weight: 700;
+  color: #14243a;
+}
+
+.topBarActionSpacer {
+  width: 132px;
+  flex-shrink: 0;
+}
+
+.pageBody {
   padding: 24px;
 }
 
@@ -67,6 +94,18 @@
 }
 
 @media (max-width: 768px) {
+  .topBar {
+    padding: 0 12px;
+  }
+
+  .topBarActionSpacer {
+    width: 104px;
+  }
+
+  .pageBody {
+    padding: 16px 12px;
+  }
+
   .infoRow {
     grid-template-columns: 1fr;
   }

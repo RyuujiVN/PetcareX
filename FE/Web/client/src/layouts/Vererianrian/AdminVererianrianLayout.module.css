@@ -85,12 +85,7 @@
 }
 
 .profileCard {
-  border-top: 1px solid var(--vet-color-border);
-  padding: 14px 4px 0;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 10px;
-  align-items: center;
+  display: block;
 }
 
 .profileMeta h4 {

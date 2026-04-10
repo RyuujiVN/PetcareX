@@ -18,6 +18,15 @@ export const getMedicalByPetIdApi = (instance, petId, page = 1, limit = 10) => {
     })
     .then((response) => response.data)
 }
+
+// Lấy danh sách hồ sơ bệnh án theo id pet
+export const getMedicalByPetIClinicdApi = (instance, petId, page = 1, limit = 10) => {
+  return instance
+    .get(`/medical/clinic/pet/${petId}`, {
+      params: { page, limit },
+    })
+    .then((response) => response.data)
+}
 // Tạo hồ sơ bệnh án mới
 export const createMedicalApi = (instance, data) => {
   return instance.post('/medical', data).then((response) => response.data)
