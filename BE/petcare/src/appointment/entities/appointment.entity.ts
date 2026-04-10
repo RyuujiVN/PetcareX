@@ -1,3 +1,4 @@
+import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
 import { ServiceEnum } from 'src/common/enums/service.enum';
@@ -9,6 +10,7 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -69,4 +71,7 @@ export class Appointment {
   })
   @JoinColumn({ name: 'veterinarian_id' })
   veterinarian: Veterinarian;
+
+  @OneToOne(() => AiDiagnosis, (aiDiagnosis) => aiDiagnosis.appointment)
+  aiDiagnosis: AiDiagnosis;
 }

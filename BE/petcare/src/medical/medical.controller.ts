@@ -90,11 +90,14 @@ export class MedicalController {
     @Param('petId') petId: string,
     @Req() req,
   ) {
-    return this.medicalService.findAllPaginationByPetOfClinic({
-      page,
-      limit,
-      petId: petId,
-    }, req?.user?.clinicId);
+    return this.medicalService.findAllPaginationByPetOfClinic(
+      {
+        page,
+        limit,
+        petId: petId,
+      },
+      req?.user?.clinicId,
+    );
   }
 
   @Post('')
@@ -145,6 +148,7 @@ export class MedicalController {
   }
 
   @Put('medical-order/:id')
+  @RequiredRole(RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Cập nhật phiếu chỉ định của phiếu khám' })
   @ApiBody({
     type: UpdateMedicalRecordOrderDTO,
@@ -161,6 +165,7 @@ export class MedicalController {
   }
 
   @Delete('medical-order/:id')
+  @RequiredRole(RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Xoá phiếu chỉ định của phiếu khám' })
   async deleteMedicalRecordOrder(@Param('id') id: string) {
     await this.medicalService.deleteMedicalRecordOrder(id);
@@ -189,6 +194,7 @@ export class MedicalController {
   }
 
   @Put('medicine/:id')
+  @RequiredRole(RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Chỉnh sửa thuốc của phiếu khám' })
   @ApiBody({
     type: UpdateMedicalRecordMedicineDTO,
@@ -205,6 +211,7 @@ export class MedicalController {
   }
 
   @Delete('medicine/:id')
+  @RequiredRole(RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Xoá thuốc của phiếu khám' })
   async deleteMedicalRecordMedicine(@Param('id') id: string) {
     await this.medicalService.deleteMedicalRecordMedicine(id);

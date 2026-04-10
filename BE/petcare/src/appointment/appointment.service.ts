@@ -22,6 +22,7 @@ import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
 import { Not } from 'typeorm';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 
 @Injectable()
 export class AppointmentService {
@@ -32,10 +33,23 @@ export class AppointmentService {
     private readonly appointmentRepository: Repository<Appointment>,
     @InjectRepository(AdminClinic)
     private readonly adminClinicRepository: Repository<AdminClinic>,
+    @InjectRepository(AiDiagnosis)
+    private readonly aiDiagnosisRepository: Repository<AiDiagnosis>,
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
     private readonly notificationGateway: NotificationGateway,
   ) {}
+
+  // Lấy kết quả chẩn đoán AI của lịch hẹn
+  async getResultAiDianosis(appointmentId: string) {
+    const queryBuilder = this.aiDiagnosisRepository
+      .createQueryBuilder('aiDiagnosis')
+      .leftJoin('aiDiagnosis.pet', 'pet')
+      .addSelect(['pet.name', 'pet.avatar', 'pet.breed', 'pet.ownerId'])
+      .where('aiDiagnosis.appointmentId = :id', { id: appointmentId });
+
+    return queryBuilder.getOne();
+  }
 
   async findOneById(appointmentId: string) {
     return await this.appointmentRepository
@@ -78,7 +92,10 @@ export class AppointmentService {
   }
 
   // Danh sách lịch hẹn của người dùng
-  async findAllMyAppointments(options: AppointmentPagination, user: { id: string, role: string }) {
+  async findAllMyAppointments(
+    options: AppointmentPagination,
+    user: { id: string; role: string },
+  ) {
     const queryBuilder = this.appointmentRepository
       .createQueryBuilder('appointment')
       .leftJoin('appointment.pet', 'pet')
@@ -115,11 +132,11 @@ export class AppointmentService {
       ])
       .orderBy('appointment.createdAt', 'DESC');
 
-      if(user.role === RoleEnum.CUSTOMER) {
-        queryBuilder.where('owner.id = :userId', { userId: user.id });
-      } else if(user.role === RoleEnum.VETERINARIAN) {
-        queryBuilder.where('veterinarian.userId = :userId', { userId: user.id });
-      }
+    if (user.role === RoleEnum.CUSTOMER) {
+      queryBuilder.where('owner.id = :userId', { userId: user.id });
+    } else if (user.role === RoleEnum.VETERINARIAN) {
+      queryBuilder.where('veterinarian.userId = :userId', { userId: user.id });
+    }
 
     return paginate<Appointment>(queryBuilder, options);
   }
@@ -194,10 +211,10 @@ export class AppointmentService {
     appointmentDateTime.setHours(hours, minutes, 0, 0);
 
     const minimumBookingTime = new Date();
-    minimumBookingTime.setHours(minimumBookingTime.getHours() + 6);
+    minimumBookingTime.setHours(minimumBookingTime.getHours() + 3);
     if (appointmentDateTime < minimumBookingTime) {
       throw new BadRequestException(
-        'Lịch hẹn phải được đặt trước ít nhất 6 tiếng',
+        'Lịch hẹn phải được đặt trước ít nhất 3 tiếng',
       );
     }
 
@@ -411,24 +428,29 @@ export class AppointmentService {
     });
 
     // 4. Lưu thông báo cho admin clinic và veterinarian
-    const recipientIds = [adminClinic!.userId, appointment.veterinarianId];
+    const baseObj = {
+      recipientId: null,
+      type: NotificationEnum.APPOINTMENT_BOOKED,
+      target: {
+        appointmentDate: appointment.appointmentDate,
+        appointmentTime: appointment.appointmentTime,
+        appointmentId: appointment.id,
+        userName: user.fullName ?? '',
+      },
+    };
 
-    const notifications = await Promise.all(
-      recipientIds.map((id) => {
-        const notify = this.notificationRepository.create({
-          recipientId: id,
-          type: NotificationEnum.APPOINTMENT_CANCELLED,
-          target: {
-            appointmentDate: appointment.appointmentDate,
-            appointmentTime: appointment.appointmentTime,
-            appointmentId: appointment.id,
-            userName: user?.fullName ?? '',
-          },
-        });
+    const recipients = [
+      {
+        ...baseObj,
+        recipientId: adminClinic?.userId,
+      },
+      {
+        ...baseObj,
+        recipientId: appointment.veterinarianId,
+      },
+    ];
 
-        return this.notificationRepository.save(notify);
-      }),
-    );
+    const notifications = await this.notificationRepository.save(recipients);
 
     notifications.forEach((item) => {
       this.notificationGateway.sendNotification(item.recipientId, item);

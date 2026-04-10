@@ -41,10 +41,8 @@ export class AppointmentProcessor extends WorkerHost {
             // 2. Lưu phản hồi của AI vào database
             const aiDiagnosis = aiDiagnosisRepo.create();
             aiDiagnosis.petId = appointment.petId;
-            aiDiagnosis.userId = appointment.userId;
+            aiDiagnosis.appoinmentId = appointment.id;
             aiDiagnosis.diagnosis = response.data.analysis;
-            aiDiagnosis.appointmentDate = appointment.appointmentDate;
-            aiDiagnosis.appointmentTime = appointment.appointmentTime;
 
             const savedAiDiagnosis = await aiDiagnosisRepo.save(aiDiagnosis);
 
