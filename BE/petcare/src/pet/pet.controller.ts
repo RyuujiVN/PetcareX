@@ -22,35 +22,39 @@ import { RoleEnum } from 'src/common/enums/role.enum';
 @Controller('pet')
 @ApiBearerAuth('JWT-auth')
 @UseGuards(JwtAuthGuard, RoleGuard)
-@RequiredRole(RoleEnum.CUSTOMER)
 export class PetController {
   constructor(private readonly petService: PetService) {}
 
   @Get()
+  @RequiredRole(RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Lấy danh sách thú cưng của riêng mình' })
   getMyPets(@Req() req) {
     return this.petService.findPetsByOwnerId(req?.user?.id);
   }
 
   @Get('species')
+  @RequiredRole(RoleEnum.CUSTOMER, RoleEnum.VETERINARIAN, RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Lấy danh sách loài' })
   getAllSpecies() {
     return this.petService.findAllSpecies();
   }
 
   @Get('species/:species/breed')
+  @RequiredRole(RoleEnum.CUSTOMER, RoleEnum.VETERINARIAN, RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Lấy danh sách giống theo loài' })
   getAllBreed(@Param('species') species: PetSpeciesEnum) {
     return this.petService.findAllBreed(species);
   }
 
   @Get(':id')
+  @RequiredRole(RoleEnum.CUSTOMER, RoleEnum.VETERINARIAN, RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Lấy thông tin chi tiết của thú cưng' })
   getInfoPet(@Param('id') id: string) {
     return this.petService.findOneById(id);
   }
 
   @Post()
+  @RequiredRole(RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Tạo mới thú cưng' })
   @ApiBody({
     type: CreatePetDTO,
@@ -60,6 +64,7 @@ export class PetController {
   }
 
   @Put(':id')
+  @RequiredRole(RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Chỉnh sửa thông tin thú cưng' })
   @ApiBody({
     type: UpdatePetDTO,
@@ -73,6 +78,7 @@ export class PetController {
   }
 
   @Delete(':id')
+  @RequiredRole(RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Xoá thú cưng' })
   async deletePet(@Param('id') id: string, @Req() req) {
     await this.petService.deletePet(id, req?.user?.id);

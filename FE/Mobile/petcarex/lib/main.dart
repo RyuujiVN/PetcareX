@@ -14,6 +14,7 @@ import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/booking/presentation/provider/booking_provider.dart';
 import 'features/chat/presentation/provider/chat_provider.dart';
 import 'features/community/presentation/provider/community_provider.dart';
+import 'features/notification/presentation/provider/notification_provider.dart';
 import 'features/pet/presentation/provider/pet_provider.dart';
 import 'firebase_options.dart';
 import 'l10n/generated/app_localizations.dart';
@@ -43,6 +44,7 @@ void main () async {
         ChangeNotifierProvider(create: (_) => AppointmentProvider()),
         ChangeNotifierProvider(create: (_) => CommunityProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),

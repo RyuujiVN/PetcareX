@@ -1861,6 +1861,162 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Thỏ Lionhead'**
   String get petBreedRabbitLionhead;
+
+  /// No description provided for @notifTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo'**
+  String get notifTitle;
+
+  /// No description provided for @notifMarkAllRead.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đọc tất cả'**
+  String get notifMarkAllRead;
+
+  /// No description provided for @notifFilterAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get notifFilterAll;
+
+  /// No description provided for @notifFilterUnread.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa đọc'**
+  String get notifFilterUnread;
+
+  /// No description provided for @notifEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có thông báo nào'**
+  String get notifEmpty;
+
+  /// No description provided for @notifAppointmentBooked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn mới'**
+  String get notifAppointmentBooked;
+
+  /// No description provided for @notifAppointmentCancelled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn đã hủy'**
+  String get notifAppointmentCancelled;
+
+  /// No description provided for @notifAppointmentStatusUpdated.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cập nhật lịch hẹn'**
+  String get notifAppointmentStatusUpdated;
+
+  /// No description provided for @notifAppointmentReminder.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắc nhở lịch hẹn'**
+  String get notifAppointmentReminder;
+
+  /// No description provided for @notifAiDiagnosis.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chẩn đoán AI sẵn sàng'**
+  String get notifAiDiagnosis;
+
+  /// No description provided for @notifFollowUpReminder.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắc nhở tái khám'**
+  String get notifFollowUpReminder;
+
+  /// No description provided for @notifCommentReply.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bình luận mới'**
+  String get notifCommentReply;
+
+  /// No description provided for @notifGeneral.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo'**
+  String get notifGeneral;
+
+  /// No description provided for @notifAppointmentBookedDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'{userName} đã đặt lịch hẹn ngày {date} lúc {time}'**
+  String notifAppointmentBookedDesc(String userName, String date, String time);
+
+  /// No description provided for @notifAppointmentCancelledDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn ngày {date} lúc {time} đã bị hủy'**
+  String notifAppointmentCancelledDesc(String date, String time);
+
+  /// No description provided for @notifAppointmentCancelledByClinicDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám {clinicName} đã hủy lịch hẹn của bạn'**
+  String notifAppointmentCancelledByClinicDesc(String clinicName);
+
+  /// No description provided for @notifAppointmentStatusUpdatedDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'{userName} đã cập nhật trạng thái lịch hẹn'**
+  String notifAppointmentStatusUpdatedDesc(String userName);
+
+  /// No description provided for @notifAppointmentReminderDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có lịch hẹn vào ngày {date} lúc {time}'**
+  String notifAppointmentReminderDesc(String date, String time);
+
+  /// No description provided for @notifAiDiagnosisDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kết quả chẩn đoán AI cho {petName} đã sẵn sàng'**
+  String notifAiDiagnosisDesc(String petName);
+
+  /// No description provided for @notifFollowUpReminderDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắc nhở tái khám vào ngày {date}'**
+  String notifFollowUpReminderDesc(String date);
+
+  /// No description provided for @notifCommentReplyDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có người đã trả lời bình luận của bạn'**
+  String get notifCommentReplyDesc;
+
+  /// No description provided for @notifTimeJustNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vừa xong'**
+  String get notifTimeJustNow;
+
+  /// No description provided for @notifTimeMinutesAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{minutes} phút trước'**
+  String notifTimeMinutesAgo(int minutes);
+
+  /// No description provided for @notifTimeHoursAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{hours} giờ trước'**
+  String notifTimeHoursAgo(int hours);
+
+  /// No description provided for @notifTimeDaysAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{days} ngày trước'**
+  String notifTimeDaysAgo(int days);
+
+  /// No description provided for @notifTimeLongAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lâu rồi'**
+  String get notifTimeLongAgo;
 }
 
 class _AppLocalizationsDelegate

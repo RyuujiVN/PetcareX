@@ -91,7 +91,6 @@ class AppointmentProvider with ChangeNotifier {
     } catch (e) {
       // Để null để UI có thể dùng l10n.failed
       _errorMessage = 'failed';
-      debugPrint('Error in AppointmentProvider: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -110,7 +109,6 @@ class AppointmentProvider with ChangeNotifier {
       }
       return false;
     } catch (e) {
-      debugPrint('Error cancelling appointment: $e');
       return false;
     } finally {
       if (_isLoading) {

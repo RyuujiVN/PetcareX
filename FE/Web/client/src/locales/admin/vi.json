@@ -275,6 +275,78 @@
       }
     }
   },
+  "accountMenu": {
+    "defaults": {
+      "name": "Người dùng",
+      "meta": "Tài khoản"
+    },
+    "actions": {
+      "profile": "Trang cá nhân",
+      "changePassword": "Đổi mật khẩu",
+      "logout": "Đăng xuất"
+    },
+    "profileModal": {
+      "title": "Trang cá nhân",
+      "upload": {
+        "changeAvatar": "Đổi ảnh đại diện"
+      },
+      "fields": {
+        "fullName": "Họ và tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ"
+      },
+      "placeholders": {
+        "fullName": "Nhập họ và tên",
+        "email": "Nhập email",
+        "phone": "Nhập số điện thoại",
+        "address": "Nhập địa chỉ"
+      },
+      "validation": {
+        "fullNameRequired": "Vui lòng nhập họ và tên",
+        "emailRequired": "Vui lòng nhập email",
+        "emailInvalid": "Email không hợp lệ",
+        "phoneRequired": "Vui lòng nhập số điện thoại",
+        "phoneInvalid": "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0",
+        "addressRequired": "Vui lòng nhập địa chỉ"
+      },
+      "buttons": {
+        "cancel": "Hủy",
+        "save": "Lưu thay đổi"
+      }
+    },
+    "passwordModal": {
+      "title": "Đổi mật khẩu",
+      "fields": {
+        "currentPassword": "Mật khẩu hiện tại",
+        "newPassword": "Mật khẩu mới",
+        "confirmPassword": "Xác nhận mật khẩu mới"
+      },
+      "validation": {
+        "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
+        "newRequired": "Vui lòng nhập mật khẩu mới",
+        "newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
+        "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
+        "confirmMismatch": "Mật khẩu xác nhận không khớp"
+      },
+      "buttons": {
+        "cancel": "Hủy",
+        "save": "Đổi mật khẩu",
+        "saving": "Đang cập nhật..."
+      }
+    },
+    "messages": {
+      "profileLoadFailed": "Không thể tải thông tin tài khoản",
+      "profileSaved": "Cập nhật thông tin thành công",
+      "profileSaveFailed": "Không thể cập nhật thông tin",
+      "avatarUploading": "Đang tải ảnh đại diện...",
+      "avatarUploadSuccess": "Tải ảnh đại diện thành công",
+      "avatarUploadFailed": "Không thể tải ảnh đại diện",
+      "avatarMissingUrl": "Không nhận được URL ảnh từ hệ thống",
+      "passwordChanged": "Đổi mật khẩu thành công",
+      "passwordChangeFailed": "Không thể đổi mật khẩu"
+    }
+  },
   "common": {
     "noData": "—",
     "none": "Không",

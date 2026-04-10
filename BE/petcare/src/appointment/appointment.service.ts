@@ -21,6 +21,7 @@ import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
 import { Not } from 'typeorm';
+import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Injectable()
 export class AppointmentService {
@@ -77,7 +78,10 @@ export class AppointmentService {
   }
 
   // Danh sách lịch hẹn của người dùng
-  async findAllMyAppointments(options: AppointmentPagination, userId: string) {
+  async findAllMyAppointments(
+    options: AppointmentPagination,
+    user: { id: string; role: string },
+  ) {
     const queryBuilder = this.appointmentRepository
       .createQueryBuilder('appointment')
       .leftJoin('appointment.pet', 'pet')
@@ -85,7 +89,6 @@ export class AppointmentService {
       .leftJoin('appointment.veterinarian', 'veterinarian')
       .leftJoin('pet.owner', 'owner')
       .leftJoin('veterinarian.user', 'user')
-      .where('owner.id = :userId', { userId: userId })
       .select([
         'appointment.id',
         'appointment.appointmentDate',
@@ -114,6 +117,12 @@ export class AppointmentService {
         'user.avatarUrl',
       ])
       .orderBy('appointment.createdAt', 'DESC');
+
+    if (user.role === RoleEnum.CUSTOMER) {
+      queryBuilder.where('owner.id = :userId', { userId: user.id });
+    } else if (user.role === RoleEnum.VETERINARIAN) {
+      queryBuilder.where('veterinarian.userId = :userId', { userId: user.id });
+    }
 
     return paginate<Appointment>(queryBuilder, options);
   }
@@ -188,10 +197,10 @@ export class AppointmentService {
     appointmentDateTime.setHours(hours, minutes, 0, 0);
 
     const minimumBookingTime = new Date();
-    minimumBookingTime.setHours(minimumBookingTime.getHours() + 6);
+    minimumBookingTime.setHours(minimumBookingTime.getHours() + 3);
     if (appointmentDateTime < minimumBookingTime) {
       throw new BadRequestException(
-        'Lịch hẹn phải được đặt trước ít nhất 6 tiếng',
+        'Lịch hẹn phải được đặt trước ít nhất 3 tiếng',
       );
     }
 
@@ -405,24 +414,29 @@ export class AppointmentService {
     });
 
     // 4. Lưu thông báo cho admin clinic và veterinarian
-    const recipientIds = [adminClinic!.userId, appointment.veterinarianId];
+    const baseObj = {
+      recipientId: null,
+      type: NotificationEnum.APPOINTMENT_BOOKED,
+      target: {
+        appointmentDate: appointment.appointmentDate,
+        appointmentTime: appointment.appointmentTime,
+        appointmentId: appointment.id,
+        userName: user.fullName ?? '',
+      },
+    };
 
-    const notifications = await Promise.all(
-      recipientIds.map((id) => {
-        const notify = this.notificationRepository.create({
-          recipientId: id,
-          type: NotificationEnum.APPOINTMENT_CANCELLED,
-          target: {
-            appointmentDate: appointment.appointmentDate,
-            appointmentTime: appointment.appointmentTime,
-            appointmentId: appointment.id,
-            userName: user?.fullName ?? '',
-          },
-        });
+    const recipients = [
+      {
+        ...baseObj,
+        recipientId: adminClinic?.userId,
+      },
+      {
+        ...baseObj,
+        recipientId: appointment.veterinarianId,
+      },
+    ];
 
-        return this.notificationRepository.save(notify);
-      }),
-    );
+    const notifications = await this.notificationRepository.save(recipients);
 
     notifications.forEach((item) => {
       this.notificationGateway.sendNotification(item.recipientId, item);

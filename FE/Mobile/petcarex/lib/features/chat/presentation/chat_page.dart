@@ -13,7 +13,9 @@ class ChatPage extends StatefulWidget {
   State<ChatPage> createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage> {
+class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin {
+  late final AnimationController _thinkingController;
+
   final TextEditingController _messageController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _initialized = false;
@@ -22,11 +24,16 @@ class _ChatPageState extends State<ChatPage> {
   @override
   void initState() {
     super.initState();
+    _thinkingController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat();
     _scrollController.addListener(_onScroll);
   }
 
   @override
   void dispose() {
+    _thinkingController.dispose();
     _messageController.dispose();
     _scrollController
       ..removeListener(_onScroll)
@@ -38,7 +45,8 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     final chatProvider = context.watch<ChatProvider>();
     final currentCount = chatProvider.messages.length;
-    if (currentCount != _lastMessageCount) {
+    final hasStreaming = chatProvider.messages.any((m) => m.isStreaming);
+    if (currentCount != _lastMessageCount || hasStreaming) {
       _lastMessageCount = currentCount;
       _scrollToBottom();
     }
@@ -76,7 +84,9 @@ class _ChatPageState extends State<ChatPage> {
             child: ListView.builder(
               controller: _scrollController,
               padding: const EdgeInsets.all(16),
-              itemCount: chatProvider.messages.length + (chatProvider.isLoadingMoreMessages ? 1 : 0),
+              itemCount: chatProvider.messages.length
+                  + (chatProvider.isLoadingMoreMessages ? 1 : 0)
+                  + (chatProvider.isWaitingAi ? 1 : 0),
               itemBuilder: (context, index) {
                 final hasLoadingHeader = chatProvider.isLoadingMoreMessages;
                 if (hasLoadingHeader && index == 0) {
@@ -85,11 +95,15 @@ class _ChatPageState extends State<ChatPage> {
                     child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                   );
                 }
+                final adjustedIndex = hasLoadingHeader ? index - 1 : index;
+                // Thinking indicator at the very end
+                if (adjustedIndex == chatProvider.messages.length && chatProvider.isWaitingAi) {
+                  return _buildThinkingBubble();
+                }
                 if (chatProvider.messages.isEmpty) {
                   return const SizedBox.shrink();
                 }
-                final messageIndex = hasLoadingHeader ? index - 1 : index;
-                final msg = chatProvider.messages[messageIndex];
+                final msg = chatProvider.messages[adjustedIndex];
                 return _buildChatBubble(msg);
               },
             ),
@@ -161,9 +175,68 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  Widget _buildThinkingBubble() {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.all(6),
+            decoration: const BoxDecoration(
+                color: AppColors.primary, shape: BoxShape.circle),
+            child: const Icon(Icons.smart_toy_outlined,
+                color: AppColors.onPrimary, size: 16),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+                bottomLeft: Radius.circular(4),
+                bottomRight: Radius.circular(16),
+              ),
+            ),
+            child: AnimatedBuilder(
+              animation: _thinkingController,
+              builder: (context, child) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(3, (i) {
+                    // Stagger each dot by 0.2
+                    final delay = i * 0.2;
+                    final t = (_thinkingController.value + delay) % 1.0;
+                    final opacity = (t < 0.5 ? t : 1.0 - t) * 2.0;
+                    return Padding(
+                      padding: EdgeInsets.only(right: i < 2 ? 4 : 0),
+                      child: Opacity(
+                        opacity: opacity.clamp(0.2, 1.0),
+                        child: Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildChatBubble(ChatMessage message) {
     final isMe = message.isUser;
-    final time = DateFormat('hh:mm a').format(message.createdAt);
+    final time = DateFormat('hh:mm a').format(message.createdAt.toLocal());
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),
       child: Column(
@@ -193,7 +266,9 @@ class _ChatPageState extends State<ChatPage> {
                     ),
                   ),
                   child: Text(
-                    message.content,
+                    message.isStreaming
+                        ? '${message.content}▍'
+                        : message.content,
                     style: TextStyle(color: isMe ? AppColors.onPrimary : AppColors.textDark, fontSize: 14, height: 1.4),
                   ),
                 ),
@@ -280,13 +355,25 @@ class _ChatPageState extends State<ChatPage> {
                 ),
               ),
               const SizedBox(width: 12),
-              Container(
-                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                child: IconButton(
-                  onPressed: _handleSendMessage,
-                  icon: const Icon(Icons.send, color: AppColors.onPrimary, size: 20),
-                ),
-              ),
+              Builder(builder: (ctx) {
+                final isResponding = ctx.watch<ChatProvider>().isAiResponding;
+                return Container(
+                  decoration: BoxDecoration(
+                    color: isResponding ? AppColors.error : AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: IconButton(
+                    onPressed: isResponding
+                        ? () => ctx.read<ChatProvider>().stopAiResponse()
+                        : _handleSendMessage,
+                    icon: Icon(
+                      isResponding ? Icons.stop_rounded : Icons.send,
+                      color: AppColors.onPrimary,
+                      size: 20,
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
           const SizedBox(height: 8),

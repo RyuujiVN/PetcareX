@@ -7,6 +7,7 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/change_password_page.dart';
+import '../../notification/presentation/provider/notification_provider.dart';
 import 'my_pets_page.dart';
 import 'profile_page.dart';
 
@@ -45,10 +46,13 @@ class _AccountPageState extends State<AccountPage> {
                 // 1. Đóng dialog bằng dialogContext
                 Navigator.pop(dialogContext);
 
-                // 2. Thực hiện logout
+                // 2. Cleanup notification trước khi logout
+                context.read<NotificationProvider>().clear();
+
+                // 3. Thực hiện logout
                 await authProvider.logout();
 
-                // 3. Điều hướng bằng context của trang (sử dụng context.mounted để an toàn)
+                // 4. Điều hướng bằng context của trang (sử dụng context.mounted để an toàn)
                 if (!mounted) return;
                 Navigator.pushAndRemoveUntil(
                   context,

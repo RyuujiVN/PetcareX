@@ -23,6 +23,8 @@ class AppConstants {
   static const String END_POINT_INVOICE = '${AppConfig.apiPrefix}/invoice';
   static const String END_POINT_ROOM = '${AppConfig.apiPrefix}/room';
   static const String END_POINT_MESSAGE = '${AppConfig.apiPrefix}/message';
+  static const String END_POINT_NOTIFICATION =
+      '${AppConfig.apiPrefix}/notification';
 
   // Cloudinary Endpoints
   static const String END_POINT_CLOUDINARY_UPLOAD_ONE_FILE =
@@ -58,6 +60,8 @@ class AppConstants {
 
   // Appointment Endpoints
   static const String END_POINT_APPOINTMENT_MY = '$END_POINT_APPOINTMENT/my';
+  static const String END_POINT_APPOINTMENT_CLIENT =
+      '$END_POINT_APPOINTMENT/client';
 
   // Medical Endpoints
   static const String END_POINT_MEDICAL_CLINIC = '$END_POINT_MEDICAL/clinic';

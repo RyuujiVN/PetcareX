@@ -90,18 +90,8 @@
 
 /* ── Profile box ── */
 .profileBox {
-  border-top: 1px solid var(--admin-sidebar-border);
-  padding: 14px 4px 0;
   width: 100%;
   text-align: left;
-  border-left: 0;
-  border-right: 0;
-  border-bottom: 0;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
 }
 
 .profileInfo {
