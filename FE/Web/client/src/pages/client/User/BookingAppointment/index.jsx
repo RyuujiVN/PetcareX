@@ -14,7 +14,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import { getClientInstance } from '../../../../services/apiClient';
-import { generateAndStoreDiagnosisReport } from '../../../../services/appointmentDiagnosisService';
 import {
     APPOINTMENT_STATUS,
     createAppointmentApi,
@@ -465,16 +464,6 @@ export default function BookingAppointment() {
 
       // Run auxiliary tasks in the background so success navigation is immediate.
       void fetchAppointments().catch(() => undefined);
-
-      if (created?.id) {
-        void generateAndStoreDiagnosisReport({
-          appointmentId: created.id,
-          symptomsText: values.symptoms.trim(),
-          petName: created?.pet?.name || selectedPet?.name,
-          species: created?.pet?.species || selectedPet?.species,
-          appointmentDate: values.selectedDate,
-        }).catch(() => undefined);
-      }
     } catch (error) {
       message.error(error.message || t('pages.booking.submitFailed'));
       setSubmitting(false);
@@ -661,15 +650,7 @@ export default function BookingAppointment() {
             </section>
 
             <section className="step">
-              <div className="step-heading-row">
-                <h2><span className="step-number">4</span> {t('pages.booking.steps.chooseDateTime')}</h2>
-                <div className="lead-time-note">
-                  {t('pages.booking.leadTimeNotice', {
-                    hours: BOOKING_MIN_LEAD_HOURS,
-                    defaultValue: `Lưu ý: Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng.`,
-                  })}
-                </div>
-              </div>
+              <h2><span className="step-number">4</span> {t('pages.booking.steps.chooseDateTime')}</h2>
               <div className="date-time-selector">
                 <div className="calendar">
                   <div className="month-header" style={{color: 'var(--color-text-primary)'}}>
@@ -719,6 +700,13 @@ export default function BookingAppointment() {
                   </table>
                 </div>
                 <div className="time-slots" style={{color: 'var(--color-text-primary)'}}>
+                  <div className="lead-time-note">
+                    {t('pages.booking.leadTimeNotice', {
+                      hours: BOOKING_MIN_LEAD_HOURS,
+                      defaultValue: `Lưu ý: Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng.`,
+                    })}
+                  </div>
+
                   {TIME_SLOT_GROUPS.map((group) => (
                     <section key={group.key} className="time-slot-group">
                       <div className="time-slot-group-title">

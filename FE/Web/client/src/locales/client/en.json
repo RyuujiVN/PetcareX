@@ -501,6 +501,8 @@
         "title": "Choose the right clinic",
         "searchPlaceholder": "Search by clinic name",
         "chooseButton": "Choose",
+        "reviewCount": "reviews",
+        "noReview": "No reviews yet",
         "loadListFailed": "Unable to load clinic list",
         "loadDetailFailed": "Unable to load clinic details"
       },
@@ -910,6 +912,22 @@
       "actions": {
         "collapse": "Collapse",
         "viewDetail": "View details"
+      },
+      "review": {
+        "actionButton": "Review",
+        "ratedButton": "Reviewed",
+        "modalTitle": "Clinic review",
+        "ratingLabel": "Your rating",
+        "contentLabel": "Your feedback",
+        "contentPlaceholder": "Share your experience with this clinic...",
+        "submitButton": "Submit review",
+        "submitSuccess": "Clinic review submitted successfully",
+        "submitFailed": "Unable to submit clinic review",
+        "missingClinicInfo": "Missing clinic information for this review",
+        "validation": {
+          "ratingRequired": "Please select a star rating",
+          "contentRequired": "Please enter your review content"
+        }
       },
       "reminders": {
         "followUpTitle": "Follow-up - {{name}}",

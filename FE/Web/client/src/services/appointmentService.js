@@ -124,6 +124,14 @@ export const getAppointmentByIdApi = async (instance, appointmentId) => {
     items.find((item) => String(item?.id) === String(appointmentId)) || null
   )
 }
+
+export const getAppointmentAiDiagnosisApi = (instance, appointmentId) => {
+  if (!appointmentId) return Promise.resolve(null)
+
+  return instance
+    .get(`/appointment/${appointmentId}/ai-diagnosis`)
+    .then((response) => response?.data || null)
+}
 // API tạo cuộc hẹn mới
 export const createAppointmentApi = (instance, data) => {
   return instance

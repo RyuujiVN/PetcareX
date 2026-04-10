@@ -9,7 +9,7 @@ import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../.
 import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';
 import { getClinicHomeContent, saveClinicHomeContent } from '../../../../utils/storage/clinicHomeStorage';
 import HomePageClinic from '../../../client/Home/HomePageClinic';
-import './styles.css';
+import './homePageEditorTab.css';
 
 const { TextArea } = Input;
 const { Title } = Typography;

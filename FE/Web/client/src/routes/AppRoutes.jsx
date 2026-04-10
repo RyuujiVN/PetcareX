@@ -100,6 +100,7 @@ export default function AppRoutes({ location }) {
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/clinic" element={<HomePageClinic />} />
+        <Route path="/clinic/:clinicId" element={<HomePageClinic />} />
         <Route path="/choose-clinic" element={<ClinicSelection />} />
         <Route path="/booking" element={<BookingAppointment />} />
         <Route path="/appointments" element={<AppointmentDetail />} />

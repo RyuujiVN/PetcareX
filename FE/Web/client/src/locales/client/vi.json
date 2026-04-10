@@ -501,6 +501,8 @@
         "title": "Chọn phòng khám phù hợp",
         "searchPlaceholder": "Tìm kiếm theo tên",
         "chooseButton": "Chọn",
+        "reviewCount": "đánh giá",
+        "noReview": "Chưa có đánh giá",
         "loadListFailed": "Không thể tải danh sách phòng khám",
         "loadDetailFailed": "Không thể tải chi tiết phòng khám"
       },
@@ -910,6 +912,22 @@
       "actions": {
         "collapse": "Thu gọn",
         "viewDetail": "Xem chi tiết"
+      },
+      "review": {
+        "actionButton": "Đánh giá",
+        "ratedButton": "Đã đánh giá",
+        "modalTitle": "Đánh giá phòng khám",
+        "ratingLabel": "Mức độ hài lòng",
+        "contentLabel": "Nội dung đánh giá",
+        "contentPlaceholder": "Chia sẻ trải nghiệm của bạn tại phòng khám này...",
+        "submitButton": "Gửi đánh giá",
+        "submitSuccess": "Đánh giá phòng khám thành công",
+        "submitFailed": "Không thể gửi đánh giá",
+        "missingClinicInfo": "Không đủ thông tin phòng khám để đánh giá",
+        "validation": {
+          "ratingRequired": "Vui lòng chọn số sao đánh giá",
+          "contentRequired": "Vui lòng nhập nội dung đánh giá"
+        }
       },
       "reminders": {
         "followUpTitle": "Tái khám - {{name}}",

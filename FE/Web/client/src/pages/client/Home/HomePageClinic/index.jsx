@@ -1,7 +1,7 @@
 import { Modal } from 'antd';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
 import { getClinicHomeContent, resolveSelectedClinicId } from '../../../../utils/storage/clinicHomeStorage';
 import '../HomePage/styles.css';
@@ -44,12 +44,14 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const { clinicId: clinicIdFromRoute = '' } = useParams();
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
 
   const selectedClinicId = useMemo(() => {
     if (clinicId) return String(clinicId);
+    if (clinicIdFromRoute) return String(clinicIdFromRoute);
     return resolveSelectedClinicId(location.state);
-  }, [clinicId, location.state]);
+  }, [clinicId, clinicIdFromRoute, location.state]);
 
   const content = useMemo(() => {
     if (forcedContent) {

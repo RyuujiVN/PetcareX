@@ -12,7 +12,7 @@ import {
     getClinicInfoContent,
     saveClinicInfoContent,
 } from '../../../../utils/storage/clinicInfoStorage'
-import './styles.css'
+import './clinicInfoEditorTab.css'
 
 const buildFallbackClinicFromProfile = (profile) => {
   const clinicInfo =

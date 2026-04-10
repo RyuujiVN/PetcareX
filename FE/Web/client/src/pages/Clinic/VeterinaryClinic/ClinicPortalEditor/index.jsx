@@ -2,8 +2,8 @@ import { Tabs, Typography } from 'antd'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import ClinicSelectionEditor from '../ClinicSelectionEditor'
-import HomePageClinicEditor from '../HomePageClinicEditor'
+import ClinicInfoEditorTab from './ClinicInfoEditorTab'
+import HomePageEditorTab from './HomePageEditorTab'
 import './styles.css'
 
 const { Title, Text } = Typography
@@ -37,12 +37,12 @@ export default function ClinicPortalEditor() {
           {
             key: 'homepage',
             label: t('sidebar.menu.homeEditor'),
-            children: <HomePageClinicEditor />,
+            children: <HomePageEditorTab />,
           },
           {
             key: 'clinicinfo',
             label: t('sidebar.menu.clinicEditor'),
-            children: <ClinicSelectionEditor />,
+            children: <ClinicInfoEditorTab />,
           },
         ]}
       />

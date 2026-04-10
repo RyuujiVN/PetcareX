@@ -2,15 +2,12 @@
 import * as antd from 'antd';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import { getClientInstance } from '../../../../services/apiClient';
 import {
-    generateAndStoreDiagnosisReport,
-    getStoredDiagnosisReport,
-} from '../../../../services/appointmentDiagnosisService';
-import {
     APPOINTMENT_STATUS,
+  getAppointmentAiDiagnosisApi,
     getMyAppointmentsApi,
     updateAppointmentStatusApi,
 } from '../../../../services/appointmentService';
@@ -38,6 +35,7 @@ const APPOINTMENT_STATUS_TAG_COLOR = {
 
 const AppointmentDetail = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -49,6 +47,7 @@ const AppointmentDetail = () => {
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [diagnosisData, setDiagnosisData] = useState(null);
   const [diagnosisAppointment, setDiagnosisAppointment] = useState(null);
+  const autoOpenedDiagnosisRef = useRef('');
   const inFlightRef = useRef(false);
   const hasLoadedOnceRef = useRef(false);
   const lastDataSignatureRef = useRef('');
@@ -182,26 +181,29 @@ const handleViewDetails = (appointment) => {
   setIsModalVisible(true);
 };
 
-  const handleOpenDiagnosis = async (appointment) => {
+  const handleOpenDiagnosis = useCallback(async (appointment) => {
     setDiagnosisAppointment(appointment);
     setDiagnosisData(null);
     setIsDiagnosisVisible(true);
     setDiagnosisLoading(true);
 
     try {
-      const cached = getStoredDiagnosisReport(appointment.id);
-      if (cached) {
-        setDiagnosisData(cached);
-        return;
-      }
+      const diagnosisResponse = await getAppointmentAiDiagnosisApi(
+        getClientInstance(),
+        appointment.id,
+      );
 
-      const report = await generateAndStoreDiagnosisReport({
+      const report = {
         appointmentId: appointment.id,
-        symptomsText: appointment.notes,
-        petName: appointment.petName,
+        petName: diagnosisResponse?.pet?.name || appointment.petName,
         species: appointment.species,
         appointmentDate: appointment.rawDate,
-      });
+        appointmentDateLabel: formatDate(appointment.rawDate, dateLocale),
+        reportMarkdown:
+          diagnosisResponse?.diagnosis || t('pages.petDiagnosis.emptyReport'),
+        source: 'backend',
+        generatedAt: diagnosisResponse?.createdAt || new Date().toISOString(),
+      };
 
       setDiagnosisData(report);
     } catch (error) {
@@ -209,7 +211,27 @@ const handleViewDetails = (appointment) => {
     } finally {
       setDiagnosisLoading(false);
     }
-  };
+  }, [dateLocale, t]);
+
+  const diagnosisAppointmentIdFromQuery = useMemo(() => {
+    const params = new URLSearchParams(location.search || '');
+    return String(params.get('appointmentId') || '').trim();
+  }, [location.search]);
+
+  useEffect(() => {
+    if (!diagnosisAppointmentIdFromQuery) return;
+    if (autoOpenedDiagnosisRef.current === diagnosisAppointmentIdFromQuery) return;
+
+    const targetAppointment = mappedAppointments.find(
+      (item) => String(item.id) === diagnosisAppointmentIdFromQuery,
+    );
+
+    if (!targetAppointment) return;
+
+    autoOpenedDiagnosisRef.current = diagnosisAppointmentIdFromQuery;
+    void handleOpenDiagnosis(targetAppointment);
+    navigate('/appointments', { replace: true });
+  }, [diagnosisAppointmentIdFromQuery, handleOpenDiagnosis, mappedAppointments, navigate]);
   const handleBookingNew = () => {
     navigate('/booking');
   };

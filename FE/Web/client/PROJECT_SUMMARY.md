@@ -23,8 +23,13 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ### 1) Booking Client — bắt buộc đặt trước 3 tiếng
 - Màn `BookingAppointment` đã bổ sung quy tắc lead time: người dùng phải đặt lịch trước ít nhất **3 giờ** so với thời điểm khám.
-- Các khung giờ không đạt điều kiện lead time sẽ **bị ẩn** khỏi danh sách chọn giờ (không chỉ disable).
+- Các khung giờ không đạt điều kiện lead time được **disable** (không ẩn), giúp người dùng vẫn thấy toàn bộ khung giờ khả dụng trong ngày.
 - Validation form cũng chặn trường hợp người dùng chọn giờ không hợp lệ theo lead time.
+- Khối `Lưu ý` lead time được đặt lại vị trí ở khu vực chọn giờ, nằm phía trên nhóm giờ (trên icon `Buổi sáng`) để đúng luồng thị giác khi chọn time slot.
+
+### 1.1) Client clinic URL có ID phòng khám
+- Đã bổ sung route client ` /clinic/:clinicId ` bên cạnh route cũ ` /clinic ` để hỗ trợ truy cập theo từng phòng khám cụ thể.
+- Khi chọn phòng khám ở `choose-clinic`, frontend điều hướng sang URL có ID (`/clinic/{id}`) và vẫn truyền state đầy đủ.
 
 ### 2) Clinic Appointment — chỉ hiện nút xóa lịch đúng thời điểm hẹn
 - Ở modal chi tiết lịch hẹn phía Clinic, action `Xóa lịch đặt` chỉ hiển thị khi:
@@ -42,11 +47,25 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ### 4) Notification Bell + Toast realtime (Client/Clinic/Veterinarian)
 - Chuẩn hóa lại style và kích thước button chuông giữa các portal (đồng bộ form hiển thị).
+- Tinh chỉnh thêm canh giữa icon chuông ở Clinic/Veterinarian để cân xứng giống client (không lệch lên trên).
 - Khi có thông báo mới từ socket:
   - hiển thị toast ở góc dưới bên phải,
   - tự ẩn sau 5 giây,
   - có nút đóng `X` mặc định của Ant Design notification.
 - Click item trong panel thông báo sẽ mark-as-read và điều hướng tới page phù hợp theo ngữ cảnh notification.
+
+### 4.1) Client AI diagnosis — fetch từ backend
+- Loại bỏ luồng generate chẩn đoán AI local sau khi đặt lịch từ frontend.
+- Màn `AppointmentDetail` chuyển sang gọi API backend `GET /appointment/:id/ai-diagnosis` để lấy báo cáo chẩn đoán.
+- Notification loại `AI_DIAGNOSIS` điều hướng về lịch hẹn kèm `appointmentId` để mở đúng ngữ cảnh dữ liệu.
+
+### 4.2) Đánh giá phòng khám từ Hồ sơ y tế thú cưng
+- Ở `MedicalRecords`, với hồ sơ đã hoàn thành, badge trạng thái được thay bằng nút `Đánh giá`.
+- Click `Đánh giá` mở popup đánh giá phòng khám tương ứng với phiếu khám, gồm:
+  - `rating` (chọn sao)
+  - `content` (nội dung nhận xét)
+- Sau khi gửi, record hiển thị `Đã đánh giá`.
+- Ở `choose-clinic`, đã hiển thị rating trung bình và tổng số đánh giá theo dữ liệu client đã đánh giá.
 
 ### 5) Clinic Editor — hợp nhất 2 màn chỉnh sửa thành 1 route
 - Đã dùng route hợp nhất: ` /clinic/editor/:clinicId ` (tab chỉnh sửa Trang chủ + tab chỉnh sửa thông tin phòng khám trong cùng một page).
@@ -54,6 +73,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
   - `/clinic/home-editor/:clinicId`
   - `/clinic/clinic-editor/:clinicId`
 - Trên route editor mở tab mới, layout Clinic không hiển thị sidebar để tập trung chỉnh sửa.
+- Đã dọn dẹp file dư thừa: bỏ phụ thuộc trực tiếp vào folder cũ `ClinicSelectionEditor` và `HomePageClinicEditor`; các tab editor đã được đặt trong `ClinicPortalEditor`.
 
 ### 6) Sidebar Clinic/Veterinarian — bổ sung ẩn/hiện
 - Thêm nút toggle để ẩn/hiện sidebar, cải thiện không gian làm việc trên màn nhỏ hoặc khi cần tập trung nội dung.

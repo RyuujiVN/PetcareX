@@ -113,6 +113,10 @@ export const resolveNotificationHref = (notificationItem, portal = 'client') => 
   }
 
   if (beType === 'AI_DIAGNOSIS') {
+    if (effectivePortal === 'client' && target?.appointmentId) {
+      return `/appointments?appointmentId=${target.appointmentId}`;
+    }
+
     return resolveExamPortalPath(effectivePortal);
   }
 
