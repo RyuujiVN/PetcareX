@@ -26,7 +26,6 @@
 }
 
 .pageWrap {
-	max-width: 1040px;
 	margin: 0 auto;
 	padding: 18px 20px 22px;
 }
@@ -49,17 +48,9 @@
 	gap: 2px;
 }
 
-.headerMeta p {
-	margin: 0;
-	margin-right: 150px;
-	font-size: 18px;
-	font-weight: 800;
-	color: #4672b4;
-}
-
 .headerMeta span {
 	display: block;
-	font-size: 13px;
+	font-size: 14px;
 	font-weight: 600;
 	color: #697f9d;
 	margin-right: auto;
@@ -117,7 +108,7 @@
 	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.25;
-	color: #73859d;
+	color: var(--color-text-primary);
 }
 
 .readonlyField :global(.ant-input),

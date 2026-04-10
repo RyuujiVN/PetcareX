@@ -840,7 +840,6 @@ export default function PetMedicalRecords() {
 			<div className={styles.pageWrap}>
 				<header className={styles.formHeader}>
 					<div className={styles.headerMeta}>
-						<p>{t('medicalRecords.petExam.header.title')}</p>
 						<span>{t('medicalRecords.petExam.header.examCode')}: {buildExamCode(medicalRecord?.id)}</span>
 						<span>{t('medicalRecords.petExam.header.examDate')}: {formatDateLabel(medicalRecord?.createdAt || appointment?.appointmentDate, locale, fallbackText)}</span>
 					</div>
