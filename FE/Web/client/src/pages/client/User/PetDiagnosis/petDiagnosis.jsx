@@ -21,7 +21,7 @@ export function PetDiagnosisContent({ diagnosis, appointment, onClose, inModal =
 
   return (
     <div className={inModal ? styles.modalContainer : undefined}>
-      {onClose && (
+      {/* {onClose && (
         <button
           type="button"
           className={styles.closeButton}
@@ -30,7 +30,7 @@ export function PetDiagnosisContent({ diagnosis, appointment, onClose, inModal =
         >
           <CloseOutlined />
         </button>
-      )}
+      )} */}
 
       <h1 className={styles.title}>
         {t('pages.petDiagnosis.reportTitle', { petName })}

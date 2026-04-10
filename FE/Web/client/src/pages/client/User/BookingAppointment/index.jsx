@@ -650,7 +650,15 @@ export default function BookingAppointment() {
             </section>
 
             <section className="step">
-              <h2><span className="step-number">4</span> {t('pages.booking.steps.chooseDateTime')}</h2>
+              <div className="step-heading-row">
+                <h2><span className="step-number">4</span> {t('pages.booking.steps.chooseDateTime')}</h2>
+                <div className="lead-time-note">
+                  {t('pages.booking.leadTimeNotice', {
+                    hours: BOOKING_MIN_LEAD_HOURS,
+                    defaultValue: `Lưu ý: Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng.`,
+                  })}
+                </div>
+              </div>
               <div className="date-time-selector">
                 <div className="calendar">
                   <div className="month-header" style={{color: 'var(--color-text-primary)'}}>
@@ -700,13 +708,6 @@ export default function BookingAppointment() {
                   </table>
                 </div>
                 <div className="time-slots" style={{color: 'var(--color-text-primary)'}}>
-                  <div className="lead-time-note">
-                    {t('pages.booking.leadTimeNotice', {
-                      hours: BOOKING_MIN_LEAD_HOURS,
-                      defaultValue: `Lưu ý: Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng.`,
-                    })}
-                  </div>
-
                   {TIME_SLOT_GROUPS.map((group) => (
                     <section key={group.key} className="time-slot-group">
                       <div className="time-slot-group-title">
