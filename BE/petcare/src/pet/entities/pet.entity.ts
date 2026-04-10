@@ -61,6 +61,6 @@ export class Pet {
   @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.pet)
   medicalRecords: MedicalRecord[];
 
-  @OneToMany(() => AiDiagnosis, (aiDiagnosis) => aiDiagnosis.user)
+  @OneToMany(() => AiDiagnosis, (aiDiagnosis) => aiDiagnosis.pet)
   aiDiagnoses: AiDiagnosis[];
 }

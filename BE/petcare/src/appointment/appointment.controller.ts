@@ -89,6 +89,13 @@ export class AppointmentController {
     );
   }
 
+  @Get(':id/ai-diagnosis')
+  @RequiredRole(RoleEnum.CUSTOMER)
+  @ApiOperation({ summary: 'Lấy kết quả chẩn đoán AI của lịch hẹn' })
+  getResultAiDiagnosis(@Param('id') id: string) {
+    return this.appointmentService.getResultAiDianosis(id);
+  }
+
   @Post('')
   @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.CUSTOMER)
   @ApiOperation({ summary: 'Tạo mới lịch hẹn' })
