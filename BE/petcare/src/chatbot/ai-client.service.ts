@@ -2,6 +2,7 @@ import {
   forwardRef,
   Inject,
   Injectable,
+  Logger,
   OnModuleDestroy,
   OnModuleInit,
   ServiceUnavailableException,
@@ -12,6 +13,7 @@ import { ChatBotGateway } from 'src/chatbot/chatBot.gateway';
 
 @Injectable()
 export class AiClientService implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(AiClientService.name);
   private socket: ClientSocket;
 
   constructor(
@@ -24,23 +26,23 @@ export class AiClientService implements OnModuleInit, OnModuleDestroy {
     this.socket = io(this.configService.get<string>('LINK_CONNECT_AI'), {
       transports: ['websocket'],
       reconnectionAttempts: 3,
-      reconnectionDelay: 1000,
+      reconnectionDelay: 3000,
     });
 
     this.socket.on('connect', () => {
-      console.log('Connected to AI:', this.socket.id);
+      this.logger.log(`Connected to AI: ${this.socket.id}`);
     });
 
     this.socket.on('disconnect', () => {
-      console.log('Disconnect to AI', this.socket.id);
+      this.logger.warn(`Disconnect to AI: ${this.socket.id}`);
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('AI connection error:', error.message);
+      this.logger.error(`AI connection error: ${error.message}`, error.stack);
     });
 
     this.socket.io.on('reconnect_failed', () => {
-      console.error('AI server unreachable after 3 attempts');
+      this.logger.error('AI server unreachable after 3 attempts');
     });
 
     this.socket.on('chat_response', (data) => {
@@ -67,7 +69,6 @@ export class AiClientService implements OnModuleInit, OnModuleDestroy {
       );
     }
 
-    console.log(data);
     this.socket.emit('chat_event', data);
   }
 }

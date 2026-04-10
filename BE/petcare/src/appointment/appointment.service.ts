@@ -22,6 +22,7 @@ import { Appointment } from './entities/appointment.entity';
 import { AppointmentPagination } from './types/appointment-pagination.type';
 import { Not } from 'typeorm';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 
 @Injectable()
 export class AppointmentService {
@@ -32,10 +33,23 @@ export class AppointmentService {
     private readonly appointmentRepository: Repository<Appointment>,
     @InjectRepository(AdminClinic)
     private readonly adminClinicRepository: Repository<AdminClinic>,
+    @InjectRepository(AiDiagnosis)
+    private readonly aiDiagnosisRepository: Repository<AiDiagnosis>,
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
     private readonly notificationGateway: NotificationGateway,
   ) {}
+
+  // Lấy kết quả chẩn đoán AI của lịch hẹn
+  async getResultAiDianosis(appointmentId: string) {
+    const queryBuilder = this.aiDiagnosisRepository
+      .createQueryBuilder('aiDiagnosis')
+      .leftJoin('aiDiagnosis.pet', 'pet')
+      .addSelect(['pet.name', 'pet.avatar', 'pet.breed', 'pet.ownerId'])
+      .where('aiDiagnosis.appointmentId = :id', { id: appointmentId });
+
+    return queryBuilder.getOne();
+  }
 
   async findOneById(appointmentId: string) {
     return await this.appointmentRepository

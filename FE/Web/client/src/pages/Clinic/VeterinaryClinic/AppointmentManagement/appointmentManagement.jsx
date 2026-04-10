@@ -535,6 +535,7 @@ export default function AppointmentManagement() {
 							onChange={(event) => setSearchValue(event.target.value)}
 						/>
 					</div>
+					<div className={styles.topBarActionSpacer} aria-hidden="true" />
 				</div>
 
 				<div className={styles.mainBody}>

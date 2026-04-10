@@ -97,6 +97,11 @@
   color: #8b97aa;
 }
 
+.topBarActionSpacer {
+  width: 132px;
+  flex-shrink: 0;
+}
+
 .mainBody {
   padding: 18px;
 }
@@ -389,7 +394,11 @@
   }
 
   .searchBox {
-    width: calc(100% - 48px);
+    width: 100%;
+  }
+
+  .topBarActionSpacer {
+    width: 116px;
   }
 
   .petSubMeta {

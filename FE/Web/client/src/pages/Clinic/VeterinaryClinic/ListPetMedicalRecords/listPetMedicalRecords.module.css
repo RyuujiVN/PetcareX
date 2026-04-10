@@ -15,9 +15,16 @@
 	height: 64px;
 	display: flex;
 	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
 	padding: 0 24px;
 	border-bottom: 1px solid #dce4ef;
 	background: #fff;
+}
+
+.topHeaderActionSpacer {
+	width: 132px;
+	flex-shrink: 0;
 }
 
 .topHeader h1 {
@@ -209,6 +216,10 @@
 
 	.topHeader {
 		padding: 0 16px;
+	}
+
+	.topHeaderActionSpacer {
+		width: 116px;
 	}
 
 	.topHeader h1 {

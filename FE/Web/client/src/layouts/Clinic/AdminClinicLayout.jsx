@@ -32,6 +32,7 @@ import { getRoleLabel } from "../../constants/veterinaryLabels";
 import { RoleEnum } from "../../enum/role.enum";
 import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
+import { getAdminInstance } from "../../services/apiClient";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import styles from "./AdminClinicLayout.module.css";
@@ -201,9 +202,21 @@ export default function AdminClinicLayout() {
   const clinicDisplayName = getClinicDisplayName(userProfile, t);
   const clinicId = getCurrentAdminClinicId(userProfile);
   const notificationScopeKey = clinicId || userProfile?.id || "default";
-  const shouldHideNotificationBell =
+  const isClinicEditorRoute =
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
+  const shouldEmbedActionBarInTopBar =
+    location.pathname === "/clinic/appointments" ||
+    location.pathname.startsWith("/clinic/appointments/") ||
+    location.pathname === "/clinic/revenue" ||
+    location.pathname.startsWith("/clinic/revenue/") ||
+    location.pathname.startsWith("/clinic/veterinarians") ||
+    location.pathname === "/clinic/exam-slips" ||
+    location.pathname.startsWith("/clinic/exam-slips/") ||
+    location.pathname === "/clinic/profile" ||
+    location.pathname.startsWith("/clinic/profile/") ||
+    location.pathname === "/clinic/medical-records" ||
+    location.pathname.startsWith("/clinic/medical-records/view");
 
   const {
     notifications: notificationItems,
@@ -215,6 +228,7 @@ export default function AdminClinicLayout() {
     storageKey: `ws_notif_clinic:${notificationScopeKey}`,
     token,
     enabled: !!token,
+    instance: getAdminInstance(),
   });
 
   const menuItems = useMemo(
@@ -489,11 +503,13 @@ export default function AdminClinicLayout() {
       </aside>
 
       <main className={styles.main}>
-        <div className={styles.mainActionBar}>
+        {!isClinicEditorRoute ? (
+        <div
+          className={`${styles.mainActionBar} ${shouldEmbedActionBarInTopBar ? styles.mainActionBarEmbedded : ""}`}
+        >
           <div className={styles.mainActionGroup}>
             <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
 
-            {!shouldHideNotificationBell ? (
             <Popover
               trigger="click"
               placement="bottomRight"
@@ -520,9 +536,9 @@ export default function AdminClinicLayout() {
                 }
               />
             </Popover>
-            ) : null}
           </div>
         </div>
+        ) : null}
 
         <Outlet />
       </main>
