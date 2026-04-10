@@ -1,0 +1,23 @@
+.clinic-portal-editor-page {
+  min-height: 100vh;
+  background: var(--color-surface-page);
+  padding: 20px;
+}
+
+.clinic-portal-editor-header {
+  margin-bottom: 12px;
+}
+
+.clinic-portal-editor-header h3 {
+  margin-bottom: 4px !important;
+}
+
+.clinic-portal-editor-tabs :global(.ant-tabs-nav) {
+  margin-bottom: 14px;
+}
+
+@media (max-width: 768px) {
+  .clinic-portal-editor-page {
+    padding: 12px;
+  }
+}

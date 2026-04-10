@@ -1,9 +1,13 @@
 .layout {
   height: 100vh;
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: 340px 1fr;
   background: var(--vet-color-surface-page);
   overflow: hidden;
+}
+
+.layoutSingleColumn {
+  grid-template-columns: 1fr;
 }
 
 .layoutFocus {
@@ -11,6 +15,7 @@
 }
 
 .sidebar {
+  position: relative;
   position: sticky;
   top: 0;
   height: 100vh;
@@ -21,6 +26,25 @@
   flex-direction: column;
   justify-content: space-between;
   overflow-y: auto;
+}
+
+.sidebarInlineToggleButton {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid var(--vet-color-border) !important;
+  color: var(--vet-color-text-primary) !important;
+  box-shadow: 0 8px 20px rgba(47, 79, 134, 0.14);
+}
+
+.sidebarInlineToggleButton:hover {
+  color: var(--vet-color-brand-primary) !important;
+  border-color: var(--vet-color-brand-primary) !important;
 }
 
 .brandWrap {
@@ -115,6 +139,25 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+
+.sidebarToggleButton {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 70;
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 50% !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+  border: 1px solid var(--vet-color-border) !important;
+  color: var(--vet-color-text-primary) !important;
+  box-shadow: 0 8px 20px rgba(47, 79, 134, 0.14);
+}
+
+.sidebarToggleButton:hover {
+  color: var(--vet-color-brand-primary) !important;
+  border-color: var(--vet-color-brand-primary) !important;
 }
 
 .mainFocus {
@@ -311,7 +354,7 @@
 
 @media (max-width: 1024px) {
   .layout {
-    grid-template-columns: 280px 1fr;
+    grid-template-columns: 300px 1fr;
   }
 
   .brandWrap h2 {
@@ -356,6 +399,13 @@
     height: auto;
     overflow: visible;
     padding: 12px;
+  }
+
+  .sidebarToggleButton {
+    top: 8px;
+    left: 8px;
+    width: 38px !important;
+    height: 38px !important;
   }
 
   .header {

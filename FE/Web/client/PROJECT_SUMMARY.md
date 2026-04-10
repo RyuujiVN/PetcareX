@@ -19,6 +19,45 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Social auth: Firebase Web SDK (`firebase/app`, `firebase/auth`, `firebase/analytics`).
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 
+## Cập nhật mới nhất (2026-04-10)
+
+### 1) Booking Client — bắt buộc đặt trước 3 tiếng
+- Màn `BookingAppointment` đã bổ sung quy tắc lead time: người dùng phải đặt lịch trước ít nhất **3 giờ** so với thời điểm khám.
+- Các khung giờ không đạt điều kiện lead time sẽ **bị ẩn** khỏi danh sách chọn giờ (không chỉ disable).
+- Validation form cũng chặn trường hợp người dùng chọn giờ không hợp lệ theo lead time.
+
+### 2) Clinic Appointment — chỉ hiện nút xóa lịch đúng thời điểm hẹn
+- Ở modal chi tiết lịch hẹn phía Clinic, action `Xóa lịch đặt` chỉ hiển thị khi:
+  - trạng thái lịch là `BOOKED`, và
+  - thời điểm hiện tại đã đạt hoặc vượt giờ hẹn thực tế.
+- Trước giờ hẹn, nút xóa không hiển thị.
+
+### 3) Veterinarian — khóa chỉnh sửa phiếu khám sau khi thanh toán
+- `RecordExaminationForm` đã bổ sung khóa chỉnh sửa theo trạng thái hóa đơn:
+  - nếu invoice của medical record là `PAID`, form chuyển read-only ngay cả khi chưa hết 15 phút.
+- Form vẫn giữ cơ chế khóa 15 phút hiện có; trạng thái khóa cuối cùng là OR giữa:
+  - hết thời gian chỉnh sửa, hoặc
+  - đã thanh toán.
+- Có lắng nghe event đồng bộ thanh toán (`APPOINTMENT_PAYMENT_SYNC_EVENT_KEY`) để khóa realtime khi Clinic vừa xác nhận thanh toán.
+
+### 4) Notification Bell + Toast realtime (Client/Clinic/Veterinarian)
+- Chuẩn hóa lại style và kích thước button chuông giữa các portal (đồng bộ form hiển thị).
+- Khi có thông báo mới từ socket:
+  - hiển thị toast ở góc dưới bên phải,
+  - tự ẩn sau 5 giây,
+  - có nút đóng `X` mặc định của Ant Design notification.
+- Click item trong panel thông báo sẽ mark-as-read và điều hướng tới page phù hợp theo ngữ cảnh notification.
+
+### 5) Clinic Editor — hợp nhất 2 màn chỉnh sửa thành 1 route
+- Đã dùng route hợp nhất: ` /clinic/editor/:clinicId ` (tab chỉnh sửa Trang chủ + tab chỉnh sửa thông tin phòng khám trong cùng một page).
+- Legacy routes vẫn được giữ tương thích và map vào cùng page:
+  - `/clinic/home-editor/:clinicId`
+  - `/clinic/clinic-editor/:clinicId`
+- Trên route editor mở tab mới, layout Clinic không hiển thị sidebar để tập trung chỉnh sửa.
+
+### 6) Sidebar Clinic/Veterinarian — bổ sung ẩn/hiện
+- Thêm nút toggle để ẩn/hiện sidebar, cải thiện không gian làm việc trên màn nhỏ hoặc khi cần tập trung nội dung.
+
 ## Chuẩn hóa cấu trúc thư mục (2026-04-07, cập nhật 2026-04-09)
 
 ### Cấu trúc chuẩn hiện tại (rút gọn)

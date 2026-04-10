@@ -5,12 +5,15 @@
 		"defaultUser": "User",
 		"logoutAriaLabel": "Log out",
 		"notificationBellAriaLabel": "View clinic notifications",
+		"toggleAriaLabel": "Show or hide sidebar",
 		"menu": {
 			"appointments": "Appointments",
 			"records": "Electronic Medical Records",
 			"revenue": "Revenue",
 			"doctors": "Veterinarians",
 			"forms": "View Examination Slips",
+			"editor": "Clinic editor",
+			"portalEditor": "Clinic page editor",
 			"homeEditor": "Edit Homepage",
 			"clinicEditor": "Edit Clinic Info"
 		},
@@ -57,6 +60,9 @@
 				"systemDescription": "You have 7 appointments tomorrow. Please confirm enough on-duty vets to avoid overload."
 			}
 		}
+	},
+	"portalEditor": {
+		"subtitle": "Manage homepage content and clinic card information in a single place."
 	},
 	"appointments": {
 		"common": {

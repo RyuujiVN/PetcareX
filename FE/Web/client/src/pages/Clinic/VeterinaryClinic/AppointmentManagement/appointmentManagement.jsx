@@ -117,6 +117,19 @@ const formatDisplayDate = (dateValue) => {
 
 const getTimeValue = (time) => formatTimeHHMM(time, '')
 
+const getAppointmentStartMs = (appointmentDate, appointmentTime) => {
+	if (!appointmentDate || !appointmentTime) return null
+
+	const date = new Date(appointmentDate)
+	if (Number.isNaN(date.getTime())) return null
+
+	const [hours, minutes] = String(appointmentTime || '00:00').slice(0, 5).split(':')
+	const startDateTime = new Date(date)
+	startDateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0)
+
+	return Number.isNaN(startDateTime.getTime()) ? null : startDateTime.getTime()
+}
+
 const getGenderLabel = (value, t, missingField) => {
 	if (typeof value === 'boolean') {
 		return value ? t('appointments.common.male') : t('appointments.common.female')
@@ -487,7 +500,15 @@ export default function AppointmentManagement() {
 
 	const canClinicCancelAppointment =
 		selectedAppointment &&
-		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED
+		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED &&
+		(() => {
+			const appointmentStartMs = getAppointmentStartMs(
+				selectedAppointment.appointmentDateRaw,
+				selectedAppointment.time,
+			)
+			if (!appointmentStartMs) return false
+			return Date.now() >= appointmentStartMs
+		})()
 
 	const handleClinicCancelAppointment = () => {
 		if (!selectedAppointment) return

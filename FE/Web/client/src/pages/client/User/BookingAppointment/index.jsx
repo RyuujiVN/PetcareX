@@ -37,11 +37,12 @@ const TIME_SLOT_GROUPS = [
     key: 'afternoon',
     labelKey: 'pages.booking.timeSlots.afternoon',
     icon: MoonOutlined,
-    times: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
+    times: ['14:00', '14:30', '15:00', '15:30', '16:00', '21:00'],
   },
 ];
 
 const WORKING_SLOTS = TIME_SLOT_GROUPS.flatMap((group) => group.times);
+const BOOKING_MIN_LEAD_HOURS = 3;
 
 const formatDate = (date) => {
   const y = date.getFullYear();
@@ -51,6 +52,9 @@ const formatDate = (date) => {
 };
 
 const toDateTimeValue = (dateStr, timeStr) => new Date(`${dateStr}T${timeStr}:00`);
+
+const getLeadTimeThreshold = () =>
+  new Date(Date.now() + BOOKING_MIN_LEAD_HOURS * 60 * 60 * 1000);
 
 const getAppointmentDateLabel = (dateValue, locale = 'vi-VN') => {
   if (!dateValue) return '';
@@ -143,6 +147,17 @@ export default function BookingAppointment() {
 
     return new Set(booked);
   }, [myAppointments, selectedDate, selectedDoctor]);
+
+  const leadTimeHiddenSlots = useMemo(() => {
+    if (!selectedDate) {
+      return new Set();
+    }
+
+    const leadTimeThreshold = getLeadTimeThreshold();
+    return new Set(
+      WORKING_SLOTS.filter((slot) => toDateTimeValue(selectedDate, slot) < leadTimeThreshold),
+    );
+  }, [selectedDate]);
 
   const fetchPets = async () => {
     const data = await getMyPetsApi(getClientInstance());
@@ -250,10 +265,10 @@ export default function BookingAppointment() {
 
     const selectedDateTime = toDateTimeValue(selectedDate, selectedTime);
     const isPast = selectedDateTime < new Date();
-    if (isPast || unavailableTimes.has(selectedTime)) {
+    if (isPast || unavailableTimes.has(selectedTime) || leadTimeHiddenSlots.has(selectedTime)) {
       form.setFieldValue('selectedTime', '');
     }
-  }, [form, selectedDate, selectedTime, unavailableTimes]);
+  }, [form, leadTimeHiddenSlots, selectedDate, selectedTime, unavailableTimes]);
 
   const getWeeks = (year, month) => {
     const lastDay = new Date(year, month + 1, 0);
@@ -359,6 +374,17 @@ export default function BookingAppointment() {
     const selectedDateTime = toDateTimeValue(selectedDate, value);
     if (selectedDateTime < new Date()) {
       return Promise.reject(new Error(t('pages.booking.validation.dateInPast')));
+    }
+
+    if (selectedDateTime < getLeadTimeThreshold()) {
+      return Promise.reject(
+        new Error(
+          t('pages.booking.validation.minLeadTime', {
+            hours: BOOKING_MIN_LEAD_HOURS,
+            defaultValue: `Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng`,
+          }),
+        ),
+      );
     }
 
     if (unavailableTimes.has(value)) {
@@ -635,7 +661,15 @@ export default function BookingAppointment() {
             </section>
 
             <section className="step">
-              <h2><span className="step-number">4</span> {t('pages.booking.steps.chooseDateTime')}</h2>
+              <div className="step-heading-row">
+                <h2><span className="step-number">4</span> {t('pages.booking.steps.chooseDateTime')}</h2>
+                <div className="lead-time-note">
+                  {t('pages.booking.leadTimeNotice', {
+                    hours: BOOKING_MIN_LEAD_HOURS,
+                    defaultValue: `Lưu ý: Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng.`,
+                  })}
+                </div>
+              </div>
               <div className="date-time-selector">
                 <div className="calendar">
                   <div className="month-header" style={{color: 'var(--color-text-primary)'}}>
@@ -696,7 +730,8 @@ export default function BookingAppointment() {
                         {group.times.map((timeValue) => {
                           const inPast = toDateTimeValue(selectedDate, timeValue) < new Date();
                           const isBooked = unavailableTimes.has(timeValue);
-                          const disabled = inPast || isBooked;
+                          const isBlockedByLeadTime = leadTimeHiddenSlots.has(timeValue);
+                          const disabled = inPast || isBooked || isBlockedByLeadTime;
 
                           return (
                             <div

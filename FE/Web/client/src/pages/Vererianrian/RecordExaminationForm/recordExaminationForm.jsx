@@ -40,6 +40,7 @@ import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
 	APPOINTMENT_STATUS,
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
 	getAppointmentsApi,
 	getServerNowApi,
 	updateAppointmentStatusApi,
@@ -60,6 +61,7 @@ import {
 	getMedicinesByMedicalIdApi,
 	updateMedicalRecordApi,
 } from '../../../services/medicalService'
+import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
 import {
 	createPetApi,
 	getBreedLabel,
@@ -468,6 +470,7 @@ export default function RecordExaminationForm() {
 	const [editableMedicines, setEditableMedicines] = useState([])
 	const [serverTimeOffsetMs, setServerTimeOffsetMs] = useState(0)
 	const [serverTimeSynced, setServerTimeSynced] = useState(false)
+	const [isLockedByPayment, setIsLockedByPayment] = useState(false)
 	const [remainingEditableSeconds, setRemainingEditableSeconds] = useState(EDITABLE_DURATION_SECONDS)
 	const [isDirty, setIsDirty] = useState(false)
 	const enableFollowUpDate = Form.useWatch('enableFollowUpDate', form)
@@ -486,6 +489,7 @@ export default function RecordExaminationForm() {
 	const editableMedicalCreatedAtMs = parseDateToMs(editableMedicalRecord?.createdAt)
 	const missingServerCreatedAt = Boolean(editableMedicalId) && !editableMedicalCreatedAtMs
 	const isLockedByTime = Boolean(editableMedicalId) && Boolean(editableMedicalCreatedAtMs) && remainingEditableSeconds <= 0
+	const isReadOnlyForm = isLockedByTime || isLockedByPayment
 
 	const historyPetId = useMemo(() => {
 		return (
@@ -788,6 +792,58 @@ export default function RecordExaminationForm() {
 	}, [appointment?.pet, appointment?.petRaw, appointment?.pet?.id, appointment?.petRaw?.id, historyPetId, isWalkIn])
 
 	useEffect(() => {
+		let active = true
+
+		const hydratePaymentLock = async () => {
+			if (!editableMedicalId) {
+				if (active) setIsLockedByPayment(false)
+				return
+			}
+
+			try {
+				const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), editableMedicalId)
+				if (!active) return
+				setIsLockedByPayment(invoice?.status === INVOICE_STATUS.PAID)
+			} catch (error) {
+				if (!active) return
+				if (error?.response?.status === 404) {
+					setIsLockedByPayment(false)
+					return
+				}
+
+				setIsLockedByPayment(false)
+			}
+		}
+
+		hydratePaymentLock()
+
+		return () => {
+			active = false
+		}
+	}, [editableMedicalId])
+
+	useEffect(() => {
+		const syncPaymentLock = (event) => {
+			if (event.key !== APPOINTMENT_PAYMENT_SYNC_EVENT_KEY || !event.newValue || !appointmentId) return
+
+			try {
+				const payload = JSON.parse(event.newValue)
+				if (String(payload?.appointmentId || '') !== String(appointmentId)) return
+
+				if (payload?.paymentStatus === INVOICE_STATUS.PAID) {
+					setIsLockedByPayment(true)
+				}
+			} catch {
+			}
+		}
+
+		window.addEventListener('storage', syncPaymentLock)
+		return () => {
+			window.removeEventListener('storage', syncPaymentLock)
+		}
+	}, [appointmentId])
+
+	useEffect(() => {
 		setExpandedHistoryRecords(new Set())
 	}, [historyRecords])
 
@@ -1035,7 +1091,7 @@ export default function RecordExaminationForm() {
 	}
 
 	const handleWalkInSubmit = async (values) => {
-		if (isLockedByTime) {
+		if (isReadOnlyForm) {
 			message.warning(t('examForm.record.messages.lockedWarning'))
 			return
 		}
@@ -1251,7 +1307,7 @@ export default function RecordExaminationForm() {
 			return
 		}
 
-		if (isLockedByTime) {
+		if (isReadOnlyForm) {
 			message.warning(t('examForm.record.messages.lockedWarning'))
 			return
 		}
@@ -1425,7 +1481,7 @@ export default function RecordExaminationForm() {
 			<Form
 				form={form}
 				layout="vertical"
-				disabled={isLockedByTime}
+				disabled={isReadOnlyForm}
 				onValuesChange={handleValuesChange}
 				onFinish={onFinish}
 				className={styles.formRoot}
@@ -1474,6 +1530,16 @@ export default function RecordExaminationForm() {
 							showIcon
 							message={t('examForm.record.alerts.expiredTitle')}
 							description={t('examForm.record.alerts.expiredDesc')}
+						/>
+					) : null}
+
+					{isLockedByPayment ? (
+						<Alert
+							className={styles.editLockAlert}
+							type="error"
+							showIcon
+							message={t('examForm.record.alerts.paymentLockedTitle')}
+							description={t('examForm.record.alerts.paymentLockedDesc')}
 						/>
 					) : null}
 
@@ -1810,7 +1876,7 @@ export default function RecordExaminationForm() {
 						<Button
 							type="link"
 							icon={<PlusCircleOutlined />}
-							disabled={isLockedByTime}
+							disabled={isReadOnlyForm}
 							onClick={() => {
 								const current = form.getFieldValue('medicalOrders') || []
 								form.setFieldValue('medicalOrders', [
@@ -1858,7 +1924,7 @@ export default function RecordExaminationForm() {
 											type="text"
 											icon={<DeleteOutlined />}
 											onClick={() => remove(field.name)}
-											disabled={isLockedByTime || fields.length <= 1}
+											disabled={isReadOnlyForm || fields.length <= 1}
 										/>
 									</div>
 								))}
@@ -1874,7 +1940,7 @@ export default function RecordExaminationForm() {
 						<Button
 							type="link"
 							icon={<PlusCircleOutlined />}
-							disabled={isLockedByTime}
+							disabled={isReadOnlyForm}
 							onClick={() => {
 								const current = form.getFieldValue('medicines') || []
 								form.setFieldValue('medicines', [
@@ -1930,7 +1996,7 @@ export default function RecordExaminationForm() {
 											type="text"
 											icon={<DeleteOutlined />}
 											onClick={() => remove(field.name)}
-											disabled={isLockedByTime || fields.length <= 1}
+											disabled={isReadOnlyForm || fields.length <= 1}
 										/>
 									</div>
 								))}
@@ -1963,7 +2029,7 @@ export default function RecordExaminationForm() {
 							<Button className={styles.cancelBtn} onClick={handleCancel}>
 								{t('examForm.record.actions.cancel')}
 							</Button>
-							{!isLockedByTime ? (
+							{!isReadOnlyForm ? (
 								<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
 									{t('examForm.record.actions.save')}
 								</Button>

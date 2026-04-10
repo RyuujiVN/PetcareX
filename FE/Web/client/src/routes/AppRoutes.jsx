@@ -27,8 +27,7 @@ import ProfileUser from '../pages/client/User/ProfileUser'
 import SuccessBooking from '../pages/client/User/SuccessBooking'
 import AddNewVererianrian from '../pages/Clinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
 import AppointmentManagement from '../pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
-import ClinicSelectionEditor from '../pages/Clinic/VeterinaryClinic/ClinicSelectionEditor'
-import HomePageClinicEditor from '../pages/Clinic/VeterinaryClinic/HomePageClinicEditor'
+import ClinicPortalEditor from '../pages/Clinic/VeterinaryClinic/ClinicPortalEditor'
 import InformationVererianrian from '../pages/Clinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
 import ListPetExaminationRecords from '../pages/Clinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
 import AdminListPetMedicalRecords from '../pages/Clinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
@@ -71,8 +70,9 @@ export default function AppRoutes({ location }) {
         <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
         <Route path="/clinic/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
-        <Route path="/clinic/home-editor/:clinicId" element={<HomePageClinicEditor />} />
-        <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicSelectionEditor />} />
+        <Route path="/clinic/editor/:clinicId" element={<ClinicPortalEditor />} />
+        <Route path="/clinic/home-editor/:clinicId" element={<ClinicPortalEditor />} />
+        <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicPortalEditor />} />
       </Route>
 
       <Route path="/veterinarian/login" element={<Navigate to="/login" replace />} />

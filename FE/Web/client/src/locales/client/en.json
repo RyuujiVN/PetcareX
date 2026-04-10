@@ -637,8 +637,10 @@
         "dateInPast": "Cannot book in the past",
         "timeRequired": "Please choose an appointment time",
         "selectDateFirst": "Please choose a date first",
-        "timeUnavailable": "This time slot is unavailable, please choose another"
+        "timeUnavailable": "This time slot is unavailable, please choose another",
+        "minLeadTime": "You must book at least {{hours}} hours in advance"
       },
+      "noSlotsByLeadTime": "No valid time slots (must book at least {{hours}} hours in advance)",
       "notSelectedDoctor": "No doctor selected",
       "noSpecialty": "No specialty available",
       "calendar": {
@@ -657,6 +659,7 @@
         "morning": "Morning",
         "afternoon": "Afternoon"
       },
+      "leadTimeNotice": "Note: You must book at least {{hours}} hours in advance.",
       "summary": {
         "title": "Appointment summary",
         "pet": "PET",

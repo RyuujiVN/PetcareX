@@ -1,5 +1,5 @@
 import { EyeInvisibleOutlined, EyeOutlined, LockOutlined, LogoutOutlined, UserOutlined } from "@ant-design/icons";
-import { Avatar, Badge, Button, Empty, Form, List, Popover, Spin, Typography, message } from "antd";
+import { Avatar, Badge, Button, Empty, Form, List, Popover, Spin, Typography, message, notification } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaPaw } from "react-icons/fa";
@@ -15,6 +15,7 @@ import {
     mapBeNotification,
     markAllNotificationsAsReadApi,
     markNotificationAsReadApi,
+    resolveNotificationHref,
 } from "../../../services/notificationService";
 import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
@@ -98,6 +99,7 @@ function Header() {
     const [isAccountDropdownOpen, setIsAccountDropdownOpen] = useState(false);
     const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+    const [notificationApi, notificationContextHolder] = notification.useNotification();
     const [notificationLoading, setNotificationLoading] = useState(false);
     const [notificationItems, setNotificationItems] = useState([]);
     const [, setTimeTick] = useState(0);
@@ -120,6 +122,7 @@ function Header() {
     const [passwordVisible, setPasswordVisible] = useState(INITIAL_PASSWORD_VISIBILITY);
     const accountMenuRef = useRef(null);
     const notificationRequestInFlightRef = useRef(false);
+    const shownToastIdsRef = useRef(new Set());
     const navigate = useNavigate();
     const { login, logout, token, userProfile } = useAuth();
     const currentUserId = String(userProfile?.id || "");
@@ -331,6 +334,18 @@ function Header() {
             const mapped = mapBeNotification(data);
             if (!mapped) return;
 
+            if (!shownToastIdsRef.current.has(mapped.id)) {
+                shownToastIdsRef.current.add(mapped.id);
+                notificationApi.open({
+                    key: `client-live-notification-${mapped.id}`,
+                    message: mapped.title || t("header.notifications.title"),
+                    description: mapped.description || "",
+                    placement: "bottomRight",
+                    duration: 5,
+                    onClick: () => handleClickNotificationItem(mapped),
+                });
+            }
+
             setNotificationItems((prev) => {
                 if (prev.some((n) => n.id === mapped.id)) {
                     return prev.map((item) => (item.id === mapped.id ? { ...item, ...mapped } : item));
@@ -344,18 +359,19 @@ function Header() {
             socket.removeAllListeners();
             socket.disconnect();
         };
-    }, [token, currentUserId]);
+    }, [currentUserId, notificationApi, t, token]);
 
-    const handleClickNotificationItem = (item) => {
+    const handleClickNotificationItem = useCallback((item) => {
         if (!item?.id) return;
 
         void markNotificationAsRead(item.id);
         setIsNotificationOpen(false);
 
-        if (item.href) {
-            navigate(item.href);
+        const targetHref = resolveNotificationHref(item, "client");
+        if (targetHref) {
+            navigate(targetHref);
         }
-    };
+    }, [markNotificationAsRead, navigate]);
 
     const handleMarkAllNotificationsAsRead = () => {
         void markAllNotificationItemsAsRead();
@@ -567,6 +583,7 @@ function Header() {
 
     return (
         <>
+        {notificationContextHolder}
         <header className="petcare-header">
             <div className="header-container">
                 <Link to="/" className="logo-section">
