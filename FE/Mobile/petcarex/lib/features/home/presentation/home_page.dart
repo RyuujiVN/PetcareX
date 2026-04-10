@@ -18,7 +18,8 @@ import '../../appointment/data/appointment_model.dart';
 import '../../appointment/presentation/provider/appointment_provider.dart';
 import '../../chat/presentation/chat_page.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
-import '../../notification/presentation/notification.dart';
+import '../../notification/presentation/provider/notification_provider.dart';
+import '../../notification/presentation/screens/notification_screen.dart';
 import '../../pet/data/models/pet_models.dart';
 import '../../pet/presentation/add_pet_page.dart';
 import '../../pet/presentation/edit_pet_page.dart';
@@ -41,7 +42,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final CameraService _cameraService = CameraService();
-  final bool _hasUnreadNotifications = true;
   Timer? _chatbotHintRevealTimer;
   Timer? _chatbotHintHideTimer;
   bool _showChatbotHint = false;
@@ -339,7 +339,7 @@ class _HomePageState extends State<HomePage> {
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            const AppointmentNotificationPage(),
+                            const NotificationScreen(),
                       ),
                     );
                   },
@@ -348,19 +348,39 @@ class _HomePageState extends State<HomePage> {
                     color: AppColors.text,
                   ),
                 ),
-                if (_hasUnreadNotifications)
-                  Positioned(
-                    right: 12,
-                    top: 12,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: AppColors.error,
-                        shape: BoxShape.circle,
+                Consumer<NotificationProvider>(
+                  builder: (context, notifProvider, _) {
+                    if (notifProvider.totalUnread <= 0) {
+                      return const SizedBox.shrink();
+                    }
+                    return Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: AppColors.error,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          notifProvider.totalUnread > 99
+                              ? '99+'
+                              : '${notifProvider.totalUnread}',
+                          style: const TextStyle(
+                            color: AppColors.onPrimary,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
+                ),
               ],
             ),
           ],

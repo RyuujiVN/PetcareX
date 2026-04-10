@@ -37,10 +37,12 @@ class LanguageProvider extends ChangeNotifier {
 
     if (_locale != locale) {
       _locale = locale;
-      notifyListeners();
     }
 
     await prefs.setString(_langKey, locale.languageCode);
     await prefs.setBool(_userSelectedLangKey, true);
+
+    // Notify after persistence to avoid rebuilds while overlays/dialogs are disposing.
+    notifyListeners();
   }
 }

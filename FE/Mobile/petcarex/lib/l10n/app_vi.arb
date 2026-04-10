@@ -362,6 +362,121 @@
   "petBreedBirdParrot": "Vẹt",
   "petBreedBirdBudgerigar": "Yến phụng",
   "petBreedRabbitDutch": "Thỏ Dutch",
-  "petBreedRabbitLionhead": "Thỏ Lionhead"
+  "petBreedRabbitLionhead": "Thỏ Lionhead",
+
+  "notifTitle": "Thông báo",
+  "notifMarkAllRead": "Đọc tất cả",
+  "notifFilterAll": "Tất cả",
+  "notifFilterUnread": "Chưa đọc",
+  "notifEmpty": "Chưa có thông báo nào",
+
+  "notifAppointmentBooked": "Lịch hẹn mới",
+  "notifAppointmentCancelled": "Lịch hẹn đã hủy",
+  "notifAppointmentStatusUpdated": "Cập nhật lịch hẹn",
+  "notifAppointmentReminder": "Nhắc nhở lịch hẹn",
+  "notifAiDiagnosis": "Chẩn đoán AI sẵn sàng",
+  "notifFollowUpReminder": "Nhắc nhở tái khám",
+  "notifCommentReply": "Bình luận mới",
+  "notifGeneral": "Thông báo",
+
+  "notifAppointmentBookedDesc": "{userName} đã đặt lịch hẹn ngày {date} lúc {time}",
+  "@notifAppointmentBookedDesc": {
+    "placeholders": {
+      "userName": {"type": "String"},
+      "date": {"type": "String"},
+      "time": {"type": "String"}
+    }
+  },
+  "notifAppointmentCancelledDesc": "Lịch hẹn ngày {date} lúc {time} đã bị hủy",
+  "@notifAppointmentCancelledDesc": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "time": {"type": "String"}
+    }
+  },
+  "notifAppointmentCancelledByClinicDesc": "Phòng khám {clinicName} đã hủy lịch hẹn của bạn",
+  "@notifAppointmentCancelledByClinicDesc": {
+    "placeholders": {
+      "clinicName": {"type": "String"}
+    }
+  },
+  "notifAppointmentStatusUpdatedDesc": "{userName} đã cập nhật trạng thái lịch hẹn",
+  "@notifAppointmentStatusUpdatedDesc": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "notifAppointmentReminderDesc": "Bạn có lịch hẹn vào ngày {date} lúc {time}",
+  "@notifAppointmentReminderDesc": {
+    "placeholders": {
+      "date": {"type": "String"},
+      "time": {"type": "String"}
+    }
+  },
+  "notifAiDiagnosisDesc": "Kết quả chẩn đoán AI cho {petName} đã sẵn sàng",
+  "@notifAiDiagnosisDesc": {
+    "placeholders": {
+      "petName": {"type": "String"}
+    }
+  },
+  "notifFollowUpReminderDesc": "Nhắc nhở tái khám vào ngày {date}",
+  "@notifFollowUpReminderDesc": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "notifCommentReplyDesc": "Có người đã trả lời bình luận của bạn",
+
+  "notifTimeJustNow": "Vừa xong",
+  "notifTimeMinutesAgo": "{minutes} phút trước",
+  "@notifTimeMinutesAgo": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "notifTimeHoursAgo": "{hours} giờ trước",
+  "@notifTimeHoursAgo": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "notifTimeDaysAgo": "{days} ngày trước",
+  "@notifTimeDaysAgo": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "notifTimeLongAgo": "Lâu rồi",
+
+  "selectLanguageTitle": "Chọn ngôn ngữ",
+  "languageVietnamese": "Tiếng Việt",
+  "languageEnglish": "English",
+
+  "chatAssistantTitle": "Trợ lý AI PetCar",
+  "chatNewConversation": "Cuộc trò chuyện mới",
+  "chatInputHint": "Nhập câu hỏi của bạn về sức khỏe thú cưng...",
+  "chatHistoryEmptyOrLoadFailed": "Chưa có lịch sử trò chuyện hoặc chưa tải được",
+  "chatMenuRename": "Đổi tên",
+  "chatMenuDelete": "Xóa",
+  "chatRenameDialogTitle": "Đổi tên cuộc trò chuyện",
+  "chatRenameDisplayNameLabel": "Tên hiển thị",
+  "chatRenameNewNameHint": "Nhập tên mới",
+  "chatSave": "Lưu",
+  "chatRenamedSuccess": "Đã đổi tên",
+  "chatDeleteDialogTitle": "Xóa cuộc trò chuyện?",
+  "chatDeleteDialogContent": "Cuộc trò chuyện \"{title}\" sẽ bị xóa vĩnh viễn.",
+  "@chatDeleteDialogContent": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "chatDeletedSuccess": "Đã xóa cuộc trò chuyện",
+  "chatNoMessages": "Không có tin nhắn",
+  "chatConversationDefault": "Cuộc trò chuyện",
+  "chatStatusSending": "Đang gửi",
+  "chatStatusSent": "Đã gửi",
+  "chatStatusError": "Lỗi"
+  ,
+  "language": "Ngôn ngữ"
 }
 
