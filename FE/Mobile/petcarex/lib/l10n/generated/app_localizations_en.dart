@@ -1064,4 +1064,76 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifTimeLongAgo => 'Long ago';
+
+  @override
+  String get selectLanguageTitle => 'Select language';
+
+  @override
+  String get languageVietnamese => 'Vietnamese';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get chatAssistantTitle => 'PetCar AI Assistant';
+
+  @override
+  String get chatNewConversation => 'New conversation';
+
+  @override
+  String get chatInputHint => 'Ask about your pet\'s health...';
+
+  @override
+  String get chatHistoryEmptyOrLoadFailed =>
+      'No chat history or failed to load';
+
+  @override
+  String get chatMenuRename => 'Rename';
+
+  @override
+  String get chatMenuDelete => 'Delete';
+
+  @override
+  String get chatRenameDialogTitle => 'Rename conversation';
+
+  @override
+  String get chatRenameDisplayNameLabel => 'Display name';
+
+  @override
+  String get chatRenameNewNameHint => 'Enter a new name';
+
+  @override
+  String get chatSave => 'Save';
+
+  @override
+  String get chatRenamedSuccess => 'Renamed';
+
+  @override
+  String get chatDeleteDialogTitle => 'Delete conversation?';
+
+  @override
+  String chatDeleteDialogContent(String title) {
+    return 'The conversation \"$title\" will be deleted permanently.';
+  }
+
+  @override
+  String get chatDeletedSuccess => 'Conversation deleted';
+
+  @override
+  String get chatNoMessages => 'No messages';
+
+  @override
+  String get chatConversationDefault => 'Conversation';
+
+  @override
+  String get chatStatusSending => 'Sending';
+
+  @override
+  String get chatStatusSent => 'Sent';
+
+  @override
+  String get chatStatusError => 'Error';
+
+  @override
+  String get language => 'Language';
 }

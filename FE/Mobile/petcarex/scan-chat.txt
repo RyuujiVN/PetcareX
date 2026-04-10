@@ -1,0 +1,486 @@
+﻿C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\constants\app_constants.dart:24: static const String END_POINT_ROOM = '${AppConfig.apiPrefix}/room';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_client.dart:79: Future<http.Response> delete(String endpoint) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_client.dart:82: AppLogger.logRequest('DELETE', url.toString(), headers);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_client.dart:85: .delete(url, headers: headers)
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_helper.dart:102: static String roomMessagesEndpoint(String roomId) =>
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_helper.dart:103: '${AppConstants.END_POINT_ROOM}/$roomId/messages';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_helper.dart:189: static String chatRoomsEndpoint({
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_helper.dart:193: AppConstants.END_POINT_ROOM,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_helper.dart:201: String roomId, {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\network\api_helper.dart:205: roomMessagesEndpoint(roomId),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\core\widgets\password_text_field.dart:72: onPressed: () => setState(() => _isObscure = !_isObscure),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:26: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:30: return AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:38: onPressed: () => Navigator.pop(dialogContext),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:47: Navigator.pop(dialogContext);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:81: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:83: builder: (dialogContext) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:94: if (dialogContext.mounted) Navigator.pop(dialogContext);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:106: if (dialogContext.mounted) Navigator.pop(dialogContext);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:120: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:124: return AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\account_page.dart:155: onPressed: () => Navigator.pop(dialogContext),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:38: void _showDeleteConfirmDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:43: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:46: return AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:51: l10n.confirmDelete,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:54: content: Text(l10n.deletePetMessage(pet.name)),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:57: onPressed: () => Navigator.pop(dialogContext),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:66: Navigator.pop(dialogContext);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:68: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:77: final success = await provider.deletePet(pet.id);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:80: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:83: AppNotifier.showSuccess(context, l10n.petDeleteSuccess);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:100: l10n.delete,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:135: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:149: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:158: if (mounted) Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:298: onPressed: () => _showDeleteConfirmDialog(context, pet, l10n),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:300: Icons.delete_outline,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:303: tooltip: l10n.delete,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\my_pets_page.dart:334: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:57: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:80: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:89: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:118: setState(() => _isLoading = true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:130: setState(() => _isLoading = false);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:133: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:166: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\account\presentation\profile_page.dart:330: onPressed: _isLoading ? null : () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\appointment\presentation\appointment_page.dart:628: final shouldCancel = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\appointment\presentation\appointment_page.dart:630: builder: (context) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\appointment\presentation\appointment_page.dart:636: onPressed: () => Navigator.pop(context, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\appointment\presentation\appointment_page.dart:643: onPressed: () => Navigator.pop(context, true),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\providers\auth_provider.dart:57: await _storage.delete(key: 'rememberMe');
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\providers\auth_provider.dart:253: await _storage.delete(key: 'accessToken');
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\providers\auth_provider.dart:254: await _storage.delete(key: 'rememberMe');
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\change_password_page.dart:48: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\change_password_page.dart:83: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\forgot_password_page.dart:216: onTap: isLoading ? null : () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:47: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:79: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:85: setState(() => _emailError = l10n.enterEmail);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:90: setState(() => _passwordError = l10n.enterPassword);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:107: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:133: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:285: setState(() => _emailError = null);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:355: setState(() => _passwordError = null);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\login_page.dart:384: onChanged: (val) => setState(() => _rememberMe = val ?? false)
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\register_page.dart:86: setState(() => _autoValidateMode = AutovalidateMode.onUserInteraction);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\register_page.dart:94: setState(() => _isLoading = true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\register_page.dart:108: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\register_page.dart:131: if (mounted) setState(() => _isLoading = false);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\register_page.dart:370: onChanged: (val) => setState(() => _agreeToTerms = val ?? false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\register_page.dart:449: onTap: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:50: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:62: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:67: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:97: setState(() => _isResending = true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:102: setState(() => _isResending = false);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:122: setState(() => _autoValidateMode = AutovalidateMode.onUserInteraction);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:140: Navigator.of(context).popUntil((route) => route.isFirst);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\auth\presentation\reset_password_page.dart:394: onTap: isLoading ? null : () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\data\models\booking_models.dart:17: final bool deleted;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\data\models\booking_models.dart:27: required this.deleted,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\data\models\booking_models.dart:39: deleted: json['deleted'] ?? false,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\presentation\widget\step_doctor_selector.dart:83: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\presentation\booking_page.dart:91: setState(() => _currentStep++);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\presentation\booking_page.dart:95: setState(() => _currentStep = 6);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\presentation\booking_page.dart:122: setState(() => _currentStep--);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\presentation\booking_page.dart:125: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\presentation\booking_page.dart:178: setState(() => _currentStep = index);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\booking\presentation\booking_page.dart:275: setState(() => _currentStep = 0);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:3: class ChatRoom {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:11: const ChatRoom({
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:20: factory ChatRoom.fromJson(Map<String, dynamic> json) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:21: return ChatRoom(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:31: ChatRoom copyWith({
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:39: return ChatRoom(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:52: final String roomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:61: required this.roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:73: String? roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:82: roomId: roomId ?? this.roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\models\chat_models.dart:94: roomId: (json['roomId'] ?? '').toString(),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:10: Future<ChatRoom?> createRoom({String? name}) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:12: '/api/room',
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:20: return ChatRoom.fromJson(raw);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:25: Future<PagedResult<ChatRoom>> getRooms({
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:29: final endpoint = ApiHelper.chatRoomsEndpoint(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:42: final List<ChatRoom> rooms;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:49: rooms = raw
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:51: .map((item) => ChatRoom.fromJson(Map<String, dynamic>.from(item)))
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:54: final dataRaw = raw['data'] ?? raw['items'] ?? raw['rooms'];
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:56: rooms = dataRaw is List
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:59: .map((item) => ChatRoom.fromJson(Map<String, dynamic>.from(item)))
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:61: : <ChatRoom>[];
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:65: meta = CursorPaginationMeta(limit: limit, hasMore: rooms.length >= limit);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:74: return PagedResult(data: rooms, meta: meta);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:78: String roomId, {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:83: roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:135: /// PATCH `/api/room/{id}` — Sửa tên đoạn chat (UpdateRoomDTO).
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:137: /// `(true, room)` = parse được body; `(true, null)` = 200 nhưng body trống/không parse (cập nhật tên cục bộ).
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:138: Future<(bool, ChatRoom?)> updateRoomName(String roomId, String name) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:140: if (trimmed.isEmpty || roomId.isEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:144: '/api/room/$roomId',
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:157: return (true, ChatRoom.fromJson(raw));
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:163: /// DELETE `/api/room/{id}` — Xoá đoạn chat.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:164: Future<bool> deleteRoom(String roomId) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:165: if (roomId.isEmpty) return false;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_repository.dart:166: final response = await _apiClient.delete('/api/room/$roomId');
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:15: void Function(ChatRoom room)? onNewRoom;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:55: ..on('serverResponseNewRoom', (data) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:57: onNewRoom?.call(ChatRoom.fromJson(Map<String, dynamic>.from(data)));
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:173: void joinRoom(String roomId) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:174: _socket?.emit('joinRoom', {'roomId': roomId});
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:177: void leaveRoom(String roomId) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:178: _socket?.emit('leaveRoom', {'roomId': roomId});
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:183: String? roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:188: if (roomId != null && roomId.trim().isNotEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:189: _socket?.emit('joinRoom', {'roomId': roomId});
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\data\chat_socket_service.dart:191: final payload = {'roomId': roomId, 'content': content, 'sendBy': 'USER'};
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:11: List<ChatRoom> _rooms = [];
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:13: String? _currentRoomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:15: bool _isLoadingRooms = false;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:25: List<ChatRoom> get rooms => _rooms;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:27: String? get currentRoomId => _currentRoomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:29: bool get isLoadingRooms => _isLoadingRooms;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:41: if (_currentRoomId != null && _currentRoomId!.isNotEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:42: _socketService.joinRoom(_currentRoomId!);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:56: _socketService.onNewRoom = (room) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:57: _currentRoomId ??= room.id;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:58: _upsertRoom(room);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:59: if (_currentRoomId == room.id) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:60: _socketService.joinRoom(room.id);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:81: _upsertRoomWithMessage(serverAiMessage);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:88: await fetchRooms();
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:95: Future<void> fetchRooms() async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:96: _isLoadingRooms = true;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:100: final result = await _repository.getRooms(limit: 20);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:101: _rooms = result.data;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:102: _rooms.sort(_roomSortComparer);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:103: if (_currentRoomId == null && _rooms.isNotEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:104: _currentRoomId = _rooms.first.id;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:105: await fetchMessages(roomId: _currentRoomId, refresh: true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:106: _socketService.joinRoom(_currentRoomId!);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:111: _isLoadingRooms = false;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:116: Future<void> selectRoom(String roomId) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:117: if (roomId.isEmpty) return;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:118: if (_currentRoomId == roomId && _messages.isNotEmpty) return;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:120: if (_currentRoomId != null && _currentRoomId != roomId) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:121: _socketService.leaveRoom(_currentRoomId!);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:123: _currentRoomId = roomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:124: _socketService.joinRoom(roomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:125: await fetchMessages(roomId: roomId, refresh: true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:129: Future<bool> renameRoom(String roomId, String newName) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:131: if (roomId.isEmpty || trimmed.isEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:138: final (ok, updated) = await _repository.updateRoomName(roomId, trimmed);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:144: final index = _rooms.indexWhere((r) => r.id == roomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:148: _rooms[index] = _rooms[index].copyWith(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:153: _rooms[index] = _rooms[index].copyWith(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:158: _rooms.sort(_roomSortComparer);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:168: /// Xoá đoạn chat qua API; nếu đang mở room đó thì chuyển room khác hoặc đóng.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:169: Future<bool> deleteRoom(String roomId) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:170: if (roomId.isEmpty) return false;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:173: final ok = await _repository.deleteRoom(roomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:180: _rooms = _rooms.where((r) => r.id != roomId).toList();
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:182: if (_currentRoomId == roomId) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:183: _socketService.leaveRoom(roomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:186: if (_rooms.isNotEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:187: _currentRoomId = _rooms.first.id;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:188: _socketService.joinRoom(_currentRoomId!);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:189: await fetchMessages(roomId: _currentRoomId, refresh: true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:191: _currentRoomId = null;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:208: String? roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:211: final targetRoomId = roomId ?? _currentRoomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:212: if (targetRoomId == null || targetRoomId.isEmpty) return;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:224: final result = await _repository.getMessages(targetRoomId, limit: 20);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:239: final roomId = _currentRoomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:240: if (roomId == null ||
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:241: roomId.isEmpty ||
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:251: roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:275: if (_currentRoomId == null || _currentRoomId!.isEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:276: final createdRoom = await _repository.createRoom(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:279: if (createdRoom == null) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:284: _currentRoomId = createdRoom.id;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:285: _upsertRoom(createdRoom);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:286: _socketService.joinRoom(createdRoom.id);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:291: roomId: _currentRoomId!,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:303: _upsertRoomWithMessage(localMessage);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:316: _socketService.sendMessage(content: trimmed, roomId: _currentRoomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:345: content: message.content, roomId: _currentRoomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:369: if (_currentRoomId != null) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:370: _socketService.leaveRoom(_currentRoomId!);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:372: _currentRoomId = null;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:403: _currentRoomId =
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:404: serverMessage.roomId.isNotEmpty ? serverMessage.roomId : _currentRoomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:405: _upsertRoomWithMessage(serverMessage);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:429: roomId: _currentRoomId ?? '',
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:517: void _upsertRoomWithMessage(ChatMessage message) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:518: final roomId = message.roomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:519: if (roomId.isEmpty) return;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:520: final index = _rooms.indexWhere((r) => r.id == roomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:522: _rooms = [
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:523: ChatRoom(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:524: id: roomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:530: ..._rooms,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:533: final room = _rooms[index];
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:534: _rooms[index] = ChatRoom(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:535: id: room.id,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:536: name: room.name,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:537: userId: room.userId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:538: createdAt: room.createdAt,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:543: _rooms.sort(_roomSortComparer);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:546: void _upsertRoom(ChatRoom room) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:547: final index = _rooms.indexWhere((r) => r.id == room.id);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:549: _rooms = [room, ..._rooms];
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:551: _rooms[index] = room;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:553: _rooms.sort(_roomSortComparer);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\provider\chat_provider.dart:556: int _roomSortComparer(ChatRoom a, ChatRoom b) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:78: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:132: final currentRoomIndex = chatProvider.rooms.indexWhere(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:133: (room) => room.id == chatProvider.currentRoomId,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:135: final ChatRoom? currentRoom = currentRoomIndex >= 0
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:136: ? chatProvider.rooms[currentRoomIndex]
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:138: final roomTitle = currentRoom?.name.trim().isNotEmpty == true
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:139: ? currentRoom!.name
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:154: onTap: _showRoomHistorySheet,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:159: roomTitle,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:418: Future<void> _showRoomHistorySheet() async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:421: await provider.fetchRooms();
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:423: if (provider.rooms.isEmpty) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:430: final selectedRoomId = await showModalBottomSheet<String>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:436: child: provider.rooms.isEmpty
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:448: itemCount: provider.rooms.length,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:452: final room = provider.rooms[index];
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:453: final isSelected = room.id == provider.currentRoomId;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:454: final subtitle = room.lastMessage?.trim().isNotEmpty == true
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:455: ? room.lastMessage!
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:459: key: ValueKey<String>('room_tile_${room.id}'),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:460: onTap: () => Navigator.of(sheetContext).pop(room.id),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:467: room.name.trim().isNotEmpty
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:468: ? room.name
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:490: key: ValueKey<String>('room_menu_${room.id}'),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:498: if (value == 'rename') {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:499: await _showRenameRoomDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:500: sheetContext, room);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:501: } else if (value == 'delete') {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:502: await _confirmDeleteRoom(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:503: sheetContext, room);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:504: if (provider.rooms.isEmpty &&
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:506: Navigator.of(sheetContext).pop();
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:513: value: 'rename',
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:514: child: Text(l10n.chatMenuRename),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:517: value: 'delete',
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:518: child: Text(l10n.chatMenuDelete),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:531: if (selectedRoomId != null && selectedRoomId != provider.currentRoomId) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:532: await provider.selectRoom(selectedRoomId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:538: Future<void> _showRenameRoomDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:540: ChatRoom room,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:543: final controller = TextEditingController(text: room.name);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:544: final newName = await showDialog<String>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:547: builder: (ctx) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:548: title: Text(l10n.chatRenameDialogTitle),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:552: labelText: l10n.chatRenameDisplayNameLabel,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:553: hintText: l10n.chatRenameNewNameHint,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:558: onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:562: onPressed: () => Navigator.pop(ctx),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:566: onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:576: if (newName == room.name.trim()) return;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:579: final ok = await chat.renameRoom(room.id, newName);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:583: SnackBar(content: Text(l10n.chatRenamedSuccess)),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:591: Future<void> _confirmDeleteRoom(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:593: ChatRoom room,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:597: room.name.trim().isNotEmpty ? room.name : l10n.chatConversationDefault;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:598: final confirm = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:601: builder: (ctx) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:602: title: Text(l10n.chatDeleteDialogTitle),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:603: content: Text(l10n.chatDeleteDialogContent(title)),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:606: onPressed: () => Navigator.pop(ctx, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:610: onPressed: () => Navigator.pop(ctx, true),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:612: l10n.delete,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:623: final ok = await chat.deleteRoom(room.id);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\chat\presentation\chat_page.dart:627: SnackBar(content: Text(l10n.chatDeletedSuccess)),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\data\community_repository.dart:88: final response = await _apiClient.delete(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\data\community_repository.dart:113: Future<bool> deletePost(String postId) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\data\community_repository.dart:114: final response = await _apiClient.delete(ApiHelper.postByIdEndpoint(postId));
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\data\community_repository.dart:215: Future<bool> deleteComment(String id) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\data\community_repository.dart:216: final response = await _apiClient.delete(ApiHelper.commentByIdEndpoint(id));
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\provider\community_provider.dart:349: Future<bool> deleteComment({
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\provider\community_provider.dart:356: final success = await _repository.deleteComment(commentId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\provider\community_provider.dart:427: Future<bool> deletePost(String postId) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\provider\community_provider.dart:431: final success = await _repository.deletePost(postId);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\widgets\image_viewer.dart:60: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\widgets\image_viewer.dart:93: setState(() => _currentIndex = index);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:454: final confirmed = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:461: return AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:644: onPressed: () => Navigator.pop(dialogContext, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:674: Navigator.pop(dialogContext, true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:713: Future<void> _showDeleteCommentConfirm({
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:720: final confirmed = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:722: builder: (dialogContext) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:723: title: Text(l10n.confirmDelete),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:724: content: Text(l10n.deletePostConfirm),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:727: onPressed: () => Navigator.pop(dialogContext, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:731: onPressed: () => Navigator.pop(dialogContext, true),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:732: child: Text(l10n.delete),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:740: final success = await provider.deleteComment(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:766: final updated = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:771: return AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:960: onPressed: () => Navigator.pop(dialogContext, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:965: Navigator.pop(dialogContext, true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1015: Future<void> _showDeletePostConfirm(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1020: final confirmed = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1023: return AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1025: l10n.confirmDelete,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1028: content: Text(l10n.deletePostConfirm),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1031: onPressed: () => Navigator.pop(adapterContext, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1035: onPressed: () => Navigator.pop(adapterContext, true),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1036: child: Text(l10n.delete),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1044: final success = await provider.deletePost(post.id);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1047: AppNotifier.showSuccess(context, l10n.deletePostSuccess);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1421: } else if (value == 'delete') {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1422: _showDeleteCommentConfirm(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1437: value: 'delete',
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1438: child: Text(l10n.delete),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1831: } else if (value == 'delete') {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1832: _showDeletePostConfirm(post, provider, l10n);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\community_page.dart:1837: PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:40: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:51: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:79: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:87: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:93: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:137: setState(() => _isLoading = true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:147: setState(() => _isLoading = false);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:149: Navigator.pop(context, true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:162: setState(() => _isLoading = false);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:192: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\community\presentation\create_post_page.dart:262: onChanged: (val) => setState(() => _selectedTopicId = val),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:83: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:90: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:96: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:115: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:128: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:130: builder: (context) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:135: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:503: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:519: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:530: if (mounted) Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:1167: final shouldCancel = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:1169: builder: (dialogContext) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:1175: onPressed: () => Navigator.pop(dialogContext, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:1182: onPressed: () => Navigator.pop(dialogContext, true),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\home\presentation\home_page.dart:1391: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\main_navigation\presentation\main_navigation_wrapper.dart:46: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\notification\presentation\screens\notification_screen.dart:58: Navigator.pop(context); // pop notification screen
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\notification\presentation\screens\notification_screen.dart:62: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\notification\presentation\screens\notification_screen.dart:66: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\notification\presentation\screens\notification_screen.dart:70: Navigator.pop(context);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\notification\presentation\screens\notification_screen.dart:89: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\data\pet_repository.dart:141: Future<bool> deletePet(String id) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\data\pet_repository.dart:142: final response = await _apiClient.delete(ApiHelper.petByIdEndpoint(id));
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\provider\pet_provider.dart:146: Future<bool> deletePet(String id) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\provider\pet_provider.dart:152: final success = await _repository.deletePet(id);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:730: Future<bool> showDeletePetDialog(BuildContext context, String petName) async {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:732: final result = await showDialog<bool>(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:734: builder: (context) => AlertDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:737: l10n.confirmDelete,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:740: content: Text(l10n.deletePetMessage(petName)),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:743: onPressed: () => Navigator.pop(context, false),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:750: onPressed: () => Navigator.pop(context, true),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\widgets\pet_form_fields.dart:753: l10n.delete,
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:87: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:97: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:105: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:163: Navigator.pop(context, true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:182: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:245: setState(() {});
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:355: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:365: onBreedChanged: (value) => setState(() => _selectedBreedId = value),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\add_pet_page.dart:373: onChanged: (value) => setState(() => _selectedGender = value),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:122: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:132: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:138: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:143: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:203: Navigator.pop(context, true);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:212: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:223: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:249: showDialog(
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:277: onTap: () => Navigator.pop(dialogContext),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:296: onPressed: () => Navigator.pop(dialogContext),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:325: onPressed: () => Navigator.pop(context),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:413: setState(() {});
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:552: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:562: onBreedChanged: (value) => setState(() => _selectedBreedId = value),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\edit_pet_page.dart:570: onChanged: (value) => setState(() => _selectedGender = value),
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:45: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:54: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:69: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:77: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:85: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:98: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:105: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:110: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\features\pet\presentation\pet_medical_records_page.dart:393: setState(() {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:893: /// No description provided for @petDeleteSuccess.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:897: String get petDeleteSuccess;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1199: /// No description provided for @deletePostConfirm.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1203: String get deletePostConfirm;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1205: /// No description provided for @deletePostSuccess.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1209: String get deletePostSuccess;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1223: /// No description provided for @delete.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1227: String get delete;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1229: /// No description provided for @confirmDelete.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1233: String get confirmDelete;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1235: /// No description provided for @deletePetMessage.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:1239: String deletePetMessage(String name);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2063: /// No description provided for @chatMenuRename.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2067: String get chatMenuRename;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2069: /// No description provided for @chatMenuDelete.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2073: String get chatMenuDelete;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2075: /// No description provided for @chatRenameDialogTitle.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2079: String get chatRenameDialogTitle;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2081: /// No description provided for @chatRenameDisplayNameLabel.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2085: String get chatRenameDisplayNameLabel;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2087: /// No description provided for @chatRenameNewNameHint.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2091: String get chatRenameNewNameHint;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2099: /// No description provided for @chatRenamedSuccess.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2103: String get chatRenamedSuccess;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2105: /// No description provided for @chatDeleteDialogTitle.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2109: String get chatDeleteDialogTitle;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2111: /// No description provided for @chatDeleteDialogContent.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2115: String chatDeleteDialogContent(String title);
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2117: /// No description provided for @chatDeletedSuccess.
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations.dart:2121: String get chatDeletedSuccess;
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:415: String get petDeleteSuccess => 'Pet deleted successfully!';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:574: String get deletePostConfirm => 'Are you sure you want to delete this post?';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:577: String get deletePostSuccess => 'Post deleted successfully';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:586: String get delete => 'Delete';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:589: String get confirmDelete => 'Confirm Delete';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:592: String deletePetMessage(String name) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:593: return 'Are you sure you want to delete pet \"$name\"?';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1091: String get chatMenuRename => 'Rename';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1094: String get chatMenuDelete => 'Delete';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1097: String get chatRenameDialogTitle => 'Rename conversation';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1100: String get chatRenameDisplayNameLabel => 'Display name';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1103: String get chatRenameNewNameHint => 'Enter a new name';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1109: String get chatRenamedSuccess => 'Renamed';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1112: String get chatDeleteDialogTitle => 'Delete conversation?';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1115: String chatDeleteDialogContent(String title) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1116: return 'The conversation \"$title\" will be deleted permanently.';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_en.dart:1120: String get chatDeletedSuccess => 'Conversation deleted';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:414: String get petDeleteSuccess => 'Xóa thú cưng thành công!';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:571: String get deletePostConfirm =>
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:575: String get deletePostSuccess => 'Xóa bài viết thành công';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:584: String get delete => 'Xóa';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:587: String get confirmDelete => 'Xác nhận xóa';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:590: String deletePetMessage(String name) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1056: String get chatMenuRename => 'Đổi tên';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1059: String get chatMenuDelete => 'Xóa';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1062: String get chatRenameDialogTitle => 'Đổi tên cuộc trò chuyện';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1065: String get chatRenameDisplayNameLabel => 'Tên hiển thị';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1068: String get chatRenameNewNameHint => 'Nhập tên mới';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1074: String get chatRenamedSuccess => 'Đã đổi tên';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1077: String get chatDeleteDialogTitle => 'Xóa cuộc trò chuyện?';
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1080: String chatDeleteDialogContent(String title) {
+C:\Users\Dell\AndroidStudioProjects\code\PetcareX\FE\Mobile\petcarex\lib\l10n\generated\app_localizations_vi.dart:1085: String get chatDeletedSuccess => 'Đã xóa cuộc trò chuyện';

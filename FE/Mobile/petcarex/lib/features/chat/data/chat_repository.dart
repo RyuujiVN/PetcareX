@@ -131,4 +131,39 @@ class ChatRepository {
     messages.sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return PagedResult(data: messages, meta: meta);
   }
+
+  /// PATCH `/api/room/{id}` — Sửa tên đoạn chat (UpdateRoomDTO).
+  /// `(false, null)` = lỗi mạng hoặc HTTP không thành công.
+  /// `(true, room)` = parse được body; `(true, null)` = 200 nhưng body trống/không parse (cập nhật tên cục bộ).
+  Future<(bool, ChatRoom?)> updateRoomName(String roomId, String name) async {
+    final trimmed = name.trim();
+    if (trimmed.isEmpty || roomId.isEmpty) {
+      return (false, null);
+    }
+    final response = await _apiClient.patch(
+      '/api/room/$roomId',
+      {'name': trimmed},
+    );
+    if (response.statusCode != 200) {
+      return (false, null);
+    }
+    final body = response.body.trim();
+    if (body.isEmpty) {
+      return (true, null);
+    }
+    try {
+      final dynamic raw = jsonDecode(body);
+      if (raw is Map<String, dynamic>) {
+        return (true, ChatRoom.fromJson(raw));
+      }
+    } catch (_) {}
+    return (true, null);
+  }
+
+  /// DELETE `/api/room/{id}` — Xoá đoạn chat.
+  Future<bool> deleteRoom(String roomId) async {
+    if (roomId.isEmpty) return false;
+    final response = await _apiClient.delete('/api/room/$roomId');
+    return response.statusCode == 200 || response.statusCode == 204;
+  }
 }

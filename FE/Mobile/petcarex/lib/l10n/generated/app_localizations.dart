@@ -2017,6 +2017,144 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Lâu rồi'**
   String get notifTimeLongAgo;
+
+  /// No description provided for @selectLanguageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ngôn ngữ'**
+  String get selectLanguageTitle;
+
+  /// No description provided for @languageVietnamese.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếng Việt'**
+  String get languageVietnamese;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In vi, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @chatAssistantTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Trợ lý AI PetCar'**
+  String get chatAssistantTitle;
+
+  /// No description provided for @chatNewConversation.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cuộc trò chuyện mới'**
+  String get chatNewConversation;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập câu hỏi của bạn về sức khỏe thú cưng...'**
+  String get chatInputHint;
+
+  /// No description provided for @chatHistoryEmptyOrLoadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có lịch sử trò chuyện hoặc chưa tải được'**
+  String get chatHistoryEmptyOrLoadFailed;
+
+  /// No description provided for @chatMenuRename.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên'**
+  String get chatMenuRename;
+
+  /// No description provided for @chatMenuDelete.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa'**
+  String get chatMenuDelete;
+
+  /// No description provided for @chatRenameDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên cuộc trò chuyện'**
+  String get chatRenameDialogTitle;
+
+  /// No description provided for @chatRenameDisplayNameLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên hiển thị'**
+  String get chatRenameDisplayNameLabel;
+
+  /// No description provided for @chatRenameNewNameHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập tên mới'**
+  String get chatRenameNewNameHint;
+
+  /// No description provided for @chatSave.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu'**
+  String get chatSave;
+
+  /// No description provided for @chatRenamedSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đổi tên'**
+  String get chatRenamedSuccess;
+
+  /// No description provided for @chatDeleteDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa cuộc trò chuyện?'**
+  String get chatDeleteDialogTitle;
+
+  /// No description provided for @chatDeleteDialogContent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cuộc trò chuyện \"{title}\" sẽ bị xóa vĩnh viễn.'**
+  String chatDeleteDialogContent(String title);
+
+  /// No description provided for @chatDeletedSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xóa cuộc trò chuyện'**
+  String get chatDeletedSuccess;
+
+  /// No description provided for @chatNoMessages.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có tin nhắn'**
+  String get chatNoMessages;
+
+  /// No description provided for @chatConversationDefault.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cuộc trò chuyện'**
+  String get chatConversationDefault;
+
+  /// No description provided for @chatStatusSending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi'**
+  String get chatStatusSending;
+
+  /// No description provided for @chatStatusSent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi'**
+  String get chatStatusSent;
+
+  /// No description provided for @chatStatusError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi'**
+  String get chatStatusError;
+
+  /// No description provided for @language.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngôn ngữ'**
+  String get language;
 }
 
 class _AppLocalizationsDelegate

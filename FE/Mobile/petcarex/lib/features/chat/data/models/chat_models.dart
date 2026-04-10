@@ -27,6 +27,24 @@ class ChatRoom {
       updatedAt: _parseDateTime(json['updatedAt']),
     );
   }
+
+  ChatRoom copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    DateTime? createdAt,
+    String? lastMessage,
+    DateTime? updatedAt,
+  }) {
+    return ChatRoom(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+      lastMessage: lastMessage ?? this.lastMessage,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class ChatMessage {

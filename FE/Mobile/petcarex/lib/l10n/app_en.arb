@@ -418,5 +418,36 @@
       "days": {"type": "int"}
     }
   },
-  "notifTimeLongAgo": "Long ago"
+  "notifTimeLongAgo": "Long ago",
+
+  "selectLanguageTitle": "Select language",
+  "languageVietnamese": "Vietnamese",
+  "languageEnglish": "English",
+
+  "chatAssistantTitle": "PetCar AI Assistant",
+  "chatNewConversation": "New conversation",
+  "chatInputHint": "Ask about your pet's health...",
+  "chatHistoryEmptyOrLoadFailed": "No chat history or failed to load",
+  "chatMenuRename": "Rename",
+  "chatMenuDelete": "Delete",
+  "chatRenameDialogTitle": "Rename conversation",
+  "chatRenameDisplayNameLabel": "Display name",
+  "chatRenameNewNameHint": "Enter a new name",
+  "chatSave": "Save",
+  "chatRenamedSuccess": "Renamed",
+  "chatDeleteDialogTitle": "Delete conversation?",
+  "chatDeleteDialogContent": "The conversation \"{title}\" will be deleted permanently.",
+  "@chatDeleteDialogContent": {
+    "placeholders": {
+      "title": {"type": "String"}
+    }
+  },
+  "chatDeletedSuccess": "Conversation deleted",
+  "chatNoMessages": "No messages",
+  "chatConversationDefault": "Conversation",
+  "chatStatusSending": "Sending",
+  "chatStatusSent": "Sent",
+  "chatStatusError": "Error"
+  ,
+  "language": "Language"
 }

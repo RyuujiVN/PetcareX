@@ -125,6 +125,85 @@ class ChatProvider extends ChangeNotifier {
     await fetchMessages(roomId: roomId, refresh: true);
   }
 
+  /// Đổi tên đoạn chat qua API; cập nhật danh sách cục bộ.
+  Future<bool> renameRoom(String roomId, String newName) async {
+    final trimmed = newName.trim();
+    if (roomId.isEmpty || trimmed.isEmpty) {
+      _errorMessage = 'Ten doan chat khong hop le';
+      notifyListeners();
+      return false;
+    }
+    _errorMessage = null;
+    try {
+      final (ok, updated) = await _repository.updateRoomName(roomId, trimmed);
+      if (!ok) {
+        _errorMessage = 'Khong doi ten duoc doan chat';
+        notifyListeners();
+        return false;
+      }
+      final index = _rooms.indexWhere((r) => r.id == roomId);
+      if (index == -1) return false;
+
+      if (updated != null) {
+        _rooms[index] = _rooms[index].copyWith(
+          name: updated.name,
+          updatedAt: updated.updatedAt ?? DateTime.now(),
+        );
+      } else {
+        _rooms[index] = _rooms[index].copyWith(
+          name: trimmed,
+          updatedAt: DateTime.now(),
+        );
+      }
+      _rooms.sort(_roomSortComparer);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Xoá đoạn chat qua API; nếu đang mở room đó thì chuyển room khác hoặc đóng.
+  Future<bool> deleteRoom(String roomId) async {
+    if (roomId.isEmpty) return false;
+    _errorMessage = null;
+    try {
+      final ok = await _repository.deleteRoom(roomId);
+      if (!ok) {
+        _errorMessage = 'Khong xoa duoc doan chat';
+        notifyListeners();
+        return false;
+      }
+
+      _rooms = _rooms.where((r) => r.id != roomId).toList();
+
+      if (_currentRoomId == roomId) {
+        _socketService.leaveRoom(roomId);
+        _streamingMessageId = null;
+        _isWaitingAi = false;
+        if (_rooms.isNotEmpty) {
+          _currentRoomId = _rooms.first.id;
+          _socketService.joinRoom(_currentRoomId!);
+          await fetchMessages(roomId: _currentRoomId, refresh: true);
+        } else {
+          _currentRoomId = null;
+          _messages = [];
+          _oldestMessageCursor = null;
+          _hasMoreMessages = true;
+        }
+      }
+
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _errorMessage = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> fetchMessages({
     String? roomId,
     bool refresh = false,

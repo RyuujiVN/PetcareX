@@ -1029,4 +1029,76 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get notifTimeLongAgo => 'Lâu rồi';
+
+  @override
+  String get selectLanguageTitle => 'Chọn ngôn ngữ';
+
+  @override
+  String get languageVietnamese => 'Tiếng Việt';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get chatAssistantTitle => 'Trợ lý AI PetCar';
+
+  @override
+  String get chatNewConversation => 'Cuộc trò chuyện mới';
+
+  @override
+  String get chatInputHint => 'Nhập câu hỏi của bạn về sức khỏe thú cưng...';
+
+  @override
+  String get chatHistoryEmptyOrLoadFailed =>
+      'Chưa có lịch sử trò chuyện hoặc chưa tải được';
+
+  @override
+  String get chatMenuRename => 'Đổi tên';
+
+  @override
+  String get chatMenuDelete => 'Xóa';
+
+  @override
+  String get chatRenameDialogTitle => 'Đổi tên cuộc trò chuyện';
+
+  @override
+  String get chatRenameDisplayNameLabel => 'Tên hiển thị';
+
+  @override
+  String get chatRenameNewNameHint => 'Nhập tên mới';
+
+  @override
+  String get chatSave => 'Lưu';
+
+  @override
+  String get chatRenamedSuccess => 'Đã đổi tên';
+
+  @override
+  String get chatDeleteDialogTitle => 'Xóa cuộc trò chuyện?';
+
+  @override
+  String chatDeleteDialogContent(String title) {
+    return 'Cuộc trò chuyện \"$title\" sẽ bị xóa vĩnh viễn.';
+  }
+
+  @override
+  String get chatDeletedSuccess => 'Đã xóa cuộc trò chuyện';
+
+  @override
+  String get chatNoMessages => 'Không có tin nhắn';
+
+  @override
+  String get chatConversationDefault => 'Cuộc trò chuyện';
+
+  @override
+  String get chatStatusSending => 'Đang gửi';
+
+  @override
+  String get chatStatusSent => 'Đã gửi';
+
+  @override
+  String get chatStatusError => 'Lỗi';
+
+  @override
+  String get language => 'Ngôn ngữ';
 }

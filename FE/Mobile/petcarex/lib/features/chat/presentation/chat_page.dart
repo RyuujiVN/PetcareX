@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../data/models/chat_models.dart';
 import 'provider/chat_provider.dart';
 
@@ -20,6 +21,7 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
   final ScrollController _scrollController = ScrollController();
   bool _initialized = false;
   int _lastMessageCount = 0;
+  bool _scrollPostFrameQueued = false;
 
   @override
   void initState() {
@@ -44,15 +46,24 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     final chatProvider = context.watch<ChatProvider>();
+    final l10n = AppLocalizations.of(context)!;
     final currentCount = chatProvider.messages.length;
     final hasStreaming = chatProvider.messages.any((m) => m.isStreaming);
-    if (currentCount != _lastMessageCount || hasStreaming) {
-      _lastMessageCount = currentCount;
-      _scrollToBottom();
+    // Không được đổi state trong build; tối đa 1 post-frame scroll mỗi frame (tránh spam khi streaming).
+    if ((currentCount != _lastMessageCount || hasStreaming) &&
+        !_scrollPostFrameQueued) {
+      _scrollPostFrameQueued = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _scrollPostFrameQueued = false;
+        if (!mounted) return;
+        _lastMessageCount = context.read<ChatProvider>().messages.length;
+        _scrollToBottom();
+      });
     }
     if (!_initialized) {
       _initialized = true;
       WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
         await context.read<ChatProvider>().initialize();
       });
     }
@@ -66,8 +77,8 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
           icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Trợ lý AI PetCar',
+        title: Text(
+          l10n.chatAssistantTitle,
           style: TextStyle(color: AppColors.textDark, fontWeight: FontWeight.bold, fontSize: 18),
         ),
         actions: [
@@ -79,7 +90,7 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
       ),
       body: Column(
         children: [
-          _buildChatHistoryHeader(),
+          _buildChatHistoryHeader(l10n, chatProvider),
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
@@ -108,14 +119,16 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
               },
             ),
           ),
-          _buildMessageInput(),
+          _buildMessageInput(l10n),
         ],
       ),
     );
   }
 
-  Widget _buildChatHistoryHeader() {
-    final chatProvider = context.watch<ChatProvider>();
+  Widget _buildChatHistoryHeader(
+    AppLocalizations l10n,
+    ChatProvider chatProvider,
+  ) {
     final currentRoomIndex = chatProvider.rooms.indexWhere(
       (room) => room.id == chatProvider.currentRoomId,
     );
@@ -124,7 +137,7 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
         : null;
     final roomTitle = currentRoom?.name.trim().isNotEmpty == true
         ? currentRoom!.name
-        : 'Cuoc tro chuyen moi';
+        : l10n.chatNewConversation;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -168,7 +181,14 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
               context.read<ChatProvider>().startNewConversation();
             },
             icon: const Icon(Icons.add, size: 16, color: AppColors.primary),
-            label: const Text('Cuộc trò chuyện mới', style: TextStyle(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold)),
+            label: Text(
+              l10n.chatNewConversation,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           )
         ],
       ),
@@ -325,7 +345,7 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
     );
   }
 
-  Widget _buildMessageInput() {
+  Widget _buildMessageInput(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: const BoxDecoration(
@@ -346,9 +366,9 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
                   ),
                   child: TextField(
                     controller: _messageController,
-                    decoration: const InputDecoration(
-                      hintText: 'Nhập câu hỏi của bạn về sức khỏe thú cưng...',
-                      hintStyle: TextStyle(fontSize: 13, color: AppColors.textGrey),
+                    decoration: InputDecoration(
+                      hintText: l10n.chatInputHint,
+                      hintStyle: const TextStyle(fontSize: 13, color: AppColors.textGrey),
                       border: InputBorder.none,
                     ),
                   ),
@@ -397,11 +417,12 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
 
   Future<void> _showRoomHistorySheet() async {
     final provider = context.read<ChatProvider>();
+    final l10n = AppLocalizations.of(context)!;
     await provider.fetchRooms();
     if (!mounted) return;
     if (provider.rooms.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chua co lich su tro chuyen hoac chua tai duoc')),
+        SnackBar(content: Text(l10n.chatHistoryEmptyOrLoadFailed)),
       );
       return;
     }
@@ -412,40 +433,95 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
       showDragHandle: true,
       builder: (sheetContext) {
         return SafeArea(
-          child: ListView.separated(
-            itemCount: provider.rooms.length,
-            separatorBuilder: (_, index) =>
-                const Divider(height: 1, color: AppColors.divider),
-            itemBuilder: (_, index) {
-              final room = provider.rooms[index];
-              final isSelected = room.id == provider.currentRoomId;
-              final subtitle = room.lastMessage?.trim().isNotEmpty == true
-                  ? room.lastMessage!
-                  : 'Khong co tin nhan';
+          child: provider.rooms.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Text(
+                      l10n.chatHistoryEmptyOrLoadFailed,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(color: AppColors.textGrey),
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: provider.rooms.length,
+                  separatorBuilder: (_, index) =>
+                      const Divider(height: 1, color: AppColors.divider),
+                  itemBuilder: (_, index) {
+                    final room = provider.rooms[index];
+                    final isSelected = room.id == provider.currentRoomId;
+                    final subtitle = room.lastMessage?.trim().isNotEmpty == true
+                        ? room.lastMessage!
+                        : l10n.chatNoMessages;
 
-              return ListTile(
-                onTap: () => Navigator.of(sheetContext).pop(room.id),
-                leading: Icon(
-                  Icons.chat_bubble_outline_rounded,
-                  color: isSelected ? AppColors.primary : AppColors.textGrey,
+                    return ListTile(
+                      key: ValueKey<String>('room_tile_${room.id}'),
+                      onTap: () => Navigator.of(sheetContext).pop(room.id),
+                      leading: Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        color:
+                            isSelected ? AppColors.primary : AppColors.textGrey,
+                      ),
+                      title: Text(
+                        room.name.trim().isNotEmpty
+                            ? room.name
+                            : l10n.chatConversationDefault,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      subtitle: Text(
+                        subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                            fontSize: 12, color: AppColors.textGrey),
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (isSelected)
+                            const Padding(
+                              padding: EdgeInsets.only(right: 4),
+                              child: Icon(Icons.check_circle,
+                                  color: AppColors.primary),
+                            ),
+                          PopupMenuButton<String>(
+                            key: ValueKey<String>('room_menu_${room.id}'),
+                            onSelected: (value) {
+                              // Quan trọng: đẩy xử lý sang frame kế tiếp để popup route đóng hẳn.
+                              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                                if (!mounted) return;
+
+                                if (value == 'rename') {
+                                  await _showRenameRoomDialog(context, room);
+                                } else if (value == 'delete') {
+                                  await _confirmDeleteRoom(context, room);
+
+                                  if (!mounted) return;
+                                  final provider = context.read<ChatProvider>();
+                                  if (provider.rooms.isEmpty && sheetContext.mounted) {
+                                    await Navigator.of(sheetContext).maybePop(); // đóng bottom sheet an toàn
+                                  }
+                                }
+                              });
+                            },
+                            itemBuilder: (ctx) => [
+                              PopupMenuItem(
+                                value: 'rename',
+                                child: Text(l10n.chatMenuRename),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text(l10n.chatMenuDelete),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-                title: Text(
-                  room.name.trim().isNotEmpty ? room.name : 'Cuoc tro chuyen',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                subtitle: Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
-                ),
-                trailing: isSelected
-                    ? const Icon(Icons.check_circle, color: AppColors.primary)
-                    : null,
-              );
-            },
-          ),
         );
       },
     );
@@ -457,14 +533,108 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
     }
   }
 
+  Future<void> _showRenameRoomDialog(BuildContext pageContext, ChatRoom room) async {
+    final l10n = AppLocalizations.of(pageContext)!;
+    final chat = pageContext.read<ChatProvider>();
+    final controller = TextEditingController(text: room.name);
+
+    try {
+      final newName = await showDialog<String>(
+        context: pageContext,
+        builder: (ctx) => AlertDialog(
+          title: Text(l10n.chatRenameDialogTitle),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: l10n.chatRenameDisplayNameLabel,
+              hintText: l10n.chatRenameNewNameHint,
+            ),
+            onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(l10n.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: Text(l10n.save),
+            ),
+          ],
+        ),
+      );
+
+      if (!mounted) return;
+      final trimmed = (newName ?? '').trim();
+      if (trimmed.isEmpty) return;
+      if (trimmed == room.name.trim()) return;
+
+      final ok = await chat.renameRoom(room.id, trimmed);
+      if (!mounted) return;
+
+      if (ok) {
+        ScaffoldMessenger.maybeOf(pageContext)
+            ?..hideCurrentSnackBar()
+            ..showSnackBar(SnackBar(content: Text(l10n.chatRenamedSuccess)));
+      }
+    } finally {
+      controller.dispose();
+    }
+  }
+
+  Future<void> _confirmDeleteRoom(
+    BuildContext dialogContext,
+    ChatRoom room,
+  ) async {
+    final l10n = AppLocalizations.of(context)!;
+    final provider = context.read<ChatProvider>();
+    final title =
+        room.name.trim().isNotEmpty ? room.name : l10n.chatConversationDefault;
+    final confirm = await showDialog<bool>(
+      context: dialogContext,
+      useRootNavigator: true,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.chatDeleteDialogTitle),
+        content: Text(l10n.chatDeleteDialogContent(title)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              l10n.delete,
+              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || confirm != true) return;
+
+    final ok = await provider.deleteRoom(room.id);
+    if (!mounted) return;
+    if (ok) {
+      ScaffoldMessenger.maybeOf(context)
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text(l10n.chatDeletedSuccess)));
+    } else {
+      final err = provider.errorMessage ?? 'Không xóa được';
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
+    }
+  }
+
   String _statusText(ChatMessageStatus status) {
+    final l10n = AppLocalizations.of(context)!;
     switch (status) {
       case ChatMessageStatus.sending:
-        return 'Dang gui';
+        return l10n.chatStatusSending;
       case ChatMessageStatus.sent:
-        return 'Da gui';
+        return l10n.chatStatusSent;
       case ChatMessageStatus.error:
-        return 'Loi';
+        return l10n.chatStatusError;
     }
   }
 

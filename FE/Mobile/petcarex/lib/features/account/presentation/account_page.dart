@@ -77,33 +77,37 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   void _showLanguageDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         // Đổi tên thành dialogContext
-        title: const Text('Chọn ngôn ngữ / Select Language'),
+        title: Text(l10n.selectLanguageTitle),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: Image.asset('assets/images/vn.png', width: 24, height: 24),
-              title: const Text('Tiếng Việt'),
+              title: Text(l10n.languageVietnamese),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(
-                  const Locale('vi'),
-                );
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
+                // Đổi locale sau khi dialog đóng để tránh lỗi InheritedWidget assert.
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  context.read<LanguageProvider>().setLocale(const Locale('vi'));
+                });
               },
             ),
             ListTile(
               leading: Image.asset('assets/images/eng.png', width: 24, height: 24),
-              title: const Text('English'),
+              title: Text(l10n.languageEnglish),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(
-                  const Locale('en'),
-                );
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  context.read<LanguageProvider>().setLocale(const Locale('en'));
+                });
               },
             ),
           ],
@@ -222,12 +226,10 @@ class _AccountPageState extends State<AccountPage> {
             _buildAccountItem(
               icon: Icons.language_rounded,
               iconColor: AppColors.primary,
-              title: langProvider.locale.languageCode == 'vi'
-                  ? 'Ngôn ngữ'
-                  : 'Language',
+              title: l10n.language,
               subtitle: langProvider.locale.languageCode == 'vi'
-                  ? 'Tiếng Việt'
-                  : 'English',
+                  ? l10n.languageVietnamese
+                  : l10n.languageEnglish,
               onTap: _showLanguageDialog,
             ),
             const SizedBox(height: 16),
