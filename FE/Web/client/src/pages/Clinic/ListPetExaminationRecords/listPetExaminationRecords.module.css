@@ -197,12 +197,6 @@
 	font-size: 15px;
 }
 
-@media (max-width: 1600px) {
-	.cardsGrid {
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-	}
-}
-
 @media (max-width: 1200px) {
 	.content {
 		padding: 20px;
@@ -214,10 +208,6 @@
 
 	.titleBlock p {
 		font-size: 18px;
-	}
-
-	.cardsGrid {
-		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
 
@@ -250,10 +240,6 @@
 	.speciesSelect,
 	.datePicker {
 		width: 100%;
-	}
-
-	.cardsGrid {
-		grid-template-columns: 1fr;
 	}
 
 	.petImageWrap {
