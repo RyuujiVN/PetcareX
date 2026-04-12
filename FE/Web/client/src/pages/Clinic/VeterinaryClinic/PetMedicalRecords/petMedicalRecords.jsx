@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getAdminInstance } from '../../../../services/apiClient'
 import {
+	APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
     APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
     APPOINTMENT_STATUS,
     getAppointmentByIdApi,
@@ -820,6 +821,17 @@ export default function PetMedicalRecords() {
 					updatedAt: Date.now(),
 				}),
 			)
+
+			try {
+				const rawMap = localStorage.getItem(APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY)
+				const parsedMap = rawMap ? JSON.parse(rawMap) : {}
+				const nextMap = {
+					...(parsedMap && typeof parsedMap === 'object' ? parsedMap : {}),
+					[String(appointmentId)]: INVOICE_STATUS.PAID,
+				}
+				localStorage.setItem(APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY, JSON.stringify(nextMap))
+			} catch {
+			}
 
 			setIsPaymentModalOpen(false)
 			message.success(t('medicalRecords.messages.paymentSuccess'))

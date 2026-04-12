@@ -20,6 +20,9 @@ export const APPOINTMENT_STATUS_LABEL = APPOINTMENT_STATUS_LABELS
 export const APPOINTMENT_PAYMENT_SYNC_EVENT_KEY =
   'adminClinic:appointmentPaymentSync'
 
+export const APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY =
+  'adminClinic:appointmentPaymentStatusMap'
+
 export const SERVICE_OPTIONS = SERVICE_LABELS
 // Chuẩn hóa trạng thái cuộc hẹn
 export const normalizeAppointmentStatus = (status) => {

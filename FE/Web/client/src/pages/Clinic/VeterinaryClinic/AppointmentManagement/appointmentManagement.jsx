@@ -28,6 +28,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getAdminInstance } from '../../../../services/apiClient'
 import {
+	APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
 	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
 	APPOINTMENT_STATUS,
 	getAppointmentsApi,
@@ -167,6 +168,40 @@ const readPaymentSyncPayload = () => {
 	}
 }
 
+const readPersistedPaymentStatusMap = () => {
+	if (typeof window === 'undefined') return {}
+
+	try {
+		const rawMap = window.localStorage.getItem(APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY)
+		if (!rawMap) return {}
+
+		const parsedMap = JSON.parse(rawMap)
+		if (!parsedMap || typeof parsedMap !== 'object') return {}
+
+		const normalizedMap = {}
+		Object.entries(parsedMap).forEach(([appointmentId, paymentStatus]) => {
+			if (!appointmentId) return
+			normalizedMap[String(appointmentId)] = paymentStatus
+		})
+
+		return normalizedMap
+	} catch {
+		return {}
+	}
+}
+
+const persistPaymentStatusMap = (paymentStatusMap) => {
+	if (typeof window === 'undefined') return
+
+	try {
+		window.localStorage.setItem(
+			APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
+			JSON.stringify(paymentStatusMap || {}),
+		)
+	} catch {
+	}
+}
+
 function AppointmentCard({ item, onOpenDetails, onDragStart, t }) {
 	return (
 		<Card
@@ -239,6 +274,7 @@ export default function AppointmentManagement() {
 
 	const applyPaymentSyncPayload = useCallback((payload) => {
 		if (!payload?.appointmentId) return
+		const appointmentIdKey = String(payload.appointmentId)
 
 		if (payload?.status) {
 			setAppointments((prev) =>
@@ -249,10 +285,14 @@ export default function AppointmentManagement() {
 		}
 
 		if (payload?.paymentStatus) {
-			setPaymentStatusByAppointmentId((prev) => ({
-				...prev,
-				[payload.appointmentId]: payload.paymentStatus,
-			}))
+			setPaymentStatusByAppointmentId((prev) => {
+				const nextMap = {
+					...prev,
+					[appointmentIdKey]: payload.paymentStatus,
+				}
+				persistPaymentStatusMap(nextMap)
+				return nextMap
+			})
 		}
 	}, [])
 
@@ -284,6 +324,7 @@ export default function AppointmentManagement() {
 		let active = true
 
 		const hydratePaymentStatus = async () => {
+			const persistedPaymentMap = readPersistedPaymentStatusMap()
 			const completedAppointments = appointments.filter(
 				(item) => item?.status === APPOINTMENT_STATUS.COMPLETED,
 			)
@@ -337,14 +378,23 @@ export default function AppointmentManagement() {
 			const nextPaymentMap = {}
 			entries.forEach(([appointmentId, paymentStatus]) => {
 				if (!appointmentId) return
-				nextPaymentMap[appointmentId] = paymentStatus
+				const appointmentIdKey = String(appointmentId)
+				const persistedStatus = persistedPaymentMap[appointmentIdKey]
+				nextPaymentMap[appointmentIdKey] =
+					paymentStatus === INVOICE_STATUS.PAID || persistedStatus === INVOICE_STATUS.PAID
+						? INVOICE_STATUS.PAID
+						: paymentStatus
 			})
 
 			const recentSyncPayload = readPaymentSyncPayload()
 			if (recentSyncPayload?.appointmentId && recentSyncPayload?.paymentStatus) {
-				nextPaymentMap[recentSyncPayload.appointmentId] = recentSyncPayload.paymentStatus
+				nextPaymentMap[String(recentSyncPayload.appointmentId)] = recentSyncPayload.paymentStatus
 			}
 
+			persistPaymentStatusMap({
+				...persistedPaymentMap,
+				...nextPaymentMap,
+			})
 			setPaymentStatusByAppointmentId(nextPaymentMap)
 		}
 
@@ -357,6 +407,14 @@ export default function AppointmentManagement() {
 
 	useEffect(() => {
 		const syncFromStorageSnapshot = () => {
+			const persistedPaymentMap = readPersistedPaymentStatusMap()
+			if (Object.keys(persistedPaymentMap).length > 0) {
+				setPaymentStatusByAppointmentId((prev) => ({
+					...persistedPaymentMap,
+					...prev,
+				}))
+			}
+
 			const payload = readPaymentSyncPayload()
 			if (!payload) return
 			applyPaymentSyncPayload(payload)
@@ -632,6 +690,7 @@ export default function AppointmentManagement() {
 							<Col xs={24} md={12}>
 								<Text strong>{t('appointments.filters.examTime')}</Text>
 								<Select
+									size='large'
 									className={styles.filterInput}
 									placeholder={t('appointments.filters.timePlaceholder')}
 									allowClear
