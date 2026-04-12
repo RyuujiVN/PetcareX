@@ -26,10 +26,10 @@ import {
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { getSpecialtyOptions } from '../../../../constants/veterinaryLabels'
-import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
-import { getAdminInstance } from '../../../../services/apiClient'
-import { updateUserProfileApi, uploadUserImageApi } from '../../../../services/userService'
+import { getSpecialtyOptions } from '../../../constants/veterinaryLabels'
+import useVeterinarians from '../../../hooks/Clinic/useVeterinarians'
+import { getAdminInstance } from '../../../services/apiClient'
+import { updateUserProfileApi, uploadUserImageApi } from '../../../services/userService'
 import styles from './addNewVererianrian.module.css'
 
 const passwordPolicyRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/

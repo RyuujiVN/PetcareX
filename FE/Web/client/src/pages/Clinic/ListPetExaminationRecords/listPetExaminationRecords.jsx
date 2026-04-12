@@ -4,15 +4,15 @@ import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
-import { getAdminInstance } from '../../../../services/apiClient'
-import { getPetSpeciesApi } from '../../../../services/petService'
-import { formatDateDDMMYYYY } from '../../../../utils/dateTimeFormat'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../services/appointmentService'
+import { getAdminInstance } from '../../../services/apiClient'
+import { getPetSpeciesApi } from '../../../services/petService'
+import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import {
     getAppointmentStatusLabel,
     getPetBreedLabel,
     getPetSpeciesLabel,
-} from '../../../../utils/enumLabel'
+} from '../../../utils/enumLabel'
 import styles from './listPetExaminationRecords.module.css'
 
 const normalizeDate = (dateValue) => {

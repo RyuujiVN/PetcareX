@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FaEnvelope, FaPhone, FaPlus } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
+import useVeterinarians from '../../../hooks/Clinic/useVeterinarians'
 import styles from './vererianrianManagement.module.css'
 
 const PAGE_SIZE = 12

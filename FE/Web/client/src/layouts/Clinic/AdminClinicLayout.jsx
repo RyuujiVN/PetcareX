@@ -48,31 +48,42 @@ const menuItemConfigs = [
     labelKey: "sidebar.menu.appointments",
     icon: CalendarOutlined,
     path: "/clinic/appointments",
+    activePaths: ["/clinic/appointments", "/admin/home"],
   },
   {
     key: "records",
     labelKey: "sidebar.menu.records",
     icon: MedicineBoxOutlined,
     path: "/clinic/medical-records",
+    activePaths: ["/clinic/medical-records"],
   },
   {
     key: "revenue",
     labelKey: "sidebar.menu.revenue",
     icon: LineChartOutlined,
     path: "/clinic/revenue",
+    activePaths: ["/clinic/revenue"],
   },
   {
     key: "doctors",
     labelKey: "sidebar.menu.doctors",
     icon: TeamOutlined,
     path: "/clinic/veterinarians",
+    activePaths: ["/clinic/veterinarians"],
   },
   {
     key: "forms",
     labelKey: "sidebar.menu.forms",
     icon: FileSearchOutlined,
     path: "/clinic/exam-slips",
+    activePaths: ["/clinic/exam-slips"],
   },
+];
+
+const clinicEditorPathPrefixes = [
+  "/clinic/editor",
+  "/clinic/home-editor",
+  "/clinic/clinic-editor",
 ];
 
 const NOTIFICATION_TYPE_COLORS = {
@@ -146,12 +157,24 @@ const formatNotificationTimeAgo = (dateValue, t) => {
   });
 };
 
-const isMenuActive = (pathname, path) => {
-  if (path === "/clinic/appointments") {
-    return pathname === "/admin/home" || pathname === "/clinic/appointments";
-  }
+const normalizePath = (path) => {
+  if (!path) return "/";
+  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+  return path;
+};
 
-  return pathname === path || pathname.startsWith(`${path}/`);
+const isPathMatch = (pathname, pathPrefix) => {
+  const currentPath = normalizePath(pathname);
+  const normalizedPrefix = normalizePath(pathPrefix);
+  return (
+    currentPath === normalizedPrefix ||
+    currentPath.startsWith(`${normalizedPrefix}/`)
+  );
+};
+
+const isMenuActive = (pathname, item) => {
+  const activePaths = item.activePaths?.length ? item.activePaths : [item.path];
+  return activePaths.some((pathPrefix) => isPathMatch(pathname, pathPrefix));
 };
 
 const getClinicDisplayName = (profile, t) => {
@@ -496,7 +519,7 @@ export default function AdminClinicLayout() {
                 <NavLink
                   key={item.key}
                   to={item.path}
-                  className={`${styles.menuItem} ${isMenuActive(location.pathname, item.path) ? styles.menuItemActive : ""}`}
+                  className={`${styles.menuItem} ${isMenuActive(location.pathname, item) ? styles.menuItemActive : ""}`}
                 >
                   <Icon />
                   <span>{item.label}</span>
@@ -507,7 +530,7 @@ export default function AdminClinicLayout() {
             <button
               type="button"
               onClick={openUnifiedEditor}
-              className={`${styles.menuItem} ${styles.menuButton} ${location.pathname.startsWith("/clinic/editor/") ? styles.menuItemActive : ""}`}
+              className={`${styles.menuItem} ${styles.menuButton} ${clinicEditorPathPrefixes.some((pathPrefix) => isPathMatch(location.pathname, pathPrefix)) ? styles.menuItemActive : ""}`}
             >
               <HomeOutlined />
               <span>{t("sidebar.menu.editor", { defaultValue: "Chỉnh sửa trang" })}</span>

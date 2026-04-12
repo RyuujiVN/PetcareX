@@ -33,18 +33,25 @@ const buildMenuItems = (t) => [
     label: t('layout.menu.appointments'),
     icon: CalendarOutlined,
     path: '/veterinarian/appointments',
+    activePaths: ['/veterinarian/appointments'],
   },
   {
     key: 'records',
     label: t('layout.menu.records'),
     icon: FileTextOutlined,
     path: '/veterinarian/listRecords',
+    activePaths: [
+      '/veterinarian/listRecords',
+      '/veterinarian/medical-records',
+      '/veterinarian/viewRecords',
+    ],
   },
   {
     key: 'exam-slips',
     label: t('layout.menu.examForms'),
     icon: FormOutlined,
     path: '/veterinarian/exam-forms',
+    activePaths: ['/veterinarian/exam-forms'],
   },
 ]
 
@@ -78,7 +85,22 @@ const formatNotificationTimeAgo = (dateValue, t) => {
   return t('layout.notifications.time.daysAgo', { count: Math.floor(diff / day) })
 }
 
-const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
+const normalizePath = (path) => {
+  if (!path) return '/'
+  if (path.length > 1 && path.endsWith('/')) return path.slice(0, -1)
+  return path
+}
+
+const isPathMatch = (pathname, pathPrefix) => {
+  const currentPath = normalizePath(pathname)
+  const normalizedPrefix = normalizePath(pathPrefix)
+  return currentPath === normalizedPrefix || currentPath.startsWith(`${normalizedPrefix}/`)
+}
+
+const isMenuActive = (pathname, item) => {
+  const activePaths = item.activePaths?.length ? item.activePaths : [item.path]
+  return activePaths.some((pathPrefix) => isPathMatch(pathname, pathPrefix))
+}
 
 const getClinicDisplayName = (profile, fallbackName) => {
   return (
@@ -339,13 +361,12 @@ export default function AdminVererianrianLayout() {
             <nav className={styles.menu}>
               {menuItems.map((item) => {
                 const Icon = item.icon
-                const active = isMenuActive(location.pathname, item.path)
 
                 return (
                   <NavLink
                     key={item.key}
                     to={item.path}
-                    className={`${styles.menuItem} ${active ? styles.menuItemActive : ''}`}
+                    className={`${styles.menuItem} ${isMenuActive(location.pathname, item) ? styles.menuItemActive : ''}`}
                   >
                     <Icon />
                     <span>{item.label}</span>

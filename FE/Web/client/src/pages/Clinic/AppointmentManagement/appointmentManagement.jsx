@@ -26,24 +26,24 @@ import {
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getAdminInstance } from '../../../../services/apiClient'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
 	APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
 	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
 	APPOINTMENT_STATUS,
 	getAppointmentsApi,
 	updateAppointmentStatusApi,
-} from '../../../../services/appointmentService'
-import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../../services/invoiceService'
-import { getLatestMedicalByPetIdApi } from '../../../../services/medicalService'
-import { getUserByIdApi } from '../../../../services/userService'
-import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
+} from '../../../services/appointmentService'
+import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
+import { getLatestMedicalByPetIdApi } from '../../../services/medicalService'
+import { getUserByIdApi } from '../../../services/userService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import {
 	getAppointmentStatusLabel,
 	getPetBreedLabel,
 	getPetSpeciesLabel,
 	getServiceLabel,
-} from '../../../../utils/enumLabel'
+} from '../../../utils/enumLabel'
 import styles from './appointmentManagement.module.css'
 
 const { Title, Text } = Typography

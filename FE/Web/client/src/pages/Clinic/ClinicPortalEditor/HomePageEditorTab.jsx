@@ -3,12 +3,12 @@ import { Button, Card, Col, Input, message, Modal, Row, Space, Upload } from 'an
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
-import { useAuth } from '../../../../hooks/Clinic/AuthContext';
-import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../services/cloudinaryService';
-import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';
-import { getClinicHomeContent, saveClinicHomeContent } from '../../../../utils/storage/clinicHomeStorage';
-import HomePageClinic from '../../../client/Home/HomePageClinic';
+import { buildClinicHomeContent } from '../../../config/homePageClinicContent';
+import { useAuth } from '../../../hooks/Clinic/AuthContext';
+import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../services/cloudinaryService';
+import { getCurrentAdminClinicId } from '../../../utils/clinicIdentity';
+import { getClinicHomeContent, saveClinicHomeContent } from '../../../utils/storage/clinicHomeStorage';
+import HomePageClinic from '../../client/Home/HomePageClinic';
 import './homePageEditorTab.css';
 
 const { TextArea } = Input;

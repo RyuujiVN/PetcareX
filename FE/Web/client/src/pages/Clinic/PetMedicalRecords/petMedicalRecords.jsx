@@ -24,28 +24,28 @@ import {
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { getAdminInstance } from '../../../../services/apiClient'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
 	APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
     APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
     APPOINTMENT_STATUS,
     getAppointmentByIdApi,
-} from '../../../../services/appointmentService'
-import { getClinicByIdApi } from '../../../../services/clinicService'
-import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../../services/invoiceService'
+} from '../../../services/appointmentService'
+import { getClinicByIdApi } from '../../../services/clinicService'
+import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../services/invoiceService'
 import {
     getMedicalByIdApi,
     getMedicalByPetIClinicdApi,
     getMedicalByPetIdApi,
     getMedicalOrdersByMedicalIdApi,
     getMedicinesByMedicalIdApi,
-} from '../../../../services/medicalService'
-import { getPetByIdApi } from '../../../../services/petService'
-import { getUserByIdApi, getUserProfileApi } from '../../../../services/userService'
-import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
-import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
-import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../../utils/enumLabel'
-import { formatClinicOpenHours, getClinicInfoContent } from '../../../../utils/storage/clinicInfoStorage'
+} from '../../../services/medicalService'
+import { getPetByIdApi } from '../../../services/petService'
+import { getUserByIdApi, getUserProfileApi } from '../../../services/userService'
+import { getCurrentAdminClinicId } from '../../../utils/clinicIdentity'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
+import { getMedicineUnitLabel, getPetBreedLabel, getPetSpeciesLabel, getServiceLabel } from '../../../utils/enumLabel'
+import { formatClinicOpenHours, getClinicInfoContent } from '../../../utils/storage/clinicInfoStorage'
 import styles from './petMedicalRecords.module.css'
 
 const FALLBACK_TEXT = '-'
