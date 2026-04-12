@@ -460,7 +460,8 @@
 				"petName": "Pet name",
 				"age": "Age",
 				"species": "Species",
-				"owner": "Owner"
+				"owner": "Owner",
+				"examDate": "Exam date"
 			}
 		}
 	},

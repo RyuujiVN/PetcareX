@@ -161,6 +161,25 @@
 	gap: 8px;
 }
 
+.bpInputGroup {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.bpInputLabel {
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--vet-color-text-muted);
+}
+
+.bpReadonlyText {
+	margin: 8px 0 0;
+	font-size: 12px;
+	font-weight: 700;
+	color: var(--vet-color-text-secondary);
+}
+
 .noMargin {
 	margin-bottom: 0 !important;
 }
@@ -187,6 +206,11 @@
 	color: var(--vet-color-text-muted);
 }
 
+.dynamicHead span:last-child,
+.dynamicHeadMedicine span:last-child {
+	text-align: center;
+}
+
 .dynamicRow {
 	border-top: 1px solid var(--vet-color-border-soft);
 }
@@ -209,6 +233,31 @@
 
 .dynamicRowMedicine {
 	border-top: 1px solid var(--vet-color-border-soft);
+}
+
+.actionCell {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.deleteActionButton {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	color: var(--color-danger, #ff4d4f) !important;
+}
+
+.deleteActionButton :global(.anticon) {
+	color: inherit;
+}
+
+.deleteActionButton:disabled {
+	opacity: 0.4 !important;
+	cursor: not-allowed !important;
+	color: var(--color-danger, #ff4d4f) !important;
 }
 
 .adviceDivider {

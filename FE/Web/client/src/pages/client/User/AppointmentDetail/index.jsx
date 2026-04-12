@@ -125,6 +125,7 @@ const AppointmentDetail = () => {
         veterinarian: item.veterinarian?.user?.fullName || t('pages.appointmentDetail.unknownDoctor'),
         species: item.pet?.species || '',
         notes: item.note,
+        symptoms: item.symptoms || item.medical?.symptoms || '',
         rawDate: date,
         status: item.status,
         statusLabel: getAppointmentStatusLabel(item.status, item.status),
@@ -199,6 +200,11 @@ const handleViewDetails = (appointment) => {
         species: appointment.species,
         appointmentDate: appointment.rawDate,
         appointmentDateLabel: formatDate(appointment.rawDate, dateLocale),
+        symptoms:
+          diagnosisResponse?.symptoms ||
+          diagnosisResponse?.medical?.symptoms ||
+          appointment.symptoms ||
+          '',
         reportMarkdown:
           diagnosisResponse?.diagnosis || t('pages.petDiagnosis.emptyReport'),
         source: 'backend',

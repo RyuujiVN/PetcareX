@@ -21,6 +21,24 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-12) — tinh chỉnh đa portal
+- Veterinarian `RecordExaminationForm`:
+  - Đã chuẩn hóa Chỉ số sinh tồn theo 2 field huyết áp riêng: `systolic` (tâm thu) và `diastolic` (tâm trương).
+  - Có fallback tương thích dữ liệu cũ: nếu record cũ chỉ còn 1 field huyết áp thì map sang `systolic`, `diastolic` để trống.
+  - Khóa chỉnh sửa tiếp tục theo OR giữa hết 15 phút kể từ `medical.createdAt` và invoice trạng thái `PAID`.
+- Clinic Veterinarian list:
+  - Trạng thái bác sĩ hiển thị theo dạng inline dot text (không dùng Tag): `● Đang làm việc` / `● Nghỉ việc`.
+- Clinic HomePage editor:
+  - Đã bổ sung nút `Xem trước` đặt cạnh cụm action lưu, mở modal preview toàn màn hình.
+  - Preview render `HomePageClinic` bằng dữ liệu draft hiện tại (`forcedContent`), không phụ thuộc localStorage.
+  - Đã bỏ khối preview cố định ở cuối trang editor.
+- Client AI diagnosis popup:
+  - Thứ tự nội dung đã chuẩn hóa: triệu chứng do chủ nuôi mô tả (nếu có) hiển thị trước, sau đó mới đến nội dung chẩn đoán AI.
+  - Nếu `symptoms` rỗng/null thì ẩn hoàn toàn block triệu chứng.
+- Clinic medical records list:
+  - Danh sách xem phiếu khám đã hiển thị thêm ngày khám dưới tên chủ nuôi.
+  - Thứ tự sắp xếp ưu tiên record có ngày khám hôm nay lên đầu, các record còn lại sắp xếp mới nhất trước.
+
 ### 1) Booking Client — bắt buộc đặt trước 3 tiếng
 - Màn `BookingAppointment` đã bổ sung quy tắc lead time: người dùng phải đặt lịch trước ít nhất **3 giờ** so với thời điểm khám.
 - Các khung giờ không đạt điều kiện lead time được **disable** (không ẩn), giúp người dùng vẫn thấy toàn bộ khung giờ khả dụng trong ngày.

@@ -460,7 +460,8 @@
 				"petName": "Tên thú cưng",
 				"age": "Tuổi",
 				"species": "Loài",
-				"owner": "Chủ nuôi"
+				"owner": "Chủ nuôi",
+				"examDate": "Ngày khám"
 			}
 		}
 	},

@@ -184,21 +184,27 @@
 	gap: 6px;
 }
 
-.statusBadge {
-	border-radius: 999px;
-	padding: 5px 11px;
+.statusInline {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
 	font-size: 12px;
 	font-weight: 700;
 }
 
-.busy {
-	color: #b26b16;
-	background: #fde8bf;
+.statusDot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: currentColor;
+}
+
+.ready {
+	color: var(--color-success, #52c41a);
 }
 
 .leave {
-	color: #65758a;
-	background: #ecf1f7;
+	color: var(--color-danger, #ff4d4f);
 }
 
 .phone {

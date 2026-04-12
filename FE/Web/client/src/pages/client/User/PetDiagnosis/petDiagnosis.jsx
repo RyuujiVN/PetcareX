@@ -1,4 +1,3 @@
-import { CloseOutlined } from '@ant-design/icons';
 import Markdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -17,6 +16,7 @@ export function PetDiagnosisContent({ diagnosis, appointment, onClose, inModal =
   const species = diagnosis?.species || appointment?.species;
   const appointmentDateLabel =
     diagnosis?.appointmentDateLabel || formatDate(diagnosis?.appointmentDate || appointment?.rawDate, dateLocale, t);
+  const symptomsText = String(diagnosis?.symptoms || appointment?.symptoms || '').trim();
   const reportMarkdown = diagnosis?.reportMarkdown || t('pages.petDiagnosis.emptyReport');
 
   return (
@@ -38,6 +38,12 @@ export function PetDiagnosisContent({ diagnosis, appointment, onClose, inModal =
       </h1>
 
       <div className={`${styles.content} ${inModal ? styles.contentInModal : ''}`}>
+        {symptomsText ? (
+          <section className={styles.symptomsPanel}>
+            <p className={styles.symptomsTitle}>Triệu chứng do chủ nuôi mô tả</p>
+            <p className={styles.symptomsBody}>{symptomsText}</p>
+          </section>
+        ) : null}
         <div className={styles.markdownReport}>
           <Markdown remarkPlugins={[remarkGfm]}>{reportMarkdown}</Markdown>
         </div>

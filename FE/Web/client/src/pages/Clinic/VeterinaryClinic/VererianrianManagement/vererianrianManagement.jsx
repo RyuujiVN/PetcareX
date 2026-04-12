@@ -173,7 +173,10 @@ export default function VeterinarianManagement() {
 									<span className={styles.metaText}>
 										<FaPhone /> {doctor.phone}
 									</span>
-									<span className={`${styles.statusBadge} ${styles[doctor.statusType]}`}>{doctor.status}</span>
+									<span className={`${styles.statusInline} ${styles[doctor.statusType]}`}>
+										<span className={styles.statusDot} aria-hidden="true" />
+										<span>{doctor.status}</span>
+									</span>
 								</div>
 
 								<p className={styles.phone}>

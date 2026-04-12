@@ -117,6 +117,43 @@ const toNumberOrUndefined = (value) => {
 	return Number.isFinite(normalized) ? normalized : undefined
 }
 
+const parseLegacyBloodPressure = (value) => {
+	if (value === null || value === undefined || value === '') {
+		return {
+			systolic: undefined,
+			diastolic: undefined,
+		}
+	}
+
+	if (typeof value === 'number') {
+		return {
+			systolic: toNumberOrUndefined(value),
+			diastolic: undefined,
+		}
+	}
+
+	const normalized = String(value).trim()
+	if (!normalized) {
+		return {
+			systolic: undefined,
+			diastolic: undefined,
+		}
+	}
+
+	const segments = normalized.split(/[\/-]/).map((item) => toNumberOrUndefined(item))
+	if (segments.length >= 2) {
+		return {
+			systolic: segments[0],
+			diastolic: segments[1],
+		}
+	}
+
+	return {
+		systolic: toNumberOrUndefined(normalized),
+		diastolic: undefined,
+	}
+}
+
 const normalizePhone = (value) => String(value || '').replace(/\D/g, '')
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
@@ -378,6 +415,11 @@ const buildInitialValues = (
 	const resolvedServiceType = isWalkIn
 		? resolveServiceTypeFromName(editableMedicalRecord?.name || appointment?.formName)
 		: undefined
+	const legacyBloodPressure = parseLegacyBloodPressure(
+		editableMedicalRecord?.bloodPressure ?? editableMedicalRecord?.blood_pressure,
+	)
+	const systolicValue = toNumberOrUndefined(editableMedicalRecord?.systolic ?? legacyBloodPressure.systolic)
+	const diastolicValue = toNumberOrUndefined(editableMedicalRecord?.diastolic ?? legacyBloodPressure.diastolic)
 
 	return {
 		formName: isWalkIn ? '' : serviceLabel,
@@ -406,8 +448,8 @@ const buildInitialValues = (
 		weight: latestWeight ?? petWeight,
 		temperature: toNumberOrUndefined(editableMedicalRecord?.temperature),
 		heartRate: toNumberOrUndefined(editableMedicalRecord?.heartRate),
-		systolic: toNumberOrUndefined(editableMedicalRecord?.systolic),
-		diastolic: toNumberOrUndefined(editableMedicalRecord?.diastolic),
+		systolic: systolicValue,
+		diastolic: diastolicValue,
 		clinicalSymptoms: editableMedicalRecord?.symptoms || '',
 		preliminaryDiagnosis: editableMedicalRecord?.diagnosis || '',
 		conclusionSummary: editableMedicalRecord?.conclusion || '',
@@ -1815,23 +1857,25 @@ export default function RecordExaminationForm() {
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>{t('examForm.record.fields.bloodPressure')}</p>
-							<div className={styles.bpGrid}>
-								<Form.Item
-									name="systolic"
-									rules={[{ required: true, message: t('examForm.record.validation.systolicRequired') }]}
-									className={styles.noMargin}
-								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.systolic')} />
-								</Form.Item>
-								<Form.Item
-									name="diastolic"
-									rules={[{ required: true, message: t('examForm.record.validation.diastolicRequired') }]}
-									className={styles.noMargin}
-								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.diastolic')} />
-								</Form.Item>
-							</div>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.systolic')}</p>
+							<Form.Item
+								name="systolic"
+								rules={[{ required: true, message: t('examForm.record.validation.systolicRequired') }]}
+								className={styles.noMargin}
+							>
+								<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.systolic')} />
+							</Form.Item>
+						</div>
+
+						<div className={styles.vitalBox}>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.diastolic')}</p>
+							<Form.Item
+								name="diastolic"
+								rules={[{ required: true, message: t('examForm.record.validation.diastolicRequired') }]}
+								className={styles.noMargin}
+							>
+								<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.diastolic')} />
+							</Form.Item>
 						</div>
 					</div>
 				</Card>
@@ -1920,12 +1964,15 @@ export default function RecordExaminationForm() {
 										<Form.Item name={[field.name, 'note']} className={styles.noMargin}>
 											<Input placeholder={t('examForm.record.placeholders.orderNote')} />
 										</Form.Item>
-										<Button
-											type="text"
-											icon={<DeleteOutlined />}
-											onClick={() => remove(field.name)}
-											disabled={isReadOnlyForm || fields.length <= 1}
-										/>
+										<div className={styles.actionCell}>
+											<Button
+												type="text"
+												className={styles.deleteActionButton}
+												icon={<DeleteOutlined />}
+												onClick={() => remove(field.name)}
+												disabled={isReadOnlyForm || fields.length <= 1}
+											/>
+										</div>
 									</div>
 								))}
 							</div>
@@ -1992,12 +2039,15 @@ export default function RecordExaminationForm() {
 										<Form.Item name={[field.name, 'frequency']} className={styles.noMargin}>
 											<Input placeholder={t('examForm.record.placeholders.medicineFrequency')} />
 										</Form.Item>
-										<Button
-											type="text"
-											icon={<DeleteOutlined />}
-											onClick={() => remove(field.name)}
-											disabled={isReadOnlyForm || fields.length <= 1}
-										/>
+										<div className={styles.actionCell}>
+											<Button
+												type="text"
+												className={styles.deleteActionButton}
+												icon={<DeleteOutlined />}
+												onClick={() => remove(field.name)}
+												disabled={isReadOnlyForm || fields.length <= 1}
+											/>
+										</div>
 									</div>
 								))}
 							</div>

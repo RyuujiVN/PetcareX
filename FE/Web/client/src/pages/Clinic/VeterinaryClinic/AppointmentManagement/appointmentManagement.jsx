@@ -48,6 +48,7 @@ import styles from './appointmentManagement.module.css'
 const { Title, Text } = Typography
 
 const TIME_SLOTS = ['08:00', '08:30','09:00', '09:30', '10:00', '10:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30']
+const PAYMENT_SYNC_TTL_MS = 30 * 60 * 1000
 
 const STATUS_COLUMN_CONFIGS = [
 	{
@@ -146,6 +147,26 @@ const getGenderLabel = (value, t, missingField) => {
 	return missingField
 }
 
+const readPaymentSyncPayload = () => {
+	if (typeof window === 'undefined') return null
+
+	try {
+		const rawPayload = window.localStorage.getItem(APPOINTMENT_PAYMENT_SYNC_EVENT_KEY)
+		if (!rawPayload) return null
+
+		const payload = JSON.parse(rawPayload)
+		if (!payload?.appointmentId) return null
+
+		const updatedAt = Number(payload?.updatedAt)
+		if (!Number.isFinite(updatedAt)) return null
+		if (Date.now() - updatedAt > PAYMENT_SYNC_TTL_MS) return null
+
+		return payload
+	} catch {
+		return null
+	}
+}
+
 function AppointmentCard({ item, onOpenDetails, onDragStart, t }) {
 	return (
 		<Card
@@ -216,6 +237,25 @@ export default function AppointmentManagement() {
 		[i18n.language],
 	)
 
+	const applyPaymentSyncPayload = useCallback((payload) => {
+		if (!payload?.appointmentId) return
+
+		if (payload?.status) {
+			setAppointments((prev) =>
+				prev.map((item) =>
+					item.id === payload.appointmentId ? { ...item, status: payload.status } : item,
+				),
+			)
+		}
+
+		if (payload?.paymentStatus) {
+			setPaymentStatusByAppointmentId((prev) => ({
+				...prev,
+				[payload.appointmentId]: payload.paymentStatus,
+			}))
+		}
+	}, [])
+
 	const fetchAppointments = useCallback(async () => {
 		try {
 			setLoading(true)
@@ -258,19 +298,26 @@ export default function AppointmentManagement() {
 			const entries = await Promise.all(
 				completedAppointments.map(async (item) => {
 					const appointmentId = item?.id
+					const appointmentMedicalId = getByPaths(item, ['medical.id', 'medicalId', 'medical_id'], '')
 					const petId = item?.pet?.id
 
-					if (!appointmentId || !petId) {
+					if (!appointmentId) {
 						return [appointmentId, INVOICE_STATUS.UNPAID]
 					}
 
 					try {
-						const latestMedical = await getLatestMedicalByPetIdApi(getAdminInstance(), petId)
-						if (!latestMedical?.id) {
+						let medicalRecordId = appointmentMedicalId
+
+						if (!medicalRecordId && petId) {
+							const latestMedical = await getLatestMedicalByPetIdApi(getAdminInstance(), petId)
+							medicalRecordId = latestMedical?.id || ''
+						}
+
+						if (!medicalRecordId) {
 							return [appointmentId, INVOICE_STATUS.UNPAID]
 						}
 
-						const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), latestMedical.id)
+						const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), medicalRecordId)
 						return [
 							appointmentId,
 							invoice?.status === INVOICE_STATUS.PAID ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
@@ -293,6 +340,11 @@ export default function AppointmentManagement() {
 				nextPaymentMap[appointmentId] = paymentStatus
 			})
 
+			const recentSyncPayload = readPaymentSyncPayload()
+			if (recentSyncPayload?.appointmentId && recentSyncPayload?.paymentStatus) {
+				nextPaymentMap[recentSyncPayload.appointmentId] = recentSyncPayload.paymentStatus
+			}
+
 			setPaymentStatusByAppointmentId(nextPaymentMap)
 		}
 
@@ -304,12 +356,20 @@ export default function AppointmentManagement() {
 	}, [appointments])
 
 	useEffect(() => {
+		const syncFromStorageSnapshot = () => {
+			const payload = readPaymentSyncPayload()
+			if (!payload) return
+			applyPaymentSyncPayload(payload)
+		}
+
 		const syncAppointmentsOnFocus = () => {
+			syncFromStorageSnapshot()
 			fetchAppointments()
 		}
 
 		const syncAppointmentsOnVisibilityChange = () => {
 			if (!document.hidden) {
+				syncFromStorageSnapshot()
 				fetchAppointments()
 			}
 		}
@@ -319,23 +379,12 @@ export default function AppointmentManagement() {
 
 			try {
 				const payload = JSON.parse(event.newValue)
-				if (!payload?.appointmentId || !payload?.status) return
-
-				setAppointments((prev) =>
-					prev.map((item) =>
-						item.id === payload.appointmentId ? { ...item, status: payload.status } : item,
-					),
-				)
-
-				if (payload?.paymentStatus) {
-					setPaymentStatusByAppointmentId((prev) => ({
-						...prev,
-						[payload.appointmentId]: payload.paymentStatus,
-					}))
-				}
+				applyPaymentSyncPayload(payload)
 			} catch {
 			}
 		}
+
+		syncFromStorageSnapshot()
 
 		window.addEventListener('focus', syncAppointmentsOnFocus)
 		document.addEventListener('visibilitychange', syncAppointmentsOnVisibilityChange)
@@ -346,7 +395,7 @@ export default function AppointmentManagement() {
 			document.removeEventListener('visibilitychange', syncAppointmentsOnVisibilityChange)
 			window.removeEventListener('storage', syncAppointmentsOnPayment)
 		}
-	}, [fetchAppointments])
+	}, [applyPaymentSyncPayload, fetchAppointments])
 
 	const mappedAppointments = appointments
 		.filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
