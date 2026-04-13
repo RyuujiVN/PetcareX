@@ -66,7 +66,8 @@
 			"action": "THAO TÁC"
 		},
 		"actions": {
-			"startExam": "Bắt đầu khám"
+			"startExam": "Bắt đầu khám",
+			"reloadPage": "Tải lại trang"
 		},
 		"states": {
 			"empty": "Không có lịch hẹn phù hợp.",

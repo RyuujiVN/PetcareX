@@ -4,6 +4,7 @@ import {
     ClockCircleOutlined,
     LeftOutlined,
     PlayCircleOutlined,
+  ReloadOutlined,
     RightOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Flex, message, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
@@ -199,21 +200,6 @@ export default function PetAppointmentVererianrian() {
 
   useEffect(() => {
     fetchTodayAppointments()
-
-    const intervalId = window.setInterval(() => fetchTodayAppointments({ silent: true }), 10000)
-    const onFocus = () => fetchTodayAppointments({ silent: true })
-    const onVisibilityChange = () => {
-      if (!document.hidden) fetchTodayAppointments({ silent: true })
-    }
-
-    window.addEventListener('focus', onFocus)
-    document.addEventListener('visibilitychange', onVisibilityChange)
-
-    return () => {
-      window.clearInterval(intervalId)
-      window.removeEventListener('focus', onFocus)
-      document.removeEventListener('visibilitychange', onVisibilityChange)
-    }
   }, [fetchTodayAppointments])
 
   useEffect(() => {
@@ -362,6 +348,10 @@ export default function PetAppointmentVererianrian() {
     }
   }
 
+  const handleManualRefresh = async () => {
+    await fetchTodayAppointments({ silent: true })
+  }
+
   return (
     <div className={styles.pageWrap}>
       <Row gutter={[16, 16]}>
@@ -385,10 +375,15 @@ export default function PetAppointmentVererianrian() {
       <Card className={styles.tablePanel}>
         <Flex justify="space-between" align="center" className={styles.tableHeader}>
           <Typography.Title className={styles.panelTitle}>{t('appointments.title')}</Typography.Title>
-          <Space size={12}>
-            <Typography.Text type="secondary">
-              {isRefreshing ? '' : ''}
-            </Typography.Text>
+          <Space size={12} className={styles.headerActions}>
+            <Button
+              icon={<ReloadOutlined />}
+              onClick={handleManualRefresh}
+              loading={isRefreshing}
+              className={styles.reloadButton}
+            >
+              {t('appointments.actions.reloadPage')}
+            </Button>
             <Segmented options={tableTabs} value={activeTab} onChange={setActiveTab} className={styles.segmented} />
           </Space>
         </Flex>

@@ -97,6 +97,15 @@
   flex-wrap: wrap;
 }
 
+.headerActions {
+  align-items: center;
+}
+
+.reloadButton {
+  border-radius: 999px;
+  margin-right: 6px;
+}
+
 .panelTitle {
   margin: 0 !important;
   font-size: 20px !important;
@@ -249,6 +258,11 @@
 @media (max-width: 992px) {
   .tableHeader {
     justify-content: flex-start;
+  }
+
+  .headerActions {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .segmented {
