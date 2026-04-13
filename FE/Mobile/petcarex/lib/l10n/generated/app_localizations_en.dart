@@ -966,4 +966,174 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get petBreedRabbitLionhead => 'Lionhead Rabbit';
+
+  @override
+  String get notifTitle => 'Notifications';
+
+  @override
+  String get notifMarkAllRead => 'Read all';
+
+  @override
+  String get notifFilterAll => 'All';
+
+  @override
+  String get notifFilterUnread => 'Unread';
+
+  @override
+  String get notifEmpty => 'No notifications yet';
+
+  @override
+  String get notifAppointmentBooked => 'New appointment';
+
+  @override
+  String get notifAppointmentCancelled => 'Appointment cancelled';
+
+  @override
+  String get notifAppointmentStatusUpdated => 'Appointment updated';
+
+  @override
+  String get notifAppointmentReminder => 'Appointment reminder';
+
+  @override
+  String get notifAiDiagnosis => 'AI diagnosis ready';
+
+  @override
+  String get notifFollowUpReminder => 'Follow-up reminder';
+
+  @override
+  String get notifCommentReply => 'New comment';
+
+  @override
+  String get notifGeneral => 'Notification';
+
+  @override
+  String notifAppointmentBookedDesc(String userName, String date, String time) {
+    return '$userName booked an appointment on $date at $time';
+  }
+
+  @override
+  String notifAppointmentCancelledDesc(String date, String time) {
+    return 'Appointment on $date at $time has been cancelled';
+  }
+
+  @override
+  String notifAppointmentCancelledByClinicDesc(String clinicName) {
+    return 'Clinic $clinicName has cancelled your appointment';
+  }
+
+  @override
+  String notifAppointmentStatusUpdatedDesc(String userName) {
+    return '$userName updated the appointment status';
+  }
+
+  @override
+  String notifAppointmentReminderDesc(String date, String time) {
+    return 'You have an appointment on $date at $time';
+  }
+
+  @override
+  String notifAiDiagnosisDesc(String petName) {
+    return 'AI diagnosis result for $petName is ready';
+  }
+
+  @override
+  String notifFollowUpReminderDesc(String date) {
+    return 'Follow-up reminder on $date';
+  }
+
+  @override
+  String get notifCommentReplyDesc => 'Someone replied to your comment';
+
+  @override
+  String get notifTimeJustNow => 'Just now';
+
+  @override
+  String notifTimeMinutesAgo(int minutes) {
+    return '$minutes min ago';
+  }
+
+  @override
+  String notifTimeHoursAgo(int hours) {
+    return '$hours hr ago';
+  }
+
+  @override
+  String notifTimeDaysAgo(int days) {
+    return '$days days ago';
+  }
+
+  @override
+  String get notifTimeLongAgo => 'Long ago';
+
+  @override
+  String get selectLanguageTitle => 'Select language';
+
+  @override
+  String get languageVietnamese => 'Vietnamese';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get chatAssistantTitle => 'PetCar AI Assistant';
+
+  @override
+  String get chatNewConversation => 'New conversation';
+
+  @override
+  String get chatInputHint => 'Ask about your pet\'s health...';
+
+  @override
+  String get chatHistoryEmptyOrLoadFailed =>
+      'No chat history or failed to load';
+
+  @override
+  String get chatMenuRename => 'Rename';
+
+  @override
+  String get chatMenuDelete => 'Delete';
+
+  @override
+  String get chatRenameDialogTitle => 'Rename conversation';
+
+  @override
+  String get chatRenameDisplayNameLabel => 'Display name';
+
+  @override
+  String get chatRenameNewNameHint => 'Enter a new name';
+
+  @override
+  String get chatSave => 'Save';
+
+  @override
+  String get chatRenamedSuccess => 'Renamed';
+
+  @override
+  String get chatDeleteDialogTitle => 'Delete conversation?';
+
+  @override
+  String chatDeleteDialogContent(String title) {
+    return 'The conversation \"$title\" will be deleted permanently.';
+  }
+
+  @override
+  String get chatDeletedSuccess => 'Conversation deleted';
+
+  @override
+  String get chatNoMessages => 'No messages';
+
+  @override
+  String get chatConversationDefault => 'Conversation';
+
+  @override
+  String get chatStatusSending => 'Sending';
+
+  @override
+  String get chatStatusSent => 'Sent';
+
+  @override
+  String get chatStatusError => 'Error';
+
+  @override
+  String get language => 'Language';
 }

@@ -290,8 +290,8 @@ class AuthProvider extends ChangeNotifier {
       } else {
         await logout();
       }
-    } catch (e) {
-      debugPrint("Error checking auth status: $e");
+    } catch (_) {
+      // Auth check failed silently — logout handled above.
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -311,7 +311,6 @@ class AuthProvider extends ChangeNotifier {
       }
       return false;
     } catch (e) {
-      debugPrint("Error fetching profile: $e");
       return false;
     }
   }

@@ -41,7 +41,7 @@ export class CloudinaryController {
   }
 
   @Post('upload/file-resize')
-  @ApiOperation({ summary: 'Tải ảnh avatar thú cưng' })
+  @ApiOperation({ summary: 'Nén ảnh' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {

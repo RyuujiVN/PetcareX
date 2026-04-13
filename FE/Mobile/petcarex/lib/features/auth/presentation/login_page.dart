@@ -172,10 +172,15 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget _buildLanguageSelector() {
     final currentLocale = context.watch<LanguageProvider>().locale.languageCode;
+    final l10n = AppLocalizations.of(context)!;
     return PopupMenuButton<String>(
       tooltip: '', // Tắt tooltip mặc định (Hiển thị menu)
       onSelected: (String languageCode) {
-        context.read<LanguageProvider>().setLocale(Locale(languageCode));
+        // Tránh lỗi assert khi đổi locale trong lúc menu overlay đang dispose.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          context.read<LanguageProvider>().setLocale(Locale(languageCode));
+        });
       },
       offset: const Offset(0, 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -198,7 +203,7 @@ class _LoginPageState extends State<LoginPage> {
               Image.asset('assets/images/vn.png', width: 20, height: 20),
               const SizedBox(width: 12),
               Text(
-                'Tiếng Việt', 
+                l10n.languageVietnamese,
                 style: TextStyle(
                   fontWeight: currentLocale == 'vi' ? FontWeight.bold : FontWeight.normal,
                   color: currentLocale == 'vi' ? AppColors.primary : AppColors.textDark,
@@ -218,7 +223,7 @@ class _LoginPageState extends State<LoginPage> {
               Image.asset('assets/images/eng.png', width: 20, height: 20),
               const SizedBox(width: 12),
               Text(
-                'English', 
+                l10n.languageEnglish,
                 style: TextStyle(
                   fontWeight: currentLocale == 'en' ? FontWeight.bold : FontWeight.normal,
                   color: currentLocale == 'en' ? AppColors.primary : AppColors.textDark,

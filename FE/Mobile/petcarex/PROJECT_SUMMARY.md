@@ -236,6 +236,36 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Tập trung hóa contract upload ảnh, giảm duplicate API giữa các module.
     - Dễ thay đổi backend storage strategy mà không phải sửa hàng loạt feature.
 
+## 💬 Streaming AI Chat Architecture (2026-04-09)
+
+### Kiến trúc streaming token-by-token
+- **Socket event flow:**
+    1. User gửi message → `ChatSocketService.sendMessage()` emit `message` + `sendMessage` events.
+    2. Backend xác nhận → emit `serverResponseMessage` (user message saved to DB).
+    3. AI streaming → emit nhiều `aiResponse` với `{ "type": "token", "token": "từng_chữ", ... }`.
+    4. AI hoàn thành → emit `aiResponse` với `{ "type": "done" }`.
+    5. Final DB record → emit `serverResponseAIMessage` hoặc `aiFinalMessage` (AI message saved to DB).
+- **Socket service** (`lib/features/chat/data/chat_socket_service.dart`):
+    - `onAiChunk` callback: nhận từng token khi `type == "token"` hoặc `"chunk"` hoặc empty.
+    - `onAiStreamDone` callback: signal khi `type == "done"`.
+    - `onAiFinalMessage` callback: nhận message cuối cùng từ DB.
+    - Đọc content từ field `token` > `answer` > `content` (fallback chain).
+- **Provider** (`lib/features/chat/presentation/provider/chat_provider.dart`):
+    - `_appendAiChunk()`: Token đầu tiên tạo `ChatMessage` mới với `isStreaming: true`, các token sau append vào `content`.
+    - `_markStreamingDone()`: Set `isStreaming: false`, clear `_streamingMessageId`. Gọi khi nhận `type: "done"`.
+    - `_finalizeAiMessage()`: Replace local streaming message bằng DB record từ server. Tìm theo `_streamingMessageId` hoặc fallback tìm message có id prefix `ai_stream`.
+    - Race condition handling: Nếu stream đã done nhưng token mới đến → tạo message streaming mới.
+- **UI** (`lib/features/chat/presentation/chat_page.dart`):
+    - Bubble message hiển thị cursor `▍` khi `message.isStreaming == true`.
+    - Auto-scroll-to-bottom khi đang streaming (check `hasStreaming`).
+    - State management: Provider pattern — `notifyListeners()` mỗi token → `context.watch<ChatProvider>()` rebuild.
+- **Cleanup khi dispose:** `ChatProvider.dispose()` gọi `_socketService.disconnect()` → disconnect + dispose socket.
+
+### Debug logging policy
+- Chat feature: **không có debug log** — tất cả `AppLogger.logError` đã xóa khỏi socket service và provider.
+- `AppLogger.logError()` luôn print prefix `"API ERROR"` — chỉ nên dùng cho actual errors, không dùng cho info/debug logging.
+- HTTP API logging (`AppLogger.logRequest/logResponse` trong `api_client.dart`) vẫn giữ nguyên, đã có guard `kDebugMode`.
+
 ## 📁 Trạng thái các tính năng
 
 ### 1. Hệ thống đa ngôn ngữ (i18n)
@@ -293,6 +323,12 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 - **Mở rộng coverage i18n cho enum (2026-03):** Bổ sung key VI/EN + `getTranslatedName(context)` cho các nhóm: `InvoiceStatusEnum`, `RoleEnum`, `MedicineUnitEnum`, `PetSpeciesEnum`, `PetBreedEnum`; đồng bộ quy tắc parse qua `fromValue(...)` theo chuẩn hóa chữ hoa.
 - **Type-safe Appointment Status (2026-03):** `Appointment.status` được nâng cấp sang kiểu `AppointmentStatusEnum` (không còn giữ `String` ở model). Các luồng lọc `upcoming/historical` và hiển thị badge trạng thái dùng so sánh enum trực tiếp, giữ nguyên logic nghiệp vụ nhưng an toàn kiểu dữ liệu hơn.
 - **Loại bỏ hardcoded status payload (2026-03):** `AppointmentService.cancelAppointment(...)` và `updateAppointmentStatus(...)` gửi trạng thái bằng `AppointmentStatusEnum.value` thay vì chuỗi cứng (`Đã huỷ`, ...), giúp đồng bộ contract FE-BE và giảm rủi ro sai chính tả trạng thái.
+- **RBAC Sync — Cancel Appointment Endpoint (2026-04-09):**
+    - **Bối cảnh:** BE cập nhật RBAC, endpoint `PATCH /api/appointment/:id` giờ yêu cầu `ADMIN_CLINIC` hoặc `VETERINARIAN`. Customer phải dùng `PATCH /api/appointment/client/:id`.
+    - **Fix FE:** Thêm `END_POINT_APPOINTMENT_CLIENT` vào `app_constants.dart`, thêm helper `appointmentClientByIdEndpoint()` vào `api_helper.dart`. `cancelAppointment()` trong `appointment_service.dart` đổi sang endpoint `/api/appointment/client/{id}` (không cần body — BE tự set CANCELLED).
+    - Xóa method `updateAppointmentStatus()` (dead code, gọi sai endpoint RBAC, không ai gọi).
+    - **Lỗi BE phát hiện kèm (cần BE team fix):** Migration `1775632467242-update-notification-table` (DROP cột `sender_type` khỏi bảng notification) chưa chạy → INSERT notification khi tạo appointment bị `NOT NULL constraint violation` trên `sender_type` → HTTP 500. FE không liên quan, BE cần chạy migration.
+    - **RBAC Matrix cho Mobile CUSTOMER:** Tất cả 48 API call từ mobile đều tương thích RBAC ngoại trừ lỗi cancel đã fix ở trên. Các endpoint chính: Pet (CUSTOMER), Appointment POST/GET (CUSTOMER), Medical GET (CUSTOMER), Clinic/Vet GET (ALL roles), Forum/Chat/Notification (JwtAuth only), Cloudinary (public).
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
 - **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo contract chuẩn enum key (`enum.name` và `enum.value` đều là key backend như `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`); không duy trì alias legacy để tránh logic mơ hồ.
 - **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).
@@ -553,3 +589,58 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
 3. **Android USB (mặc định):** Chạy `flutter run` (debug) để kích hoạt auto reverse qua Gradle.
 4. **Nếu cần set reverse thủ công:** `adb reverse tcp:3000 tcp:3000` rồi `flutter run`.
 5. **Quy ước ghi file bằng PowerShell (tránh lỗi tiếng Việt):** Khi dùng `Set-Content` hoặc `Out-File`, luôn bắt buộc chỉ định `-Encoding UTF8`.
+
+## 🔔 Notification Integration (2026-07)
+
+### Tổng quan
+Tích hợp hệ thống thông báo realtime vào Mobile App, đồng bộ UX với Web FE. Sử dụng **WebSocket (socket.io)** cho push realtime và **REST API** cho lịch sử + thao tác đọc.
+
+### Kiến trúc
+- **Pattern:** Provider (ChangeNotifier) — nhất quán với toàn bộ app.
+- **Realtime:** `socket_io_client` kết nối namespace `/notification`, xác thực JWT qua `handshake.auth.accessToken`.
+- **REST API:**
+  - `GET /api/notification?limit=20&filter=ALL|UNREAD&createdAt=<cursor>` — phân trang cursor-based.
+  - `PATCH /api/notification/mark-one/:id` — đánh dấu đã đọc 1 thông báo.
+  - `PATCH /api/notification/mark-all` — đánh dấu đã đọc tất cả.
+- **Socket event:** `severSendNotification` (tên event từ BE, giữ nguyên).
+
+### Notification Types (NotificationEnum)
+| Type | Mô tả |
+|------|--------|
+| `APPOINTMENT_BOOKED` | Lịch hẹn mới được đặt |
+| `APPOINTMENT_CANCELLED` | Lịch hẹn bị hủy |
+| `APPOINTMENT_STATUS_UPDATED_BY_CLIENT` | Khách hàng cập nhật trạng thái |
+| `APPOINTMENT_REMINDER` | Nhắc lịch hẹn sắp tới |
+| `AI_DIAGNOSIS` | Kết quả chẩn đoán AI |
+| `FOLLOW_UP_REMINDER` | Nhắc tái khám |
+| `COMMENT_REPLY` | Có người trả lời bình luận |
+
+### Files mới tạo
+| File | Vai trò |
+|------|---------|
+| `lib/features/notification/data/models/notification_model.dart` | Parse payload từ BE, helper getters cho target fields |
+| `lib/features/notification/data/repositories/notification_repository.dart` | REST API calls (get, mark-one, mark-all) |
+| `lib/core/services/notification_socket_service.dart` | WebSocket connection, reconnect (15 attempts, 3s delay) |
+| `lib/features/notification/presentation/provider/notification_provider.dart` | State management: list, unread count, filter, optimistic updates |
+| `lib/features/notification/presentation/screens/notification_screen.dart` | Màn hình danh sách thông báo (filter, pull-to-refresh, infinite scroll) |
+| `lib/features/notification/presentation/widgets/notification_item.dart` | Widget item thông báo (icon theo type, unread dot, relative time) |
+
+### Files đã sửa
+| File | Thay đổi |
+|------|----------|
+| `lib/core/constants/app_constants.dart` | Thêm `END_POINT_NOTIFICATION` |
+| `lib/main.dart` | Đăng ký `NotificationProvider` vào MultiProvider |
+| `lib/features/home/presentation/home_page.dart` | Bell icon badge hiển thị `totalUnread` (cap 99+), navigate sang NotificationScreen |
+| `lib/features/main_navigation/presentation/main_navigation_wrapper.dart` | Init notification (socket + fetch) sau khi mount |
+| `lib/features/account/presentation/account_page.dart` | Cleanup notification khi logout |
+| `lib/l10n/app_vi.arb` | Thêm 25+ i18n keys cho notification |
+| `lib/l10n/app_en.arb` | Thêm 25+ i18n keys cho notification |
+
+### UX Features
+- **Badge:** Hiển thị số thông báo chưa đọc trên bell icon ở Home, giới hạn hiển thị 99+.
+- **Filter:** Tab All / Unread để lọc nhanh.
+- **Optimistic update:** Đánh dấu đọc cập nhật UI ngay lập tức, gọi API background.
+- **Tap navigation:** Chạm thông báo → đánh dấu đọc + chuyển đến tab tương ứng (Appointments/Community).
+- **Pull-to-refresh:** Kéo xuống để tải lại danh sách.
+- **Infinite scroll:** Tự động load thêm khi cuộn đến cuối.
+- **Cleanup on logout:** Ngắt socket, reset state khi đăng xuất.
