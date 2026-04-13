@@ -7,14 +7,22 @@ import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/enums/service_enum.dart';
 import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/markdown_text.dart';
 import '../../../../core/utils/app_notifier.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../data/appointment_model.dart';
+import '../data/appointment_service.dart';
+import 'appointment_navigation_controller.dart';
 import 'provider/appointment_provider.dart';
 
 class AppointmentPage extends StatefulWidget {
-  const AppointmentPage({super.key});
+  const AppointmentPage({
+    super.key,
+    this.navigationController,
+  });
+
+  final AppointmentNavigationController? navigationController;
 
   @override
   State<AppointmentPage> createState() => _AppointmentPageState();
@@ -23,20 +31,65 @@ class AppointmentPage extends StatefulWidget {
 class _AppointmentPageState extends State<AppointmentPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final AppointmentService _appointmentService = AppointmentService();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    widget.navigationController?.addListener(_handleOpenRequest);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<AppointmentProvider>().fetchAppointments();
+      _handleOpenRequest();
     });
   }
 
   @override
   void dispose() {
+    widget.navigationController?.removeListener(_handleOpenRequest);
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleOpenRequest() async {
+    final request = widget.navigationController?.consumePendingRequest();
+    if (request == null || !mounted) return;
+
+    final provider = context.read<AppointmentProvider>();
+    if (provider.appointments.isEmpty) {
+      await provider.fetchAppointments();
+      if (!mounted) return;
+    }
+
+    final appointments = provider.appointments;
+    final index = appointments.indexWhere(
+      (item) => item.id == request.appointmentId,
+    );
+
+    if (index == -1) {
+      final l10n = AppLocalizations.of(context);
+      AppNotifier.showError(context, l10n?.failed ?? 'Không tìm thấy lịch hẹn');
+      return;
+    }
+
+    final appointment = appointments[index];
+    final shouldOpenHistoryTab =
+        appointment.status == AppointmentStatusEnum.COMPLETED ||
+        appointment.status == AppointmentStatusEnum.CANCELLED;
+    final targetTab = shouldOpenHistoryTab ? 1 : 0;
+    if (_tabController.index != targetTab) {
+      _tabController.animateTo(targetTab);
+    }
+
+    final l10n = AppLocalizations.of(context);
+    if (l10n == null) return;
+
+    _showAppointmentDetails(
+      context,
+      appointment,
+      l10n,
+      initiallyExpandAiDiagnosis: request.expandAiDiagnosis,
+    );
   }
 
   @override
@@ -381,7 +434,11 @@ class _AppointmentPageState extends State<AppointmentPage>
                         isDestructive: true,
                         onPressed:
                             appointmentStatus == AppointmentStatusEnum.BOOKED
-                            ? () => _confirmCancel(item.id, l10n)
+                            ? () => _confirmCancel(
+                                item.id,
+                                item.veterinarian.userId,
+                                l10n,
+                              )
                             : null,
                       ),
                     ),
@@ -417,6 +474,7 @@ class _AppointmentPageState extends State<AppointmentPage>
     BuildContext context,
     Appointment item,
     AppLocalizations l10n,
+    {bool initiallyExpandAiDiagnosis = false}
   ) {
     final breedLabel =
         PetBreedEnum.fromValue(item.pet.breedName)?.getTranslatedName(context) ??
@@ -438,10 +496,11 @@ class _AppointmentPageState extends State<AppointmentPage>
             left: 20,
             right: 20,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
               Center(
                 child: Container(
                   width: 40,
@@ -589,8 +648,16 @@ class _AppointmentPageState extends State<AppointmentPage>
                 item.clinic.address,
               ),
 
+              const Divider(height: 30, color: AppColors.divider),
+              _buildAiDiagnosisSection(
+                item,
+                l10n,
+                initiallyExpanded: initiallyExpandAiDiagnosis,
+              ),
+
               const SizedBox(height: 20),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -624,7 +691,140 @@ class _AppointmentPageState extends State<AppointmentPage>
     );
   }
 
-  Future<void> _confirmCancel(String id, AppLocalizations l10n) async {
+  Widget _buildAiDiagnosisSection(
+    Appointment item,
+    AppLocalizations l10n, {
+    bool initiallyExpanded = false,
+  }) {
+    final aiDiagnosisFuture = _appointmentService.getAiDiagnosisByAppointment(
+      item.id,
+    );
+
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        initiallyExpanded: initiallyExpanded,
+        tilePadding: EdgeInsets.zero,
+        childrenPadding: const EdgeInsets.only(bottom: 8),
+        title: Row(
+          children: [
+            const Icon(
+              Icons.psychology_alt_outlined,
+              size: 18,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'Chẩn đoán AI',
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textGrey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        children: [
+          FutureBuilder<AppointmentAiDiagnosis?>(
+            future: aiDiagnosisFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                );
+              }
+
+              final aiDiagnosis = snapshot.data;
+              if (aiDiagnosis == null || aiDiagnosis.diagnosis.trim().isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+                  child: Text(
+                    'Chưa có kết quả chẩn đoán AI cho lịch hẹn này.',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textGrey,
+                      height: 1.4,
+                    ),
+                  ),
+                );
+              }
+
+              return Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 4),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryLight,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (aiDiagnosis.pet?.name != null &&
+                        aiDiagnosis.pet!.name!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '${item.pet.name} - ${aiDiagnosis.pet!.name!}',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ),
+                    RichText(
+                      text: TextSpan(
+                        children: buildBoldMarkdownSpans(
+                          aiDiagnosis.diagnosis,
+                          const TextStyle(
+                            fontSize: 13,
+                            color: AppColors.textDark,
+                            height: 1.45,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (aiDiagnosis.createdAt != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Text(
+                          DateFormat('dd/MM/yyyy HH:mm')
+                              .format(aiDiagnosis.createdAt!),
+                          style: const TextStyle(
+                            fontSize: 11,
+                            color: AppColors.textGrey,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmCancel(
+    String id,
+    String recipientId,
+    AppLocalizations l10n,
+  ) async {
     final shouldCancel = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -656,7 +856,10 @@ class _AppointmentPageState extends State<AppointmentPage>
     if (shouldCancel != true || !mounted) return;
 
     final provider = context.read<AppointmentProvider>();
-    final success = await provider.cancelAppointment(id);
+    final success = await provider.cancelAppointment(
+      id,
+      recipientId: recipientId,
+    );
     if (!mounted) return;
 
     if (success) {

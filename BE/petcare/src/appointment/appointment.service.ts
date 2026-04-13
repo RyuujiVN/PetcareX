@@ -46,7 +46,7 @@ export class AppointmentService {
       .createQueryBuilder('aiDiagnosis')
       .leftJoin('aiDiagnosis.pet', 'pet')
       .addSelect(['pet.name', 'pet.avatar', 'pet.breed', 'pet.ownerId'])
-      .where('aiDiagnosis.appointmentId = :id', { id: appointmentId });
+      .where('aiDiagnosis.appoinmentId = :id', { id: appointmentId });
 
     return queryBuilder.getOne();
   }
@@ -242,6 +242,8 @@ export class AppointmentService {
       where: { clinicId: createDTO.clinicId },
       select: { userId: true },
     });
+
+    console.log('Admin clinic userId:', adminClinic?.userId);
 
     let notifications;
 

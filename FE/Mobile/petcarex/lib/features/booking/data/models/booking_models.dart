@@ -107,6 +107,7 @@ class CreateAppointmentDto {
   final String petId;
   final String veterinarianId;
   final String clinicId;
+  final String recipientId;
   final String appointmentDate; // YYYY-MM-DD
   final String appointmentTime; // HH:mm
   final String service;
@@ -116,6 +117,7 @@ class CreateAppointmentDto {
     required this.petId,
     required this.veterinarianId,
     required this.clinicId,
+    required this.recipientId,
     required this.appointmentDate,
     required this.appointmentTime,
     required this.service,
@@ -127,6 +129,8 @@ class CreateAppointmentDto {
       'petId': petId,
       'veterinarianId': veterinarianId,
       'clinicId': clinicId,
+      'recipientId': recipientId,
+      'recipient_id': recipientId,
       'appointmentDate': appointmentDate,
       'appointmentTime': appointmentTime,
       'service': service,
