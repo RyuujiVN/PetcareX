@@ -1,7 +1,6 @@
 import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { AppointmentStatusEnum } from 'src/common/enums/appointment-status.enum';
-import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
 import { ServiceEnum } from 'src/common/enums/service.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
@@ -49,14 +48,6 @@ export class Appointment {
     enum: AppointmentStatusEnum,
   })
   status: AppointmentStatusEnum;
-
-  @Column({
-    type: 'enum',
-    enum: InvoiceStatusEnum,
-    name: 'payment_status',
-    default: InvoiceStatusEnum.UNPAID,
-  })
-  paymentStatus: InvoiceStatusEnum;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

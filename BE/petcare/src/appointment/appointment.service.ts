@@ -23,7 +23,6 @@ import { AppointmentPagination } from './types/appointment-pagination.type';
 import { Not } from 'typeorm';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
-import { UpdateAppointmentPaymentStatusDTO } from './dtos/update-appointment-payment-status.dto';
 
 @Injectable()
 export class AppointmentService {
@@ -327,23 +326,6 @@ export class AppointmentService {
   // Cập nhật lịch hẹn
   async updateAppointment(
     updateDTO: UpdateAppointmentDTO,
-    appointmentId: string,
-  ) {
-    const appointment = await this.appointmentRepository.findOne({
-      where: {
-        id: appointmentId,
-      },
-    });
-
-    if (!appointment) throw new NotFoundException('Không tìm thấy lịch hẹn');
-    Object.assign(appointment, updateDTO);
-
-    await this.appointmentRepository.save(appointment);
-  }
-
-  // Cập nhật trạng thái thanh toán lịch hẹn
-  async updateAppointmentPaymentStatus(
-    updateDTO: UpdateAppointmentPaymentStatusDTO,
     appointmentId: string,
   ) {
     const appointment = await this.appointmentRepository.findOne({
