@@ -301,7 +301,7 @@ export default function AdminClinicLayout() {
     }
 
     if (effectiveRole === RoleEnum.ADMIN) {
-      navigate("/admin/home", { replace: true });
+      navigate("/admin/dashboard/clinics", { replace: true });
     }
   }, [token, effectiveRole, hasClinicRole, navigate]);
 

@@ -222,7 +222,7 @@ export default function AdminVererianrianLayout() {
     }
 
     if (effectiveRole === RoleEnum.ADMIN) {
-      navigate('/admin/home', { replace: true })
+      navigate('/admin/dashboard/clinics', { replace: true })
     }
   }, [token, effectiveRole, hasVeterinarianRole, navigate])
 

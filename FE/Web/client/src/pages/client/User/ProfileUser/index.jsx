@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  getUserListApi,
   getUserProfileApi,
   updateUserProfileApi,
   uploadAvatarApi,
@@ -108,32 +107,13 @@ export default function ProfileUser() {
         return;
       }
 
-      const userListRes = await getUserListApi(getClientInstance(), 1, 1000, '');
-      const userItems = Array.isArray(userListRes?.data?.items) ? userListRes.data.items : [];
-      const duplicatedEmail = userItems.some(
-        (user) => user?.id !== profileData?.id && normalizeEmail(user?.email) === updateData.email,
-      );
-      const duplicatedPhone = userItems.some(
-        (user) => user?.id !== profileData?.id && normalizePhone(user?.phone) === updateData.phone,
-      );
-
-      if (duplicatedEmail) {
-        message.error(t('pages.profile.duplicateEmail'));
-        return;
-      }
-
-      if (duplicatedPhone) {
-        message.error(t('pages.profile.duplicatePhone'));
-        return;
-      }
-
       await updateUserProfileApi(getClientInstance(), profileData.id, updateData);
       setProfileData((prev) => ({ ...prev, ...updateData }));
       await refreshUserProfile();
       message.success(t('pages.profile.updateSuccess'));
       navigate(-1);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || t('pages.profile.updateFailed');
+      const errorMsg = error.message || error.response?.data?.message || t('pages.profile.updateFailed');
       message.error(errorMsg);
     } finally {
       setLoading(false);

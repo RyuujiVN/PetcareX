@@ -284,7 +284,7 @@ const handleViewDetails = (appointment) => {
             </div>
           </div>
         </antd.Col>
-        <antd.Col xs={24} sm={6}>
+        <antd.Col xs={24} sm={6} className="appointment-action-col">
           <antd.Space direction="vertical" style={{ width: '100%' }}>
             <antd.Button
               style={{ backgroundColor: 'var(--page-appointment-primary)', borderColor: 'var(--page-appointment-primary)' }}

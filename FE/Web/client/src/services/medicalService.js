@@ -41,7 +41,7 @@ export const updateMedicalApi = (instance, id, data) => {
 export const getLatestMedicalByPetIdApi = async (instance, petId) => {
   if (!petId) return null
 
-  const payload = await getMedicalByPetIdApi(instance, petId, 1, 200)
+  // const payload = await getMedicalByPetIdApi(instance, petId, 1, 200)
   const records = Array.isArray(payload?.items)
     ? payload.items
     : Array.isArray(payload?.data)

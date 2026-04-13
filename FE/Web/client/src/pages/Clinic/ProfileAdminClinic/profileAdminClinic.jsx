@@ -73,7 +73,7 @@ export default function AdminClinicProfile() {
 
       message.success(t('profile.messages.saveSuccess'))
     } catch (error) {
-      message.error(error?.response?.data?.message || error?.message || t('profile.messages.saveFailed'))
+      message.error(error?.message || error?.response?.data?.message || t('profile.messages.saveFailed'))
     } finally {
       setSaving(false)
     }
