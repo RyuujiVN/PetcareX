@@ -131,6 +131,23 @@
 				"missingCreatedAtTitle": "Thiếu createdAt của phiếu khám",
 				"missingCreatedAtDesc": "Backend cần trả về createdAt trong dữ liệu medical của appointment hoặc endpoint chi tiết medical để tính khóa 15 phút."
 			},
+			"patientInfo": {
+				"title": "Thông tin bệnh nhân",
+				"badge": "Thông tin từ hồ sơ đặt lịch",
+				"ownerSection": "Thông tin chủ nuôi",
+				"petSection": "Thông tin thú cưng",
+				"ownerName": "Họ tên",
+				"ownerEmail": "Email",
+				"ownerPhone": "Số điện thoại",
+				"petName": "Tên",
+				"petSpecies": "Loài",
+				"petBreed": "Giống",
+				"petGender": "Giới tính",
+				"petAge": "Tuổi",
+				"petWeight": "Cân nặng",
+				"noInfo": "Không có thông tin",
+				"loadingOwner": "Đang tải thông tin chủ nuôi..."
+			},
 			"sections": {
 				"walkInCustomerPet": "Thông tin khách hàng & Thú cưng",
 				"vital": "Chỉ số sinh tồn",
