@@ -15,12 +15,18 @@ import {
   CommentPagination,
   CommentReplyPagination,
 } from './types/comment-pagination.type';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationEnum } from 'src/common/enums/notification.enum';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 
 @Injectable()
 export class CommentService {
   constructor(
     @InjectRepository(ForumComment)
     private readonly commentRepository: Repository<ForumComment>,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
+    private readonly notificationGateway: NotificationGateway,
     private readonly dataSource: DataSource,
   ) {}
 

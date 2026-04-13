@@ -43,11 +43,6 @@ import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
 import notifySocket from "../../../socket/notifySocket";
 
-const WS_BASE_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-).replace(/\/api\/?$/, "");
-const NOTIFICATION_SOCKET_URL = `${WS_BASE_URL}/notification`;
-
 const MIN_PASSWORD_LENGTH = 8;
 
 const INITIAL_PASSWORD_FORM = {
