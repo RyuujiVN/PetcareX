@@ -4,6 +4,7 @@ import {
   LockOutlined,
   LogoutOutlined,
   UserOutlined,
+  SmileOutlined,
 } from "@ant-design/icons";
 import {
   Avatar,
@@ -381,6 +382,7 @@ function Header() {
           description: mapped.description || "",
           placement: "bottomRight",
           duration: 5,
+          icon: <SmileOutlined style={{ color: '#108ee9' }} />,
           onClick: () => handleClickNotificationItem(mapped),
         });
       }
