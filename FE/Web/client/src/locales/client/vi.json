@@ -619,8 +619,15 @@
       "steps": {
         "choosePet": "Chọn thú cưng của bạn",
         "serviceClinic": "Dịch vụ & Phòng khám",
+        "chooseSpecialty": "Chọn Khoa",
         "chooseDoctor": "Chọn Bác sĩ chuyên khoa",
         "chooseDateTime": "Chọn ngày & Giờ hẹn"
+      },
+      "specialty": {
+        "all": "Tất cả",
+        "filterLabel": "Chọn khoa chuyên môn",
+        "noDoctors": "Không có bác sĩ trong khoa này",
+        "loadingDoctors": "Đang tải danh sách bác sĩ..."
       },
       "form": {
         "serviceLabel": "Chọn dịch vụ",

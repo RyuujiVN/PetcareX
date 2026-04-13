@@ -112,6 +112,8 @@ export default function BookingAppointment() {
   const [doctors, setDoctors] = useState([]);
   const [myAppointments, setMyAppointments] = useState([]);
 
+
+
   const service = Form.useWatch('service', form);
   const clinicId = Form.useWatch('clinicId', form);
   const doctorId = Form.useWatch('doctorId', form);
@@ -582,44 +584,60 @@ export default function BookingAppointment() {
               </h2>
 
               <Row gutter={16} align="middle">
-                <Col span={12}>
-                  <Form.Item
-                    label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('common.labels.doctor')}</span>}
-                    name="doctorId"
-                    rules={[{ required: true, message: t('pages.booking.validation.doctorRequired') }]}
-                  >
-                    <Select
-                      size="large"
-                      style={{marginBottom: 20}}
-                      options={doctors.map((item) => ({
-                        label: item.user?.fullName,
-                        value: item.userId,
-                      }))}
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Card
-                    style={{ borderRadius: 12 }}
-                    bodyStyle={{ display: 'flex', alignItems: 'center', gap: 16 }}
-                  >
-                    <Avatar
-                      size={64}
-                      src={selectedDoctor?.user?.avatarUrl || '/bs1.png'}
-                    />
-
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: 16 }}>
-                        {selectedDoctorName || t('pages.booking.notSelectedDoctor')}
+                  <Col span={12}>
+                    <Form.Item
+                      label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('common.labels.doctor')}</span>}
+                      name="doctorId"
+                      rules={[{ required: true, message: t('pages.booking.validation.doctorRequired') }]}
+                    >
+                      <Select
+                        size="large"
+                        style={{ marginBottom: 20 }}
+                        optionLabelProp="displayLabel"
+                      >
+                        {doctors.map((item) => (
+                          <Select.Option
+                            key={item.userId}
+                            value={item.userId}
+                            displayLabel={item.user?.fullName}
+                          >
+                            <div className="doctor-option">
+                              <div className="doctor-option-name">{item.user?.fullName}</div>
+                              <div className="doctor-option-specialty">
+                                {item.specialty
+                                  ? t(`enums.veterinarySpecialty.${item.specialty}`, { defaultValue: getSpecialtyLabel(item.specialty) })
+                                  : t('pages.booking.noSpecialty')}
+                              </div>
+                            </div>
+                          </Select.Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </Col>
+                  <Col span={12}>
+                    <Card
+                      style={{ borderRadius: 12 }}
+                      bodyStyle={{ display: 'flex', alignItems: 'center', gap: 16 }}
+                    >
+                      <Avatar
+                        size={64}
+                        src={selectedDoctor?.user?.avatarUrl || '/bs1.png'}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 16 }}>
+                          {selectedDoctorName || t('pages.booking.notSelectedDoctor')}
+                        </div>
+                        <div style={{ color: 'var(--color-text-secondary)' }}>
+                          {selectedDoctor?.specialty
+                            ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, { defaultValue: getSpecialtyLabel(selectedDoctor.specialty, 'vi') })
+                            : t('pages.booking.noSpecialty')}
+                        </div>
+                        {/* TODO: Doctor description panel - cần BE bổ sung field 'description' vào API GET /api/veterinarian */}
                       </div>
+                    </Card>
+                  </Col>
+                </Row>
 
-                      <div style={{ color: 'var(--color-text-secondary)' }}>
-                        {selectedDoctor?.specialty ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, { defaultValue: getSpecialtyLabel(selectedDoctor.specialty, 'vi') }) : t('pages.booking.noSpecialty')}
-                      </div>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
               <div style={{ marginTop: 16 }}>
                 <Form.Item
                   label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('common.labels.symptom')}</span>}
