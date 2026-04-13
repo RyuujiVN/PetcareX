@@ -931,4 +931,174 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get petBreedRabbitLionhead => 'Thỏ Lionhead';
+
+  @override
+  String get notifTitle => 'Thông báo';
+
+  @override
+  String get notifMarkAllRead => 'Đọc tất cả';
+
+  @override
+  String get notifFilterAll => 'Tất cả';
+
+  @override
+  String get notifFilterUnread => 'Chưa đọc';
+
+  @override
+  String get notifEmpty => 'Chưa có thông báo nào';
+
+  @override
+  String get notifAppointmentBooked => 'Lịch hẹn mới';
+
+  @override
+  String get notifAppointmentCancelled => 'Lịch hẹn đã hủy';
+
+  @override
+  String get notifAppointmentStatusUpdated => 'Cập nhật lịch hẹn';
+
+  @override
+  String get notifAppointmentReminder => 'Nhắc nhở lịch hẹn';
+
+  @override
+  String get notifAiDiagnosis => 'Chẩn đoán AI sẵn sàng';
+
+  @override
+  String get notifFollowUpReminder => 'Nhắc nhở tái khám';
+
+  @override
+  String get notifCommentReply => 'Bình luận mới';
+
+  @override
+  String get notifGeneral => 'Thông báo';
+
+  @override
+  String notifAppointmentBookedDesc(String userName, String date, String time) {
+    return '$userName đã đặt lịch hẹn ngày $date lúc $time';
+  }
+
+  @override
+  String notifAppointmentCancelledDesc(String date, String time) {
+    return 'Lịch hẹn ngày $date lúc $time đã bị hủy';
+  }
+
+  @override
+  String notifAppointmentCancelledByClinicDesc(String clinicName) {
+    return 'Phòng khám $clinicName đã hủy lịch hẹn của bạn';
+  }
+
+  @override
+  String notifAppointmentStatusUpdatedDesc(String userName) {
+    return '$userName đã cập nhật trạng thái lịch hẹn';
+  }
+
+  @override
+  String notifAppointmentReminderDesc(String date, String time) {
+    return 'Bạn có lịch hẹn vào ngày $date lúc $time';
+  }
+
+  @override
+  String notifAiDiagnosisDesc(String petName) {
+    return 'Kết quả chẩn đoán AI cho $petName đã sẵn sàng';
+  }
+
+  @override
+  String notifFollowUpReminderDesc(String date) {
+    return 'Nhắc nhở tái khám vào ngày $date';
+  }
+
+  @override
+  String get notifCommentReplyDesc => 'Có người đã trả lời bình luận của bạn';
+
+  @override
+  String get notifTimeJustNow => 'Vừa xong';
+
+  @override
+  String notifTimeMinutesAgo(int minutes) {
+    return '$minutes phút trước';
+  }
+
+  @override
+  String notifTimeHoursAgo(int hours) {
+    return '$hours giờ trước';
+  }
+
+  @override
+  String notifTimeDaysAgo(int days) {
+    return '$days ngày trước';
+  }
+
+  @override
+  String get notifTimeLongAgo => 'Lâu rồi';
+
+  @override
+  String get selectLanguageTitle => 'Chọn ngôn ngữ';
+
+  @override
+  String get languageVietnamese => 'Tiếng Việt';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get chatAssistantTitle => 'Trợ lý AI PetCar';
+
+  @override
+  String get chatNewConversation => 'Cuộc trò chuyện mới';
+
+  @override
+  String get chatInputHint => 'Nhập câu hỏi của bạn về sức khỏe thú cưng...';
+
+  @override
+  String get chatHistoryEmptyOrLoadFailed =>
+      'Chưa có lịch sử trò chuyện hoặc chưa tải được';
+
+  @override
+  String get chatMenuRename => 'Đổi tên';
+
+  @override
+  String get chatMenuDelete => 'Xóa';
+
+  @override
+  String get chatRenameDialogTitle => 'Đổi tên cuộc trò chuyện';
+
+  @override
+  String get chatRenameDisplayNameLabel => 'Tên hiển thị';
+
+  @override
+  String get chatRenameNewNameHint => 'Nhập tên mới';
+
+  @override
+  String get chatSave => 'Lưu';
+
+  @override
+  String get chatRenamedSuccess => 'Đã đổi tên';
+
+  @override
+  String get chatDeleteDialogTitle => 'Xóa cuộc trò chuyện?';
+
+  @override
+  String chatDeleteDialogContent(String title) {
+    return 'Cuộc trò chuyện \"$title\" sẽ bị xóa vĩnh viễn.';
+  }
+
+  @override
+  String get chatDeletedSuccess => 'Đã xóa cuộc trò chuyện';
+
+  @override
+  String get chatNoMessages => 'Không có tin nhắn';
+
+  @override
+  String get chatConversationDefault => 'Cuộc trò chuyện';
+
+  @override
+  String get chatStatusSending => 'Đang gửi';
+
+  @override
+  String get chatStatusSent => 'Đã gửi';
+
+  @override
+  String get chatStatusError => 'Lỗi';
+
+  @override
+  String get language => 'Ngôn ngữ';
 }

@@ -621,8 +621,15 @@
       "steps": {
         "choosePet": "Choose your pet",
         "serviceClinic": "Service & Clinic",
+        "chooseSpecialty": "Choose Department",
         "chooseDoctor": "Choose specialist",
         "chooseDateTime": "Choose date & time"
+      },
+      "specialty": {
+        "all": "All",
+        "filterLabel": "Select department",
+        "noDoctors": "No doctors available in this department",
+        "loadingDoctors": "Loading doctors..."
       },
       "form": {
         "serviceLabel": "Select service",

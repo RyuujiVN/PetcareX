@@ -7,6 +7,7 @@ import '../../../core/providers/language_provider.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/change_password_page.dart';
+import '../../notification/presentation/provider/notification_provider.dart';
 import 'my_pets_page.dart';
 import 'profile_page.dart';
 
@@ -45,10 +46,13 @@ class _AccountPageState extends State<AccountPage> {
                 // 1. Đóng dialog bằng dialogContext
                 Navigator.pop(dialogContext);
 
-                // 2. Thực hiện logout
+                // 2. Cleanup notification trước khi logout
+                context.read<NotificationProvider>().clear();
+
+                // 3. Thực hiện logout
                 await authProvider.logout();
 
-                // 3. Điều hướng bằng context của trang (sử dụng context.mounted để an toàn)
+                // 4. Điều hướng bằng context của trang (sử dụng context.mounted để an toàn)
                 if (!mounted) return;
                 Navigator.pushAndRemoveUntil(
                   context,
@@ -73,33 +77,37 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   void _showLanguageDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         // Đổi tên thành dialogContext
-        title: const Text('Chọn ngôn ngữ / Select Language'),
+        title: Text(l10n.selectLanguageTitle),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: Image.asset('assets/images/vn.png', width: 24, height: 24),
-              title: const Text('Tiếng Việt'),
+              title: Text(l10n.languageVietnamese),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(
-                  const Locale('vi'),
-                );
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
+                // Đổi locale sau khi dialog đóng để tránh lỗi InheritedWidget assert.
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  context.read<LanguageProvider>().setLocale(const Locale('vi'));
+                });
               },
             ),
             ListTile(
               leading: Image.asset('assets/images/eng.png', width: 24, height: 24),
-              title: const Text('English'),
+              title: Text(l10n.languageEnglish),
               onTap: () async {
-                await context.read<LanguageProvider>().setLocale(
-                  const Locale('en'),
-                );
                 if (dialogContext.mounted) Navigator.pop(dialogContext);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  context.read<LanguageProvider>().setLocale(const Locale('en'));
+                });
               },
             ),
           ],
@@ -218,12 +226,10 @@ class _AccountPageState extends State<AccountPage> {
             _buildAccountItem(
               icon: Icons.language_rounded,
               iconColor: AppColors.primary,
-              title: langProvider.locale.languageCode == 'vi'
-                  ? 'Ngôn ngữ'
-                  : 'Language',
+              title: l10n.language,
               subtitle: langProvider.locale.languageCode == 'vi'
-                  ? 'Tiếng Việt'
-                  : 'English',
+                  ? l10n.languageVietnamese
+                  : l10n.languageEnglish,
               onTap: _showLanguageDialog,
             ),
             const SizedBox(height: 16),
