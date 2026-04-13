@@ -131,6 +131,23 @@
 				"missingCreatedAtTitle": "Missing form createdAt",
 				"missingCreatedAtDesc": "Backend should return createdAt in appointment medical data or medical detail endpoint to compute the 15-minute lock."
 			},
+			"patientInfo": {
+				"title": "Patient information",
+				"badge": "Information from booking record",
+				"ownerSection": "Owner information",
+				"petSection": "Pet information",
+				"ownerName": "Full name",
+				"ownerEmail": "Email",
+				"ownerPhone": "Phone",
+				"petName": "Name",
+				"petSpecies": "Species",
+				"petBreed": "Breed",
+				"petGender": "Gender",
+				"petAge": "Age",
+				"petWeight": "Weight",
+				"noInfo": "No information",
+				"loadingOwner": "Loading owner information..."
+			},
 			"sections": {
 				"walkInCustomerPet": "Customer & Pet information",
 				"vital": "Vital signs",

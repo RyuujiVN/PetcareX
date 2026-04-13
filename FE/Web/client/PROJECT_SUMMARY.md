@@ -21,6 +21,19 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-13) — Fix POST /api/medical 400 & PatientInfoPanel
+- Veterinarian `RecordExaminationForm`:
+  - **Fix lỗi 400**: BE appointment API không trả `owner.email` và `owner.phone` trong response → FE gửi payload thiếu 2 field bắt buộc.
+  - **Luồng lấy thông tin owner**: Sau khi lấy appointment → resolve `ownerId` → gọi `getUserByIdApi(ownerId)` để lấy đầy đủ `email`, `phone`, `fullName` → cập nhật vào appointment state → map vào payload POST /api/medical.
+  - **Field mapping payload**: `customerName` = ownerDetail.fullName, `email` = ownerDetail.email, `phone` = ownerDetail.phone (fallback chain: ownerDetail → appointment.petRaw.owner → form values).
+  - **PatientInfoPanel (read-only)**: Card thông tin bệnh nhân hiển thị ở đầu form phiếu khám khi mở từ lịch hẹn (`!isWalkIn`). 2 cột: trái = chủ nuôi (họ tên, email, SĐT), phải = thú cưng (tên, loài, giống, giới tính, tuổi, cân nặng). Toàn bộ field là text hiển thị, không có input. Badge "Thông tin từ hồ sơ đặt lịch".
+  - **Edge case walk-in**: PatientInfoPanel ẩn khi `isWalkIn`, không gọi `getUserByIdApi`, luồng walk-in không bị ảnh hưởng.
+  - **Edge case field thiếu**: Hiển thị "Không có thông tin" (italic, muted) thay vì crash khi field bị null/undefined.
+  - **Loading state**: Hiển thị spinner khi đang fetch thông tin chủ nuôi.
+  - State mới: `ownerDetail`, `ownerLoading`. Memo mới: `patientInfo`.
+  - CSS: `.patientInfoCard`, `.patientInfoGrid`, `.patientInfoSection`, responsive mobile (stack 1 cột khi ≤768px).
+  - i18n keys: `examForm.record.patientInfo.*` (vi + en).
+
 ### Cập nhật bổ sung (2026-04-12) — tinh chỉnh đa portal
 - Veterinarian `RecordExaminationForm`:
   - Đã chuẩn hóa Chỉ số sinh tồn theo 2 field huyết áp riêng: `systolic` (tâm thu) và `diastolic` (tâm trương).

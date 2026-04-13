@@ -1,34 +1,35 @@
 ﻿import {
-	DeleteOutlined,
-	DownOutlined,
-	ExperimentOutlined,
-	HeartOutlined,
-	ManOutlined,
-	MedicineBoxOutlined,
-	PlusCircleOutlined,
-	SaveOutlined,
-	UpOutlined,
-	UserOutlined,
-	WarningOutlined,
-	WomanOutlined,
+    DeleteOutlined,
+    DownOutlined,
+    ExperimentOutlined,
+    HeartOutlined,
+    InfoCircleOutlined,
+    ManOutlined,
+    MedicineBoxOutlined,
+    PlusCircleOutlined,
+    SaveOutlined,
+    UpOutlined,
+    UserOutlined,
+    WarningOutlined,
+    WomanOutlined,
 } from '@ant-design/icons'
 import {
-	Alert,
-	Button,
-	Card,
-	Checkbox,
-	Col,
-	DatePicker,
-	Divider,
-	Form,
-	Input,
-	InputNumber,
-	message,
-	Modal,
-	Row,
-	Select,
-	Spin,
-	Tabs,
+    Alert,
+    Button,
+    Card,
+    Checkbox,
+    Col,
+    DatePicker,
+    Divider,
+    Form,
+    Input,
+    InputNumber,
+    message,
+    Modal,
+    Row,
+    Select,
+    Spin,
+    Tabs,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -39,39 +40,38 @@ import { ServiceEnum } from '../../../enum/service.enum'
 import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
-	APPOINTMENT_STATUS,
-	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-	getAppointmentsApi,
-	getServerNowApi,
-	updateAppointmentStatusApi,
+    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+    APPOINTMENT_STATUS,
+    getAppointmentsApi,
+    getServerNowApi,
+    updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { registerApi } from '../../../services/authService'
-import {
-	createMedicalMedicineApi,
-	createMedicalOrderApi,
-	createMedicalRecordApi,
-	deleteMedicalOrderApi,
-	deleteMedicineApi,
-	getMedicalByIdApi,
-	getMedicalByPetIClinicdApi,
-	getMedicalByPetIdApi,
-	getMedicalOrderCatalogApi,
-	getMedicalOrdersByMedicalIdApi,
-	getMedicineCatalogApi,
-	getMedicinesByMedicalIdApi,
-	updateMedicalRecordApi,
-} from '../../../services/medicalService'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
 import {
-	createPetApi,
-	getBreedLabel,
-	getBreedsBySpeciesApi,
-	getPetByIdApi,
-	getPetsByOwnerApi,
-	getPetSpeciesApi,
-	getSpeciesLabel,
+    createMedicalMedicineApi,
+    createMedicalOrderApi,
+    createMedicalRecordApi,
+    deleteMedicalOrderApi,
+    deleteMedicineApi,
+    getMedicalByIdApi,
+    getMedicalByPetIClinicdApi,
+    getMedicalOrderCatalogApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicineCatalogApi,
+    getMedicinesByMedicalIdApi,
+    updateMedicalRecordApi
+} from '../../../services/medicalService'
+import {
+    createPetApi,
+    getBreedLabel,
+    getBreedsBySpeciesApi,
+    getPetByIdApi,
+    getPetsByOwnerApi,
+    getPetSpeciesApi,
+    getSpeciesLabel,
 } from '../../../services/petService'
-import { getUserListApi } from '../../../services/userService'
+import { getUserByIdApi, getUserListApi } from '../../../services/userService'
 import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
@@ -521,6 +521,8 @@ export default function RecordExaminationForm() {
 	const [expandedHistoryRecords, setExpandedHistoryRecords] = useState(() => new Set())
 	const [historyPet, setHistoryPet] = useState(null)
 	const [petDetail, setPetDetail] = useState(null)
+	const [ownerDetail, setOwnerDetail] = useState(null)
+	const [ownerLoading, setOwnerLoading] = useState(false)
 	const initialSnapshotRef = useRef('')
 
 	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
@@ -567,6 +569,37 @@ export default function RecordExaminationForm() {
 			active = false
 		}
 	}, [historyPetId])
+
+	useEffect(() => {
+		let active = true
+
+		const loadOwnerDetail = async () => {
+			if (isWalkIn || !appointmentOwnerId) {
+				if (active) {
+					setOwnerDetail(null)
+					setOwnerLoading(false)
+				}
+				return
+			}
+
+			try {
+				setOwnerLoading(true)
+				const response = await getUserByIdApi(getAdminInstance(), appointmentOwnerId)
+				const user = response?.data || response
+				if (active) setOwnerDetail(user || null)
+			} catch {
+				if (active) setOwnerDetail(null)
+			} finally {
+				if (active) setOwnerLoading(false)
+			}
+		}
+
+		loadOwnerDetail()
+
+		return () => {
+			active = false
+		}
+	}, [appointmentOwnerId, isWalkIn])
 
 	const hydrateByAppointmentId = useCallback(async () => {
 		if (isWalkIn) return
@@ -925,25 +958,41 @@ export default function RecordExaminationForm() {
 	}, [editableMedicalCreatedAtMs, editableMedicalId, serverTimeOffsetMs])
 
 	useEffect(() => {
-		const fallbackOwnerEmail = petDetail?.owner?.email || ''
-		if (!appointmentOwnerId || appointmentOwnerEmail || !fallbackOwnerEmail) return
+		if (!appointmentOwnerId || isWalkIn) return
+
+		const resolvedEmail = ownerDetail?.email || petDetail?.owner?.email || ''
+		const resolvedPhone = ownerDetail?.phone || petDetail?.owner?.phone || ''
+		const resolvedFullName = ownerDetail?.fullName || petDetail?.owner?.fullName || ''
+
+		if (!resolvedEmail && !resolvedPhone && !resolvedFullName) return
 
 		setAppointment((prev) => {
 			if (!prev) return prev
 
+			const prevOwner = prev.petRaw?.owner || {}
+			const needsUpdate =
+				(resolvedEmail && prevOwner.email !== resolvedEmail) ||
+				(resolvedPhone && prevOwner.phone !== resolvedPhone) ||
+				(resolvedFullName && prevOwner.fullName !== resolvedFullName)
+
+			if (!needsUpdate) return prev
+
 			return {
 				...prev,
-				ownerEmail: fallbackOwnerEmail,
+				ownerEmail: resolvedEmail || prev.ownerEmail,
+				ownerName: resolvedFullName || prev.ownerName,
 				petRaw: {
 					...prev.petRaw,
 					owner: {
-						...(prev.petRaw?.owner || {}),
-						email: fallbackOwnerEmail,
+						...prevOwner,
+						...(resolvedEmail ? { email: resolvedEmail } : {}),
+						...(resolvedPhone ? { phone: resolvedPhone } : {}),
+						...(resolvedFullName ? { fullName: resolvedFullName } : {}),
 					},
 				},
 			}
 		})
-	}, [appointmentOwnerEmail, appointmentOwnerId, petDetail?.owner?.email])
+	}, [appointmentOwnerId, isWalkIn, ownerDetail?.email, ownerDetail?.phone, ownerDetail?.fullName, petDetail?.owner?.email, petDetail?.owner?.phone, petDetail?.owner?.fullName])
 
 	const selectedSpecies = Form.useWatch('species', form)
 
@@ -1024,6 +1073,33 @@ export default function RecordExaminationForm() {
 			weight: weightValue ? `${weightValue} kg` : t('examForm.record.fallbacks.notUpdated'),
 		}
 	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight, petDetail, t])
+
+	const patientInfo = useMemo(() => {
+		if (isWalkIn) return null
+
+		const pet = petDetail || appointment?.petRaw || appointment?.pet || null
+		const owner = ownerDetail || pet?.owner || {}
+		if (!pet && !owner?.id) return null
+
+		const noInfo = t('examForm.record.patientInfo.noInfo')
+		const petWeightValue =
+			pet?.weight ??
+			latestMedicalRecord?.weight ??
+			editableMedicalRecord?.weight ??
+			null
+
+		return {
+			ownerName: owner?.fullName || appointment?.ownerName || noInfo,
+			ownerEmail: owner?.email || appointment?.ownerEmail || noInfo,
+			ownerPhone: owner?.phone ? normalizePhone(owner.phone) : noInfo,
+			petName: pet?.name || appointment?.petName || noInfo,
+			petSpecies: pet?.species ? getSpeciesLabel(pet.species) : noInfo,
+			petBreed: pet?.breed ? getBreedLabel(pet.breed, pet.species) : noInfo,
+			petGender: pet?.gender !== undefined && pet?.gender !== null ? formatGenderLabel(pet.gender) : noInfo,
+			petAge: pet?.dateOfBirth ? getAgeLabel(pet.dateOfBirth) : noInfo,
+			petWeight: petWeightValue ? `${petWeightValue} kg` : noInfo,
+		}
+	}, [appointment, editableMedicalRecord?.weight, isWalkIn, latestMedicalRecord?.weight, ownerDetail, petDetail, t])
 
 	const serviceOptions = useMemo(() => {
 		return Object.values(ServiceEnum).map((service) => ({
@@ -1350,12 +1426,12 @@ export default function RecordExaminationForm() {
 			const diastolic = toNumberOrUndefined(values.diastolic)
 			const weight = toNumberOrUndefined(values.weight)
 			const resolvedCustomerName =
-				values.customerName || appointment?.ownerName || appointment?.petRaw?.owner?.fullName || ''
+				values.customerName || appointment?.ownerName || ownerDetail?.fullName || appointment?.petRaw?.owner?.fullName || ''
 			const resolvedEmail = normalizeEmail(
-				values.email || appointment?.ownerEmail || appointment?.petRaw?.owner?.email || '',
+				values.email || ownerDetail?.email || appointment?.ownerEmail || appointment?.petRaw?.owner?.email || '',
 			)
 			const resolvedPhone = normalizePhone(
-				values.phone || appointment?.petRaw?.owner?.phone || '',
+				values.phone || ownerDetail?.phone || appointment?.petRaw?.owner?.phone || '',
 			)
 
 			if (
@@ -1592,6 +1668,97 @@ export default function RecordExaminationForm() {
 							description={t('examForm.record.alerts.missingCreatedAtDesc')}
 						/>
 					) : null}
+
+				{!isWalkIn && patientInfo ? (
+					<Card
+						className={styles.patientInfoCard}
+						title={
+							<span>
+								<UserOutlined /> {t('examForm.record.patientInfo.title')}
+								<span className={styles.patientInfoBadge}>
+									<InfoCircleOutlined /> {t('examForm.record.patientInfo.badge')}
+								</span>
+							</span>
+						}
+					>
+						{ownerLoading ? (
+							<div className={styles.loadingWrap} style={{ minHeight: 80 }}>
+								<Spin size="small" />
+								<span style={{ marginLeft: 8, color: 'var(--vet-color-text-muted)', fontSize: 13 }}>
+									{t('examForm.record.patientInfo.loadingOwner')}
+								</span>
+							</div>
+						) : (
+							<div className={styles.patientInfoGrid}>
+								<div className={styles.patientInfoSection}>
+									<p className={styles.patientInfoSectionTitle}>{t('examForm.record.patientInfo.ownerSection')}</p>
+									<div className={styles.patientInfoFieldGrid}>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.ownerName')}</span>
+											<span className={patientInfo.ownerName === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.ownerName}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.ownerEmail')}</span>
+											<span className={patientInfo.ownerEmail === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.ownerEmail}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.ownerPhone')}</span>
+											<span className={patientInfo.ownerPhone === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.ownerPhone}
+											</span>
+										</div>
+									</div>
+								</div>
+
+								<div className={styles.patientInfoSection}>
+									<p className={styles.patientInfoSectionTitle}>{t('examForm.record.patientInfo.petSection')}</p>
+									<div className={styles.patientInfoFieldGrid}>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petName')}</span>
+											<span className={patientInfo.petName === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petName}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petSpecies')}</span>
+											<span className={patientInfo.petSpecies === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petSpecies}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petBreed')}</span>
+											<span className={patientInfo.petBreed === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petBreed}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petGender')}</span>
+											<span className={patientInfo.petGender === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petGender}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petAge')}</span>
+											<span className={patientInfo.petAge === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petAge}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petWeight')}</span>
+											<span className={patientInfo.petWeight === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petWeight}
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+						)}
+					</Card>
+				) : null}
 
 				<Card className={styles.sectionCard}>
 					<Row gutter={12}>
