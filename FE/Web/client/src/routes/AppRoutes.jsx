@@ -1,9 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { RoleEnum } from '../enum/role.enum'
 import AdminLayout from '../layouts/admin/AdminLayout'
 import HeaderLayout from '../layouts/client/HeaderLayout'
 import MainLayout from '../layouts/client/MainLayout'
 import AdminClinicLayout from '../layouts/Clinic/AdminClinicLayout'
 import AdminVererianrianLayout from '../layouts/Vererianrian/AdminVererianrianLayout'
+import RoleBasedRoute from './RoleBasedRoute'
 import Clinics from '../pages/admin/Dashboard/Clinics'
 import Posts from '../pages/admin/Dashboard/Posts'
 import Users from '../pages/admin/Dashboard/Users'
@@ -52,27 +54,31 @@ export default function AppRoutes({ location }) {
       />
 
       {/* ── Super Admin (role ADMIN) ── */}
-      <Route element={<AdminLayout />}>
-        <Route path="/admin/dashboard/clinics" element={<Clinics />} />
-        <Route path="/admin/dashboard/users" element={<Users />} />
-        <Route path="/admin/dashboard/posts" element={<Posts />} />
+      <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.ADMIN]} />}>
+        <Route element={<AdminLayout />}>
+          <Route path="/admin/dashboard/clinics" element={<Clinics />} />
+          <Route path="/admin/dashboard/users" element={<Users />} />
+          <Route path="/admin/dashboard/posts" element={<Posts />} />
+        </Route>
       </Route>
 
       {/* ── Admin Clinic (role ADMIN_CLINIC) ── */}
-      <Route element={<AdminClinicLayout />}>
-        <Route path="/clinic/appointments" element={<AppointmentManagement />} />
-        <Route path="/clinic/profile" element={<AdminClinicProfile />} />
-        <Route path="/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
-        <Route path="/clinic/medical-records/view" element={<ViewMedicalRecords />} />
-        <Route path="/clinic/revenue" element={<AppointmentManagement />} />
-        <Route path="/clinic/veterinarians" element={<VererianrianManagement />} />
-        <Route path="/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
-        <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
-        <Route path="/clinic/exam-slips" element={<ListPetExaminationRecords />} />
-        <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
-        <Route path="/clinic/editor/:clinicId" element={<ClinicPortalEditor />} />
-        <Route path="/clinic/home-editor/:clinicId" element={<ClinicPortalEditor />} />
-        <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicPortalEditor />} />
+      <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.ADMIN_CLINIC]} />}>
+        <Route element={<AdminClinicLayout />}>
+          <Route path="/clinic/appointments" element={<AppointmentManagement />} />
+          <Route path="/clinic/profile" element={<AdminClinicProfile />} />
+          <Route path="/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
+          <Route path="/clinic/medical-records/view" element={<ViewMedicalRecords />} />
+          <Route path="/clinic/revenue" element={<AppointmentManagement />} />
+          <Route path="/clinic/veterinarians" element={<VererianrianManagement />} />
+          <Route path="/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
+          <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
+          <Route path="/clinic/exam-slips" element={<ListPetExaminationRecords />} />
+          <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
+          <Route path="/clinic/editor/:clinicId" element={<ClinicPortalEditor />} />
+          <Route path="/clinic/home-editor/:clinicId" element={<ClinicPortalEditor />} />
+          <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicPortalEditor />} />
+        </Route>
       </Route>
 
       <Route path="/veterinarian/login" element={<Navigate to="/login" replace />} />
@@ -81,13 +87,15 @@ export default function AppRoutes({ location }) {
       <Route path="/veterinarian/reEnterPassword" element={<Navigate to="/reEnterPassword" replace />} />
       <Route path="/veterinarian/confirm-password" element={<Navigate to="/reEnterPassword" replace />}/>
 
-      <Route element={<AdminVererianrianLayout/>}>
-        <Route path="/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
-        <Route path="/veterinarian/listRecords" element={<ListMedicalRecords />} />
-        <Route path="/veterinarian/medical-records/view" element={<ViewMedicalRecords />} />
-        <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
-        <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
-        <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
+      <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.VETERINARIAN]} />}>
+        <Route element={<AdminVererianrianLayout/>}>
+          <Route path="/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
+          <Route path="/veterinarian/listRecords" element={<ListMedicalRecords />} />
+          <Route path="/veterinarian/medical-records/view" element={<ViewMedicalRecords />} />
+          <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
+          <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
+          <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
+        </Route>
       </Route>
 
 
@@ -102,28 +110,32 @@ export default function AppRoutes({ location }) {
         <Route path="/clinic" element={<HomePageClinic />} />
         <Route path="/clinic/:clinicId" element={<HomePageClinic />} />
         <Route path="/choose-clinic" element={<ClinicSelection />} />
-        <Route path="/booking" element={<BookingAppointment />} />
-        <Route path="/appointments" element={<AppointmentDetail />} />
-        <Route path="/success-booking" element={<SuccessBooking />} />
+        <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.CUSTOMER]} />}>
+          <Route path="/booking" element={<BookingAppointment />} />
+          <Route path="/appointments" element={<AppointmentDetail />} />
+          <Route path="/success-booking" element={<SuccessBooking />} />
+        </Route>
       </Route>
 
-      <Route element={<HeaderLayout />}>
-        <Route path="/add-pet" element={<AddPet />} />
-        <Route path="/chatbot" element={<ChatBotAI />}>
-          <Route index element={<MessageBox />} />
-          <Route path=":roomId" element={<MessageBox />} />
+      <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.CUSTOMER]} />}>
+        <Route element={<HeaderLayout />}>
+          <Route path="/add-pet" element={<AddPet />} />
+          <Route path="/chatbot" element={<ChatBotAI />}>
+            <Route index element={<MessageBox />} />
+            <Route path=":roomId" element={<MessageBox />} />
+          </Route>
+          <Route path="/chat" element={<ChatBotAI />}>
+            <Route index element={<MessageBox />} />
+            <Route path=":roomId" element={<MessageBox />} />
+          </Route>
+          <Route path="/profile" element={<ProfileUser />} />
+          <Route path="/user/profile" element={<ProfileUser />} />
+          <Route path="/petProfile" element={<PetProfile />} />
+          <Route path="/medical-records" element={<MedicalRecords />} />
+          <Route path="/forum" element={<Forum />} />
+          <Route path="/listPetMedicalRecords" element={<ListPetMedicalRecords />}
+          />
         </Route>
-        <Route path="/chat" element={<ChatBotAI />}>
-          <Route index element={<MessageBox />} />
-          <Route path=":roomId" element={<MessageBox />} />
-        </Route>
-        <Route path="/profile" element={<ProfileUser />} />
-        <Route path="/user/profile" element={<ProfileUser />} />
-        <Route path="/petProfile" element={<PetProfile />} />
-        <Route path="/medical-records" element={<MedicalRecords />} />
-        <Route path="/forum" element={<Forum />} />
-        <Route path="/listPetMedicalRecords" element={<ListPetMedicalRecords />}
-        />
       </Route>
 
       <Route path="/admin/clinic/*" element={<Navigate to="/clinic/appointments" replace />} />

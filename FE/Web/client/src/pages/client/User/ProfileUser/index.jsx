@@ -113,7 +113,7 @@ export default function ProfileUser() {
       message.success(t('pages.profile.updateSuccess'));
       navigate(-1);
     } catch (error) {
-      const errorMsg = error.response?.data?.message || t('pages.profile.updateFailed');
+      const errorMsg = error.message || error.response?.data?.message || t('pages.profile.updateFailed');
       message.error(errorMsg);
     } finally {
       setLoading(false);

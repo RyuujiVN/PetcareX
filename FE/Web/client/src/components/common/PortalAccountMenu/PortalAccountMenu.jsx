@@ -199,8 +199,8 @@ export default function PortalAccountMenu({
       if (error?.errorFields) return
 
       message.error(
-        error?.response?.data?.message ||
-          error?.message ||
+        error?.message ||
+          error?.response?.data?.message ||
           t('accountMenu.messages.profileSaveFailed', {
             defaultValue: 'Unable to save profile',
           }),
