@@ -71,7 +71,7 @@ import {
 	getPetSpeciesApi,
 	getSpeciesLabel,
 } from '../../../services/petService'
-import { getUserByIdApi, getUserListApi } from '../../../services/userService'
+import { getUserListApi } from '../../../services/userService'
 import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
@@ -925,43 +925,25 @@ export default function RecordExaminationForm() {
 	}, [editableMedicalCreatedAtMs, editableMedicalId, serverTimeOffsetMs])
 
 	useEffect(() => {
-		let active = true
+		const fallbackOwnerEmail = petDetail?.owner?.email || ''
+		if (!appointmentOwnerId || appointmentOwnerEmail || !fallbackOwnerEmail) return
 
-		const hydrateOwnerEmail = async () => {
-			if (!appointmentOwnerId || appointmentOwnerEmail) return
+		setAppointment((prev) => {
+			if (!prev) return prev
 
-			try {
-				const ownerResponse = await getUserByIdApi(getAdminInstance(), appointmentOwnerId)
-				const owner = ownerResponse.data
-				const resolvedEmail = owner?.email || owner?.data?.email || ''
-				if (!resolvedEmail || !active) return
-
-				setAppointment((prev) => {
-					if (!prev) return prev
-
-					return {
-						...prev,
-						ownerEmail: resolvedEmail,
-						petRaw: {
-							...prev.petRaw,
-							owner: {
-								...(prev.petRaw?.owner || {}),
-								email: resolvedEmail,
-							},
-						},
-					}
-				})
-			} catch {
-				// Ignore owner email hydration failure and keep form editable.
+			return {
+				...prev,
+				ownerEmail: fallbackOwnerEmail,
+				petRaw: {
+					...prev.petRaw,
+					owner: {
+						...(prev.petRaw?.owner || {}),
+						email: fallbackOwnerEmail,
+					},
+				},
 			}
-		}
-
-		hydrateOwnerEmail()
-
-		return () => {
-			active = false
-		}
-	}, [appointmentOwnerId, appointmentOwnerEmail])
+		})
+	}, [appointmentOwnerEmail, appointmentOwnerId, petDetail?.owner?.email])
 
 	const selectedSpecies = Form.useWatch('species', form)
 
@@ -1542,15 +1524,21 @@ export default function RecordExaminationForm() {
 					</div>
 				</header>
 
-				<Tabs className={styles.tabsRoot} destroyInactiveTabPane={false}>
-					<Tabs.TabPane tab={t('examForm.record.tabs.currentExam')} key="exam">
+				<Tabs
+					className={styles.tabsRoot}
+					destroyOnHidden={false}
+					items={[
+						{
+							key: 'exam',
+							label: t('examForm.record.tabs.currentExam'),
+							children: (
 						<div className={styles.formScrollableContent}>
 					{!hasCreatedMedical ? (
 						<Alert
 							className={styles.editLockAlert}
 							type="info"
 							showIcon
-							message={t('examForm.record.alerts.notCreatedTitle')}
+							title={t('examForm.record.alerts.notCreatedTitle')}
 							description={t('examForm.record.alerts.notCreatedDesc')}
 						/>
 					) : null}
@@ -1560,7 +1548,7 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="success"
 							showIcon
-							message={t('examForm.record.alerts.editingWindowTitle')}
+							title={t('examForm.record.alerts.editingWindowTitle')}
 							description={t('examForm.record.alerts.editingWindowDesc', { time: editableCountdownText })}
 						/>
 					) : null}
@@ -1570,7 +1558,7 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="warning"
 							showIcon
-							message={t('examForm.record.alerts.expiredTitle')}
+							title={t('examForm.record.alerts.expiredTitle')}
 							description={t('examForm.record.alerts.expiredDesc')}
 						/>
 					) : null}
@@ -1580,7 +1568,7 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="error"
 							showIcon
-							message={t('examForm.record.alerts.paymentLockedTitle')}
+							title={t('examForm.record.alerts.paymentLockedTitle')}
 							description={t('examForm.record.alerts.paymentLockedDesc')}
 						/>
 					) : null}
@@ -1590,7 +1578,7 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="warning"
 							showIcon
-							message={t('examForm.record.alerts.serverSyncFailTitle')}
+							title={t('examForm.record.alerts.serverSyncFailTitle')}
 							description={t('examForm.record.alerts.serverSyncFailDesc')}
 						/>
 					) : null}
@@ -1600,7 +1588,7 @@ export default function RecordExaminationForm() {
 							className={styles.editLockAlert}
 							type="error"
 							showIcon
-							message={t('examForm.record.alerts.missingCreatedAtTitle')}
+							title={t('examForm.record.alerts.missingCreatedAtTitle')}
 							description={t('examForm.record.alerts.missingCreatedAtDesc')}
 						/>
 					) : null}
@@ -2086,9 +2074,14 @@ export default function RecordExaminationForm() {
 							) : null}
 						</div>
 					</div>
-				</Tabs.TabPane>
-				{!isWalkIn ? (
-					<Tabs.TabPane tab={t('examForm.record.tabs.history')} key="history">
+							),
+						},
+						...(!isWalkIn
+							? [
+								{
+									key: 'history',
+									label: t('examForm.record.tabs.history'),
+									children: (
 						<div className={styles.historyPanel}>
 						{historySummary ? (
 							<Card className={styles.sectionCard}>
@@ -2225,9 +2218,12 @@ export default function RecordExaminationForm() {
 							</div>
 						)}
 						</div>
-					</Tabs.TabPane>
-				) : null}
-			</Tabs>
+									),
+								},
+							]
+							: []),
+					]}
+				/>
 			</Form>
 		</div>
 	)
