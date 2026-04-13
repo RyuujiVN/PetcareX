@@ -187,6 +187,10 @@
     border: none !important;
 }
 
+.notification-list-item + .notification-list-item {
+    margin-top: 8px;
+}
+
 .notification-item {
     width: 100%;
     border: none;

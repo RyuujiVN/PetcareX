@@ -298,6 +298,10 @@
   transition: background 0.2s ease, border-color 0.2s ease;
 }
 
+.notificationItem + .notificationItem {
+  margin-top: 8px;
+}
+
 .notificationItem:hover {
   background: #f4f8ff;
   border-color: #dce8fb;
