@@ -25,6 +25,8 @@ import { AiDiagnosisModule } from './ai-diagnosis/ai-diagnosis.module';
 import { NotificationModule } from './notification/notification.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ClinicHomepageSettingModule } from './clinic-homepage-setting/clinic-homepage-setting.module';
+import { ScheduleModule } from '@nestjs/schedule';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -40,6 +42,7 @@ import { ClinicHomepageSettingModule } from './clinic-homepage-setting/clinic-ho
         port: 6379,
       },
     }),
+    ScheduleModule.forRoot(),
     ClinicModule,
     MailModule,
     OtpModule,
@@ -56,6 +59,7 @@ import { ClinicHomepageSettingModule } from './clinic-homepage-setting/clinic-ho
     AiDiagnosisModule,
     NotificationModule,
     ClinicHomepageSettingModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [
