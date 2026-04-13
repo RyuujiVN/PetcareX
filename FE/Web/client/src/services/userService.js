@@ -18,6 +18,7 @@ export const getUserListApi = (instance, page = 1, limit = 10, search = '') => {
 export const getUserProfileApi = (instance) => {
   return instance.get('/user/profile')
 }
+
 // Lấy thông tin người dùng theo id
 export const getUserByIdApi = (instance, userId) => {
   return instance.get(`/user/${userId}`)

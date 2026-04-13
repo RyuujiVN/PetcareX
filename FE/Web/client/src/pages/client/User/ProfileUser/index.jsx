@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
-  getUserListApi,
   getUserProfileApi,
   updateUserProfileApi,
   uploadAvatarApi,
@@ -105,25 +104,6 @@ export default function ProfileUser() {
 
       if (!hasChanges) {
         message.info(t('pages.profile.noChanges'));
-        return;
-      }
-
-      const userListRes = await getUserListApi(getClientInstance(), 1, 1000, '');
-      const userItems = Array.isArray(userListRes?.data?.items) ? userListRes.data.items : [];
-      const duplicatedEmail = userItems.some(
-        (user) => user?.id !== profileData?.id && normalizeEmail(user?.email) === updateData.email,
-      );
-      const duplicatedPhone = userItems.some(
-        (user) => user?.id !== profileData?.id && normalizePhone(user?.phone) === updateData.phone,
-      );
-
-      if (duplicatedEmail) {
-        message.error(t('pages.profile.duplicateEmail'));
-        return;
-      }
-
-      if (duplicatedPhone) {
-        message.error(t('pages.profile.duplicatePhone'));
         return;
       }
 
