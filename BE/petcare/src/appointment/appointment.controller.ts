@@ -27,6 +27,7 @@ import { UpdateAppointmentDTO } from './dtos/update-appointment.dto';
 import { RequiredRole } from 'src/common/decorators/roles.decorator';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { UpdateAppointmentPaymentStatusDTO } from './dtos/update-appointment-payment-status.dto';
 
 @Controller('appointment')
 @ApiBearerAuth('JWT-auth')
@@ -117,6 +118,22 @@ export class AppointmentController {
     @Param('id') id: string,
   ) {
     await this.appointmentService.updateAppointment(updateDTO, id);
+    return {
+      message: 'Cập nhật lịch hẹn thành công',
+    };
+  }
+
+  @Patch('payment-status/:id')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
+  @ApiOperation({ summary: 'Cập nhật trạng thái thanh toán lịch hẹn' })
+  @ApiBody({
+    type: UpdateAppointmentPaymentStatusDTO,
+  })
+  async updateAppointmentPaymentStatus(
+    @Body() updateDTO: UpdateAppointmentPaymentStatusDTO,
+    @Param('id') id: string,
+  ) {
+    await this.appointmentService.updateAppointmentPaymentStatus(updateDTO, id);
     return {
       message: 'Cập nhật lịch hẹn thành công',
     };
