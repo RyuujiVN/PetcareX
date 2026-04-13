@@ -4,7 +4,6 @@ import {
   LockOutlined,
   LogoutOutlined,
   UserOutlined,
-  SmileOutlined,
 } from "@ant-design/icons";
 import {
   Avatar,
@@ -22,6 +21,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaPaw } from "react-icons/fa";
+import { BsRobot } from "react-icons/bs";
 import {
   FaRegCalendarCheck,
   FaRegCommentDots,
@@ -29,7 +29,6 @@ import {
 } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 import { useAuth } from "../../../hooks/client/AuthContext";
 import { getClientInstance } from "../../../services/apiClient";
 import { changePasswordApi } from "../../../services/authService";
@@ -382,7 +381,7 @@ function Header() {
           description: mapped.description || "",
           placement: "bottomRight",
           duration: 5,
-          icon: <SmileOutlined style={{ color: '#108ee9' }} />,
+          icon: <BsRobot  style={{ color: 'red' }}/>,
           onClick: () => handleClickNotificationItem(mapped),
         });
       }
