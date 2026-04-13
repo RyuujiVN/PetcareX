@@ -1861,6 +1861,300 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Thỏ Lionhead'**
   String get petBreedRabbitLionhead;
+
+  /// No description provided for @notifTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo'**
+  String get notifTitle;
+
+  /// No description provided for @notifMarkAllRead.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đọc tất cả'**
+  String get notifMarkAllRead;
+
+  /// No description provided for @notifFilterAll.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tất cả'**
+  String get notifFilterAll;
+
+  /// No description provided for @notifFilterUnread.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa đọc'**
+  String get notifFilterUnread;
+
+  /// No description provided for @notifEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có thông báo nào'**
+  String get notifEmpty;
+
+  /// No description provided for @notifAppointmentBooked.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn mới'**
+  String get notifAppointmentBooked;
+
+  /// No description provided for @notifAppointmentCancelled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn đã hủy'**
+  String get notifAppointmentCancelled;
+
+  /// No description provided for @notifAppointmentStatusUpdated.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cập nhật lịch hẹn'**
+  String get notifAppointmentStatusUpdated;
+
+  /// No description provided for @notifAppointmentReminder.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắc nhở lịch hẹn'**
+  String get notifAppointmentReminder;
+
+  /// No description provided for @notifAiDiagnosis.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chẩn đoán AI sẵn sàng'**
+  String get notifAiDiagnosis;
+
+  /// No description provided for @notifFollowUpReminder.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắc nhở tái khám'**
+  String get notifFollowUpReminder;
+
+  /// No description provided for @notifCommentReply.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bình luận mới'**
+  String get notifCommentReply;
+
+  /// No description provided for @notifGeneral.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông báo'**
+  String get notifGeneral;
+
+  /// No description provided for @notifAppointmentBookedDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'{userName} đã đặt lịch hẹn ngày {date} lúc {time}'**
+  String notifAppointmentBookedDesc(String userName, String date, String time);
+
+  /// No description provided for @notifAppointmentCancelledDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lịch hẹn ngày {date} lúc {time} đã bị hủy'**
+  String notifAppointmentCancelledDesc(String date, String time);
+
+  /// No description provided for @notifAppointmentCancelledByClinicDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám {clinicName} đã hủy lịch hẹn của bạn'**
+  String notifAppointmentCancelledByClinicDesc(String clinicName);
+
+  /// No description provided for @notifAppointmentStatusUpdatedDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'{userName} đã cập nhật trạng thái lịch hẹn'**
+  String notifAppointmentStatusUpdatedDesc(String userName);
+
+  /// No description provided for @notifAppointmentReminderDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn có lịch hẹn vào ngày {date} lúc {time}'**
+  String notifAppointmentReminderDesc(String date, String time);
+
+  /// No description provided for @notifAiDiagnosisDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kết quả chẩn đoán AI cho {petName} đã sẵn sàng'**
+  String notifAiDiagnosisDesc(String petName);
+
+  /// No description provided for @notifFollowUpReminderDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhắc nhở tái khám vào ngày {date}'**
+  String notifFollowUpReminderDesc(String date);
+
+  /// No description provided for @notifCommentReplyDesc.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có người đã trả lời bình luận của bạn'**
+  String get notifCommentReplyDesc;
+
+  /// No description provided for @notifTimeJustNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vừa xong'**
+  String get notifTimeJustNow;
+
+  /// No description provided for @notifTimeMinutesAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{minutes} phút trước'**
+  String notifTimeMinutesAgo(int minutes);
+
+  /// No description provided for @notifTimeHoursAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{hours} giờ trước'**
+  String notifTimeHoursAgo(int hours);
+
+  /// No description provided for @notifTimeDaysAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'{days} ngày trước'**
+  String notifTimeDaysAgo(int days);
+
+  /// No description provided for @notifTimeLongAgo.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lâu rồi'**
+  String get notifTimeLongAgo;
+
+  /// No description provided for @selectLanguageTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn ngôn ngữ'**
+  String get selectLanguageTitle;
+
+  /// No description provided for @languageVietnamese.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tiếng Việt'**
+  String get languageVietnamese;
+
+  /// No description provided for @languageEnglish.
+  ///
+  /// In vi, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// No description provided for @chatAssistantTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Trợ lý AI PetCar'**
+  String get chatAssistantTitle;
+
+  /// No description provided for @chatNewConversation.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cuộc trò chuyện mới'**
+  String get chatNewConversation;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập câu hỏi của bạn về sức khỏe thú cưng...'**
+  String get chatInputHint;
+
+  /// No description provided for @chatHistoryEmptyOrLoadFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có lịch sử trò chuyện hoặc chưa tải được'**
+  String get chatHistoryEmptyOrLoadFailed;
+
+  /// No description provided for @chatMenuRename.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên'**
+  String get chatMenuRename;
+
+  /// No description provided for @chatMenuDelete.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa'**
+  String get chatMenuDelete;
+
+  /// No description provided for @chatRenameDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đổi tên cuộc trò chuyện'**
+  String get chatRenameDialogTitle;
+
+  /// No description provided for @chatRenameDisplayNameLabel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tên hiển thị'**
+  String get chatRenameDisplayNameLabel;
+
+  /// No description provided for @chatRenameNewNameHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập tên mới'**
+  String get chatRenameNewNameHint;
+
+  /// No description provided for @chatSave.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lưu'**
+  String get chatSave;
+
+  /// No description provided for @chatRenamedSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đổi tên'**
+  String get chatRenamedSuccess;
+
+  /// No description provided for @chatDeleteDialogTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa cuộc trò chuyện?'**
+  String get chatDeleteDialogTitle;
+
+  /// No description provided for @chatDeleteDialogContent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cuộc trò chuyện \"{title}\" sẽ bị xóa vĩnh viễn.'**
+  String chatDeleteDialogContent(String title);
+
+  /// No description provided for @chatDeletedSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã xóa cuộc trò chuyện'**
+  String get chatDeletedSuccess;
+
+  /// No description provided for @chatNoMessages.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không có tin nhắn'**
+  String get chatNoMessages;
+
+  /// No description provided for @chatConversationDefault.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cuộc trò chuyện'**
+  String get chatConversationDefault;
+
+  /// No description provided for @chatStatusSending.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang gửi'**
+  String get chatStatusSending;
+
+  /// No description provided for @chatStatusSent.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi'**
+  String get chatStatusSent;
+
+  /// No description provided for @chatStatusError.
+  ///
+  /// In vi, this message translates to:
+  /// **'Lỗi'**
+  String get chatStatusError;
+
+  /// No description provided for @language.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngôn ngữ'**
+  String get language;
 }
 
 class _AppLocalizationsDelegate

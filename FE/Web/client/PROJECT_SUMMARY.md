@@ -351,7 +351,21 @@ Toàn bộ API layer đã được refactor thành service tập trung trong `sr
 - Phần giới thiệu bệnh viện chỉ hiển thị ~100 từ đầu + nút `Đọc thêm`; bấm `Đọc thêm` mở popup hiển thị toàn bộ nội dung, đóng bằng nút `X`.
 
 ### 3) Booking Appointment
-Luồng đang chạy:
+Luồng đang chạy (cập nhật 2026-04-13):
+
+1. Chọn pet (card ngang, drag scroll).
+2. Chọn dịch vụ + clinic (dropdown Ant Design Select).
+3. **Chọn Khoa / Chuyên khoa** (button group ngang) — lọc theo `VETERINARY_SPECIALTY_LABELS` từ `src/constants/enumLabels.js`, có option "Tất cả". Khi chọn khoa → gọi `getVeterinarianByClinicApi(instance, clinicId, 1, 50, '', specialty)` để filter bác sĩ phía API.
+4. **Chọn Bác sĩ** (card grid 2 cột desktop / 1 cột mobile) — mỗi card hiển thị avatar, tên, specialty badge. Card được chọn có border highlight + checkmark icon. Loading state khi fetch, Empty state khi không có bác sĩ.
+   - **TODO placeholder** tại `src/pages/client/User/BookingAppointment/index.jsx` dòng `{/* TODO: Doctor description panel - cần BE bổ sung field 'description' vào API GET /api/veterinarian */}` — chờ BE bổ sung field `description`, sau đó hiển thị panel mô tả chi tiết bác sĩ bên dưới card grid.
+5. Nhập triệu chứng.
+6. Chọn ngày/giờ (lọc quá khứ và giờ trùng).
+7. Xác nhận modal.
+8. Gọi `POST /appointment`.
+9. Sau khi tạo lịch: tự sinh báo cáo chẩn đoán AI sơ bộ và cache local.
+
+API params đang dùng: `GET /veterinarian?clinicId=...&specialty=...&page=1&limit=50`
+Nhãn tiếng Việt specialty lấy từ i18n key `enums.veterinarySpecialty.*` (vi.json/en.json) + fallback `VETERINARY_SPECIALTY_LABELS`.
 
 ### 4) Walk-in (Phiếu khám vãng lai)
 - Nút **"Phiếu khám khẩn cấp"** ở trang danh sách phiếu khám, mở form tạo mới không cần lịch hẹn.

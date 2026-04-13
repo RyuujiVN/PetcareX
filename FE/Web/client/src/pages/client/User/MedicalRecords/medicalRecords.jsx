@@ -633,7 +633,6 @@ function MedicalRecords() {
 			</main>
 
 			<Modal
-				title={t('pages.medicalRecords.review.modalTitle')}
 				open={reviewModalOpen}
 				onCancel={() => {
 					setReviewModalOpen(false)
@@ -648,6 +647,7 @@ function MedicalRecords() {
 				}}
 			>
 				<div className={styles.reviewModalBody}>
+					<p className={styles.reviewModalTitle}>{t('pages.medicalRecords.review.modalTitle')}</p>
 					<p className={styles.reviewClinicName}>
 						{reviewTargetRecord?.clinicName || t('common.states.unknown')}
 					</p>
