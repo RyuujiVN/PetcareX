@@ -5,13 +5,14 @@ import axios from 'axios';
 import { Job } from 'bullmq';
 import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
 import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { Pet } from 'src/pet/entities/pet.entity';
 import { NotFoundError } from 'rxjs';
 import { NotificationGateway } from 'src/notification/notification.gateway';
-import { ForbiddenException, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Processor(QueueNameEnum.APPOINTMENT, { concurrency: 5 })
 export class AppointmentProcessor extends WorkerHost {
@@ -21,6 +22,8 @@ export class AppointmentProcessor extends WorkerHost {
     private readonly configService: ConfigService,
     private readonly notificationGateway: NotificationGateway,
     private readonly dataSource: DataSource,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
   ) {
     super();
   }
@@ -97,6 +100,53 @@ export class AppointmentProcessor extends WorkerHost {
           );
         });
 
+        break;
+      }
+
+      case JobNameEnum.FOLLOW_UP_DATE_REMINDER: {
+        const data = job.data;
+
+        const notification = new Notification();
+        notification.recipientId = data.userId;
+        notification.type = data.notificationType;
+        notification.target = {
+          petName: data.petName,
+          followUpDate: data.followUpDate,
+          clinicName: data.clinicName,
+        };
+
+        const savedNotification =
+          await this.notificationRepository.save(notification);
+
+        this.notificationGateway.sendNotification(
+          savedNotification.recipientId,
+          savedNotification,
+        );
+        break;
+      }
+
+      case JobNameEnum.APPOINTMENT_REMINDER: {
+        const data = job.data;
+
+        const notification = new Notification();
+        notification.recipientId = data.userId;
+        notification.type = data.notificationType;
+        notification.target = {
+          petName: data.petName,
+          clinicName: data.clinicName,
+          notificationType: data.notificationType,
+          appointmentId: data.appointmentId,
+          appointmentDate: data.appointmentDate,
+          appointmentTime: data.appointmentTime,
+        };
+
+        const savedNotification =
+          await this.notificationRepository.save(notification);
+
+        this.notificationGateway.sendNotification(
+          savedNotification.recipientId,
+          savedNotification,
+        );
         break;
       }
     }

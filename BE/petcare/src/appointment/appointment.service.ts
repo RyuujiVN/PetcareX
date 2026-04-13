@@ -28,7 +28,7 @@ import { AiDiagnosis } from 'src/ai-diagnosis/entities/ai-diagnosis.entity';
 export class AppointmentService {
   constructor(
     @InjectQueue(QueueNameEnum.APPOINTMENT)
-    private readonly analyzeSymptomsQueue: Queue,
+    private readonly appointmentQueue: Queue,
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
     @InjectRepository(AdminClinic)
@@ -299,7 +299,7 @@ export class AppointmentService {
     });
 
     // 6. Gửi triệu chứng về cho AI phân tích
-    this.analyzeSymptomsQueue
+    this.appointmentQueue
       .add(
         JobNameEnum.ANALYZE_SYMPTOMS,
         {
