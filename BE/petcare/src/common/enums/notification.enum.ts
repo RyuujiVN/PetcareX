@@ -13,6 +13,7 @@ export enum NotificationEnum {
   FOLLOW_UP_REMINDER_TODAY = 'FOLLOW_UP_REMINDER_TODAY',
 
   // POST
+  COMMENT = 'COMMENT',
   COMMENT_REPLY = 'COMMENT_REPLY',
   LIKE = 'LIKE',
 }

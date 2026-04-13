@@ -28,7 +28,6 @@ import {
 } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { io } from "socket.io-client";
 import { useAuth } from "../../../hooks/client/AuthContext";
 import { getClientInstance } from "../../../services/apiClient";
 import { changePasswordApi } from "../../../services/authService";
@@ -42,11 +41,6 @@ import {
 import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
 import notifySocket from "../../../socket/notifySocket";
-
-const WS_BASE_URL = (
-  import.meta.env.VITE_API_URL || "http://localhost:3000/api"
-).replace(/\/api\/?$/, "");
-const NOTIFICATION_SOCKET_URL = `${WS_BASE_URL}/notification`;
 
 const MIN_PASSWORD_LENGTH = 8;
 
