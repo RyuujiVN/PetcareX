@@ -2,7 +2,7 @@ import {
 	DownOutlined,
 	UpOutlined,
 } from '@ant-design/icons'
-import { message } from 'antd'
+import { Modal, Rate, message } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -24,6 +24,11 @@ import {
 } from '../../../../services/medicalService'
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService'
 import { getClientInstance } from '../../../../services/apiClient'
+import { useAuth } from '../../../../hooks/client/AuthContext'
+import {
+	getAllClinicReviews,
+	upsertClinicReview,
+} from '../../../../services/clinicReviewService'
 import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './medicalRecords.module.css'
 
@@ -177,6 +182,9 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = [], 
 
 	return {
 		id: record?.id || `record-${Date.now()}`,
+		medicalRecordId: record?.id || '',
+		clinicId: record?.clinic?.id || record?.appointment?.clinic?.id || '',
+		clinicName: record?.clinic?.name || t('common.states.notUpdated'),
 		markerType,
 		title: resolveRecordTitle(record?.name, t),
 		status,
@@ -218,6 +226,7 @@ const mapMedicalToReminder = (record, locale, t) => {
 
 function MedicalRecords() {
 	const { t, i18n } = useTranslation()
+	const { userProfile } = useAuth()
 	const dateLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
 	const defaultPetSummary = useMemo(() => getDefaultPetSummary(t), [t])
 	const navigate = useNavigate()
@@ -227,11 +236,27 @@ function MedicalRecords() {
 	const [reminders, setReminders] = useState(EMPTY_REMINDERS)
 	const [petSummary, setPetSummary] = useState(defaultPetSummary)
 	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
+	const [reviewByMedicalId, setReviewByMedicalId] = useState({})
+	const [reviewModalOpen, setReviewModalOpen] = useState(false)
+	const [reviewTargetRecord, setReviewTargetRecord] = useState(null)
+	const [reviewRating, setReviewRating] = useState(0)
+	const [reviewContent, setReviewContent] = useState('')
+	const [savingReview, setSavingReview] = useState(false)
 	const medicalId = searchParams.get('medicalId')
 	const petId = searchParams.get('petId')
 	const handleChangePet = () => {
 			navigate('/listPetMedicalRecords')
 		}
+
+	const refreshReviewMap = useCallback(() => {
+		const nextMap = getAllClinicReviews().reduce((acc, item) => {
+			if (!item?.medicalRecordId) return acc
+			acc[item.medicalRecordId] = item
+			return acc
+		}, {})
+
+		setReviewByMedicalId(nextMap)
+	}, [])
 	const loadMedicalData = useCallback(async () => {
 		try {
 			setLoading(true)
@@ -373,6 +398,68 @@ function MedicalRecords() {
 		loadMedicalData()
 	}, [loadMedicalData])
 
+	useEffect(() => {
+		refreshReviewMap()
+
+		const handleStorage = () => {
+			refreshReviewMap()
+		}
+
+		window.addEventListener('storage', handleStorage)
+		return () => window.removeEventListener('storage', handleStorage)
+	}, [refreshReviewMap])
+
+	const handleOpenReviewModal = useCallback((record) => {
+		if (!record?.medicalRecordId || !record?.clinicId) {
+			message.warning(t('pages.medicalRecords.review.missingClinicInfo'))
+			return
+		}
+
+		const existingReview = reviewByMedicalId[record.medicalRecordId]
+		setReviewTargetRecord(record)
+		setReviewRating(existingReview?.rating || 0)
+		setReviewContent(existingReview?.content || '')
+		setReviewModalOpen(true)
+	}, [reviewByMedicalId, t])
+
+	const handleSubmitReview = useCallback(async () => {
+		if (!reviewTargetRecord?.medicalRecordId || !reviewTargetRecord?.clinicId) {
+			return
+		}
+
+		if (!reviewRating) {
+			message.warning(t('pages.medicalRecords.review.validation.ratingRequired'))
+			return
+		}
+
+		if (!String(reviewContent || '').trim()) {
+			message.warning(t('pages.medicalRecords.review.validation.contentRequired'))
+			return
+		}
+
+		try {
+			setSavingReview(true)
+			upsertClinicReview({
+				clinicId: reviewTargetRecord.clinicId,
+				clinicName: reviewTargetRecord.clinicName,
+				medicalRecordId: reviewTargetRecord.medicalRecordId,
+				rating: reviewRating,
+				content: reviewContent.trim(),
+				reviewerId: userProfile?.id || '',
+			})
+			refreshReviewMap()
+			setReviewModalOpen(false)
+			setReviewTargetRecord(null)
+			setReviewRating(0)
+			setReviewContent('')
+			message.success(t('pages.medicalRecords.review.submitSuccess'))
+		} catch {
+			message.error(t('pages.medicalRecords.review.submitFailed'))
+		} finally {
+			setSavingReview(false)
+		}
+	}, [refreshReviewMap, reviewContent, reviewRating, reviewTargetRecord, t, userProfile?.id])
+
 
 	const handleBookNow = (service) => {
 		navigate('/booking', { state: { service } })
@@ -417,6 +504,7 @@ function MedicalRecords() {
 							) : (
 								timelineRecords.map((record) => {
 									const isExpanded = expandedRecords.has(record.id)
+									const existingReview = reviewByMedicalId[record.medicalRecordId]
 
 									return (
 										<div key={record.id} className={styles.timelineItem}>
@@ -431,9 +519,22 @@ function MedicalRecords() {
 													</div>
 
 													<div className={styles.headerActions}>
-														<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
-															{record.status}
-														</span>
+														{record.statusType === 'done' ? (
+															<button
+																type="button"
+																className={`${styles.reviewButton} ${existingReview ? styles.reviewed : ''}`}
+																onClick={() => handleOpenReviewModal(record)}
+																disabled={Boolean(existingReview)}
+															>
+																{existingReview
+																	? t('pages.medicalRecords.review.ratedButton')
+																	: t('pages.medicalRecords.review.actionButton')}
+															</button>
+														) : (
+															<span className={`${styles.statusTag} ${styles[record.statusType]}`}>
+																{record.status}
+															</span>
+														)}
 														<button
 															type="button"
 															className={styles.expandButton}
@@ -530,6 +631,38 @@ function MedicalRecords() {
 					</aside>
 				</section>
 			</main>
+
+			<Modal
+				title={t('pages.medicalRecords.review.modalTitle')}
+				open={reviewModalOpen}
+				onCancel={() => {
+					setReviewModalOpen(false)
+					setReviewTargetRecord(null)
+				}}
+				onOk={handleSubmitReview}
+				okText={t('pages.medicalRecords.review.submitButton')}
+				cancelText={t('common.actions.cancel')}
+				confirmLoading={savingReview}
+				okButtonProps={{
+					disabled: !reviewRating || !String(reviewContent || '').trim(),
+				}}
+			>
+				<div className={styles.reviewModalBody}>
+					<p className={styles.reviewClinicName}>
+						{reviewTargetRecord?.clinicName || t('common.states.unknown')}
+					</p>
+					<p className={styles.reviewHint}>{t('pages.medicalRecords.review.ratingLabel')}</p>
+					<Rate value={reviewRating} onChange={setReviewRating} />
+					<p className={styles.reviewHint}>{t('pages.medicalRecords.review.contentLabel')}</p>
+					<textarea
+						className={styles.reviewTextarea}
+						value={reviewContent}
+						onChange={(event) => setReviewContent(event.target.value)}
+						placeholder={t('pages.medicalRecords.review.contentPlaceholder')}
+						rows={4}
+					/>
+				</div>
+			</Modal>
 		</div>
 	)
 }

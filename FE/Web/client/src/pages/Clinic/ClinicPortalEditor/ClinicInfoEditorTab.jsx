@@ -3,16 +3,16 @@ import { Button, Card, Col, Divider, Form, Input, Modal, Row, Space, Upload, mes
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useAuth } from '../../../../hooks/Clinic/AuthContext'
-import { uploadOneFileToCloudinary } from '../../../../services/cloudinaryService'
-import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity'
+import { useAuth } from '../../../hooks/Clinic/AuthContext'
+import { uploadOneFileToCloudinary } from '../../../services/cloudinaryService'
+import { getCurrentAdminClinicId } from '../../../utils/clinicIdentity'
 import {
     buildClinicInfoContent,
     formatClinicOpenHours,
     getClinicInfoContent,
     saveClinicInfoContent,
-} from '../../../../utils/storage/clinicInfoStorage'
-import './styles.css'
+} from '../../../utils/storage/clinicInfoStorage'
+import './clinicInfoEditorTab.css'
 
 const buildFallbackClinicFromProfile = (profile) => {
   const clinicInfo =

@@ -20,6 +20,9 @@ export const APPOINTMENT_STATUS_LABEL = APPOINTMENT_STATUS_LABELS
 export const APPOINTMENT_PAYMENT_SYNC_EVENT_KEY =
   'adminClinic:appointmentPaymentSync'
 
+export const APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY =
+  'adminClinic:appointmentPaymentStatusMap'
+
 export const SERVICE_OPTIONS = SERVICE_LABELS
 // Chuẩn hóa trạng thái cuộc hẹn
 export const normalizeAppointmentStatus = (status) => {
@@ -123,6 +126,14 @@ export const getAppointmentByIdApi = async (instance, appointmentId) => {
   return (
     items.find((item) => String(item?.id) === String(appointmentId)) || null
   )
+}
+
+export const getAppointmentAiDiagnosisApi = (instance, appointmentId) => {
+  if (!appointmentId) return Promise.resolve(null)
+
+  return instance
+    .get(`/appointment/${appointmentId}/ai-diagnosis`)
+    .then((response) => response?.data || null)
 }
 // API tạo cuộc hẹn mới
 export const createAppointmentApi = (instance, data) => {

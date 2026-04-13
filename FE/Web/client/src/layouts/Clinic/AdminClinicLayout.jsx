@@ -1,9 +1,10 @@
 import {
   CalendarOutlined,
-  EditOutlined,
   FileSearchOutlined,
   HomeOutlined,
   LineChartOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
   MedicineBoxOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
@@ -13,13 +14,14 @@ import {
   Empty,
   Form,
   List,
+  notification,
   Popover,
   Select,
   Tag,
   Typography,
   message,
 } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
@@ -33,6 +35,7 @@ import { RoleEnum } from "../../enum/role.enum";
 import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
+import { resolveNotificationHref } from "../../services/notificationService";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import styles from "./AdminClinicLayout.module.css";
@@ -45,31 +48,42 @@ const menuItemConfigs = [
     labelKey: "sidebar.menu.appointments",
     icon: CalendarOutlined,
     path: "/clinic/appointments",
+    activePaths: ["/clinic/appointments", "/admin/home"],
   },
   {
     key: "records",
     labelKey: "sidebar.menu.records",
     icon: MedicineBoxOutlined,
     path: "/clinic/medical-records",
+    activePaths: ["/clinic/medical-records"],
   },
   {
     key: "revenue",
     labelKey: "sidebar.menu.revenue",
     icon: LineChartOutlined,
     path: "/clinic/revenue",
+    activePaths: ["/clinic/revenue"],
   },
   {
     key: "doctors",
     labelKey: "sidebar.menu.doctors",
     icon: TeamOutlined,
     path: "/clinic/veterinarians",
+    activePaths: ["/clinic/veterinarians"],
   },
   {
     key: "forms",
     labelKey: "sidebar.menu.forms",
     icon: FileSearchOutlined,
     path: "/clinic/exam-slips",
+    activePaths: ["/clinic/exam-slips"],
   },
+];
+
+const clinicEditorPathPrefixes = [
+  "/clinic/editor",
+  "/clinic/home-editor",
+  "/clinic/clinic-editor",
 ];
 
 const NOTIFICATION_TYPE_COLORS = {
@@ -143,12 +157,24 @@ const formatNotificationTimeAgo = (dateValue, t) => {
   });
 };
 
-const isMenuActive = (pathname, path) => {
-  if (path === "/clinic/appointments") {
-    return pathname === "/admin/home" || pathname === "/clinic/appointments";
-  }
+const normalizePath = (path) => {
+  if (!path) return "/";
+  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+  return path;
+};
 
-  return pathname === path || pathname.startsWith(`${path}/`);
+const isPathMatch = (pathname, pathPrefix) => {
+  const currentPath = normalizePath(pathname);
+  const normalizedPrefix = normalizePath(pathPrefix);
+  return (
+    currentPath === normalizedPrefix ||
+    currentPath.startsWith(`${normalizedPrefix}/`)
+  );
+};
+
+const isMenuActive = (pathname, item) => {
+  const activePaths = item.activePaths?.length ? item.activePaths : [item.path];
+  return activePaths.some((pathPrefix) => isPathMatch(pathname, pathPrefix));
 };
 
 const getClinicDisplayName = (profile, t) => {
@@ -183,11 +209,14 @@ export default function AdminClinicLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const { token, userProfile, login, logout, refreshUserProfile, activeRole } = useAuth();
+  const [notificationApi, notificationContextHolder] = notification.useNotification();
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: "all",
     eventType: "all",
   });
+  const shownToastIdsRef = useRef(new Set());
   const [, setTimeTick] = useState(0);
 
   // Force re-render every 30s so time-ago labels stay fresh
@@ -203,6 +232,7 @@ export default function AdminClinicLayout() {
   const clinicId = getCurrentAdminClinicId(userProfile);
   const notificationScopeKey = clinicId || userProfile?.id || "default";
   const isClinicEditorRoute =
+    location.pathname.startsWith("/clinic/editor/") ||
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
   const shouldEmbedActionBarInTopBar =
@@ -224,6 +254,7 @@ export default function AdminClinicLayout() {
     unreadCount: unreadNotificationCount,
     markAsRead: markNotificationAsRead,
     markAllAsRead: markAllNotificationsAsRead,
+    latestIncomingNotification,
   } = useNotificationSocket({
     storageKey: `ws_notif_clinic:${notificationScopeKey}`,
     token,
@@ -274,7 +305,7 @@ export default function AdminClinicLayout() {
     }
   }, [token, effectiveRole, hasClinicRole, navigate]);
 
-  const openHomePageEditor = () => {
+  const openUnifiedEditor = () => {
     if (!clinicId) {
       message.error(t("sidebar.errors.missingClinicId"));
       return;
@@ -282,21 +313,38 @@ export default function AdminClinicLayout() {
 
     handoffAdminAuthToNewTab();
 
-    const editorUrl = `${window.location.origin}/clinic/home-editor/${clinicId}`;
+    const editorUrl = `${window.location.origin}/clinic/editor/${clinicId}`;
     window.open(editorUrl, "_blank", "noopener,noreferrer");
   };
 
-  const openClinicSelectionEditor = () => {
-    if (!clinicId) {
-      message.error(t("sidebar.errors.missingClinicId"));
-      return;
+  const handleNotificationItemClick = useCallback((item) => {
+    if (!item?.id) return;
+
+    void markNotificationAsRead(item.id);
+    setNotificationPopoverOpen(false);
+
+    const targetHref = resolveNotificationHref(item, "clinic");
+    if (targetHref) {
+      navigate(targetHref);
     }
+  }, [markNotificationAsRead, navigate]);
 
-    handoffAdminAuthToNewTab();
+  useEffect(() => {
+    const notificationId = latestIncomingNotification?.id;
+    if (!notificationId) return;
 
-    const editorUrl = `${window.location.origin}/clinic/clinic-editor/${clinicId}`;
-    window.open(editorUrl, "_blank", "noopener,noreferrer");
-  };
+    if (shownToastIdsRef.current.has(notificationId)) return;
+    shownToastIdsRef.current.add(notificationId);
+
+    notificationApi.open({
+      key: `clinic-live-notification-${notificationId}`,
+      message: latestIncomingNotification?.title || t("sidebar.notifications.panelTitle"),
+      description: latestIncomingNotification?.description || "",
+      placement: "bottomRight",
+      duration: 5,
+      onClick: () => handleNotificationItemClick(latestIncomingNotification),
+    });
+  }, [handleNotificationItemClick, latestIncomingNotification, notificationApi, t]);
 
   const notificationContent = (
     <div className={styles.notificationPanel}>
@@ -414,7 +462,7 @@ export default function AdminClinicLayout() {
             <List.Item
               key={item.id}
               className={`${styles.notificationItem} ${isRead ? "" : styles.notificationItemUnread}`}
-              onClick={() => markNotificationAsRead(item.id)}
+              onClick={() => handleNotificationItemClick(item)}
             >
               <div className={styles.notificationItemTop}>
                 <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || "default"}>
@@ -439,8 +487,19 @@ export default function AdminClinicLayout() {
   );
 
   return (
-    <div className={styles.layout}>
+    <div
+      className={`${styles.layout} ${!isSidebarVisible || isClinicEditorRoute ? styles.layoutSingleColumn : ""}`}
+    >
+      {!isClinicEditorRoute && isSidebarVisible ? (
       <aside className={styles.sidebar}>
+        <Button
+          type="text"
+          aria-label={t("sidebar.toggleAriaLabel", { defaultValue: "Ẩn/hiện sidebar" })}
+          className={styles.sidebarInlineToggleButton}
+          icon={<MenuFoldOutlined />}
+          onClick={() => setIsSidebarVisible(false)}
+        />
+
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
@@ -460,7 +519,7 @@ export default function AdminClinicLayout() {
                 <NavLink
                   key={item.key}
                   to={item.path}
-                  className={`${styles.menuItem} ${isMenuActive(location.pathname, item.path) ? styles.menuItemActive : ""}`}
+                  className={`${styles.menuItem} ${isMenuActive(location.pathname, item) ? styles.menuItemActive : ""}`}
                 >
                   <Icon />
                   <span>{item.label}</span>
@@ -470,20 +529,11 @@ export default function AdminClinicLayout() {
 
             <button
               type="button"
-              onClick={openHomePageEditor}
-              className={`${styles.menuItem} ${styles.menuButton} ${location.pathname.startsWith("/clinic/home-editor/") ? styles.menuItemActive : ""}`}
+              onClick={openUnifiedEditor}
+              className={`${styles.menuItem} ${styles.menuButton} ${clinicEditorPathPrefixes.some((pathPrefix) => isPathMatch(location.pathname, pathPrefix)) ? styles.menuItemActive : ""}`}
             >
               <HomeOutlined />
-              <span>{t("sidebar.menu.homeEditor")}</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={openClinicSelectionEditor}
-              className={`${styles.menuItem} ${styles.menuButton} ${location.pathname.startsWith("/clinic/clinic-editor/") ? styles.menuItemActive : ""}`}
-            >
-              <EditOutlined />
-              <span>{t("sidebar.menu.clinicEditor")}</span>
+              <span>{t("sidebar.menu.editor", { defaultValue: "Chỉnh sửa trang" })}</span>
             </button>
           </nav>
         </div>
@@ -501,8 +551,19 @@ export default function AdminClinicLayout() {
           />
         </div>
       </aside>
+      ) : null}
 
       <main className={styles.main}>
+        {notificationContextHolder}
+        {!isClinicEditorRoute && !isSidebarVisible ? (
+          <Button
+            type="text"
+            aria-label={t("sidebar.toggleAriaLabel", { defaultValue: "Ẩn/hiện sidebar" })}
+            className={styles.sidebarToggleButton}
+            icon={<MenuUnfoldOutlined />}
+            onClick={() => setIsSidebarVisible(true)}
+          />
+        ) : null}
         {!isClinicEditorRoute ? (
         <div
           className={`${styles.mainActionBar} ${shouldEmbedActionBarInTopBar ? styles.mainActionBarEmbedded : ""}`}

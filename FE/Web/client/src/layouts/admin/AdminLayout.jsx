@@ -26,23 +26,42 @@ const menuItems = [
     labelKey: "layout.menu.clinics",
     icon: MedicineBoxOutlined,
     path: "/admin/dashboard/clinics",
+    activePaths: ["/admin/dashboard/clinics"],
   },
   {
     key: "users",
     labelKey: "layout.menu.users",
     icon: TeamOutlined,
     path: "/admin/dashboard/users",
+    activePaths: ["/admin/dashboard/users"],
   },
   {
     key: "posts",
     labelKey: "layout.menu.posts",
     icon: FileTextOutlined,
     path: "/admin/dashboard/posts",
+    activePaths: ["/admin/dashboard/posts"],
   },
 ];
 
-const isMenuActive = (pathname, path) => {
-  return pathname === path || pathname.startsWith(`${path}/`);
+const normalizePath = (path) => {
+  if (!path) return "/";
+  if (path.length > 1 && path.endsWith("/")) return path.slice(0, -1);
+  return path;
+};
+
+const isPathMatch = (pathname, pathPrefix) => {
+  const currentPath = normalizePath(pathname);
+  const normalizedPrefix = normalizePath(pathPrefix);
+  return (
+    currentPath === normalizedPrefix ||
+    currentPath.startsWith(`${normalizedPrefix}/`)
+  );
+};
+
+const isMenuActive = (pathname, item) => {
+  const activePaths = item.activePaths?.length ? item.activePaths : [item.path];
+  return activePaths.some((pathPrefix) => isPathMatch(pathname, pathPrefix));
 };
 
 const NOTIFICATION_CATEGORY_ICONS = {
@@ -165,7 +184,7 @@ export default function AdminLayout() {
                 <NavLink
                   key={item.key}
                   to={item.path}
-                  className={`${styles.menuItem} ${isMenuActive(location.pathname, item.path) ? styles.menuItemActive : ""}`}
+                  className={`${styles.menuItem} ${isMenuActive(location.pathname, item) ? styles.menuItemActive : ""}`}
                 >
                   <Icon />
                   <span>{t(item.labelKey)}</span>

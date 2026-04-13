@@ -25,17 +25,16 @@ import MedicalRecords from '../pages/client/User/MedicalRecords/medicalRecords'
 import PetProfile from '../pages/client/User/PetProfile'
 import ProfileUser from '../pages/client/User/ProfileUser'
 import SuccessBooking from '../pages/client/User/SuccessBooking'
-import AddNewVererianrian from '../pages/Clinic/VeterinaryClinic/AddNewVererianrian/addNewVererianrian'
-import AppointmentManagement from '../pages/Clinic/VeterinaryClinic/AppointmentManagement/appointmentManagement'
-import ClinicSelectionEditor from '../pages/Clinic/VeterinaryClinic/ClinicSelectionEditor'
-import HomePageClinicEditor from '../pages/Clinic/VeterinaryClinic/HomePageClinicEditor'
-import InformationVererianrian from '../pages/Clinic/VeterinaryClinic/InformationVererianrian/InformationVererianrian'
-import ListPetExaminationRecords from '../pages/Clinic/VeterinaryClinic/ListPetExaminationRecords/listPetExaminationRecords'
-import AdminListPetMedicalRecords from '../pages/Clinic/VeterinaryClinic/ListPetMedicalRecords/listPetMedicalRecords'
-import PetMedicalRecords from '../pages/Clinic/VeterinaryClinic/PetMedicalRecords/petMedicalRecords'
-import AdminClinicProfile from '../pages/Clinic/VeterinaryClinic/ProfileAdminClinic/profileAdminClinic'
-import VererianrianManagement from '../pages/Clinic/VeterinaryClinic/VererianrianManagement/vererianrianManagement'
-import ViewMedicalRecords from '../pages/Clinic/VeterinaryClinic/ViewMedicalRecords/viewMedicalRecords'
+import AddNewVererianrian from '../pages/Clinic/AddNewVererianrian/addNewVererianrian'
+import AppointmentManagement from '../pages/Clinic/AppointmentManagement/appointmentManagement'
+import ClinicPortalEditor from '../pages/Clinic/ClinicPortalEditor'
+import InformationVererianrian from '../pages/Clinic/InformationVererianrian/InformationVererianrian'
+import ListPetExaminationRecords from '../pages/Clinic/ListPetExaminationRecords/listPetExaminationRecords'
+import AdminListPetMedicalRecords from '../pages/Clinic/ListPetMedicalRecords/listPetMedicalRecords'
+import PetMedicalRecords from '../pages/Clinic/PetMedicalRecords/petMedicalRecords'
+import AdminClinicProfile from '../pages/Clinic/ProfileAdminClinic/profileAdminClinic'
+import VererianrianManagement from '../pages/Clinic/VererianrianManagement/vererianrianManagement'
+import ViewMedicalRecords from '../pages/Clinic/ViewMedicalRecords/viewMedicalRecords'
 import ListExaminationForm from '../pages/Vererianrian/ListExaminationForm/listExaminationForm'
 import ListMedicalRecords from '../pages/Vererianrian/ListMedicalRecords/listMedicalRecords'
 import PetAppointmentVererianrian from '../pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
@@ -71,8 +70,9 @@ export default function AppRoutes({ location }) {
         <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
         <Route path="/clinic/exam-slips" element={<ListPetExaminationRecords />} />
         <Route path="/clinic/exam-slips/:appointmentId" element={<PetMedicalRecords />} />
-        <Route path="/clinic/home-editor/:clinicId" element={<HomePageClinicEditor />} />
-        <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicSelectionEditor />} />
+        <Route path="/clinic/editor/:clinicId" element={<ClinicPortalEditor />} />
+        <Route path="/clinic/home-editor/:clinicId" element={<ClinicPortalEditor />} />
+        <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicPortalEditor />} />
       </Route>
 
       <Route path="/veterinarian/login" element={<Navigate to="/login" replace />} />
@@ -100,6 +100,7 @@ export default function AppRoutes({ location }) {
         <Route path="/" element={<HomePage />} />
         <Route path="/home" element={<HomePage />} />
         <Route path="/clinic" element={<HomePageClinic />} />
+        <Route path="/clinic/:clinicId" element={<HomePageClinic />} />
         <Route path="/choose-clinic" element={<ClinicSelection />} />
         <Route path="/booking" element={<BookingAppointment />} />
         <Route path="/appointments" element={<AppointmentDetail />} />

@@ -26,28 +26,30 @@ import {
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getAdminInstance } from '../../../../services/apiClient'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
+	APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
 	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
 	APPOINTMENT_STATUS,
 	getAppointmentsApi,
 	updateAppointmentStatusApi,
-} from '../../../../services/appointmentService'
-import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../../services/invoiceService'
-import { getLatestMedicalByPetIdApi } from '../../../../services/medicalService'
-import { getUserByIdApi } from '../../../../services/userService'
-import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
+} from '../../../services/appointmentService'
+import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
+import { getLatestMedicalByPetIdApi } from '../../../services/medicalService'
+import { getUserByIdApi } from '../../../services/userService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import {
 	getAppointmentStatusLabel,
 	getPetBreedLabel,
 	getPetSpeciesLabel,
 	getServiceLabel,
-} from '../../../../utils/enumLabel'
+} from '../../../utils/enumLabel'
 import styles from './appointmentManagement.module.css'
 
 const { Title, Text } = Typography
 
 const TIME_SLOTS = ['08:00', '08:30','09:00', '09:30', '10:00', '10:30', '14:00', '14:30', '15:00', '15:30', '16:00', '16:30']
+const PAYMENT_SYNC_TTL_MS = 30 * 60 * 1000
 
 const STATUS_COLUMN_CONFIGS = [
 	{
@@ -117,6 +119,19 @@ const formatDisplayDate = (dateValue) => {
 
 const getTimeValue = (time) => formatTimeHHMM(time, '')
 
+const getAppointmentStartMs = (appointmentDate, appointmentTime) => {
+	if (!appointmentDate || !appointmentTime) return null
+
+	const date = new Date(appointmentDate)
+	if (Number.isNaN(date.getTime())) return null
+
+	const [hours, minutes] = String(appointmentTime || '00:00').slice(0, 5).split(':')
+	const startDateTime = new Date(date)
+	startDateTime.setHours(Number(hours) || 0, Number(minutes) || 0, 0, 0)
+
+	return Number.isNaN(startDateTime.getTime()) ? null : startDateTime.getTime()
+}
+
 const getGenderLabel = (value, t, missingField) => {
 	if (typeof value === 'boolean') {
 		return value ? t('appointments.common.male') : t('appointments.common.female')
@@ -131,6 +146,60 @@ const getGenderLabel = (value, t, missingField) => {
 	}
 
 	return missingField
+}
+
+const readPaymentSyncPayload = () => {
+	if (typeof window === 'undefined') return null
+
+	try {
+		const rawPayload = window.localStorage.getItem(APPOINTMENT_PAYMENT_SYNC_EVENT_KEY)
+		if (!rawPayload) return null
+
+		const payload = JSON.parse(rawPayload)
+		if (!payload?.appointmentId) return null
+
+		const updatedAt = Number(payload?.updatedAt)
+		if (!Number.isFinite(updatedAt)) return null
+		if (Date.now() - updatedAt > PAYMENT_SYNC_TTL_MS) return null
+
+		return payload
+	} catch {
+		return null
+	}
+}
+
+const readPersistedPaymentStatusMap = () => {
+	if (typeof window === 'undefined') return {}
+
+	try {
+		const rawMap = window.localStorage.getItem(APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY)
+		if (!rawMap) return {}
+
+		const parsedMap = JSON.parse(rawMap)
+		if (!parsedMap || typeof parsedMap !== 'object') return {}
+
+		const normalizedMap = {}
+		Object.entries(parsedMap).forEach(([appointmentId, paymentStatus]) => {
+			if (!appointmentId) return
+			normalizedMap[String(appointmentId)] = paymentStatus
+		})
+
+		return normalizedMap
+	} catch {
+		return {}
+	}
+}
+
+const persistPaymentStatusMap = (paymentStatusMap) => {
+	if (typeof window === 'undefined') return
+
+	try {
+		window.localStorage.setItem(
+			APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
+			JSON.stringify(paymentStatusMap || {}),
+		)
+	} catch {
+	}
 }
 
 function AppointmentCard({ item, onOpenDetails, onDragStart, t }) {
@@ -203,6 +272,30 @@ export default function AppointmentManagement() {
 		[i18n.language],
 	)
 
+	const applyPaymentSyncPayload = useCallback((payload) => {
+		if (!payload?.appointmentId) return
+		const appointmentIdKey = String(payload.appointmentId)
+
+		if (payload?.status) {
+			setAppointments((prev) =>
+				prev.map((item) =>
+					item.id === payload.appointmentId ? { ...item, status: payload.status } : item,
+				),
+			)
+		}
+
+		if (payload?.paymentStatus) {
+			setPaymentStatusByAppointmentId((prev) => {
+				const nextMap = {
+					...prev,
+					[appointmentIdKey]: payload.paymentStatus,
+				}
+				persistPaymentStatusMap(nextMap)
+				return nextMap
+			})
+		}
+	}, [])
+
 	const fetchAppointments = useCallback(async () => {
 		try {
 			setLoading(true)
@@ -231,6 +324,7 @@ export default function AppointmentManagement() {
 		let active = true
 
 		const hydratePaymentStatus = async () => {
+			const persistedPaymentMap = readPersistedPaymentStatusMap()
 			const completedAppointments = appointments.filter(
 				(item) => item?.status === APPOINTMENT_STATUS.COMPLETED,
 			)
@@ -245,19 +339,26 @@ export default function AppointmentManagement() {
 			const entries = await Promise.all(
 				completedAppointments.map(async (item) => {
 					const appointmentId = item?.id
+					const appointmentMedicalId = getByPaths(item, ['medical.id', 'medicalId', 'medical_id'], '')
 					const petId = item?.pet?.id
 
-					if (!appointmentId || !petId) {
+					if (!appointmentId) {
 						return [appointmentId, INVOICE_STATUS.UNPAID]
 					}
 
 					try {
-						const latestMedical = await getLatestMedicalByPetIdApi(getAdminInstance(), petId)
-						if (!latestMedical?.id) {
+						let medicalRecordId = appointmentMedicalId
+
+						if (!medicalRecordId && petId) {
+							const latestMedical = await getLatestMedicalByPetIdApi(getAdminInstance(), petId)
+							medicalRecordId = latestMedical?.id || ''
+						}
+
+						if (!medicalRecordId) {
 							return [appointmentId, INVOICE_STATUS.UNPAID]
 						}
 
-						const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), latestMedical.id)
+						const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), medicalRecordId)
 						return [
 							appointmentId,
 							invoice?.status === INVOICE_STATUS.PAID ? INVOICE_STATUS.PAID : INVOICE_STATUS.UNPAID,
@@ -277,9 +378,23 @@ export default function AppointmentManagement() {
 			const nextPaymentMap = {}
 			entries.forEach(([appointmentId, paymentStatus]) => {
 				if (!appointmentId) return
-				nextPaymentMap[appointmentId] = paymentStatus
+				const appointmentIdKey = String(appointmentId)
+				const persistedStatus = persistedPaymentMap[appointmentIdKey]
+				nextPaymentMap[appointmentIdKey] =
+					paymentStatus === INVOICE_STATUS.PAID || persistedStatus === INVOICE_STATUS.PAID
+						? INVOICE_STATUS.PAID
+						: paymentStatus
 			})
 
+			const recentSyncPayload = readPaymentSyncPayload()
+			if (recentSyncPayload?.appointmentId && recentSyncPayload?.paymentStatus) {
+				nextPaymentMap[String(recentSyncPayload.appointmentId)] = recentSyncPayload.paymentStatus
+			}
+
+			persistPaymentStatusMap({
+				...persistedPaymentMap,
+				...nextPaymentMap,
+			})
 			setPaymentStatusByAppointmentId(nextPaymentMap)
 		}
 
@@ -291,12 +406,28 @@ export default function AppointmentManagement() {
 	}, [appointments])
 
 	useEffect(() => {
+		const syncFromStorageSnapshot = () => {
+			const persistedPaymentMap = readPersistedPaymentStatusMap()
+			if (Object.keys(persistedPaymentMap).length > 0) {
+				setPaymentStatusByAppointmentId((prev) => ({
+					...persistedPaymentMap,
+					...prev,
+				}))
+			}
+
+			const payload = readPaymentSyncPayload()
+			if (!payload) return
+			applyPaymentSyncPayload(payload)
+		}
+
 		const syncAppointmentsOnFocus = () => {
+			syncFromStorageSnapshot()
 			fetchAppointments()
 		}
 
 		const syncAppointmentsOnVisibilityChange = () => {
 			if (!document.hidden) {
+				syncFromStorageSnapshot()
 				fetchAppointments()
 			}
 		}
@@ -306,23 +437,12 @@ export default function AppointmentManagement() {
 
 			try {
 				const payload = JSON.parse(event.newValue)
-				if (!payload?.appointmentId || !payload?.status) return
-
-				setAppointments((prev) =>
-					prev.map((item) =>
-						item.id === payload.appointmentId ? { ...item, status: payload.status } : item,
-					),
-				)
-
-				if (payload?.paymentStatus) {
-					setPaymentStatusByAppointmentId((prev) => ({
-						...prev,
-						[payload.appointmentId]: payload.paymentStatus,
-					}))
-				}
+				applyPaymentSyncPayload(payload)
 			} catch {
 			}
 		}
+
+		syncFromStorageSnapshot()
 
 		window.addEventListener('focus', syncAppointmentsOnFocus)
 		document.addEventListener('visibilitychange', syncAppointmentsOnVisibilityChange)
@@ -333,7 +453,7 @@ export default function AppointmentManagement() {
 			document.removeEventListener('visibilitychange', syncAppointmentsOnVisibilityChange)
 			window.removeEventListener('storage', syncAppointmentsOnPayment)
 		}
-	}, [fetchAppointments])
+	}, [applyPaymentSyncPayload, fetchAppointments])
 
 	const mappedAppointments = appointments
 		.filter((item) => item.status !== APPOINTMENT_STATUS.CANCELLED)
@@ -487,7 +607,15 @@ export default function AppointmentManagement() {
 
 	const canClinicCancelAppointment =
 		selectedAppointment &&
-		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED
+		selectedAppointment.status === APPOINTMENT_STATUS.BOOKED &&
+		(() => {
+			const appointmentStartMs = getAppointmentStartMs(
+				selectedAppointment.appointmentDateRaw,
+				selectedAppointment.time,
+			)
+			if (!appointmentStartMs) return false
+			return Date.now() >= appointmentStartMs
+		})()
 
 	const handleClinicCancelAppointment = () => {
 		if (!selectedAppointment) return
@@ -562,6 +690,7 @@ export default function AppointmentManagement() {
 							<Col xs={24} md={12}>
 								<Text strong>{t('appointments.filters.examTime')}</Text>
 								<Select
+									size='large'
 									className={styles.filterInput}
 									placeholder={t('appointments.filters.timePlaceholder')}
 									allowClear

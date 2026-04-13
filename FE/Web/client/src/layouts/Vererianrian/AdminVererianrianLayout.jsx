@@ -2,10 +2,12 @@ import {
     CalendarOutlined,
     FileTextOutlined,
     FormOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
     SearchOutlined,
 } from '@ant-design/icons'
-import { Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography } from 'antd'
-import { useEffect, useMemo, useState } from 'react'
+import { Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography, notification } from 'antd'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { CiHospital1 } from "react-icons/ci"
 import { IoMdNotificationsOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next'
@@ -19,6 +21,7 @@ import PortalAccountMenu from '../../components/common/PortalAccountMenu/PortalA
 import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
 import useNotificationSocket from '../../hooks/useNotificationSocket'
 import { getAdminInstance } from '../../services/apiClient'
+import { resolveNotificationHref } from '../../services/notificationService'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
 
@@ -30,18 +33,25 @@ const buildMenuItems = (t) => [
     label: t('layout.menu.appointments'),
     icon: CalendarOutlined,
     path: '/veterinarian/appointments',
+    activePaths: ['/veterinarian/appointments'],
   },
   {
     key: 'records',
     label: t('layout.menu.records'),
     icon: FileTextOutlined,
     path: '/veterinarian/listRecords',
+    activePaths: [
+      '/veterinarian/listRecords',
+      '/veterinarian/medical-records',
+      '/veterinarian/viewRecords',
+    ],
   },
   {
     key: 'exam-slips',
     label: t('layout.menu.examForms'),
     icon: FormOutlined,
     path: '/veterinarian/exam-forms',
+    activePaths: ['/veterinarian/exam-forms'],
   },
 ]
 
@@ -75,7 +85,22 @@ const formatNotificationTimeAgo = (dateValue, t) => {
   return t('layout.notifications.time.daysAgo', { count: Math.floor(diff / day) })
 }
 
-const isMenuActive = (pathname, path) => pathname === path || pathname.startsWith(`${path}/`)
+const normalizePath = (path) => {
+  if (!path) return '/'
+  if (path.length > 1 && path.endsWith('/')) return path.slice(0, -1)
+  return path
+}
+
+const isPathMatch = (pathname, pathPrefix) => {
+  const currentPath = normalizePath(pathname)
+  const normalizedPrefix = normalizePath(pathPrefix)
+  return currentPath === normalizedPrefix || currentPath.startsWith(`${normalizedPrefix}/`)
+}
+
+const isMenuActive = (pathname, item) => {
+  const activePaths = item.activePaths?.length ? item.activePaths : [item.path]
+  return activePaths.some((pathPrefix) => isPathMatch(pathname, pathPrefix))
+}
 
 const getClinicDisplayName = (profile, fallbackName) => {
   return (
@@ -93,11 +118,14 @@ export default function AdminVererianrianLayout() {
   const location = useLocation()
   const navigate = useNavigate()
   const { token, userProfile, login, logout, refreshUserProfile, activeRole } = useAuth()
+  const [notificationApi, notificationContextHolder] = notification.useNotification()
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false)
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true)
   const [notificationFilters, setNotificationFilters] = useState({
     viewMode: 'all',
     eventType: 'all',
   })
+  const shownToastIdsRef = useRef(new Set())
   const [, setTimeTick] = useState(0)
 
   // Force re-render every 30s so time-ago labels stay fresh
@@ -126,12 +154,42 @@ export default function AdminVererianrianLayout() {
     unreadCount: unreadNotificationCount,
     markAsRead: markNotificationAsRead,
     markAllAsRead: markAllNotificationsAsRead,
+    latestIncomingNotification,
   } = useNotificationSocket({
     storageKey: `ws_notif_vet:${userProfile?.id || 'default'}`,
     token,
     enabled: !!token,
     instance: getAdminInstance(),
   })
+
+  const handleNotificationItemClick = useCallback((item) => {
+    if (!item?.id) return
+
+    void markNotificationAsRead(item.id)
+    setNotificationPopoverOpen(false)
+
+    const targetHref = resolveNotificationHref(item, 'veterinarian')
+    if (targetHref) {
+      navigate(targetHref)
+    }
+  }, [markNotificationAsRead, navigate])
+
+  useEffect(() => {
+    const notificationId = latestIncomingNotification?.id
+    if (!notificationId) return
+
+    if (shownToastIdsRef.current.has(notificationId)) return
+    shownToastIdsRef.current.add(notificationId)
+
+    notificationApi.open({
+      key: `vet-live-notification-${notificationId}`,
+      message: latestIncomingNotification?.title || t('layout.notifications.panelTitle'),
+      description: latestIncomingNotification?.description || '',
+      placement: 'bottomRight',
+      duration: 5,
+      onClick: () => handleNotificationItemClick(latestIncomingNotification),
+    })
+  }, [handleNotificationItemClick, latestIncomingNotification, notificationApi, t])
 
   const filteredNotificationItems = useMemo(() => {
     return notificationItems.filter((item) => {
@@ -243,7 +301,7 @@ export default function AdminVererianrianLayout() {
             <List.Item
               key={item.id}
               className={`${styles.notificationItem} ${isRead ? '' : styles.notificationItemUnread}`}
-              onClick={() => markNotificationAsRead(item.id)}
+              onClick={() => handleNotificationItemClick(item)}
             >
               <div className={styles.notificationItemTop}>
                 <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || 'default'}>
@@ -266,9 +324,29 @@ export default function AdminVererianrianLayout() {
   )
 
   return (
-    <div className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''}`}>
-      {!isExamFormFocusMode ? (
+    <div
+      className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''} ${!isSidebarVisible || isExamFormFocusMode ? styles.layoutSingleColumn : ''}`}
+    >
+      {notificationContextHolder}
+      {!isExamFormFocusMode && !isSidebarVisible ? (
+        <Button
+          type="text"
+          aria-label={t('layout.aria.toggleSidebar', { defaultValue: 'Show or hide sidebar' })}
+          className={styles.sidebarToggleButton}
+          icon={<MenuUnfoldOutlined />}
+          onClick={() => setIsSidebarVisible(true)}
+        />
+      ) : null}
+      {!isExamFormFocusMode && isSidebarVisible ? (
         <aside className={styles.sidebar}>
+          <Button
+            type="text"
+            aria-label={t('layout.aria.toggleSidebar', { defaultValue: 'Show or hide sidebar' })}
+            className={styles.sidebarInlineToggleButton}
+            icon={<MenuFoldOutlined />}
+            onClick={() => setIsSidebarVisible(false)}
+          />
+
           <div>
             <div className={styles.brandWrap}>
               <div className={styles.brandIcon}>
@@ -283,13 +361,12 @@ export default function AdminVererianrianLayout() {
             <nav className={styles.menu}>
               {menuItems.map((item) => {
                 const Icon = item.icon
-                const active = isMenuActive(location.pathname, item.path)
 
                 return (
                   <NavLink
                     key={item.key}
                     to={item.path}
-                    className={`${styles.menuItem} ${active ? styles.menuItemActive : ''}`}
+                    className={`${styles.menuItem} ${isMenuActive(location.pathname, item) ? styles.menuItemActive : ''}`}
                   >
                     <Icon />
                     <span>{item.label}</span>

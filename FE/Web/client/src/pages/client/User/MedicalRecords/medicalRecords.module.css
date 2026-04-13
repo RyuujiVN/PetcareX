@@ -286,6 +286,67 @@
 	background: #ddf4e6;
 }
 
+.reviewButton {
+	border-radius: 999px;
+	padding: 6px 12px;
+	font-size: 12px;
+	font-weight: 800;
+	border: 1px solid #f5a623;
+	background: #fff8e8;
+	color: #b56a00;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.reviewButton:hover:not(:disabled) {
+	border-color: #f17a3f;
+	color: #f17a3f;
+	background: #fff3e7;
+}
+
+.reviewButton:disabled,
+.reviewed {
+	border-color: #b7dec6;
+	background: #e9f8ef;
+	color: #1f9f59;
+	cursor: not-allowed;
+}
+
+.reviewModalBody {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.reviewClinicName {
+	margin: 0;
+	font-size: 15px;
+	font-weight: 700;
+	color: #2d3c50;
+}
+
+.reviewHint {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 600;
+	color: #51637a;
+}
+
+.reviewTextarea {
+	border: 1px solid #d6deea;
+	border-radius: 10px;
+	padding: 10px;
+	font-size: 14px;
+	font-family: inherit;
+	resize: vertical;
+	outline: none;
+}
+
+.reviewTextarea:focus {
+	border-color: #f17a3f;
+	box-shadow: 0 0 0 2px rgba(241, 122, 63, 0.14);
+}
+
 .recordMetaGrid {
 	margin-top: 8px;
 	display: grid;

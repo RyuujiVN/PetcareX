@@ -65,6 +65,17 @@
   margin-bottom: 16px;
   color: var(--color-text-primary);
 }
+
+.step-heading-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.step-heading-row h2 {
+  margin-bottom: 14px;
+}
 .step-number {
   display: inline-block;
   width: 24px;
@@ -207,7 +218,7 @@
 
 .date-time-selector {
   display: grid;
-  grid-template-columns: minmax(500px, 1.05fr) minmax(420px, 1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 18px;
   align-items: flex-start;
 }
@@ -384,6 +395,19 @@
   gap: 16px;
 }
 
+.lead-time-note {
+  font-size: 13px;
+  font-weight: 600;
+  color: #d4380d;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  border-radius: 10px;
+  padding: 9px 12px;
+  margin-top: 1px;
+  margin-bottom: 0;
+  max-width: 420px;
+}
+
 .time-slot-group {
   display: flex;
   flex-direction: column;
@@ -439,6 +463,22 @@
 }
 
 @media (max-width: 1200px) {
+  .step-heading-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .step-heading-row h2 {
+    margin-bottom: 8px;
+  }
+
+  .lead-time-note {
+    width: 100%;
+    max-width: none;
+    margin-top: 0;
+    margin-bottom: 6px;
+  }
+
   .date-time-selector {
     grid-template-columns: 1fr;
   }

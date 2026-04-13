@@ -4,14 +4,15 @@ import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
-import { getAdminInstance } from '../../../../services/apiClient'
-import { getPetSpeciesApi } from '../../../../services/petService'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../services/appointmentService'
+import { getAdminInstance } from '../../../services/apiClient'
+import { getPetSpeciesApi } from '../../../services/petService'
+import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import {
     getAppointmentStatusLabel,
     getPetBreedLabel,
     getPetSpeciesLabel,
-} from '../../../../utils/enumLabel'
+} from '../../../utils/enumLabel'
 import styles from './listPetExaminationRecords.module.css'
 
 const normalizeDate = (dateValue) => {
@@ -25,6 +26,11 @@ const normalizeDate = (dateValue) => {
 	const day = String(date.getDate()).padStart(2, '0')
 
 	return `${year}-${month}-${day}`
+}
+
+const formatExamDate = (dateValue, fallbackText) => {
+	const formatted = formatDateDDMMYYYY(dateValue, '')
+	return formatted || fallbackText
 }
 
 
@@ -110,6 +116,7 @@ export default function ListPetExaminationRecords() {
 						speciesLabel,
 						breed: breedLabel,
 						ownerName: item?.pet?.owner?.fullName || t('examForm.common.unknownOwner'),
+						examDateLabel: formatExamDate(item?.appointmentDate, t('examForm.common.notUpdated')),
 						ageLabel: getAgeLabel(item?.pet?.dateOfBirth, t),
 						note: item?.note || t('examForm.common.noNotes'),
 						dateKey: normalizeDate(item?.appointmentDate),
@@ -251,6 +258,7 @@ export default function ListPetExaminationRecords() {
 
 									<p style={{fontSize: 16}} className={styles.speciesText}>{t('examForm.list.fields.species')}: {record.breed || record.speciesLabel}</p>
 									<p style={{fontSize: 16}} className={styles.ownerText}>{t('examForm.list.fields.owner')}: {record.ownerName}</p>
+									<p style={{fontSize: 16}} className={styles.ownerText}>{t('examForm.list.fields.examDate', { defaultValue: t('appointments.filters.examDate') })}: {record.examDateLabel}</p>
 
 									<Button type="default" className={styles.viewButton} onClick={() => openRecordDetail(record)}>
 										<FileTextOutlined />

@@ -12,22 +12,22 @@ import {
 } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { getAdminInstance } from '../../../../services/apiClient'
+import { getAdminInstance } from '../../../services/apiClient'
 import {
     getMedicalByIdApi,
     getMedicalByPetIClinicdApi,
     getMedicalByPetIdApi,
     getMedicalOrdersByMedicalIdApi,
     getMedicinesByMedicalIdApi,
-} from '../../../../services/medicalService'
-import { getPetByIdApi } from '../../../../services/petService'
-import { formatDateDDMMYYYY } from '../../../../utils/dateTimeFormat'
+} from '../../../services/medicalService'
+import { getPetByIdApi } from '../../../services/petService'
+import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import {
     getMedicalRecordStatusLabel,
     getMedicineUnitLabel,
     getPetBreedLabel,
     getServiceLabel,
-} from '../../../../utils/enumLabel'
+} from '../../../utils/enumLabel'
 import styles from './viewMedicalRecords.module.css'
 
 const EMPTY_TIMELINE = []

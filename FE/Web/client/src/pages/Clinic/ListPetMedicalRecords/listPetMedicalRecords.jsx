@@ -4,11 +4,11 @@ import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { getAdminInstance } from '../../../../services/apiClient'
-import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../../services/appointmentService'
-import { getPetSpeciesApi } from '../../../../services/petService'
-import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../../utils/dateTimeFormat'
-import { getPetBreedLabel, getPetSpeciesLabel } from '../../../../utils/enumLabel'
+import { getAdminInstance } from '../../../services/apiClient'
+import { APPOINTMENT_STATUS, getAppointmentsApi } from '../../../services/appointmentService'
+import { getPetSpeciesApi } from '../../../services/petService'
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
+import { getPetBreedLabel, getPetSpeciesLabel } from '../../../utils/enumLabel'
 import styles from './listPetMedicalRecords.module.css'
 
 const PAGE_SIZE = 8
@@ -117,6 +117,11 @@ export default function ListPetMedicalRecords() {
 				const firstAppointment = sortedAppointments[0] || {}
 				const pet = firstAppointment?.pet || {}
 				const owner = pet?.owner || {}
+				const examDateRaw =
+					firstAppointment?.appointmentDate ||
+					firstAppointment?.medical?.createdAt ||
+					firstAppointment?.createdAt ||
+					''
 
 				return {
 					key: String(petId),
@@ -133,6 +138,8 @@ export default function ListPetMedicalRecords() {
 					weight: pet?.weight,
 					ownerName: owner?.fullName || t('medicalRecords.common.unknownOwner'),
 					ownerPhone: owner?.phone || contactFallbackText,
+					examDateRaw,
+					examDateLabel: formatDisplayDate(examDateRaw, locale, fallbackText),
 					appointmentSummary: sortedAppointments
 						.map((appointment) => {
 							const time = formatDisplayTime(appointment?.appointmentTime)
@@ -150,11 +157,31 @@ export default function ListPetMedicalRecords() {
 				}
 			})
 
-			setPetRows(mappedRows)
+			const todayStamp = normalizeDate(new Date())
+			const mappedRowsSorted = [...mappedRows].sort((a, b) => {
+				const aStamp = normalizeDate(a?.examDateRaw)
+				const bStamp = normalizeDate(b?.examDateRaw)
+				const isAToday = aStamp === todayStamp
+				const isBToday = bStamp === todayStamp
+
+				if (isAToday !== isBToday) {
+					return isAToday ? -1 : 1
+				}
+
+				const aTime = Date.parse(String(a?.examDateRaw || '')) || 0
+				const bTime = Date.parse(String(b?.examDateRaw || '')) || 0
+				if (bTime !== aTime) {
+					return bTime - aTime
+				}
+
+				return String(a?.name || '').localeCompare(String(b?.name || ''))
+			})
+
+			setPetRows(mappedRowsSorted)
 			setSelectedSpecies((current) => {
 				if (current === 'ALL') return current
 				const existsInBackend = speciesList.includes(current)
-				const existsInRows = mappedRows.some((row) => row.species === current)
+				const existsInRows = mappedRowsSorted.some((row) => row.species === current)
 				return existsInBackend || existsInRows ? current : 'ALL'
 			})
 		} catch (error) {
@@ -313,6 +340,7 @@ export default function ListPetMedicalRecords() {
 										<td>
 											<div className={styles.infoBlock}>
 												<strong>{row.ownerName}</strong>
+												<p>{t('medicalRecords.list.columns.examDate')}: {row.examDateLabel}</p>
 												<p>{row.ownerPhone}</p>
 											</div>
 										</td>

@@ -1,10 +1,11 @@
-﻿import { message, Spin } from "antd";
+﻿import { Rate, message, Spin } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClientInstance } from "../../../../services/apiClient";
 import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
+import { getClinicRatingSummary } from "../../../../services/clinicReviewService";
 import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
@@ -13,8 +14,18 @@ export default function ClinicSelection() {
   const [clinics, setClinics] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
+  const [ratingVersion, setRatingVersion] = useState(0);
   const nameRefs = useRef([]);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setRatingVersion((prev) => prev + 1);
+    };
+
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -84,7 +95,7 @@ useEffect(() => {
       const clinicInfo = getClinicInfoContent(clinic.id, clinicDetail || clinic);
       sessionStorage.setItem("selectedClinicId", String(clinic.id));
 
-      navigate("/clinic", {
+      navigate(`/clinic/${clinic.id}`, {
         state: {
           clinic: {
             ...clinicDetail,
@@ -150,10 +161,33 @@ useEffect(() => {
                 </p>
 
                 {clinic.phone ? (
-                  <p className="clinic-phone" title={clinic.phone}> 
-                   <p>{t("common.labels.phone")}: {clinic.phone}</p>
+                  <p className="clinic-phone" title={clinic.phone}>
+                    {t("common.labels.phone")}: {clinic.phone}
                   </p>
                 ) : null}
+
+                {(() => {
+                  const ratingSummary = getClinicRatingSummary(clinic.id);
+                  const hasReviews = ratingSummary.totalReviews > 0;
+
+                  return (
+                    <div className="clinic-rating" key={`rating-${clinic.id}-${ratingVersion}`}>
+                      <Rate
+                        disabled
+                        allowHalf
+                        value={hasReviews ? ratingSummary.averageRating : 0}
+                        className="clinic-rating-stars"
+                      />
+                      {hasReviews ? (
+                        <p className="clinic-rating-text">
+                          {ratingSummary.averageRating.toFixed(1)} • {ratingSummary.totalReviews} {t("pages.home.clinicSelection.reviewCount")}
+                        </p>
+                      ) : (
+                        <p className="clinic-rating-empty">{t("pages.home.clinicSelection.noReview")}</p>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
               <button
                 className="btn-choose"

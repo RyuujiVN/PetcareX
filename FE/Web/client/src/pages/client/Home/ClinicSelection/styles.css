@@ -153,6 +153,31 @@
   -webkit-line-clamp: 1;
 }
 
+.clinic-rating {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.clinic-rating-stars :global(.ant-rate-star) {
+  margin-inline-end: 3px;
+}
+
+.clinic-rating-text {
+  margin: 0;
+  color: var(--color-text-primary) !important;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.clinic-rating-empty {
+  margin: 0;
+  color: var(--color-text-secondary) !important;
+  font-size: 13px;
+  font-style: italic;
+}
+
 .btn-choose {
   background: var(--color-brand-muted);
   color: var(--color-surface-card);

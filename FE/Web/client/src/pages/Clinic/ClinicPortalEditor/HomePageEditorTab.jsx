@@ -1,18 +1,17 @@
 import { CloseOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Divider, Input, message, Modal, Row, Space, Typography, Upload } from 'antd';
+import { Button, Card, Col, Input, message, Modal, Row, Space, Upload } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
-import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
-import { useAuth } from '../../../../hooks/Clinic/AuthContext';
-import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../../services/cloudinaryService';
-import { getCurrentAdminClinicId } from '../../../../utils/clinicIdentity';
-import { getClinicHomeContent, saveClinicHomeContent } from '../../../../utils/storage/clinicHomeStorage';
-import HomePageClinic from '../../../client/Home/HomePageClinic';
-import './styles.css';
+import { buildClinicHomeContent } from '../../../config/homePageClinicContent';
+import { useAuth } from '../../../hooks/Clinic/AuthContext';
+import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../services/cloudinaryService';
+import { getCurrentAdminClinicId } from '../../../utils/clinicIdentity';
+import { getClinicHomeContent, saveClinicHomeContent } from '../../../utils/storage/clinicHomeStorage';
+import HomePageClinic from '../../client/Home/HomePageClinic';
+import './homePageEditorTab.css';
 
 const { TextArea } = Input;
-const { Title } = Typography;
 
 const cloneContent = (content) => buildClinicHomeContent(JSON.parse(JSON.stringify(content)));
 const normalizeMapEmbedValue = (rawValue) => {
@@ -37,6 +36,7 @@ export default function HomePageClinicEditor() {
   const [draftContent, setDraftContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [savedContent, setSavedContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [saving, setSaving] = useState(false);
+  const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [uploadingField, setUploadingField] = useState('');
   const deniedRef = useRef(false);
   const teamSectionRef = useRef(null);
@@ -322,6 +322,7 @@ export default function HomePageClinicEditor() {
       <Space direction="vertical" size={16} className="clinic-home-editor-content">
         <Card title={t('homeEditor.sections.hero')}>
           <Space direction="vertical" size={12} className="editor-full-width">
+            <p className="editor-section-label">Banner chính</p>
             <Input
               value={draftContent.hero.title}
               onChange={(event) => updateNestedField('hero', 'title', event.target.value)}
@@ -370,6 +371,7 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.about')}>
           <Space direction="vertical" size={12} className="editor-full-width">
+            <p className="editor-section-label">Giới thiệu phòng khám</p>
             <Input
               value={draftContent.about.label}
               onChange={(event) => updateNestedField('about', 'label', event.target.value)}
@@ -407,6 +409,7 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.gallery')}>
           <Space direction="vertical" size={12} className="editor-full-width">
+            <p className="editor-section-label">Thư viện hình ảnh và nội dung nổi bật</p>
             <Input
               value={draftContent.gallerySection.title}
               onChange={(event) => updateNestedField('gallerySection', 'title', event.target.value)}
@@ -469,6 +472,7 @@ export default function HomePageClinicEditor() {
             }
           >
           <Space direction="vertical" size={12} className="editor-full-width">
+            <p className="editor-section-label">Đội ngũ bác sĩ</p>
             <Input
               value={draftContent.teamSection.title}
               onChange={(event) => updateNestedField('teamSection', 'title', event.target.value)}
@@ -537,6 +541,7 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.location')}>
           <Space direction="vertical" size={12} className="editor-full-width">
+            <p className="editor-section-label">Thông tin địa chỉ và bản đồ</p>
             <Input
               value={draftContent.locationSection.title}
               onChange={(event) => updateNestedField('locationSection', 'title', event.target.value)}
@@ -566,17 +571,26 @@ export default function HomePageClinicEditor() {
 
       <div className="clinic-home-editor-actions">
         <Button onClick={handleCancel}>{t('homeEditor.actions.cancel')}</Button>
+        <Button onClick={() => setIsPreviewModalOpen(true)}>{t('homeEditor.actions.preview', { defaultValue: 'Xem trước' })}</Button>
         <Button type="primary" onClick={handleSave} loading={saving}>
           {t('homeEditor.actions.saveChanges')}
         </Button>
       </div>
 
-      <Divider />
-
-      <div className="clinic-home-preview-block">
-        <Title level={3}>{t('homeEditor.preview.title')}</Title>
+    <Modal
+      open={isPreviewModalOpen}
+      onCancel={() => setIsPreviewModalOpen(false)}
+      footer={null}
+      title={t('homeEditor.preview.title')}
+      className="clinic-home-preview-modal"
+      width="100vw"
+      style={{ top: 0, margin: 0, maxWidth: '100vw', paddingBottom: 0 }}
+      destroyOnClose
+    >
+      <div className="clinic-home-preview-modal-body">
         <HomePageClinic clinicId={targetClinicId} forcedContent={draftContent} showBookingButton={false} />
       </div>
+    </Modal>
     </div>
   );
 }

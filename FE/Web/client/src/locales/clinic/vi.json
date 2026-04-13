@@ -5,12 +5,15 @@
 		"defaultUser": "Người dùng",
 		"logoutAriaLabel": "Đăng xuất",
 		"notificationBellAriaLabel": "Xem thông báo phòng khám",
+		"toggleAriaLabel": "Ẩn hoặc hiện thanh bên",
 		"menu": {
 			"appointments": "Lịch hẹn",
 			"records": "Sổ y tế điện tử",
 			"revenue": "Doanh thu",
 			"doctors": "Bác sĩ",
 			"forms": "Xem phiếu khám",
+			"editor": "Chỉnh sửa giao diện phòng khám",
+			"portalEditor": "Chỉnh sửa trang phòng khám",
 			"homeEditor": "Chỉnh Sửa Trang Chủ",
 			"clinicEditor": "Chỉnh Sửa Phòng Khám"
 		},
@@ -57,6 +60,9 @@
 				"systemDescription": "Bạn có 7 lịch hẹn vào ngày mai. Hãy xác nhận đủ bác sĩ trực để tránh quá tải."
 			}
 		}
+	},
+	"portalEditor": {
+		"subtitle": "Quản lý nội dung trang chủ và thông tin hiển thị phòng khám tại cùng một nơi."
 	},
 	"appointments": {
 		"common": {
@@ -454,7 +460,8 @@
 				"petName": "Tên thú cưng",
 				"age": "Tuổi",
 				"species": "Loài",
-				"owner": "Chủ nuôi"
+				"owner": "Chủ nuôi",
+				"examDate": "Ngày khám"
 			}
 		}
 	},

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { FaEnvelope, FaPhone, FaPlus } from 'react-icons/fa'
 import { useNavigate } from 'react-router-dom'
-import useVeterinarians from '../../../../hooks/Clinic/useVeterinarians'
+import useVeterinarians from '../../../hooks/Clinic/useVeterinarians'
 import styles from './vererianrianManagement.module.css'
 
 const PAGE_SIZE = 12
@@ -173,7 +173,10 @@ export default function VeterinarianManagement() {
 									<span className={styles.metaText}>
 										<FaPhone /> {doctor.phone}
 									</span>
-									<span className={`${styles.statusBadge} ${styles[doctor.statusType]}`}>{doctor.status}</span>
+									<span className={`${styles.statusInline} ${styles[doctor.statusType]}`}>
+										<span className={styles.statusDot} aria-hidden="true" />
+										<span>{doctor.status}</span>
+									</span>
 								</div>
 
 								<p className={styles.phone}>

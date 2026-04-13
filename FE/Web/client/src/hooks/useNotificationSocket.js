@@ -75,6 +75,7 @@ export default function useNotificationSocket({
   instance,
 }) {
   const [notifications, setNotifications] = useState([]);
+  const [latestIncomingNotification, setLatestIncomingNotification] = useState(null);
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const socketRef = useRef(null);
@@ -169,6 +170,8 @@ export default function useNotificationSocket({
       const mapped = mapBeNotification(data);
       if (!mapped) return;
 
+      setLatestIncomingNotification(mapped);
+
       setNotifications((prev) => {
         return sortAndLimitNotifications([mapped, ...prev]);
       });
@@ -230,5 +233,6 @@ export default function useNotificationSocket({
     connected,
     loading,
     refreshNotifications,
+    latestIncomingNotification,
   };
 }

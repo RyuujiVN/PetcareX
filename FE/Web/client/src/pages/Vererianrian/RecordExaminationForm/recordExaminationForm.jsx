@@ -40,6 +40,7 @@ import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
 	APPOINTMENT_STATUS,
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
 	getAppointmentsApi,
 	getServerNowApi,
 	updateAppointmentStatusApi,
@@ -60,6 +61,7 @@ import {
 	getMedicinesByMedicalIdApi,
 	updateMedicalRecordApi,
 } from '../../../services/medicalService'
+import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
 import {
 	createPetApi,
 	getBreedLabel,
@@ -113,6 +115,43 @@ const toNumberOrUndefined = (value) => {
 	if (value === null || value === undefined || value === '') return undefined
 	const normalized = Number(value)
 	return Number.isFinite(normalized) ? normalized : undefined
+}
+
+const parseLegacyBloodPressure = (value) => {
+	if (value === null || value === undefined || value === '') {
+		return {
+			systolic: undefined,
+			diastolic: undefined,
+		}
+	}
+
+	if (typeof value === 'number') {
+		return {
+			systolic: toNumberOrUndefined(value),
+			diastolic: undefined,
+		}
+	}
+
+	const normalized = String(value).trim()
+	if (!normalized) {
+		return {
+			systolic: undefined,
+			diastolic: undefined,
+		}
+	}
+
+	const segments = normalized.split(/[\/-]/).map((item) => toNumberOrUndefined(item))
+	if (segments.length >= 2) {
+		return {
+			systolic: segments[0],
+			diastolic: segments[1],
+		}
+	}
+
+	return {
+		systolic: toNumberOrUndefined(normalized),
+		diastolic: undefined,
+	}
 }
 
 const normalizePhone = (value) => String(value || '').replace(/\D/g, '')
@@ -376,6 +415,11 @@ const buildInitialValues = (
 	const resolvedServiceType = isWalkIn
 		? resolveServiceTypeFromName(editableMedicalRecord?.name || appointment?.formName)
 		: undefined
+	const legacyBloodPressure = parseLegacyBloodPressure(
+		editableMedicalRecord?.bloodPressure ?? editableMedicalRecord?.blood_pressure,
+	)
+	const systolicValue = toNumberOrUndefined(editableMedicalRecord?.systolic ?? legacyBloodPressure.systolic)
+	const diastolicValue = toNumberOrUndefined(editableMedicalRecord?.diastolic ?? legacyBloodPressure.diastolic)
 
 	return {
 		formName: isWalkIn ? '' : serviceLabel,
@@ -404,8 +448,8 @@ const buildInitialValues = (
 		weight: latestWeight ?? petWeight,
 		temperature: toNumberOrUndefined(editableMedicalRecord?.temperature),
 		heartRate: toNumberOrUndefined(editableMedicalRecord?.heartRate),
-		systolic: toNumberOrUndefined(editableMedicalRecord?.systolic),
-		diastolic: toNumberOrUndefined(editableMedicalRecord?.diastolic),
+		systolic: systolicValue,
+		diastolic: diastolicValue,
 		clinicalSymptoms: editableMedicalRecord?.symptoms || '',
 		preliminaryDiagnosis: editableMedicalRecord?.diagnosis || '',
 		conclusionSummary: editableMedicalRecord?.conclusion || '',
@@ -468,6 +512,7 @@ export default function RecordExaminationForm() {
 	const [editableMedicines, setEditableMedicines] = useState([])
 	const [serverTimeOffsetMs, setServerTimeOffsetMs] = useState(0)
 	const [serverTimeSynced, setServerTimeSynced] = useState(false)
+	const [isLockedByPayment, setIsLockedByPayment] = useState(false)
 	const [remainingEditableSeconds, setRemainingEditableSeconds] = useState(EDITABLE_DURATION_SECONDS)
 	const [isDirty, setIsDirty] = useState(false)
 	const enableFollowUpDate = Form.useWatch('enableFollowUpDate', form)
@@ -486,6 +531,7 @@ export default function RecordExaminationForm() {
 	const editableMedicalCreatedAtMs = parseDateToMs(editableMedicalRecord?.createdAt)
 	const missingServerCreatedAt = Boolean(editableMedicalId) && !editableMedicalCreatedAtMs
 	const isLockedByTime = Boolean(editableMedicalId) && Boolean(editableMedicalCreatedAtMs) && remainingEditableSeconds <= 0
+	const isReadOnlyForm = isLockedByTime || isLockedByPayment
 
 	const historyPetId = useMemo(() => {
 		return (
@@ -788,6 +834,58 @@ export default function RecordExaminationForm() {
 	}, [appointment?.pet, appointment?.petRaw, appointment?.pet?.id, appointment?.petRaw?.id, historyPetId, isWalkIn])
 
 	useEffect(() => {
+		let active = true
+
+		const hydratePaymentLock = async () => {
+			if (!editableMedicalId) {
+				if (active) setIsLockedByPayment(false)
+				return
+			}
+
+			try {
+				const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), editableMedicalId)
+				if (!active) return
+				setIsLockedByPayment(invoice?.status === INVOICE_STATUS.PAID)
+			} catch (error) {
+				if (!active) return
+				if (error?.response?.status === 404) {
+					setIsLockedByPayment(false)
+					return
+				}
+
+				setIsLockedByPayment(false)
+			}
+		}
+
+		hydratePaymentLock()
+
+		return () => {
+			active = false
+		}
+	}, [editableMedicalId])
+
+	useEffect(() => {
+		const syncPaymentLock = (event) => {
+			if (event.key !== APPOINTMENT_PAYMENT_SYNC_EVENT_KEY || !event.newValue || !appointmentId) return
+
+			try {
+				const payload = JSON.parse(event.newValue)
+				if (String(payload?.appointmentId || '') !== String(appointmentId)) return
+
+				if (payload?.paymentStatus === INVOICE_STATUS.PAID) {
+					setIsLockedByPayment(true)
+				}
+			} catch {
+			}
+		}
+
+		window.addEventListener('storage', syncPaymentLock)
+		return () => {
+			window.removeEventListener('storage', syncPaymentLock)
+		}
+	}, [appointmentId])
+
+	useEffect(() => {
 		setExpandedHistoryRecords(new Set())
 	}, [historyRecords])
 
@@ -1035,7 +1133,7 @@ export default function RecordExaminationForm() {
 	}
 
 	const handleWalkInSubmit = async (values) => {
-		if (isLockedByTime) {
+		if (isReadOnlyForm) {
 			message.warning(t('examForm.record.messages.lockedWarning'))
 			return
 		}
@@ -1251,7 +1349,7 @@ export default function RecordExaminationForm() {
 			return
 		}
 
-		if (isLockedByTime) {
+		if (isReadOnlyForm) {
 			message.warning(t('examForm.record.messages.lockedWarning'))
 			return
 		}
@@ -1425,7 +1523,7 @@ export default function RecordExaminationForm() {
 			<Form
 				form={form}
 				layout="vertical"
-				disabled={isLockedByTime}
+				disabled={isReadOnlyForm}
 				onValuesChange={handleValuesChange}
 				onFinish={onFinish}
 				className={styles.formRoot}
@@ -1474,6 +1572,16 @@ export default function RecordExaminationForm() {
 							showIcon
 							message={t('examForm.record.alerts.expiredTitle')}
 							description={t('examForm.record.alerts.expiredDesc')}
+						/>
+					) : null}
+
+					{isLockedByPayment ? (
+						<Alert
+							className={styles.editLockAlert}
+							type="error"
+							showIcon
+							message={t('examForm.record.alerts.paymentLockedTitle')}
+							description={t('examForm.record.alerts.paymentLockedDesc')}
 						/>
 					) : null}
 
@@ -1749,23 +1857,25 @@ export default function RecordExaminationForm() {
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>{t('examForm.record.fields.bloodPressure')}</p>
-							<div className={styles.bpGrid}>
-								<Form.Item
-									name="systolic"
-									rules={[{ required: true, message: t('examForm.record.validation.systolicRequired') }]}
-									className={styles.noMargin}
-								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.systolic')} />
-								</Form.Item>
-								<Form.Item
-									name="diastolic"
-									rules={[{ required: true, message: t('examForm.record.validation.diastolicRequired') }]}
-									className={styles.noMargin}
-								>
-									<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.diastolic')} />
-								</Form.Item>
-							</div>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.systolic')}</p>
+							<Form.Item
+								name="systolic"
+								rules={[{ required: true, message: t('examForm.record.validation.systolicRequired') }]}
+								className={styles.noMargin}
+							>
+								<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.systolic')} />
+							</Form.Item>
+						</div>
+
+						<div className={styles.vitalBox}>
+							<p className={styles.vitalLabel}>{t('examForm.record.fields.diastolic')}</p>
+							<Form.Item
+								name="diastolic"
+								rules={[{ required: true, message: t('examForm.record.validation.diastolicRequired') }]}
+								className={styles.noMargin}
+							>
+								<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.diastolic')} />
+							</Form.Item>
 						</div>
 					</div>
 				</Card>
@@ -1810,7 +1920,7 @@ export default function RecordExaminationForm() {
 						<Button
 							type="link"
 							icon={<PlusCircleOutlined />}
-							disabled={isLockedByTime}
+							disabled={isReadOnlyForm}
 							onClick={() => {
 								const current = form.getFieldValue('medicalOrders') || []
 								form.setFieldValue('medicalOrders', [
@@ -1854,12 +1964,15 @@ export default function RecordExaminationForm() {
 										<Form.Item name={[field.name, 'note']} className={styles.noMargin}>
 											<Input placeholder={t('examForm.record.placeholders.orderNote')} />
 										</Form.Item>
-										<Button
-											type="text"
-											icon={<DeleteOutlined />}
-											onClick={() => remove(field.name)}
-											disabled={isLockedByTime || fields.length <= 1}
-										/>
+										<div className={styles.actionCell}>
+											<Button
+												type="text"
+												className={styles.deleteActionButton}
+												icon={<DeleteOutlined />}
+												onClick={() => remove(field.name)}
+												disabled={isReadOnlyForm || fields.length <= 1}
+											/>
+										</div>
 									</div>
 								))}
 							</div>
@@ -1874,7 +1987,7 @@ export default function RecordExaminationForm() {
 						<Button
 							type="link"
 							icon={<PlusCircleOutlined />}
-							disabled={isLockedByTime}
+							disabled={isReadOnlyForm}
 							onClick={() => {
 								const current = form.getFieldValue('medicines') || []
 								form.setFieldValue('medicines', [
@@ -1926,12 +2039,15 @@ export default function RecordExaminationForm() {
 										<Form.Item name={[field.name, 'frequency']} className={styles.noMargin}>
 											<Input placeholder={t('examForm.record.placeholders.medicineFrequency')} />
 										</Form.Item>
-										<Button
-											type="text"
-											icon={<DeleteOutlined />}
-											onClick={() => remove(field.name)}
-											disabled={isLockedByTime || fields.length <= 1}
-										/>
+										<div className={styles.actionCell}>
+											<Button
+												type="text"
+												className={styles.deleteActionButton}
+												icon={<DeleteOutlined />}
+												onClick={() => remove(field.name)}
+												disabled={isReadOnlyForm || fields.length <= 1}
+											/>
+										</div>
 									</div>
 								))}
 							</div>
@@ -1963,7 +2079,7 @@ export default function RecordExaminationForm() {
 							<Button className={styles.cancelBtn} onClick={handleCancel}>
 								{t('examForm.record.actions.cancel')}
 							</Button>
-							{!isLockedByTime ? (
+							{!isReadOnlyForm ? (
 								<Button type="primary" htmlType="submit" className={styles.saveBtn} loading={saving} icon={<SaveOutlined />}>
 									{t('examForm.record.actions.save')}
 								</Button>

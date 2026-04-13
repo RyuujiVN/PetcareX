@@ -75,6 +75,58 @@ const buildAppointmentDescription = (beType, target = {}) => {
   return '';
 };
 
+const normalizePortal = (portal) => {
+  const normalized = normalizeText(portal).toLowerCase();
+  if (normalized === 'clinic') return 'clinic';
+  if (normalized === 'veterinarian' || normalized === 'vet') return 'veterinarian';
+  return 'client';
+};
+
+const resolveAppointmentPortalPath = (portal) => {
+  if (portal === 'clinic') return '/clinic/appointments';
+  if (portal === 'veterinarian') return '/veterinarian/appointments';
+  return '/appointments';
+};
+
+const resolveExamPortalPath = (portal) => {
+  if (portal === 'clinic') return '/clinic/exam-slips';
+  if (portal === 'veterinarian') return '/veterinarian/exam-forms';
+  return '/appointments';
+};
+
+export const resolveNotificationHref = (notificationItem, portal = 'client') => {
+  const effectivePortal = normalizePortal(portal);
+  const beType = normalizeText(notificationItem?.beType).toUpperCase();
+  const target = notificationItem?.target || {};
+  const href = normalizeText(notificationItem?.href);
+
+  if (href) {
+    if (href === '/appointments') {
+      return resolveAppointmentPortalPath(effectivePortal);
+    }
+
+    return href;
+  }
+
+  if (beType.startsWith('APPOINTMENT')) {
+    return resolveAppointmentPortalPath(effectivePortal);
+  }
+
+  if (beType === 'AI_DIAGNOSIS') {
+    if (effectivePortal === 'client' && target?.appointmentId) {
+      return `/appointments?appointmentId=${target.appointmentId}`;
+    }
+
+    return resolveExamPortalPath(effectivePortal);
+  }
+
+  if (beType === 'COMMENT_REPLY') {
+    return target?.postId ? `/forum?post=${target.postId}` : '/forum';
+  }
+
+  return null;
+};
+
 export const mapBeNotification = (raw) => {
   if (!raw || !raw.id) return null;
 
@@ -103,6 +155,7 @@ export const mapBeNotification = (raw) => {
           },
         ),
         description: buildAppointmentDescription(normalizedType, raw.target),
+        href: '/appointments',
       };
 
     case 'APPOINTMENT_CANCELLED':
@@ -114,6 +167,7 @@ export const mapBeNotification = (raw) => {
           'Appointment canceled',
         ),
         description: buildAppointmentDescription(normalizedType, raw.target),
+        href: '/appointments',
       };
 
     case 'APPOINTMENT_REMINDER':
@@ -125,6 +179,7 @@ export const mapBeNotification = (raw) => {
           'Appointment reminder',
         ),
         description: buildAppointmentDescription(normalizedType, raw.target),
+        href: '/appointments',
       };
 
     case 'APPOINTMENT_STATUS_UPDATED_BY_CLIENT':
@@ -136,6 +191,7 @@ export const mapBeNotification = (raw) => {
           'Customer updated appointment status',
         ),
         description: buildAppointmentDescription(normalizedType, raw.target),
+        href: '/appointments',
       };
 
     case 'AI_DIAGNOSIS':
