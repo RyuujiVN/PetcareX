@@ -4,6 +4,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Request, Response } from 'express';
@@ -18,6 +19,8 @@ type ErrorResponse = {
 
 @Catch()
 export class CatchEverythingFilter implements ExceptionFilter {
+  private readonly logger = new Logger('Exception Handling');
+
   constructor(private readonly configService: ConfigService) {}
 
   catch(exception: any, host: ArgumentsHost): void {
@@ -45,6 +48,8 @@ export class CatchEverythingFilter implements ExceptionFilter {
       errorResponse.stack = exception.stack;
       errorResponse.url = request.url;
     }
+
+    this.logger.error(exception.response, exception.stack, exception?.context);
 
     response.status(errorResponse.status).json(errorResponse);
   }

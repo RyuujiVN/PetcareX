@@ -11,7 +11,7 @@ import { Server, Socket } from 'socket.io';
 import { MessageService } from './message/message.service';
 import { CreateMessageDTO } from './message/dtos/create-message.dto';
 import { AiClientService } from './ai-client.service';
-import { forwardRef, Inject } from '@nestjs/common';
+import { forwardRef, Inject, Logger } from '@nestjs/common';
 import { AuthService } from 'src/auth/auth.service';
 import { SenderEnum } from 'src/common/enums/sender.enum';
 import { ChatbotRoom } from './entities/chatbot-room.entity';
@@ -29,6 +29,7 @@ export class ChatBotGateway
 {
   @WebSocketServer()
   private server: Server;
+  private readonly logger = new Logger(ChatBotGateway.name);
 
   constructor(
     private readonly messageService: MessageService,
@@ -40,7 +41,8 @@ export class ChatBotGateway
   ) {}
 
   async handleConnection(client: Socket) {
-    console.log(`Client connected: ${client.id}`);
+    this.logger.log(`Client connected: ${client.id}`);
+
     try {
       const accessToken = client.handshake.auth?.accessToken;
 
@@ -48,14 +50,13 @@ export class ChatBotGateway
 
       client.data.user = user;
     } catch (error) {
-      console.log(error);
-
+      this.logger.error(error.message, error.stack);
       client.disconnect();
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    this.logger.warn(`Client disconnected: ${client.id}`);
     client.disconnect();
   }
 
@@ -109,6 +110,8 @@ export class ChatBotGateway
         code: error?.code,
         stage: 'handleMessage',
       };
+
+      this.logger.error(error.message, error.stack);
 
       client.emit('serverResponseError', errorPayload);
     }

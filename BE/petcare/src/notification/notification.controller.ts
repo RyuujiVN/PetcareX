@@ -55,7 +55,7 @@ export class NotificationController {
   }
 
   @Patch('mark-all')
-  @ApiOperation({ summary: 'Cập nhật một thông báo đã đọc' })
+  @ApiOperation({ summary: 'Cập nhật tất cả thông báo đã đọc' })
   async updateAllNotification(@Req() req) {
     await this.notificationService.markAllAsRead(req?.user?.id);
 
