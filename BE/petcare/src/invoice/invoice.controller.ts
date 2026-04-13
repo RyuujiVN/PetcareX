@@ -24,7 +24,7 @@ export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
 
   @Get(':medicalRecordId')
-  @RequiredRole(RoleEnum.ADMIN_CLINIC)
+  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Lấy hoá đơn theo phiếu khám' })
   getOneByMedicalRecordId(@Param('medicalRecordId') medicalRecordId: string) {
     return this.invoiceService.findOneByMedicalRecordId(medicalRecordId);

@@ -49,7 +49,11 @@ export class CatchEverythingFilter implements ExceptionFilter {
       errorResponse.url = request.url;
     }
 
-    this.logger.error(exception.response, exception.stack, exception?.context);
+    this.logger.error(
+      `${exception.message} - url: ${errorResponse.url}`,
+      exception.stack,
+      exception?.context,
+    );
 
     response.status(errorResponse.status).json(errorResponse);
   }

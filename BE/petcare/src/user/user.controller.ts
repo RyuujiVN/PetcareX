@@ -62,14 +62,19 @@ export class UserController {
   }
 
   @Get(':id')
-  @RequiredRole(RoleEnum.ADMIN, RoleEnum.VETERINARIAN, RoleEnum.CUSTOMER, RoleEnum.ADMIN_CLINIC)
+  @RequiredRole(RoleEnum.ADMIN, RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Lấy thông tin tài khoản người dùng' })
   getUser(@Param('id') id: string) {
     return this.userService.findOneByid(id);
   }
 
   @Put(':id')
-  @RequiredRole(RoleEnum.ADMIN, RoleEnum.VETERINARIAN, RoleEnum.CUSTOMER, RoleEnum.ADMIN_CLINIC)
+  @RequiredRole(
+    RoleEnum.ADMIN,
+    RoleEnum.VETERINARIAN,
+    RoleEnum.CUSTOMER,
+    RoleEnum.ADMIN_CLINIC,
+  )
   @ApiOperation({ summary: 'Cập nhật thông tin tài khoản' })
   @ApiBody({
     type: UpdateUserDTO,

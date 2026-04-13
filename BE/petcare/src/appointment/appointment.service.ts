@@ -45,10 +45,20 @@ export class AppointmentService {
     const queryBuilder = this.aiDiagnosisRepository
       .createQueryBuilder('aiDiagnosis')
       .leftJoin('aiDiagnosis.pet', 'pet')
-      .addSelect(['pet.name', 'pet.avatar', 'pet.breed', 'pet.ownerId'])
-      .where('aiDiagnosis.appointmentId = :id', { id: appointmentId });
+      .where('aiDiagnosis.appoinmentId = :id', { id: appointmentId })
+      .select([
+        'aiDiagnosis.id',
+        'aiDiagnosis.petId',
+        'aiDiagnosis.appoinmentId',
+        'aiDiagnosis.diagnosis',
+        'aiDiagnosis.createdAt',
+        'pet.name',
+        'pet.avatar',
+        'pet.breed',
+        'pet.ownerId',
+      ]);
 
-    return queryBuilder.getOne();
+    return await queryBuilder.getOne();
   }
 
   async findOneById(appointmentId: string) {
