@@ -37,17 +37,6 @@ export function PetDiagnosisContent({
 
   return (
     <div className={inModal ? styles.modalContainer : undefined}>
-      {/* {onClose && (
-        <button
-          type="button"
-          className={styles.closeButton}
-          onClick={onClose}
-          aria-label={t('pages.petDiagnosis.closeAria')}
-        >
-          <CloseOutlined />
-        </button>
-      )} */}
-
       <h1 className={styles.title}>
         {t("pages.petDiagnosis.reportTitle", { petName })}
         {species ? ` (${species})` : ""} - {appointmentDateLabel}

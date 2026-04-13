@@ -90,13 +90,15 @@
 .appointment-pet-image {
   position: relative;
   display: flex;
+  justify-content: center;
+  align-items: center;
   width: 100% !important;
   height: 100% !important;
   margin: 0;
 }
 
 .appointment-pet-image img {
-   width: 100% !important;
+  width: 100% !important;
   height: 100% !important;
   border-radius: 12px;
   object-fit: cover;
@@ -194,6 +196,15 @@
   color: var(--color-text-disabled) !important;
 }
 
+.appointment-action-col {
+  display: flex;
+  align-items: center;
+}
+
+.appointment-action-col .ant-space {
+  width: 100%;
+}
+
 .modal-contents {
   padding: 16px 0;
 }
@@ -264,10 +275,10 @@
     gap: 8px;
   }
 
-  .action-col .ant-btn {
-    font-size: 12px;
-    padding: 4px 8px;
+  .appointment-action-col {
+    display: block;
   }
+
 }
 
 @media (max-width: 576px) {
@@ -298,15 +309,6 @@
 
   .pet-name {
     font-size: 14px;
-  }
-
-  .action-col {
-    gap: 4px;
-  }
-
-  .action-col .ant-btn {
-    padding: 2px 6px;
-    font-size: 11px;
   }
 }
 
