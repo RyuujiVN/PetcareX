@@ -121,10 +121,20 @@ class NotificationItem extends StatelessWidget {
           AppColors.warning,
           const Color(0xFFFFF3E0),
         ),
+      'COMMENT' => (
+          Icons.mode_comment_outlined,
+          AppColors.primary,
+          AppColors.primaryAlpha(0.12),
+        ),
       'COMMENT_REPLY' => (
           Icons.chat_bubble_outline,
           AppColors.primary,
           AppColors.primaryAlpha(0.12),
+        ),
+      'LIKE' => (
+          Icons.favorite_border,
+          AppColors.error,
+          AppColors.errorLight,
         ),
       _ => (
           Icons.notifications_outlined,
@@ -153,7 +163,9 @@ class NotificationItem extends StatelessWidget {
       'APPOINTMENT_REMINDER' => l10n.notifAppointmentReminder,
       'AI_DIAGNOSIS' => l10n.notifAiDiagnosis,
       'FOLLOW_UP_REMINDER' => l10n.notifFollowUpReminder,
+      'COMMENT' => 'Co binh luan moi',
       'COMMENT_REPLY' => l10n.notifCommentReply,
+      'LIKE' => 'Bai viet duoc yeu thich',
       _ => l10n.notifGeneral,
     };
   }
@@ -175,7 +187,15 @@ class NotificationItem extends StatelessWidget {
         l10n.notifAiDiagnosisDesc(n.petName ?? ''),
       'FOLLOW_UP_REMINDER' =>
         l10n.notifFollowUpReminderDesc(n.appointmentDate ?? ''),
-      'COMMENT_REPLY' => l10n.notifCommentReplyDesc,
+      'COMMENT' => n.userName != null && n.userName!.trim().isNotEmpty
+          ? '${n.userName} da binh luan bai viet cua ban'
+          : 'Co binh luan moi tren bai viet cua ban',
+      'COMMENT_REPLY' => n.userName != null && n.userName!.trim().isNotEmpty
+          ? '${n.userName} da phan hoi binh luan cua ban'
+          : l10n.notifCommentReplyDesc,
+      'LIKE' => n.userName != null && n.userName!.trim().isNotEmpty
+          ? '${n.userName} da thich bai viet cua ban'
+          : 'Co nguoi vua thich bai viet cua ban',
       _ => '',
     };
   }

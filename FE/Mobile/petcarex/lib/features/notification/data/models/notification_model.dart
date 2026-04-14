@@ -45,7 +45,10 @@ class NotificationModel {
   String? get appointmentId => target['appointmentId']?.toString();
   String? get appointmentDate => target['appointmentDate']?.toString();
   String? get appointmentTime => target['appointmentTime']?.toString();
+  String? get postId => target['postId']?.toString();
+  String? get actorUserId => target['userId']?.toString();
   String? get userName => target['userName']?.toString();
+  String? get avatarUrl => target['avatarUrl']?.toString();
   String? get clinicName => target['clinicName']?.toString();
   String? get petName => target['petName']?.toString();
   String? get aiDiagnosisId => target['aiDiagnosisId']?.toString();
