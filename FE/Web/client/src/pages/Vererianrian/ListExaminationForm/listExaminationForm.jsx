@@ -8,11 +8,10 @@ import { Avatar, Button, DatePicker, Empty, Spin, Typography, message } from 'an
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
     APPOINTMENT_STATUS,
-    getAppointmentsApi,
+    getMyAppointmentsApi,
 } from '../../../services/appointmentService'
 import { getBreedLabel } from '../../../services/petService'
 import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
@@ -20,18 +19,6 @@ import { getServiceLabel } from '../../../utils/enumLabel'
 import styles from './listExaminationForm.module.css'
 
 const PAGE_SIZE = 4
-
-const getCurrentVeterinarianUserId = () => {
-	try {
-		const raw = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
-		if (!raw) return ''
-
-		const profile = JSON.parse(raw)
-		return profile?.id || profile?.user?.id || ''
-	} catch {
-		return ''
-	}
-}
 
 const formatDate = (value) => {
 	return formatDateDDMMYYYY(value, '--/--/----')
@@ -76,21 +63,13 @@ export default function ListExaminationForm() {
 		inFlightRef.current = true
 		try {
 			if (!silent) setLoading(true)
-			const response = await getAppointmentsApi(getAdminInstance(), {
-				page: 1,
-				limit: 500,
-				date: selectedDate.format('YYYY-MM-DD'),
-			})
+			const response = await getMyAppointmentsApi(getAdminInstance(), 1, 500)
 
 			const items = Array.isArray(response?.items) ? response.items : []
-			const currentUserId = getCurrentVeterinarianUserId()
+			const targetDate = selectedDate.format('YYYY-MM-DD')
 			const activeItems = items
 				.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
-				.filter((item) => {
-					if (!currentUserId) return true
-					const veterinarianUserId = item?.veterinarian?.user?.id
-					return String(veterinarianUserId || '') === String(currentUserId)
-				})
+				.filter((item) => dayjs(item?.appointmentDate).format('YYYY-MM-DD') === targetDate)
 			const mappedRows = activeItems.map((item) => toRecordRow(item, t))
 			mappedRows.sort((a, b) => String(a.appointmentTime).localeCompare(String(b.appointmentTime)))
 			setRows(mappedRows)

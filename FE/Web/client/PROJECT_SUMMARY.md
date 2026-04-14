@@ -22,6 +22,42 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-14) — List pages (Phiếu khám & Hồ sơ bệnh án) chuyển sang `/appointment/my` (vet-scoped)
+
+**Phát hiện:** Hai trang list của portal Vererianrian đang gọi endpoint `/appointment` (`getAppointmentsApi`) — endpoint này `@RequiredRole(ADMIN_CLINIC)`, vet gọi sẽ bị chặn (401/403) hoặc rơi vào filter không đúng scope. Đồng thời file `ViewPetMedicalRecords` import dead `getMedicalByPetIdApi` (CUSTOMER-only).
+
+**Files đã sửa:**
+
+1. [listExaminationForm.jsx](src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx)
+   - `getAppointmentsApi` → `getMyAppointmentsApi(instance, 1, 500)`.
+   - Bỏ helper `getCurrentVeterinarianUserId` + filter client-side theo vet user id (BE đã tự filter theo `veterinarian.userId = req.user.id` trong `findAllMyAppointments`).
+   - Giữ lại filter `CANCELLED` và thêm filter `appointmentDate` client-side bằng `dayjs(...).format('YYYY-MM-DD') === targetDate` (vì `/appointment/my` không nhận param `date`).
+   - Bỏ import `ADMIN_AUTH_STORAGE/getAdminAuthItem` không còn dùng.
+
+2. [listMedicalRecords.jsx](src/pages/Vererianrian/ListMedicalRecords/listMedicalRecords.jsx)
+   - Áp dụng cùng thay đổi như (1): switch API, bỏ client-side vet-id filter, thêm date filter client-side.
+
+3. [viewPetMedicalRecords.jsx](src/pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords.jsx)
+   - Xóa import `getMedicalByPetIdApi` (dead import — đang dùng `getMedicalByPetIClinicdApi` đúng scope vet/clinic).
+
+**Nguyên tắc chốt cho portal Vererianrian (áp dụng lại sau này):**
+
+| Màn | Endpoint đúng (role VETERINARIAN) | Endpoint KHÔNG dùng |
+|-----|-----------------------------------|---------------------|
+| Danh sách phiếu khám (hôm nay) | `GET /appointment/my` | `GET /appointment` (ADMIN_CLINIC) |
+| Danh sách hồ sơ bệnh án (hôm nay) | `GET /appointment/my` | `GET /appointment` (ADMIN_CLINIC) |
+| Lịch sử phiếu khám theo pet | `GET /medical/clinic/pet/:petId` | `GET /medical/pet/:petId` (CUSTOMER), `GET /user/:id` (ADMIN) |
+| Chi tiết pet | `GET /pet/:id` ✓ | — |
+| Chi tiết user/owner | *(không có endpoint riêng cho vet)* — dùng `appointment.pet.owner` từ `/appointment/my` | `GET /user/:id` (ADMIN) |
+| Phiếu khám theo medical id | `GET /medical/:id` ✓ | — |
+
+**Lưu ý BE contract của `/appointment/my` (role VET):**
+- Select không có `medical` relation → FE không thể biết chắc pet đã có medical record nào chưa từ appointment. Hiện `ListExaminationForm` fallback sang `status === COMPLETED` để quyết định nút "Mở" vs "Tạo". Chấp nhận được cho MVP; nếu muốn chính xác tuyệt đối cần BE bổ sung field `medical.id` vào select.
+- Select không có `pet.gender`, `pet.dateOfBirth` → nếu list cần hiển thị cần gọi thêm `/pet/:id` hoặc yêu cầu BE bổ sung.
+
+**Kiểm tra build:** `npx vite build` → ✓ built in ~14s, 0 error.
+
+
 ### Cập nhật bổ sung (2026-04-14) — RecordExaminationForm: bỏ lock 15 phút + bỏ call /user/:id (vet bị 403)
 
 **Bối cảnh & quyết định:**

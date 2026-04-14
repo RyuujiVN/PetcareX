@@ -13,7 +13,6 @@ import { getAdminInstance } from '../../../services/apiClient'
 import {
     getMedicalByIdApi,
     getMedicalByPetIClinicdApi,
-    getMedicalByPetIdApi,
     getMedicalOrdersByMedicalIdApi,
     getMedicinesByMedicalIdApi,
 } from '../../../services/medicalService'
