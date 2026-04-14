@@ -495,13 +495,7 @@ function Header() {
           placement: "bottomRight",
           duration: 5,
           icon: (
-            <span
-              style={{
-                marginRight: 8,
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
+            <span className="client-live-notification-toast-icon">
               {getNotificationIcon(mapped)}
             </span>
           ),

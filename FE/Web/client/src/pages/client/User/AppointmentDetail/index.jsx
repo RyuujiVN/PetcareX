@@ -227,6 +227,19 @@ const handleViewDetails = (appointment) => {
     ).trim();
   }, [searchParams]);
 
+  const clearDiagnosisQueryParams = useCallback(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('openDiagnosis');
+    nextParams.delete('appointmentId');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!openDiagnosisId) {
+      diagnosisOpenedRef.current = '';
+    }
+  }, [openDiagnosisId]);
+
   useEffect(() => {
     if (!openDiagnosisId) return;
     if (loading || !appointmentsLoaded) return;
@@ -238,7 +251,7 @@ const handleViewDetails = (appointment) => {
 
     if (!targetAppointment) {
       diagnosisOpenedRef.current = openDiagnosisId;
-      setSearchParams({}, { replace: true });
+      clearDiagnosisQueryParams();
       return;
     }
 
@@ -249,15 +262,15 @@ const handleViewDetails = (appointment) => {
 
     diagnosisOpenedRef.current = openDiagnosisId;
     void handleOpenDiagnosis(targetAppointment);
-    setSearchParams({}, { replace: true });
+    clearDiagnosisQueryParams();
   }, [
     appointmentsLoaded,
+    clearDiagnosisQueryParams,
     handleOpenDiagnosis,
     loading,
     medicalHistory,
     mappedAppointments,
     openDiagnosisId,
-    setSearchParams,
   ]);
   const handleBookingNew = () => {
     navigate('/booking');

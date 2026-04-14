@@ -42,7 +42,12 @@ const buildNotificationTarget = (rawTarget) => {
 
   return {
     ...target,
-    appointmentId: normalizeId(target?.appointmentId || target?.appointment?.id),
+    appointmentId: normalizeId(
+      target?.appointmentId ||
+        target?.appointmentID ||
+        target?.appointment_id ||
+        target?.appointment?.id,
+    ),
     postId: normalizeId(target?.postId || target?.post?.id),
     commentId: normalizeId(
       target?.commentId || target?.comment?.id || target?.replyId || target?.parentCommentId,
@@ -182,9 +187,18 @@ const resolveExamPortalPath = (portal) => {
 export const resolveNotificationHref = (notificationItem, portal = 'client') => {
   const effectivePortal = normalizePortal(portal);
   const beType = normalizeText(notificationItem?.beType).toUpperCase();
+  const normalizedType = normalizeText(notificationItem?.type).toLowerCase();
   const target = buildNotificationTarget(notificationItem?.target);
   const forumInteractionType = resolveForumInteractionType(beType, target);
   const href = normalizeText(notificationItem?.href);
+
+  if (beType === 'AI_DIAGNOSIS' || normalizedType === 'ai-diagnosis') {
+    if (effectivePortal === 'client' && target?.appointmentId) {
+      return `/appointments?openDiagnosis=${target.appointmentId}`;
+    }
+
+    return resolveExamPortalPath(effectivePortal);
+  }
 
   if (href) {
     if (href === '/appointments') {
@@ -196,14 +210,6 @@ export const resolveNotificationHref = (notificationItem, portal = 'client') => 
 
   if (beType.startsWith('APPOINTMENT')) {
     return resolveAppointmentPortalPath(effectivePortal);
-  }
-
-  if (beType === 'AI_DIAGNOSIS') {
-    if (effectivePortal === 'client' && target?.appointmentId) {
-      return `/appointments?openDiagnosis=${target.appointmentId}`;
-    }
-
-    return resolveExamPortalPath(effectivePortal);
   }
 
   if (forumInteractionType) {
