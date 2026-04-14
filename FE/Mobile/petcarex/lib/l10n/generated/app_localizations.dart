@@ -1934,6 +1934,12 @@ abstract class AppLocalizations {
   /// **'Bình luận mới'**
   String get notifCommentReply;
 
+  /// No description provided for @notifLikeTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bài viết được yêu thích'**
+  String get notifLikeTitle;
+
   /// No description provided for @notifGeneral.
   ///
   /// In vi, this message translates to:
@@ -1987,6 +1993,18 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Có người đã trả lời bình luận của bạn'**
   String get notifCommentReplyDesc;
+
+  /// No description provided for @notifLikeDescWithUser.
+  ///
+  /// In vi, this message translates to:
+  /// **'{userName} đã thích bài viết của bạn'**
+  String notifLikeDescWithUser(String userName);
+
+  /// No description provided for @notifLikeDescFallback.
+  ///
+  /// In vi, this message translates to:
+  /// **'Có người vừa thích bài viết của bạn'**
+  String get notifLikeDescFallback;
 
   /// No description provided for @notifTimeJustNow.
   ///

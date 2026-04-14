@@ -99,19 +99,31 @@ class CommunityRepository {
     return null;
   }
 
+  Future<Post?> getPostById(String postId) async {
+    final response = await _apiClient.get(ApiHelper.postByIdEndpoint(postId));
+
+    if (response.statusCode == 200) {
+      final dynamic raw = jsonDecode(response.body);
+      if (raw is Map<String, dynamic>) {
+        return Post.fromJson(raw);
+      }
+    }
+
+    return null;
+  }
+
   Future<bool> updatePost(String postId, String content, String topicId) async {
-    final response = await _apiClient.put(
-      ApiHelper.postByIdEndpoint(postId),
-      {
-        'content': content,
-        'topicId': topicId,
-      },
-    );
+    final response = await _apiClient.put(ApiHelper.postByIdEndpoint(postId), {
+      'content': content,
+      'topicId': topicId,
+    });
     return response.statusCode == 200;
   }
 
   Future<bool> deletePost(String postId) async {
-    final response = await _apiClient.delete(ApiHelper.postByIdEndpoint(postId));
+    final response = await _apiClient.delete(
+      ApiHelper.postByIdEndpoint(postId),
+    );
     return response.statusCode == 200;
   }
 

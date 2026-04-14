@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../community/presentation/provider/community_provider.dart';
 import '../../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../../data/models/notification_model.dart';
 import '../provider/notification_provider.dart';
@@ -17,6 +20,15 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   final ScrollController _scrollController = ScrollController();
+
+  void _navigateToMainTab(int index) {
+    final navigationState =
+        MainNavigationWrapper.of(context) ?? MainNavigationWrapper.activeState;
+    navigationState?.setSelectedIndex(index);
+
+    if (!mounted) return;
+    Navigator.pop(context);
+  }
 
   @override
   void initState() {
@@ -41,7 +53,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  void _onNotificationTap(NotificationModel notification) {
+  Future<void> _openCommunityPost(NotificationModel notification) async {
+    final postId = notification.postId?.trim() ?? '';
+    if (postId.isNotEmpty) {
+      unawaited(
+        context.read<CommunityProvider>().focusPostFromNotification(postId),
+      );
+    }
+
+    _navigateToMainTab(3);
+  }
+
+  Future<void> _onNotificationTap(NotificationModel notification) async {
     final provider = context.read<NotificationProvider>();
 
     // Mark as read
@@ -55,20 +78,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'APPOINTMENT_CANCELLED':
       case 'APPOINTMENT_STATUS_UPDATED_BY_CLIENT':
       case 'APPOINTMENT_REMINDER':
-        Navigator.pop(context); // pop notification screen
-        MainNavigationWrapper.of(context)?.setSelectedIndex(2); // appointments tab
+        _navigateToMainTab(2);
         break;
       case 'AI_DIAGNOSIS':
-        Navigator.pop(context);
-        MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+        _navigateToMainTab(2);
         break;
       case 'COMMENT_REPLY':
-        Navigator.pop(context);
-        MainNavigationWrapper.of(context)?.setSelectedIndex(3); // community tab
+      case 'COMMENT':
+      case 'LIKE':
+        await _openCommunityPost(notification);
         break;
       case 'FOLLOW_UP_REMINDER':
-        Navigator.pop(context);
-        MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+        _navigateToMainTab(2);
         break;
       default:
         break;
