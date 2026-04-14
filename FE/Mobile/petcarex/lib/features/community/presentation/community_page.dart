@@ -12,6 +12,7 @@ import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
+import '../../notification/presentation/widgets/notification_bell_button.dart';
 import '../data/models/community_models.dart';
 import 'create_post_page.dart';
 import 'provider/community_provider.dart';
@@ -1763,13 +1764,9 @@ class _CommunityPageState extends State<CommunityPage> {
             ),
           ),
           const SizedBox(width: 12),
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_none_outlined,
-              color: AppColors.textDark,
-              size: 28,
-            ),
-            onPressed: () {},
+          const NotificationBellButton(
+            iconColor: AppColors.textDark,
+            iconSize: 28,
           ),
         ],
       ),

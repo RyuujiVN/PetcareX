@@ -216,6 +216,8 @@ class CommunityProvider with ChangeNotifier {
     // Optimistic UI Update
     post.liked = !post.liked;
     post.likeCount = post.liked ? post.likeCount + 1 : post.likeCount - 1;
+    final optimisticLiked = post.liked;
+    final optimisticLikeCount = post.likeCount;
     notifyListeners();
 
     try {
@@ -231,8 +233,25 @@ class CommunityProvider with ChangeNotifier {
         post.likeCount = originalLikeCount;
         notifyListeners();
       } else {
+        // Some BE responses can miss/invalid postId or likeCount (e.g. likeCount=null).
+        // Keep optimistic value in that case to avoid UI flicker back to 0.
+        final hasInvalidReactionPayload = reaction.postId.isEmpty;
+        if (hasInvalidReactionPayload) {
+          post.liked = optimisticLiked;
+          post.likeCount = optimisticLikeCount;
+          notifyListeners();
+          return;
+        }
+
         post.liked = reaction.liked;
-        post.likeCount = reaction.likeCount;
+
+        final serverLikeCount = reaction.likeCount;
+        final shouldKeepOptimisticLikeCount =
+            reaction.liked && serverLikeCount == 0 && optimisticLikeCount > 0;
+
+        post.likeCount = shouldKeepOptimisticLikeCount
+            ? optimisticLikeCount
+            : serverLikeCount;
         notifyListeners();
       }
     } catch (e) {

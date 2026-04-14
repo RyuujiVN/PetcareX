@@ -18,8 +18,7 @@ import '../../appointment/data/appointment_model.dart';
 import '../../appointment/presentation/provider/appointment_provider.dart';
 import '../../chat/presentation/chat_page.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
-import '../../notification/presentation/provider/notification_provider.dart';
-import '../../notification/presentation/screens/notification_screen.dart';
+import '../../notification/presentation/widgets/notification_bell_button.dart';
 import '../../pet/data/models/pet_models.dart';
 import '../../pet/presentation/add_pet_page.dart';
 import '../../pet/presentation/edit_pet_page.dart';
@@ -331,58 +330,7 @@ class _HomePageState extends State<HomePage> {
                 color: AppColors.textAlpha(0.6),
               ),
             ),
-            Stack(
-              children: [
-                IconButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            const NotificationScreen(),
-                      ),
-                    );
-                  },
-                  icon: const Icon(
-                    Icons.notifications_none_outlined,
-                    color: AppColors.text,
-                  ),
-                ),
-                Consumer<NotificationProvider>(
-                  builder: (context, notifProvider, _) {
-                    if (notifProvider.totalUnread <= 0) {
-                      return const SizedBox.shrink();
-                    }
-                    return Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        decoration: const BoxDecoration(
-                          color: AppColors.error,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          notifProvider.totalUnread > 99
-                              ? '99+'
-                              : '${notifProvider.totalUnread}',
-                          style: const TextStyle(
-                            color: AppColors.onPrimary,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ],
-            ),
+            const NotificationBellButton(iconColor: AppColors.text),
           ],
         ),
       ],
@@ -405,10 +353,7 @@ class _HomePageState extends State<HomePage> {
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.secondary,
-                  ],
+                  colors: [AppColors.primary, AppColors.secondary],
                 ),
               ),
               child: ClipOval(
@@ -552,10 +497,7 @@ class _HomePageState extends State<HomePage> {
               shape: BoxShape.circle,
               color: AppColors.secondary,
               boxShadow: [
-                BoxShadow(
-                  color: AppColors.textAlpha(0.05),
-                  blurRadius: 10,
-                ),
+                BoxShadow(color: AppColors.textAlpha(0.05), blurRadius: 10),
               ],
             ),
             child: Icon(Icons.add, color: AppColors.textAlpha(0.55)),
@@ -1418,8 +1360,7 @@ class ScannerOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final backgroundPaint = Paint()
-      ..color = AppColors.textAlpha(0.5);
+    final backgroundPaint = Paint()..color = AppColors.textAlpha(0.5);
     final center = Offset(size.width / 2, size.height / 2 + offset);
     final scanRect = Rect.fromCenter(
       center: center,
