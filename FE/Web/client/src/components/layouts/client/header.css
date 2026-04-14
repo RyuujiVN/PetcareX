@@ -297,14 +297,23 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    margin-inline-end: 8px;
+    width: 48px;
+    height: 48px;
+    margin-inline-end: 30px;
+}
+
+.client-live-notification-toast-icon {
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .client-live-notification-toast.ant-notification-notice-with-icon .ant-notification-notice-message,
 .client-live-notification-toast.ant-notification-notice-with-icon .ant-notification-notice-description {
-    margin-inline-start: 56px;
+    margin-inline-start: 74px;
 }
 
 
