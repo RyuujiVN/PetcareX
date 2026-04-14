@@ -168,32 +168,42 @@ export const calculateDailyRevenue = (enrichedRecords) => {
 }
 
 /**
- * Tính top bác sĩ theo doanh thu.
+ * Tính top bác sĩ theo số lượt khám trong tháng hiện tại.
+ * Đếm mọi medical record có veterinarian (không phụ thuộc invoice status).
+ * Ẩn bác sĩ có 0 lượt, sắp xếp giảm dần, giới hạn tối đa `limit`.
  */
-export const calculateTopVeterinarians = (enrichedRecords) => {
-  const paidRecords = enrichedRecords.filter(
-    (r) => r.invoice?.status === INVOICE_STATUS.PAID && r.veterinarian,
-  )
+export const calculateTopVeterinariansByVisits = (enrichedRecords, limit = 5) => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth()
+
+  const monthRecords = enrichedRecords.filter((r) => {
+    if (!r.veterinarian?.id) return false
+    const dateStr = r.invoice?.createdAt || r.createdAt
+    if (!dateStr) return false
+    const d = new Date(dateStr)
+    if (Number.isNaN(d.getTime())) return false
+    return d.getFullYear() === year && d.getMonth() === month
+  })
 
   const vetMap = {}
-  paidRecords.forEach((r) => {
+  monthRecords.forEach((r) => {
     const vetId = r.veterinarian.id
-    if (!vetId) return
-
     if (!vetMap[vetId]) {
       vetMap[vetId] = {
         id: vetId,
         fullName: r.veterinarian.fullName || '',
         specialty: r.veterinarian.specialty || '',
-        totalRevenue: 0,
         recordCount: 0,
       }
     }
-    vetMap[vetId].totalRevenue += r.invoice.totalAmount || 0
     vetMap[vetId].recordCount += 1
   })
 
-  return Object.values(vetMap).sort((a, b) => b.totalRevenue - a.totalRevenue)
+  return Object.values(vetMap)
+    .filter((v) => v.recordCount > 0)
+    .sort((a, b) => b.recordCount - a.recordCount)
+    .slice(0, limit)
 }
 
 /**

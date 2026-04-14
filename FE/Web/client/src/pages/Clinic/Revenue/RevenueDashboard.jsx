@@ -20,7 +20,7 @@ export default function RevenueDashboard() {
     fetchRevenue,
     summary,
     dailyRevenue,
-    topVeterinarians,
+    topVeterinariansMonthly,
     recentInvoices,
     filteredRecords,
     PERIOD_KEYS,
@@ -61,42 +61,30 @@ export default function RevenueDashboard() {
     <div className={styles.pageWrapper}>
       {/* Header */}
       <div className={styles.pageHeader}>
-        <div className={styles.headerRow}>
-          <h1 className={styles.pageTitle}>{t('revenue.pageTitle')}</h1>
-          <div className={styles.periodTabs}>
-            {periodOptions.map((opt) => (
-              <button
-                key={opt.key}
-                className={`${styles.periodTab} ${
-                  period === opt.key ? styles.periodTabActive : ''
-                }`}
-                onClick={() => setPeriod(opt.key)}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
-        </div>
+        <h1 className={styles.pageTitle}>{t('revenue.pageTitle')}</h1>
       </div>
 
       {/* Summary Cards */}
       <RevenueSummaryCards summary={summary} />
 
-      {/* Charts Row */}
+      {/* Charts Row (period filter now inside daily chart header) */}
       <RevenueChart
         dailyRevenue={dailyRevenue}
         enrichedRecords={filteredRecords}
+        periodOptions={periodOptions}
+        period={period}
+        onPeriodChange={setPeriod}
       />
 
-      {/* Top Veterinarians */}
-      <TopVeterinariansTable veterinarians={topVeterinarians} />
-
-      {/* Recent Invoices */}
-      <RecentInvoicesTable
-        invoices={recentInvoices}
-        invoiceFilter={invoiceFilter}
-        onFilterChange={setInvoiceFilter}
-      />
+      {/* Bottom Row: Top Vets (25%) + Recent Invoices (75%) */}
+      <div className={styles.bottomRow}>
+        <TopVeterinariansTable veterinarians={topVeterinariansMonthly} />
+        <RecentInvoicesTable
+          invoices={recentInvoices}
+          invoiceFilter={invoiceFilter}
+          onFilterChange={setInvoiceFilter}
+        />
+      </div>
     </div>
   )
 }

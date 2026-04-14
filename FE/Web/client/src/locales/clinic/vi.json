@@ -714,8 +714,7 @@
 		"cards": {
 			"totalRevenue": "Tổng doanh thu",
 			"paidInvoices": "Đã thanh toán",
-			"unpaidInvoices": "Chưa thanh toán",
-			"averagePerRecord": "Giá trị TB / lượt"
+			"unpaidInvoices": "Chưa thanh toán"
 		},
 		"chart": {
 			"dailyTitle": "Doanh thu theo ngày",
@@ -731,10 +730,9 @@
 			"other": "Khác"
 		},
 		"topVets": {
-			"title": "Top bác sĩ theo doanh thu",
+			"titleMonthly": "Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}",
 			"doctor": "Bác sĩ",
-			"records": "Số lượt",
-			"revenue": "Doanh thu"
+			"records": "Số lượt"
 		},
 		"invoices": {
 			"title": "Hoá đơn gần đây",
@@ -743,7 +741,6 @@
 			"filterUnpaid": "Chưa thanh toán",
 			"colRecord": "Phiếu khám",
 			"colPet": "Thú cưng",
-			"colVet": "Bác sĩ",
 			"colDate": "Ngày",
 			"colAmount": "Tổng tiền",
 			"colStatus": "Trạng thái",

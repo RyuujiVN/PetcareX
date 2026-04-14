@@ -6,8 +6,9 @@
 }
 
 .pageHeader {
-  margin-bottom: 24px;
-  padding-top: 40px; /* tránh đè lên mainActionBar (LanguageSwitcher + Bell) */
+  margin-bottom: 20px;
+  padding-top: 8px;
+  padding-right: 120px; /* chừa chỗ cho mainActionBar (LanguageSwitcher + Bell) */
 }
 
 .pageTitle {
@@ -65,7 +66,7 @@
 /* ── Summary Cards ──────────────────────────────── */
 .summaryGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -169,6 +170,19 @@
   margin: 0 0 16px;
 }
 
+.chartCardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.chartCardHeader .chartCardTitle {
+  margin: 0;
+}
+
 .chartLegend {
   display: flex;
   gap: 20px;
@@ -266,6 +280,20 @@
   font-weight: 500;
 }
 
+/* ── Bottom Row (Top Vets ~32% + Invoices ~68%) ── */
+.bottomRow {
+  display: grid;
+  grid-template-columns: minmax(300px, 32%) minmax(0, 1fr);
+  gap: 16px;
+  margin-top: 4px;
+  align-items: start;
+}
+
+.bottomRow > .topVetsCard,
+.bottomRow > .invoicesCard {
+  margin: 0;
+}
+
 /* ── Recent Invoices ──────────────────────────── */
 .invoicesCard {
   background: var(--color-surface-card);
@@ -273,7 +301,7 @@
   padding: 20px;
   box-shadow: var(--page-revenue-card-shadow);
   border: 1px solid var(--color-border-soft);
-  margin-top: 24px;
+  min-width: 0;
 }
 
 .invoicesHeader {
@@ -331,15 +359,17 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text-secondary);
-  padding: 10px 12px;
+  padding: 10px 8px;
   border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
 }
 
 .invoicesTable td {
-  padding: 12px;
-  font-size: 14px;
+  padding: 10px 8px;
+  font-size: 13px;
   color: var(--color-text-primary);
   border-bottom: 1px solid var(--color-border-soft);
+  white-space: nowrap;
 }
 
 .invoicesTable tr:last-child td {
@@ -396,6 +426,9 @@
   .chartsRow {
     grid-template-columns: 1fr;
   }
+  .bottomRow {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 768px) {
@@ -406,6 +439,10 @@
     padding: 16px;
   }
   .headerRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .chartCardHeader {
     flex-direction: column;
     align-items: flex-start;
   }

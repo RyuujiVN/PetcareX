@@ -5,7 +5,7 @@ import {
     aggregateRevenueData,
     calculateDailyRevenue,
     calculateSummary,
-    calculateTopVeterinarians,
+    calculateTopVeterinariansByVisits,
     getRecentInvoices,
 } from '../../services/revenueService'
 
@@ -79,9 +79,9 @@ export default function useRevenue() {
     [filteredRecords],
   )
 
-  const topVeterinarians = useMemo(
-    () => calculateTopVeterinarians(filteredRecords),
-    [filteredRecords],
+  const topVeterinariansMonthly = useMemo(
+    () => calculateTopVeterinariansByVisits(allRecords, 5),
+    [allRecords],
   )
 
   const recentInvoices = useMemo(() => {
@@ -100,7 +100,7 @@ export default function useRevenue() {
     fetchRevenue,
     summary,
     dailyRevenue,
-    topVeterinarians,
+    topVeterinariansMonthly,
     recentInvoices,
     filteredRecords,
     PERIOD_KEYS,

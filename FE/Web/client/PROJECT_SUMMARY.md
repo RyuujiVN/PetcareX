@@ -164,6 +164,23 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
   - effect phụ thuộc dữ liệu liên quan (`openDiagnosisId`, `appointments/mappedAppointments`, `loading`).
   - dùng `diagnosisOpenedRef` để chặn double-trigger.
   - nếu tìm thấy appointment thì tự mở popup `PetDiagnosisContent`, sau đó clear query bằng replace.
+
+### Cập nhật bổ sung (2026-04-14) — Tinh chỉnh UI Revenue Dashboard
+
+**6 thay đổi UI cho trang `/clinic/revenue`:**
+1. Bỏ card "Giá trị TB / lượt" → `summaryGrid` chuyển từ 4 cột sang 3 cột.
+2. Format tiền đồng nhất dùng utility `formatVND(amount)` tại `src/utils/currencyFormat.js` — hiển thị đầy đủ kiểu `1,600,000 đ` (locale `vi-VN`), thay cho các hàm `formatCurrency` cũ viết rải rác (đã gỡ).
+3. Period filter (Hôm nay / 7 ngày / Tháng này / Năm nay) chuyển từ header trang vào header của card "Doanh thu theo ngày" (prop `periodOptions` + `period` + `onPeriodChange` của `RevenueChart`).
+4. Header "BÁO CÁO DOANH THU" kéo lên cao (padding-top giảm từ 40px → 8px, thêm `padding-right: 120px` để không đè lên `mainActionBar`).
+5. "Top bác sĩ theo doanh thu" → `Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}` (key i18n mới: `revenue.topVets.titleMonthly`). Tháng lấy dynamic từ `new Date()`. Xếp hạng theo số **lượt khám** (count medical records có veterinarian) trong tháng hiện tại, bỏ ngưỡng `invoice.status=PAID` — tính từ `allRecords` (không phụ thuộc period filter của chart). Ẩn bác sĩ có 0 lượt, tối đa 5 người. Bỏ cột "Doanh thu" khỏi bảng.
+6. Layout hàng cuối → grid 2 cột `minmax(260px, 25%) 1fr` (class `.bottomRow`): Top bác sĩ trái 25% + Hoá đơn gần đây phải 75%. Bỏ cột "Bác sĩ" khỏi bảng Hoá đơn gần đây (5 cột còn lại: Phiếu khám / Thú cưng / Ngày / Tổng tiền / Trạng thái).
+
+**Service:**
+- `src/services/revenueService.js`: gỡ `calculateTopVeterinarians` (cũ, sort theo doanh thu); thêm `calculateTopVeterinariansByVisits(records, limit=5)` — filter theo tháng hiện tại, count theo veterinarian, sort giảm dần theo `recordCount`.
+- `src/hooks/Clinic/useRevenue.js`: expose `topVeterinariansMonthly` (từ `allRecords`, không filter period).
+
+**Responsive:** `.bottomRow` collapse xuống 1 cột khi `max-width: 1200px`. `.chartCardHeader` đổi layout dọc khi `max-width: 768px`.
+
 ### Cập nhật bổ sung (2026-04-14) — Revenue Dashboard (Báo cáo Doanh thu Phòng khám)
 
 **Tính năng mới:** Trang báo cáo doanh thu cho Clinic Portal tại route `/clinic/revenue`.
@@ -177,7 +194,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - `src/pages/Clinic/Revenue/revenue.module.css` — Stylesheet, toàn bộ màu dùng CSS token.
 
 **Service & Hook:**
-- `src/services/revenueService.js` — Fetch và aggregate dữ liệu doanh thu: `aggregateRevenueData`, `calculateSummary`, `calculateDailyRevenue`, `calculateTopVeterinarians`, `getRecentInvoices`.
+- `src/services/revenueService.js` — Fetch và aggregate dữ liệu doanh thu: `aggregateRevenueData`, `calculateSummary`, `calculateDailyRevenue`, `calculateTopVeterinariansByVisits`, `getRecentInvoices`.
 - `src/hooks/Clinic/useRevenue.js` — Quản lý state doanh thu, filter theo kỳ (Hôm nay / 7 ngày / Tháng / Năm), filter invoice status.
 
 **Cách tính doanh thu:** FE tự tính — không có API aggregate ở BE.
