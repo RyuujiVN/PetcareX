@@ -22,7 +22,8 @@ const writeStorage = (items) => {
 const normalizeRating = (value) => {
   const num = Number(value);
   if (!Number.isFinite(num)) return 0;
-  return Math.max(1, Math.min(5, Math.round(num)));
+  const clamped = Math.max(1, Math.min(5, num));
+  return Math.round(clamped * 2) / 2;
 };
 
 const normalizeReview = (input = {}) => {

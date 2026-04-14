@@ -22,6 +22,40 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-14) — Fix Icon Chuông, Báo cáo bài viết, Notification Like/Comment UI
+- Notification bell badge (Client/Admin/Clinic/Veterinarian):
+  - Dùng Ant `Badge` style đỏ tròn đồng nhất (`#ff4d4f`) với text canh giữa bằng `display:flex`, `alignItems:center`, `justifyContent:center`, `lineHeight: normal`, `fontWeight: 600`.
+  - Đồng bộ cho:
+    - `src/components/layouts/client/header.jsx`
+    - `src/layouts/admin/AdminLayout.jsx`
+    - `src/layouts/Clinic/AdminClinicLayout.jsx`
+    - `src/layouts/Vererianrian/AdminVererianrianLayout.jsx`
+- Toast realtime góc phải (Client Header):
+  - Không dùng `icon` prop của Ant notification để tránh đè text.
+  - Render custom message layout bằng flex:
+    - wrapper: `display:flex`, `alignItems:flex-start`, `gap:12`
+    - icon: `flexShrink:0`
+    - text: `flex:1`, `minWidth:0`
+  - Kết quả: icon không che chữ, text wrap ổn định.
+- Forum post menu (`...`) phân quyền:
+  - Chủ bài: `Chỉnh sửa`, `Xóa bài viết`.
+  - Người không phải chủ bài: `Báo cáo bài viết`.
+  - Nút `...` luôn hiển thị cho cả hai nhóm.
+  - Modal báo cáo bài viết gồm:
+    - dropdown lý do (`Spam`, `Nội dung không phù hợp`, `Thông tin sai lệch`, `Khác`)
+    - textarea mô tả thêm (optional).
+  - Nếu BE chưa có endpoint `POST /post/:id/report`: FE fallback toast `Đã ghi nhận báo cáo của bạn` và log console để theo dõi.
+- Notification item UI cho like/comment/reply trong popup:
+  - Hiển thị avatar người thao tác + badge action icon nhỏ ở góc avatar.
+  - Dòng text ưu tiên định dạng: **senderName** + hành động (`đã thích`, `đã bình luận`, `đã trả lời`).
+  - Nội dung bài viết được truncate 60 ký tự.
+- Notification mapping từ BE (forum):
+  - Map đầy đủ `COMMENT_REPLY`, `COMMENT`, `LIKE`, `POST_LIKED`.
+  - Normalize target field: `postId`, `commentId`, `senderName`, `senderAvatar`, `appointmentId`.
+  - Ưu tiên lấy sender từ nhiều biến thể payload (`senderName/commenterName/userName`, `senderAvatar/commenterAvatar/avatarUrl`).
+- Forum like button UX:
+  - Khi đã like, icon đổi sang dạng filled (`FaThumbsUp`) và style nổi bật hơn (bold + nền nhấn nhẹ).
+
 ### Cập nhật bổ sung (2026-04-14) — tinh chỉnh Icon & điều hướng Notification
 - Client Header dùng helper icon thống nhất cho cả popup và toast realtime:
   - `AI_DIAGNOSIS` -> `BsRobot` (tone AI tím/xanh).

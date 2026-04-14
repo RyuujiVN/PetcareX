@@ -213,6 +213,20 @@
   box-shadow: 0 10px 24px rgba(22, 53, 92, 0.12);
 }
 
+.notificationBellButton :global(.ant-badge-count) {
+  background-color: #ff4d4f !important;
+  color: #ffffff !important;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  padding: 0 !important;
+  display: inline-flex;
+  justify-content: center;
+  font-weight: 600;
+  line-height: normal;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
 .notificationBellButton :global(.ant-btn-icon) {
   display: inline-flex;
   align-items: center;
@@ -394,11 +408,6 @@
   .mainActionBar {
     top: 6px;
     padding: 6px 10px 0;
-  }
-
-  .notificationBellButton {
-    width: 38px !important;
-    height: 38px !important;
   }
 
   .notificationPanel {

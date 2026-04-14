@@ -143,6 +143,11 @@ const getForumActionIcon = (actionType) => {
   return <FaRegCommentDots size={11} color="#ffffff" />;
 };
 
+const getForumActionBadgeColor = (actionType) => {
+  if (actionType === "like") return "#1877f2";
+  return "#42b883";
+};
+
 const getNotificationIcon = (notificationItem) => {
   const type = String(notificationItem?.type || "").toLowerCase();
   const beType = String(notificationItem?.beType || "").toUpperCase();
@@ -189,7 +194,7 @@ const getNotificationIcon = (notificationItem) => {
             position: "absolute",
             bottom: -2,
             right: -2,
-            background: "#1877f2",
+            background: getForumActionBadgeColor(forumActionType),
             borderRadius: "50%",
             width: 20,
             height: 20,
@@ -469,6 +474,64 @@ function Header() {
     [markNotificationAsRead, navigate, notificationApi],
   );
 
+  const buildForumActionText = useCallback(
+    (notificationItem) => {
+      const actionType = resolveForumActionType(notificationItem);
+      if (actionType === "like") {
+        return t("header.notifications.events.forumActionLike", "liked your post");
+      }
+
+      if (actionType === "reply") {
+        return t(
+          "header.notifications.events.forumActionReply",
+          "replied to your comment",
+        );
+      }
+
+      return t(
+        "header.notifications.events.forumActionComment",
+        "commented on your post",
+      );
+    },
+    [t],
+  );
+
+  const renderToastMessage = useCallback(
+    (notificationItem) => {
+      const actorName =
+        String(notificationItem?.senderName || "").trim() ||
+        t("header.notifications.forumActorFallback");
+      const forumActionType = resolveForumActionType(notificationItem);
+      const isForumNotification = Boolean(forumActionType);
+
+      return (
+        <div className="client-live-notification-toast-content">
+          <div className="client-live-notification-toast-icon-wrap">
+            {getNotificationIcon(notificationItem)}
+          </div>
+          <div className="client-live-notification-toast-text">
+            {isForumNotification ? (
+              <div className="client-live-notification-toast-title">
+                <strong>{actorName}</strong> {buildForumActionText(notificationItem)}
+              </div>
+            ) : (
+              <div className="client-live-notification-toast-title">
+                {notificationItem?.title || t("header.notifications.title")}
+              </div>
+            )}
+
+            {notificationItem?.description ? (
+              <div className="client-live-notification-toast-desc">
+                "{notificationItem.description}"
+              </div>
+            ) : null}
+          </div>
+        </div>
+      );
+    },
+    [buildForumActionText, t],
+  );
+
   // ── WebSocket: receive realtime notifications from BE (e.g. AI_DIAGNOSIS) ──
   useEffect(() => {
     if (!token || !currentUserId) return;
@@ -490,15 +553,11 @@ function Header() {
         notificationApi.open({
           key: toastKey,
           className: "client-live-notification-toast",
-          message: mapped.title || t("header.notifications.title"),
-          description: mapped.description || "",
+          message: renderToastMessage(mapped),
+          description: null,
           placement: "bottomRight",
           duration: 5,
-          icon: (
-            <span className="client-live-notification-toast-icon">
-              {getNotificationIcon(mapped)}
-            </span>
-          ),
+          icon: null,
           onClick: () => handleClickNotificationItem(mapped, { toastKey }),
         });
       }
@@ -518,7 +577,13 @@ function Header() {
       notifySocket.removeAllListeners();
       notifySocket.disconnect();
     };
-  }, [currentUserId, handleClickNotificationItem, notificationApi, t, token]);
+  }, [
+    currentUserId,
+    handleClickNotificationItem,
+    notificationApi,
+    renderToastMessage,
+    token,
+  ]);
 
   const handleMarkAllNotificationsAsRead = () => {
     void markAllNotificationItemsAsRead();
@@ -586,6 +651,11 @@ function Header() {
             dataSource={filteredNotificationItems}
             renderItem={(item) => {
               const isUnread = !notificationReadIdSet.has(item.id);
+              const forumActionType = resolveForumActionType(item);
+              const isForumNotification = Boolean(forumActionType);
+              const actorName =
+                String(item?.senderName || "").trim() ||
+                t("header.notifications.forumActorFallback");
 
               return (
                 <List.Item className="notification-list-item">
@@ -597,12 +667,22 @@ function Header() {
                     {getNotificationIcon(item)}
 
                     <span className="notification-item-text">
-                      <span className="notification-item-title">
-                        {item.title}
-                      </span>
-                      <span className="notification-item-description">
-                        {item.description}
-                      </span>
+                      {isForumNotification ? (
+                        <span className="notification-item-title notification-item-title-inline">
+                          <strong>{actorName}</strong> {buildForumActionText(item)}
+                        </span>
+                      ) : (
+                        <span className="notification-item-title">{item.title}</span>
+                      )}
+
+                      {item.description ? (
+                        <span
+                          className={`notification-item-description ${isForumNotification ? "notification-item-description-quote" : ""}`}
+                        >
+                          {isForumNotification ? `"${item.description}"` : item.description}
+                        </span>
+                      ) : null}
+
                       <span className="notification-item-time">
                         {formatNotificationTimeAgo(item.createdAt, t)}
                       </span>
@@ -827,7 +907,11 @@ function Header() {
                     className="notification-bell-btn"
                     aria-label={t("header.notifications.openAria")}
                   >
-                    <Badge count={unreadNotificationCount} overflowCount={99}>
+                    <Badge
+                      count={unreadNotificationCount}
+                      overflowCount={9}
+                      size="small"
+                    >
                       <IoMdNotificationsOutline size={23} />
                     </Badge>
                   </button>

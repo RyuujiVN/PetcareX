@@ -133,9 +133,14 @@ export default function AppRoutes({ location }) {
           <Route path="/user/profile" element={<ProfileUser />} />
           <Route path="/petProfile" element={<PetProfile />} />
           <Route path="/medical-records" element={<MedicalRecords />} />
-          <Route path="/forum" element={<Forum />} />
           <Route path="/listPetMedicalRecords" element={<ListPetMedicalRecords />}
           />
+        </Route>
+      </Route>
+
+      <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.CUSTOMER, RoleEnum.ADMIN]} />}>
+        <Route element={<HeaderLayout />}>
+          <Route path="/forum" element={<Forum />} />
         </Route>
       </Route>
 

@@ -1,28 +1,40 @@
+import { FlagOutlined } from '@ant-design/icons'
 import {
 	FaEllipsis,
 	FaFilter,
 	FaImage,
 	FaRegComment,
 	FaRegThumbsUp,
+	FaThumbsUp,
 } from 'react-icons/fa6'
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { createCommentApi, getRepliesApi } from '../../../../services/forumService'
-import { CLIENT_AUTH_STORAGE } from '../../../../constants/authStorage'
-import { getClientInstance } from '../../../../services/apiClient'
-import { uploadUserImagesApi, uploadUserImageApi } from '../../../../services/userService'
 import {
+	createCommentApi,
 	createPostApi,
+	deleteCommentApi,
 	deletePostApi,
+	getAllTopicsApi,
 	getCommentsByPostIdApi,
 	getPostsApi,
+	getRepliesApi,
 	likePostApi,
+	reportPostApi,
 	unlikePostApi,
+	updateCommentApi,
 	updatePostApi,
 } from '../../../../services/forumService'
-import { getAllTopicsApi } from '../../../../services/forumService'
+import {
+	ADMIN_AUTH_STORAGE,
+	CLIENT_AUTH_STORAGE,
+	getAdminAuthItem,
+} from '../../../../constants/authStorage'
+import { RoleEnum } from '../../../../enum/role.enum'
+import { useAuth } from '../../../../hooks/client/AuthContext'
+import { getClientInstance } from '../../../../services/apiClient'
+import { uploadUserImagesApi, uploadUserImageApi } from '../../../../services/userService'
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import styles from './forum.module.css'
 
@@ -163,7 +175,7 @@ const toDataUrl = (file) =>
 		reader.readAsDataURL(file)
 	})
 
-	const mapCommentToUi = (comment, t) => {
+const mapCommentToUi = (comment, t) => {
 	const media = extractMediaFromContent(comment.content || '')
 
 	return {
@@ -179,6 +191,7 @@ const toDataUrl = (file) =>
 			id: comment.user?.id,
 			fullName: comment.user?.fullName || t('header.user.defaultName'),
 			avatarUrl: comment.user?.avatarUrl || DEFAULT_COMPOSER_AVATAR,
+			role: comment.user?.role || null,
 		},
 	}
 }
@@ -211,8 +224,48 @@ const mapPostToUi = (post, t, language) => {
 	}
 }
 
+const removeCommentFromThreads = (threads = [], commentId) => {
+	const normalizedCommentId = String(commentId || '')
+	if (!normalizedCommentId) {
+		return {
+			nextThreads: threads,
+			removedCount: 0,
+		}
+	}
+
+	let removedCount = 0
+	const nextThreads = []
+
+	threads.forEach((thread) => {
+		if (String(thread?.main?.id || '') === normalizedCommentId) {
+			removedCount += 1 + Number(thread?.replies?.length || 0)
+			return
+		}
+
+		const replies = Array.isArray(thread?.replies) ? thread.replies : []
+		const filteredReplies = replies.filter((reply) => String(reply?.id || '') !== normalizedCommentId)
+
+		if (filteredReplies.length !== replies.length) {
+			removedCount += 1
+			nextThreads.push({
+				...thread,
+				replies: filteredReplies,
+			})
+			return
+		}
+
+		nextThreads.push(thread)
+	})
+
+	return {
+		nextThreads,
+		removedCount,
+	}
+}
+
 function Forum() {
 	const { t, i18n } = useTranslation()
+	const { userProfile } = useAuth()
 	const navigate = useNavigate()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const composerRef = useRef(null)
@@ -223,6 +276,7 @@ function Forum() {
 	const postImageInputRef = useRef(null)
 	const commentImageInputRef = useRef(null)
 	const replyImageInputRef = useRef(null)
+	const editCommentImageInputRef = useRef(null)
 	const [apiPosts, setApiPosts] = useState([])
 	const [apiTopics, setApiTopics] = useState([])
 	const [loadingPosts, setLoadingPosts] = useState(false)
@@ -230,6 +284,7 @@ function Forum() {
 	const [processingLikeId, setProcessingLikeId] = useState(null)
 	const [composerAvatar, setComposerAvatar] = useState(DEFAULT_COMPOSER_AVATAR)
 	const [currentUserId, setCurrentUserId] = useState(null)
+	const [currentUserRole, setCurrentUserRole] = useState(null)
 	const [isComposerModalOpen, setIsComposerModalOpen] = useState(false)
 	const [composerText, setComposerText] = useState('')
 	const [composerTitle, setComposerTitle] = useState('')
@@ -258,6 +313,16 @@ function Forum() {
 	const [replyImageUrl, setReplyImageUrl] = useState('')
 	const [uploadingReplyImage, setUploadingReplyImage] = useState(false)
 	const [submittingReply, setSubmittingReply] = useState(false)
+	const [editingComment, setEditingComment] = useState(null)
+	const [uploadingEditCommentImage, setUploadingEditCommentImage] = useState(false)
+	const [submittingEditComment, setSubmittingEditComment] = useState(false)
+	const [reportingPost, setReportingPost] = useState(null)
+	const [postReportReason, setPostReportReason] = useState('')
+	const [postReportDetail, setPostReportDetail] = useState('')
+	const [submittingPostReport, setSubmittingPostReport] = useState(false)
+	const [reportingComment, setReportingComment] = useState(null)
+	const [reportReason, setReportReason] = useState('')
+	const [submittingReport, setSubmittingReport] = useState(false)
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
 	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
@@ -366,7 +431,16 @@ function Forum() {
 
 	const selectedPostIdFromQuery = String(searchParams.get('postId') || searchParams.get('post') || '').trim()
 	const selectedCommentIdFromQuery = String(searchParams.get('commentId') || '').trim()
-	const isAnyOverlayOpen = Boolean(editingPost)
+	const isAnyOverlayOpen = Boolean(editingPost || editingComment || reportingComment || reportingPost)
+	const postReportReasonOptions = useMemo(
+		() => [
+			{ value: 'spam', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam' }) },
+			{ value: 'inappropriate', label: t('pages.forum.reportReason.inappropriate', { defaultValue: 'Nội dung không phù hợp' }) },
+			{ value: 'misleading', label: t('pages.forum.reportReason.misleading', { defaultValue: 'Thông tin sai lệch' }) },
+			{ value: 'other', label: t('pages.forum.reportReason.other', { defaultValue: 'Khác' }) },
+		],
+		[t],
+	)
 
 	const scrollElementIntoFeed = useCallback((element) => {
 		if (!element) return
@@ -447,18 +521,24 @@ function Forum() {
 
 	useEffect(() => {
 		try {
-			const raw = localStorage.getItem(CLIENT_AUTH_STORAGE.userInfoKey)
+			const rawClientProfile = localStorage.getItem(CLIENT_AUTH_STORAGE.userInfoKey)
+			const rawAdminProfile = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
+			const raw = rawClientProfile || rawAdminProfile
 			if (!raw) return
 
 			const userInfo = JSON.parse(raw)
 			if (userInfo?.id) {
 				setCurrentUserId(userInfo.id)
 			}
+			if (userInfo?.role) {
+				setCurrentUserRole(String(userInfo.role).toUpperCase())
+			}
 			if (userInfo?.avatarUrl) {
 				setComposerAvatar(userInfo.avatarUrl)
 			}
 		} catch {
 			setComposerAvatar(DEFAULT_COMPOSER_AVATAR)
+			setCurrentUserRole(null)
 		}
 	}, [])
 
@@ -627,9 +707,20 @@ function Forum() {
 		setEditingPost(null)
 	}
 
+	const isOwnPost = useCallback(
+		(post) => {
+			const postAuthorId = String(post?.authorId || '')
+			const normalizedCurrentUserId = String(currentUserId || '')
+			if (!postAuthorId || !normalizedCurrentUserId) return false
+
+			return postAuthorId === normalizedCurrentUserId
+		},
+		[currentUserId],
+	)
+
 	const handleStartEditPost = (post) => {
 		setMenuPostId(null)
-		if (!currentUserId || post.authorId !== currentUserId) {
+		if (!isOwnPost(post)) {
 			message.warning(t('pages.forum.validation.editOwnPostOnly'))
 			return
 		}
@@ -745,7 +836,7 @@ function Forum() {
 
 	const handleDeletePost = (post) => {
 		setMenuPostId(null)
-		if (!currentUserId || post.authorId !== currentUserId) {
+		if (!isOwnPost(post)) {
 			message.warning(t('pages.forum.validation.deleteOwnPostOnly'))
 			return
 		}
@@ -772,6 +863,89 @@ function Forum() {
 			},
 		})
 	}
+
+	const closePostReportModal = useCallback(() => {
+		setReportingPost(null)
+		setPostReportReason('')
+		setPostReportDetail('')
+		setSubmittingPostReport(false)
+	}, [])
+
+	const handleStartReportPost = useCallback(
+		(post) => {
+			setMenuPostId(null)
+			if (isOwnPost(post)) {
+				message.warning(t('pages.forum.validation.reportOtherPostOnly', { defaultValue: 'Bạn chỉ có thể báo cáo bài viết của người khác' }))
+				return
+			}
+
+			setReportingPost({
+				id: post.id,
+				authorName: post.author || t('header.user.defaultName'),
+				title: post.title || '',
+				content: post.content || '',
+			})
+			setPostReportReason('')
+			setPostReportDetail('')
+		},
+		[isOwnPost, t],
+	)
+
+	const handleSubmitPostReport = useCallback(async () => {
+		if (!reportingPost?.id) return
+
+		if (!String(postReportReason || '').trim()) {
+			message.warning(
+				t('pages.forum.validation.reportPostReasonRequired', {
+					defaultValue: 'Vui lòng chọn lý do báo cáo bài viết',
+				}),
+			)
+			return
+		}
+
+		setSubmittingPostReport(true)
+		try {
+			const payload = {
+				reason: postReportReason,
+				detail: String(postReportDetail || '').trim() || undefined,
+			}
+
+			try {
+				await reportPostApi(getClientInstance(), reportingPost.id, payload)
+				message.success(
+					t('pages.forum.reportPostSuccess', {
+						defaultValue: 'Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.',
+					}),
+				)
+			} catch (error) {
+				const status = Number(error?.response?.status || 0)
+				if (status === 404 || status === 405) {
+					console.info('[Forum] Report post deferred because backend endpoint is unavailable', {
+						postId: reportingPost.id,
+						payload,
+					})
+					message.success(
+						t('pages.forum.reportPostRecorded', {
+							defaultValue: 'Đã ghi nhận báo cáo của bạn',
+						}),
+					)
+				} else {
+					throw error
+				}
+			}
+
+			closePostReportModal()
+		} catch (error) {
+			message.error(
+				error?.message ||
+					t('pages.forum.reportPostFailed', {
+						defaultValue: 'Không thể gửi báo cáo bài viết. Vui lòng thử lại.',
+					}),
+			)
+		} finally {
+			setSubmittingPostReport(false)
+		}
+	}, [closePostReportModal, postReportDetail, postReportReason, reportingPost?.id, t])
 
 	const handlePickComposerImage = async (event) => {
 		const selectedFiles = Array.from(event.target.files || []).filter(Boolean)
@@ -1187,6 +1361,335 @@ function Forum() {
 		}
 	}
 
+	useEffect(() => {
+		const profileUserId = String(userProfile?.id || '').trim()
+		if (profileUserId) {
+			setCurrentUserId(profileUserId)
+		}
+
+		const profileRole = String(userProfile?.role || '').trim().toUpperCase()
+		if (profileRole) {
+			setCurrentUserRole(profileRole)
+		}
+
+		if (userProfile?.avatarUrl) {
+			setComposerAvatar(userProfile.avatarUrl)
+		}
+	}, [userProfile?.avatarUrl, userProfile?.id, userProfile?.role])
+
+	const isAdminUser = currentUserRole === RoleEnum.ADMIN
+
+	const isCommentOwner = useCallback(
+		(comment) => {
+			const commentOwnerId = String(comment?.user?.id || '')
+			const normalizedCurrentUserId = String(currentUserId || '')
+			if (!commentOwnerId || !normalizedCurrentUserId) return false
+
+			return commentOwnerId === normalizedCurrentUserId
+		},
+		[currentUserId],
+	)
+
+	const closeEditCommentModal = useCallback(() => {
+		setEditingComment(null)
+		setUploadingEditCommentImage(false)
+		setSubmittingEditComment(false)
+	}, [])
+
+	const closeReportModal = useCallback(() => {
+		setReportingComment(null)
+		setReportReason('')
+		setSubmittingReport(false)
+	}, [])
+
+	const handleStartEditComment = useCallback(
+		(comment, postId) => {
+			if (!isCommentOwner(comment)) {
+				message.warning(t('pages.forum.validation.editOwnCommentOnly', { defaultValue: 'Bạn chỉ có thể chỉnh sửa bình luận của chính mình' }))
+				return
+			}
+
+			setEditingComment({
+				id: comment.id,
+				postId,
+				text: comment.content || '',
+				imagePreview: comment.image || '',
+				imageUrl: comment.image || '',
+				existingImageUrl: comment.image || '',
+			})
+		},
+		[isCommentOwner, t],
+	)
+
+	const handlePickEditCommentImage = useCallback(
+		async (event) => {
+			const file = event.target.files?.[0]
+			if (!file) return
+
+			setUploadingEditCommentImage(true)
+
+			try {
+				const preview = await toDataUrl(file)
+				setEditingComment((prev) =>
+					prev
+						? {
+								...prev,
+								imagePreview: preview,
+						  }
+						: prev,
+				)
+
+				const uploadedUrl = await uploadImage(file)
+				setEditingComment((prev) =>
+					prev
+						? {
+								...prev,
+								imageUrl: uploadedUrl,
+						  }
+						: prev,
+				)
+				message.success(t('pages.forum.uploadCommentImageSuccess'))
+			} catch (error) {
+				setEditingComment((prev) =>
+					prev
+						? {
+								...prev,
+								imagePreview: prev.existingImageUrl || '',
+								imageUrl: prev.existingImageUrl || '',
+						  }
+						: prev,
+				)
+				message.error(
+					error.message === 'image-read-error'
+						? t('pages.forum.readImageFailed')
+						: error.message || t('pages.forum.readImageFailed'),
+				)
+			} finally {
+				setUploadingEditCommentImage(false)
+			}
+
+			event.target.value = ''
+		},
+		[t],
+	)
+
+	const handleSaveEditedComment = useCallback(async () => {
+		if (!editingComment?.id || !editingComment?.postId) return
+
+		if (uploadingEditCommentImage) {
+			message.warning(t('pages.forum.validation.commentImageUploading'))
+			return
+		}
+
+		if (!String(editingComment.text || '').trim() && !editingComment.imagePreview) {
+			message.warning(t('pages.forum.validation.commentRequired'))
+			return
+		}
+
+		try {
+			setSubmittingEditComment(true)
+			await updateCommentApi(getClientInstance(), editingComment.id, {
+				content: attachCommentToContent(editingComment.text, editingComment.imageUrl || null, t),
+			})
+
+			setCommentsByPost((prev) => ({
+				...prev,
+				[editingComment.postId]: (prev[editingComment.postId] || []).map((thread) => {
+					if (thread.main.id === editingComment.id) {
+						return {
+							...thread,
+							main: {
+								...thread.main,
+								content: editingComment.text,
+								image: editingComment.imageUrl || null,
+								time: t('pages.forum.justNow'),
+							},
+						}
+					}
+
+					return {
+						...thread,
+						replies: (thread.replies || []).map((reply) =>
+							reply.id === editingComment.id
+								? {
+									...reply,
+									content: editingComment.text,
+									image: editingComment.imageUrl || null,
+									time: t('pages.forum.justNow'),
+								  }
+								: reply,
+						),
+					}
+				}),
+			}))
+
+			message.success(t('pages.forum.updateCommentSuccess', { defaultValue: 'Cập nhật bình luận thành công' }))
+			closeEditCommentModal()
+		} catch (error) {
+			message.error(error.message || t('pages.forum.updateCommentFailed', { defaultValue: 'Không thể cập nhật bình luận' }))
+		} finally {
+			setSubmittingEditComment(false)
+		}
+	}, [closeEditCommentModal, editingComment, t, uploadingEditCommentImage])
+
+	const handleDeleteComment = useCallback(
+		async (comment, postId) => {
+			const canDelete = isCommentOwner(comment) || isAdminUser
+			if (!canDelete) {
+				message.warning(t('pages.forum.validation.deleteOwnCommentOnly', { defaultValue: 'Bạn không có quyền xóa bình luận này' }))
+				return
+			}
+
+			Modal.confirm({
+				title: t('pages.forum.confirmDeleteComment.title', { defaultValue: 'Xóa bình luận' }),
+				content: t('pages.forum.confirmDeleteComment.content', { defaultValue: 'Bạn có chắc chắn muốn xóa bình luận này không?' }),
+				okText: t('pages.forum.confirmDeleteComment.okText', { defaultValue: 'Xóa' }),
+				cancelText: t('pages.forum.confirmDeleteComment.cancelText', { defaultValue: 'Hủy' }),
+				okType: 'danger',
+				centered: true,
+				onOk: async () => {
+					try {
+						await deleteCommentApi(getClientInstance(), comment.id)
+
+						const currentThreads = commentsByPost[postId] || []
+						const { nextThreads, removedCount } = removeCommentFromThreads(currentThreads, comment.id)
+
+						if (removedCount > 0) {
+							setCommentsByPost((prev) => ({
+								...prev,
+								[postId]: nextThreads,
+							}))
+
+							setApiPosts((prev) =>
+								prev.map((item) =>
+									item.id === postId
+										? {
+												...item,
+												comments: Math.max(0, Number(item.comments || 0) - removedCount),
+										  }
+										: item,
+								),
+							)
+						}
+
+						if (replyingComment?.parentId === comment.id) {
+							setReplyingComment(null)
+							setReplyText('')
+							setReplyImageFile(null)
+							setReplyImagePreview('')
+							setReplyImageUrl('')
+						}
+
+						if (editingComment?.id === comment.id) {
+							closeEditCommentModal()
+						}
+
+						message.success(t('pages.forum.deleteCommentSuccess', { defaultValue: 'Đã xóa bình luận' }))
+					} catch (error) {
+						message.error(error.message || t('pages.forum.deleteCommentFailed', { defaultValue: 'Không thể xóa bình luận' }))
+					}
+				},
+			})
+		},
+		[closeEditCommentModal, commentsByPost, editingComment?.id, isAdminUser, isCommentOwner, replyingComment?.parentId, t],
+	)
+
+	const handleSubmitCommentReport = useCallback(async () => {
+		if (!reportingComment?.id) return
+
+		if (!String(reportReason || '').trim()) {
+			message.warning(t('pages.forum.validation.reportReasonRequired', { defaultValue: 'Vui lòng nhập nội dung tố cáo' }))
+			return
+		}
+
+		setSubmittingReport(true)
+		try {
+			// Backend currently does not expose report-comment API.
+			message.warning(
+				t('pages.forum.reportBackendUnavailable', {
+					defaultValue: 'Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.',
+				}),
+			)
+			closeReportModal()
+		} finally {
+			setSubmittingReport(false)
+		}
+	}, [closeReportModal, reportReason, reportingComment?.id, t])
+
+	const handleCommentAction = useCallback(
+		(action, comment, postId) => {
+			if (action === 'edit') {
+				handleStartEditComment(comment, postId)
+				return
+			}
+
+			if (action === 'delete') {
+				void handleDeleteComment(comment, postId)
+				return
+			}
+
+			if (action === 'report') {
+				setReportingComment({
+					id: comment.id,
+					postId,
+					commentOwnerName: comment.user?.fullName || t('header.user.defaultName'),
+					content: comment.content || '',
+				})
+				setReportReason('')
+			}
+		},
+		[handleDeleteComment, handleStartEditComment, t],
+	)
+
+	const buildCommentMenuItems = useCallback(
+		(comment) => {
+			if (isCommentOwner(comment)) {
+				return [
+					{ key: 'edit', label: t('common.actions.edit') },
+					{ key: 'delete', label: t('common.actions.delete'), danger: true },
+				]
+			}
+
+			if (isAdminUser) {
+				return [{ key: 'delete', label: t('common.actions.delete'), danger: true }]
+			}
+
+			return [{ key: 'report', label: t('pages.forum.actions.reportComment', { defaultValue: 'Tố cáo bình luận' }) }]
+		},
+		[isAdminUser, isCommentOwner, t],
+	)
+
+	const renderCommentMenuButton = useCallback(
+		(comment, postId) => {
+			const menuItems = buildCommentMenuItems(comment)
+			if (!menuItems.length) return null
+
+			return (
+				<Dropdown
+					trigger={['click']}
+					placement="bottomRight"
+					menu={{
+						items: menuItems,
+						onClick: ({ key, domEvent }) => {
+							domEvent?.stopPropagation?.()
+							handleCommentAction(String(key), comment, postId)
+						},
+					}}
+				>
+					<button
+						type="button"
+						className={styles.commentMenuButton}
+						onClick={(event) => event.stopPropagation()}
+						aria-label={t('pages.forum.actions.commentOptionsAria', { defaultValue: 'Tùy chọn bình luận' })}
+					>
+						<FaEllipsis />
+					</button>
+				</Dropdown>
+			)
+		},
+		[buildCommentMenuItems, handleCommentAction, t],
+	)
+
 	const sourcePosts = apiPosts
 
 	useEffect(() => {
@@ -1302,7 +1805,7 @@ function Forum() {
 										</div>
 									</div>
 
-									<div className={styles.postMenuWrap}>
+															<div className={styles.postMenuWrap}>
 										<button
 											type="button"
 											className={styles.moreButton}
@@ -1316,19 +1819,28 @@ function Forum() {
 
 										{menuPostId === post.id ? (
 											<div className={styles.postMenu} onClick={(event) => event.stopPropagation()}>
-												<button type="button" className={styles.postMenuItem} onClick={() => handleStartEditPost(post)}>
-													{t('common.actions.edit')}
-												</button>
-												<button
-													type="button"
-													className={`${styles.postMenuItem} ${styles.postMenuDanger}`}
-													onClick={() => handleDeletePost(post)}
-												>
-													{t('common.actions.delete')}
-												</button>
+												{isOwnPost(post) ? (
+													<>
+														<button type="button" className={styles.postMenuItem} onClick={() => handleStartEditPost(post)}>
+															{t('common.actions.edit')}
+														</button>
+														<button
+															type="button"
+															className={`${styles.postMenuItem} ${styles.postMenuDanger}`}
+															onClick={() => handleDeletePost(post)}
+														>
+															{t('common.actions.delete')}
+														</button>
+													</>
+												) : (
+													<button type="button" className={styles.postMenuItem} onClick={() => handleStartReportPost(post)}>
+														<FlagOutlined style={{ marginRight: 8 }} />
+														{t('pages.forum.actions.reportPost', { defaultValue: 'Báo cáo bài viết' })}
+													</button>
+												)}
 											</div>
 										) : null}
-									</div>
+											</div>
 								</header>
 
 								{post.content ? <p className={styles.postContent}>{post.content}</p> : null}
@@ -1365,7 +1877,7 @@ function Forum() {
 											disabled={processingLikeId === post.id}
 											className={post.liked ? styles.likedBtn : ''}
 										>
-											<FaRegThumbsUp /> {post.likes}
+											{post.liked ? <FaThumbsUp /> : <FaRegThumbsUp />} {post.likes}
 										</button>
 										<button type="button" onClick={() => handleOpenComments(post)}>
 											<FaRegComment /> {post.comments}
@@ -1474,6 +1986,8 @@ function Forum() {
 															>
 															{t('pages.forum.actions.reply')}
 															</button>
+
+															{renderCommentMenuButton(thread.main, post.id)}
 														</div>
 
 														{replyingComment?.parentId === thread.main.id && (
@@ -1576,6 +2090,7 @@ function Forum() {
 
 															<div className={styles.commentMeta}>
 																<span>{reply.time}</span>
+																{renderCommentMenuButton(reply, post.id)}
 															</div>
 														</div>
 													</div>
@@ -1698,8 +2213,8 @@ function Forum() {
 			</div>
 
 			{editingPost ? (
-				<div className={styles.composerModalOverlay} onClick={closeEditModal}>
-					<div className={styles.composerModal} onClick={(event) => event.stopPropagation()}>
+				<div className={`${styles.composerModalOverlay} ${styles.open}`} onClick={closeEditModal}>
+					<div className={`${styles.composerModal} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
 						<h3>{t('pages.forum.editPostTitle')}</h3>
 						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.topic')}</p>
 						<Select
@@ -1770,6 +2285,167 @@ function Forum() {
 						</div>
 					</div>
 				</div>
+			) : null}
+
+			{editingComment ? (
+				<div className={`${styles.composerModalOverlay} ${styles.open}`} onClick={closeEditCommentModal}>
+					<div className={`${styles.composerModal} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
+						<h3>{t('pages.forum.editCommentTitle', { defaultValue: 'Chỉnh sửa bình luận' })}</h3>
+
+						<textarea
+							value={editingComment.text}
+							onChange={(event) =>
+								setEditingComment((prev) => (prev ? { ...prev, text: event.target.value } : prev))
+							}
+							className={styles.composerModalInput}
+							placeholder={t('pages.forum.placeholders.comment')}
+						/>
+
+						{editingComment.imagePreview ? (
+							<div className={styles.previewImageWrap}>
+								<img src={editingComment.imagePreview} alt={t('pages.forum.commentImagePreviewAlt')} className={styles.previewImage} />
+								<button
+									type="button"
+									onClick={() =>
+										setEditingComment((prev) =>
+											prev
+												? {
+														...prev,
+														imagePreview: '',
+														imageUrl: '',
+														existingImageUrl: '',
+												  }
+												: prev,
+										)
+									}
+									className={styles.removeImageBtn}
+									disabled={uploadingEditCommentImage || submittingEditComment}
+								>
+									{t('pages.forum.actions.removeImage')}
+								</button>
+							</div>
+						) : null}
+
+						<div className={styles.modalActionRow}>
+							<input
+								ref={editCommentImageInputRef}
+								type="file"
+								accept="image/*"
+								onChange={handlePickEditCommentImage}
+								hidden
+							/>
+							<button
+								type="button"
+								onClick={() => editCommentImageInputRef.current?.click()}
+								disabled={uploadingEditCommentImage || submittingEditComment}
+							>
+								<FaImage /> {t('pages.forum.actions.chooseAnotherImage')}
+							</button>
+							<button
+								type="button"
+								onClick={handleSaveEditedComment}
+								disabled={uploadingEditCommentImage || submittingEditComment}
+							>
+								{submittingEditComment
+									? t('pages.forum.actions.saving', { defaultValue: 'Đang lưu...' })
+									: uploadingEditCommentImage
+										? t('pages.forum.actions.uploadingImage')
+										: t('pages.forum.actions.saveEdit')}
+							</button>
+							<button
+								type="button"
+								onClick={closeEditCommentModal}
+								disabled={uploadingEditCommentImage || submittingEditComment}
+							>
+								{t('common.actions.cancel')}
+							</button>
+						</div>
+					</div>
+				</div>
+			) : null}
+
+			{reportingPost ? (
+				<Modal
+					open
+					onCancel={closePostReportModal}
+					onOk={handleSubmitPostReport}
+					okText={t('pages.forum.actions.submitReport', { defaultValue: 'Gửi báo cáo' })}
+					cancelText={t('common.actions.cancel')}
+					confirmLoading={submittingPostReport}
+					okButtonProps={{
+						disabled: !String(postReportReason || '').trim(),
+					}}
+					title={t('pages.forum.reportPostModalTitle', { defaultValue: 'Báo cáo bài viết' })}
+					centered
+				>
+					<div className={styles.reportModalBody}>
+						<p className={styles.reportMetaText}>
+							{t('pages.forum.reportPostBy', {
+								defaultValue: 'Bạn đang báo cáo bài viết của {{name}}',
+								name: reportingPost.authorName,
+							})}
+						</p>
+
+						{reportingPost.title || reportingPost.content ? (
+							<p className={styles.reportPreviewText}>
+								{reportingPost.title ? `${reportingPost.title}\n` : ''}
+								{reportingPost.content}
+							</p>
+						) : null}
+
+						<Select
+							value={postReportReason || undefined}
+							onChange={setPostReportReason}
+							placeholder={t('pages.forum.placeholders.reportPostReason', {
+								defaultValue: 'Chọn lý do báo cáo',
+							})}
+							options={postReportReasonOptions}
+						/>
+
+						<textarea
+							className={styles.reportTextarea}
+							value={postReportDetail}
+							onChange={(event) => setPostReportDetail(event.target.value)}
+							placeholder={t('pages.forum.placeholders.reportPostDetail', {
+								defaultValue: 'Mô tả thêm (không bắt buộc)',
+							})}
+						/>
+					</div>
+				</Modal>
+			) : null}
+
+			{reportingComment ? (
+				<Modal
+					open
+					onCancel={closeReportModal}
+					onOk={handleSubmitCommentReport}
+					okText={t('pages.forum.actions.submitReport', { defaultValue: 'Gửi tố cáo' })}
+					cancelText={t('common.actions.cancel')}
+					confirmLoading={submittingReport}
+					okButtonProps={{
+						disabled: !String(reportReason || '').trim(),
+					}}
+					title={t('pages.forum.reportModalTitle', { defaultValue: 'Tố cáo bình luận' })}
+					centered
+				>
+					<div className={styles.reportModalBody}>
+						<p className={styles.reportMetaText}>
+							{t('pages.forum.reportCommentBy', {
+								defaultValue: 'Bạn đang tố cáo bình luận của {{name}}',
+								name: reportingComment.commentOwnerName,
+							})}
+						</p>
+						{reportingComment.content ? (
+							<p className={styles.reportPreviewText}>{reportingComment.content}</p>
+						) : null}
+						<textarea
+							className={styles.reportTextarea}
+							value={reportReason}
+							onChange={(event) => setReportReason(event.target.value)}
+							placeholder={t('pages.forum.placeholders.reportReason', { defaultValue: 'Nhập nội dung tố cáo...' })}
+						/>
+					</div>
+				</Modal>
 			) : null}
 
 			<Modal

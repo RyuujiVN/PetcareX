@@ -652,7 +652,7 @@ function MedicalRecords() {
 						{reviewTargetRecord?.clinicName || t('common.states.unknown')}
 					</p>
 					<p className={styles.reviewHint}>{t('pages.medicalRecords.review.ratingLabel')}</p>
-					<Rate value={reviewRating} onChange={setReviewRating} />
+					<Rate allowHalf value={reviewRating} onChange={setReviewRating} />
 					<p className={styles.reviewHint}>{t('pages.medicalRecords.review.contentLabel')}</p>
 					<textarea
 						className={styles.reviewTextarea}

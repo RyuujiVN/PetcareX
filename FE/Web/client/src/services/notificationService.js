@@ -3,6 +3,7 @@ import i18n from '../i18n';
 import { getClientInstance } from './apiClient';
 
 const DEFAULT_LIMIT = 120;
+const FORUM_SNIPPET_MAX_LENGTH = 60;
 
 export const NOTIFICATION_FILTER = {
   ALL: 'ALL',
@@ -10,6 +11,13 @@ export const NOTIFICATION_FILTER = {
 };
 
 const normalizeText = (value) => String(value || '').trim();
+const truncateText = (value, maxLength = FORUM_SNIPPET_MAX_LENGTH) => {
+  const text = normalizeText(value);
+  if (!text) return '';
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength)}...`;
+};
+
 const normalizeId = (value) => {
   const text = normalizeText(value);
   return text || null;
@@ -58,7 +66,9 @@ const buildNotificationTarget = (rawTarget) => {
 const resolveSenderName = (raw = {}, target = {}) =>
   pickFirstText(
     raw?.senderName,
+    raw?.commenterName,
     target?.senderName,
+    target?.commenterName,
     target?.authorName,
     target?.actorName,
     target?.userName,
@@ -70,9 +80,12 @@ const resolveSenderName = (raw = {}, target = {}) =>
 const resolveSenderAvatar = (raw = {}, target = {}) =>
   pickFirstText(
     raw?.senderAvatar,
+    raw?.commenterAvatar,
     target?.senderAvatar,
+    target?.commenterAvatar,
     target?.authorAvatar,
     target?.actorAvatar,
+    target?.avatarUrl,
     target?.userAvatar,
     target?.sender?.avatarUrl,
     target?.author?.avatarUrl,
@@ -113,6 +126,18 @@ const buildForumHref = (target = {}, forumInteractionType = null) => {
 
   return `/forum?postId=${postId}`;
 };
+
+const resolveForumSnippet = (target = {}, fallbackDescription = '') =>
+  truncateText(
+    pickFirstText(
+      target?.postContent,
+      target?.postTitle,
+      target?.content,
+      target?.description,
+      fallbackDescription,
+    ),
+    FORUM_SNIPPET_MAX_LENGTH,
+  );
 
 const buildAppointmentDescription = (beType, target = {}) => {
   const dateText = formatNotificationDate(target?.appointmentDate);
@@ -229,6 +254,8 @@ export const mapBeNotification = (raw) => {
   const forumInteractionType = resolveForumInteractionType(normalizedType, target);
   const fallbackTitle = pickFirstText(raw?.title, raw?.message, target?.title);
   const fallbackDescription = pickFirstText(raw?.description, target?.description, target?.content);
+  const senderDisplayName = senderName || t('header.notifications.forumActorFallback', 'Người dùng');
+  const forumSnippet = resolveForumSnippet(target, fallbackDescription);
   const base = {
     id: raw.id,
     createdAt: raw.createdAt || new Date().toISOString(),
@@ -343,17 +370,48 @@ export const mapBeNotification = (raw) => {
       return {
         ...base,
         type: forumInteractionType || 'forum-reply',
-        title: t(
-          'header.notifications.events.commentReplyTitle',
-          'Someone replied to your comment',
-        ),
-        description:
-          fallbackDescription ||
+        title: t('header.notifications.events.forumReplyTitle', '{{name}} replied to your comment', {
+          name: senderDisplayName,
+        }),
+        description: forumSnippet ||
           t(
             'header.notifications.events.commentReplyFallbackDescription',
             'See details in forum.',
           ),
         href: buildForumHref(target, forumInteractionType || 'forum-reply'),
+      };
+
+    case 'COMMENT':
+      return {
+        ...base,
+        type: forumInteractionType || 'forum-comment',
+        title: t('header.notifications.events.forumCommentTitle', '{{name}} commented on your post', {
+          name: senderDisplayName,
+        }),
+        description:
+          forumSnippet ||
+          t(
+            'header.notifications.events.commentReplyFallbackDescription',
+            'See details in forum.',
+          ),
+        href: buildForumHref(target, forumInteractionType || 'forum-comment'),
+      };
+
+    case 'LIKE':
+    case 'POST_LIKED':
+      return {
+        ...base,
+        type: forumInteractionType || 'forum-like',
+        title: t('header.notifications.events.forumLikeTitle', '{{name}} liked your post', {
+          name: senderDisplayName,
+        }),
+        description:
+          forumSnippet ||
+          t(
+            'header.notifications.events.commentReplyFallbackDescription',
+            'See details in forum.',
+          ),
+        href: buildForumHref(target, forumInteractionType || 'forum-like'),
       };
 
     default:
