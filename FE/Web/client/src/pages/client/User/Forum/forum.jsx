@@ -1957,8 +1957,9 @@ function Forum() {
 														alt={thread.main.user.fullName}
 														className={styles.commentAvatar}
 													/>
-
+												<div className={styles.commentRow}>
 													<div className={styles.commentBubbleWrap}>
+														<div className={styles.commentBubbleRow}>
 														<div className={styles.commentBubble}>
 															<strong>{thread.main.user.fullName}</strong>
 															{thread.main.content ? <p>{thread.main.content}</p> : null}
@@ -1966,7 +1967,8 @@ function Forum() {
 																<img src={thread.main.image} alt="comment" className={styles.commentImage} />
 															) : null}
 														</div>
-
+															{renderCommentMenuButton(thread.main, post.id)}
+														</div>
 														<div className={styles.commentMeta}>
 															<span>{thread.main.time}</span>
 
@@ -1987,9 +1989,7 @@ function Forum() {
 															{t('pages.forum.actions.reply')}
 															</button>
 
-															{renderCommentMenuButton(thread.main, post.id)}
 														</div>
-
 														{replyingComment?.parentId === thread.main.id && (
 															<div className={styles.replyComposer}>
 															<p>{t('pages.forum.replyingTo', { user: thread.main.user.fullName })}</p>
@@ -2065,6 +2065,7 @@ function Forum() {
 															</div>
 														)}
 													</div>
+													</div>
 												</div>
 
 												{(thread.replies || []).map((reply) => (
@@ -2105,36 +2106,6 @@ function Forum() {
 						))}
 					</div>
 				</section>
-
-				<aside className={styles.rightColumn}>
-					<div className={styles.rightColumnSticky}>
-						<section className={styles.sideCard}>
-							<header className={styles.sideTitle}>
-								<h2 style={{fontSize: 16, fontWeight: 'bold'}}>{t('pages.forum.topContributors')}</h2>
-							</header>
-							<div className={styles.rankList}>
-								{topContributors.map((item) => (
-									<button
-										key={item.id}
-										className={styles.rankItem}
-									>
-										<img src={item.avatar} alt={item.name} />
-										<span>
-											<strong style={{fontSize: 15, fontWeight: 'bold'}}>{item.name}</strong>
-											<small>{item.score}</small>
-										</span>
-										<em>{item.rank}</em>
-									</button>
-								))}
-							</div>
-
-							<button type="button" className={styles.sideAction} onClick={() => navigate('/user/profile')}>
-								{t('pages.forum.viewAllRankings')}
-							</button>
-						</section>
-
-					</div>
-				</aside>
 			</main>
 
 			<div
