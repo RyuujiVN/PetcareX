@@ -54,7 +54,7 @@ export class AppointmentController {
   }
 
   @Get('')
-  @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Danh sách lịch hẹn của riêng phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })

@@ -90,6 +90,7 @@ export class AppointmentService {
 
         'owner.id',
         'owner.fullName',
+        'owner.email',
         'owner.phone',
 
         'veterinarian.specialty',
@@ -132,6 +133,8 @@ export class AppointmentService {
         'clinic.address',
 
         'owner.id',
+        'owner.email',
+        'owner.phone',
         'owner.fullName',
 
         'veterinarian.specialty',
@@ -187,6 +190,7 @@ export class AppointmentService {
 
         'owner.id',
         'owner.fullName',
+        'owner.email',
         'owner.phone',
 
         'veterinarian.specialty',

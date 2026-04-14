@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,6 +22,8 @@ import { NotificationGateway } from 'src/notification/notification.gateway';
 
 @Injectable()
 export class CommentService {
+  private readonly logger = new Logger(CommentService.name);
+
   constructor(
     @InjectRepository(ForumComment)
     private readonly commentRepository: Repository<ForumComment>,
@@ -70,9 +73,10 @@ export class CommentService {
   }
 
   async createComment(createDTO: CreateCommentDTO, user: User) {
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       // 1. Tạo mới bình luận
       const commentRepo = manager.getRepository(ForumComment);
+      const postRepo = manager.getRepository(ForumPost);
 
       const comment = commentRepo.create(createDTO);
       comment.userId = user.id;
@@ -90,9 +94,16 @@ export class CommentService {
         );
       }
 
-      // 3. Cập nhật số lượng comment của post
-      const postRepo = manager.getRepository(ForumPost);
-      await postRepo.increment({ id: savedComment.postId }, 'commentCount', 1);
+      // 3. Cập nhật số lượng comment của post và lấy id tác giả bài post
+      const [_, post] = await Promise.all([
+        postRepo.increment({ id: savedComment.postId }, 'commentCount', 1),
+        postRepo.findOne({
+          where: { id: savedComment.postId },
+          select: {
+            authorId: true,
+          },
+        }),
+      ]);
 
       return {
         ...savedComment,
@@ -102,8 +113,39 @@ export class CommentService {
           avatarUrl: user.avatarUrl,
           role: user.role,
         },
+        postAuthorId: post!.authorId,
       };
     });
+
+    if (user.id !== result.postAuthorId) {
+      try {
+        const notification = new Notification();
+        notification.recipientId = result.postAuthorId;
+        notification.target = {
+          postId: result.postId,
+          userName: result.user.fullName,
+          avatarUrl: result.user.avatarUrl,
+        };
+
+        if (createDTO.parentId) {
+          notification.type = NotificationEnum.COMMENT_REPLY;
+        } else {
+          notification.type = NotificationEnum.COMMENT;
+        }
+
+        const savedNotification =
+          await this.notificationRepository.save(notification);
+        this.notificationGateway.sendNotification(
+          savedNotification.recipientId,
+          savedNotification,
+        );
+      } catch (error) {
+        this.logger.error(error.message, error.stack);
+      }
+    }
+
+    const { postAuthorId, ...rest } = result;
+    return rest;
   }
 
   async updateComment(updateDTO: UpdateCommentDTO, id: string, user: User) {
