@@ -298,6 +298,7 @@ export class MedicalService {
         'medical_record.note',
         'medical_record.createdAt',
         'medical_record.followUpDate',
+        'medical_record.isReview',
 
         'clinic.id',
         'clinic.name',
@@ -340,7 +341,10 @@ export class MedicalService {
   }
 
   // Danh sách phiếu khám theo pet của phòng khám
-  async findAllPaginationByPetOfClinic(options: MedicalRecordPagination, clinicId: string) {
+  async findAllPaginationByPetOfClinic(
+    options: MedicalRecordPagination,
+    clinicId: string,
+  ) {
     const queryBuilder = this.medicalRecordRepository
       .createQueryBuilder('medical_record')
       .leftJoin('medical_record.pet', 'pet')

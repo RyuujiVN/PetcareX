@@ -65,6 +65,9 @@ export class MedicalRecord {
   @Column({ type: 'date', nullable: true, name: 'follow_up_date' })
   followUpDate?: Date;
 
+  @Column({ type: 'boolean', name: 'is_review', default: false })
+  isReview: boolean;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
