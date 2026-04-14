@@ -1,7 +1,6 @@
 import dayjs from 'dayjs'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getVeterinarySpecialtyLabel } from '../../../../utils/enumLabel'
 import {
     Area,
     AreaChart,
@@ -14,6 +13,8 @@ import {
     XAxis,
     YAxis,
 } from 'recharts'
+import { formatVND } from '../../../../utils/currencyFormat'
+import { getVeterinarySpecialtyLabel } from '../../../../utils/enumLabel'
 import styles from '../revenue.module.css'
 
 const PIE_COLORS = ['#4672b4', '#faad14', '#52c41a', '#8c8c8c']
@@ -49,14 +50,20 @@ const CustomTooltip = ({ active, payload, label }) => {
           key={i}
           style={{ margin: '4px 0 0', fontSize: 13, fontWeight: 600, color: entry.color }}
         >
-          {entry.name}: {Number(entry.value).toLocaleString('vi-VN')} đ
+          {entry.name}: {formatVND(entry.value)}
         </p>
       ))}
     </div>
   )
 }
 
-export default function RevenueChart({ dailyRevenue, enrichedRecords }) {
+export default function RevenueChart({
+  dailyRevenue,
+  enrichedRecords,
+  periodOptions,
+  period,
+  onPeriodChange,
+}) {
   const { t } = useTranslation('clinic')
 
   const serviceDistribution = useMemo(() => {
@@ -81,9 +88,26 @@ export default function RevenueChart({ dailyRevenue, enrichedRecords }) {
     <div className={styles.chartsRow}>
       {/* Line/Area Chart - Doanh thu theo ngày */}
       <div className={styles.chartCard}>
-        <h3 className={styles.chartCardTitle}>
-          {t('revenue.chart.dailyTitle')}
-        </h3>
+        <div className={styles.chartCardHeader}>
+          <h3 className={styles.chartCardTitle}>
+            {t('revenue.chart.dailyTitle')}
+          </h3>
+          {periodOptions && (
+            <div className={styles.periodTabs}>
+              {periodOptions.map((opt) => (
+                <button
+                  key={opt.key}
+                  className={`${styles.periodTab} ${
+                    period === opt.key ? styles.periodTabActive : ''
+                  }`}
+                  onClick={() => onPeriodChange(opt.key)}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <div className={styles.chartLegend}>
           <span>
             <span
@@ -167,9 +191,7 @@ export default function RevenueChart({ dailyRevenue, enrichedRecords }) {
                     />
                   ))}
                 </Pie>
-                <Tooltip
-                  formatter={(v) => `${Number(v).toLocaleString('vi-VN')} đ`}
-                />
+                <Tooltip formatter={(v) => formatVND(v)} />
               </PieChart>
             </ResponsiveContainer>
             <div className={styles.pieLegend}>

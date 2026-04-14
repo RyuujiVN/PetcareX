@@ -1,11 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { INVOICE_STATUS } from '../../../../services/invoiceService'
+import { formatVND } from '../../../../utils/currencyFormat'
 import { formatDateDDMMYYYY } from '../../../../utils/dateTimeFormat'
 import styles from '../revenue.module.css'
-
-const formatCurrency = (value) => {
-  return `${Number(value || 0).toLocaleString('vi-VN')} đ`
-}
 
 export default function RecentInvoicesTable({
   invoices,
@@ -48,7 +45,6 @@ export default function RecentInvoicesTable({
               <tr>
                 <th>{t('revenue.invoices.colRecord')}</th>
                 <th>{t('revenue.invoices.colPet')}</th>
-                <th>{t('revenue.invoices.colVet')}</th>
                 <th>{t('revenue.invoices.colDate')}</th>
                 <th>{t('revenue.invoices.colAmount')}</th>
                 <th>{t('revenue.invoices.colStatus')}</th>
@@ -60,15 +56,12 @@ export default function RecentInvoicesTable({
                   <td>{record.name || record.id?.slice(0, 8)}</td>
                   <td>{record.pet?.name || '—'}</td>
                   <td>
-                    {record.veterinarian?.fullName || '—'}
-                  </td>
-                  <td>
                     {formatDateDDMMYYYY(
                       record.invoice?.createdAt || record.createdAt,
                     )}
                   </td>
                   <td style={{ fontWeight: 600 }}>
-                    {formatCurrency(record.invoice?.totalAmount)}
+                    {formatVND(record.invoice?.totalAmount)}
                   </td>
                   <td>
                     <span

@@ -714,8 +714,7 @@
 		"cards": {
 			"totalRevenue": "Total Revenue",
 			"paidInvoices": "Paid",
-			"unpaidInvoices": "Unpaid",
-			"averagePerRecord": "Avg per Visit"
+			"unpaidInvoices": "Unpaid"
 		},
 		"chart": {
 			"dailyTitle": "Daily Revenue",
@@ -731,10 +730,9 @@
 			"other": "Other"
 		},
 		"topVets": {
-			"title": "Top Veterinarians by Revenue",
+			"titleMonthly": "Top 5 Most Active Veterinarians — {{month}}",
 			"doctor": "Veterinarian",
-			"records": "Visits",
-			"revenue": "Revenue"
+			"records": "Visits"
 		},
 		"invoices": {
 			"title": "Recent Invoices",
@@ -743,7 +741,6 @@
 			"filterUnpaid": "Unpaid",
 			"colRecord": "Record",
 			"colPet": "Pet",
-			"colVet": "Veterinarian",
 			"colDate": "Date",
 			"colAmount": "Amount",
 			"colStatus": "Status",

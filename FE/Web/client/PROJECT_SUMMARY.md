@@ -55,6 +55,114 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
   - Ưu tiên lấy sender từ nhiều biến thể payload (`senderName/commenterName/userName`, `senderAvatar/commenterAvatar/avatarUrl`).
 - Forum like button UX:
   - Khi đã like, icon đổi sang dạng filled (`FaThumbsUp`) và style nổi bật hơn (bold + nền nhấn nhẹ).
+### Cập nhật bổ sung (2026-04-14) — List pages (Phiếu khám & Hồ sơ bệnh án) chuyển sang `/appointment/my` (vet-scoped)
+
+**Phát hiện:** Hai trang list của portal Vererianrian đang gọi endpoint `/appointment` (`getAppointmentsApi`) — endpoint này `@RequiredRole(ADMIN_CLINIC)`, vet gọi sẽ bị chặn (401/403) hoặc rơi vào filter không đúng scope. Đồng thời file `ViewPetMedicalRecords` import dead `getMedicalByPetIdApi` (CUSTOMER-only).
+
+**Files đã sửa:**
+
+1. [listExaminationForm.jsx](src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx)
+   - `getAppointmentsApi` → `getMyAppointmentsApi(instance, 1, 500)`.
+   - Bỏ helper `getCurrentVeterinarianUserId` + filter client-side theo vet user id (BE đã tự filter theo `veterinarian.userId = req.user.id` trong `findAllMyAppointments`).
+   - Giữ lại filter `CANCELLED` và thêm filter `appointmentDate` client-side bằng `dayjs(...).format('YYYY-MM-DD') === targetDate` (vì `/appointment/my` không nhận param `date`).
+   - Bỏ import `ADMIN_AUTH_STORAGE/getAdminAuthItem` không còn dùng.
+
+2. [listMedicalRecords.jsx](src/pages/Vererianrian/ListMedicalRecords/listMedicalRecords.jsx)
+   - Áp dụng cùng thay đổi như (1): switch API, bỏ client-side vet-id filter, thêm date filter client-side.
+
+3. [viewPetMedicalRecords.jsx](src/pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords.jsx)
+   - Xóa import `getMedicalByPetIdApi` (dead import — đang dùng `getMedicalByPetIClinicdApi` đúng scope vet/clinic).
+
+**Nguyên tắc chốt cho portal Vererianrian (áp dụng lại sau này):**
+
+| Màn | Endpoint đúng (role VETERINARIAN) | Endpoint KHÔNG dùng |
+|-----|-----------------------------------|---------------------|
+| Danh sách phiếu khám (hôm nay) | `GET /appointment/my` | `GET /appointment` (ADMIN_CLINIC) |
+| Danh sách hồ sơ bệnh án (hôm nay) | `GET /appointment/my` | `GET /appointment` (ADMIN_CLINIC) |
+| Lịch sử phiếu khám theo pet | `GET /medical/clinic/pet/:petId` | `GET /medical/pet/:petId` (CUSTOMER), `GET /user/:id` (ADMIN) |
+| Chi tiết pet | `GET /pet/:id` ✓ | — |
+| Chi tiết user/owner | *(không có endpoint riêng cho vet)* — dùng `appointment.pet.owner` từ `/appointment/my` | `GET /user/:id` (ADMIN) |
+| Phiếu khám theo medical id | `GET /medical/:id` ✓ | — |
+
+**Lưu ý BE contract của `/appointment/my` (role VET):**
+- Select không có `medical` relation → FE không thể biết chắc pet đã có medical record nào chưa từ appointment. Hiện `ListExaminationForm` fallback sang `status === COMPLETED` để quyết định nút "Mở" vs "Tạo". Chấp nhận được cho MVP; nếu muốn chính xác tuyệt đối cần BE bổ sung field `medical.id` vào select.
+- Select không có `pet.gender`, `pet.dateOfBirth` → nếu list cần hiển thị cần gọi thêm `/pet/:id` hoặc yêu cầu BE bổ sung.
+
+**Kiểm tra build:** `npx vite build` → ✓ built in ~14s, 0 error.
+
+
+### Cập nhật bổ sung (2026-04-14) — RecordExaminationForm: bỏ lock 15 phút + bỏ call /user/:id (vet bị 403)
+
+**Bối cảnh & quyết định:**
+- Logic cũ: sau khi tạo phiếu khám, vet chỉ có **15 phút** để chỉnh sửa (lock-by-time dựa trên `createdAt` đồng bộ `serverTimeOffsetMs`). Gây UX kém khi vet cần sửa muộn, phụ thuộc server time sync, có rất nhiều branch alert phức tạp.
+- Logic mới (đồng thuận với yêu cầu nghiệp vụ): **vet sửa thoải mái cho tới khi hóa đơn `PAID` → khóa vĩnh viễn**. Không còn time-based lock.
+- Tab **Hồ sơ y tế** trước đây gọi `getUserByIdApi` (`/user/:id`) để enrich email/phone của owner → endpoint này chỉ cho `ADMIN` + `ADMIN_CLINIC`, vet gọi sẽ 403. Sau khi BE appointment đã trả `owner.email` + `owner.phone` trực tiếp (xem section ngay dưới), call này **dư thừa và bị chặn** → xóa hẳn.
+
+**Thay đổi trong `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:**
+- Xóa hằng số `EDITABLE_DURATION_SECONDS`, helpers `parseDateToMs()`, `formatRemainingTime()`.
+- Xóa state/effect liên quan time-sync: `serverTimeOffsetMs`, `serverTimeSynced`, `remainingEditableSeconds`, interval 1s cập nhật countdown, effect fetch server time header.
+- Xóa state `ownerDetail`, `ownerLoading` và useEffect gọi `getUserByIdApi` — chỉ dùng `appointment.pet.owner` (đã có email/phone từ BE).
+- Xóa import `getUserByIdApi` trong `services/userService.js`.
+- Hợp nhất lock thành `const isReadOnlyForm = isLockedByPayment;` — mọi `disabled` prop của field trong form đều tham chiếu biến này.
+- Rút gọn khối `<Alert>` từ 6 nhánh xuống còn 3 nhánh:
+  1. `notCreated` — khi chưa có medical, hướng dẫn vet tạo phiếu.
+  2. `editable` — khi đã có medical nhưng hóa đơn chưa `PAID`, nhắc vet còn được sửa đến khi thanh toán.
+  3. `paymentLocked` — khi hóa đơn đã `PAID`, form read-only.
+- Bỏ nhánh spinner `ownerLoading` trong `PatientInfoPanel` (không còn fetch riêng nên không cần loading state).
+
+**i18n cleanup (`src/locales/vererianrian/{vi,en}.json` — block `examForm.record.alerts`):**
+- Xóa các key cũ: `editingWindowTitle`, `editingWindowDesc`, `expiredTitle`, `expiredDesc`, `serverSyncFailTitle`, `serverSyncFailDesc`, `missingCreatedAtTitle`, `missingCreatedAtDesc`.
+- Giữ + rewrite: `notCreatedTitle`, `notCreatedDesc` (đổi nội dung — không còn nhắc 15 phút), `paymentLockedTitle`, `paymentLockedDesc`.
+- Thêm mới: `editableTitle`, `editableDesc` — cho trạng thái "đã tạo nhưng chưa thanh toán".
+
+**Nguồn dữ liệu owner cho vet (sau refactor):**
+- `/appointment/my` (GET, VETERINARIAN) → response đã embed `pet.owner.{email,phone,fullName,...}`.
+- FE chỉ cần `toAppointmentViewModel()` map sang camelCase → không còn API call phụ cho owner.
+- Nếu sau này cần thêm field từ bảng `user` mà appointment không trả, BE phải mở endpoint mới phù hợp role vet (KHÔNG dùng lại `/user/:id`).
+
+**Tab "Hồ sơ y tế" (medical history):**
+- Dùng `getMedicalByPetIClinicdApi` → `/medical/clinic/pet/:petId` (role: `VETERINARIAN` + `ADMIN_CLINIC`). Đúng scope.
+- **KHÔNG** dùng `/medical/pet/:petId` (role `CUSTOMER` only) hay `/user/:id` (role admin only).
+
+**Kiểm tra build:** `npx vite build` → ✓ built in ~16s, 0 error, bundle chưa thay đổi đáng kể.
+
+**Bài học áp dụng cho sau này:**
+- Với bất kỳ API call nào trong màn vet, verify role guard ở BE controller trước khi wire FE — dùng đúng endpoint scoped `/my` hoặc `/clinic/...` thay vì endpoint admin-only.
+- Khi có time-based business rule (như 15 phút), cân nhắc trade-off UX vs. strictness; nếu không có yêu cầu audit/compliance rõ, thường payment-state là lock boundary tự nhiên hơn.
+
+
+### Cập nhật bổ sung (2026-04-14) — PatientInfoPanel: phone editable khi thiếu + BE appointment đã trả email/phone
+
+**Bối cảnh:** BE API `/appointment/my` và `/appointment` đã cập nhật response — giờ trả thêm `owner.email` và `owner.phone` trực tiếp, không cần FE gọi thêm `getUserByIdApi` chỉ để lấy 2 field này (call vẫn còn như fallback).
+
+**Thay đổi trong `RecordExaminationForm`:**
+- **Sử dụng API lịch hẹn của bác sĩ đúng role**: `hydrateByAppointmentId()` đổi từ `getAppointmentsApi` (chỉ ADMIN_CLINIC, vet sẽ bị 403) sang `getMyAppointmentsApi` (dùng `/appointment/my`, cho VETERINARIAN).
+- **`toAppointmentViewModel`**: map thêm `ownerPhone` từ `pet.owner.phone` (normalize về digits).
+- **`buildInitialValues`**: khi khởi tạo form value `phone`, fallback chain: `owner?.phone` → `appointment?.ownerPhone` → `''`.
+- **`patientInfo` memo**: bổ sung cờ `hasPhone: Boolean(resolvedPhone)`, dùng để render điều kiện trong UI.
+- **UI field `Số điện thoại`** trong `PatientInfoPanel`:
+  - Khi `hasPhone = true`: hiển thị text read-only (giữ nguyên như trước).
+  - Khi `hasPhone = false`: hiển thị prompt đỏ `<WarningOutlined/> Chưa có số điện thoại — vui lòng nhập` + `<Form.Item name="phone">` với `<Input maxLength=10 />` kèm rules `required` + `pattern /^\d{10}$/`, `validateTrigger: ['onBlur', 'onSubmit']`. Input tự strip ký tự không phải số qua `onChange`.
+- **Hidden `<Form.Item name="phone">`** phía dưới chỉ render khi `patientInfo?.hasPhone` để tránh duplicate cùng tên field với Form.Item visible.
+- **Form-level block submit**: thêm prop `scrollToFirstError={{ behavior: 'smooth', block: 'center' }}` để AntD tự scroll tới field lỗi khi submit fail.
+- **Double-guard trong `onFinish`**: nếu `resolvedPhone` không match regex → `form.setFields([{name:'phone', errors:[...]}])` + `form.scrollToField('phone')` rồi throw, đảm bảo block submit cả khi value đến từ fallback chain (ownerDetail/petRaw).
+
+**Phone validation rule (chuẩn từ BE):** `/^\d{10}$/` — đúng 10 chữ số (không ràng buộc prefix 0). Source: `src/common/constants/rexgex.constant.ts` của BE; áp dụng trong `CreateMedicalRecordDTO.phone` và `UpdateUserDTO.phone`.
+
+**i18n keys mới** (`src/locales/vererianrian/{vi,en}.json`):
+- `examForm.record.patientInfo.phoneMissingPrompt` — prompt khi thiếu SĐT.
+- `examForm.record.patientInfo.phonePlaceholder` — placeholder input.
+
+**CSS mới** (`recordExaminationForm.module.css`):
+- `.patientInfoPhoneInputWrap`, `.patientInfoPhonePrompt`, `.patientInfoPhoneFormItem` — layout + prompt warning màu đỏ.
+
+**Luồng tự động lấy email/phone từ API appointment mới:**
+1. Vet navigate sang form → `location.state.appointment` chứa viewModel đã có `ownerEmail`, `ownerPhone`.
+2. Nếu vào bằng URL (refresh): `hydrateByAppointmentId()` gọi `/appointment/my`, parse response qua `toAppointmentViewModel`.
+3. `buildInitialValues` pre-fill `phone` field từ appointment data.
+4. Nếu phone đã có → hiển thị text + hidden form field giữ value; nếu chưa có → visible input với validation.
+5. Submit: AntD auto-validate → nếu fail, scroll + focus vào phone; nếu pass, `onFinish` gửi payload `POST /api/medical` với đầy đủ `email` + `phone`.
+
 
 ### Cập nhật bổ sung (2026-04-14) — tinh chỉnh Icon & điều hướng Notification
 - Client Header dùng helper icon thống nhất cho cả popup và toast realtime:
@@ -89,6 +197,23 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
   - effect phụ thuộc dữ liệu liên quan (`openDiagnosisId`, `appointments/mappedAppointments`, `loading`).
   - dùng `diagnosisOpenedRef` để chặn double-trigger.
   - nếu tìm thấy appointment thì tự mở popup `PetDiagnosisContent`, sau đó clear query bằng replace.
+
+### Cập nhật bổ sung (2026-04-14) — Tinh chỉnh UI Revenue Dashboard
+
+**6 thay đổi UI cho trang `/clinic/revenue`:**
+1. Bỏ card "Giá trị TB / lượt" → `summaryGrid` chuyển từ 4 cột sang 3 cột.
+2. Format tiền đồng nhất dùng utility `formatVND(amount)` tại `src/utils/currencyFormat.js` — hiển thị đầy đủ kiểu `1,600,000 đ` (locale `vi-VN`), thay cho các hàm `formatCurrency` cũ viết rải rác (đã gỡ).
+3. Period filter (Hôm nay / 7 ngày / Tháng này / Năm nay) chuyển từ header trang vào header của card "Doanh thu theo ngày" (prop `periodOptions` + `period` + `onPeriodChange` của `RevenueChart`).
+4. Header "BÁO CÁO DOANH THU" kéo lên cao (padding-top giảm từ 40px → 8px, thêm `padding-right: 120px` để không đè lên `mainActionBar`).
+5. "Top bác sĩ theo doanh thu" → `Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}` (key i18n mới: `revenue.topVets.titleMonthly`). Tháng lấy dynamic từ `new Date()`. Xếp hạng theo số **lượt khám** (count medical records có veterinarian) trong tháng hiện tại, bỏ ngưỡng `invoice.status=PAID` — tính từ `allRecords` (không phụ thuộc period filter của chart). Ẩn bác sĩ có 0 lượt, tối đa 5 người. Bỏ cột "Doanh thu" khỏi bảng.
+6. Layout hàng cuối → grid 2 cột `minmax(260px, 25%) 1fr` (class `.bottomRow`): Top bác sĩ trái 25% + Hoá đơn gần đây phải 75%. Bỏ cột "Bác sĩ" khỏi bảng Hoá đơn gần đây (5 cột còn lại: Phiếu khám / Thú cưng / Ngày / Tổng tiền / Trạng thái).
+
+**Service:**
+- `src/services/revenueService.js`: gỡ `calculateTopVeterinarians` (cũ, sort theo doanh thu); thêm `calculateTopVeterinariansByVisits(records, limit=5)` — filter theo tháng hiện tại, count theo veterinarian, sort giảm dần theo `recordCount`.
+- `src/hooks/Clinic/useRevenue.js`: expose `topVeterinariansMonthly` (từ `allRecords`, không filter period).
+
+**Responsive:** `.bottomRow` collapse xuống 1 cột khi `max-width: 1200px`. `.chartCardHeader` đổi layout dọc khi `max-width: 768px`.
+
 ### Cập nhật bổ sung (2026-04-14) — Revenue Dashboard (Báo cáo Doanh thu Phòng khám)
 
 **Tính năng mới:** Trang báo cáo doanh thu cho Clinic Portal tại route `/clinic/revenue`.
@@ -102,7 +227,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - `src/pages/Clinic/Revenue/revenue.module.css` — Stylesheet, toàn bộ màu dùng CSS token.
 
 **Service & Hook:**
-- `src/services/revenueService.js` — Fetch và aggregate dữ liệu doanh thu: `aggregateRevenueData`, `calculateSummary`, `calculateDailyRevenue`, `calculateTopVeterinarians`, `getRecentInvoices`.
+- `src/services/revenueService.js` — Fetch và aggregate dữ liệu doanh thu: `aggregateRevenueData`, `calculateSummary`, `calculateDailyRevenue`, `calculateTopVeterinariansByVisits`, `getRecentInvoices`.
 - `src/hooks/Clinic/useRevenue.js` — Quản lý state doanh thu, filter theo kỳ (Hôm nay / 7 ngày / Tháng / Năm), filter invoice status.
 
 **Cách tính doanh thu:** FE tự tính — không có API aggregate ở BE.

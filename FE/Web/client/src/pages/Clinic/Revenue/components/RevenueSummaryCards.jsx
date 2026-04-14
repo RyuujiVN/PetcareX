@@ -1,17 +1,11 @@
 import {
-    BarChartOutlined,
     CheckCircleOutlined,
     ClockCircleOutlined,
     DollarOutlined,
 } from '@ant-design/icons'
 import { useTranslation } from 'react-i18next'
+import { formatVND } from '../../../../utils/currencyFormat'
 import styles from '../revenue.module.css'
-
-const formatCurrency = (value) => {
-  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M đ`
-  if (value >= 1_000) return `${(value / 1_000).toFixed(0)}K đ`
-  return `${value.toLocaleString('vi-VN')} đ`
-}
 
 export default function RevenueSummaryCards({ summary }) {
   const { t } = useTranslation('clinic')
@@ -20,7 +14,7 @@ export default function RevenueSummaryCards({ summary }) {
     {
       key: 'totalRevenue',
       label: t('revenue.cards.totalRevenue'),
-      value: formatCurrency(summary.totalRevenue),
+      value: formatVND(summary.totalRevenue),
       icon: <DollarOutlined />,
       iconClass: styles.iconRevenue,
     },
@@ -37,13 +31,6 @@ export default function RevenueSummaryCards({ summary }) {
       value: summary.totalUnpaidInvoices,
       icon: <ClockCircleOutlined />,
       iconClass: styles.iconUnpaid,
-    },
-    {
-      key: 'averagePerRecord',
-      label: t('revenue.cards.averagePerRecord'),
-      value: formatCurrency(summary.averagePerRecord),
-      icon: <BarChartOutlined />,
-      iconClass: styles.iconAvg,
     },
   ]
 
