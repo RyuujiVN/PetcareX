@@ -27,6 +27,7 @@ import { BullModule } from '@nestjs/bullmq';
 import { ClinicHomepageSettingModule } from './clinic-homepage-setting/clinic-homepage-setting.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
+import { ClinicReviewModule } from './clinic-review/clinic-review.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { TaskModule } from './task/task.module';
     NotificationModule,
     ClinicHomepageSettingModule,
     TaskModule,
+    ClinicReviewModule,
   ],
   controllers: [AppController],
   providers: [

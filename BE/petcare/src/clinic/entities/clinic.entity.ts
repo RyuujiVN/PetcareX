@@ -1,4 +1,5 @@
 import { Appointment } from 'src/appointment/entities/appointment.entity';
+import { ClinicReview } from 'src/clinic-review/entities/clinic-review.entity';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { Veterinarian } from 'src/veterinarian/entities/veterinarian.entity';
 import {
@@ -35,6 +36,12 @@ export class Clinic {
   @Column({ type: 'boolean', default: false })
   deleted: boolean;
 
+  @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
+  avgRating: number;
+
+  @Column({ type: 'int', default: 0 })
+  totalReviews: number;
+
   @CreateDateColumn()
   createdAt: Date;
 
@@ -46,4 +53,7 @@ export class Clinic {
 
   @OneToMany(() => MedicalRecord, (medicalRecord) => medicalRecord.clinic)
   medicalRecords: MedicalRecord[];
+
+  @OneToMany(() => ClinicReview, (review) => review.clinic)
+  reviews: ClinicReview[];
 }

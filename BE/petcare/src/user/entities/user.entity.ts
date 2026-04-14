@@ -18,6 +18,7 @@ import { Like } from 'src/forum/entities/like.entity';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { ChatbotRoom } from 'src/chatbot/entities/chatbot-room.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
+import { ClinicReview } from 'src/clinic-review/entities/clinic-review.entity';
 
 @Entity('user')
 export class User {
@@ -84,4 +85,7 @@ export class User {
 
   @OneToMany(() => Notification, (notification) => notification.user)
   notifications: Notification[];
+
+  @OneToMany(() => ClinicReview, (review) => review.user)
+  reviews: ClinicReview[];
 }
