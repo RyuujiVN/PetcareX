@@ -102,6 +102,8 @@
 }
 
 .reloadButton {
+  color: var(--vet-color-brand-primary);
+  border: 1px solid var(--vet-color-brand-primary-hover);
   border-radius: 999px;
   margin-right: 6px;
 }

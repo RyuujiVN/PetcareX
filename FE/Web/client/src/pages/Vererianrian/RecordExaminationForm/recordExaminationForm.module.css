@@ -232,7 +232,7 @@
 .sectionCard :global(.ant-card-head-title) {
 	font-size: 18px;
 	font-weight: 800;
-	color: var(--vet-color-text-primary);
+	color: var(--vet-color-brand-primary);
 }
 
 .sectionCard :global(.ant-card-head-title span) {
@@ -244,7 +244,7 @@
 .sectionCard :global(.ant-form-item-label > label) {
 	font-size: 12px;
 	font-weight: 700;
-	color: var(--vet-color-text-muted);
+	color: var(--vet-pet-name-color);
 }
 
 .fullWidth {
@@ -357,7 +357,7 @@
 .dynamicHeadMedicine,
 .dynamicRowMedicine {
 	display: grid;
-	grid-template-columns: 13fr 100fr 100fr 100fr 80px;
+	grid-template-columns: 10fr 100fr 100fr 100fr 80px;
 	gap: 8px;
 	align-items: center;
 	padding: 10px 12px;
