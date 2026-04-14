@@ -28,6 +28,7 @@ import { ClinicHomepageSettingModule } from './clinic-homepage-setting/clinic-ho
 import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
 import { ClinicReviewModule } from './clinic-review/clinic-review.module';
+import { RevenueModule } from './revenue/revenue.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { ClinicReviewModule } from './clinic-review/clinic-review.module';
     ClinicHomepageSettingModule,
     TaskModule,
     ClinicReviewModule,
+    RevenueModule,
   ],
   controllers: [AppController],
   providers: [
