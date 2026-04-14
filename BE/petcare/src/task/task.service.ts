@@ -7,7 +7,8 @@ import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
-import { Repository } from 'typeorm';
+import { Otp } from 'src/otp/entities/otp.entity';
+import { LessThan, Repository } from 'typeorm';
 
 @Injectable()
 export class TaskService {
@@ -18,6 +19,8 @@ export class TaskService {
     private readonly medicalRecordRepo: Repository<MedicalRecord>,
     @InjectRepository(Appointment)
     private readonly appointmentRepo: Repository<Appointment>,
+    @InjectRepository(Otp)
+    private readonly otpRepo: Repository<Otp>,
     @InjectQueue(QueueNameEnum.APPOINTMENT)
     private readonly appointmentQueue: Queue,
   ) {}
@@ -133,5 +136,14 @@ export class TaskService {
     }));
 
     await this.appointmentQueue.addBulk(jobs);
+  }
+
+  // Chạy mỗi tiếng để dọn otp
+  @Cron('0 0 * * * *')
+  async handleDeleteOtp() {
+    console.log('Hi');
+    await this.otpRepo.delete({
+      expiredAt: LessThan(new Date()),
+    });
   }
 }
