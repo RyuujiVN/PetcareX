@@ -22,6 +22,79 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-14) — RecordExaminationForm: bỏ lock 15 phút + bỏ call /user/:id (vet bị 403)
+
+**Bối cảnh & quyết định:**
+- Logic cũ: sau khi tạo phiếu khám, vet chỉ có **15 phút** để chỉnh sửa (lock-by-time dựa trên `createdAt` đồng bộ `serverTimeOffsetMs`). Gây UX kém khi vet cần sửa muộn, phụ thuộc server time sync, có rất nhiều branch alert phức tạp.
+- Logic mới (đồng thuận với yêu cầu nghiệp vụ): **vet sửa thoải mái cho tới khi hóa đơn `PAID` → khóa vĩnh viễn**. Không còn time-based lock.
+- Tab **Hồ sơ y tế** trước đây gọi `getUserByIdApi` (`/user/:id`) để enrich email/phone của owner → endpoint này chỉ cho `ADMIN` + `ADMIN_CLINIC`, vet gọi sẽ 403. Sau khi BE appointment đã trả `owner.email` + `owner.phone` trực tiếp (xem section ngay dưới), call này **dư thừa và bị chặn** → xóa hẳn.
+
+**Thay đổi trong `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:**
+- Xóa hằng số `EDITABLE_DURATION_SECONDS`, helpers `parseDateToMs()`, `formatRemainingTime()`.
+- Xóa state/effect liên quan time-sync: `serverTimeOffsetMs`, `serverTimeSynced`, `remainingEditableSeconds`, interval 1s cập nhật countdown, effect fetch server time header.
+- Xóa state `ownerDetail`, `ownerLoading` và useEffect gọi `getUserByIdApi` — chỉ dùng `appointment.pet.owner` (đã có email/phone từ BE).
+- Xóa import `getUserByIdApi` trong `services/userService.js`.
+- Hợp nhất lock thành `const isReadOnlyForm = isLockedByPayment;` — mọi `disabled` prop của field trong form đều tham chiếu biến này.
+- Rút gọn khối `<Alert>` từ 6 nhánh xuống còn 3 nhánh:
+  1. `notCreated` — khi chưa có medical, hướng dẫn vet tạo phiếu.
+  2. `editable` — khi đã có medical nhưng hóa đơn chưa `PAID`, nhắc vet còn được sửa đến khi thanh toán.
+  3. `paymentLocked` — khi hóa đơn đã `PAID`, form read-only.
+- Bỏ nhánh spinner `ownerLoading` trong `PatientInfoPanel` (không còn fetch riêng nên không cần loading state).
+
+**i18n cleanup (`src/locales/vererianrian/{vi,en}.json` — block `examForm.record.alerts`):**
+- Xóa các key cũ: `editingWindowTitle`, `editingWindowDesc`, `expiredTitle`, `expiredDesc`, `serverSyncFailTitle`, `serverSyncFailDesc`, `missingCreatedAtTitle`, `missingCreatedAtDesc`.
+- Giữ + rewrite: `notCreatedTitle`, `notCreatedDesc` (đổi nội dung — không còn nhắc 15 phút), `paymentLockedTitle`, `paymentLockedDesc`.
+- Thêm mới: `editableTitle`, `editableDesc` — cho trạng thái "đã tạo nhưng chưa thanh toán".
+
+**Nguồn dữ liệu owner cho vet (sau refactor):**
+- `/appointment/my` (GET, VETERINARIAN) → response đã embed `pet.owner.{email,phone,fullName,...}`.
+- FE chỉ cần `toAppointmentViewModel()` map sang camelCase → không còn API call phụ cho owner.
+- Nếu sau này cần thêm field từ bảng `user` mà appointment không trả, BE phải mở endpoint mới phù hợp role vet (KHÔNG dùng lại `/user/:id`).
+
+**Tab "Hồ sơ y tế" (medical history):**
+- Dùng `getMedicalByPetIClinicdApi` → `/medical/clinic/pet/:petId` (role: `VETERINARIAN` + `ADMIN_CLINIC`). Đúng scope.
+- **KHÔNG** dùng `/medical/pet/:petId` (role `CUSTOMER` only) hay `/user/:id` (role admin only).
+
+**Kiểm tra build:** `npx vite build` → ✓ built in ~16s, 0 error, bundle chưa thay đổi đáng kể.
+
+**Bài học áp dụng cho sau này:**
+- Với bất kỳ API call nào trong màn vet, verify role guard ở BE controller trước khi wire FE — dùng đúng endpoint scoped `/my` hoặc `/clinic/...` thay vì endpoint admin-only.
+- Khi có time-based business rule (như 15 phút), cân nhắc trade-off UX vs. strictness; nếu không có yêu cầu audit/compliance rõ, thường payment-state là lock boundary tự nhiên hơn.
+
+
+### Cập nhật bổ sung (2026-04-14) — PatientInfoPanel: phone editable khi thiếu + BE appointment đã trả email/phone
+
+**Bối cảnh:** BE API `/appointment/my` và `/appointment` đã cập nhật response — giờ trả thêm `owner.email` và `owner.phone` trực tiếp, không cần FE gọi thêm `getUserByIdApi` chỉ để lấy 2 field này (call vẫn còn như fallback).
+
+**Thay đổi trong `RecordExaminationForm`:**
+- **Sử dụng API lịch hẹn của bác sĩ đúng role**: `hydrateByAppointmentId()` đổi từ `getAppointmentsApi` (chỉ ADMIN_CLINIC, vet sẽ bị 403) sang `getMyAppointmentsApi` (dùng `/appointment/my`, cho VETERINARIAN).
+- **`toAppointmentViewModel`**: map thêm `ownerPhone` từ `pet.owner.phone` (normalize về digits).
+- **`buildInitialValues`**: khi khởi tạo form value `phone`, fallback chain: `owner?.phone` → `appointment?.ownerPhone` → `''`.
+- **`patientInfo` memo**: bổ sung cờ `hasPhone: Boolean(resolvedPhone)`, dùng để render điều kiện trong UI.
+- **UI field `Số điện thoại`** trong `PatientInfoPanel`:
+  - Khi `hasPhone = true`: hiển thị text read-only (giữ nguyên như trước).
+  - Khi `hasPhone = false`: hiển thị prompt đỏ `<WarningOutlined/> Chưa có số điện thoại — vui lòng nhập` + `<Form.Item name="phone">` với `<Input maxLength=10 />` kèm rules `required` + `pattern /^\d{10}$/`, `validateTrigger: ['onBlur', 'onSubmit']`. Input tự strip ký tự không phải số qua `onChange`.
+- **Hidden `<Form.Item name="phone">`** phía dưới chỉ render khi `patientInfo?.hasPhone` để tránh duplicate cùng tên field với Form.Item visible.
+- **Form-level block submit**: thêm prop `scrollToFirstError={{ behavior: 'smooth', block: 'center' }}` để AntD tự scroll tới field lỗi khi submit fail.
+- **Double-guard trong `onFinish`**: nếu `resolvedPhone` không match regex → `form.setFields([{name:'phone', errors:[...]}])` + `form.scrollToField('phone')` rồi throw, đảm bảo block submit cả khi value đến từ fallback chain (ownerDetail/petRaw).
+
+**Phone validation rule (chuẩn từ BE):** `/^\d{10}$/` — đúng 10 chữ số (không ràng buộc prefix 0). Source: `src/common/constants/rexgex.constant.ts` của BE; áp dụng trong `CreateMedicalRecordDTO.phone` và `UpdateUserDTO.phone`.
+
+**i18n keys mới** (`src/locales/vererianrian/{vi,en}.json`):
+- `examForm.record.patientInfo.phoneMissingPrompt` — prompt khi thiếu SĐT.
+- `examForm.record.patientInfo.phonePlaceholder` — placeholder input.
+
+**CSS mới** (`recordExaminationForm.module.css`):
+- `.patientInfoPhoneInputWrap`, `.patientInfoPhonePrompt`, `.patientInfoPhoneFormItem` — layout + prompt warning màu đỏ.
+
+**Luồng tự động lấy email/phone từ API appointment mới:**
+1. Vet navigate sang form → `location.state.appointment` chứa viewModel đã có `ownerEmail`, `ownerPhone`.
+2. Nếu vào bằng URL (refresh): `hydrateByAppointmentId()` gọi `/appointment/my`, parse response qua `toAppointmentViewModel`.
+3. `buildInitialValues` pre-fill `phone` field từ appointment data.
+4. Nếu phone đã có → hiển thị text + hidden form field giữ value; nếu chưa có → visible input với validation.
+5. Submit: AntD auto-validate → nếu fail, scroll + focus vào phone; nếu pass, `onFinish` gửi payload `POST /api/medical` với đầy đủ `email` + `phone`.
+
+
 ### Cập nhật bổ sung (2026-04-14) — tinh chỉnh Icon & điều hướng Notification
 - Client Header dùng helper icon thống nhất cho cả popup và toast realtime:
   - `AI_DIAGNOSIS` -> `BsRobot` (tone AI tím/xanh).
