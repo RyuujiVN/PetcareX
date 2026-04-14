@@ -2396,10 +2396,11 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(reportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportModalTitle', { defaultValue: 'Tố cáo bình luận' })}
+					style={{textAlign: 'center'}}
 					centered
 				>
 					<div className={styles.reportModalBody}>
+						<h3>{t('pages.forum.reportModalTitle', { defaultValue: 'TỐ CÁO BÌNH LUẬN' })}</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportCommentBy', {
 								defaultValue: 'Bạn đang tố cáo bình luận của {{name}}',

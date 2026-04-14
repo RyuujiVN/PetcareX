@@ -1040,7 +1040,7 @@
       "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
       "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
       "reportPostFailed": "Không thể gửi báo cáo bài viết. Vui lòng thử lại.",
-      "reportModalTitle": "Tố cáo bình luận",
+      "reportModalTitle": "TỐ CÁO BÌNH LUẬN",
       "reportCommentBy": "Bạn đang tố cáo bình luận của {{name}}",
       "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.",
       "likeSuccess": "Đã thích bài viết của {{author}}",

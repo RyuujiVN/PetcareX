@@ -596,7 +596,7 @@
 
 .commentBubble strong,
 .replyBubble strong {
-	font-size: 13px;
+	font-size: 15px;
 	font-weight: 800;
 	color: #2f4057;
 }
@@ -708,9 +708,11 @@
 }
 
 .reportModalBody {
+	font-size: 18px;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
+	color: #4672b4;
 }
 
 .reportMetaText {
