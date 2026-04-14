@@ -5,7 +5,6 @@ import HeaderLayout from '../layouts/client/HeaderLayout'
 import MainLayout from '../layouts/client/MainLayout'
 import AdminClinicLayout from '../layouts/Clinic/AdminClinicLayout'
 import AdminVererianrianLayout from '../layouts/Vererianrian/AdminVererianrianLayout'
-import RoleBasedRoute from './RoleBasedRoute'
 import Clinics from '../pages/admin/Dashboard/Clinics'
 import Posts from '../pages/admin/Dashboard/Posts'
 import Users from '../pages/admin/Dashboard/Users'
@@ -35,6 +34,7 @@ import ListPetExaminationRecords from '../pages/Clinic/ListPetExaminationRecords
 import AdminListPetMedicalRecords from '../pages/Clinic/ListPetMedicalRecords/listPetMedicalRecords'
 import PetMedicalRecords from '../pages/Clinic/PetMedicalRecords/petMedicalRecords'
 import AdminClinicProfile from '../pages/Clinic/ProfileAdminClinic/profileAdminClinic'
+import RevenueDashboard from '../pages/Clinic/Revenue/RevenueDashboard'
 import VererianrianManagement from '../pages/Clinic/VererianrianManagement/vererianrianManagement'
 import ViewMedicalRecords from '../pages/Clinic/ViewMedicalRecords/viewMedicalRecords'
 import ListExaminationForm from '../pages/Vererianrian/ListExaminationForm/listExaminationForm'
@@ -42,6 +42,7 @@ import ListMedicalRecords from '../pages/Vererianrian/ListMedicalRecords/listMed
 import PetAppointmentVererianrian from '../pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
 import RecordExaminationForm from '../pages/Vererianrian/RecordExaminationForm/recordExaminationForm'
 import ViewPetMedicalRecords from '../pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords'
+import RoleBasedRoute from './RoleBasedRoute'
 export default function AppRoutes({ location }) {
   return (
     <Routes location={location}>
@@ -69,7 +70,7 @@ export default function AppRoutes({ location }) {
           <Route path="/clinic/profile" element={<AdminClinicProfile />} />
           <Route path="/clinic/medical-records" element={<AdminListPetMedicalRecords />} />
           <Route path="/clinic/medical-records/view" element={<ViewMedicalRecords />} />
-          <Route path="/clinic/revenue" element={<AppointmentManagement />} />
+          <Route path="/clinic/revenue" element={<RevenueDashboard />} />
           <Route path="/clinic/veterinarians" element={<VererianrianManagement />} />
           <Route path="/clinic/veterinarians/add-new" element={<AddNewVererianrian />} />
           <Route path="/clinic/veterinarians/information" element={<InformationVererianrian />} />
@@ -132,9 +133,14 @@ export default function AppRoutes({ location }) {
           <Route path="/user/profile" element={<ProfileUser />} />
           <Route path="/petProfile" element={<PetProfile />} />
           <Route path="/medical-records" element={<MedicalRecords />} />
-          <Route path="/forum" element={<Forum />} />
           <Route path="/listPetMedicalRecords" element={<ListPetMedicalRecords />}
           />
+        </Route>
+      </Route>
+
+      <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.CUSTOMER, RoleEnum.ADMIN]} />}>
+        <Route element={<HeaderLayout />}>
+          <Route path="/forum" element={<Forum />} />
         </Route>
       </Route>
 

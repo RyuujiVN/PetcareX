@@ -162,6 +162,19 @@
 .selectedPost {
 	border-color: var(--forum-primary);
 	box-shadow: 0 0 0 2px var(--forum-primary-soft);
+	animation: postHighlightPulse 1.5s ease;
+}
+
+@keyframes postHighlightPulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(60, 125, 208, 0.35);
+	}
+	45% {
+		box-shadow: 0 0 0 6px rgba(60, 125, 208, 0.16);
+	}
+	100% {
+		box-shadow: 0 0 0 2px var(--forum-primary-soft);
+	}
 }
 
 .postHeader {
@@ -400,15 +413,23 @@
 	display: inline-flex;
 	align-items: center;
 	gap: 6px;
+	padding: 4px 10px;
+	border-radius: 999px;
 }
 
 .postFooter button:hover {
 	color: #4d647b;
+	background: #f2f6fb;
 }
 
 .postFooter .likedBtn {
 	color: #1b76d1;
 	font-weight: 700;
+	background: rgba(24, 118, 232, 0.12);
+}
+
+.postFooter .likedBtn svg {
+	color: #1b76d1;
 }
 
 .loadingText {
@@ -543,6 +564,22 @@
 	gap: 8px;
 }
 
+.targetComment {
+	border-radius: 14px;
+	background: #eaf4ff;
+	box-shadow: 0 0 0 2px #b8d7ff;
+	animation: commentHighlightFlash 1.5s ease;
+}
+
+@keyframes commentHighlightFlash {
+	0% {
+		background: #d9ebff;
+	}
+	100% {
+		background: transparent;
+	}
+}
+
 .commentBubble,
 .replyBubble {
 	background: #f2f5f8;
@@ -607,6 +644,27 @@
 	cursor: pointer;
 }
 
+.commentMenuButton {
+	margin-left: auto;
+	width: 24px;
+	height: 24px;
+	border: none;
+	border-radius: 999px;
+	background: transparent;
+	color: #6f8095;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+	transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.commentMenuButton:hover {
+	background: #e9f1fb;
+	color: #2f5886;
+}
+
 .replyCommentBlock {
 	margin-left: 40px;
 	position: relative;
@@ -640,6 +698,51 @@
 	font-size: 13px;
 	font-weight: 700;
 	color: #4b5f78;
+}
+
+.reportModalBody {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.reportMetaText {
+	margin: 0;
+	font-size: 13px;
+	font-weight: 700;
+	color: #334a66;
+}
+
+.reportPreviewText {
+	margin: 0;
+	padding: 10px;
+	border-radius: 10px;
+	background: #f3f7fc;
+	border: 1px solid #e1e9f3;
+	font-size: 13px;
+	color: #52657d;
+	line-height: 1.45;
+	white-space: pre-wrap;
+	word-break: break-word;
+	max-height: 100px;
+	overflow-y: auto;
+}
+
+.reportTextarea {
+	width: 100%;
+	min-height: 110px;
+	border: 1px solid #d4e1ef;
+	border-radius: 10px;
+	padding: 10px;
+	font-size: 14px;
+	font-family: inherit;
+	resize: vertical;
+	outline: none;
+}
+
+.reportTextarea:focus {
+	border-color: #8fbbe8;
+	box-shadow: 0 0 0 2px rgba(79, 136, 202, 0.15);
 }
 
 .composerModalOverlay {

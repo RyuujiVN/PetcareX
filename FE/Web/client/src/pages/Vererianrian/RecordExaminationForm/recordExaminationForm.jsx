@@ -1,34 +1,35 @@
 ﻿import {
-	DeleteOutlined,
-	DownOutlined,
-	ExperimentOutlined,
-	HeartOutlined,
-	ManOutlined,
-	MedicineBoxOutlined,
-	PlusCircleOutlined,
-	SaveOutlined,
-	UpOutlined,
-	UserOutlined,
-	WarningOutlined,
-	WomanOutlined,
+    DeleteOutlined,
+    DownOutlined,
+    ExperimentOutlined,
+    HeartOutlined,
+    InfoCircleOutlined,
+    ManOutlined,
+    MedicineBoxOutlined,
+    PlusCircleOutlined,
+    SaveOutlined,
+    UpOutlined,
+    UserOutlined,
+    WarningOutlined,
+    WomanOutlined,
 } from '@ant-design/icons'
 import {
-	Alert,
-	Button,
-	Card,
-	Checkbox,
-	Col,
-	DatePicker,
-	Divider,
-	Form,
-	Input,
-	InputNumber,
-	message,
-	Modal,
-	Row,
-	Select,
-	Spin,
-	Tabs,
+    Alert,
+    Button,
+    Card,
+    Checkbox,
+    Col,
+    DatePicker,
+    Divider,
+    Form,
+    Input,
+    InputNumber,
+    message,
+    Modal,
+    Row,
+    Select,
+    Spin,
+    Tabs,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -39,44 +40,41 @@ import { ServiceEnum } from '../../../enum/service.enum'
 import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
-	APPOINTMENT_STATUS,
-	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-	getAppointmentsApi,
-	getServerNowApi,
-	updateAppointmentStatusApi,
+    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+    APPOINTMENT_STATUS,
+    getMyAppointmentsApi,
+    updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { registerApi } from '../../../services/authService'
-import {
-	createMedicalMedicineApi,
-	createMedicalOrderApi,
-	createMedicalRecordApi,
-	deleteMedicalOrderApi,
-	deleteMedicineApi,
-	getMedicalByIdApi,
-	getMedicalByPetIClinicdApi,
-	getMedicalByPetIdApi,
-	getMedicalOrderCatalogApi,
-	getMedicalOrdersByMedicalIdApi,
-	getMedicineCatalogApi,
-	getMedicinesByMedicalIdApi,
-	updateMedicalRecordApi,
-} from '../../../services/medicalService'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
 import {
-	createPetApi,
-	getBreedLabel,
-	getBreedsBySpeciesApi,
-	getPetByIdApi,
-	getPetsByOwnerApi,
-	getPetSpeciesApi,
-	getSpeciesLabel,
+    createMedicalMedicineApi,
+    createMedicalOrderApi,
+    createMedicalRecordApi,
+    deleteMedicalOrderApi,
+    deleteMedicineApi,
+    getMedicalByIdApi,
+    getMedicalByPetIClinicdApi,
+    getMedicalOrderCatalogApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicineCatalogApi,
+    getMedicinesByMedicalIdApi,
+    updateMedicalRecordApi
+} from '../../../services/medicalService'
+import {
+    createPetApi,
+    getBreedLabel,
+    getBreedsBySpeciesApi,
+    getPetByIdApi,
+    getPetsByOwnerApi,
+    getPetSpeciesApi,
+    getSpeciesLabel,
 } from '../../../services/petService'
 import { getUserListApi } from '../../../services/userService'
 import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
-const EDITABLE_DURATION_SECONDS = 15 * 60
 const EMERGENCY_TEMP_PASSWORD = 'Baophan1234'
 
 const tVet = (key, options = {}) => i18n.t(key, { ns: 'vererianrian', ...options })
@@ -186,20 +184,6 @@ const buildConclusionText = (summary) => {
 	const normalizedSummary = String(summary || '').trim()
 	if (!normalizedSummary) return undefined
 	return normalizedSummary
-}
-
-const parseDateToMs = (value) => {
-	if (!value) return null
-	const parsed = Date.parse(String(value))
-	if (Number.isNaN(parsed)) return null
-	return parsed
-}
-
-const formatRemainingTime = (seconds) => {
-	const safeSeconds = Math.max(0, Number(seconds) || 0)
-	const minutes = Math.floor(safeSeconds / 60)
-	const remainSeconds = safeSeconds % 60
-	return `${String(minutes).padStart(2, '0')}:${String(remainSeconds).padStart(2, '0')}`
 }
 
 const formatDateLabel = (value, fallback = tVet('examForm.record.fallbacks.notUpdated')) => {
@@ -428,7 +412,7 @@ const buildInitialValues = (
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
 		customerName: isWalkIn ? '' : appointment?.ownerName || owner?.fullName || '',
 		email: isWalkIn ? '' : owner?.email || appointment?.ownerEmail || '',
-		phone: isWalkIn ? '' : normalizePhone(owner?.phone || ''),
+		phone: isWalkIn ? '' : normalizePhone(owner?.phone || appointment?.ownerPhone || ''),
 		petName: isWalkIn ? '' : appointment?.petName || pet?.name || '',
 		species: isWalkIn ? undefined : pet?.species || undefined,
 		breed: isWalkIn ? undefined : pet?.breed || undefined,
@@ -484,6 +468,7 @@ const toAppointmentViewModel = (item) => {
 		ownerName: owner?.fullName,
 		ownerId: owner?.id,
 		ownerEmail: owner?.email || '',
+		ownerPhone: normalizePhone(owner?.phone || ''),
 		formName: getServiceLabel(item?.service, item?.service),
 		medical: item?.medical || null,
 		petRaw: pet,
@@ -510,10 +495,7 @@ export default function RecordExaminationForm() {
 	const [editableMedicalRecord, setEditableMedicalRecord] = useState(null)
 	const [editableMedicalOrders, setEditableMedicalOrders] = useState([])
 	const [editableMedicines, setEditableMedicines] = useState([])
-	const [serverTimeOffsetMs, setServerTimeOffsetMs] = useState(0)
-	const [serverTimeSynced, setServerTimeSynced] = useState(false)
 	const [isLockedByPayment, setIsLockedByPayment] = useState(false)
-	const [remainingEditableSeconds, setRemainingEditableSeconds] = useState(EDITABLE_DURATION_SECONDS)
 	const [isDirty, setIsDirty] = useState(false)
 	const enableFollowUpDate = Form.useWatch('enableFollowUpDate', form)
 	const [historyLoading, setHistoryLoading] = useState(false)
@@ -525,13 +507,8 @@ export default function RecordExaminationForm() {
 
 	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
 	const appointmentId = searchParams.get('appointmentId')
-	const appointmentOwnerId = appointment?.ownerId || appointment?.petRaw?.owner?.id
-	const appointmentOwnerEmail = appointment?.ownerEmail || appointment?.petRaw?.owner?.email
 	const editableMedicalId = editableMedicalRecord?.id || appointment?.medical?.id || ''
-	const editableMedicalCreatedAtMs = parseDateToMs(editableMedicalRecord?.createdAt)
-	const missingServerCreatedAt = Boolean(editableMedicalId) && !editableMedicalCreatedAtMs
-	const isLockedByTime = Boolean(editableMedicalId) && Boolean(editableMedicalCreatedAtMs) && remainingEditableSeconds <= 0
-	const isReadOnlyForm = isLockedByTime || isLockedByPayment
+	const isReadOnlyForm = isLockedByPayment
 
 	const historyPetId = useMemo(() => {
 		return (
@@ -572,7 +549,7 @@ export default function RecordExaminationForm() {
 		if (isWalkIn) return
 		if (!appointmentId || location?.state?.appointment?.appointmentId === appointmentId) return
 
-		const response = await getAppointmentsApi(getAdminInstance(), { page: 1, limit: 500 })
+		const response = await getMyAppointmentsApi(getAdminInstance(), 1, 500)
 		const items = Array.isArray(response?.items) ? response.items : []
 		const found = items.find((item) => String(item?.id) === String(appointmentId))
 		if (found) {
@@ -591,11 +568,10 @@ export default function RecordExaminationForm() {
 			}
 
 			// Load each catalog independently so one failure does not block the others
-			const [medicalOrdersResult, medicinesResult, speciesResult, serverNowResult] = await Promise.allSettled([
+			const [medicalOrdersResult, medicinesResult, speciesResult] = await Promise.allSettled([
 				getMedicalOrderCatalogApi(getAdminInstance()),
 				getMedicineCatalogApi(getAdminInstance()),
 				getPetSpeciesApi(getAdminInstance()),
-				getServerNowApi(getAdminInstance()),
 			])
 
 			if (medicalOrdersResult.status === 'fulfilled') {
@@ -612,20 +588,6 @@ export default function RecordExaminationForm() {
 
 			if (speciesResult.status === 'fulfilled') {
 				setSpeciesOptions(normalizeCollection(speciesResult.value))
-			}
-
-			if (serverNowResult.status === 'fulfilled') {
-				const serverNowMs = serverNowResult.value
-				if (typeof serverNowMs === 'number' && Number.isFinite(serverNowMs)) {
-					setServerTimeOffsetMs(serverNowMs - Date.now())
-					setServerTimeSynced(true)
-				} else {
-					setServerTimeOffsetMs(0)
-					setServerTimeSynced(false)
-				}
-			} else {
-				setServerTimeOffsetMs(0)
-				setServerTimeSynced(false)
 			}
 		} catch (error) {
 			message.error(error?.message || t('examForm.record.messages.loadMetaError'))
@@ -901,50 +863,6 @@ export default function RecordExaminationForm() {
 		})
 	}, [])
 
-	useEffect(() => {
-		if (!editableMedicalId || !editableMedicalCreatedAtMs) {
-			setRemainingEditableSeconds(EDITABLE_DURATION_SECONDS)
-			return
-		}
-
-		const getRemainingSeconds = () => {
-			const nowByServerClock = Date.now() + serverTimeOffsetMs
-			const elapsedSeconds = Math.floor((nowByServerClock - editableMedicalCreatedAtMs) / 1000)
-			return Math.max(0, EDITABLE_DURATION_SECONDS - elapsedSeconds)
-		}
-
-		setRemainingEditableSeconds(getRemainingSeconds())
-
-		const intervalId = window.setInterval(() => {
-			setRemainingEditableSeconds(getRemainingSeconds())
-		}, 1000)
-
-		return () => {
-			window.clearInterval(intervalId)
-		}
-	}, [editableMedicalCreatedAtMs, editableMedicalId, serverTimeOffsetMs])
-
-	useEffect(() => {
-		const fallbackOwnerEmail = petDetail?.owner?.email || ''
-		if (!appointmentOwnerId || appointmentOwnerEmail || !fallbackOwnerEmail) return
-
-		setAppointment((prev) => {
-			if (!prev) return prev
-
-			return {
-				...prev,
-				ownerEmail: fallbackOwnerEmail,
-				petRaw: {
-					...prev.petRaw,
-					owner: {
-						...(prev.petRaw?.owner || {}),
-						email: fallbackOwnerEmail,
-					},
-				},
-			}
-		})
-	}, [appointmentOwnerEmail, appointmentOwnerId, petDetail?.owner?.email])
-
 	const selectedSpecies = Form.useWatch('species', form)
 
 	useEffect(() => {
@@ -1003,8 +921,6 @@ export default function RecordExaminationForm() {
 	}, [appointmentId, isWalkIn])
 
 	const hasCreatedMedical = Boolean(editableMedicalId)
-	const canShowCountdown = hasCreatedMedical && Boolean(editableMedicalCreatedAtMs) && !isLockedByTime
-	const editableCountdownText = formatRemainingTime(remainingEditableSeconds)
 	const historySummary = useMemo(() => {
 		const sourcePet = petDetail || historyPet
 		if (!sourcePet) return null
@@ -1024,6 +940,36 @@ export default function RecordExaminationForm() {
 			weight: weightValue ? `${weightValue} kg` : t('examForm.record.fallbacks.notUpdated'),
 		}
 	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight, petDetail, t])
+
+	const patientInfo = useMemo(() => {
+		if (isWalkIn) return null
+
+		const pet = petDetail || appointment?.petRaw || appointment?.pet || null
+		const owner = pet?.owner || appointment?.petRaw?.owner || {}
+		if (!pet && !owner?.id) return null
+
+		const noInfo = t('examForm.record.patientInfo.noInfo')
+		const petWeightValue =
+			pet?.weight ??
+			latestMedicalRecord?.weight ??
+			editableMedicalRecord?.weight ??
+			null
+
+		const resolvedPhone = normalizePhone(owner?.phone || appointment?.ownerPhone || '')
+
+		return {
+			hasPhone: Boolean(resolvedPhone),
+			ownerName: owner?.fullName || appointment?.ownerName || noInfo,
+			ownerEmail: owner?.email || appointment?.ownerEmail || noInfo,
+			ownerPhone: resolvedPhone || noInfo,
+			petName: pet?.name || appointment?.petName || noInfo,
+			petSpecies: pet?.species ? getSpeciesLabel(pet.species) : noInfo,
+			petBreed: pet?.breed ? getBreedLabel(pet.breed, pet.species) : noInfo,
+			petGender: pet?.gender !== undefined && pet?.gender !== null ? formatGenderLabel(pet.gender) : noInfo,
+			petAge: pet?.dateOfBirth ? getAgeLabel(pet.dateOfBirth) : noInfo,
+			petWeight: petWeightValue ? `${petWeightValue} kg` : noInfo,
+		}
+	}, [appointment, editableMedicalRecord?.weight, isWalkIn, latestMedicalRecord?.weight, petDetail, t])
 
 	const serviceOptions = useMemo(() => {
 		return Object.values(ServiceEnum).map((service) => ({
@@ -1355,7 +1301,7 @@ export default function RecordExaminationForm() {
 				values.email || appointment?.ownerEmail || appointment?.petRaw?.owner?.email || '',
 			)
 			const resolvedPhone = normalizePhone(
-				values.phone || appointment?.petRaw?.owner?.phone || '',
+				values.phone || appointment?.ownerPhone || appointment?.petRaw?.owner?.phone || '',
 			)
 
 			if (
@@ -1369,6 +1315,13 @@ export default function RecordExaminationForm() {
 			}
 
 			if (!/^\d{10}$/.test(resolvedPhone)) {
+				form.setFields([
+					{
+						name: 'phone',
+						errors: [t('examForm.record.validation.phoneFormat')],
+					},
+				])
+				form.scrollToField('phone', { behavior: 'smooth', block: 'center' })
 				throw new Error(t('examForm.record.messages.phoneFormatError'))
 			}
 
@@ -1508,6 +1461,7 @@ export default function RecordExaminationForm() {
 				disabled={isReadOnlyForm}
 				onValuesChange={handleValuesChange}
 				onFinish={onFinish}
+				scrollToFirstError={{ behavior: 'smooth', block: 'center' }}
 				className={styles.formRoot}
 			>
 				<header className={styles.formHeader}>
@@ -1543,23 +1497,13 @@ export default function RecordExaminationForm() {
 						/>
 					) : null}
 
-					{canShowCountdown ? (
+					{hasCreatedMedical && !isLockedByPayment ? (
 						<Alert
 							className={styles.editLockAlert}
 							type="success"
 							showIcon
-							title={t('examForm.record.alerts.editingWindowTitle')}
-							description={t('examForm.record.alerts.editingWindowDesc', { time: editableCountdownText })}
-						/>
-					) : null}
-
-					{isLockedByTime ? (
-						<Alert
-							className={styles.editLockAlert}
-							type="warning"
-							showIcon
-							title={t('examForm.record.alerts.expiredTitle')}
-							description={t('examForm.record.alerts.expiredDesc')}
+							title={t('examForm.record.alerts.editableTitle')}
+							description={t('examForm.record.alerts.editableDesc')}
 						/>
 					) : null}
 
@@ -1573,25 +1517,114 @@ export default function RecordExaminationForm() {
 						/>
 					) : null}
 
-					{hasCreatedMedical && !serverTimeSynced ? (
-						<Alert
-							className={styles.editLockAlert}
-							type="warning"
-							showIcon
-							title={t('examForm.record.alerts.serverSyncFailTitle')}
-							description={t('examForm.record.alerts.serverSyncFailDesc')}
-						/>
-					) : null}
+				{!isWalkIn && patientInfo ? (
+					<Card
+						className={styles.patientInfoCard}
+						title={
+							<span>
+								<UserOutlined /> {t('examForm.record.patientInfo.title')}
+								<span className={styles.patientInfoBadge}>
+									<InfoCircleOutlined /> {t('examForm.record.patientInfo.badge')}
+								</span>
+							</span>
+						}
+					>
+						<div className={styles.patientInfoGrid}>
+								<div className={styles.patientInfoSection}>
+									<p className={styles.patientInfoSectionTitle}>{t('examForm.record.patientInfo.ownerSection')}</p>
+									<div className={styles.patientInfoFieldGrid}>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.ownerName')}</span>
+											<span className={patientInfo.ownerName === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.ownerName}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.ownerEmail')}</span>
+											<span className={patientInfo.ownerEmail === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.ownerEmail}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.ownerPhone')}</span>
+											{patientInfo.hasPhone ? (
+												<span className={styles.patientInfoValue}>
+													{patientInfo.ownerPhone}
+												</span>
+											) : (
+												<div className={styles.patientInfoPhoneInputWrap}>
+													<span className={styles.patientInfoPhonePrompt}>
+														<WarningOutlined /> {t('examForm.record.patientInfo.phoneMissingPrompt')}
+													</span>
+													<Form.Item
+														name="phone"
+														className={styles.patientInfoPhoneFormItem}
+														validateTrigger={['onBlur', 'onSubmit']}
+														rules={[
+															{ required: true, message: t('examForm.record.validation.phoneRequired') },
+															{ pattern: /^\d{10}$/, message: t('examForm.record.validation.phoneFormat') },
+														]}
+													>
+														<Input
+															size="large"
+															maxLength={10}
+															placeholder={t('examForm.record.patientInfo.phonePlaceholder')}
+															onChange={(event) => {
+																const next = String(event?.target?.value || '').replace(/\D/g, '').slice(0, 10)
+																form.setFieldValue('phone', next)
+															}}
+														/>
+													</Form.Item>
+												</div>
+											)}
+										</div>
+									</div>
+								</div>
 
-					{missingServerCreatedAt ? (
-						<Alert
-							className={styles.editLockAlert}
-							type="error"
-							showIcon
-							title={t('examForm.record.alerts.missingCreatedAtTitle')}
-							description={t('examForm.record.alerts.missingCreatedAtDesc')}
-						/>
-					) : null}
+								<div className={styles.patientInfoSection}>
+									<p className={styles.patientInfoSectionTitle}>{t('examForm.record.patientInfo.petSection')}</p>
+									<div className={styles.patientInfoFieldGrid}>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petName')}</span>
+											<span className={patientInfo.petName === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petName}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petSpecies')}</span>
+											<span className={patientInfo.petSpecies === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petSpecies}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petBreed')}</span>
+											<span className={patientInfo.petBreed === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petBreed}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petGender')}</span>
+											<span className={patientInfo.petGender === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petGender}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petAge')}</span>
+											<span className={patientInfo.petAge === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petAge}
+											</span>
+										</div>
+										<div className={styles.patientInfoField}>
+											<span className={styles.patientInfoLabel}>{t('examForm.record.patientInfo.petWeight')}</span>
+											<span className={patientInfo.petWeight === t('examForm.record.patientInfo.noInfo') ? styles.patientInfoValueMuted : styles.patientInfoValue}>
+												{patientInfo.petWeight}
+											</span>
+										</div>
+									</div>
+								</div>
+							</div>
+					</Card>
+				) : null}
 
 				<Card className={styles.sectionCard}>
 					<Row gutter={12}>
@@ -1664,9 +1697,11 @@ export default function RecordExaminationForm() {
 						<Form.Item name="email" hidden>
 							<Input />
 						</Form.Item>
-						<Form.Item name="phone" hidden>
-							<Input />
-						</Form.Item>
+						{patientInfo?.hasPhone ? (
+							<Form.Item name="phone" hidden>
+								<Input />
+							</Form.Item>
+						) : null}
 						<Form.Item name="petName" hidden>
 							<Input />
 						</Form.Item>

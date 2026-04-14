@@ -167,6 +167,20 @@
   position: relative;
 }
 
+.notificationWrapper :global(.ant-badge-count) {
+  background-color: #ff4d4f !important;
+  color: #ffffff !important;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  padding: 0 !important;
+  display: inline-flex;
+  justify-content: center;
+  font-weight: 600;
+  line-height: normal;
+  box-shadow: 0 0 0 2px #ffffff;
+}
+
 .notificationBtn {
   width: 38px;
   height: 38px;

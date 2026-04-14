@@ -41,6 +41,13 @@ export const unlikePostApi = async (instance, postId) => {
   const response = await instance.delete(`/post/${postId}/remove-like`)
   return response.data
 }
+
+// Báo cáo bài viết (nếu backend hỗ trợ endpoint)
+export const reportPostApi = async (instance, postId, payload) => {
+  const response = await instance.post(`/post/${postId}/report`, payload)
+  return response.data
+}
+
 // Bỏ thích bài viết
 export const removeLikeApi = unlikePostApi
 // Lấy danh sách bình luận của bài viết

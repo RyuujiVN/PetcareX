@@ -2,7 +2,7 @@
 import * as antd from 'antd';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton';
 import { getClientInstance } from '../../../../services/apiClient';
 import {
@@ -35,7 +35,7 @@ const APPOINTMENT_STATUS_TAG_COLOR = {
 
 const AppointmentDetail = () => {
   const navigate = useNavigate();
-  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t, i18n } = useTranslation();
   const dateLocale = i18n.language === 'en' ? 'en-US' : 'vi-VN';
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -43,11 +43,12 @@ const AppointmentDetail = () => {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [appointments, setAppointments] = useState([]);
+  const [appointmentsLoaded, setAppointmentsLoaded] = useState(false);
   const [isDiagnosisVisible, setIsDiagnosisVisible] = useState(false);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
   const [diagnosisData, setDiagnosisData] = useState(null);
   const [diagnosisAppointment, setDiagnosisAppointment] = useState(null);
-  const autoOpenedDiagnosisRef = useRef('');
+  const diagnosisOpenedRef = useRef('');
   const inFlightRef = useRef(false);
   const hasLoadedOnceRef = useRef(false);
   const lastDataSignatureRef = useRef('');
@@ -79,6 +80,7 @@ const AppointmentDetail = () => {
     } finally {
       inFlightRef.current = false;
       setLoading(false);
+      setAppointmentsLoaded(true);
     }
   }, [t]);
 
@@ -219,25 +221,57 @@ const handleViewDetails = (appointment) => {
     }
   }, [dateLocale, t]);
 
-  const diagnosisAppointmentIdFromQuery = useMemo(() => {
-    const params = new URLSearchParams(location.search || '');
-    return String(params.get('appointmentId') || '').trim();
-  }, [location.search]);
+  const openDiagnosisId = useMemo(() => {
+    return String(
+      searchParams.get('openDiagnosis') || searchParams.get('appointmentId') || '',
+    ).trim();
+  }, [searchParams]);
+
+  const clearDiagnosisQueryParams = useCallback(() => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.delete('openDiagnosis');
+    nextParams.delete('appointmentId');
+    setSearchParams(nextParams, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
-    if (!diagnosisAppointmentIdFromQuery) return;
-    if (autoOpenedDiagnosisRef.current === diagnosisAppointmentIdFromQuery) return;
+    if (!openDiagnosisId) {
+      diagnosisOpenedRef.current = '';
+    }
+  }, [openDiagnosisId]);
+
+  useEffect(() => {
+    if (!openDiagnosisId) return;
+    if (loading || !appointmentsLoaded) return;
+    if (diagnosisOpenedRef.current === openDiagnosisId) return;
 
     const targetAppointment = mappedAppointments.find(
-      (item) => String(item.id) === diagnosisAppointmentIdFromQuery,
+      (item) => String(item.id) === openDiagnosisId,
     );
 
-    if (!targetAppointment) return;
+    if (!targetAppointment) {
+      diagnosisOpenedRef.current = openDiagnosisId;
+      clearDiagnosisQueryParams();
+      return;
+    }
 
-    autoOpenedDiagnosisRef.current = diagnosisAppointmentIdFromQuery;
+    const isHistoryTarget = medicalHistory.some(
+      (item) => String(item.id) === openDiagnosisId,
+    );
+    setActiveTab(isHistoryTarget ? 'history' : 'upcoming');
+
+    diagnosisOpenedRef.current = openDiagnosisId;
     void handleOpenDiagnosis(targetAppointment);
-    navigate('/appointments', { replace: true });
-  }, [diagnosisAppointmentIdFromQuery, handleOpenDiagnosis, mappedAppointments, navigate]);
+    clearDiagnosisQueryParams();
+  }, [
+    appointmentsLoaded,
+    clearDiagnosisQueryParams,
+    handleOpenDiagnosis,
+    loading,
+    medicalHistory,
+    mappedAppointments,
+    openDiagnosisId,
+  ]);
   const handleBookingNew = () => {
     navigate('/booking');
   };

@@ -428,8 +428,7 @@ export default function AdminVererianrianLayout() {
                     <Badge
                       count={unreadNotificationCount}
                       size="small"
-                      overflowCount={99}
-                      color="#1976ff"
+                      overflowCount={9}
                     >
                       <span className={styles.notificationBellIcon}>
                         <IoMdNotificationsOutline />

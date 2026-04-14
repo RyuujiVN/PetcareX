@@ -22,6 +22,145 @@
 	margin-bottom: 12px;
 }
 
+/* PatientInfoPanel */
+.patientInfoCard {
+	border-radius: 16px;
+	border: 1px solid var(--vet-color-border);
+	box-shadow: var(--vet-shadow-md);
+	margin-bottom: 12px;
+	background: linear-gradient(135deg, #f0f7ff 0%, #f8fbff 100%);
+}
+
+.patientInfoCard :global(.ant-card-head) {
+	border-bottom: 1px solid #e0ebf5;
+}
+
+.patientInfoCard :global(.ant-card-head-title) {
+	font-size: 16px;
+	font-weight: 800;
+	color: var(--vet-color-text-primary);
+}
+
+.patientInfoBadge {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 3px 10px;
+	border-radius: 999px;
+	background: #e8f4fd;
+	color: #1677ff;
+	font-size: 11px;
+	font-weight: 700;
+	border: 1px solid #bcdcf7;
+}
+
+.patientInfoGrid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0;
+}
+
+.patientInfoSection {
+	padding: 4px 0;
+}
+
+.patientInfoSection:first-child {
+	border-right: 1px solid #e0ebf5;
+	padding-right: 16px;
+}
+
+.patientInfoSection:last-child {
+	padding-left: 16px;
+}
+
+.patientInfoSectionTitle {
+	margin: 0 0 8px;
+	font-size: 12px;
+	font-weight: 800;
+	color: var(--vet-color-brand-primary);
+	text-transform: uppercase;
+	letter-spacing: 0.3px;
+}
+
+.patientInfoFieldGrid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 6px 16px;
+}
+
+.patientInfoField {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.patientInfoLabel {
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--vet-color-text-muted);
+}
+
+.patientInfoValue {
+	font-size: 14px;
+	font-weight: 600;
+	color: var(--vet-color-text-primary);
+	word-break: break-word;
+}
+
+.patientInfoValueMuted {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--vet-color-text-disabled);
+	font-style: italic;
+}
+
+.patientInfoPhoneInputWrap {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin-top: 2px;
+}
+
+.patientInfoPhonePrompt {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 11px;
+	font-weight: 700;
+	color: var(--color-danger, #ff4d4f);
+}
+
+.patientInfoPhoneFormItem {
+	margin-bottom: 0 !important;
+}
+
+.patientInfoPhoneFormItem :global(.ant-input) {
+	font-size: 13px;
+	font-weight: 600;
+}
+
+@media (max-width: 768px) {
+	.patientInfoGrid {
+		grid-template-columns: 1fr;
+	}
+
+	.patientInfoSection:first-child {
+		border-right: none;
+		border-bottom: 1px solid #e0ebf5;
+		padding-right: 0;
+		padding-bottom: 12px;
+	}
+
+	.patientInfoSection:last-child {
+		padding-left: 0;
+		padding-top: 12px;
+	}
+
+	.patientInfoFieldGrid {
+		grid-template-columns: 1fr;
+	}
+}
+
 .loadingWrap {
 	min-height: 420px;
 	display: grid;
@@ -93,7 +232,7 @@
 .sectionCard :global(.ant-card-head-title) {
 	font-size: 18px;
 	font-weight: 800;
-	color: var(--vet-color-text-primary);
+	color: var(--vet-color-brand-primary);
 }
 
 .sectionCard :global(.ant-card-head-title span) {
@@ -105,7 +244,7 @@
 .sectionCard :global(.ant-form-item-label > label) {
 	font-size: 12px;
 	font-weight: 700;
-	color: var(--vet-color-text-muted);
+	color: var(--vet-pet-name-color);
 }
 
 .fullWidth {
@@ -218,7 +357,7 @@
 .dynamicHeadMedicine,
 .dynamicRowMedicine {
 	display: grid;
-	grid-template-columns: 13fr 100fr 100fr 100fr 80px;
+	grid-template-columns: 10fr 100fr 100fr 100fr 80px;
 	gap: 8px;
 	align-items: center;
 	padding: 10px 12px;

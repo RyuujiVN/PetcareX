@@ -66,7 +66,8 @@
 			"action": "THAO TÁC"
 		},
 		"actions": {
-			"startExam": "Bắt đầu khám"
+			"startExam": "Bắt đầu khám",
+			"reloadPage": "Tải lại trang"
 		},
 		"states": {
 			"empty": "Không có lịch hẹn phù hợp.",
@@ -119,17 +120,30 @@
 			},
 			"alerts": {
 				"notCreatedTitle": "Phiếu khám chưa được tạo",
-				"notCreatedDesc": "Sau khi tạo phiếu khám, bác sĩ chỉ có 15 phút để chỉnh sửa phiếu khám nếu có sai sót.",
-				"editingWindowTitle": "Đang trong thời gian chỉnh sửa",
-				"editingWindowDesc": "Thời gian còn lại: {{time}} (tính từ thời điểm createdAt của server).",
-				"expiredTitle": "Đã hết thời gian chỉnh sửa",
-				"expiredDesc": "Phiếu khám đã vượt quá 15 phút kể từ lúc tạo, hệ thống đã chuyển sang chế độ chỉ đọc.",
+				"notCreatedDesc": "Bác sĩ có thể chỉnh sửa phiếu khám tự do cho đến khi hoá đơn được thanh toán.",
+				"editableTitle": "Phiếu khám đang chỉnh sửa được",
+				"editableDesc": "Phiếu khám đã tạo, bác sĩ vẫn có thể cập nhật cho đến khi hoá đơn được thanh toán.",
 				"paymentLockedTitle": "Phiếu khám đã khóa sau thanh toán",
-				"paymentLockedDesc": "Hóa đơn đã được thanh toán thành công. Bác sĩ không thể chỉnh sửa phiếu khám này nữa.",
-				"serverSyncFailTitle": "Không đồng bộ được giờ server",
-				"serverSyncFailDesc": "Cần backend expose Date header hoặc serverTime để khóa chỉnh sửa theo đồng hồ server chính xác tuyệt đối.",
-				"missingCreatedAtTitle": "Thiếu createdAt của phiếu khám",
-				"missingCreatedAtDesc": "Backend cần trả về createdAt trong dữ liệu medical của appointment hoặc endpoint chi tiết medical để tính khóa 15 phút."
+				"paymentLockedDesc": "Hóa đơn đã được thanh toán thành công. Bác sĩ không thể chỉnh sửa phiếu khám này nữa."
+			},
+			"patientInfo": {
+				"title": "Thông tin bệnh nhân",
+				"badge": "Thông tin từ hồ sơ đặt lịch",
+				"ownerSection": "Thông tin chủ nuôi",
+				"petSection": "Thông tin thú cưng",
+				"ownerName": "Họ tên",
+				"ownerEmail": "Email",
+				"ownerPhone": "Số điện thoại",
+				"petName": "Tên",
+				"petSpecies": "Loài",
+				"petBreed": "Giống",
+				"petGender": "Giới tính",
+				"petAge": "Tuổi",
+				"petWeight": "Cân nặng",
+				"noInfo": "Không có thông tin",
+				"loadingOwner": "Đang tải thông tin chủ nuôi...",
+				"phoneMissingPrompt": "Chưa có số điện thoại — vui lòng nhập",
+				"phonePlaceholder": "Nhập số điện thoại (10 chữ số)"
 			},
 			"sections": {
 				"walkInCustomerPet": "Thông tin khách hàng & Thú cưng",
@@ -157,8 +171,8 @@
 				"temperature": "NHIỆT ĐỘ (°C)",
 				"heartRate": "NHỊP TIM (L/P/M)",
 				"bloodPressure": "HUYẾT ÁP (MMHG)",
-				"systolic": "Huyết áp trên",
-				"diastolic": "Huyết áp dưới",
+				"systolic": "HUYẾT ÁP TRÊN",
+				"diastolic": "HUYẾT ÁP DƯỚI",
 				"clinicalSymptoms": "TRIỆU CHỨNG & TÌNH TRẠNG",
 				"preliminaryDiagnosis": "CHẨN ĐOÁN SƠ BỘ",
 				"conclusionSummary": "KẾT LUẬN CHUYÊN MÔN",

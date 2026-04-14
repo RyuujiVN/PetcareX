@@ -4,7 +4,7 @@ import {
   TeamOutlined,
 } from "@ant-design/icons";
 import { Badge } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../hooks/Clinic/AuthContext";
@@ -17,6 +17,7 @@ import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageS
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
+import { resolveNotificationHref } from "../../services/notificationService";
 import "../../styles/admin/colorsToken.css";
 import styles from "./AdminLayout.module.css";
 
@@ -162,6 +163,21 @@ export default function AdminLayout() {
     };
   }, []);
 
+  const handleNotificationItemClick = useCallback(
+    (item) => {
+      if (!item?.id) return;
+
+      void markAsRead(item.id);
+      setNotificationOpen(false);
+
+      const targetHref = resolveNotificationHref(item, "client");
+      if (targetHref) {
+        navigate(targetHref);
+      }
+    },
+    [markAsRead, navigate],
+  );
+
   return (
     <div className={styles.layout}>
       {/* ── Sidebar ── */}
@@ -219,7 +235,12 @@ export default function AdminLayout() {
               className={styles.notificationWrapper}
               ref={notificationPanelRef}
             >
-              <Badge count={unreadCount} size="small" offset={[1, 2]}>
+              <Badge
+                count={unreadCount}
+                size="small"
+                offset={[1, 2]}
+                overflowCount={9}
+              >
                 <button
                   type="button"
                   className={styles.notificationBtn}
@@ -277,7 +298,7 @@ export default function AdminLayout() {
                           <div
                             key={item.id}
                             className={styles.notificationItem}
-                            onClick={() => markAsRead(item.id)}
+                            onClick={() => handleNotificationItemClick(item)}
                             style={{ cursor: "pointer" }}
                           >
                             <div className={styles.notificationDotWrap}>

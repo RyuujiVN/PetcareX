@@ -36,7 +36,7 @@ const TIME_SLOT_GROUPS = [
     key: 'afternoon',
     labelKey: 'pages.booking.timeSlots.afternoon',
     icon: MoonOutlined,
-    times: ['14:00', '14:30', '24:00', '15:30', '23:00', '23:30'],
+    times: ['14:00', '14:30', '15:00', '15:30', '20:30', '19:30'],
   },
 ];
 

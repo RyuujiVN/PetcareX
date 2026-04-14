@@ -4,28 +4,15 @@ import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
-import { ADMIN_AUTH_STORAGE, getAdminAuthItem } from '../../../constants/authStorage'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
     APPOINTMENT_STATUS,
-    getAppointmentsApi,
+    getMyAppointmentsApi,
 } from '../../../services/appointmentService'
 import { formatDateDDMMYYYY, formatTimeHHMM } from '../../../utils/dateTimeFormat'
 import styles from './listMedicalRecords.module.css'
 
 const PAGE_SIZE = 4
-
-const getCurrentVeterinarianUserId = () => {
-	try {
-		const raw = getAdminAuthItem(ADMIN_AUTH_STORAGE.userInfoKey)
-		if (!raw) return ''
-
-		const profile = JSON.parse(raw)
-		return profile?.id || profile?.user?.id || ''
-	} catch {
-		return ''
-	}
-}
 
 const formatDate = (value, fallback) => formatDateDDMMYYYY(value, fallback)
 
@@ -60,21 +47,13 @@ export default function ListMedicalRecords() {
 	const fetchRecords = useCallback(async () => {
 		try {
 			setLoading(true)
-			const response = await getAppointmentsApi(getAdminInstance(), {
-				page: 1,
-				limit: 500,
-				date: selectedDate.format('YYYY-MM-DD'),
-			})
+			const response = await getMyAppointmentsApi(getAdminInstance(), 1, 500)
 
 			const items = Array.isArray(response?.items) ? response.items : []
-			const currentUserId = getCurrentVeterinarianUserId()
+			const targetDate = selectedDate.format('YYYY-MM-DD')
 			const activeItems = items
 				.filter((item) => item?.status !== APPOINTMENT_STATUS.CANCELLED)
-				.filter((item) => {
-					if (!currentUserId) return true
-					const veterinarianUserId = item?.veterinarian?.user?.id
-					return String(veterinarianUserId || '') === String(currentUserId)
-				})
+				.filter((item) => dayjs(item?.appointmentDate).format('YYYY-MM-DD') === targetDate)
 			const mappedRows = activeItems.map((item) => toPetRow(item, t))
 			mappedRows.sort((a, b) => a.time.localeCompare(b.time))
 			setRows(mappedRows)

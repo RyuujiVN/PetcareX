@@ -66,7 +66,8 @@
 			"action": "ACTION"
 		},
 		"actions": {
-			"startExam": "Start examination"
+			"startExam": "Start examination",
+			"reloadPage": "Reload page"
 		},
 		"states": {
 			"empty": "No matching appointments.",
@@ -119,17 +120,30 @@
 			},
 			"alerts": {
 				"notCreatedTitle": "Examination form has not been created",
-				"notCreatedDesc": "After creating the form, veterinarians only have 15 minutes to edit it if there are mistakes.",
-				"editingWindowTitle": "Within editable window",
-				"editingWindowDesc": "Remaining time: {{time}} (calculated from server createdAt).",
-				"expiredTitle": "Editing window expired",
-				"expiredDesc": "The form has exceeded 15 minutes since creation, so the system switched to read-only mode.",
+				"notCreatedDesc": "Fill in the information and submit to create the form. You can keep editing until the customer pays.",
+				"editableTitle": "Form is editable",
+				"editableDesc": "You can continue updating information until the invoice is paid.",
 				"paymentLockedTitle": "Form locked after payment",
-				"paymentLockedDesc": "The invoice has been paid successfully. This examination form is no longer editable.",
-				"serverSyncFailTitle": "Unable to sync server time",
-				"serverSyncFailDesc": "Backend should expose Date header or serverTime for precise server-clock lock calculation.",
-				"missingCreatedAtTitle": "Missing form createdAt",
-				"missingCreatedAtDesc": "Backend should return createdAt in appointment medical data or medical detail endpoint to compute the 15-minute lock."
+				"paymentLockedDesc": "The invoice has been paid successfully. This examination form is no longer editable."
+			},
+			"patientInfo": {
+				"title": "Patient information",
+				"badge": "Information from booking record",
+				"ownerSection": "Owner information",
+				"petSection": "Pet information",
+				"ownerName": "Full name",
+				"ownerEmail": "Email",
+				"ownerPhone": "Phone",
+				"petName": "Name",
+				"petSpecies": "Species",
+				"petBreed": "Breed",
+				"petGender": "Gender",
+				"petAge": "Age",
+				"petWeight": "Weight",
+				"noInfo": "No information",
+				"loadingOwner": "Loading owner information...",
+				"phoneMissingPrompt": "Phone number missing — please enter",
+				"phonePlaceholder": "Enter phone number (10 digits)"
 			},
 			"sections": {
 				"walkInCustomerPet": "Customer & Pet information",
