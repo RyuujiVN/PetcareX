@@ -2,6 +2,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { CreatePostDTO } from './dtos/create-post.dto';
@@ -13,12 +14,20 @@ import { User } from 'src/user/entities/user.entity';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { PostPagination } from './types/post-pagination.type';
 import { Like } from '../entities/like.entity';
+import { Notification } from 'src/notification/entities/notification.entity';
+import { NotificationEnum } from 'src/common/enums/notification.enum';
+import { NotificationGateway } from 'src/notification/notification.gateway';
 
 @Injectable()
 export class PostService {
+  private readonly logger = new Logger(PostService.name);
+
   constructor(
     @InjectRepository(ForumPost)
     private readonly postRepository: Repository<ForumPost>,
+    @InjectRepository(Notification)
+    private readonly notificationRepository: Repository<Notification>,
+    private readonly notificationGateway: NotificationGateway,
     private readonly dataSource: DataSource,
   ) {}
 
@@ -84,20 +93,25 @@ export class PostService {
 
   // Like bài đăng
   async likePost(postId: string, userId: string) {
-    return await this.dataSource.transaction(async (manager) => {
-      // 1. Tạo mới like
+    const result = await this.dataSource.transaction(async (manager) => {
       const likeRepo = manager.getRepository(Like);
+      const postRepo = manager.getRepository(ForumPost);
+
       const like = new Like();
       like.userId = userId;
       like.postId = postId;
 
-      await likeRepo.save(like);
-
-      // 2. Cập nhật lượt like bên post
-      const postRepo = manager.getRepository(ForumPost);
-      const post = await postRepo.findOne({
-        where: { id: like.postId },
-      });
+      const [_, post, user] = await Promise.all([
+        likeRepo.save(like),
+        postRepo.findOne({
+          where: { id: postId },
+          select: ['id', 'authorId'],
+        }),
+        manager.getRepository(User).findOne({
+          where: { id: userId },
+          select: ['id', 'fullName', 'avatarUrl'],
+        }),
+      ]);
 
       if (!post) throw new NotFoundException('Không tìm thấy post');
 
@@ -105,10 +119,39 @@ export class PostService {
 
       return {
         postId: post.id,
+        authorId: post.authorId,
         likeCount: post.likeCount + 1,
         liked: true,
+        userName: user?.fullName,
+        avatarUrl: user?.avatarUrl,
       };
     });
+
+    // Gửi thông báo đến người đăng post (không tự like chính mình)
+    if (result.authorId && result.authorId !== userId) {
+      try {
+        const notification = this.notificationRepository.create({
+          recipientId: result.authorId,
+          type: NotificationEnum.LIKE,
+          target: {
+            postId: result.postId,
+            userId,
+            userName: result.userName,
+            avatarUrl: result.avatarUrl,
+          },
+        });
+        const saved = await this.notificationRepository.save(notification);
+        this.notificationGateway.sendNotification(saved.recipientId, saved);
+      } catch (error) {
+        this.logger.error(error.message, error.stack);
+      }
+    }
+
+    return {
+      postId: result.postId,
+      likeCount: result.likeCount,
+      liked: result.liked,
+    };
   }
 
   // Xoá like bài đăng
