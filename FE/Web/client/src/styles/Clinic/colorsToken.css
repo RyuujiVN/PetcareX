@@ -47,4 +47,21 @@
   --page-success-primary: var(--color-brand-primary);
   --page-success-primary-hover: var(--color-brand-primary-hover);
 
+  --page-revenue-primary: #4672b4;
+  --page-revenue-primary-light: #e8eef8;
+  --page-revenue-paid: #52c41a;
+  --page-revenue-paid-bg: #f6ffed;
+  --page-revenue-unpaid: #faad14;
+  --page-revenue-unpaid-bg: #fffbe6;
+  --page-revenue-chart-line: #4672b4;
+  --page-revenue-chart-area: rgba(70, 114, 180, 0.08);
+  --page-revenue-chart-secondary: #8c8c8c;
+  --page-revenue-card-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --page-revenue-card-icon-revenue: #4672b4;
+  --page-revenue-card-icon-paid: #52c41a;
+  --page-revenue-card-icon-unpaid: #faad14;
+  --page-revenue-card-icon-avg: #1890ff;
+  --page-revenue-up: #52c41a;
+  --page-revenue-down: #ff4d4f;
+
 }

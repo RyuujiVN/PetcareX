@@ -701,5 +701,60 @@
 			"passwordChangeFailed": "Không thể đổi mật khẩu"
 		}
 	},
-	"common": {}
+	"common": {},
+	"revenue": {
+		"pageTitle": "BÁO CÁO DOANH THU",
+		"loading": "Đang tải dữ liệu doanh thu...",
+		"period": {
+			"today": "Hôm nay",
+			"week": "7 ngày",
+			"month": "Tháng này",
+			"year": "Năm nay"
+		},
+		"cards": {
+			"totalRevenue": "Tổng doanh thu",
+			"paidInvoices": "Đã thanh toán",
+			"unpaidInvoices": "Chưa thanh toán",
+			"averagePerRecord": "Giá trị TB / lượt"
+		},
+		"chart": {
+			"dailyTitle": "Doanh thu theo ngày",
+			"serviceTitle": "Theo loại dịch vụ",
+			"revenueLegend": "Doanh thu",
+			"countLegend": "Số lượt khám"
+		},
+		"specialty": {
+			"internalMedicine": "Khám bệnh",
+			"surgery": "Phẫu thuật",
+			"vaccination": "Tiêm vắc-xin",
+			"ultrasound": "Siêu âm",
+			"other": "Khác"
+		},
+		"topVets": {
+			"title": "Top bác sĩ theo doanh thu",
+			"doctor": "Bác sĩ",
+			"records": "Số lượt",
+			"revenue": "Doanh thu"
+		},
+		"invoices": {
+			"title": "Hoá đơn gần đây",
+			"filterAll": "Tất cả",
+			"filterPaid": "Đã thanh toán",
+			"filterUnpaid": "Chưa thanh toán",
+			"colRecord": "Phiếu khám",
+			"colPet": "Thú cưng",
+			"colVet": "Bác sĩ",
+			"colDate": "Ngày",
+			"colAmount": "Tổng tiền",
+			"colStatus": "Trạng thái",
+			"statusPaid": "Đã thanh toán",
+			"statusUnpaid": "Chưa thanh toán"
+		},
+		"empty": {
+			"noChartData": "Chưa có dữ liệu doanh thu để hiển thị biểu đồ",
+			"noServiceData": "Chưa có dữ liệu phân bổ dịch vụ",
+			"noVetData": "Chưa có dữ liệu bác sĩ",
+			"noInvoices": "Không còn hóa đơn cần thanh toán."
+		}
+	}
 }

@@ -18,8 +18,51 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Markdown rendering: `react-markdown` + `remark-gfm`.
 - Social auth: Firebase Web SDK (`firebase/app`, `firebase/auth`, `firebase/analytics`).
 - Styling: CSS Modules + CSS page-level + token CSS variables.
+- Charts: `recharts` (Area, Pie charts cho Revenue Dashboard).
 
 ## Cập nhật mới nhất (2026-04-10)
+
+### Cập nhật bổ sung (2026-04-14) — Revenue Dashboard (Báo cáo Doanh thu Phòng khám)
+
+**Tính năng mới:** Trang báo cáo doanh thu cho Clinic Portal tại route `/clinic/revenue`.
+
+**Components:**
+- `src/pages/Clinic/Revenue/RevenueDashboard.jsx` — Trang chính, tổng hợp 4 khu vực.
+- `src/pages/Clinic/Revenue/components/RevenueSummaryCards.jsx` — 4 thẻ tổng quan: tổng doanh thu, số hoá đơn đã thanh toán, chưa thanh toán, giá trị trung bình/lượt.
+- `src/pages/Clinic/Revenue/components/RevenueChart.jsx` — Biểu đồ Area (doanh thu theo ngày) + Pie (phân bổ theo chuyên khoa bác sĩ).
+- `src/pages/Clinic/Revenue/components/TopVeterinariansTable.jsx` — Top bác sĩ xếp hạng theo doanh thu.
+- `src/pages/Clinic/Revenue/components/RecentInvoicesTable.jsx` — Bảng hoá đơn gần đây, filter theo status (Tất cả / Đã TT / Chưa TT).
+- `src/pages/Clinic/Revenue/revenue.module.css` — Stylesheet, toàn bộ màu dùng CSS token.
+
+**Service & Hook:**
+- `src/services/revenueService.js` — Fetch và aggregate dữ liệu doanh thu: `aggregateRevenueData`, `calculateSummary`, `calculateDailyRevenue`, `calculateTopVeterinarians`, `getRecentInvoices`.
+- `src/hooks/Clinic/useRevenue.js` — Quản lý state doanh thu, filter theo kỳ (Hôm nay / 7 ngày / Tháng / Năm), filter invoice status.
+
+**Cách tính doanh thu:** FE tự tính — không có API aggregate ở BE.
+1. Fetch toàn bộ medical records qua `GET /api/medical/clinic` (iterate phân trang).
+2. Fetch invoice cho từng record qua `GET /api/invoice/{medicalRecordId}` (batch 10 song song).
+3. Fetch medical detail cho từng record qua `GET /api/medical/{id}` (lấy veterinarian info).
+4. Aggregate: sum `totalAmount` của invoice `PAID`, group by ngày, group by veterinarian.
+5. Filter theo kỳ thời gian trên client side (dùng dayjs).
+
+**API sử dụng:**
+- `GET /api/medical/clinic?page=&limit=` — danh sách phiếu khám clinic.
+- `GET /api/invoice/{medicalRecordId}` — hoá đơn theo phiếu khám.
+- `GET /api/medical/{id}` — chi tiết phiếu khám (lấy veterinarian).
+
+**Color tokens mới** (thêm vào `src/styles/Clinic/colorsToken.css`):
+- `--page-revenue-primary`, `--page-revenue-primary-light`, `--page-revenue-paid`, `--page-revenue-paid-bg`, `--page-revenue-unpaid`, `--page-revenue-unpaid-bg`, `--page-revenue-chart-line`, `--page-revenue-chart-area`, `--page-revenue-chart-secondary`, `--page-revenue-card-shadow`, `--page-revenue-card-icon-*`, `--page-revenue-up`, `--page-revenue-down`.
+
+**Chart library:** `recharts` (mới thêm vào dependencies).
+
+**i18n:** Bổ sung namespace `revenue` trong `src/locales/clinic/vi.json` và `en.json`.
+
+**Routing:** `/clinic/revenue` → `RevenueDashboard` (trước đây là placeholder trỏ `AppointmentManagement`).
+
+**Hạn chế do BE:**
+- BE không có API aggregate doanh thu → nhiều API calls khi load (N+1).
+- BE không hỗ trợ filter date range trên medical/invoice endpoints → FE phải load hết rồi filter client-side.
+- Hiệu suất phụ thuộc số lượng phiếu khám của phòng khám; với phòng khám lớn (>200 records) có thể chậm.
 
 ### Cập nhật bổ sung (2026-04-13) — Fix POST /api/medical 400 & PatientInfoPanel
 - Veterinarian `RecordExaminationForm`:
@@ -146,6 +189,7 @@ Không có consumer nào import từ `data/`, nên không cần cập nhật imp
 | `petService.js` | CRUD thú cưng |
 | `userService.js` | User profile |
 | `veterinarianService.js` | CRUD bác sĩ thú y |
+| `revenueService.js` | Aggregate doanh thu phòng khám (FE-side) |
 
 ### Quy ước thêm file mới
 1. Endpoint REST/HTTP mới phải đặt trong `src/services/<domain>Service.js`.
