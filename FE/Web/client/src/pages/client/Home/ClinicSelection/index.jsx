@@ -53,9 +53,23 @@ export default function ClinicSelection() {
     };
   }, []);
 
+  const getRatingPercentage = (clinic) => {
+    const avgRating = Number(clinic?.avgRating) || 0;
+    const boundedRating = Math.max(0, Math.min(5, avgRating));
+    return (boundedRating / 5) * 100;
+  };
+
   const filtered = clinics.filter((c) =>
     (c.name || "").toLowerCase().includes(searchText.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const percentageDiff = getRatingPercentage(b) - getRatingPercentage(a);
+    if (percentageDiff !== 0) return percentageDiff;
+
+    const reviewDiff = (Number(b?.totalReviews) || 0) - (Number(a?.totalReviews) || 0);
+    if (reviewDiff !== 0) return reviewDiff;
+
+    return String(a?.name || "").localeCompare(String(b?.name || ""));
+  });
 
 useEffect(() => {
   const update = () => {
