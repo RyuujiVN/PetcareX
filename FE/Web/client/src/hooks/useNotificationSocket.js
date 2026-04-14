@@ -62,6 +62,19 @@ const isNotFoundNotificationError = (error) => {
   return message.includes('không tìm thấy thông báo') || message.includes('khong tim thay thong bao');
 };
 
+const emitPostLikedRealtime = (notification) => {
+  const postId = String(notification?.postId || notification?.target?.postId || '').trim();
+  if (!postId || typeof window === 'undefined') return;
+
+  const detail = {
+    postId,
+    notificationId: notification?.id || null,
+  };
+
+  window.dispatchEvent(new CustomEvent('notif:postLiked', { detail }));
+  window.dispatchEvent(new CustomEvent('refreshPost', { detail }));
+};
+
 /**
  * Shared notification hook for all portals.
  * - Hydrates initial/history notifications from backend REST API.
@@ -169,6 +182,10 @@ export default function useNotificationSocket({
       console.log(`[useNotificationSocket] 📩 Nhận notification (key=${storageKeyRef.current}):`, data);
       const mapped = mapBeNotification(data);
       if (!mapped) return;
+
+      if (mapped?.type === 'forum-like') {
+        emitPostLikedRealtime(mapped);
+      }
 
       setLatestIncomingNotification(mapped);
 

@@ -293,6 +293,20 @@
     font-size: 12px;
 }
 
+.client-live-notification-toast.ant-notification-notice-with-icon .ant-notification-notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    margin-inline-end: 8px;
+}
+
+.client-live-notification-toast.ant-notification-notice-with-icon .ant-notification-notice-message,
+.client-live-notification-toast.ant-notification-notice-with-icon .ant-notification-notice-description {
+    margin-inline-start: 56px;
+}
+
 
 .auth-buttons {
     display: flex;

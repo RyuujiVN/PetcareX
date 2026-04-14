@@ -3,6 +3,7 @@ import {
   EyeOutlined,
   LockOutlined,
   LogoutOutlined,
+  ScheduleOutlined,
   UserOutlined,
 } from "@ant-design/icons";
 import {
@@ -23,8 +24,8 @@ import { useTranslation } from "react-i18next";
 import { FaPaw } from "react-icons/fa";
 import { BsRobot } from "react-icons/bs";
 import {
-  FaRegCalendarCheck,
   FaRegCommentDots,
+  FaReply,
   FaRegThumbsUp,
 } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
@@ -72,6 +73,22 @@ const isNotFoundNotificationError = (error) => {
   );
 };
 
+const emitPostLikedRealtime = (notificationItem) => {
+  const postId = String(
+    notificationItem?.postId || notificationItem?.target?.postId || "",
+  ).trim();
+
+  if (!postId || typeof window === "undefined") return;
+
+  const detail = {
+    postId,
+    notificationId: notificationItem?.id || null,
+  };
+
+  window.dispatchEvent(new CustomEvent("notif:postLiked", { detail }));
+  window.dispatchEvent(new CustomEvent("refreshPost", { detail }));
+};
+
 const formatNotificationTimeAgo = (dateValue, t) => {
   const createdAt = new Date(dateValue).getTime();
   if (Number.isNaN(createdAt)) return t("header.notifications.justNow");
@@ -103,20 +120,96 @@ const formatSyncTime = (dateValue) => {
   });
 };
 
-const renderNotificationIcon = (type) => {
-  if (type === "appointment") {
-    return <FaRegCalendarCheck />;
+const resolveForumActionType = (notificationItem) => {
+  const type = String(notificationItem?.type || "").toLowerCase();
+  const beType = String(notificationItem?.beType || "").toUpperCase();
+
+  if (type.includes("like") || beType.includes("LIKE")) return "like";
+  if (type.includes("reply") || beType.includes("REPLY")) return "reply";
+  if (type.includes("comment") || beType.includes("COMMENT")) return "comment";
+
+  return null;
+};
+
+const getForumActionIcon = (actionType) => {
+  if (actionType === "like") {
+    return <FaRegThumbsUp size={11} color="#ffffff" />;
   }
 
-  if (type === "forum-like") {
-    return <FaRegThumbsUp />;
+  if (actionType === "reply") {
+    return <FaReply size={10} color="#ffffff" />;
   }
 
-  if (type === "ai-diagnosis") {
-    return <FaRegCalendarCheck />;
+  return <FaRegCommentDots size={11} color="#ffffff" />;
+};
+
+const getNotificationIcon = (notificationItem) => {
+  const type = String(notificationItem?.type || "").toLowerCase();
+  const beType = String(notificationItem?.beType || "").toUpperCase();
+  const forumActionType = resolveForumActionType(notificationItem);
+
+  if (type === "ai-diagnosis" || beType === "AI_DIAGNOSIS") {
+    return (
+      <span
+        className="notification-type-icon ai-diagnosis"
+        style={{ background: "rgba(94, 92, 230, 0.15)", color: "#4f46e5" }}
+      >
+        <BsRobot />
+      </span>
+    );
   }
 
-  return <FaRegCommentDots />;
+  if (
+    beType === "APPOINTMENT_BOOKED" ||
+    beType === "APPOINTMENT_REMINDER" ||
+    beType === "FOLLOW_UP_REMINDER"
+  ) {
+    return (
+      <span
+        className="notification-type-icon appointment"
+        style={{ background: "rgba(34, 197, 94, 0.16)", color: "#16a34a" }}
+      >
+        <ScheduleOutlined />
+      </span>
+    );
+  }
+
+  if (forumActionType) {
+    const senderName = String(notificationItem?.senderName || "").trim();
+    const avatarUrl =
+      notificationItem?.senderAvatar || notificationItem?.avatarUrl || undefined;
+
+    return (
+      <div style={{ position: "relative", width: 40, height: 40, flex: "0 0 40px" }}>
+        <Avatar src={avatarUrl} size={40}>
+          {senderName?.[0]?.toUpperCase()}
+        </Avatar>
+        <span
+          style={{
+            position: "absolute",
+            bottom: -2,
+            right: -2,
+            background: "#1877f2",
+            borderRadius: "50%",
+            width: 20,
+            height: 20,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "2px solid white",
+          }}
+        >
+          {getForumActionIcon(forumActionType)}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <span className="notification-type-icon">
+      <IoMdNotificationsOutline />
+    </span>
+  );
 };
 
 function Header() {
@@ -357,6 +450,25 @@ function Header() {
     };
   }, [currentUserId, refreshNotifications, token]);
 
+  const handleClickNotificationItem = useCallback(
+    (item, options = {}) => {
+      if (!item?.id) return;
+
+      void markNotificationAsRead(item.id);
+      setIsNotificationOpen(false);
+
+      if (options?.toastKey) {
+        notificationApi.destroy(options.toastKey);
+      }
+
+      const targetHref = resolveNotificationHref(item, "client");
+      if (targetHref) {
+        navigate(targetHref);
+      }
+    },
+    [markNotificationAsRead, navigate, notificationApi],
+  );
+
   // ── WebSocket: receive realtime notifications from BE (e.g. AI_DIAGNOSIS) ──
   useEffect(() => {
     if (!token || !currentUserId) return;
@@ -368,16 +480,32 @@ function Header() {
       const mapped = mapBeNotification(data);
       if (!mapped) return;
 
+      if (mapped?.type === "forum-like") {
+        emitPostLikedRealtime(mapped);
+      }
+
       if (!shownToastIdsRef.current.has(mapped.id)) {
         shownToastIdsRef.current.add(mapped.id);
+        const toastKey = `client-live-notification-${mapped.id}`;
         notificationApi.open({
-          key: `client-live-notification-${mapped.id}`,
+          key: toastKey,
+          className: "client-live-notification-toast",
           message: mapped.title || t("header.notifications.title"),
           description: mapped.description || "",
           placement: "bottomRight",
           duration: 5,
-          icon: <BsRobot  style={{ color: 'red' }}/>,
-          onClick: () => handleClickNotificationItem(mapped),
+          icon: (
+            <span
+              style={{
+                marginRight: 8,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              {getNotificationIcon(mapped)}
+            </span>
+          ),
+          onClick: () => handleClickNotificationItem(mapped, { toastKey }),
         });
       }
 
@@ -396,22 +524,7 @@ function Header() {
       notifySocket.removeAllListeners();
       notifySocket.disconnect();
     };
-  }, [currentUserId, notificationApi, t, token]);
-
-  const handleClickNotificationItem = useCallback(
-    (item) => {
-      if (!item?.id) return;
-
-      void markNotificationAsRead(item.id);
-      setIsNotificationOpen(false);
-
-      const targetHref = resolveNotificationHref(item, "client");
-      if (targetHref) {
-        navigate(targetHref);
-      }
-    },
-    [markNotificationAsRead, navigate],
-  );
+  }, [currentUserId, handleClickNotificationItem, notificationApi, t, token]);
 
   const handleMarkAllNotificationsAsRead = () => {
     void markAllNotificationItemsAsRead();
@@ -487,13 +600,7 @@ function Header() {
                     className={`notification-item ${isUnread ? "unread" : ""}`}
                     onClick={() => handleClickNotificationItem(item)}
                   >
-                    {item.avatarUrl ? (
-                      <Avatar src={item.avatarUrl} size={42} />
-                    ) : (
-                      <span className={`notification-type-icon ${item.type}`}>
-                        {renderNotificationIcon(item.type)}
-                      </span>
-                    )}
+                    {getNotificationIcon(item)}
 
                     <span className="notification-item-text">
                       <span className="notification-item-title">

@@ -10,6 +10,19 @@ export const NOTIFICATION_FILTER = {
 };
 
 const normalizeText = (value) => String(value || '').trim();
+const normalizeId = (value) => {
+  const text = normalizeText(value);
+  return text || null;
+};
+const pickFirstText = (...values) => {
+  for (const value of values) {
+    const normalized = normalizeText(value);
+    if (normalized) return normalized;
+  }
+
+  return '';
+};
+const toObject = (value) => (value && typeof value === 'object' ? value : {});
 const t = (key, defaultValue, options = {}) =>
   i18n.t(key, { defaultValue, ...options });
 
@@ -23,6 +36,78 @@ const formatNotificationDate = (value) =>
 
 const formatNotificationTime = (value) =>
   formatTimeHHMM(value, normalizeText(value));
+
+const buildNotificationTarget = (rawTarget) => {
+  const target = toObject(rawTarget);
+
+  return {
+    ...target,
+    appointmentId: normalizeId(target?.appointmentId || target?.appointment?.id),
+    postId: normalizeId(target?.postId || target?.post?.id),
+    commentId: normalizeId(
+      target?.commentId || target?.comment?.id || target?.replyId || target?.parentCommentId,
+    ),
+  };
+};
+
+const resolveSenderName = (raw = {}, target = {}) =>
+  pickFirstText(
+    raw?.senderName,
+    target?.senderName,
+    target?.authorName,
+    target?.actorName,
+    target?.userName,
+    target?.sender?.fullName,
+    target?.author?.fullName,
+    target?.user?.fullName,
+  );
+
+const resolveSenderAvatar = (raw = {}, target = {}) =>
+  pickFirstText(
+    raw?.senderAvatar,
+    target?.senderAvatar,
+    target?.authorAvatar,
+    target?.actorAvatar,
+    target?.userAvatar,
+    target?.sender?.avatarUrl,
+    target?.author?.avatarUrl,
+    target?.user?.avatarUrl,
+  );
+
+const resolveForumInteractionType = (beType, target = {}) => {
+  const normalizedBeType = normalizeText(beType).toUpperCase();
+  const hint = [
+    normalizedBeType,
+    target?.actionType,
+    target?.eventType,
+    target?.notificationType,
+    target?.interactionType,
+  ]
+    .map((value) => normalizeText(value).toLowerCase())
+    .join(' ');
+
+  if (hint.includes('like')) return 'forum-like';
+  if (hint.includes('reply')) return 'forum-reply';
+  if (hint.includes('comment')) return 'forum-comment';
+
+  if (normalizedBeType === 'COMMENT_REPLY') return 'forum-reply';
+  if (normalizedBeType.includes('LIKE')) return 'forum-like';
+  if (normalizedBeType.includes('REPLY')) return 'forum-reply';
+  if (normalizedBeType.includes('COMMENT')) return 'forum-comment';
+
+  return null;
+};
+
+const buildForumHref = (target = {}, forumInteractionType = null) => {
+  const postId = normalizeId(target?.postId);
+  const commentId = normalizeId(target?.commentId);
+
+  if (!postId) return '/forum';
+  if (forumInteractionType === 'forum-like') return `/forum?postId=${postId}`;
+  if (commentId) return `/forum?postId=${postId}&commentId=${commentId}`;
+
+  return `/forum?postId=${postId}`;
+};
 
 const buildAppointmentDescription = (beType, target = {}) => {
   const dateText = formatNotificationDate(target?.appointmentDate);
@@ -97,7 +182,8 @@ const resolveExamPortalPath = (portal) => {
 export const resolveNotificationHref = (notificationItem, portal = 'client') => {
   const effectivePortal = normalizePortal(portal);
   const beType = normalizeText(notificationItem?.beType).toUpperCase();
-  const target = notificationItem?.target || {};
+  const target = buildNotificationTarget(notificationItem?.target);
+  const forumInteractionType = resolveForumInteractionType(beType, target);
   const href = normalizeText(notificationItem?.href);
 
   if (href) {
@@ -114,14 +200,14 @@ export const resolveNotificationHref = (notificationItem, portal = 'client') => 
 
   if (beType === 'AI_DIAGNOSIS') {
     if (effectivePortal === 'client' && target?.appointmentId) {
-      return `/appointments?appointmentId=${target.appointmentId}`;
+      return `/appointments?openDiagnosis=${target.appointmentId}`;
     }
 
     return resolveExamPortalPath(effectivePortal);
   }
 
-  if (beType === 'COMMENT_REPLY') {
-    return target?.postId ? `/forum?post=${target.postId}` : '/forum';
+  if (forumInteractionType) {
+    return buildForumHref(target, forumInteractionType);
   }
 
   return null;
@@ -131,11 +217,23 @@ export const mapBeNotification = (raw) => {
   if (!raw || !raw.id) return null;
 
   const normalizedType = normalizeText(raw.type).toUpperCase();
+  const target = buildNotificationTarget(raw.target);
+  const senderName = resolveSenderName(raw, target);
+  const senderAvatar = resolveSenderAvatar(raw, target);
+  const forumInteractionType = resolveForumInteractionType(normalizedType, target);
+  const fallbackTitle = pickFirstText(raw?.title, raw?.message, target?.title);
+  const fallbackDescription = pickFirstText(raw?.description, target?.description, target?.content);
   const base = {
     id: raw.id,
     createdAt: raw.createdAt || new Date().toISOString(),
     beType: normalizedType,
-    target: raw.target || {},
+    target,
+    appointmentId: target?.appointmentId,
+    postId: target?.postId,
+    commentId: target?.commentId,
+    senderName: senderName || null,
+    senderAvatar: senderAvatar || null,
+    avatarUrl: senderAvatar || null,
     isRead: Boolean(raw.isRead),
     href: null,
   };
@@ -150,11 +248,11 @@ export const mapBeNotification = (raw) => {
           'New appointment from {{name}}',
           {
             name:
-              raw.target?.userName ||
+              target?.userName ||
               t('header.notifications.events.actorFallback', 'customer'),
           },
         ),
-        description: buildAppointmentDescription(normalizedType, raw.target),
+        description: buildAppointmentDescription(normalizedType, target),
         href: '/appointments',
       };
 
@@ -166,7 +264,7 @@ export const mapBeNotification = (raw) => {
           'header.notifications.events.appointmentCancelledTitle',
           'Appointment canceled',
         ),
-        description: buildAppointmentDescription(normalizedType, raw.target),
+        description: buildAppointmentDescription(normalizedType, target),
         href: '/appointments',
       };
 
@@ -178,7 +276,7 @@ export const mapBeNotification = (raw) => {
           'header.notifications.events.appointmentReminderTitle',
           'Appointment reminder',
         ),
-        description: buildAppointmentDescription(normalizedType, raw.target),
+        description: buildAppointmentDescription(normalizedType, target),
         href: '/appointments',
       };
 
@@ -190,7 +288,7 @@ export const mapBeNotification = (raw) => {
           'header.notifications.events.appointmentStatusUpdatedByClientTitle',
           'Customer updated appointment status',
         ),
-        description: buildAppointmentDescription(normalizedType, raw.target),
+        description: buildAppointmentDescription(normalizedType, target),
         href: '/appointments',
       };
 
@@ -203,7 +301,7 @@ export const mapBeNotification = (raw) => {
           'AI diagnosis result for {{petName}}',
           {
             petName:
-              raw.target?.petName ||
+              target?.petName ||
               t('header.notifications.events.petFallback', 'pet'),
           },
         ),
@@ -222,11 +320,11 @@ export const mapBeNotification = (raw) => {
           'header.notifications.events.followUpReminderTitle',
           'Follow-up reminder',
         ),
-        description: raw.target?.petName
+        description: target?.petName
           ? t(
               'header.notifications.events.followUpReminderWithPetDescription',
               'It is time for a follow-up visit for {{petName}}.',
-              { petName: raw.target.petName },
+              { petName: target.petName },
             )
           : t(
               'header.notifications.events.followUpReminderDescription',
@@ -238,26 +336,45 @@ export const mapBeNotification = (raw) => {
     case 'COMMENT_REPLY':
       return {
         ...base,
-        type: 'forum-comment',
+        type: forumInteractionType || 'forum-reply',
         title: t(
           'header.notifications.events.commentReplyTitle',
           'Someone replied to your comment',
         ),
         description:
-          raw.target?.content ||
+          fallbackDescription ||
           t(
             'header.notifications.events.commentReplyFallbackDescription',
             'See details in forum.',
           ),
-        href: raw.target?.postId ? `/forum?post=${raw.target.postId}` : '/forum',
+        href: buildForumHref(target, forumInteractionType || 'forum-reply'),
       };
 
     default:
+      if (forumInteractionType) {
+        return {
+          ...base,
+          type: forumInteractionType,
+          title:
+            fallbackTitle ||
+            t('header.notifications.events.defaultTitle', 'New notification'),
+          description:
+            fallbackDescription ||
+            t(
+              'header.notifications.events.commentReplyFallbackDescription',
+              'See details in forum.',
+            ),
+          href: buildForumHref(target, forumInteractionType),
+        };
+      }
+
       return {
         ...base,
         type: 'system',
-        title: t('header.notifications.events.defaultTitle', 'New notification'),
-        description: '',
+        title:
+          fallbackTitle ||
+          t('header.notifications.events.defaultTitle', 'New notification'),
+        description: fallbackDescription,
       };
   }
 };

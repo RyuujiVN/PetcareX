@@ -6,7 +6,7 @@ import {
 	FaRegThumbsUp,
 } from 'react-icons/fa6'
 import { Dropdown, message, Modal, Select } from 'antd'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { createCommentApi, getRepliesApi } from '../../../../services/forumService'
@@ -214,9 +214,12 @@ const mapPostToUi = (post, t, language) => {
 function Forum() {
 	const { t, i18n } = useTranslation()
 	const navigate = useNavigate()
-	const [searchParams] = useSearchParams()
+	const [searchParams, setSearchParams] = useSearchParams()
 	const composerRef = useRef(null)
 	const feedScrollRef = useRef(null)
+	const postHighlightTimeoutRef = useRef(null)
+	const commentHighlightTimeoutRef = useRef(null)
+	const processedRealtimeLikeNotifRef = useRef(new Set())
 	const postImageInputRef = useRef(null)
 	const commentImageInputRef = useRef(null)
 	const replyImageInputRef = useRef(null)
@@ -258,6 +261,8 @@ function Forum() {
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
 	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
+	const [highlightedPostId, setHighlightedPostId] = useState('')
+	const [highlightedCommentId, setHighlightedCommentId] = useState('')
 
 	const filteredTopics = useMemo(() => {
 		const mapped = apiTopics
@@ -359,8 +364,63 @@ function Forum() {
 	}, [apiPosts])
 
 
-	const selectedPost = searchParams.get('post')
+	const selectedPostIdFromQuery = String(searchParams.get('postId') || searchParams.get('post') || '').trim()
+	const selectedCommentIdFromQuery = String(searchParams.get('commentId') || '').trim()
 	const isAnyOverlayOpen = Boolean(editingPost)
+
+	const scrollElementIntoFeed = useCallback((element) => {
+		if (!element) return
+
+		const container = feedScrollRef.current
+		if (!container || !container.contains(element)) {
+			element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+			return
+		}
+
+		const containerRect = container.getBoundingClientRect()
+		const elementRect = element.getBoundingClientRect()
+		const top = elementRect.top - containerRect.top + container.scrollTop - 24
+		container.scrollTo({ top: Math.max(top, 0), behavior: 'smooth' })
+	}, [])
+
+	const flashPostHighlight = useCallback((postId) => {
+		setHighlightedPostId(String(postId))
+		if (postHighlightTimeoutRef.current) {
+			window.clearTimeout(postHighlightTimeoutRef.current)
+		}
+		postHighlightTimeoutRef.current = window.setTimeout(() => {
+			setHighlightedPostId((prev) => (prev === String(postId) ? '' : prev))
+		}, 1500)
+	}, [])
+
+	const flashCommentHighlight = useCallback((commentId) => {
+		setHighlightedCommentId(String(commentId))
+		if (commentHighlightTimeoutRef.current) {
+			window.clearTimeout(commentHighlightTimeoutRef.current)
+		}
+		commentHighlightTimeoutRef.current = window.setTimeout(() => {
+			setHighlightedCommentId((prev) => (prev === String(commentId) ? '' : prev))
+		}, 1500)
+	}, [])
+
+	const clearForumTargetParams = useCallback(() => {
+		const next = new URLSearchParams(searchParams)
+		next.delete('post')
+		next.delete('postId')
+		next.delete('commentId')
+		setSearchParams(next, { replace: true })
+	}, [searchParams, setSearchParams])
+
+	useEffect(() => {
+		return () => {
+			if (postHighlightTimeoutRef.current) {
+				window.clearTimeout(postHighlightTimeoutRef.current)
+			}
+			if (commentHighlightTimeoutRef.current) {
+				window.clearTimeout(commentHighlightTimeoutRef.current)
+			}
+		}
+	}, [])
 
 	const closeComposerModal = () => {
 		setIsComposerModalOpen(false)
@@ -442,6 +502,57 @@ function Forum() {
 
 		loadInitialData()
 	}, [i18n.language, t])
+
+	useEffect(() => {
+		if (!selectedPostIdFromQuery) return
+		if (selectedTopicFilter !== 'all') {
+			setSelectedTopicFilter('all')
+		}
+	}, [selectedPostIdFromQuery, selectedTopicFilter])
+
+	const refreshSinglePost = useCallback((postId) => {
+		const normalizedPostId = String(postId || '').trim()
+		if (!normalizedPostId) return
+
+		setApiPosts((prev) =>
+			prev.map((post) =>
+				String(post.id) === normalizedPostId
+					? {
+							...post,
+							likes: (Number(post.likes) || 0) + 1,
+					  }
+					: post,
+			),
+		)
+	}, [])
+
+	useEffect(() => {
+		const handleRealtimeLike = (event) => {
+			const postId = String(event?.detail?.postId || '').trim()
+			const notificationId = String(event?.detail?.notificationId || '').trim()
+
+			if (!postId) return
+
+			if (notificationId) {
+				if (processedRealtimeLikeNotifRef.current.has(notificationId)) return
+				processedRealtimeLikeNotifRef.current.add(notificationId)
+				if (processedRealtimeLikeNotifRef.current.size > 500) {
+					const oldest = processedRealtimeLikeNotifRef.current.values().next().value
+					processedRealtimeLikeNotifRef.current.delete(oldest)
+				}
+			}
+
+			refreshSinglePost(postId)
+		}
+
+		window.addEventListener('notif:postLiked', handleRealtimeLike)
+		window.addEventListener('refreshPost', handleRealtimeLike)
+
+		return () => {
+			window.removeEventListener('notif:postLiked', handleRealtimeLike)
+			window.removeEventListener('refreshPost', handleRealtimeLike)
+		}
+	}, [refreshSinglePost])
 
 	const updateParams = (nextValues, options = {}) => {
 		const next = new URLSearchParams(searchParams)
@@ -652,7 +763,7 @@ function Forum() {
 					message.success(t('pages.forum.deleteSuccess'))
 					if (expandedPostId === post.id) {
 						setExpandedPostId(null)
-						updateParams({ post: '' })
+						updateParams({ post: '', postId: '', commentId: '' })
 					}
 					await loadPosts()
 				} catch (error) {
@@ -787,6 +898,98 @@ function Forum() {
 			}))
 		}
 	}
+
+	useEffect(() => {
+		if (!selectedPostIdFromQuery || loadingPosts) return
+
+		const targetPost = apiPosts.find((post) => String(post.id) === selectedPostIdFromQuery)
+		if (!targetPost) {
+			clearForumTargetParams()
+			return
+		}
+
+		let cancelled = false
+		let commentPollTimer = null
+
+		const scrollAndHighlightPost = () => {
+			const postElement = document.getElementById(`forum-post-${selectedPostIdFromQuery}`)
+			if (!postElement) return false
+
+			scrollElementIntoFeed(postElement)
+			flashPostHighlight(selectedPostIdFromQuery)
+			return true
+		}
+
+		const handlePostOnlyNavigation = () => {
+			window.requestAnimationFrame(() => {
+				if (cancelled) return
+				scrollAndHighlightPost()
+				clearForumTargetParams()
+			})
+		}
+
+		const handleCommentNavigation = async () => {
+			setExpandedPostId(selectedPostIdFromQuery)
+
+			if (!commentsByPost[selectedPostIdFromQuery] && !loadingCommentsByPost[selectedPostIdFromQuery]) {
+				await loadCommentsForPost(selectedPostIdFromQuery)
+			}
+
+			if (cancelled) return
+
+			let attempts = 0
+			commentPollTimer = window.setInterval(() => {
+				if (cancelled) {
+					window.clearInterval(commentPollTimer)
+					return
+				}
+
+				attempts += 1
+				scrollAndHighlightPost()
+
+				const commentElement = document.getElementById(
+					`forum-comment-${selectedCommentIdFromQuery}`,
+				)
+
+				if (commentElement) {
+					scrollElementIntoFeed(commentElement)
+					flashCommentHighlight(selectedCommentIdFromQuery)
+					window.clearInterval(commentPollTimer)
+					clearForumTargetParams()
+					return
+				}
+
+				if (attempts >= 12) {
+					window.clearInterval(commentPollTimer)
+					clearForumTargetParams()
+				}
+			}, 120)
+		}
+
+		if (!selectedCommentIdFromQuery) {
+			handlePostOnlyNavigation()
+		} else {
+			void handleCommentNavigation()
+		}
+
+		return () => {
+			cancelled = true
+			if (commentPollTimer) {
+				window.clearInterval(commentPollTimer)
+			}
+		}
+	}, [
+		apiPosts,
+		clearForumTargetParams,
+		commentsByPost,
+		flashCommentHighlight,
+		flashPostHighlight,
+		loadingCommentsByPost,
+		loadingPosts,
+		scrollElementIntoFeed,
+		selectedCommentIdFromQuery,
+		selectedPostIdFromQuery,
+	])
 
 	const handleOpenComments = async (post) => {
 		const isOpening = expandedPostId !== post.id
@@ -1074,7 +1277,8 @@ function Forum() {
 						{visiblePosts.map((post) => (
 							<article
 								key={post.id}
-								className={`${styles.postCard} ${selectedPost === post.id ? styles.selectedPost : ''}`}
+								id={`forum-post-${post.id}`}
+								className={`${styles.postCard} ${highlightedPostId === String(post.id) ? styles.selectedPost : ''}`}
 							>
 								<header className={styles.postHeader}>
 									<div className={styles.postAuthorWrap}> 
@@ -1232,7 +1436,10 @@ function Forum() {
 										{(commentsByPost[post.id] || []).map((thread) => (
 											<div key={thread.main.id} className={styles.threadBlock}>
 												
-												<div className={styles.mainCommentBlock}>
+												<div
+													id={`forum-comment-${thread.main.id}`}
+													className={`${styles.mainCommentBlock} ${highlightedCommentId === String(thread.main.id) ? styles.targetComment : ''}`}
+												>
 													<img
 														src={thread.main.user.avatarUrl}
 														alt={thread.main.user.fullName}
@@ -1347,7 +1554,11 @@ function Forum() {
 												</div>
 
 												{(thread.replies || []).map((reply) => (
-													<div key={reply.id} className={styles.replyCommentBlock}>
+													<div
+														key={reply.id}
+														id={`forum-comment-${reply.id}`}
+														className={`${styles.replyCommentBlock} ${highlightedCommentId === String(reply.id) ? styles.targetComment : ''}`}
+													>
 														<img
 															src={reply.user.avatarUrl}
 															alt={reply.user.fullName}

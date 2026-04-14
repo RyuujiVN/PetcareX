@@ -21,6 +21,40 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-14) — tinh chỉnh Icon & điều hướng Notification
+- Client Header dùng helper icon thống nhất cho cả popup và toast realtime:
+  - `AI_DIAGNOSIS` -> `BsRobot` (tone AI tím/xanh).
+  - `APPOINTMENT_BOOKED` / `APPOINTMENT_REMINDER` / `FOLLOW_UP_REMINDER` -> `ScheduleOutlined` (xanh lá).
+  - Forum interaction (like/comment/reply) -> avatar người thao tác + badge icon nhỏ kiểu Facebook ở góc phải dưới.
+  - Fallback -> bell icon mặc định.
+- `notificationService.mapBeNotification()` đã normalize đầy đủ target (`appointmentId`, `postId`, `commentId`) và map thêm `senderName`, `senderAvatar` cho forum notification.
+- Quy ước deep-link mới:
+  - AI diagnosis: `/appointments?openDiagnosis=<appointmentId>`
+  - Like bài viết: `/forum?postId=<postId>`
+  - Comment/Reply: `/forum?postId=<postId>&commentId=<commentId>`
+- `AppointmentDetail`:
+  - đọc query `openDiagnosis`, chờ danh sách lịch hẹn load xong rồi tự mở popup `PetDiagnosisContent` đúng appointment.
+  - sau khi xử lý sẽ xóa query param bằng replace để tránh trigger lại.
+- `Forum`:
+  - đọc `postId` và `commentId`, tự scroll tới bài viết, tự mở phần comment khi cần, scroll tới comment/reply đích.
+  - áp dụng highlight ngắn (~1.5s) cho post/comment để người dùng định vị nhanh.
+  - xóa query param sau khi xử lý để tránh re-trigger.
+
+### Cập nhật bổ sung (2026-04-14) — Fix Notification runtime (spacing + realtime like + diagnosis auto-open)
+- Toast notification (góc phải dưới) đã fix khoảng cách icon-text:
+  - icon wrapper thêm `marginRight` + `display:flex` + `alignItems:center`.
+  - bổ sung class CSS cho toast để canh icon và text ổn định cả với icon thường và avatar badge.
+- Realtime like count trên Forum:
+  - khi nhận notification type like có `postId`, frontend phát custom events:
+    - `window.dispatchEvent(new CustomEvent('notif:postLiked', { detail: { postId, notificationId } }))`
+    - `window.dispatchEvent(new CustomEvent('refreshPost', { detail: { postId, notificationId } }))`
+  - Forum lắng nghe 2 event trên và gọi `refreshSinglePost(postId)` để cập nhật `likes + 1` trực tiếp trong state hiện tại, không refetch feed, không mất vị trí scroll.
+- Auto-open AI Diagnosis popup:
+  - `AppointmentDetail` chỉ xử lý `openDiagnosis` khi danh sách lịch đã load xong (`loading === false` + `appointmentsLoaded === true`).
+  - effect phụ thuộc dữ liệu liên quan (`openDiagnosisId`, `appointments/mappedAppointments`, `loading`).
+  - dùng `diagnosisOpenedRef` để chặn double-trigger.
+  - nếu tìm thấy appointment thì tự mở popup `PetDiagnosisContent`, sau đó clear query bằng replace.
+
 ### Cập nhật bổ sung (2026-04-13) — Fix POST /api/medical 400 & PatientInfoPanel
 - Veterinarian `RecordExaminationForm`:
   - **Fix lỗi 400**: BE appointment API không trả `owner.email` và `owner.phone` trong response → FE gửi payload thiếu 2 field bắt buộc.
@@ -79,6 +113,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 ### 4) Notification Bell + Toast realtime (Client/Clinic/Veterinarian)
 - Chuẩn hóa lại style và kích thước button chuông giữa các portal (đồng bộ form hiển thị).
 - Tinh chỉnh thêm canh giữa icon chuông ở Clinic/Veterinarian để cân xứng giống client (không lệch lên trên).
+- Popup panel và toast realtime dùng chung helper render icon theo loại thông báo.
 - Khi có thông báo mới từ socket:
   - hiển thị toast ở góc dưới bên phải,
   - tự ẩn sau 5 giây,
@@ -88,7 +123,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 ### 4.1) Client AI diagnosis — fetch từ backend
 - Loại bỏ luồng generate chẩn đoán AI local sau khi đặt lịch từ frontend.
 - Màn `AppointmentDetail` chuyển sang gọi API backend `GET /appointment/:id/ai-diagnosis` để lấy báo cáo chẩn đoán.
-- Notification loại `AI_DIAGNOSIS` điều hướng về lịch hẹn kèm `appointmentId` để mở đúng ngữ cảnh dữ liệu.
+- Notification loại `AI_DIAGNOSIS` điều hướng về lịch hẹn kèm query `openDiagnosis=<appointmentId>` để mở đúng ngữ cảnh dữ liệu.
 
 ### 4.2) Đánh giá phòng khám từ Hồ sơ y tế thú cưng
 - Ở `MedicalRecords`, với hồ sơ đã hoàn thành, badge trạng thái được thay bằng nút `Đánh giá`.
@@ -1098,8 +1133,44 @@ createdAt:   Date (auto)
 - `getNotificationsApi(instance, { limit, filter, createdAt })` -> gọi `GET /notification`
 - `markNotificationAsReadApi(instance, id)` -> gọi `PATCH /notification/mark-one/:id`
 - `markAllNotificationsAsReadApi(instance)` -> gọi `PATCH /notification/mark-all`
-- `mapBeNotification(raw)` -> map payload BE sang UI model dùng chung
+- `mapBeNotification(raw)` -> map payload BE sang UI model dùng chung, normalize target (`appointmentId`, `postId`, `commentId`) + sender (`senderName`, `senderAvatar`)
 - `loadClientNotifications(...)` giữ compatibility cho Client Header nhưng dữ liệu lấy trực tiếp từ BE notification API
+
+#### Icon Mapping & Navigation Convention (2026-04-14)
+- Icon mapping:
+  - `AI_DIAGNOSIS` -> `BsRobot`
+  - `APPOINTMENT_BOOKED` / `APPOINTMENT_REMINDER` / `FOLLOW_UP_REMINDER` -> `ScheduleOutlined`
+  - Forum interaction -> avatar + badge icon (`like/comment/reply`)
+  - Fallback -> bell icon
+- Query param convention:
+  - Diagnosis: `openDiagnosis`
+  - Forum target post: `postId`
+  - Forum target comment/reply: `commentId`
+- `resolveNotificationHref()` cho Client hiện trả deep-link theo convention mới:
+  - `/appointments?openDiagnosis=<appointmentId>`
+  - `/forum?postId=<postId>`
+  - `/forum?postId=<postId>&commentId=<commentId>`
+
+#### Runtime Sync Fixes (2026-04-14)
+- Toast icon spacing:
+  - icon của Ant Design notification được bọc bằng wrapper có `marginRight` và canh giữa theo trục dọc.
+  - thêm class CSS toast để đảm bảo icon không dính text khi icon là avatar badge.
+- Realtime like count:
+  - Notification socket phát custom event `notif:postLiked` và `refreshPost` khi có forum like notification chứa `postId`.
+  - Forum lắng nghe event và gọi `refreshSinglePost(postId)` để tăng `likes` tại chỗ (`+1`) theo đúng `post.id`, không gọi API refetch.
+- Diagnosis auto-open stability:
+  - xử lý query `openDiagnosis` chỉ sau khi dữ liệu lịch hẹn hoàn tất.
+  - ref `diagnosisOpenedRef` ngăn mở lặp trên re-render.
+
+#### Client Page Auto-handle Deep-link
+- `AppointmentDetail`:
+  - đọc `openDiagnosis` khi mount/query thay đổi
+  - sau khi list load xong sẽ tự mở popup diagnosis cho appointment tương ứng
+  - xóa query bằng replace để tránh auto-open lặp lại
+- `Forum`:
+  - đọc `postId`, `commentId`
+  - tự scroll tới post, tự mở comment section nếu có `commentId`, scroll tới comment/reply đích
+  - highlight post/comment ~1.5s rồi clear query params
 
 #### Shared Hook: `src/hooks/useNotificationSocket.js`
 - Vẫn subscribe realtime qua socket namespace `/notification`
