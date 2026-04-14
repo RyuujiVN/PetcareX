@@ -125,6 +125,7 @@ export class CommentService {
           postId: result.postId,
           userName: result.user.fullName,
           avatarUrl: result.user.avatarUrl,
+          commentId: result.id,
         };
 
         if (createDTO.parentId) {
@@ -135,6 +136,7 @@ export class CommentService {
 
         const savedNotification =
           await this.notificationRepository.save(notification);
+
         this.notificationGateway.sendNotification(
           savedNotification.recipientId,
           savedNotification,

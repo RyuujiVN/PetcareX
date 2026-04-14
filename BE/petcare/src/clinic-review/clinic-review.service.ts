@@ -5,6 +5,8 @@ import { DataSource, Repository } from 'typeorm';
 import { CreateClinicReviewDTO } from './dtos/create-clinic-review.dto';
 import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
+import { ClinicReviewPagination } from './types/clinic-review.type';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ClinicReviewService {
@@ -14,6 +16,33 @@ export class ClinicReviewService {
     private readonly dataSource: DataSource,
   ) {}
 
+  // Lấy danh sách review
+  async findOneById(id: string) {
+    const queryBuilder = this.reviewRepository
+      .createQueryBuilder('clinicReview')
+      .leftJoin('clinicReview.user', 'user')
+      .addSelect(['user.id', 'user.fullName', 'user.avatarUrl'])
+      .where('clinicReview.id = :id', { id: id })
+      .orderBy('clinicReview.createdAt', 'DESC');
+
+    return await queryBuilder.getOne();
+  }
+
+  // Lấy danh sách review
+  async findAllReviewPagination(
+    options: ClinicReviewPagination,
+  ): Promise<Pagination<ClinicReview>> {
+    const queryBuilder = this.reviewRepository
+      .createQueryBuilder('clinicReview')
+      .leftJoin('clinicReview.user', 'user')
+      .addSelect(['user.id', 'user.fullName', 'user.avatarUrl'])
+      .where('clinicReview.clinicId = :id', { id: options.clinicId })
+      .orderBy('clinicReview.createdAt', 'DESC');
+
+    return paginate<ClinicReview>(queryBuilder, options);
+  }
+
+  // Thêm mới review
   async createClinicReview(createDTO: CreateClinicReviewDTO, userId: string) {
     return await this.dataSource.transaction(async (manager) => {
       const reviewRepo = manager.getRepository(ClinicReview);
