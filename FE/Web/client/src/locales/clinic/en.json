@@ -701,5 +701,60 @@
 			"passwordChangeFailed": "Unable to change password"
 		}
 	},
-	"common": {}
+	"common": {},
+	"revenue": {
+		"pageTitle": "REVENUE DASHBOARD",
+		"loading": "Loading revenue data...",
+		"period": {
+			"today": "Today",
+			"week": "7 days",
+			"month": "This month",
+			"year": "This year"
+		},
+		"cards": {
+			"totalRevenue": "Total Revenue",
+			"paidInvoices": "Paid",
+			"unpaidInvoices": "Unpaid",
+			"averagePerRecord": "Avg per Visit"
+		},
+		"chart": {
+			"dailyTitle": "Daily Revenue",
+			"serviceTitle": "By Service Type",
+			"revenueLegend": "Revenue",
+			"countLegend": "Visit Count"
+		},
+		"specialty": {
+			"internalMedicine": "General Exam",
+			"surgery": "Surgery",
+			"vaccination": "Vaccination",
+			"ultrasound": "Ultrasound",
+			"other": "Other"
+		},
+		"topVets": {
+			"title": "Top Veterinarians by Revenue",
+			"doctor": "Veterinarian",
+			"records": "Visits",
+			"revenue": "Revenue"
+		},
+		"invoices": {
+			"title": "Recent Invoices",
+			"filterAll": "All",
+			"filterPaid": "Paid",
+			"filterUnpaid": "Unpaid",
+			"colRecord": "Record",
+			"colPet": "Pet",
+			"colVet": "Veterinarian",
+			"colDate": "Date",
+			"colAmount": "Amount",
+			"colStatus": "Status",
+			"statusPaid": "Paid",
+			"statusUnpaid": "Unpaid"
+		},
+		"empty": {
+			"noChartData": "No revenue data to display chart",
+			"noServiceData": "No service distribution data",
+			"noVetData": "No veterinarian data",
+			"noInvoices": "No invoices left to pay."
+		}
+	}
 }
