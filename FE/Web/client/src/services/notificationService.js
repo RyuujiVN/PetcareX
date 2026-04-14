@@ -47,6 +47,27 @@ const formatNotificationTime = (value) =>
 
 const buildNotificationTarget = (rawTarget) => {
   const target = toObject(rawTarget);
+  const normalizedPostId = normalizeId(
+    target?.postId ||
+      target?.postID ||
+      target?.post_id ||
+      target?.post?.id ||
+      target?.post?.postId,
+  );
+  const normalizedCommentId = normalizeId(
+    target?.commentId ||
+      target?.commentID ||
+      target?.comment_id ||
+      target?.comment?.id ||
+      target?.comment?.commentId ||
+      target?.replyId ||
+      target?.replyID ||
+      target?.reply_id ||
+      target?.parentCommentId ||
+      target?.parentCommentID ||
+      target?.parent_comment_id ||
+      target?.parentId,
+  );
 
   return {
     ...target,
@@ -56,10 +77,8 @@ const buildNotificationTarget = (rawTarget) => {
         target?.appointment_id ||
         target?.appointment?.id,
     ),
-    postId: normalizeId(target?.postId || target?.post?.id),
-    commentId: normalizeId(
-      target?.commentId || target?.comment?.id || target?.replyId || target?.parentCommentId,
-    ),
+    postId: normalizedPostId,
+    commentId: normalizedCommentId,
   };
 };
 

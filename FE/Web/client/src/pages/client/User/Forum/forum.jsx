@@ -279,7 +279,7 @@ function Forum() {
 	const editCommentImageInputRef = useRef(null)
 	const [apiPosts, setApiPosts] = useState([])
 	const [apiTopics, setApiTopics] = useState([])
-	const [loadingPosts, setLoadingPosts] = useState(false)
+	const [loadingPosts, setLoadingPosts] = useState(true)
 	const [loadingTopics, setLoadingTopics] = useState(false)
 	const [processingLikeId, setProcessingLikeId] = useState(null)
 	const [composerAvatar, setComposerAvatar] = useState(DEFAULT_COMPOSER_AVATAR)
