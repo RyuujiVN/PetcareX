@@ -518,6 +518,32 @@
         "galleryAltFallback": "Hình ảnh phòng khám {{index}}",
         "aboutLabel": "Giới thiệu",
         "featuresTitle": "Mọi thứ mà người bạn nhỏ của bạn cần",
+        "reviewSection": {
+          "title": "Đánh giá từ khách hàng",
+          "subtitle": "Những trải nghiệm thực tế từ khách hàng đã sử dụng dịch vụ tại phòng khám.",
+          "totalReviews": "{{count}} lượt đánh giá",
+          "noReviewYet": "Chưa có đánh giá nào",
+          "emptyList": "Chưa có đánh giá nào cho phòng khám này.",
+          "loadMore": "Xem thêm đánh giá",
+          "anonymousReviewer": "Người dùng ẩn danh",
+          "loginHint": "Bạn cần đăng nhập để gửi đánh giá.",
+          "loginCTA": "Đăng nhập ngay",
+          "noEligibleRecord": "Bạn cần có ít nhất một lần khám hoàn thành tại phòng khám này để gửi đánh giá.",
+          "formTitle": "Gửi đánh giá của bạn",
+          "recordLabel": "Chọn lần khám",
+          "recordPlaceholder": "Chọn hồ sơ khám muốn đánh giá...",
+          "ratingLabel": "Số sao đánh giá",
+          "contentLabel": "Nhận xét",
+          "contentPlaceholder": "Chia sẻ trải nghiệm của bạn tại phòng khám...",
+          "contentHint": "Tối đa 1000 ký tự (không bắt buộc)",
+          "submitButton": "Gửi đánh giá",
+          "submitSuccess": "Đánh giá của bạn đã được gửi thành công!",
+          "submitFailed": "Không thể gửi đánh giá. Vui lòng thử lại.",
+          "validation": {
+            "recordRequired": "Vui lòng chọn lần khám muốn đánh giá.",
+            "ratingRequired": "Vui lòng chọn số sao đánh giá."
+          }
+        },
         "communityTitle": "Diễn đàn cộng đồng PetCareX",
         "content": {
           "hero": {

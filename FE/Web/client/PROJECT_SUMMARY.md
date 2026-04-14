@@ -249,6 +249,61 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 **i18n:** Bổ sung namespace `revenue` trong `src/locales/clinic/vi.json` và `en.json`.
 
+---
+
+### Feature: Đánh giá Phòng khám (Clinic Review & Rating)
+
+**Mô tả:** Cho phép khách hàng (role CUSTOMER) đánh giá phòng khám sau khi đã hoàn thành khám bệnh. Rating trung bình và số lượt đánh giá hiển thị trên card phòng khám (ClinicSelection) và trang chi tiết phòng khám (HomePageClinic).
+
+**API sử dụng:**
+- `GET /api/clinic-review?clinicId=&page=&limit=` — danh sách review theo clinic (paginated).
+- `POST /api/clinic-review` — tạo review mới (fields: `clinicId`, `medicalRecordId`, `rating`, `content?`).
+- `GET /api/clinic-review/:id` — chi tiết một review.
+- `avgRating` và `totalReviews` lấy trực tiếp từ clinic entity (BE auto-update khi có review mới).
+
+**RBAC:**
+- POST review: chỉ CUSTOMER.
+- GET review: ADMIN, ADMIN_CLINIC, CUSTOMER, VETERINARIAN.
+
+**Điều kiện để review:**
+- User phải có medical record đã hoàn thành (có `conclusion`) tại clinic đó.
+- Medical record chưa được review (`isReview === false`).
+- Mỗi medical record chỉ review được 1 lần (BE set `isReview=true` sau POST).
+
+**Rating type:** `decimal(2,1)` — 1.0–5.0, hỗ trợ half-star (step 0.5).
+
+**Components tạo mới** (`src/components/common/ClinicReview/`):
+- `StarRating.jsx` — wrapper Ant Rate, hỗ trợ readonly + interactive, 3 sizes.
+- `ClinicRatingSummary.jsx` — hiển thị điểm trung bình + số lượt đánh giá.
+- `ClinicReviewItem.jsx` — một review đơn lẻ (avatar, tên ẩn danh, sao, nội dung, ngày).
+- `ClinicReviewList.jsx` — danh sách review + load more pagination.
+- `ClinicReviewForm.jsx` — form gửi đánh giá (chọn medical record, star picker, textarea).
+- `ClinicReviewSection.jsx` — orchestrator: load data, hiển thị summary + form + list.
+- `ClinicReviewSection.module.css` — styles dùng color tokens.
+- `index.js` — barrel export.
+
+**Service** (`src/services/clinicReviewService.js`):
+- `getClinicReviewsApi()`, `getClinicReviewByIdApi()`, `createClinicReviewApi()`.
+- `normalizeRating()` — chuẩn hoá rating về step 0.5.
+- `maskReviewerName()` — ẩn một phần họ tên người đánh giá.
+- Đã xoá localStorage mock cũ (`getAllClinicReviews`, `upsertClinicReview`, `getClinicRatingSummary`).
+
+**Vị trí tích hợp:**
+- `HomePageClinic/index.jsx` — thêm `<ClinicReviewSection>` giữa team section và location section.
+- `ClinicSelection/index.jsx` — card clinic hiển thị `avgRating`/`totalReviews` trực tiếp từ BE (thay mock).
+- `MedicalRecords/medicalRecords.jsx` — review button dùng `record.isReview` từ BE, submit gọi `createClinicReviewApi`.
+
+**i18n:** Bổ sung key `reviewSection` trong `homePageClinic` namespace ở `src/locales/client/vi.json` và `en.json`.
+
+**Edge cases đã xử lý:**
+- User chưa đăng nhập → hiển thị CTA đăng nhập.
+- User không có medical record hoàn thành tại clinic → thông báo.
+- User đã review hết các record → form ẩn.
+- Empty state khi chưa có review nào.
+- Loading/error states khi submit.
+- Tên reviewer được mask một phần để bảo mật.
+- Sau submit thành công → refetch reviews + clinic summary + eligible records.
+
 **Routing:** `/clinic/revenue` → `RevenueDashboard` (trước đây là placeholder trỏ `AppointmentManagement`).
 
 **Hạn chế do BE:**

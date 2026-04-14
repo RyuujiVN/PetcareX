@@ -1,34 +1,31 @@
 import {
-	DownOutlined,
-	UpOutlined,
+    DownOutlined,
+    UpOutlined,
 } from '@ant-design/icons'
 import { Modal, Rate, message } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-	FaBell,
-	FaCakeCandles,
-	FaCalendarCheck,
-	FaDog,
-	FaMars,
-	FaShieldDog,
-	FaSyringe,
+    FaBell,
+    FaCakeCandles,
+    FaCalendarCheck,
+    FaDog,
+    FaMars,
+    FaShieldDog,
+    FaSyringe,
 } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useAuth } from '../../../../hooks/client/AuthContext'
+import { getClientInstance } from '../../../../services/apiClient'
+import { createClinicReviewApi } from '../../../../services/clinicReviewService'
 import {
-	getMedicalByIdApi,
-	getMedicalByPetIdApi,
-	getMedicalOrdersByMedicalIdApi,
-	getMedicinesByMedicalIdApi,
+    getMedicalByIdApi,
+    getMedicalByPetIdApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicinesByMedicalIdApi,
 } from '../../../../services/medicalService'
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService'
-import { getClientInstance } from '../../../../services/apiClient'
-import { useAuth } from '../../../../hooks/client/AuthContext'
-import {
-	getAllClinicReviews,
-	upsertClinicReview,
-} from '../../../../services/clinicReviewService'
 import { getMedicalRecordStatusLabel, getMedicineUnitLabel, getServiceLabel } from '../../../../utils/enumLabel'
 import styles from './medicalRecords.module.css'
 
@@ -185,6 +182,7 @@ const mapMedicalToTimelineRecord = (record, medicalOrders = [], medicines = [], 
 		medicalRecordId: record?.id || '',
 		clinicId: record?.clinic?.id || record?.appointment?.clinic?.id || '',
 		clinicName: record?.clinic?.name || t('common.states.notUpdated'),
+		isReview: Boolean(record?.isReview),
 		markerType,
 		title: resolveRecordTitle(record?.name, t),
 		status,
@@ -236,7 +234,6 @@ function MedicalRecords() {
 	const [reminders, setReminders] = useState(EMPTY_REMINDERS)
 	const [petSummary, setPetSummary] = useState(defaultPetSummary)
 	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
-	const [reviewByMedicalId, setReviewByMedicalId] = useState({})
 	const [reviewModalOpen, setReviewModalOpen] = useState(false)
 	const [reviewTargetRecord, setReviewTargetRecord] = useState(null)
 	const [reviewRating, setReviewRating] = useState(0)
@@ -248,15 +245,6 @@ function MedicalRecords() {
 			navigate('/listPetMedicalRecords')
 		}
 
-	const refreshReviewMap = useCallback(() => {
-		const nextMap = getAllClinicReviews().reduce((acc, item) => {
-			if (!item?.medicalRecordId) return acc
-			acc[item.medicalRecordId] = item
-			return acc
-		}, {})
-
-		setReviewByMedicalId(nextMap)
-	}, [])
 	const loadMedicalData = useCallback(async () => {
 		try {
 			setLoading(true)
@@ -398,29 +386,17 @@ function MedicalRecords() {
 		loadMedicalData()
 	}, [loadMedicalData])
 
-	useEffect(() => {
-		refreshReviewMap()
-
-		const handleStorage = () => {
-			refreshReviewMap()
-		}
-
-		window.addEventListener('storage', handleStorage)
-		return () => window.removeEventListener('storage', handleStorage)
-	}, [refreshReviewMap])
-
 	const handleOpenReviewModal = useCallback((record) => {
 		if (!record?.medicalRecordId || !record?.clinicId) {
 			message.warning(t('pages.medicalRecords.review.missingClinicInfo'))
 			return
 		}
 
-		const existingReview = reviewByMedicalId[record.medicalRecordId]
 		setReviewTargetRecord(record)
-		setReviewRating(existingReview?.rating || 0)
-		setReviewContent(existingReview?.content || '')
+		setReviewRating(0)
+		setReviewContent('')
 		setReviewModalOpen(true)
-	}, [reviewByMedicalId, t])
+	}, [t])
 
 	const handleSubmitReview = useCallback(async () => {
 		if (!reviewTargetRecord?.medicalRecordId || !reviewTargetRecord?.clinicId) {
@@ -439,26 +415,24 @@ function MedicalRecords() {
 
 		try {
 			setSavingReview(true)
-			upsertClinicReview({
+			await createClinicReviewApi(getClientInstance(), {
 				clinicId: reviewTargetRecord.clinicId,
-				clinicName: reviewTargetRecord.clinicName,
 				medicalRecordId: reviewTargetRecord.medicalRecordId,
 				rating: reviewRating,
 				content: reviewContent.trim(),
-				reviewerId: userProfile?.id || '',
 			})
-			refreshReviewMap()
 			setReviewModalOpen(false)
 			setReviewTargetRecord(null)
 			setReviewRating(0)
 			setReviewContent('')
 			message.success(t('pages.medicalRecords.review.submitSuccess'))
+			loadMedicalData()
 		} catch {
 			message.error(t('pages.medicalRecords.review.submitFailed'))
 		} finally {
 			setSavingReview(false)
 		}
-	}, [refreshReviewMap, reviewContent, reviewRating, reviewTargetRecord, t, userProfile?.id])
+	}, [reviewContent, reviewRating, reviewTargetRecord, t, loadMedicalData])
 
 
 	const handleBookNow = (service) => {
@@ -504,7 +478,6 @@ function MedicalRecords() {
 							) : (
 								timelineRecords.map((record) => {
 									const isExpanded = expandedRecords.has(record.id)
-									const existingReview = reviewByMedicalId[record.medicalRecordId]
 
 									return (
 										<div key={record.id} className={styles.timelineItem}>
@@ -522,11 +495,11 @@ function MedicalRecords() {
 														{record.statusType === 'done' ? (
 															<button
 																type="button"
-																className={`${styles.reviewButton} ${existingReview ? styles.reviewed : ''}`}
+																className={`${styles.reviewButton} ${record.isReview ? styles.reviewed : ''}`}
 																onClick={() => handleOpenReviewModal(record)}
-																disabled={Boolean(existingReview)}
+																disabled={record.isReview}
 															>
-																{existingReview
+																{record.isReview
 																	? t('pages.medicalRecords.review.ratedButton')
 																	: t('pages.medicalRecords.review.actionButton')}
 															</button>
