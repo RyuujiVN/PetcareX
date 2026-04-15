@@ -335,11 +335,25 @@ class _HomePageState extends State<HomePage> {
               children: [
                 IconButton(
                   onPressed: () {
+                    final mainNavState = MainNavigationWrapper.of(context);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            const NotificationScreen(),
+                            NotificationScreen(
+                              onOpenAppointmentsTab: () =>
+                                  mainNavState?.setSelectedIndex(2),
+                              onOpenCommunityTab: () =>
+                                  mainNavState?.setSelectedIndex(3),
+                              onOpenAppointmentDetail: (
+                                appointmentId, {
+                                bool expandAiDiagnosis = false,
+                              }) =>
+                                  mainNavState?.openAppointmentDetail(
+                                    appointmentId,
+                                    expandAiDiagnosis: expandAiDiagnosis,
+                                  ),
+                            ),
                       ),
                     );
                   },

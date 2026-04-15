@@ -9,7 +9,19 @@ import '../provider/notification_provider.dart';
 import '../widgets/notification_item.dart';
 
 class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({super.key});
+  const NotificationScreen({
+    super.key,
+    this.onOpenAppointmentsTab,
+    this.onOpenCommunityTab,
+    this.onOpenAppointmentDetail,
+  });
+
+  final VoidCallback? onOpenAppointmentsTab;
+  final VoidCallback? onOpenCommunityTab;
+  final void Function(
+    String appointmentId, {
+    bool expandAiDiagnosis,
+  })? onOpenAppointmentDetail;
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -43,6 +55,37 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   void _onNotificationTap(NotificationModel notification) {
     final provider = context.read<NotificationProvider>();
+    final mainNavState = MainNavigationWrapper.of(context);
+
+    void openAppointmentsTab() {
+      if (widget.onOpenAppointmentsTab != null) {
+        widget.onOpenAppointmentsTab!();
+        return;
+      }
+      mainNavState?.setSelectedIndex(2);
+    }
+
+    void openCommunityTab() {
+      if (widget.onOpenCommunityTab != null) {
+        widget.onOpenCommunityTab!();
+        return;
+      }
+      mainNavState?.setSelectedIndex(3);
+    }
+
+    void openAppointmentDetail(String appointmentId, {bool expandAi = false}) {
+      if (widget.onOpenAppointmentDetail != null) {
+        widget.onOpenAppointmentDetail!(
+          appointmentId,
+          expandAiDiagnosis: expandAi,
+        );
+        return;
+      }
+      mainNavState?.openAppointmentDetail(
+        appointmentId,
+        expandAiDiagnosis: expandAi,
+      );
+    }
 
     // Mark as read
     if (!notification.isRead) {
@@ -56,19 +99,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'APPOINTMENT_STATUS_UPDATED_BY_CLIENT':
       case 'APPOINTMENT_REMINDER':
         Navigator.pop(context); // pop notification screen
-        MainNavigationWrapper.of(context)?.setSelectedIndex(2); // appointments tab
+        openAppointmentsTab();
         break;
       case 'AI_DIAGNOSIS':
         Navigator.pop(context);
-        MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+        if (notification.appointmentId != null &&
+            notification.appointmentId!.isNotEmpty) {
+          openAppointmentDetail(
+            notification.appointmentId!,
+            expandAi: true,
+          );
+        } else {
+          openAppointmentsTab();
+        }
         break;
       case 'COMMENT_REPLY':
         Navigator.pop(context);
-        MainNavigationWrapper.of(context)?.setSelectedIndex(3); // community tab
+        openCommunityTab();
         break;
       case 'FOLLOW_UP_REMINDER':
         Navigator.pop(context);
-        MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+        openAppointmentsTab();
         break;
       default:
         break;

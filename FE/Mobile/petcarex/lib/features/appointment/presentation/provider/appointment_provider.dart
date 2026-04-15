@@ -97,12 +97,15 @@ class AppointmentProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> cancelAppointment(String id) async {
+  Future<bool> cancelAppointment(String id, {String? recipientId}) async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      final success = await _appointmentService.cancelAppointment(id);
+      final success = await _appointmentService.cancelAppointment(
+        id,
+        recipientId: recipientId,
+      );
       if (success) {
         await fetchAppointments();
         return true;
