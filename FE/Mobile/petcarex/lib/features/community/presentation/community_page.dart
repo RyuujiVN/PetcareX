@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +12,7 @@ import '../../../../core/utils/app_notifier.dart';
 import '../../../../core/utils/image_helper.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
+import '../../notification/presentation/widgets/notification_bell_button.dart';
 import '../data/models/community_models.dart';
 import 'create_post_page.dart';
 import 'provider/community_provider.dart';
@@ -26,6 +28,9 @@ class CommunityPage extends StatefulWidget {
 class _CommunityPageState extends State<CommunityPage> {
   final CameraService _cameraService = CameraService();
   final ScrollController _scrollController = ScrollController();
+  int _handledFocusRequestVersion = 0;
+  String? _highlightedPostId;
+  Timer? _highlightResetTimer;
 
   List<String> _extractImageUrlsFromHtml(String html) {
     final matches = RegExp(
@@ -122,11 +127,13 @@ class _CommunityPageState extends State<CommunityPage> {
     if (count == 2) {
       return SizedBox(
         height: h,
-        child: Row(children: [
-          Expanded(child: _fbImage(imageUrls, 0, height: h)),
-          const SizedBox(width: gap),
-          Expanded(child: _fbImage(imageUrls, 1, height: h)),
-        ]),
+        child: Row(
+          children: [
+            Expanded(child: _fbImage(imageUrls, 0, height: h)),
+            const SizedBox(width: gap),
+            Expanded(child: _fbImage(imageUrls, 1, height: h)),
+          ],
+        ),
       );
     }
 
@@ -134,17 +141,21 @@ class _CommunityPageState extends State<CommunityPage> {
     if (count == 3) {
       return SizedBox(
         height: h,
-        child: Row(children: [
-          Expanded(child: _fbImage(imageUrls, 0, height: h)),
-          const SizedBox(width: gap),
-          Expanded(
-            child: Column(children: [
-              Expanded(child: _fbImage(imageUrls, 1)),
-              const SizedBox(height: gap),
-              Expanded(child: _fbImage(imageUrls, 2)),
-            ]),
-          ),
-        ]),
+        child: Row(
+          children: [
+            Expanded(child: _fbImage(imageUrls, 0, height: h)),
+            const SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(child: _fbImage(imageUrls, 1)),
+                  const SizedBox(height: gap),
+                  Expanded(child: _fbImage(imageUrls, 2)),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -152,23 +163,29 @@ class _CommunityPageState extends State<CommunityPage> {
     if (count == 4) {
       return SizedBox(
         height: h,
-        child: Column(children: [
-          Expanded(
-            child: Row(children: [
-              Expanded(child: _fbImage(imageUrls, 0)),
-              const SizedBox(width: gap),
-              Expanded(child: _fbImage(imageUrls, 1)),
-            ]),
-          ),
-          const SizedBox(height: gap),
-          Expanded(
-            child: Row(children: [
-              Expanded(child: _fbImage(imageUrls, 2)),
-              const SizedBox(width: gap),
-              Expanded(child: _fbImage(imageUrls, 3)),
-            ]),
-          ),
-        ]),
+        child: Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(child: _fbImage(imageUrls, 0)),
+                  const SizedBox(width: gap),
+                  Expanded(child: _fbImage(imageUrls, 1)),
+                ],
+              ),
+            ),
+            const SizedBox(height: gap),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(child: _fbImage(imageUrls, 2)),
+                  const SizedBox(width: gap),
+                  Expanded(child: _fbImage(imageUrls, 3)),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
     }
 
@@ -181,35 +198,69 @@ class _CommunityPageState extends State<CommunityPage> {
 
     return SizedBox(
       height: h,
-      child: Column(children: [
-        SizedBox(
-          height: topH,
-          child: Row(children: [
-            Expanded(child: _fbImage(displayUrls, 0, height: topH, allUrls: imageUrls)),
-            const SizedBox(width: gap),
-            Expanded(child: _fbImage(displayUrls, 1, height: topH, allUrls: imageUrls)),
-          ]),
-        ),
-        const SizedBox(height: gap),
-        SizedBox(
-          height: botH,
-          child: Row(children: [
-            Expanded(child: _fbImage(displayUrls, 2, height: botH, allUrls: imageUrls)),
-            const SizedBox(width: gap),
-            Expanded(child: _fbImage(displayUrls, 3, height: botH, allUrls: imageUrls)),
-            const SizedBox(width: gap),
-            Expanded(
-              child: _fbImage(
-                displayUrls,
-                4,
-                height: botH,
-                overlayCount: moreCount > 0 ? moreCount : null,
-                allUrls: imageUrls,
-              ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: topH,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _fbImage(
+                    displayUrls,
+                    0,
+                    height: topH,
+                    allUrls: imageUrls,
+                  ),
+                ),
+                const SizedBox(width: gap),
+                Expanded(
+                  child: _fbImage(
+                    displayUrls,
+                    1,
+                    height: topH,
+                    allUrls: imageUrls,
+                  ),
+                ),
+              ],
             ),
-          ]),
-        ),
-      ]),
+          ),
+          const SizedBox(height: gap),
+          SizedBox(
+            height: botH,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _fbImage(
+                    displayUrls,
+                    2,
+                    height: botH,
+                    allUrls: imageUrls,
+                  ),
+                ),
+                const SizedBox(width: gap),
+                Expanded(
+                  child: _fbImage(
+                    displayUrls,
+                    3,
+                    height: botH,
+                    allUrls: imageUrls,
+                  ),
+                ),
+                const SizedBox(width: gap),
+                Expanded(
+                  child: _fbImage(
+                    displayUrls,
+                    4,
+                    height: botH,
+                    overlayCount: moreCount > 0 ? moreCount : null,
+                    allUrls: imageUrls,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -239,21 +290,24 @@ class _CommunityPageState extends State<CommunityPage> {
           height: height,
           width: double.infinity,
           child: overlayCount != null && overlayCount > 0
-              ? Stack(fit: StackFit.expand, children: [
-                  img,
-                  Container(
-                    color: AppColors.black.withValues(alpha: 0.45),
-                    alignment: Alignment.center,
-                    child: Text(
-                      '+$overlayCount',
-                      style: const TextStyle(
-                        color: AppColors.white,
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
+              ? Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    img,
+                    Container(
+                      color: AppColors.black.withValues(alpha: 0.45),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '+$overlayCount',
+                        style: const TextStyle(
+                          color: AppColors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                ])
+                  ],
+                )
               : img,
         ),
       ),
@@ -278,11 +332,7 @@ class _CommunityPageState extends State<CommunityPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (plainText.isNotEmpty)
-          Text(
-            plainText,
-            style: textStyle,
-          ),
+        if (plainText.isNotEmpty) Text(plainText, style: textStyle),
         if (imageUrls.isNotEmpty) ...[
           SizedBox(height: compact ? 8 : 12),
           _buildImageGrid(
@@ -312,8 +362,33 @@ class _CommunityPageState extends State<CommunityPage> {
 
   @override
   void dispose() {
+    _highlightResetTimer?.cancel();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _handleFocusRequest(CommunityProvider provider, String focusedPostId) {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOut,
+      );
+    }
+
+    setState(() {
+      _highlightedPostId = focusedPostId;
+    });
+
+    _highlightResetTimer?.cancel();
+    _highlightResetTimer = Timer(const Duration(seconds: 3), () {
+      if (!mounted) return;
+      setState(() {
+        _highlightedPostId = null;
+      });
+    });
+
+    provider.clearFocusRequest();
   }
 
   void _showCommentSheet(
@@ -334,105 +409,114 @@ class _CommunityPageState extends State<CommunityPage> {
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => Consumer<CommunityProvider>(
           builder: (context, provider, _) {
-          final comments = provider.getCommentsForPost(post.id);
-          final isLoading = provider.isCommentsLoading(post.id);
-          final replyTarget = provider.activeReplyTarget;
+            final comments = provider.getCommentsForPost(post.id);
+            final isLoading = provider.isCommentsLoading(post.id);
+            final replyTarget = provider.activeReplyTarget;
 
-          return Padding(
-            padding: EdgeInsets.only(
-              bottom: MediaQuery.of(context).viewInsets.bottom,
-            ),
-            child: Container(
-              height: MediaQuery.of(context).size.height * 0.7,
-              decoration: const BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
               ),
-              child: Column(
-                children: [
-                  _buildSheetHeader(l10n),
-                  Expanded(
-                    child: isLoading
-                        ? const Center(child: CircularProgressIndicator())
-                        : comments.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.noCommentsYet,
-                              style: const TextStyle(color: AppColors.textGrey),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.7,
+                decoration: const BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+                ),
+                child: Column(
+                  children: [
+                    _buildSheetHeader(l10n),
+                    Expanded(
+                      child: isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : comments.isEmpty
+                          ? Center(
+                              child: Text(
+                                l10n.noCommentsYet,
+                                style: const TextStyle(
+                                  color: AppColors.textGrey,
+                                ),
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount: comments.length,
+                              itemBuilder: (context, index) =>
+                                  _buildCommentItem(
+                                    comments[index],
+                                    provider,
+                                    l10n,
+                                    post.id,
+                                    currentUserId: currentUserId,
+                                  ),
                             ),
-                          )
-                        : ListView.builder(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            itemCount: comments.length,
-                            itemBuilder: (context, index) => _buildCommentItem(
-                              comments[index],
-                              provider,
-                              l10n,
-                              post.id,
-                              currentUserId: currentUserId,
-                            ),
-                          ),
-                  ),
-                  _buildCommentInputSection(
-                    commentController,
-                    post,
-                    provider,
-                    replyTarget,
-                    l10n,
-                    composerImages,
-                    onPickImages: () async {
-                      final picked = await _cameraService.pickImagesFromGallery();
-                      if (picked.isEmpty) return;
+                    ),
+                    _buildCommentInputSection(
+                      commentController,
+                      post,
+                      provider,
+                      replyTarget,
+                      l10n,
+                      composerImages,
+                      onPickImages: () async {
+                        final picked = await _cameraService
+                            .pickImagesFromGallery();
+                        if (picked.isEmpty) return;
 
-                      final incoming = picked
-                          .map((file) => _CommentComposerImage(file: file))
-                          .toList();
+                        final incoming = picked
+                            .map((file) => _CommentComposerImage(file: file))
+                            .toList();
 
-                      setModalState(() {
-                        composerImages.addAll(incoming);
-                      });
+                        setModalState(() {
+                          composerImages.addAll(incoming);
+                        });
 
-                      final uploadedUrls = await provider.preUploadImages(
-                        picked.map((e) => e.path).toList(),
-                      );
+                        final uploadedUrls = await provider.preUploadImages(
+                          picked.map((e) => e.path).toList(),
+                        );
 
-                      if (!mounted) return;
+                        if (!mounted) return;
 
-                      var hasFailedUpload = false;
-                      setModalState(() {
-                        for (var i = 0; i < incoming.length; i++) {
-                          incoming[i].isUploading = false;
-                          if (i < uploadedUrls.length &&
-                              uploadedUrls[i].trim().isNotEmpty) {
-                            incoming[i].uploadedUrl = uploadedUrls[i].trim();
-                            incoming[i].isUploadFailed = false;
-                          } else {
-                            incoming[i].isUploadFailed = true;
-                            hasFailedUpload = true;
+                        var hasFailedUpload = false;
+                        setModalState(() {
+                          for (var i = 0; i < incoming.length; i++) {
+                            incoming[i].isUploading = false;
+                            if (i < uploadedUrls.length &&
+                                uploadedUrls[i].trim().isNotEmpty) {
+                              incoming[i].uploadedUrl = uploadedUrls[i].trim();
+                              incoming[i].isUploadFailed = false;
+                            } else {
+                              incoming[i].isUploadFailed = true;
+                              hasFailedUpload = true;
+                            }
                           }
-                        }
-                      });
+                        });
 
-                      if (hasFailedUpload && mounted) {
-                        AppNotifier.showError(this.context, l10n.uploadImageFailed);
-                      }
-                    },
-                    onRemoveImage: (index) {
-                      if (index < 0 || index >= composerImages.length) return;
-                      setModalState(() {
-                        composerImages.removeAt(index);
-                      });
-                    },
-                    onClearImages: () {
-                      setModalState(() {
-                        composerImages.clear();
-                      });
-                    },
-                  ),
-                ],
+                        if (hasFailedUpload && mounted) {
+                          AppNotifier.showError(
+                            this.context,
+                            l10n.uploadImageFailed,
+                          );
+                        }
+                      },
+                      onRemoveImage: (index) {
+                        if (index < 0 || index >= composerImages.length) return;
+                        setModalState(() {
+                          composerImages.removeAt(index);
+                        });
+                      },
+                      onClearImages: () {
+                        setModalState(() {
+                          composerImages.clear();
+                        });
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
+            );
           },
         ),
       ),
@@ -456,8 +540,12 @@ class _CommunityPageState extends State<CommunityPage> {
       builder: (dialogContext) {
         return StatefulBuilder(
           builder: (context, setModalState) {
-            final hasUploading = uploadingImages.any((item) => item.isUploading);
-            final hasFailed = uploadingImages.any((item) => item.isUploadFailed);
+            final hasUploading = uploadingImages.any(
+              (item) => item.isUploading,
+            );
+            final hasFailed = uploadingImages.any(
+              (item) => item.isUploadFailed,
+            );
             return AlertDialog(
               title: Text(l10n.update),
               content: SizedBox(
@@ -475,7 +563,8 @@ class _CommunityPageState extends State<CommunityPage> {
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
                         onPressed: () async {
-                          final picked = await _cameraService.pickImagesFromGallery();
+                          final picked = await _cameraService
+                              .pickImagesFromGallery();
                           if (picked.isEmpty) return;
 
                           final incoming = picked
@@ -497,7 +586,8 @@ class _CommunityPageState extends State<CommunityPage> {
                               incoming[i].isUploading = false;
                               if (i < uploadedUrls.length &&
                                   uploadedUrls[i].trim().isNotEmpty) {
-                                incoming[i].uploadedUrl = uploadedUrls[i].trim();
+                                incoming[i].uploadedUrl = uploadedUrls[i]
+                                    .trim();
                                 incoming[i].isUploadFailed = false;
                               } else {
                                 incoming[i].isUploadFailed = true;
@@ -509,7 +599,8 @@ class _CommunityPageState extends State<CommunityPage> {
                         label: Text(l10n.uploadPhoto),
                       ),
                       const SizedBox(height: 12),
-                      if (existingImageUrls.isNotEmpty || uploadingImages.isNotEmpty)
+                      if (existingImageUrls.isNotEmpty ||
+                          uploadingImages.isNotEmpty)
                         SizedBox(
                           height: 80,
                           child: ListView(
@@ -523,7 +614,9 @@ class _CommunityPageState extends State<CommunityPage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: CachedNetworkImage(
-                                          imageUrl: ImageHelper.getThumbnailUrl(entry.value),
+                                          imageUrl: ImageHelper.getThumbnailUrl(
+                                            entry.value,
+                                          ),
                                           width: 80,
                                           height: 80,
                                           fit: BoxFit.cover,
@@ -535,7 +628,9 @@ class _CommunityPageState extends State<CommunityPage> {
                                         child: GestureDetector(
                                           onTap: () {
                                             setModalState(() {
-                                              existingImageUrls.removeAt(entry.key);
+                                              existingImageUrls.removeAt(
+                                                entry.key,
+                                              );
                                             });
                                           },
                                           child: Container(
@@ -575,8 +670,11 @@ class _CommunityPageState extends State<CommunityPage> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              color: AppColors.black.withValues(alpha: 0.35),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: AppColors.black.withValues(
+                                                alpha: 0.35,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             alignment: Alignment.center,
                                             child: const SizedBox(
@@ -593,8 +691,11 @@ class _CommunityPageState extends State<CommunityPage> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              color: AppColors.error.withValues(alpha: 0.3),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: AppColors.error.withValues(
+                                                alpha: 0.3,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             alignment: Alignment.center,
                                             child: const Icon(
@@ -610,7 +711,9 @@ class _CommunityPageState extends State<CommunityPage> {
                                         child: GestureDetector(
                                           onTap: () {
                                             setModalState(() {
-                                              uploadingImages.removeAt(entry.key);
+                                              uploadingImages.removeAt(
+                                                entry.key,
+                                              );
                                             });
                                           },
                                           child: Container(
@@ -652,7 +755,10 @@ class _CommunityPageState extends State<CommunityPage> {
                     }
 
                     if (hasFailed) {
-                      AppNotifier.showError(this.context, l10n.uploadImageFailed);
+                      AppNotifier.showError(
+                        this.context,
+                        l10n.uploadImageFailed,
+                      );
                       return;
                     }
 
@@ -790,7 +896,8 @@ class _CommunityPageState extends State<CommunityPage> {
                         children: [
                           OutlinedButton.icon(
                             onPressed: () async {
-                              final picked = await _cameraService.pickImagesFromGallery();
+                              final picked = await _cameraService
+                                  .pickImagesFromGallery();
                               if (picked.isEmpty) return;
 
                               final incoming = picked
@@ -801,17 +908,20 @@ class _CommunityPageState extends State<CommunityPage> {
                                 uploadingImages.addAll(incoming);
                               });
 
-                              final uploadedUrls = await provider.preUploadImages(
-                                picked.map((e) => e.path).toList(),
-                              );
+                              final uploadedUrls = await provider
+                                  .preUploadImages(
+                                    picked.map((e) => e.path).toList(),
+                                  );
 
                               if (!mounted) return;
 
                               setModalState(() {
                                 for (var i = 0; i < incoming.length; i++) {
                                   incoming[i].isUploading = false;
-                                  if (i < uploadedUrls.length && uploadedUrls[i].trim().isNotEmpty) {
-                                    incoming[i].uploadedUrl = uploadedUrls[i].trim();
+                                  if (i < uploadedUrls.length &&
+                                      uploadedUrls[i].trim().isNotEmpty) {
+                                    incoming[i].uploadedUrl = uploadedUrls[i]
+                                        .trim();
                                     incoming[i].isUploadFailed = false;
                                   } else {
                                     incoming[i].isUploadFailed = true;
@@ -825,7 +935,8 @@ class _CommunityPageState extends State<CommunityPage> {
                         ],
                       ),
                       const SizedBox(height: 12),
-                      if (existingImageUrls.isNotEmpty || uploadingImages.isNotEmpty)
+                      if (existingImageUrls.isNotEmpty ||
+                          uploadingImages.isNotEmpty)
                         SizedBox(
                           height: 80,
                           child: ListView(
@@ -839,7 +950,9 @@ class _CommunityPageState extends State<CommunityPage> {
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(8),
                                         child: CachedNetworkImage(
-                                          imageUrl: ImageHelper.getThumbnailUrl(entry.value),
+                                          imageUrl: ImageHelper.getThumbnailUrl(
+                                            entry.value,
+                                          ),
                                           width: 80,
                                           height: 80,
                                           fit: BoxFit.cover,
@@ -851,7 +964,9 @@ class _CommunityPageState extends State<CommunityPage> {
                                         child: GestureDetector(
                                           onTap: () {
                                             setModalState(() {
-                                              existingImageUrls.removeAt(entry.key);
+                                              existingImageUrls.removeAt(
+                                                entry.key,
+                                              );
                                             });
                                           },
                                           child: Container(
@@ -891,8 +1006,11 @@ class _CommunityPageState extends State<CommunityPage> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              color: AppColors.black.withValues(alpha: 0.35),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: AppColors.black.withValues(
+                                                alpha: 0.35,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             alignment: Alignment.center,
                                             child: const SizedBox(
@@ -909,8 +1027,11 @@ class _CommunityPageState extends State<CommunityPage> {
                                         Positioned.fill(
                                           child: Container(
                                             decoration: BoxDecoration(
-                                              color: AppColors.error.withValues(alpha: 0.3),
-                                              borderRadius: BorderRadius.circular(8),
+                                              color: AppColors.error.withValues(
+                                                alpha: 0.3,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                             alignment: Alignment.center,
                                             child: const Icon(
@@ -926,7 +1047,9 @@ class _CommunityPageState extends State<CommunityPage> {
                                         child: GestureDetector(
                                           onTap: () {
                                             setModalState(() {
-                                              uploadingImages.removeAt(entry.key);
+                                              uploadingImages.removeAt(
+                                                entry.key,
+                                              );
                                             });
                                           },
                                           child: Container(
@@ -1215,7 +1338,8 @@ class _CommunityPageState extends State<CommunityPage> {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: composerImages.length,
-                      separatorBuilder: (_, separatorIndex) => const SizedBox(width: 8),
+                      separatorBuilder: (_, separatorIndex) =>
+                          const SizedBox(width: 8),
                       itemBuilder: (context, index) {
                         final image = composerImages[index];
                         return Stack(
@@ -1236,7 +1360,9 @@ class _CommunityPageState extends State<CommunityPage> {
                               Positioned.fill(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: AppColors.black.withValues(alpha: 0.25),
+                                    color: AppColors.black.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   alignment: Alignment.center,
@@ -1254,7 +1380,9 @@ class _CommunityPageState extends State<CommunityPage> {
                               Positioned.fill(
                                 child: Container(
                                   decoration: BoxDecoration(
-                                    color: AppColors.error.withValues(alpha: 0.3),
+                                    color: AppColors.error.withValues(
+                                      alpha: 0.3,
+                                    ),
                                     borderRadius: BorderRadius.circular(8),
                                   ),
                                   alignment: Alignment.center,
@@ -1316,7 +1444,8 @@ class _CommunityPageState extends State<CommunityPage> {
     String? currentUserId,
     String? parentCommentId,
   }) {
-    final isMyComment = currentUserId != null && currentUserId == comment.author.id;
+    final isMyComment =
+        currentUserId != null && currentUserId == comment.author.id;
     final replies = provider.getRepliesForComment(comment.id);
     final isRepliesLoading = provider.isRepliesLoading(comment.id);
     final hasHiddenReplies = comment.replyCount > 0 && replies.isEmpty;
@@ -1403,7 +1532,9 @@ class _CommunityPageState extends State<CommunityPage> {
                                   child: PopupMenuButton<String>(
                                     tooltip: '',
                                     padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(minWidth: 110),
+                                    constraints: const BoxConstraints(
+                                      minWidth: 110,
+                                    ),
                                     icon: const Icon(
                                       Icons.more_vert,
                                       size: 16,
@@ -1538,6 +1669,16 @@ class _CommunityPageState extends State<CommunityPage> {
     final provider = context.watch<CommunityProvider>();
     final currentUser = context.watch<AuthProvider>().user;
 
+    if (provider.focusRequestVersion > _handledFocusRequestVersion &&
+        provider.focusedPostId != null) {
+      final focusedPostId = provider.focusedPostId!;
+      _handledFocusRequestVersion = provider.focusRequestVersion;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _handleFocusRequest(provider, focusedPostId);
+      });
+    }
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -1567,6 +1708,7 @@ class _CommunityPageState extends State<CommunityPage> {
                             l10n,
                             languageCode,
                             currentUser?.id,
+                            provider.posts[index - 1].id == _highlightedPostId,
                           );
                         },
                       ),
@@ -1622,13 +1764,9 @@ class _CommunityPageState extends State<CommunityPage> {
             ),
           ),
           const SizedBox(width: 12),
-          IconButton(
-            icon: const Icon(
-              Icons.notifications_none_outlined,
-              color: AppColors.textDark,
-              size: 28,
-            ),
-            onPressed: () {},
+          const NotificationBellButton(
+            iconColor: AppColors.textDark,
+            iconSize: 28,
           ),
         ],
       ),
@@ -1765,6 +1903,7 @@ class _CommunityPageState extends State<CommunityPage> {
     AppLocalizations l10n,
     String languageCode,
     String? currentUserId,
+    bool isHighlighted,
   ) {
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 12, 12, 0),
@@ -1772,11 +1911,16 @@ class _CommunityPageState extends State<CommunityPage> {
       decoration: BoxDecoration(
         color: AppColors.cardBackground,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
+        border: Border.all(
+          color: isHighlighted ? AppColors.primary : AppColors.divider,
+          width: isHighlighted ? 1.6 : 1,
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
+            color: isHighlighted
+                ? AppColors.primary.withValues(alpha: 0.18)
+                : Colors.black.withValues(alpha: 0.04),
+            blurRadius: isHighlighted ? 14 : 10,
             offset: const Offset(0, 2),
           ),
         ],
@@ -1851,7 +1995,8 @@ class _CommunityPageState extends State<CommunityPage> {
             ),
             imageHeight: 220,
           ),
-          if (_extractImageUrlsFromHtml(post.content).isEmpty && post.images.isNotEmpty) ...[
+          if (_extractImageUrlsFromHtml(post.content).isEmpty &&
+              post.images.isNotEmpty) ...[
             const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -1880,12 +2025,8 @@ class _CommunityPageState extends State<CommunityPage> {
                 icon: Icons.chat_bubble_outline,
                 label: '${post.commentCount}',
                 color: AppColors.textGrey,
-                onTap: () => _showCommentSheet(
-                  post,
-                  provider,
-                  l10n,
-                  currentUserId,
-                ),
+                onTap: () =>
+                    _showCommentSheet(post, provider, l10n, currentUserId),
               ),
             ],
           ),
@@ -1922,9 +2063,7 @@ class _EditComposerImage {
   bool isUploading = true;
   bool isUploadFailed = false;
 
-  _EditComposerImage({
-    required this.file,
-  });
+  _EditComposerImage({required this.file});
 }
 
 class _CommentComposerImage {

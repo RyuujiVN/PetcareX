@@ -17,8 +17,16 @@ import '../../../l10n/generated/app_localizations.dart';
 class MainNavigationWrapper extends StatefulWidget {
   const MainNavigationWrapper({super.key});
 
+  static MainNavigationWrapperState? _activeState;
+
   static MainNavigationWrapperState? of(BuildContext context) =>
       context.findAncestorStateOfType<MainNavigationWrapperState>();
+
+  static MainNavigationWrapperState? get activeState => _activeState;
+
+  static void switchToTab(int index) {
+    _activeState?.setSelectedIndex(index);
+  }
 
   @override
   State<MainNavigationWrapper> createState() => MainNavigationWrapperState();
@@ -37,10 +45,19 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   @override
   void initState() {
     super.initState();
+    MainNavigationWrapper._activeState = this;
     // Init notification socket + fetch initial data after login
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationProvider>().init();
     });
+  }
+
+  @override
+  void dispose() {
+    if (identical(MainNavigationWrapper._activeState, this)) {
+      MainNavigationWrapper._activeState = null;
+    }
+    super.dispose();
   }
 
   void setSelectedIndex(int index) {

@@ -1004,6 +1004,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notifCommentReply => 'New comment';
 
   @override
+  String get notifLikeTitle => 'Your post got a like';
+
+  @override
   String get notifGeneral => 'Notification';
 
   @override
@@ -1043,6 +1046,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notifCommentReplyDesc => 'Someone replied to your comment';
+
+  @override
+  String notifLikeDescWithUser(String userName) {
+    return '$userName liked your post';
+  }
+
+  @override
+  String get notifLikeDescFallback => 'Someone liked your post';
 
   @override
   String get notifTimeJustNow => 'Just now';

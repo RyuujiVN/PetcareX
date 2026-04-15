@@ -377,6 +377,7 @@
   "notifAiDiagnosis": "Chẩn đoán AI sẵn sàng",
   "notifFollowUpReminder": "Nhắc nhở tái khám",
   "notifCommentReply": "Bình luận mới",
+  "notifLikeTitle": "Bài viết được yêu thích",
   "notifGeneral": "Thông báo",
 
   "notifAppointmentBookedDesc": "{userName} đã đặt lịch hẹn ngày {date} lúc {time}",
@@ -426,6 +427,13 @@
     }
   },
   "notifCommentReplyDesc": "Có người đã trả lời bình luận của bạn",
+  "notifLikeDescWithUser": "{userName} đã thích bài viết của bạn",
+  "@notifLikeDescWithUser": {
+    "placeholders": {
+      "userName": {"type": "String"}
+    }
+  },
+  "notifLikeDescFallback": "Có người vừa thích bài viết của bạn",
 
   "notifTimeJustNow": "Vừa xong",
   "notifTimeMinutesAgo": "{minutes} phút trước",

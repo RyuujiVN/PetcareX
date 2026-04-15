@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../l10n/generated/app_localizations.dart';
+import '../../../community/presentation/provider/community_provider.dart';
 import '../../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../../data/models/notification_model.dart';
 import '../provider/notification_provider.dart';
@@ -30,6 +33,11 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   final ScrollController _scrollController = ScrollController();
 
+  void _closeScreen() {
+    if (!mounted) return;
+    Navigator.pop(context);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -53,11 +61,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  void _onNotificationTap(NotificationModel notification) {
+  Future<void> _openCommunityPost(
+    NotificationModel notification,
+    VoidCallback openCommunityTab,
+  ) async {
+    final postId = notification.postId?.trim() ?? '';
+    if (postId.isNotEmpty) {
+      unawaited(
+        context.read<CommunityProvider>().focusPostFromNotification(postId),
+      );
+    }
+
+    openCommunityTab();
+  }
+
+  Future<void> _onNotificationTap(NotificationModel notification) async {
     final provider = context.read<NotificationProvider>();
-    final mainNavState = MainNavigationWrapper.of(context);
+    final mainNavState =
+        MainNavigationWrapper.of(context) ?? MainNavigationWrapper.activeState;
 
     void openAppointmentsTab() {
+      _closeScreen();
       if (widget.onOpenAppointmentsTab != null) {
         widget.onOpenAppointmentsTab!();
         return;
@@ -66,6 +90,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
 
     void openCommunityTab() {
+      _closeScreen();
       if (widget.onOpenCommunityTab != null) {
         widget.onOpenCommunityTab!();
         return;
@@ -74,6 +99,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
 
     void openAppointmentDetail(String appointmentId, {bool expandAi = false}) {
+      _closeScreen();
       if (widget.onOpenAppointmentDetail != null) {
         widget.onOpenAppointmentDetail!(
           appointmentId,
@@ -98,11 +124,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'APPOINTMENT_CANCELLED':
       case 'APPOINTMENT_STATUS_UPDATED_BY_CLIENT':
       case 'APPOINTMENT_REMINDER':
-        Navigator.pop(context); // pop notification screen
         openAppointmentsTab();
         break;
       case 'AI_DIAGNOSIS':
-        Navigator.pop(context);
         if (notification.appointmentId != null &&
             notification.appointmentId!.isNotEmpty) {
           openAppointmentDetail(
@@ -114,11 +138,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
         }
         break;
       case 'COMMENT_REPLY':
-        Navigator.pop(context);
-        openCommunityTab();
+      case 'COMMENT':
+      case 'LIKE':
+        await _openCommunityPost(notification, openCommunityTab);
         break;
       case 'FOLLOW_UP_REMINDER':
-        Navigator.pop(context);
         openAppointmentsTab();
         break;
       default:

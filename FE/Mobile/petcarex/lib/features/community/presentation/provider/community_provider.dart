@@ -13,11 +13,13 @@ class CommunityProvider with ChangeNotifier {
   final Map<String, bool> _isCommentsLoading = {};
   final Map<String, bool> _isRepliesLoading = {};
   final Map<String, bool> _isLikeUpdating = {};
-  
+
   bool _isLoading = false;
   bool _isMoreLoading = false;
   String? _errorMessage;
   String? _selectedTopicId;
+  String? _focusedPostId;
+  int _focusRequestVersion = 0;
 
   Comment? _activeReplyTarget;
 
@@ -27,14 +29,19 @@ class CommunityProvider with ChangeNotifier {
   bool get isMoreLoading => _isMoreLoading;
   String? get errorMessage => _errorMessage;
   String? get selectedTopicId => _selectedTopicId;
+  String? get focusedPostId => _focusedPostId;
+  int get focusRequestVersion => _focusRequestVersion;
   Comment? get activeReplyTarget => _activeReplyTarget;
 
-  List<Comment> getCommentsForPost(String postId) => _postComments[postId] ?? [];
-  
-  List<Comment> getRepliesForComment(String commentId) => _commentReplies[commentId] ?? [];
-  
+  List<Comment> getCommentsForPost(String postId) =>
+      _postComments[postId] ?? [];
+
+  List<Comment> getRepliesForComment(String commentId) =>
+      _commentReplies[commentId] ?? [];
+
   bool isCommentsLoading(String postId) => _isCommentsLoading[postId] ?? false;
-  bool isRepliesLoading(String commentId) => _isRepliesLoading[commentId] ?? false;
+  bool isRepliesLoading(String commentId) =>
+      _isRepliesLoading[commentId] ?? false;
   bool isLikeUpdating(String postId) => _isLikeUpdating[postId] ?? false;
 
   void setReplyTarget(Comment? comment) {
@@ -47,9 +54,7 @@ class CommunityProvider with ChangeNotifier {
       return source;
     }
 
-    return source
-        .where((post) => post.topic?.id == _selectedTopicId)
-        .toList();
+    return source.where((post) => post.topic?.id == _selectedTopicId).toList();
   }
 
   void _appendUniquePosts(List<Post> newPosts) {
@@ -130,7 +135,9 @@ class CommunityProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      final fetchedPosts = await _repository.getPosts(topicId: _selectedTopicId);
+      final fetchedPosts = await _repository.getPosts(
+        topicId: _selectedTopicId,
+      );
       _posts = _filterPostsBySelectedTopic(fetchedPosts);
     } catch (e) {
       _errorMessage = e.toString();
@@ -142,7 +149,7 @@ class CommunityProvider with ChangeNotifier {
 
   Future<void> loadMore() async {
     if (_isMoreLoading || _posts.isEmpty) return;
-    
+
     _isMoreLoading = true;
     notifyListeners();
 
@@ -161,6 +168,40 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
+  Future<void> focusPostFromNotification(String postId) async {
+    final normalizedId = postId.trim();
+    if (normalizedId.isEmpty) return;
+
+    if (_selectedTopicId != null) {
+      _selectedTopicId = null;
+    }
+
+    final existingIndex = _posts.indexWhere((post) => post.id == normalizedId);
+    if (existingIndex > 0) {
+      final targetPost = _posts.removeAt(existingIndex);
+      _posts.insert(0, targetPost);
+    } else if (existingIndex == -1) {
+      try {
+        final fetchedPost = await _repository.getPostById(normalizedId);
+        if (fetchedPost != null) {
+          _posts.insert(0, fetchedPost);
+        }
+      } catch (_) {
+        // Keep navigation behavior even if post lookup fails.
+      }
+    }
+
+    _focusedPostId = normalizedId;
+    _focusRequestVersion += 1;
+    notifyListeners();
+  }
+
+  void clearFocusRequest() {
+    if (_focusedPostId == null) return;
+    _focusedPostId = null;
+    notifyListeners();
+  }
+
   Future<void> toggleLike(String postId) async {
     final postIndex = _posts.indexWhere((p) => p.id == postId);
     if (postIndex == -1) return;
@@ -171,10 +212,12 @@ class CommunityProvider with ChangeNotifier {
     final post = _posts[postIndex];
     final originalLiked = post.liked;
     final originalLikeCount = post.likeCount;
-    
+
     // Optimistic UI Update
     post.liked = !post.liked;
     post.likeCount = post.liked ? post.likeCount + 1 : post.likeCount - 1;
+    final optimisticLiked = post.liked;
+    final optimisticLikeCount = post.likeCount;
     notifyListeners();
 
     try {
@@ -190,8 +233,25 @@ class CommunityProvider with ChangeNotifier {
         post.likeCount = originalLikeCount;
         notifyListeners();
       } else {
+        // Some BE responses can miss/invalid postId or likeCount (e.g. likeCount=null).
+        // Keep optimistic value in that case to avoid UI flicker back to 0.
+        final hasInvalidReactionPayload = reaction.postId.isEmpty;
+        if (hasInvalidReactionPayload) {
+          post.liked = optimisticLiked;
+          post.likeCount = optimisticLikeCount;
+          notifyListeners();
+          return;
+        }
+
         post.liked = reaction.liked;
-        post.likeCount = reaction.likeCount;
+
+        final serverLikeCount = reaction.likeCount;
+        final shouldKeepOptimisticLikeCount =
+            reaction.liked && serverLikeCount == 0 && optimisticLikeCount > 0;
+
+        post.likeCount = shouldKeepOptimisticLikeCount
+            ? optimisticLikeCount
+            : serverLikeCount;
         notifyListeners();
       }
     } catch (e) {
@@ -264,9 +324,9 @@ class CommunityProvider with ChangeNotifier {
 
       final parentId = _activeReplyTarget?.id;
       final newComment = await _repository.createComment(
-        postId, 
-        htmlContent, 
-        parentId: parentId
+        postId,
+        htmlContent,
+        parentId: parentId,
       );
 
       if (newComment != null) {
@@ -279,11 +339,12 @@ class CommunityProvider with ChangeNotifier {
           if (!_postComments.containsKey(postId)) _postComments[postId] = [];
           _postComments[postId]!.insert(0, newComment);
         } else {
-          if (!_commentReplies.containsKey(parentId)) _commentReplies[parentId] = [];
+          if (!_commentReplies.containsKey(parentId))
+            _commentReplies[parentId] = [];
           _commentReplies[parentId]!.insert(0, newComment);
           _incrementReplyCount(parentId);
         }
-        
+
         _errorMessage = null;
         _activeReplyTarget = null;
         notifyListeners();
@@ -297,7 +358,9 @@ class CommunityProvider with ChangeNotifier {
 
   void _incrementReplyCount(String parentId) {
     for (final comments in _postComments.values) {
-      final parentIndex = comments.indexWhere((comment) => comment.id == parentId);
+      final parentIndex = comments.indexWhere(
+        (comment) => comment.id == parentId,
+      );
       if (parentIndex != -1) {
         comments[parentIndex].replyCount++;
         return;
@@ -370,7 +433,9 @@ class CommunityProvider with ChangeNotifier {
       final postIndex = _posts.indexWhere((post) => post.id == postId);
       if (postIndex != -1) {
         final currentCount = _posts[postIndex].commentCount;
-        _posts[postIndex].commentCount = currentCount > 0 ? currentCount - 1 : 0;
+        _posts[postIndex].commentCount = currentCount > 0
+            ? currentCount - 1
+            : 0;
       }
 
       notifyListeners();
@@ -383,10 +448,14 @@ class CommunityProvider with ChangeNotifier {
 
   void _decrementReplyCount(String parentId) {
     for (final comments in _postComments.values) {
-      final parentIndex = comments.indexWhere((comment) => comment.id == parentId);
+      final parentIndex = comments.indexWhere(
+        (comment) => comment.id == parentId,
+      );
       if (parentIndex != -1) {
         final currentCount = comments[parentIndex].replyCount;
-        comments[parentIndex].replyCount = currentCount > 0 ? currentCount - 1 : 0;
+        comments[parentIndex].replyCount = currentCount > 0
+            ? currentCount - 1
+            : 0;
         return;
       }
     }

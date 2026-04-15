@@ -969,6 +969,9 @@ class AppLocalizationsVi extends AppLocalizations {
   String get notifCommentReply => 'Bình luận mới';
 
   @override
+  String get notifLikeTitle => 'Bài viết được yêu thích';
+
+  @override
   String get notifGeneral => 'Thông báo';
 
   @override
@@ -1008,6 +1011,14 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get notifCommentReplyDesc => 'Có người đã trả lời bình luận của bạn';
+
+  @override
+  String notifLikeDescWithUser(String userName) {
+    return '$userName đã thích bài viết của bạn';
+  }
+
+  @override
+  String get notifLikeDescFallback => 'Có người vừa thích bài viết của bạn';
 
   @override
   String get notifTimeJustNow => 'Vừa xong';
