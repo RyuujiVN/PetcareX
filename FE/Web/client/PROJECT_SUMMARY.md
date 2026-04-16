@@ -1512,6 +1512,35 @@ createdAt:   Date (auto)
 All API service files live in `services/` with pattern `{domain}Service.js`.
 `notificationService.js` hiện là service API chuẩn cho notification backend (không còn tổng hợp từ appointment/forum ở FE).
 
+### Cập nhật bổ sung (2026-04-16) — Tích hợp API Clinic Homepage Setting
+
+**Feature:** Kết nối trang chỉnh sửa và trang chủ phòng khám với BE API thay vì chỉ dùng localStorage.
+
+**BE Entity:** `clinic_homepage_setting`
+- `clinicId` (UUID, PK) — ID phòng khám
+- `settings` (JSONB) — toàn bộ nội dung trang chủ dạng structured JSON (hero, about, gallery, team, location, services, community...)
+- `createdAt` (timestamp)
+
+**API Endpoints:**
+- `GET /clinic-homepage-setting/:clinicId` — Lấy setting (roles: ADMIN_CLINIC, CUSTOMER, VETERINARIAN)
+- `PUT /clinic-homepage-setting` — Cập nhật setting (role: ADMIN_CLINIC only), clinicId lấy từ JWT token. Body: `{ settings: "<JSON string>" }` (validate `@IsJSON()`).
+
+**Luồng hoạt động:**
+1. Admin vào trang editor (`/clinic/editor/:clinicId`) → FE gọi GET API → populate form → fallback localStorage nếu API lỗi/404.
+2. Admin chỉnh sửa các section → nhấn "Lưu thay đổi" → FE gọi PUT API với `{ settings: JSON.stringify(contentObj) }` → đồng thời cache vào localStorage.
+3. User/Customer truy cập trang chủ phòng khám (`/clinic/:clinicId`) → FE gọi GET API → render nội dung → fallback localStorage/default nếu API lỗi.
+
+**Xử lý nội dung:** Content là structured JSON, render qua React components (không dùng `dangerouslySetInnerHTML`). Không cần DOMPurify hay rich text editor.
+
+**Files liên quan:**
+- `src/services/clinicHomepageSettingService.js` — Service layer cho GET/PUT API
+- `src/pages/Clinic/ClinicPortalEditor/HomePageEditorTab.jsx` — Editor trang chủ (đã tích hợp API)
+- `src/pages/client/Home/HomePageClinic/index.jsx` — Trang chủ public (đã tích hợp API)
+- `src/utils/storage/clinicHomeStorage.js` — LocalStorage cache layer (thêm `cacheClinicHomeContent()`)
+- `src/config/homePageClinicContent.js` — Default content & builder function
+
+**Lưu ý BE:** GET endpoint yêu cầu JWT auth — user chưa đăng nhập không xem được. FE xử lý bằng fallback default content.
+
 ## Backlog ưu tiên đề xuất (Web)
 1. ~~Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.~~ ✓ Đã hoàn thành — toàn bộ API tập trung trong `src/services/`, chỉ Cloudinary upload dùng native `fetch()`.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.

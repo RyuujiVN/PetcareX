@@ -40,6 +40,14 @@ export const saveClinicHomeContent = (clinicId, content) => {
   window.localStorage.setItem(key, JSON.stringify(payload));
 };
 
+export const cacheClinicHomeContent = (clinicId, apiContent) => {
+  if (typeof window === 'undefined' || !apiContent) return;
+
+  const key = getClinicHomeStorageKey(clinicId);
+  const payload = buildClinicHomeContent(apiContent);
+  window.localStorage.setItem(key, JSON.stringify(payload));
+};
+
 export const resolveSelectedClinicId = (locationState) => {
   const stateClinicId =
     locationState?.selectedClinicId ||
