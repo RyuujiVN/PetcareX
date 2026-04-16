@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { InvoiceService } from './invoice.service';
@@ -36,8 +37,8 @@ export class InvoiceController {
   @ApiBody({
     type: CreateInvoiceDTO,
   })
-  createInvoice(@Body() createDTO: CreateInvoiceDTO) {
-    return this.invoiceService.createInvoice(createDTO);
+  createInvoice(@Body() createDTO: CreateInvoiceDTO, @Req() req) {
+    return this.invoiceService.createInvoice(createDTO, req?.user?.clinicId);
   }
 
   @Patch(':id')
@@ -49,8 +50,9 @@ export class InvoiceController {
   async updateInvoice(
     @Param('id') id: string,
     @Body() updateDTO: UpdateInvoiceDTO,
+    @Req() req,
   ) {
-    await this.invoiceService.updateInvoice(updateDTO, id);
+    await this.invoiceService.updateInvoice(updateDTO, id, req?.user?.id);
 
     return {
       message: 'Cập nhật hoá đơn thành công',

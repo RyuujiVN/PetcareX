@@ -68,7 +68,7 @@ export class InvoiceService {
     return response;
   }
 
-  async createInvoice(createDTO: CreateInvoiceDTO) {
+  async createInvoice(createDTO: CreateInvoiceDTO, clinicId: string) {
     const medicalRecord = await this.medicalRecordRepo.findOne({
       where: { id: createDTO.medicalRecordId },
       relations: [
@@ -97,14 +97,27 @@ export class InvoiceService {
     invoice.medicalRecordId = createDTO.medicalRecordId;
     invoice.totalAmount = totalCostMedicalOrders + totalCostMedicines;
     invoice.status = InvoiceStatusEnum.UNPAID;
+    invoice.clinicId = clinicId;
 
     return await this.invoiceRepository.save(invoice);
   }
 
-  async updateInvoice(updateDTO: UpdateInvoiceDTO, id: string) {
+  async updateInvoice(
+    updateDTO: UpdateInvoiceDTO,
+    id: string,
+    clinicId: string,
+  ) {
     const invoice = await this.invoiceRepository.findOne({ where: { id: id } });
 
     if (!invoice) throw new NotFoundException('Không tìm thấy hoá đơn');
+
+    if (invoice.clinicId !== clinicId)
+      throw new ForbiddenException('Không có quyền sửa hoá đơn này');
+
+    if (invoice.status === InvoiceStatusEnum.PAID)
+      throw new ForbiddenException(
+        'Hoá đơn đã thanh toán, không có quyền chỉnh sửa',
+      );
 
     Object.assign(invoice, updateDTO);
 
@@ -117,7 +130,7 @@ export class InvoiceService {
     if (!invoice) throw new NotFoundException('Không tìm thấy hoá đơn');
 
     if (invoice.status === InvoiceStatusEnum.PAID)
-      throw new ForbiddenException('Hoá đơn đã thanh toán không có quyền xoá');
+      throw new ForbiddenException('Hoá đơn đã thanh toán, không có quyền xoá');
 
     await this.invoiceRepository.delete({ id: invoice.id });
   }
