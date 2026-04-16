@@ -1,11 +1,16 @@
 ﻿import { message, Rate, Spin } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClientInstance } from "../../../../services/apiClient";
 import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
-import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
+import {
+  CLINIC_INFO_STORAGE_PREFIX,
+  CLINIC_INFO_UPDATED_EVENT,
+  formatClinicOpenHours,
+  getClinicInfoContent,
+} from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
 const formatPhoneVN = (phone) => {
@@ -28,6 +33,40 @@ export default function ClinicSelection() {
   const nameRefs = useRef([]);
   const navigate = useNavigate();
 
+  const hydrateClinicFromLocalInfo = useCallback((clinic) => {
+    const clinicInfo = getClinicInfoContent(clinic.id, clinic);
+    const mergedName = String(clinicInfo.name || clinic.name || "").trim();
+    const mergedAddress = String(clinicInfo.address || clinic.address || "").trim();
+    const mergedPhone = String(clinicInfo.phone || clinic.phone || clinic.phoneNumber || "").trim();
+    const mergedOpeningTime = String(clinicInfo.openingTime || clinic.openingTime || "").trim();
+    const mergedClosingTime = String(clinicInfo.closingTime || clinic.closingTime || "").trim();
+    const mergedTime =
+      formatClinicOpenHours({ openingTime: mergedOpeningTime, closingTime: mergedClosingTime }) ||
+      String(clinicInfo.timeDisplay || clinic.time || "").trim() ||
+      "8:00 - 20:00";
+
+    const rawImage =
+      String(clinicInfo.avatarUrl || clinic.avatarUrl || clinic.image || "/miniPet.png").trim();
+    const imageVersion = Number(clinicInfo.updatedAt) || 0;
+    const mergedImage =
+      rawImage && /^https?:\/\//i.test(rawImage) && imageVersion > 0
+        ? `${rawImage}${rawImage.includes("?") ? "&" : "?"}v=${imageVersion}`
+        : rawImage;
+
+    return {
+      ...clinic,
+      ...clinicInfo,
+      name: mergedName,
+      address: mergedAddress,
+      phone: mergedPhone,
+      openingTime: mergedOpeningTime,
+      closingTime: mergedClosingTime,
+      localInfo: clinicInfo,
+      time: mergedTime,
+      image: mergedImage,
+    };
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
@@ -39,17 +78,7 @@ export default function ClinicSelection() {
 
         if (!mounted) return;
 
-        const normalized = clinicItems.map((clinic) => {
-          const clinicInfo = getClinicInfoContent(clinic.id, clinic);
-
-          return {
-            ...clinic,
-            ...clinicInfo,
-            localInfo: clinicInfo,
-            time: clinicInfo.timeDisplay || "8:00 - 20:00",
-            image: clinicInfo.avatarUrl || clinic.avatarUrl || "/miniPet.png",
-          };
-        });
+        const normalized = clinicItems.map((clinic) => hydrateClinicFromLocalInfo(clinic));
 
         setClinics(normalized);
       } catch (error) {
@@ -64,7 +93,33 @@ export default function ClinicSelection() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [hydrateClinicFromLocalInfo, t]);
+
+  useEffect(() => {
+    const syncClinicsFromLocalStorage = () => {
+      setClinics((prev) => prev.map((clinic) => hydrateClinicFromLocalInfo(clinic)));
+    };
+
+    const handleStorage = (event) => {
+      if (!event?.key || !event.key.startsWith(CLINIC_INFO_STORAGE_PREFIX)) {
+        return;
+      }
+
+      syncClinicsFromLocalStorage();
+    };
+
+    const handleClinicInfoUpdated = () => {
+      syncClinicsFromLocalStorage();
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(CLINIC_INFO_UPDATED_EVENT, handleClinicInfoUpdated);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(CLINIC_INFO_UPDATED_EVENT, handleClinicInfoUpdated);
+    };
+  }, [hydrateClinicFromLocalInfo]);
 
   const getRatingPercentage = (clinic) => {
     const avgRating = Number(clinic?.avgRating) || 0;

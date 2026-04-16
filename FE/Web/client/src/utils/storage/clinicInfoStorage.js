@@ -1,4 +1,5 @@
 export const CLINIC_INFO_STORAGE_PREFIX = 'clinicInfo_';
+export const CLINIC_INFO_UPDATED_EVENT = 'clinicInfo:updated';
 
 const normalizeClinicId = (clinicId) => {
   if (clinicId === null || clinicId === undefined) return '';
@@ -8,11 +9,14 @@ const normalizeClinicId = (clinicId) => {
 const DEFAULT_CLINIC_INFO = {
   avatarUrl: '',
   name: '',
+  email: '',
   address: '',
   phone: '',
-  openingDays: 'Thứ 2 - Chủ nhật',
+  description: '',
+  openingDays: '',
   openingTime: '08:00',
   closingTime: '20:00',
+  updatedAt: 0,
 };
 
 const fallbackFromClinic = (clinic) => {
@@ -23,18 +27,24 @@ const fallbackFromClinic = (clinic) => {
   return {
     avatarUrl: clinic.avatarUrl || clinic.image || '',
     name: clinic.name || clinic.clinicName || '',
+    email: clinic.email || '',
     address: clinic.address || '',
     phone: clinic.phone || clinic.phoneNumber || '',
+    description: clinic.description || '',
+    openingTime: clinic.openingTime || clinic.localInfo?.openingTime || '',
+    closingTime: clinic.closingTime || clinic.localInfo?.closingTime || '',
+    openingDays: clinic.openingDays || clinic.localInfo?.openingDays || '',
+    updatedAt: Number(clinic.updatedAt) || 0,
   };
 };
 
-export const formatClinicOpenHours = ({ openingTime = '', closingTime = '', openingDays = '' } = {}) => {
+export const formatClinicOpenHours = ({ openingTime = '', closingTime = '' } = {}) => {
   const timeRange = [openingTime, closingTime].filter(Boolean).join(' - ');
   if (!timeRange) {
     return '';
   }
 
-  return openingDays ? `${timeRange} (${openingDays})` : timeRange;
+  return timeRange;
 };
 
 export const buildClinicInfoContent = (source = {}, fallbackClinic = null) => {
@@ -79,6 +89,22 @@ export const saveClinicInfoContent = (clinicId, content, fallbackClinic = null) 
   if (typeof window === 'undefined') return;
 
   const key = getClinicInfoStorageKey(clinicId);
-  const payload = buildClinicInfoContent(content, fallbackClinic);
+  const payload = buildClinicInfoContent(
+    {
+      ...(content || {}),
+      updatedAt: Date.now(),
+    },
+    fallbackClinic,
+  );
   window.localStorage.setItem(key, JSON.stringify(payload));
+
+  window.dispatchEvent(
+    new CustomEvent(CLINIC_INFO_UPDATED_EVENT, {
+      detail: {
+        clinicId: normalizeClinicId(clinicId),
+        key,
+        content: payload,
+      },
+    }),
+  );
 };

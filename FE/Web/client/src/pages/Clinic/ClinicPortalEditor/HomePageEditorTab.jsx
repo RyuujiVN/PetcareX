@@ -296,7 +296,7 @@ export default function HomePageClinicEditor() {
       content: t('homeEditor.team.removeDoctorContent'),
       okText: t('homeEditor.team.removeDoctorConfirm'),
       okType: 'danger',
-      cancelText: t('homeEditor.actions.cancel'),
+      // cancelText: t('homeEditor.actions.cancel'),
       centered: true,
       onOk: () => removeDoctor(doctorIndex),
     });
@@ -330,24 +330,24 @@ export default function HomePageClinicEditor() {
     navigate('/clinic/appointments');
   };
 
-  const handleCancel = () => {
-    if (!isDirty) {
-      discardAndExit();
-      return;
-    }
+  // const handleCancel = () => {
+  //   if (!isDirty) {
+  //     discardAndExit();
+  //     return;
+  //   }
 
-    Modal.confirm({
-      title: t('homeEditor.confirm.leaveTitle'),
-      content: t('homeEditor.confirm.leaveContent'),
-      okText: t('homeEditor.confirm.continueEditing'),
-      cancelText: t('homeEditor.confirm.discardChanges'),
-      centered: true,
-      closable: false,
-      maskClosable: false,
-      onCancel: discardAndExit,
-      onOk: () => {},
-    });
-  };
+  //   Modal.confirm({
+  //     title: t('homeEditor.confirm.leaveTitle'),
+  //     content: t('homeEditor.confirm.leaveContent'),
+  //     okText: t('homeEditor.confirm.continueEditing'),
+  //     cancelText: t('homeEditor.confirm.discardChanges'),
+  //     centered: true,
+  //     closable: false,
+  //     maskClosable: false,
+  //     onCancel: discardAndExit,
+  //     onOk: () => {},
+  //   });
+  // };
 
   return (
     <div className="clinic-home-editor-page">
@@ -604,7 +604,7 @@ export default function HomePageClinicEditor() {
       </Spin>
 
       <div className="clinic-home-editor-actions">
-        <Button onClick={handleCancel}>{t('homeEditor.actions.cancel')}</Button>
+        {/* <Button onClick={handleCancel}>{t('homeEditor.actions.cancel')}</Button> */}
         <Button onClick={() => setIsPreviewModalOpen(true)}>{t('homeEditor.actions.preview', { defaultValue: 'Xem trước' })}</Button>
         <Button type="primary" onClick={handleSave} loading={saving}>
           {t('homeEditor.actions.saveChanges')}
