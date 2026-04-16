@@ -42,6 +42,12 @@ export class Clinic {
   @Column({ type: 'int', default: 0 })
   totalReviews: number;
 
+  @Column({ type: 'time', name: 'opening_time', default: '08:00:00' })
+  openingTime: string;
+
+  @Column({ type: 'time', name: 'closing_time', default: '17:00:00' })
+  closingTime: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
