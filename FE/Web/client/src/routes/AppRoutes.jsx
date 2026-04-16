@@ -7,6 +7,7 @@ import AdminClinicLayout from '../layouts/Clinic/AdminClinicLayout'
 import AdminVererianrianLayout from '../layouts/Vererianrian/AdminVererianrianLayout'
 import Clinics from '../pages/admin/Dashboard/Clinics'
 import Posts from '../pages/admin/Dashboard/Posts'
+import AdminRevenue from '../pages/admin/Dashboard/Revenue'
 import Users from '../pages/admin/Dashboard/Users'
 import ForgotPassword from '../pages/client/Auth/ForgotPassword'
 import Login from '../pages/client/Auth/Login'
@@ -60,6 +61,7 @@ export default function AppRoutes({ location }) {
           <Route path="/admin/dashboard/clinics" element={<Clinics />} />
           <Route path="/admin/dashboard/users" element={<Users />} />
           <Route path="/admin/dashboard/posts" element={<Posts />} />
+          <Route path="/admin/dashboard/revenue" element={<AdminRevenue />} />
         </Route>
       </Route>
 
