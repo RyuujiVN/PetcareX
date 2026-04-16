@@ -44,11 +44,22 @@ export class RevenueController {
     @Query('dateStart') dateStart: Date,
     @Query('dateEnd') dateEnd: Date,
     @Query('groupBy') groupBy: 'DAY' | 'MONTH',
+    @Req() req,
   ) {
-    return this.revenueService.getRevenueLineChart({
-      dateStart,
-      dateEnd,
-      groupBy,
-    });
+    return this.revenueService.getRevenueLineChart(
+      {
+        dateStart,
+        dateEnd,
+        groupBy,
+      },
+      req?.user?.clinicId,
+    );
+  }
+
+  @Get('top-veterinarian')
+  @RequiredRole(RoleEnum.ADMIN_CLINIC)
+  @ApiOperation({ summary: 'Top 5 bác sĩ của tháng' })
+  getTopVeterinarian(@Req() req) {
+    return this.revenueService.topVeterinarian(req?.user?.clinicId);
   }
 }

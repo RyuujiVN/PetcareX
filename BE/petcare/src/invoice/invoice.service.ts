@@ -10,6 +10,8 @@ import { CreateInvoiceDTO } from './dtos/create-invoice.dto';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
 import { UpdateInvoiceDTO } from './dtos/update-invoice.dto';
+import { InvoicePagination } from './types/invoice-pagination.type';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class InvoiceService {
@@ -66,6 +68,33 @@ export class InvoiceService {
     };
 
     return response;
+  }
+
+  async findAllPagination(
+    options: InvoicePagination,
+    clinicId: string,
+  ): Promise<Pagination<Invoice>> {
+    const queryBuilder = this.invoiceRepository
+      .createQueryBuilder('invoice')
+      .innerJoin('invoice.medicalRecord', 'medicalRecord')
+      .leftJoin('invoice.petOwner', 'petOwner')
+      .select([
+        'invoice.createdAt',
+        'invoice.totalAmount',
+        'invoice.status',
+
+        'petOwner.fullName',
+
+        'medicalRecord.name',
+      ])
+      .where('invoice.clinicId = :clinicId', { clinicId: clinicId });
+
+    if (options.status)
+      queryBuilder.andWhere('invoice.status = :status', {
+        status: options.status,
+      });
+
+    return paginate<Invoice>(queryBuilder, options);
   }
 
   async createInvoice(createDTO: CreateInvoiceDTO, clinicId: string) {
