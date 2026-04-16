@@ -1,3 +1,4 @@
+import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { User } from 'src/user/entities/user.entity';
@@ -32,6 +33,9 @@ export class Invoice {
   @Column({ type: 'enum', enum: InvoiceStatusEnum })
   status: InvoiceStatusEnum;
 
+  @Column({ type: 'uuid', name: 'clinic_id', nullable: true })
+  clinicId: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
@@ -44,6 +48,13 @@ export class Invoice {
   })
   @JoinColumn({ name: 'pet_owner_id' })
   petOwner: User;
+
+  @ManyToOne(() => Clinic, {
+    onDelete: 'SET NULL',
+    nullable: true,
+  })
+  @JoinColumn({ name: 'clinic_id' })
+  clinic: Clinic;
 
   @OneToOne(() => MedicalRecord, (medicalRecord) => medicalRecord.invoice, {
     onDelete: 'CASCADE',
