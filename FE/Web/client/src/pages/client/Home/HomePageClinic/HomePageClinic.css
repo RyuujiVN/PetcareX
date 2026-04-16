@@ -26,6 +26,7 @@
 .hero-button{
   display: flex;
   gap: 20px;
+  font-size: 50px;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
