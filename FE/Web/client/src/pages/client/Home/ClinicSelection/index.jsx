@@ -8,6 +8,18 @@ import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicS
 import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
+const formatPhoneVN = (phone) => {
+  if (!phone) return "";
+
+  const digits = String(phone).replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+  }
+
+  return String(phone);
+};
+
 export default function ClinicSelection() {
   const { t } = useTranslation();
   const [clinics, setClinics] = useState([]);
@@ -33,6 +45,7 @@ export default function ClinicSelection() {
           return {
             ...clinic,
             ...clinicInfo,
+            localInfo: clinicInfo,
             time: clinicInfo.timeDisplay || "8:00 - 20:00",
             image: clinicInfo.avatarUrl || clinic.avatarUrl || "/miniPet.png",
           };
@@ -163,11 +176,16 @@ useEffect(() => {
                   {clinic.time}
                 </p>
 
-                {clinic.phone ? (
-                  <p className="clinic-phone" title={clinic.phone}>
-                    {t("common.labels.phone")}: {clinic.phone}
-                  </p>
-                ) : null}
+                {(() => {
+                  const clinicPhone = clinic.phone || clinic.localInfo?.phone;
+                  if (!clinicPhone) return null;
+
+                  return (
+                    <p className="clinic-phone" title={clinicPhone}>
+                      {t("common.labels.phone")}: {formatPhoneVN(clinicPhone)}
+                    </p>
+                  );
+                })()}
 
                 {(() => {
                   const avgRating = Number(clinic.avgRating) || 0;

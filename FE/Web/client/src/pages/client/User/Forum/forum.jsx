@@ -270,6 +270,7 @@ function Forum() {
 	const [searchParams, setSearchParams] = useSearchParams()
 	const composerRef = useRef(null)
 	const feedScrollRef = useRef(null)
+	const feedSavedScrollTopRef = useRef(0)
 	const postHighlightTimeoutRef = useRef(null)
 	const commentHighlightTimeoutRef = useRef(null)
 	const processedRealtimeLikeNotifRef = useRef(new Set())
@@ -581,7 +582,79 @@ function Forum() {
 		}
 
 		loadInitialData()
-	}, [i18n.language, t])
+	}, [])
+
+	useEffect(() => {
+		setApiPosts((prev) =>
+			prev.map((post) => {
+				const currentTopic = apiTopics.find(
+					(topic) => String(topic?.id || '') === String(post?.actualTopicId || ''),
+				)
+				const topicName = getTopicDisplayName(currentTopic, { language: i18n.language, t })
+				const tagTypeName = getTopicDisplayName(currentTopic, { language: 'vi', t })
+				const isNoTopic = Boolean(post?.noTopicSelected || !post?.actualTopicId)
+
+				return {
+					...post,
+					time: formatTimeAgo(post.createdAt, t),
+					tag: isNoTopic
+						? t('pages.forum.postTagDefault').toUpperCase()
+						: (topicName || t('pages.forum.postTagDefault')).toUpperCase(),
+					tagType: isNoTopic ? 'no-topic' : normalizeTagType(tagTypeName),
+				}
+			}),
+		)
+
+		setCommentsByPost((prev) => {
+			const next = {}
+
+			Object.entries(prev).forEach(([postId, value]) => {
+				const threads = Array.isArray(value?.threads) ? value.threads : []
+				next[postId] = {
+					...value,
+					threads: threads.map((thread) => ({
+						...thread,
+						main: thread?.main
+							? {
+								...thread.main,
+								time: formatTimeAgo(thread.main.createdAt, t),
+							}
+							: thread?.main,
+						replies: Array.isArray(thread?.replies)
+							? thread.replies.map((reply) => ({
+									...reply,
+									time: formatTimeAgo(reply.createdAt, t),
+							  }))
+							: [],
+					})),
+				}
+			})
+
+			return next
+		})
+	}, [apiTopics, i18n.language, t])
+
+	useEffect(() => {
+		const container = feedScrollRef.current
+		if (!container) return
+
+		const saveScroll = () => {
+			feedSavedScrollTopRef.current = container.scrollTop
+		}
+
+		container.addEventListener('scroll', saveScroll, { passive: true })
+		return () => container.removeEventListener('scroll', saveScroll)
+	}, [])
+
+	useEffect(() => {
+		const container = feedScrollRef.current
+		const savedTop = feedSavedScrollTopRef.current
+		if (!container || savedTop <= 0) return
+
+		window.requestAnimationFrame(() => {
+			container.scrollTop = savedTop
+		})
+	}, [i18n.language])
 
 	useEffect(() => {
 		if (!selectedPostIdFromQuery) return

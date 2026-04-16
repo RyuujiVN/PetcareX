@@ -14,6 +14,21 @@ import { addRoom } from "../../../../redux/slices/roomSlice";
 import ChatMessage from "./ChatMessage";
 import chatSocket from "../../../../socket/chatSocket";
 import { uploadOneFileResize } from "../../../../services/cloudinaryService";
+import { BsRobot } from "react-icons/bs";
+
+const TypingIndicator = () => {
+  return (
+    <div className="typing-indicator" aria-hidden>
+      {[0, 1, 2].map((index) => (
+        <span
+          key={index}
+          className="typing-indicator-dot"
+          style={{ animationDelay: `${index * 0.2}s` }}
+        />
+      ))}
+    </div>
+  );
+};
 
 const MessageBox = () => {
   const messages = useSelector((state) => state.message.messages);
@@ -319,10 +334,11 @@ const MessageBox = () => {
 
             {isAiWaitingFirstToken && (
               <div className="message ai">
+                <div className="typing-avatar">
+                  <BsRobot size={16} />
+                </div>
                 <div className="message-content">
-                  <div className="message-bubble loading">
-                    <span>Đang trả lời...</span>
-                  </div>
+                  <TypingIndicator />
                 </div>
               </div>
             )}

@@ -22,6 +22,50 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-16) — Tinh chỉnh UI/UX Booking, AddPet, Choose-clinic, Forum, ChatBot AI
+
+**1) BookingAppointment — mapping Service -> Specialty, lọc bác sĩ theo dịch vụ, hiển thị chuyên khoa rõ hơn**
+- Bổ sung `SERVICE_TO_SPECIALTY_MAP` trực tiếp trong `src/constants/enumLabels.js`.
+  - Map service sang veterinary specialty theo enum hiện tại của dự án.
+  - Có thêm alias key để tương thích khi backend trả biến thể service khác.
+- `src/pages/client/User/BookingAppointment/index.jsx`:
+  - Khi đổi dịch vụ, set lại specialty filter và reset bác sĩ đã chọn.
+  - Gọi `getVeterinarianByClinicApi(..., specialty)` để chỉ lấy danh sách bác sĩ đúng chuyên khoa tương ứng dịch vụ.
+  - Dropdown bác sĩ tiếp tục hiển thị 2 dòng (tên + chuyên khoa), có thêm trạng thái loading khi fetch.
+  - Khi đã chọn bác sĩ, hiển thị thêm badge chuyên khoa ngay dưới Select để người dùng xác nhận nhanh.
+  - Field `Triệu chứng` bật required mark chuẩn của AntD + giữ validation chặn input chỉ chứa khoảng trắng.
+- `src/pages/client/User/BookingAppointment/styles.css`:
+  - Tinh chỉnh toàn bộ UI khối chọn ngày/giờ theo style card/pill giống mock: day-pill bo góc, hiệu ứng glow khi chọn ngày, slot giờ dạng card với state hover/selected/disabled rõ ràng.
+  - Chỉ thay đổi presentation/UI, không đổi logic tính ngày quá khứ, lead-time 3 giờ, hay availability.
+
+**2) AddPet — dấu * đứng trước label bắt buộc**
+- `src/pages/client/User/AddPet/index.jsx`:
+  - Đổi helper label required từ dạng `Tên *` sang `* Tên`.
+- `src/pages/client/User/AddPet/styles.css`:
+  - Đổi spacing của `.required-mark` sang `margin-right` để dấu sao hiển thị đúng vị trí phía trước.
+
+**3) Choose-clinic — format số điện thoại dạng 0979 387 171**
+- `src/pages/client/Home/ClinicSelection/index.jsx`:
+  - Khai báo helper `formatPhoneVN(phone)` ngay trong file.
+  - Chuẩn hóa về digits, format nhóm `4-3-3` khi đủ 10 số, fallback giữ nguyên đầu vào nếu không đủ điều kiện format.
+  - Áp dụng `formatPhoneVN` khi render số điện thoại trên card phòng khám.
+  - Bổ sung fallback dữ liệu phone từ local clinic content nếu field chính không có.
+
+**4) Forum — đổi ngôn ngữ không còn giật page**
+- `src/pages/client/User/Forum/forum.jsx`:
+  - Tách dependency i18n khỏi effect fetch dữ liệu ban đầu: chỉ fetch topics/posts khi mount lần đầu.
+  - Khi đổi ngôn ngữ: remap lại label/time ngay trên state hiện có (không refetch API) để tránh nháy feed.
+  - Thêm cơ chế lưu và restore `scrollTop` của feed container khi language change, giúp giữ nguyên vị trí đọc.
+
+**5) ChatBot AI — TypingIndicator thay cho text "Đang trả lời..."**
+- `src/pages/client/Home/ChatBotAI/MessageBox.jsx`:
+  - Khai báo `TypingIndicator` ngay trong file MessageBox (không tách file riêng).
+  - UI 3 chấm nhấp nhô (CSS animation thuần, không thêm thư viện).
+  - Thay loading bubble text cũ bằng TypingIndicator + avatar robot trong lúc chờ token đầu tiên.
+  - Giữ nguyên state `isAiLoading` / `isAiWaitingFirstToken` và luồng socket hiện hữu.
+- `src/pages/client/Home/ChatBotAI/styles.css`:
+  - Bổ sung class `.typing-indicator`, `.typing-indicator-dot`, `.typing-avatar` và keyframes `typing-bounce`.
+
 ### Cập nhật bổ sung (2026-04-14) — Fix Icon Chuông, Báo cáo bài viết, Notification Like/Comment UI
 - Notification bell badge (Client/Admin/Clinic/Veterinarian):
   - Dùng Ant `Badge` style đỏ tròn đồng nhất (`#ff4d4f`) với text canh giữa bằng `display:flex`, `alignItems:center`, `justifyContent:center`, `lineHeight: normal`, `fontWeight: 600`.

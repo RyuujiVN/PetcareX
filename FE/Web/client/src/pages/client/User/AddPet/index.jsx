@@ -224,7 +224,7 @@ export default function AddPet() {
 
   const requiredLabel = (text) => (
     <>
-      {text} <span className="required-mark">*</span>
+      <span className="required-mark">*</span> {text}
     </>
   );
 
