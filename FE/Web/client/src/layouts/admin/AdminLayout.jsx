@@ -1,4 +1,5 @@
 import {
+  DollarOutlined,
   FileTextOutlined,
   MedicineBoxOutlined,
   TeamOutlined,
@@ -42,6 +43,13 @@ const menuItems = [
     icon: FileTextOutlined,
     path: "/admin/dashboard/posts",
     activePaths: ["/admin/dashboard/posts"],
+  },
+  {
+    key: "revenue",
+    labelKey: "layout.menu.revenue",
+    icon: DollarOutlined,
+    path: "/admin/dashboard/revenue",
+    activePaths: ["/admin/dashboard/revenue"],
   },
 ];
 

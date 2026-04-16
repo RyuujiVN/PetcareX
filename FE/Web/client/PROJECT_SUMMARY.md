@@ -22,6 +22,58 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-16) — Admin Revenue Dashboard (Doanh thu toàn hệ thống)
+
+**Mục đích:** Cung cấp cho Super Admin (role ADMIN) cái nhìn tổng quan doanh thu toàn hệ thống từ tất cả phòng khám, phục vụ quyết định kinh doanh.
+
+**Phương án kỹ thuật:**
+- FE tổng hợp: Fetch danh sách clinics (`GET /clinic`, admin có quyền) → với mỗi clinic, cố gắng fetch medical records + invoices → tổng hợp phía client.
+- **Giới hạn hiện tại:** BE chưa có API admin-scoped cho invoice/medical. Các endpoint hiện tại (`GET /invoice/:medicalRecordId`, `GET /medical/clinic`) chỉ cho ADMIN_CLINIC + VETERINARIAN. Revenue module hoàn toàn trống. Do đó, dữ liệu doanh thu chi tiết chưa hiển thị được cho đến khi BE bổ sung RBAC hoặc API mới.
+- Khi BE fix → dashboard sẽ tự hoạt động mà không cần sửa FE.
+
+**KPI hiển thị:**
+- Tổng doanh thu toàn hệ thống (format `formatVND()`)
+- Tổng phòng khám hoạt động (từ `GET /clinic` — hoạt động ngay)
+- Tổng lượt khám (chờ BE)
+- Hóa đơn đã thanh toán / tổng (chờ BE)
+
+**Components tạo mới:**
+
+| File | Mô tả |
+|---|---|
+| `src/services/adminRevenueService.js` | Service layer: fetch clinics, aggregate medical/invoice per clinic, tính KPI/chart/ranking |
+| `src/hooks/admin/useAdminRevenue.js` | Hook: state management, period filter (today/week/month/year), clinic search, cache |
+| `src/pages/admin/Dashboard/Revenue/index.jsx` | Trang chính Admin Revenue Dashboard |
+| `src/pages/admin/Dashboard/Revenue/adminRevenue.module.css` | CSS Module, dùng admin color tokens |
+| `src/pages/admin/Dashboard/Revenue/components/AdminRevenueKPICards.jsx` | 4 KPI cards tổng hệ thống |
+| `src/pages/admin/Dashboard/Revenue/components/AdminRevenueChart.jsx` | Area chart doanh thu theo ngày (recharts) |
+| `src/pages/admin/Dashboard/Revenue/components/ClinicRevenueRankingTable.jsx` | Bảng xếp hạng phòng khám theo doanh thu, có search |
+| `src/pages/admin/Dashboard/Revenue/components/AdminRecentInvoicesTable.jsx` | Bảng hóa đơn gần đây toàn hệ thống, có filter PAID/UNPAID |
+
+**Files đã sửa:**
+
+| File | Thay đổi |
+|---|---|
+| `src/routes/AppRoutes.jsx` | Thêm route `/admin/dashboard/revenue` |
+| `src/layouts/admin/AdminLayout.jsx` | Thêm menu item "Doanh thu hệ thống" (icon `DollarOutlined`) |
+| `src/styles/admin/colorsToken.css` | Thêm 8 token `--admin-revenue-*` cho dashboard |
+| `src/locales/admin/vi.json` | Thêm block `revenue.*` (~50 keys) |
+| `src/locales/admin/en.json` | Thêm block `revenue.*` (~50 keys) |
+
+**Tái sử dụng từ codebase:**
+- `formatVND()` từ `src/utils/currencyFormat.js` — không tạo lại.
+- `formatDateDDMMYYYY()` từ `src/utils/dateTimeFormat.js`.
+- `recharts` (Area chart) — cùng thư viện chart với Clinic Revenue.
+- `getAdminInstance()` từ `src/services/apiClient.js`.
+- `INVOICE_STATUS` từ `src/services/invoiceService.js`.
+
+**⚠️ BE cần bổ sung để dashboard hoạt động đầy đủ:**
+1. Thêm `ADMIN` vào `@RequiredRole` của `GET /invoice/:medicalRecordId` (hoặc tạo endpoint mới)
+2. Tạo endpoint mới `GET /medical/admin?clinicId=xxx` cho ADMIN (vì `/medical/clinic` dùng `req.user.clinicId` từ JWT)
+3. Hoặc tốt hơn: tạo aggregate API trong Revenue module (`GET /revenue/system`, `GET /revenue/clinics`)
+
+**Build:** `npx vite build` → built in ~24s, 0 error.
+
 ### Cập nhật bổ sung (2026-04-16) — Tinh chỉnh UI/UX Booking, AddPet, Choose-clinic, Forum, ChatBot AI
 
 **1) BookingAppointment — mapping Service -> Specialty, lọc bác sĩ theo dịch vụ, hiển thị chuyên khoa rõ hơn**

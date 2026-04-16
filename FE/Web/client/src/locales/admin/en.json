@@ -8,7 +8,8 @@
       "overview": "Overview",
       "clinics": "Clinic Management",
       "users": "User Management",
-      "posts": "Post Management"
+      "posts": "Post Management",
+      "revenue": "System Revenue"
     },
     "profile": {
       "defaultName": "Admin Name",
@@ -345,6 +346,56 @@
       "avatarMissingUrl": "Missing avatar URL from system",
       "passwordChanged": "Password changed successfully",
       "passwordChangeFailed": "Unable to change password"
+    }
+  },
+  "revenue": {
+    "pageTitle": "System Revenue",
+    "pageSubtitle": "Revenue overview and business performance across all clinics",
+    "loading": "Loading revenue data...",
+    "noRevenueDataBanner": "Detailed revenue data is currently unavailable. Please contact the development team to add Admin-scoped revenue APIs.",
+    "period": {
+      "today": "Today",
+      "week": "7 days",
+      "month": "This month",
+      "year": "This year"
+    },
+    "kpi": {
+      "totalRevenue": "Total Revenue",
+      "totalClinics": "Active Clinics",
+      "totalVisits": "Total Visits",
+      "paidInvoices": "Paid Invoices"
+    },
+    "chart": {
+      "title": "Revenue Trend Over Time",
+      "revenueLegend": "Revenue"
+    },
+    "ranking": {
+      "title": "Clinic Revenue Ranking",
+      "searchPlaceholder": "Search clinics...",
+      "colClinic": "CLINIC",
+      "colRevenue": "REVENUE",
+      "colVisits": "VISITS",
+      "colPaid": "PAID",
+      "colUnpaid": "UNPAID"
+    },
+    "invoices": {
+      "title": "Recent Invoices Across System",
+      "filterAll": "All",
+      "filterPaid": "Paid",
+      "filterUnpaid": "Unpaid",
+      "colRecord": "Record",
+      "colClinic": "Clinic",
+      "colPet": "Pet",
+      "colDate": "Date",
+      "colAmount": "Amount",
+      "colStatus": "Status",
+      "statusPaid": "Paid",
+      "statusUnpaid": "Unpaid"
+    },
+    "empty": {
+      "noChartData": "No chart data for this period",
+      "noClinicData": "No clinic data available",
+      "noInvoices": "No invoices for this period"
     }
   },
   "common": {

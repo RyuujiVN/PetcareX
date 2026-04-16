@@ -8,7 +8,8 @@
       "overview": "Tổng quan",
       "clinics": "Quản lý phòng khám",
       "users": "Quản lý người dùng",
-      "posts": "Quản lý bài đăng"
+      "posts": "Quản lý bài đăng",
+      "revenue": "Doanh thu hệ thống"
     },
     "profile": {
       "defaultName": "Admin Name",
@@ -345,6 +346,56 @@
       "avatarMissingUrl": "Không nhận được URL ảnh từ hệ thống",
       "passwordChanged": "Đổi mật khẩu thành công",
       "passwordChangeFailed": "Không thể đổi mật khẩu"
+    }
+  },
+  "revenue": {
+    "pageTitle": "Doanh thu toàn hệ thống",
+    "pageSubtitle": "Tổng quan doanh thu và hiệu quả kinh doanh từ tất cả phòng khám",
+    "loading": "Đang tải dữ liệu doanh thu...",
+    "noRevenueDataBanner": "Hệ thống hiện chưa có dữ liệu doanh thu chi tiết. Vui lòng liên hệ đội phát triển để bổ sung API doanh thu dành cho Admin.",
+    "period": {
+      "today": "Hôm nay",
+      "week": "7 ngày",
+      "month": "Tháng này",
+      "year": "Năm nay"
+    },
+    "kpi": {
+      "totalRevenue": "Tổng doanh thu",
+      "totalClinics": "Phòng khám hoạt động",
+      "totalVisits": "Tổng lượt khám",
+      "paidInvoices": "Hóa đơn đã thanh toán"
+    },
+    "chart": {
+      "title": "Xu hướng doanh thu theo thời gian",
+      "revenueLegend": "Doanh thu"
+    },
+    "ranking": {
+      "title": "Xếp hạng phòng khám theo doanh thu",
+      "searchPlaceholder": "Tìm phòng khám...",
+      "colClinic": "PHÒNG KHÁM",
+      "colRevenue": "DOANH THU",
+      "colVisits": "LƯỢT KHÁM",
+      "colPaid": "ĐÃ THANH TOÁN",
+      "colUnpaid": "CHƯA THANH TOÁN"
+    },
+    "invoices": {
+      "title": "Hóa đơn gần đây toàn hệ thống",
+      "filterAll": "Tất cả",
+      "filterPaid": "Đã thanh toán",
+      "filterUnpaid": "Chưa thanh toán",
+      "colRecord": "Phiếu khám",
+      "colClinic": "Phòng khám",
+      "colPet": "Thú cưng",
+      "colDate": "Ngày",
+      "colAmount": "Số tiền",
+      "colStatus": "Trạng thái",
+      "statusPaid": "Đã thanh toán",
+      "statusUnpaid": "Chưa thanh toán"
+    },
+    "empty": {
+      "noChartData": "Chưa có dữ liệu biểu đồ trong kỳ này",
+      "noClinicData": "Chưa có dữ liệu phòng khám",
+      "noInvoices": "Chưa có hóa đơn nào trong kỳ này"
     }
   },
   "common": {
