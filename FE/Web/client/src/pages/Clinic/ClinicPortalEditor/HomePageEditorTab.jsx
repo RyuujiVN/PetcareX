@@ -355,12 +355,13 @@ export default function HomePageClinicEditor() {
       <Space direction="vertical" size={16} className="clinic-home-editor-content">
         <Card title={t('homeEditor.sections.hero')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Banner chính</p>
+            <label className="editor-section-label">{t('homeEditor.labels.heroTitle')}</label>
             <Input
               value={draftContent.hero.title}
               onChange={(event) => updateNestedField('hero', 'title', event.target.value)}
               placeholder={t('homeEditor.placeholders.heroTitle')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.heroDescription')}</label>
             <TextArea
               value={draftContent.hero.description}
               onChange={(event) => updateNestedField('hero', 'description', event.target.value)}
@@ -390,7 +391,7 @@ export default function HomePageClinicEditor() {
                   return false;
                 }}
               >
-                <Button icon={<UploadOutlined />}>
+                <Button icon={<UploadOutlined />} style={{color: "#4672b4"}}>
                   {t('homeEditor.actions.uploadImage')}
                 </Button>
               </Upload>
@@ -404,17 +405,18 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.about')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Giới thiệu phòng khám</p>
             <Input
               value={draftContent.about.label}
               onChange={(event) => updateNestedField('about', 'label', event.target.value)}
               placeholder={t('homeEditor.placeholders.aboutLabel')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.aboutTitle')}</label>
             <Input
               value={draftContent.about.title}
               onChange={(event) => updateNestedField('about', 'title', event.target.value)}
               placeholder={t('homeEditor.placeholders.aboutTitle')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.aboutDescription')}</label>
             <TextArea
               value={draftContent.about.description}
               onChange={(event) => updateNestedField('about', 'description', event.target.value)}
@@ -423,6 +425,7 @@ export default function HomePageClinicEditor() {
             />
             <Row gutter={12}>
               <Col xs={24} md={12}>
+             <label className="editor-section-label">{t('homeEditor.labels.aboutHighlightNumber')}</label>
                 <Input
                   value={draftContent.about.highlightNumber}
                   onChange={(event) => updateNestedField('about', 'highlightNumber', event.target.value)}
@@ -430,6 +433,7 @@ export default function HomePageClinicEditor() {
                 />
               </Col>
               <Col xs={24} md={12}>
+             <label className="editor-section-label">{t('homeEditor.labels.aboutHighlightLabel')}</label>
                 <Input
                   value={draftContent.about.highlightLabel}
                   onChange={(event) => updateNestedField('about', 'highlightLabel', event.target.value)}
@@ -442,12 +446,13 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.gallery')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Thư viện hình ảnh và nội dung nổi bật</p>
+            <label className="editor-section-label">{t('homeEditor.labels.galleryTitle')}</label>
             <Input
               value={draftContent.gallerySection.title}
               onChange={(event) => updateNestedField('gallerySection', 'title', event.target.value)}
               placeholder={t('homeEditor.placeholders.galleryTitle')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.gallerySubtitle')}</label>
             <TextArea
               value={draftContent.gallerySection.subtitle}
               onChange={(event) => updateNestedField('gallerySection', 'subtitle', event.target.value)}
@@ -499,13 +504,12 @@ export default function HomePageClinicEditor() {
           <Card
             title={t('homeEditor.sections.team')}
             extra={
-              <Button type="dashed" onClick={addDoctor}>
+              <Button type="dashed" onClick={addDoctor} style={{ color: "#4672b4" , hover: { color: '#4672b4', borderColor: '#4672b4' }}}>
                 {t('homeEditor.team.addDoctor')}
               </Button>
             }
           >
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Đội ngũ bác sĩ</p>
             <Input
               value={draftContent.teamSection.title}
               onChange={(event) => updateNestedField('teamSection', 'title', event.target.value)}
@@ -546,7 +550,7 @@ export default function HomePageClinicEditor() {
                       } 
                       }
                     >
-                      <Button icon={<UploadOutlined />} disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)}>
+                      <Button icon={<UploadOutlined />} disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)} style={{color: "#4672b4"}}>
                         <span>{isFieldUploading(`doctor-image-${index}`) ? t('homeEditor.actions.uploading') : t('homeEditor.actions.uploadImage')}</span>
                       </Button>
                     </Upload>
@@ -574,7 +578,6 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.location')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Thông tin địa chỉ và bản đồ</p>
             <Input
               value={draftContent.locationSection.title}
               onChange={(event) => updateNestedField('locationSection', 'title', event.target.value)}
@@ -586,11 +589,13 @@ export default function HomePageClinicEditor() {
               rows={2}
               placeholder={t('homeEditor.placeholders.locationSubtitle')}
             />
+            <p className="editor-section-label">{t('homeEditor.labels.locationAddress')}</p>
             <Input
               value={draftContent.locationSection.address}
               onChange={(event) => updateNestedField('locationSection', 'address', event.target.value)}
               placeholder={t('homeEditor.placeholders.locationAddress')}
             />
+            <p className="editor-section-label">{t('homeEditor.labels.locationMapEmbed')}</p>
             <Input
               value={draftContent.locationSection.mapEmbedUrl}
               onChange={(event) =>

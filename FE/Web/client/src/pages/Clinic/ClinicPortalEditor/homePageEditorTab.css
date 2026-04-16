@@ -18,10 +18,10 @@
 }
 
 .editor-section-label {
-  margin: 0;
-  font-size: 13px;
+  margin: 10px 4px 6px;
+  font-size: 14px;
   font-weight: 700;
-  color: #1f3f66;
+  color: #4672b4;
 }
 
 .clinic-home-preview-block {
@@ -94,6 +94,7 @@
 
 .editor-gallery-upload-button {
   width: fit-content;
+  color: #4672b4;
 }
 
 .editor-gallery-preview-grid {

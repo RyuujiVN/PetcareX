@@ -486,31 +486,43 @@
 			"discardChanges": "Hủy bỏ thay đổi"
 		},
 		"sections": {
-			"hero": "Phần đầu trang",
-			"about": "Giới thiệu bệnh viện",
-			"gallery": "Thư viện ảnh",
-			"team": "Đội ngũ bác sĩ",
-			"location": "Địa chỉ phòng khám (Google Maps)"
+			"hero": "PHẦN ĐẦU TRANG",
+			"about": "GIỚI THIỆU BỆNH VIỆN",
+			"gallery": "THƯ VIỆN ẢNH",
+			"team": "ĐỘI NGŨ BÁC SĨ",
+			"location": "ĐỊA CHỈ PHÒNG KHÁM (Google Maps)"
+		},
+		"labels": {
+			"heroTitle": "Tên phòng khám và lời chào mừng",
+			"heroDescription": "Slogan riêng cho phòng khám",
+			"aboutTitle": "Tên phòng khám đầy đủ",
+			"aboutDescription": "Nội dung giới thiệu bệnh viện",
+			"aboutHighlightNumber": "Số năm thành lập",
+			"aboutHighlightLabel": "Số chi nhánh",
+			"galleryTitle": "Thư viện hình ảnh và nội dung nổi bật",
+			"gallerySubtitle": "Mô tả thư viện ảnh",
+			"locationAddress": "Địa chỉ chi tiết",
+			"locationMapEmbed": "NHÚNG BẢN ĐỒ (HTML)"
 		},
 		"placeholders": {
-			"heroTitle": "Tên phòng khám và lời chào mừng",
-			"heroDescription": "Slogan riêng cho phòng khám của bạn",
+			"heroTitle": "Ví dụ: PetCar - Nơi sức khỏe thú cưng được chăm sóc tận tâm",
+			"heroDescription": "Ví dụ: Chào mừng đến với PetCar, phòng khám thú y hàng đầu tại Đà Nẵng.",
 			"heroCtaText": "Nội dung nút CTA",
 			"heroBannerImage": "Ảnh banner đầu trang (URL hoặc đường dẫn public)",
 			"aboutLabel": "Nhãn phần giới thiệu",
-			"aboutTitle": "Tiêu đề phần giới thiệu",
-			"aboutDescription": "Nội dung giới thiệu",
+			"aboutTitle": "Ví dụ: Bệnh viện thú y PetCar Đà Nẵng",
+			"aboutDescription": "Ví dụ: Phòng khám thú y của chúng tôi là nơi cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho thú cưng với đội ngũ bác sĩ thú y giàu kinh nghiệm, tận tâm và yêu thương động vật. Chúng tôi chuyên khám, tư vấn, tiêm phòng, điều trị bệnh, chăm sóc sức khỏe định kỳ và làm đẹp cho thú cưng trong môi trường hiện đại, an toàn và thân thiện. Với phương châm đặt sức khỏe và sự thoải mái của thú cưng lên hàng đầu, phòng khám luôn nỗ lực mang đến dịch vụ chất lượng cao, giúp các bé thú cưng luôn khỏe mạnh và mang lại sự an tâm tuyệt đối cho chủ nuôi.",
 			"aboutHighlightNumber": "Số năm thành lập phòng khám của bạn",
 			"aboutHighlightLabel": "Số chi nhánh phòng khám của bạn",
 			"galleryTitle": "Tiêu đề thư viện ảnh",
-			"gallerySubtitle": "Mô tả thư viện ảnh",
+			"gallerySubtitle": "Ví dụ: Hoạt động thường niên của phòng khám giúp các bé thú cưng khỏe mạnh hơn",
 			"teamTitle": "Tiêu đề khối đội ngũ",
-			"doctorName": "Tên bác sĩ",
+			"doctorName": "Ví dụ: ThS. Nguyễn Văn A - Bác sĩ Nội Khoa",
 			"doctorImage": "Ảnh bác sĩ",
 			"locationTitle": "Tiêu đề phần địa chỉ",
 			"locationSubtitle": "Mô tả ngắn",
-			"locationAddress": "Địa chỉ hiển thị",
-			"locationMapEmbed": "Dán link nhúng Google Maps hoặc cả đoạn iframe"
+			"locationAddress": "Ví dụ: 123 Đường ABC, Quận XYZ, Đà Nẵng",
+			"locationMapEmbed": "Vào Google Maps, tìm địa chỉ phòng khám, chọn chia sẻ, sau đó chọn NHÚNG BẢN ĐỒ và sao chép đoạn mã HTML vào đây"
 		},
 		"actions": {
 			"uploadImage": "Tải ảnh lên",

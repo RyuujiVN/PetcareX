@@ -492,6 +492,18 @@
 			"team": "Veterinary Team",
 			"location": "Clinic Location (Google Maps)"
 		},
+		"labels": {
+			"heroTitle": "Clinic name and welcome headline",
+			"heroDescription": "Clinic slogan",
+			"aboutTitle": "Full clinic name",
+			"aboutDescription": "Clinic introduction content",
+			"aboutHighlightNumber": "Years established",
+			"aboutHighlightLabel": "Number of branches",
+			"galleryTitle": "Gallery title and featured content",
+			"gallerySubtitle": "Gallery description",
+			"locationAddress": "Detailed address",
+			"locationMapEmbed": "EMBED MAP (HTML)"
+		},
 		"placeholders": {
 			"heroTitle": "Clinic name and welcome text",
 			"heroDescription": "Your clinic slogan",
