@@ -12,7 +12,7 @@ export class UpdateClinicDTO extends PartialType(CreateClinicDTO) {
   @Matches(regex.timeRegex, {
     message: 'Thời gian mở cửa phải đúng theo HH:MM format',
   })
-  opening_time?: string;
+  openingTime?: string;
 
   @ApiProperty({
     example: '08:00',
@@ -22,5 +22,5 @@ export class UpdateClinicDTO extends PartialType(CreateClinicDTO) {
   @Matches(regex.timeRegex, {
     message: 'Thời gian đóng cửa phải đúng theo HH:MM format',
   })
-  closing_time?: string;
+  closingTime?: string;
 }

@@ -85,9 +85,9 @@ export class ClinicService {
   // Chỉnh sửa thông tin phòng khám
   async updateClinic(id: string, clinicDTO: UpdateClinicDTO) {
     if (
-      clinicDTO?.closing_time &&
-      clinicDTO?.opening_time &&
-      clinicDTO?.opening_time >= clinicDTO?.closing_time
+      clinicDTO?.closingTime &&
+      clinicDTO?.openingTime &&
+      clinicDTO?.openingTime >= clinicDTO?.closingTime
     )
       throw new BadRequestException('Giờ đóng cửa phải lớn hơn giờ mở cửa');
 
