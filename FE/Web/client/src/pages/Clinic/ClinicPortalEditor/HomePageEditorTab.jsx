@@ -1,13 +1,15 @@
 import { CloseOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Input, message, Modal, Row, Space, Upload } from 'antd';
+import { Button, Card, Col, Input, message, Modal, Row, Space, Spin, Upload } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { buildClinicHomeContent } from '../../../config/homePageClinicContent';
 import { useAuth } from '../../../hooks/Clinic/AuthContext';
+import { getAdminInstance } from '../../../services/apiClient';
+import { getClinicHomepageSettingApi, updateClinicHomepageSettingApi } from '../../../services/clinicHomepageSettingService';
 import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../services/cloudinaryService';
 import { getCurrentAdminClinicId } from '../../../utils/clinicIdentity';
-import { getClinicHomeContent, saveClinicHomeContent } from '../../../utils/storage/clinicHomeStorage';
+import { cacheClinicHomeContent, getClinicHomeContent, saveClinicHomeContent } from '../../../utils/storage/clinicHomeStorage';
 import HomePageClinic from '../../client/Home/HomePageClinic';
 import './homePageEditorTab.css';
 
@@ -36,6 +38,7 @@ export default function HomePageClinicEditor() {
   const [draftContent, setDraftContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [savedContent, setSavedContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [saving, setSaving] = useState(false);
+  const [loadingInit, setLoadingInit] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [uploadingField, setUploadingField] = useState('');
   const deniedRef = useRef(false);
@@ -51,9 +54,36 @@ export default function HomePageClinicEditor() {
       return;
     }
 
-    const nextContent = getClinicHomeContent(targetClinicId);
-    setDraftContent(nextContent);
-    setSavedContent(nextContent);
+    let cancelled = false;
+    setLoadingInit(true);
+
+    getClinicHomepageSettingApi(getAdminInstance(), targetClinicId)
+      .then((apiData) => {
+        if (cancelled) return;
+        if (apiData) {
+          const parsed = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
+          const nextContent = buildClinicHomeContent(parsed);
+          cacheClinicHomeContent(targetClinicId, nextContent);
+          setDraftContent(nextContent);
+          setSavedContent(nextContent);
+        } else {
+          // Phòng khám mới chưa có setting → dùng default content
+          const nextContent = getClinicHomeContent(targetClinicId);
+          setDraftContent(nextContent);
+          setSavedContent(nextContent);
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const nextContent = getClinicHomeContent(targetClinicId);
+        setDraftContent(nextContent);
+        setSavedContent(nextContent);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingInit(false);
+      });
+
+    return () => { cancelled = true; };
   }, [navigate, t, targetClinicId]);
 
   useEffect(() => {
@@ -285,10 +315,12 @@ export default function HomePageClinicEditor() {
     try {
       setSaving(true);
       const normalized = cloneContent(draftContent);
+      await updateClinicHomepageSettingApi(getAdminInstance(), normalized);
       saveClinicHomeContent(targetClinicId, normalized);
       setSavedContent(normalized);
       message.success(t('homeEditor.messages.saveSuccess'));
-      window.location.reload();
+    } catch (error) {
+      message.error(error?.message || t('homeEditor.messages.saveFailed', { defaultValue: 'Lưu thất bại. Vui lòng thử lại.' }));
     } finally {
       setSaving(false);
     }
@@ -319,6 +351,7 @@ export default function HomePageClinicEditor() {
 
   return (
     <div className="clinic-home-editor-page">
+      <Spin spinning={loadingInit} tip={t('homeEditor.messages.loading', { defaultValue: 'Đang tải...' })}>
       <Space direction="vertical" size={16} className="clinic-home-editor-content">
         <Card title={t('homeEditor.sections.hero')}>
           <Space direction="vertical" size={12} className="editor-full-width">
@@ -568,6 +601,7 @@ export default function HomePageClinicEditor() {
           </Space>
         </Card>
       </Space>
+      </Spin>
 
       <div className="clinic-home-editor-actions">
         <Button onClick={handleCancel}>{t('homeEditor.actions.cancel')}</Button>
