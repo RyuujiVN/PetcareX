@@ -28,7 +28,7 @@ const formatExamDateForLabel = (value, locale) => {
   return date.toLocaleDateString(locale)
 }
 
-export default function ClinicReviewSection({ clinicId }) {
+export default function ClinicReviewSection({ clinicId, showForm = true }) {
   const { t, i18n } = useTranslation()
   const { userProfile, token } = useAuth()
   const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
@@ -92,7 +92,7 @@ export default function ClinicReviewSection({ clinicId }) {
 
   // Tìm các medical record của user đã hoàn thành tại clinic này và chưa review.
   const loadEligibleRecords = useCallback(async () => {
-    if (!clinicId || !isLoggedIn || !userProfile?.id) {
+    if (!showForm || !clinicId || !isLoggedIn || !userProfile?.id) {
       setEligibleRecords([])
       return
     }
@@ -144,7 +144,7 @@ export default function ClinicReviewSection({ clinicId }) {
     } finally {
       setLoadingEligible(false)
     }
-  }, [clinicId, isLoggedIn, locale, userProfile?.id])
+  }, [clinicId, isLoggedIn, locale, showForm, userProfile?.id])
 
   useEffect(() => {
     loadClinicSummary()
@@ -183,13 +183,15 @@ export default function ClinicReviewSection({ clinicId }) {
           totalReviews={clinicSummary.totalReviews}
         />
 
-        <ClinicReviewForm
-          clinicId={clinicId}
-          isLoggedIn={isLoggedIn}
-          eligibleRecords={eligibleRecords}
-          loadingEligible={loadingEligible}
-          onSubmitted={handleSubmitted}
-        />
+        {showForm ? (
+          <ClinicReviewForm
+            clinicId={clinicId}
+            isLoggedIn={isLoggedIn}
+            eligibleRecords={eligibleRecords}
+            loadingEligible={loadingEligible}
+            onSubmitted={handleSubmitted}
+          />
+        ) : null}
 
         <ClinicReviewList
           reviews={reviews}

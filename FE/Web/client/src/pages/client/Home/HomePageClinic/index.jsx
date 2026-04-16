@@ -198,7 +198,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
           </div>
         </section>
 
-        <ClinicReviewSection clinicId={selectedClinicId} />
+        <ClinicReviewSection clinicId={selectedClinicId} showForm={false} />
 
         <section className="clinic-location-section">
           <div className="section-container clinic-location-header">
