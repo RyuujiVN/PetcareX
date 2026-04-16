@@ -1,11 +1,10 @@
-﻿import { Rate, message, Spin } from "antd";
+﻿import { message, Rate, Spin } from "antd";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FaSearch } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClientInstance } from "../../../../services/apiClient";
 import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
-import { getClinicRatingSummary } from "../../../../services/clinicReviewService";
 import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
@@ -14,18 +13,8 @@ export default function ClinicSelection() {
   const [clinics, setClinics] = useState([]);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(false);
-  const [ratingVersion, setRatingVersion] = useState(0);
   const nameRefs = useRef([]);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const handleStorage = () => {
-      setRatingVersion((prev) => prev + 1);
-    };
-
-    window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
-  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -64,9 +53,23 @@ export default function ClinicSelection() {
     };
   }, []);
 
+  const getRatingPercentage = (clinic) => {
+    const avgRating = Number(clinic?.avgRating) || 0;
+    const boundedRating = Math.max(0, Math.min(5, avgRating));
+    return (boundedRating / 5) * 100;
+  };
+
   const filtered = clinics.filter((c) =>
     (c.name || "").toLowerCase().includes(searchText.toLowerCase())
-  );
+  ).sort((a, b) => {
+    const percentageDiff = getRatingPercentage(b) - getRatingPercentage(a);
+    if (percentageDiff !== 0) return percentageDiff;
+
+    const reviewDiff = (Number(b?.totalReviews) || 0) - (Number(a?.totalReviews) || 0);
+    if (reviewDiff !== 0) return reviewDiff;
+
+    return String(a?.name || "").localeCompare(String(b?.name || ""));
+  });
 
 useEffect(() => {
   const update = () => {
@@ -167,20 +170,21 @@ useEffect(() => {
                 ) : null}
 
                 {(() => {
-                  const ratingSummary = getClinicRatingSummary(clinic.id);
-                  const hasReviews = ratingSummary.totalReviews > 0;
+                  const avgRating = Number(clinic.avgRating) || 0;
+                  const totalReviews = Number(clinic.totalReviews) || 0;
+                  const hasReviews = totalReviews > 0;
 
                   return (
-                    <div className="clinic-rating" key={`rating-${clinic.id}-${ratingVersion}`}>
+                    <div className="clinic-rating">
                       <Rate
                         disabled
                         allowHalf
-                        value={hasReviews ? ratingSummary.averageRating : 0}
+                        value={hasReviews ? avgRating : 0}
                         className="clinic-rating-stars"
                       />
                       {hasReviews ? (
                         <p className="clinic-rating-text">
-                          {ratingSummary.averageRating.toFixed(1)} • {ratingSummary.totalReviews} {t("pages.home.clinicSelection.reviewCount")}
+                          {avgRating.toFixed(1)} • {totalReviews} {t("pages.home.clinicSelection.reviewCount")}
                         </p>
                       ) : (
                         <p className="clinic-rating-empty">{t("pages.home.clinicSelection.noReview")}</p>

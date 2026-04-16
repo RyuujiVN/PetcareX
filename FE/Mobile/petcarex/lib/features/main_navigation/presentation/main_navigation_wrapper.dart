@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../features/account/presentation/account_page.dart';
+import '../../../../features/appointment/presentation/appointment_navigation_controller.dart';
 import '../../../../features/appointment/presentation/appointment_page.dart';
 import '../../../../features/appointment/presentation/provider/appointment_provider.dart';
 import '../../../../features/booking/presentation/booking_page.dart';
@@ -33,6 +34,8 @@ class MainNavigationWrapper extends StatefulWidget {
 
 class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   int _selectedIndex = 0;
+  final AppointmentNavigationController _appointmentNavigationController =
+      AppointmentNavigationController();
   final HomeChatbotHintController _homeChatbotHintController =
       HomeChatbotHintController();
 
@@ -74,11 +77,23 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
     }
   }
 
+  void openAppointmentDetail(
+    String appointmentId, {
+    bool expandAiDiagnosis = false,
+  }) {
+    _appointmentNavigationController.openAppointmentDetails(
+      appointmentId,
+      expandAiDiagnosis: expandAiDiagnosis,
+    );
+    setSelectedIndex(2);
+  }
+
   Widget _buildPage(int index) {
     return switch (index) {
       0 => HomePage(chatbotHintController: _homeChatbotHintController),
       1 => const BookingPage(),
-      2 => const AppointmentPage(),
+        2 => AppointmentPage(
+          navigationController: _appointmentNavigationController),
       3 => const CommunityPage(),
       4 => const AccountPage(),
       _ => const SizedBox(),

@@ -353,7 +353,10 @@ class _HomePageState extends State<HomePage> {
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
-                  colors: [AppColors.primary, AppColors.secondary],
+                  colors: [
+                    AppColors.primary,
+                    AppColors.secondary,
+                  ],
                 ),
               ),
               child: ClipOval(
@@ -497,7 +500,10 @@ class _HomePageState extends State<HomePage> {
               shape: BoxShape.circle,
               color: AppColors.secondary,
               boxShadow: [
-                BoxShadow(color: AppColors.textAlpha(0.05), blurRadius: 10),
+                BoxShadow(
+                  color: AppColors.textAlpha(0.05),
+                  blurRadius: 10,
+                ),
               ],
             ),
             child: Icon(Icons.add, color: AppColors.textAlpha(0.55)),
@@ -1360,7 +1366,8 @@ class ScannerOverlayPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final backgroundPaint = Paint()..color = AppColors.textAlpha(0.5);
+    final backgroundPaint = Paint()
+      ..color = AppColors.textAlpha(0.5);
     final center = Offset(size.width / 2, size.height / 2 + offset);
     final scanRect = Rect.fromCenter(
       center: center,

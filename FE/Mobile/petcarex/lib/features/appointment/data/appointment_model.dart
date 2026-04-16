@@ -107,21 +107,85 @@ class AppointmentClinic {
 }
 
 class AppointmentVeterinarian {
+  final String userId;
   final String fullName;
   final String? avatarUrl;
   final String specialty;
 
   AppointmentVeterinarian({
+    required this.userId,
     required this.fullName,
     this.avatarUrl,
     required this.specialty,
   });
 
   factory AppointmentVeterinarian.fromJson(Map<String, dynamic> json) {
+    final userData = json['user'] as Map<String, dynamic>? ?? {};
+
     return AppointmentVeterinarian(
-      fullName: json['user']['fullName'],
-      avatarUrl: json['user']['avatarUrl'],
-      specialty: json['specialty'],
+      userId: userData['id']?.toString() ?? '',
+      fullName: userData['fullName']?.toString() ?? '',
+      avatarUrl: userData['avatarUrl']?.toString(),
+      specialty: json['specialty']?.toString() ?? '',
+    );
+  }
+}
+
+class AppointmentAiDiagnosis {
+  final String id;
+  final String petId;
+  final String appointmentId;
+  final String diagnosis;
+  final DateTime? createdAt;
+  final AppointmentAiDiagnosisPet? pet;
+
+  AppointmentAiDiagnosis({
+    required this.id,
+    required this.petId,
+    required this.appointmentId,
+    required this.diagnosis,
+    this.createdAt,
+    this.pet,
+  });
+
+  factory AppointmentAiDiagnosis.fromJson(Map<String, dynamic> json) {
+    final petData = json['pet'] as Map<String, dynamic>?;
+
+    return AppointmentAiDiagnosis(
+      id: json['id']?.toString() ?? '',
+      petId: json['petId']?.toString() ?? '',
+      appointmentId:
+          json['appointmentId']?.toString() ??
+          json['appoinmentId']?.toString() ??
+          '',
+      diagnosis: json['diagnosis']?.toString() ?? '',
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
+      pet: petData == null ? null : AppointmentAiDiagnosisPet.fromJson(petData),
+    );
+  }
+}
+
+class AppointmentAiDiagnosisPet {
+  final String? name;
+  final String? avatar;
+  final String? breed;
+  final String? ownerId;
+
+  AppointmentAiDiagnosisPet({
+    this.name,
+    this.avatar,
+    this.breed,
+    this.ownerId,
+  });
+
+  factory AppointmentAiDiagnosisPet.fromJson(Map<String, dynamic> json) {
+    return AppointmentAiDiagnosisPet(
+      name: json['name']?.toString(),
+      avatar: json['avatar']?.toString(),
+      breed: json['breed']?.toString(),
+      ownerId: json['ownerId']?.toString(),
     );
   }
 }

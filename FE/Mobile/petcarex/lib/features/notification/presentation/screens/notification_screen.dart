@@ -12,7 +12,19 @@ import '../provider/notification_provider.dart';
 import '../widgets/notification_item.dart';
 
 class NotificationScreen extends StatefulWidget {
-  const NotificationScreen({super.key});
+  const NotificationScreen({
+    super.key,
+    this.onOpenAppointmentsTab,
+    this.onOpenCommunityTab,
+    this.onOpenAppointmentDetail,
+  });
+
+  final VoidCallback? onOpenAppointmentsTab;
+  final VoidCallback? onOpenCommunityTab;
+  final void Function(
+    String appointmentId, {
+    bool expandAiDiagnosis,
+  })? onOpenAppointmentDetail;
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -21,11 +33,7 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   final ScrollController _scrollController = ScrollController();
 
-  void _navigateToMainTab(int index) {
-    final navigationState =
-        MainNavigationWrapper.of(context) ?? MainNavigationWrapper.activeState;
-    navigationState?.setSelectedIndex(index);
-
+  void _closeScreen() {
     if (!mounted) return;
     Navigator.pop(context);
   }
@@ -53,7 +61,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
     }
   }
 
-  Future<void> _openCommunityPost(NotificationModel notification) async {
+  Future<void> _openCommunityPost(
+    NotificationModel notification,
+    VoidCallback openCommunityTab,
+  ) async {
     final postId = notification.postId?.trim() ?? '';
     if (postId.isNotEmpty) {
       unawaited(
@@ -61,11 +72,46 @@ class _NotificationScreenState extends State<NotificationScreen> {
       );
     }
 
-    _navigateToMainTab(3);
+    openCommunityTab();
   }
 
   Future<void> _onNotificationTap(NotificationModel notification) async {
     final provider = context.read<NotificationProvider>();
+    final mainNavState =
+        MainNavigationWrapper.of(context) ?? MainNavigationWrapper.activeState;
+
+    void openAppointmentsTab() {
+      _closeScreen();
+      if (widget.onOpenAppointmentsTab != null) {
+        widget.onOpenAppointmentsTab!();
+        return;
+      }
+      mainNavState?.setSelectedIndex(2);
+    }
+
+    void openCommunityTab() {
+      _closeScreen();
+      if (widget.onOpenCommunityTab != null) {
+        widget.onOpenCommunityTab!();
+        return;
+      }
+      mainNavState?.setSelectedIndex(3);
+    }
+
+    void openAppointmentDetail(String appointmentId, {bool expandAi = false}) {
+      _closeScreen();
+      if (widget.onOpenAppointmentDetail != null) {
+        widget.onOpenAppointmentDetail!(
+          appointmentId,
+          expandAiDiagnosis: expandAi,
+        );
+        return;
+      }
+      mainNavState?.openAppointmentDetail(
+        appointmentId,
+        expandAiDiagnosis: expandAi,
+      );
+    }
 
     // Mark as read
     if (!notification.isRead) {
@@ -78,18 +124,26 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case 'APPOINTMENT_CANCELLED':
       case 'APPOINTMENT_STATUS_UPDATED_BY_CLIENT':
       case 'APPOINTMENT_REMINDER':
-        _navigateToMainTab(2);
+        openAppointmentsTab();
         break;
       case 'AI_DIAGNOSIS':
-        _navigateToMainTab(2);
+        if (notification.appointmentId != null &&
+            notification.appointmentId!.isNotEmpty) {
+          openAppointmentDetail(
+            notification.appointmentId!,
+            expandAi: true,
+          );
+        } else {
+          openAppointmentsTab();
+        }
         break;
       case 'COMMENT_REPLY':
       case 'COMMENT':
       case 'LIKE':
-        await _openCommunityPost(notification);
+        await _openCommunityPost(notification, openCommunityTab);
         break;
       case 'FOLLOW_UP_REMINDER':
-        _navigateToMainTab(2);
+        openAppointmentsTab();
         break;
       default:
         break;

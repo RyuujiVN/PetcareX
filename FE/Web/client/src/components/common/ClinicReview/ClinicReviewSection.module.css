@@ -1,0 +1,258 @@
+.section {
+  background: var(--color-surface-card);
+  padding: 56px 16px;
+}
+
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.sectionTitle {
+  text-align: center;
+  font-size: 25px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--color-brand-primary);
+}
+
+.sectionSubtitle {
+  text-align: center;
+  color: var(--color-text-muted);
+  margin-bottom: 16px;
+}
+
+/* ===== Rating summary ===== */
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 20px 24px;
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+}
+
+.summaryScore {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 120px;
+  border-right: 1px solid var(--color-border-soft);
+  padding-right: 24px;
+}
+
+.summaryScoreValue {
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--color-brand-primary);
+  line-height: 1.1;
+}
+
+.summaryScoreMax {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+.summaryMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summaryMetaCount {
+  color: var(--color-text-muted);
+  font-size: 14px;
+}
+
+/* ===== Review form ===== */
+.form {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.formTitle {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.formLabel {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text-primary);
+}
+
+.formHint {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.formTextarea {
+  width: 100%;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: var(--color-surface-card);
+  resize: vertical;
+  min-height: 96px;
+  outline: none;
+  font-family: inherit;
+}
+
+.formTextarea:focus {
+  border-color: var(--color-brand-primary);
+}
+
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.formInfoBox {
+  background: var(--color-surface-muted);
+  border: 1px dashed var(--color-border-strong);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  text-align: center;
+}
+
+.formInfoBoxLink {
+  color: var(--color-brand-primary);
+  font-weight: 600;
+  margin-left: 4px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.formInfoBoxLink:hover {
+  text-decoration: underline;
+}
+
+/* ===== Review list ===== */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.listEmpty {
+  text-align: center;
+  color: var(--color-text-muted);
+  padding: 32px 16px;
+  background: var(--color-surface-soft);
+  border-radius: 12px;
+  border: 1px dashed var(--color-border-soft);
+}
+
+.item {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-surface-card);
+}
+
+.itemAvatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--color-surface-muted);
+}
+
+.itemAvatarFallback {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--color-brand-primary);
+  color: var(--color-surface-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  flex-shrink: 0;
+  font-size: 16px;
+}
+
+.itemBody {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemHeader {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.itemName {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.itemDate {
+  color: var(--color-text-muted);
+  font-size: 13px;
+  margin-left: auto;
+}
+
+.itemContent {
+  color: var(--color-text-primary);
+  font-size: 14px;
+  line-height: 1.5;
+  margin-top: 6px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.loadMoreWrapper {
+  display: flex;
+  justify-content: center;
+  padding-top: 8px;
+}
+
+@media (max-width: 600px) {
+  .summary {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .summaryScore {
+    border-right: none;
+    border-bottom: 1px solid var(--color-border-soft);
+    padding-right: 0;
+    padding-bottom: 16px;
+  }
+
+  .itemDate {
+    margin-left: 0;
+  }
+}

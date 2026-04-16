@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/markdown_text.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../data/models/chat_models.dart';
 import 'provider/chat_provider.dart';
@@ -285,11 +286,21 @@ class _ChatPageState extends State<ChatPage> with SingleTickerProviderStateMixin
                       bottomRight: Radius.circular(isMe ? 4 : 16),
                     ),
                   ),
-                  child: Text(
-                    message.isStreaming
-                        ? '${message.content}▍'
-                        : message.content,
-                    style: TextStyle(color: isMe ? AppColors.onPrimary : AppColors.textDark, fontSize: 14, height: 1.4),
+                  child: RichText(
+                    text: TextSpan(
+                      children: buildBoldMarkdownSpans(
+                        message.isStreaming
+                            ? '${message.content}▍'
+                            : message.content,
+                        TextStyle(
+                          color: isMe
+                              ? AppColors.onPrimary
+                              : AppColors.textDark,
+                          fontSize: 14,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

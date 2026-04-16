@@ -2,6 +2,7 @@ import { Modal } from 'antd';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { ClinicReviewSection } from '../../../../components/common/ClinicReview';
 import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
 import { getClinicHomeContent, resolveSelectedClinicId } from '../../../../utils/storage/clinicHomeStorage';
 import '../HomePage/styles.css';
@@ -154,6 +155,8 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
             </div>
           </div>
         </section>
+
+        <ClinicReviewSection clinicId={selectedClinicId} />
 
         <section className="clinic-location-section">
           <div className="section-container clinic-location-header">

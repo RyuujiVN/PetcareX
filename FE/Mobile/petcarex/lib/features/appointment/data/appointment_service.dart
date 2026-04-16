@@ -39,15 +39,45 @@ class AppointmentService {
     }
   }
 
-  Future<bool> cancelAppointment(String id) async {
+  Future<bool> cancelAppointment(String id, {String? recipientId}) async {
     try {
+      final body = <String, dynamic>{};
+      final normalizedRecipientId = recipientId?.trim();
+      if (normalizedRecipientId != null && normalizedRecipientId.isNotEmpty) {
+        body['recipientId'] = normalizedRecipientId;
+        body['recipient_id'] = normalizedRecipientId;
+      }
+
       final response = await _apiClient.patch(
         ApiHelper.appointmentClientByIdEndpoint(id),
-        {},
+        body,
       );
       return response.statusCode == 200 || response.statusCode == 201;
     } catch (e) {
       return false;
+    }
+  }
+
+  Future<AppointmentAiDiagnosis?> getAiDiagnosisByAppointment(
+    String appointmentId,
+  ) async {
+    try {
+      final response = await _apiClient.get(
+        ApiHelper.appointmentAiDiagnosisByIdEndpoint(appointmentId),
+      );
+
+      if (response.statusCode != 200) {
+        return null;
+      }
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map<String, dynamic>) {
+        return null;
+      }
+
+      return AppointmentAiDiagnosis.fromJson(decoded);
+    } catch (e) {
+      return null;
     }
   }
 }

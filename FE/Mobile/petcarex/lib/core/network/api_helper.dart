@@ -51,6 +51,9 @@ class ApiHelper {
   static String appointmentByIdEndpoint(String appointmentId) =>
       '${AppConstants.END_POINT_APPOINTMENT}/$appointmentId';
 
+    static String appointmentAiDiagnosisByIdEndpoint(String appointmentId) =>
+      '${appointmentByIdEndpoint(appointmentId)}/ai-diagnosis';
+
   static String appointmentClientByIdEndpoint(String appointmentId) =>
       '${AppConstants.END_POINT_APPOINTMENT_CLIENT}/$appointmentId';
 

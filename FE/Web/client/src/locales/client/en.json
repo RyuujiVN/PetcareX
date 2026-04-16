@@ -518,6 +518,32 @@
         "galleryAltFallback": "Clinic image {{index}}",
         "aboutLabel": "About",
         "featuresTitle": "Everything your little friend needs",
+        "reviewSection": {
+          "title": "Customer Reviews",
+          "subtitle": "Real experiences from customers who used services at this clinic.",
+          "totalReviews": "{{count}} review(s)",
+          "noReviewYet": "No reviews yet",
+          "emptyList": "No reviews for this clinic yet.",
+          "loadMore": "Load more reviews",
+          "anonymousReviewer": "Anonymous user",
+          "loginHint": "Please log in to submit a review.",
+          "loginCTA": "Log in now",
+          "noEligibleRecord": "You need at least one completed examination at this clinic to submit a review.",
+          "formTitle": "Submit your review",
+          "recordLabel": "Select examination",
+          "recordPlaceholder": "Select a medical record to review...",
+          "ratingLabel": "Star rating",
+          "contentLabel": "Your review",
+          "contentPlaceholder": "Share your experience at this clinic...",
+          "contentHint": "Maximum 1000 characters (optional)",
+          "submitButton": "Submit review",
+          "submitSuccess": "Your review has been submitted successfully!",
+          "submitFailed": "Failed to submit review. Please try again.",
+          "validation": {
+            "recordRequired": "Please select an examination to review.",
+            "ratingRequired": "Please select a star rating."
+          }
+        },
         "communityTitle": "PetCareX community forum",
         "content": {
           "hero": {

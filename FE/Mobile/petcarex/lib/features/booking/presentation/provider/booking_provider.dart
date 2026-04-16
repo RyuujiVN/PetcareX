@@ -135,6 +135,7 @@ class BookingProvider extends ChangeNotifier {
 
     _isLoading = true;
     _errorMessage = null;
+    _isSuccess = false;
     notifyListeners();
 
     try {
@@ -144,6 +145,7 @@ class BookingProvider extends ChangeNotifier {
         petId: _selectedPetId!,
         clinicId: _selectedClinic!.id,
         veterinarianId: _selectedDoctor!.userId,
+        recipientId: _selectedDoctor!.userId,
         appointmentDate: dateStr,
         appointmentTime: _selectedTime!,
         service: _selectedServiceName!,
@@ -153,13 +155,13 @@ class BookingProvider extends ChangeNotifier {
       final result = await _repository.createAppointment(dto);
       _appointmentResult = result;
       _isSuccess = true;
-      _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       _errorMessage = e.toString().replaceAll('Exception: ', '');
-      notifyListeners();
       return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

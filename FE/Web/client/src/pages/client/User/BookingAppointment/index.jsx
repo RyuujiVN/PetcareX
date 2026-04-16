@@ -135,6 +135,18 @@ export default function BookingAppointment() {
 
   const selectedDoctorName = selectedDoctor?.user?.fullName || '';
 
+  const bookingHeaderStyle = useMemo(() => {
+    const avatarUrl = String(userProfile?.avatarUrl || '').trim();
+    if (!avatarUrl) return undefined;
+
+    return {
+      backgroundImage: ` linear-gradient(180deg, rgba(8, 20, 48, 0.2) 0%, rgba(43, 40, 40, 0.75) 100%),url("${avatarUrl}")`,
+      backgroundPosition: 'top',
+      backgroundSize: 'cover',
+      backgroundRepeat: 'no-repeat',
+    };
+  }, [userProfile?.avatarUrl]);
+
   const unavailableTimes = useMemo(() => {
     if (!selectedDoctor || !selectedDate) {
       return new Set();
@@ -474,7 +486,7 @@ export default function BookingAppointment() {
 
   return (
     <div className="booking-page">
-      <header className="dashboard-header">
+      <header className="dashboard-header" style={bookingHeaderStyle}>
         <h1 style={{marginRight: '46%', paddingTop: 30}}>{t('pages.booking.greeting', { name: userProfile?.fullName || t('pages.booking.defaultUserName') })}</h1>
         <p style={{marginRight: '48%', paddingTop: 20}}>{t('pages.booking.subtitle')}</p>
       </header>
