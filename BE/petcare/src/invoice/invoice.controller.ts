@@ -45,7 +45,7 @@ export class InvoiceController {
   @ApiOperation({ summary: 'Danh sách hoá đơn của phòng khám' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
-  @ApiQuery({ name: 'status', required: false, type: String, default: 10 })
+  @ApiQuery({ name: 'status', required: false, type: String })
   getAllPagination(
     @Req() req,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -83,7 +83,7 @@ export class InvoiceController {
     @Body() updateDTO: UpdateInvoiceDTO,
     @Req() req,
   ) {
-    await this.invoiceService.updateInvoice(updateDTO, id, req?.user?.id);
+    await this.invoiceService.updateInvoice(updateDTO, id, req?.user?.clinicId);
 
     return {
       message: 'Cập nhật hoá đơn thành công',
