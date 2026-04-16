@@ -352,7 +352,6 @@
     "pageTitle": "Doanh thu toàn hệ thống",
     "pageSubtitle": "Tổng quan doanh thu và hiệu quả kinh doanh từ tất cả phòng khám",
     "loading": "Đang tải dữ liệu doanh thu...",
-    "noRevenueDataBanner": "Hệ thống hiện chưa có dữ liệu doanh thu chi tiết. Vui lòng liên hệ đội phát triển để bổ sung API doanh thu dành cho Admin.",
     "period": {
       "today": "Hôm nay",
       "week": "7 ngày",

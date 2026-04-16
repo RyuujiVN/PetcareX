@@ -150,7 +150,7 @@
 /* ── Charts Row ──────────────────────────────── */
 .chartsRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -278,6 +278,14 @@
 
 .vetName {
   font-weight: 500;
+}
+
+.vetAvatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 /* ── Bottom Row (Top Vets ~32% + Invoices ~68%) ── */

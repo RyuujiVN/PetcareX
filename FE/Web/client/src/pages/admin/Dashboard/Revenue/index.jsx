@@ -1,4 +1,3 @@
-import { WarningOutlined } from '@ant-design/icons'
 import { Spin } from 'antd'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -67,16 +66,6 @@ export default function AdminRevenue() {
         <h1 className={styles.pageTitle}>{t('revenue.pageTitle')}</h1>
         <p className={styles.pageSubtitle}>{t('revenue.pageSubtitle')}</p>
       </div>
-
-      {/* Banner khi không có dữ liệu doanh thu (do RBAC) */}
-      {!hasRevenueData && summary.totalClinics > 0 && (
-        <div className={styles.noDataBanner}>
-          <WarningOutlined className={styles.noDataBannerIcon} />
-          <p className={styles.noDataBannerText}>
-            {t('revenue.noRevenueDataBanner')}
-          </p>
-        </div>
-      )}
 
       {/* KPI Cards */}
       <AdminRevenueKPICards summary={summary} />

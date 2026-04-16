@@ -730,6 +730,7 @@
 			"other": "Khác"
 		},
 		"topVets": {
+			"titleToday": "Top 5 Bác sĩ khám nhiều nhất — Hôm nay",
 			"titleMonthly": "Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}",
 			"doctor": "Bác sĩ",
 			"records": "Số lượt"

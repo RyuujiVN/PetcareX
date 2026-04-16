@@ -1,221 +1,114 @@
-import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from './invoiceService'
-import { getMedicalByClinicApi, getMedicalByIdApi } from './medicalService'
-
-const BATCH_SIZE = 10
-const PAGE_LIMIT = 50
+import dayjs from 'dayjs'
 
 /**
- * Xử lý mảng theo batch, mỗi batch chạy song song.
+ * GET /api/revenue/summary — Tóm tắt hoá đơn hôm nay của phòng khám.
+ * Response: { total: number, totalPaid: number, totalUnpaid: number }
  */
-const processBatch = async (items, handler) => {
-  const results = []
-  for (let i = 0; i < items.length; i += BATCH_SIZE) {
-    const batch = items.slice(i, i + BATCH_SIZE)
-    const batchResults = await Promise.allSettled(batch.map(handler))
-    results.push(...batchResults)
-  }
-  return results
-}
-
-/**
- * Fetch toàn bộ medical records của clinic (phân trang).
- */
-export const fetchAllClinicMedicalRecords = async (instance) => {
-  const allRecords = []
-  let page = 1
-  let totalPages = 1
-
-  while (page <= totalPages) {
-    const response = await getMedicalByClinicApi(instance, page, PAGE_LIMIT)
-    const items = Array.isArray(response?.items) ? response.items : []
-    allRecords.push(...items)
-    totalPages = response?.meta?.totalPages || 1
-    page++
-  }
-
-  return allRecords
-}
-
-/**
- * Fetch invoice cho 1 medical record, trả null nếu chưa có invoice.
- */
-const fetchInvoiceSafe = async (instance, medicalRecordId) => {
-  try {
-    return await getInvoiceByMedicalRecordIdApi(instance, medicalRecordId)
-  } catch {
-    return null
-  }
-}
-
-/**
- * Fetch chi tiết medical record (bao gồm veterinarian info).
- */
-const fetchMedicalDetailSafe = async (instance, medicalRecordId) => {
-  try {
-    return await getMedicalByIdApi(instance, medicalRecordId)
-  } catch {
-    return null
-  }
-}
-
-/**
- * Tổng hợp toàn bộ dữ liệu doanh thu cho clinic.
- * Trả về object gồm: records (enriched), summaries, chart data, top vets.
- */
-export const aggregateRevenueData = async (instance) => {
-  // 1. Lấy toàn bộ medical records
-  const records = await fetchAllClinicMedicalRecords(instance)
-
-  // 2. Fetch invoice + detail song song theo batch
-  const invoiceResults = await processBatch(records, (record) =>
-    fetchInvoiceSafe(instance, record.id),
-  )
-  const detailResults = await processBatch(records, (record) =>
-    fetchMedicalDetailSafe(instance, record.id),
-  )
-
-  // 3. Ghép dữ liệu
-  const enrichedRecords = records.map((record, index) => {
-    const invoice =
-      invoiceResults[index]?.status === 'fulfilled'
-        ? invoiceResults[index].value
-        : null
-    const detail =
-      detailResults[index]?.status === 'fulfilled'
-        ? detailResults[index].value
-        : null
-
-    return {
-      id: record.id,
-      name: record.name,
-      createdAt: record.createdAt,
-      followUpDate: record.followUpDate,
-      pet: record.pet,
-      owner: record.pet?.owner || null,
-      veterinarian: detail?.veterinarian || null,
-      invoice: invoice
-        ? {
-            id: invoice.id,
-            totalAmount: invoice.totalAmount || 0,
-            status: invoice.status,
-            createdAt: invoice.createdAt,
-            note: invoice.note,
-          }
-        : null,
-    }
-  })
-
-  return enrichedRecords
-}
-
-/**
- * Tính summary cards từ danh sách enriched records.
- */
-export const calculateSummary = (enrichedRecords) => {
-  const recordsWithInvoice = enrichedRecords.filter((r) => r.invoice)
-  const paidRecords = recordsWithInvoice.filter(
-    (r) => r.invoice.status === INVOICE_STATUS.PAID,
-  )
-  const unpaidRecords = recordsWithInvoice.filter(
-    (r) => r.invoice.status === INVOICE_STATUS.UNPAID,
-  )
-
-  const totalRevenue = paidRecords.reduce(
-    (sum, r) => sum + (r.invoice.totalAmount || 0),
-    0,
-  )
-  const totalPaidInvoices = paidRecords.length
-  const totalUnpaidInvoices = unpaidRecords.length
-  const unpaidAmount = unpaidRecords.reduce(
-    (sum, r) => sum + (r.invoice.totalAmount || 0),
-    0,
-  )
-  const averagePerRecord =
-    totalPaidInvoices > 0 ? Math.round(totalRevenue / totalPaidInvoices) : 0
-
+export const getRevenueSummary = async (instance) => {
+  const { data } = await instance.get('/revenue/summary')
   return {
-    totalRevenue,
-    totalPaidInvoices,
-    totalUnpaidInvoices,
-    unpaidAmount,
-    averagePerRecord,
+    totalRevenue: Number(data.total) || 0,
+    totalPaidInvoices: Number(data.totalPaid) || 0,
+    totalUnpaidInvoices: Number(data.totalUnpaid) || 0,
   }
 }
 
 /**
- * Tính doanh thu theo ngày cho biểu đồ.
- * Trả về array { date, revenue, count } đã sắp xếp theo ngày.
+ * GET /api/revenue/chart — Doanh thu theo khoảng thời gian.
+ * Response (groupBy=DAY):   [{ total, date }]   — date = day-of-month number
+ * Response (groupBy=MONTH): [{ total, month }]  — month = 1–12
  */
-export const calculateDailyRevenue = (enrichedRecords) => {
-  const paidRecords = enrichedRecords.filter(
-    (r) => r.invoice?.status === INVOICE_STATUS.PAID,
-  )
-
-  const dailyMap = {}
-  paidRecords.forEach((r) => {
-    const dateKey = (r.invoice.createdAt || r.createdAt || '')
-      .substring(0, 10)
-    if (!dateKey) return
-
-    if (!dailyMap[dateKey]) {
-      dailyMap[dateKey] = { date: dateKey, revenue: 0, count: 0 }
-    }
-    dailyMap[dateKey].revenue += r.invoice.totalAmount || 0
-    dailyMap[dateKey].count += 1
+export const getRevenueChart = async (instance, dateStart, dateEnd, groupBy) => {
+  const { data } = await instance.get('/revenue/chart', {
+    params: { dateStart, dateEnd, groupBy },
   })
-
-  return Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date))
+  return Array.isArray(data) ? data : []
 }
 
 /**
- * Tính top bác sĩ theo số lượt khám trong tháng hiện tại.
- * Đếm mọi medical record có veterinarian (không phụ thuộc invoice status).
- * Ẩn bác sĩ có 0 lượt, sắp xếp giảm dần, giới hạn tối đa `limit`.
+ * GET /api/revenue/top-veterinarian — Top 5 bác sĩ hôm nay.
+ * Response: [{ fullName, avatarUrl, id, totalAppointment, specialty }]
  */
-export const calculateTopVeterinariansByVisits = (enrichedRecords, limit = 5) => {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = now.getMonth()
+export const getTopVeterinarians = async (instance) => {
+  const { data } = await instance.get('/revenue/top-veterinarian')
+  return Array.isArray(data) ? data : []
+}
 
-  const monthRecords = enrichedRecords.filter((r) => {
-    if (!r.veterinarian?.id) return false
-    const dateStr = r.invoice?.createdAt || r.createdAt
-    if (!dateStr) return false
-    const d = new Date(dateStr)
-    if (Number.isNaN(d.getTime())) return false
-    return d.getFullYear() === year && d.getMonth() === month
-  })
+/**
+ * Chuyển đổi response chart API sang dạng [{ date, revenue }] cho Recharts.
+ */
+export const transformChartData = (apiData, groupBy, dateStart, dateEnd) => {
+  if (!apiData?.length) return []
 
-  const vetMap = {}
-  monthRecords.forEach((r) => {
-    const vetId = r.veterinarian.id
-    if (!vetMap[vetId]) {
-      vetMap[vetId] = {
-        id: vetId,
-        fullName: r.veterinarian.fullName || '',
-        specialty: r.veterinarian.specialty || '',
-        recordCount: 0,
+  if (groupBy === 'MONTH') {
+    const year = dayjs(dateStart).year()
+    return apiData
+      .map((item) => ({
+        date: dayjs().year(year).month(Number(item.month) - 1).startOf('month').format('YYYY-MM-01'),
+        revenue: Number(item.total) || 0,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+  }
+
+  // groupBy === 'DAY'
+  const start = dayjs(dateStart)
+  const end = dayjs(dateEnd)
+  const sameMonth = start.month() === end.month() && start.year() === end.year()
+
+  return apiData
+    .map((item) => {
+      const dayNum = Number(item.date)
+      let fullDate
+      if (sameMonth) {
+        fullDate = start.date(dayNum)
+      } else {
+        fullDate = dayNum >= start.date()
+          ? start.date(dayNum)
+          : end.startOf('month').date(dayNum)
       }
-    }
-    vetMap[vetId].recordCount += 1
-  })
-
-  return Object.values(vetMap)
-    .filter((v) => v.recordCount > 0)
-    .sort((a, b) => b.recordCount - a.recordCount)
-    .slice(0, limit)
+      return {
+        date: fullDate.format('YYYY-MM-DD'),
+        revenue: Number(item.total) || 0,
+      }
+    })
+    .sort((a, b) => a.date.localeCompare(b.date))
 }
 
 /**
- * Lấy danh sách hoá đơn gần đây, sắp xếp mới nhất trước.
+ * Map period key sang params cho chart API.
  */
-export const getRecentInvoices = (enrichedRecords, limit = 20) => {
-  return enrichedRecords
-    .filter((r) => r.invoice)
-    .sort((a, b) => {
-      const dateA = a.invoice.createdAt || a.createdAt || ''
-      const dateB = b.invoice.createdAt || b.createdAt || ''
-      return dateB.localeCompare(dateA)
-    })
-    .slice(0, limit)
+export const getChartParams = (periodKey) => {
+  const now = dayjs()
+  switch (periodKey) {
+    case 'today':
+      return {
+        dateStart: now.startOf('day').toISOString(),
+        dateEnd: now.endOf('day').toISOString(),
+        groupBy: 'DAY',
+      }
+    case '7days':
+      return {
+        dateStart: now.subtract(6, 'day').startOf('day').toISOString(),
+        dateEnd: now.endOf('day').toISOString(),
+        groupBy: 'DAY',
+      }
+    case 'month':
+      return {
+        dateStart: now.startOf('month').toISOString(),
+        dateEnd: now.endOf('day').toISOString(),
+        groupBy: 'DAY',
+      }
+    case 'year':
+      return {
+        dateStart: now.startOf('year').toISOString(),
+        dateEnd: now.endOf('day').toISOString(),
+        groupBy: 'MONTH',
+      }
+    default:
+      return {
+        dateStart: now.startOf('month').toISOString(),
+        dateEnd: now.endOf('day').toISOString(),
+        groupBy: 'DAY',
+      }
+  }
 }

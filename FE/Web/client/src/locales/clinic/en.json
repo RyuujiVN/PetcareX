@@ -730,6 +730,7 @@
 			"other": "Other"
 		},
 		"topVets": {
+			"titleToday": "Top 5 Most Active Veterinarians — Today",
 			"titleMonthly": "Top 5 Most Active Veterinarians — {{month}}",
 			"doctor": "Veterinarian",
 			"records": "Visits"

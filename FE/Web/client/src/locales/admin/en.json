@@ -352,7 +352,6 @@
     "pageTitle": "System Revenue",
     "pageSubtitle": "Revenue overview and business performance across all clinics",
     "loading": "Loading revenue data...",
-    "noRevenueDataBanner": "Detailed revenue data is currently unavailable. Please contact the development team to add Admin-scoped revenue APIs.",
     "period": {
       "today": "Today",
       "week": "7 days",

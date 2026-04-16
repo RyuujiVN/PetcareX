@@ -18,9 +18,66 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Markdown rendering: `react-markdown` + `remark-gfm`.
 - Social auth: Firebase Web SDK (`firebase/app`, `firebase/auth`, `firebase/analytics`).
 - Styling: CSS Modules + CSS page-level + token CSS variables.
-- Charts: `recharts` (Area, Pie charts cho Revenue Dashboard).
+- Charts: `recharts` (Area chart cho Revenue Dashboard).
 
 ## Cập nhật mới nhất (2026-04-10)
+
+### Cập nhật bổ sung (2026-04-16) — Tích hợp API Revenue mới cho Clinic Revenue Dashboard
+
+**Bối cảnh:** BE đã cung cấp 3 API revenue chuyên biệt, thay thế hoàn toàn cách fetch cũ (batch fetch medical records + invoices + details qua nhiều API phức tạp).
+
+**3 API Revenue mới (RBAC: ADMIN_CLINIC only):**
+
+| Endpoint | Params | Response |
+|---|---|---|
+| `GET /api/revenue/summary` | Không (dùng clinicId từ JWT) | `{ total: number, totalPaid: number, totalUnpaid: number }` — dữ liệu HÔM NAY |
+| `GET /api/revenue/chart` | `dateStart`, `dateEnd`, `groupBy` (DAY\|MONTH) | `[{ total, date? (day number), month? (1-12) }]` |
+| `GET /api/revenue/top-veterinarian` | Không | `[{ fullName, avatarUrl, id, totalAppointment, specialty }]` — HÔM NAY |
+
+**Mapping filter thời gian → params:**
+
+| Filter UI | dateStart | dateEnd | groupBy |
+|---|---|---|---|
+| Hôm nay | startOfDay | endOfDay | DAY |
+| 7 ngày | 6 ngày trước | endOfDay | DAY |
+| Tháng này | đầu tháng | endOfDay | DAY |
+| Năm nay | đầu năm | endOfDay | MONTH |
+
+**Thay đổi kiến trúc FE:**
+- Summary cards luôn hiển thị dữ liệu hôm nay (từ `/revenue/summary`)
+- Chart Area thay đổi theo period filter (dùng `/revenue/chart` với params tương ứng)
+- Top bác sĩ luôn hiển thị hôm nay (từ `/revenue/top-veterinarian`)
+- **Đã xóa:** Pie chart (phân bổ theo specialty) — không còn data source vì bỏ enrichedRecords
+- **Đã xóa:** Recent Invoices table — không có API endpoint tương ứng
+- **Đã xóa:** Toàn bộ code fetch phức tạp (batch fetch medical → invoice → detail)
+
+**Code cũ đã xóa:**
+- `aggregateRevenueData()`, `fetchAllClinicMedicalRecords()`, `calculateSummary()`, `calculateDailyRevenue()`, `calculateTopVeterinariansByVisits()`, `getRecentInvoices()` trong `revenueService.js`
+- Client-side period filtering, invoice filtering trong `useRevenue.js`
+
+**Files đã sửa:**
+
+| File | Thay đổi |
+|---|---|
+| `src/services/revenueService.js` | Rewrite hoàn toàn: 3 API functions + `transformChartData()` + `getChartParams()` |
+| `src/hooks/Clinic/useRevenue.js` | Đơn giản hóa: gọi 3 API, period chỉ ảnh hưởng chart |
+| `src/pages/Clinic/Revenue/RevenueDashboard.jsx` | Bỏ RecentInvoices, bỏ enrichedRecords |
+| `src/pages/Clinic/Revenue/components/RevenueChart.jsx` | Xóa Pie chart, bỏ enrichedRecords prop, chart full-width |
+| `src/pages/Clinic/Revenue/components/TopVeterinariansTable.jsx` | Dùng `totalAppointment`, hiển thị avatar thực, title "Hôm nay" |
+| `src/pages/Clinic/Revenue/revenue.module.css` | chartsRow 1 cột, thêm `.vetAvatarImg` |
+| `src/locales/clinic/vi.json` | Thêm `topVets.titleToday` |
+| `src/locales/clinic/en.json` | Thêm `topVets.titleToday` |
+| `src/pages/admin/Dashboard/Revenue/index.jsx` | Xóa banner warning "đợi BE" |
+| `src/locales/admin/vi.json` | Xóa key `noRevenueDataBanner` |
+| `src/locales/admin/en.json` | Xóa key `noRevenueDataBanner` |
+
+**Admin Revenue Dashboard:** Giữ nguyên luồng cũ (fetch clinics → aggregate). 3 API revenue mới chỉ ADMIN_CLINIC → Admin chưa gọi được. Cần BE bổ sung ADMIN role vào RBAC của 3 endpoint hoặc tạo endpoint mới.
+
+**⚠️ Vấn đề BE cần báo dev:**
+1. `GET /revenue/top-veterinarian` — `.orderBy('totalAppointment')` mặc định ASC (tăng dần), cần đổi thành DESC để lấy bác sĩ nhiều lượt nhất.
+2. `GET /revenue/top-veterinarian` — `veterinarian.specialty` có trong SELECT nhưng thiếu trong GROUP BY, có thể gây lỗi ở strict SQL mode.
+3. `GET /revenue/chart` — groupBy=DAY trả về EXTRACT(DAY) chỉ là số ngày (1-31), không phân biệt tháng. Nếu query span 2 tháng → ambiguous. FE đã workaround nhưng nên cân nhắc trả full date string.
+4. 3 API revenue chỉ cho ADMIN_CLINIC → Admin dashboard chưa dùng được. Cần thêm ADMIN vào `@RequiredRole` hoặc tạo endpoint aggregate riêng.
 
 ### Cập nhật bổ sung (2026-04-16) — Admin Revenue Dashboard (Doanh thu toàn hệ thống)
 
