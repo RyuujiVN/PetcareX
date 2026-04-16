@@ -2,6 +2,7 @@ import { Spin } from 'antd'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import useRevenue from '../../../hooks/Clinic/useRevenue'
+import RecentInvoicesTable from './components/RecentInvoicesTable'
 import RevenueChart from './components/RevenueChart'
 import RevenueSummaryCards from './components/RevenueSummaryCards'
 import TopVeterinariansTable from './components/TopVeterinariansTable'
@@ -14,10 +15,13 @@ export default function RevenueDashboard() {
     error,
     period,
     setPeriod,
+    invoiceFilter,
+    setInvoiceFilter,
     fetchRevenue,
     summary,
     dailyRevenue,
-    topVeterinarians,
+    topVeterinariansMonthly,
+    recentInvoices,
     PERIOD_KEYS,
   } = useRevenue()
 
@@ -70,8 +74,14 @@ export default function RevenueDashboard() {
         onPeriodChange={setPeriod}
       />
 
-      {/* Top Bác sĩ hôm nay */}
-      <TopVeterinariansTable veterinarians={topVeterinarians} />
+      <div className={styles.bottomRow}>
+        <TopVeterinariansTable veterinarians={topVeterinariansMonthly} />
+        <RecentInvoicesTable
+          invoices={recentInvoices}
+          invoiceFilter={invoiceFilter}
+          onFilterChange={setInvoiceFilter}
+        />
+      </div>
     </div>
   )
 }

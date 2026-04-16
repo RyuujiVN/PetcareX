@@ -22,6 +22,37 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-10)
 
+### Cập nhật bổ sung (2026-04-16) — Khôi phục Clinic Revenue UI (giữ Recent Invoices, bỏ Pie chart)
+
+**Yêu cầu nghiệp vụ:** Trả dashboard `/clinic/revenue` về UI gần phiên bản trước (có lại bảng hóa đơn gần đây), nhưng **không dùng lại biểu đồ theo loại dịch vụ**.
+
+**Kết quả UI:**
+- Giữ 3 summary cards + chart doanh thu theo ngày (Area chart).
+- Giữ period filter trong header chart (`Hôm nay / 7 ngày / Tháng này / Năm nay`).
+- **Không render Pie chart** theo loại dịch vụ.
+- Khôi phục hàng dưới gồm:
+  - `Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}`
+  - `Hóa đơn gần đây` + filter trạng thái (`Tất cả / Đã thanh toán / Chưa thanh toán`).
+
+**Chiến lược dữ liệu sau khi self-review (tối ưu hơn bản cũ):**
+- Khôi phục luồng aggregate từ `medical + invoice` để có đủ dữ liệu cho `Recent Invoices` và top bác sĩ theo tháng.
+- Tối ưu N+1: chỉ gọi `GET /medical/:id` khi record từ `GET /medical/clinic` thiếu thông tin bác sĩ.
+- Fetch invoice/detail theo batch (`Promise.allSettled`) để tránh fail toàn bộ màn khi một vài record lỗi.
+- Period filter và invoice status filter xử lý client-side từ cùng một dataset đã aggregate.
+
+**Lý do không dùng hoàn toàn 3 API revenue mới:**
+- API mới chưa có endpoint trả danh sách hóa đơn gần đây.
+- `GET /revenue/top-veterinarian` đang trả dữ liệu theo hôm nay, không khớp yêu cầu bảng top bác sĩ theo tháng của UI cũ.
+
+**Files đã sửa:**
+
+| File | Thay đổi |
+|---|---|
+| `src/services/revenueService.js` | Khôi phục hàm aggregate (`aggregateRevenueData`, `calculateSummary`, `calculateDailyRevenue`, `calculateTopVeterinariansByVisits`, `getRecentInvoices`) và tối ưu gọi detail có điều kiện |
+| `src/hooks/Clinic/useRevenue.js` | Trả lại state/filter của UI cũ: period filter + invoice filter + recent invoices + top vets monthly |
+| `src/pages/Clinic/Revenue/RevenueDashboard.jsx` | Khôi phục render `RecentInvoicesTable` ở bottom row cùng `TopVeterinariansTable` |
+| `src/pages/Clinic/Revenue/components/TopVeterinariansTable.jsx` | Đổi title về monthly và hỗ trợ cả `recordCount`/`totalAppointment` |
+
 ### Cập nhật bổ sung (2026-04-16) — Tích hợp API Revenue mới cho Clinic Revenue Dashboard
 
 **Bối cảnh:** BE đã cung cấp 3 API revenue chuyên biệt, thay thế hoàn toàn cách fetch cũ (batch fetch medical records + invoices + details qua nhiều API phức tạp).

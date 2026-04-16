@@ -15,7 +15,8 @@ const getInitials = (name) => {
 
 export default function TopVeterinariansTable({ veterinarians }) {
   const { t } = useTranslation('clinic')
-  const title = t('revenue.topVets.titleToday')
+  const currentMonth = new Date().getMonth() + 1
+  const title = t('revenue.topVets.titleMonthly', { month: currentMonth })
 
   if (!veterinarians?.length) {
     return (
@@ -64,7 +65,7 @@ export default function TopVeterinariansTable({ veterinarians }) {
                   </div>
                 </div>
               </td>
-              <td>{vet.totalAppointment || 0}</td>
+              <td>{vet.recordCount ?? vet.totalAppointment ?? 0}</td>
             </tr>
           ))}
         </tbody>
