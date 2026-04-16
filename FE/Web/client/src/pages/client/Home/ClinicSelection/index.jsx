@@ -38,8 +38,12 @@ export default function ClinicSelection() {
     const mergedName = String(clinicInfo.name || clinic.name || "").trim();
     const mergedAddress = String(clinicInfo.address || clinic.address || "").trim();
     const mergedPhone = String(clinicInfo.phone || clinic.phone || clinic.phoneNumber || "").trim();
-    const mergedOpeningTime = String(clinicInfo.openingTime || clinic.openingTime || "").trim();
-    const mergedClosingTime = String(clinicInfo.closingTime || clinic.closingTime || "").trim();
+    const mergedOpeningTime = String(
+      clinicInfo.openingTime || clinicInfo.opening_time || clinic.openingTime || clinic.opening_time || "",
+    ).trim();
+    const mergedClosingTime = String(
+      clinicInfo.closingTime || clinicInfo.closing_time || clinic.closingTime || clinic.closing_time || "",
+    ).trim();
     const mergedTime =
       formatClinicOpenHours({ openingTime: mergedOpeningTime, closingTime: mergedClosingTime }) ||
       String(clinicInfo.timeDisplay || clinic.time || "").trim() ||
@@ -96,8 +100,18 @@ export default function ClinicSelection() {
   }, [hydrateClinicFromLocalInfo, t]);
 
   useEffect(() => {
-    const syncClinicsFromLocalStorage = () => {
-      setClinics((prev) => prev.map((clinic) => hydrateClinicFromLocalInfo(clinic)));
+    const syncClinicsFromLocalStorage = (clinicId = "") => {
+      const normalizedClinicId = String(clinicId || "").trim();
+
+      setClinics((prev) =>
+        prev.map((clinic) => {
+          if (!normalizedClinicId || String(clinic.id) === normalizedClinicId) {
+            return hydrateClinicFromLocalInfo(clinic);
+          }
+
+          return clinic;
+        }),
+      );
     };
 
     const handleStorage = (event) => {
@@ -105,19 +119,36 @@ export default function ClinicSelection() {
         return;
       }
 
+      const changedClinicId = String(event.key || "")
+        .replace(CLINIC_INFO_STORAGE_PREFIX, "")
+        .trim();
+      syncClinicsFromLocalStorage(changedClinicId);
+    };
+
+    const handleClinicInfoUpdated = (event) => {
+      syncClinicsFromLocalStorage(event?.detail?.clinicId || "");
+    };
+
+    const handleWindowFocus = () => {
       syncClinicsFromLocalStorage();
     };
 
-    const handleClinicInfoUpdated = () => {
-      syncClinicsFromLocalStorage();
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        syncClinicsFromLocalStorage();
+      }
     };
 
     window.addEventListener("storage", handleStorage);
     window.addEventListener(CLINIC_INFO_UPDATED_EVENT, handleClinicInfoUpdated);
+    window.addEventListener("focus", handleWindowFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(CLINIC_INFO_UPDATED_EVENT, handleClinicInfoUpdated);
+      window.removeEventListener("focus", handleWindowFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [hydrateClinicFromLocalInfo]);
 

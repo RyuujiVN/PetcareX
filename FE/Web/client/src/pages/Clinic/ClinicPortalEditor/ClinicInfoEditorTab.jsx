@@ -31,8 +31,8 @@ const buildFallbackClinicFromProfile = (profile) => {
     address: clinicInfo?.address || profile?.address || '',
     phone: clinicInfo?.phone || profile?.phone || '',
     description: clinicInfo?.description || profile?.description || '',
-    openingTime: clinicInfo?.openingTime || '',
-    closingTime: clinicInfo?.closingTime || '',
+    openingTime: clinicInfo?.openingTime || clinicInfo?.opening_time || '',
+    closingTime: clinicInfo?.closingTime || clinicInfo?.closing_time || '',
     openingDays: clinicInfo?.openingDays || '',
   }
 }
@@ -149,6 +149,10 @@ export default function ClinicSelectionEditor() {
         address: String(normalized.address || '').trim(),
         phone: String(normalized.phone || '').trim(),
         avatarUrl: String(normalized.avatarUrl || '').trim(),
+        openingTime: String(normalized.openingTime || '').trim(),
+        closingTime: String(normalized.closingTime || '').trim(),
+        opening_time: String(normalized.openingTime || '').trim(),
+        closing_time: String(normalized.closingTime || '').trim(),
       }
 
       if (String(normalized.email || '').trim()) {

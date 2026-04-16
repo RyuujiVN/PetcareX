@@ -6,6 +6,12 @@ const normalizeClinicId = (clinicId) => {
   return String(clinicId).trim();
 };
 
+const normalizeTimeValue = (value) => {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+  return raw.length >= 5 ? raw.slice(0, 5) : raw;
+};
+
 const DEFAULT_CLINIC_INFO = {
   avatarUrl: '',
   name: '',
@@ -31,8 +37,12 @@ const fallbackFromClinic = (clinic) => {
     address: clinic.address || '',
     phone: clinic.phone || clinic.phoneNumber || '',
     description: clinic.description || '',
-    openingTime: clinic.openingTime || clinic.localInfo?.openingTime || '',
-    closingTime: clinic.closingTime || clinic.localInfo?.closingTime || '',
+    openingTime: normalizeTimeValue(
+      clinic.openingTime || clinic.opening_time || clinic.localInfo?.openingTime || clinic.localInfo?.opening_time || '',
+    ),
+    closingTime: normalizeTimeValue(
+      clinic.closingTime || clinic.closing_time || clinic.localInfo?.closingTime || clinic.localInfo?.closing_time || '',
+    ),
     openingDays: clinic.openingDays || clinic.localInfo?.openingDays || '',
     updatedAt: Number(clinic.updatedAt) || 0,
   };
@@ -54,9 +64,14 @@ export const buildClinicInfoContent = (source = {}, fallbackClinic = null) => {
     ...(source || {}),
   };
 
+  const openingTime = normalizeTimeValue(merged.openingTime || merged.opening_time || '');
+  const closingTime = normalizeTimeValue(merged.closingTime || merged.closing_time || '');
+
   return {
     ...merged,
-    timeDisplay: formatClinicOpenHours(merged),
+    openingTime,
+    closingTime,
+    timeDisplay: formatClinicOpenHours({ openingTime, closingTime }),
   };
 };
 
