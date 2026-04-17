@@ -386,6 +386,255 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "delete": "Delete",
-    "viewDetail": "Details"
+    "viewDetail": "Details",
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "close": "Close",
+      "delete": "Delete",
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "back": "Back",
+      "continue": "Continue",
+      "viewDetail": "View details",
+      "readMore": "Read more",
+      "retry": "Retry"
+    },
+    "states": {
+      "loading": "Loading...",
+      "empty": "No data",
+      "updating": "Updating...",
+      "notUpdated": "Not updated",
+      "notAvailable": "Not available",
+      "unknown": "Unknown"
+    },
+    "labels": {
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "date": "Date",
+      "time": "Time",
+      "status": "Status",
+      "service": "Service",
+      "doctor": "Doctor",
+      "clinic": "Clinic",
+      "note": "Note",
+      "symptom": "Symptom",
+      "search": "Search"
+    },
+    "placeholders": {
+      "select": "Please select",
+      "input": "Please enter",
+      "search": "Type to search"
+    },
+    "dialogs": {
+      "confirmDeleteTitle": "Confirm deletion",
+      "confirmDeleteContent": "Are you sure you want to delete this item?",
+      "confirmCancelTitle": "Confirm cancellation",
+      "confirmCancelContent": "Are you sure you want to cancel this action?"
+    },
+    "aria": {
+      "scrollToTop": "Scroll to top"
+    }
+  },
+  "header": {
+    "user": {
+      "defaultName": "User"
+    }
+  },
+  "pages": {
+    "forum": {
+      "title": "Forum",
+      "loadPostsFailed": "Unable to load posts",
+      "postSuccess": "Post created successfully",
+      "postFailed": "Failed to create post",
+      "loadTopicsFailed": "Unable to load topics",
+      "loadCommentsFailed": "Unable to load comments",
+      "updatePostSuccess": "Post updated successfully",
+      "updatePostFailed": "Unable to update post",
+      "deleteSuccess": "Post deleted",
+      "deleteFailed": "Unable to delete post",
+      "uploadNoUrl": "Did not receive image URL from server",
+      "uploadPostImageSuccess": "Post image uploaded successfully",
+      "uploadCommentImageSuccess": "Comment image uploaded successfully",
+      "uploadReplyImageSuccess": "Reply image uploaded successfully",
+      "readImageFailed": "Unable to read selected image",
+      "createCommentFailed": "Unable to create comment",
+      "replyFailed": "Unable to reply to comment",
+      "updateCommentSuccess": "Comment updated successfully",
+      "updateCommentFailed": "Unable to update comment",
+      "deleteCommentSuccess": "Comment deleted",
+      "deleteCommentFailed": "Unable to delete comment",
+      "reportPostModalTitle": "Report post",
+      "reportPostBy": "You are reporting {{name}}'s post",
+      "reportPostSuccess": "Thank you for your report. We will review this post.",
+      "reportPostRecorded": "Your report has been recorded",
+      "reportPostFailed": "Unable to submit report. Please try again.",
+      "reportCommentSuccess": "Thank you for reporting this comment. We will review it soon.",
+      "reportCommentFailed": "Unable to submit comment report. Please try again.",
+      "reportModalTitle": "Report comment",
+      "reportCommentBy": "You are reporting {{name}}'s comment",
+      "reportBackendUnavailable": "Backend does not support report-comment endpoint yet. Please contact an administrator.",
+      "likeSuccess": "Liked {{author}}'s post",
+      "likeFailed": "Unable to update likes",
+      "justNow": "Just now",
+      "minutesAgo": "{{count}} minutes ago",
+      "hoursAgo": "{{count}} hours ago",
+      "daysAgo": "{{count}} days ago",
+      "topic": "Topic",
+      "featured": "Featured",
+      "topContributors": "Top contributors",
+      "viewAllRankings": "View full rankings",
+      "createPostTitle": "Create a new post",
+      "editPostTitle": "Edit post",
+      "editCommentTitle": "Edit comment",
+      "postTopic": "Post topic",
+      "loadingPosts": "Loading posts...",
+      "loadingComments": "Loading comments...",
+      "avatarAlt": "Avatar",
+      "postTagDefault": "Post",
+      "imagePlaceholder": "Image",
+      "maxImages": "You can select up to {{count}} images",
+      "maxImagesPerPost": "Maximum {{count}} images per post",
+      "replyingTo": "Replying to {{user}}",
+      "postImageAlt": "Post {{index}}",
+      "postPreviewAlt": "Post preview image {{index}}",
+      "editPostPreviewAlt": "Edit post preview image",
+      "commentImagePreviewAlt": "Comment preview image",
+      "replyImagePreviewAlt": "Reply preview image",
+      "replyImageAlt": "Reply image",
+      "previewImageAlt": "Preview image",
+      "topicFilter": {
+        "all": "All topics",
+        "none": "No topic"
+      },
+      "topicSelect": {
+        "noTopic": "No topic"
+      },
+      "topics": {
+        "dailyCare": "Daily pet care",
+        "vaccinationAndPrevention": "Vaccination and prevention",
+        "symptomConsulting": "Symptom consulting",
+        "postOpRecovery": "Post-op and recovery",
+        "veterinaryNutrition": "Veterinary nutrition",
+        "clinicExperience": "Clinic experience"
+      },
+      "placeholders": {
+        "shareToday": "What do you want to share about your pet today?",
+        "comment": "Write a comment...",
+        "reply": "Write a reply...",
+        "reportReason": "Enter report details...",
+        "reportPostReason": "Select report reason",
+        "reportPostDetail": "Additional details (optional)",
+        "choosePostTopic": "Choose a post topic",
+        "chooseTopic": "Choose a topic",
+        "editPost": "What do you want to edit in this post?"
+      },
+      "reportReason": {
+        "spam": "Spam",
+        "inappropriate": "Inappropriate content",
+        "misleading": "Misleading information",
+        "other": "Other"
+      },
+      "actions": {
+        "selectTopicTitle": "Choose topic",
+        "commentOptionsAria": "Comment options",
+        "reportComment": "Report comment",
+        "reportPost": "Report post",
+        "deleteAdmin": "Delete (Admin)",
+        "submitReport": "Submit report",
+        "removeImage": "Remove image",
+        "image": "Image",
+        "sending": "Sending...",
+        "saving": "Saving...",
+        "uploadingImage": "Uploading image...",
+        "send": "Send",
+        "reply": "Reply",
+        "sendReply": "Send reply",
+        "chooseImage": "Choose image",
+        "posting": "Posting...",
+        "post": "Post",
+        "chooseAnotherImage": "Choose another image",
+        "saveEdit": "Save changes"
+      },
+      "confirmDelete": {
+        "title": "Delete post",
+        "content": "Are you sure you want to delete this post?",
+        "okText": "Delete",
+        "cancelText": "Cancel"
+      },
+      "confirmDeleteComment": {
+        "title": "Delete comment",
+        "content": "Are you sure you want to delete this comment?",
+        "okText": "Delete",
+        "cancelText": "Cancel"
+      },
+      "validation": {
+        "uploadingImage": "Image is uploading, please wait",
+        "emptyPost": "Please enter content or choose an image before posting",
+        "noTopicAvailable": "No available topic to create post. Please try again later",
+        "noTopicAvailableForUpdate": "No available topic to update post. Please try again later",
+        "editOwnPostOnly": "You can only edit your own post",
+        "deleteOwnPostOnly": "You can only delete your own post",
+        "reportOtherPostOnly": "You can only report other users' posts",
+        "reportPostReasonRequired": "Please select a report reason",
+        "editOwnCommentOnly": "You can only edit your own comment",
+        "deleteOwnCommentOnly": "You do not have permission to delete this comment",
+        "reportReasonRequired": "Please enter report details",
+        "commentImageUploading": "Comment image is uploading, please wait",
+        "commentRequired": "Please enter a comment or choose an image",
+        "replyImageUploading": "Reply image is uploading, please wait",
+        "replyRequired": "Please enter a reply or choose an image"
+      }
+    },
+    "chatbot": {
+      "actions": {
+        "delete": "Delete",
+        "optionsAria": "Conversation options",
+        "rename": "Rename"
+      },
+      "assistantTitle": "AI Assistant",
+      "confirmDelete": {
+        "cancelText": "Cancel",
+        "content": "Are you sure you want to delete this conversation?",
+        "okText": "Delete",
+        "title": "Delete conversation"
+      },
+      "deleteFailed": "Unable to delete conversation",
+      "messageBox": {
+        "aiResponding": "AI is responding",
+        "attachImage": "Attach image",
+        "disclaimer": "AI may generate inaccurate information. Please verify important details.",
+        "emptyState": "Start a new conversation with AI",
+        "genericError": "Something went wrong. Please try again.",
+        "inputPlaceholder": "Type your question...",
+        "loadingOldMessages": "Loading older messages...",
+        "previewAlt": "Preview image",
+        "removeImage": "Remove image",
+        "send": "Send",
+        "uploadFailed": "Failed to upload image",
+        "uploadingImage": "Uploading image",
+        "uploadingImageLong": "Uploading image, please wait...",
+        "userImageAlt": "User uploaded image",
+        "validation": {
+          "imageOnly": "Only image files are allowed"
+        }
+      },
+      "newConversationButton": "New conversation",
+      "newConversationDefaultName": "New conversation",
+      "newRoomFailed": "Unable to create a new conversation",
+      "recentHistory": "Recent history",
+      "renameFailed": "Unable to rename conversation",
+      "renameModal": {
+        "cancelText": "Cancel",
+        "okText": "Save",
+        "placeholder": "Enter conversation name",
+        "title": "Rename conversation"
+      },
+      "validation": {
+        "emptyRoomName": "Conversation name cannot be empty"
+      }
+    }
   }
 }

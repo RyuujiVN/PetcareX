@@ -386,6 +386,255 @@
     "cancel": "Hủy",
     "confirm": "Xác nhận",
     "delete": "Xóa",
-    "viewDetail": "Chi tiết"
+    "viewDetail": "Chi tiết",
+    "actions": {
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "close": "Đóng",
+      "delete": "Xóa",
+      "edit": "Chỉnh sửa",
+      "confirm": "Xác nhận",
+      "back": "Quay lại",
+      "continue": "Tiếp tục",
+      "viewDetail": "Xem chi tiết",
+      "readMore": "Đọc thêm",
+      "retry": "Thử lại"
+    },
+    "states": {
+      "loading": "Đang tải...",
+      "empty": "Không có dữ liệu",
+      "updating": "Đang cập nhật...",
+      "notUpdated": "Chưa cập nhật",
+      "notAvailable": "Không có",
+      "unknown": "Không xác định"
+    },
+    "labels": {
+      "name": "Tên",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "address": "Địa chỉ",
+      "date": "Ngày",
+      "time": "Giờ",
+      "status": "Trạng thái",
+      "service": "Dịch vụ",
+      "doctor": "Bác sĩ",
+      "clinic": "Phòng khám",
+      "note": "Ghi chú",
+      "symptom": "Triệu chứng",
+      "search": "Tìm kiếm"
+    },
+    "placeholders": {
+      "select": "Vui lòng chọn",
+      "input": "Vui lòng nhập",
+      "search": "Nhập để tìm kiếm"
+    },
+    "dialogs": {
+      "confirmDeleteTitle": "Xác nhận xóa",
+      "confirmDeleteContent": "Bạn có chắc chắn muốn xóa mục này?",
+      "confirmCancelTitle": "Xác nhận hủy",
+      "confirmCancelContent": "Bạn có chắc chắn muốn hủy thao tác?"
+    },
+    "aria": {
+      "scrollToTop": "Cuộn lên đầu trang"
+    }
+  },
+  "header": {
+    "user": {
+      "defaultName": "Người dùng"
+    }
+  },
+  "pages": {
+    "forum": {
+      "title": "Diễn đàn",
+      "loadPostsFailed": "Không thể tải danh sách bài viết",
+      "postSuccess": "Đăng bài thành công",
+      "postFailed": "Đăng bài thất bại",
+      "loadTopicsFailed": "Không thể tải chủ đề",
+      "loadCommentsFailed": "Không thể tải bình luận",
+      "updatePostSuccess": "Cập nhật bài viết thành công",
+      "updatePostFailed": "Không thể cập nhật bài viết",
+      "deleteSuccess": "Đã xóa bài viết",
+      "deleteFailed": "Không thể xóa bài viết",
+      "uploadNoUrl": "Không nhận được URL ảnh từ server",
+      "uploadPostImageSuccess": "Tải ảnh bài viết thành công",
+      "uploadCommentImageSuccess": "Tải ảnh bình luận thành công",
+      "uploadReplyImageSuccess": "Tải ảnh phản hồi thành công",
+      "readImageFailed": "Không thể đọc ảnh đã chọn",
+      "createCommentFailed": "Không thể tạo bình luận",
+      "replyFailed": "Không thể phản hồi bình luận",
+      "updateCommentSuccess": "Cập nhật bình luận thành công",
+      "updateCommentFailed": "Không thể cập nhật bình luận",
+      "deleteCommentSuccess": "Đã xóa bình luận",
+      "deleteCommentFailed": "Không thể xóa bình luận",
+      "reportPostModalTitle": "Báo cáo bài viết",
+      "reportPostBy": "Bạn đang báo cáo bài viết của {{name}}",
+      "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
+      "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
+      "reportPostFailed": "Không thể gửi báo cáo bài viết. Vui lòng thử lại.",
+      "reportCommentSuccess": "Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.",
+      "reportCommentFailed": "Không thể gửi báo cáo bình luận. Vui lòng thử lại.",
+      "reportModalTitle": "TỐ CÁO BÌNH LUẬN",
+      "reportCommentBy": "Bạn đang tố cáo bình luận của {{name}}",
+      "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.",
+      "likeSuccess": "Đã thích bài viết của {{author}}",
+      "likeFailed": "Không thể cập nhật lượt thích",
+      "justNow": "Vừa xong",
+      "minutesAgo": "{{count}} phút trước",
+      "hoursAgo": "{{count}} giờ trước",
+      "daysAgo": "{{count}} ngày trước",
+      "topic": "Chủ đề",
+      "featured": "Nổi bật",
+      "topContributors": "Người đóng góp hàng đầu",
+      "viewAllRankings": "Xem tất cả bảng xếp hạng",
+      "createPostTitle": "Tạo bài viết mới",
+      "editPostTitle": "Chỉnh sửa bài viết",
+      "editCommentTitle": "Chỉnh sửa bình luận",
+      "postTopic": "Chủ đề bài viết",
+      "loadingPosts": "Đang tải bài viết...",
+      "loadingComments": "Đang tải bình luận...",
+      "avatarAlt": "Ảnh đại diện",
+      "postTagDefault": "Bài viết",
+      "imagePlaceholder": "Hình ảnh",
+      "maxImages": "Bạn chỉ có thể chọn tối đa {{count}} ảnh",
+      "maxImagesPerPost": "Chỉ nhận tối đa {{count}} ảnh cho mỗi bài viết",
+      "replyingTo": "Đang reply cho {{user}}",
+      "postImageAlt": "Bài viết {{index}}",
+      "postPreviewAlt": "Ảnh xem trước bài viết {{index}}",
+      "editPostPreviewAlt": "Ảnh xem trước khi chỉnh sửa",
+      "commentImagePreviewAlt": "Ảnh xem trước bình luận",
+      "replyImagePreviewAlt": "Ảnh xem trước phản hồi",
+      "replyImageAlt": "Ảnh phản hồi",
+      "previewImageAlt": "Ảnh xem trước",
+      "topicFilter": {
+        "all": "Tất cả chủ đề",
+        "none": "Không có chủ đề"
+      },
+      "topicSelect": {
+        "noTopic": "Không chọn chủ đề"
+      },
+      "topics": {
+        "dailyCare": "Chăm sóc thú cưng hằng ngày",
+        "vaccinationAndPrevention": "Tiêm phòng và phòng bệnh",
+        "symptomConsulting": "Tư vấn triệu chứng",
+        "postOpRecovery": "Hậu phẫu và phục hồi",
+        "veterinaryNutrition": "Dinh dưỡng thú y",
+        "clinicExperience": "Kinh nghiệm phòng khám"
+      },
+      "placeholders": {
+        "shareToday": "Bạn muốn chia sẻ điều gì về thú cưng hôm nay?",
+        "comment": "Viết bình luận...",
+        "reply": "Viết reply...",
+        "reportReason": "Nhập nội dung tố cáo...",
+        "reportPostReason": "Chọn lý do báo cáo",
+        "reportPostDetail": "Mô tả thêm (không bắt buộc)",
+        "choosePostTopic": "Chọn chủ đề bài viết",
+        "chooseTopic": "Chọn chủ đề",
+        "editPost": "Bạn muốn chỉnh sửa điều gì trong bài viết?"
+      },
+      "reportReason": {
+        "spam": "Spam",
+        "inappropriate": "Nội dung không phù hợp",
+        "misleading": "Thông tin sai lệch",
+        "other": "Khác"
+      },
+      "actions": {
+        "selectTopicTitle": "Chọn chủ đề",
+        "commentOptionsAria": "Tùy chọn bình luận",
+        "reportComment": "Tố cáo bình luận",
+        "reportPost": "Báo cáo bài viết",
+        "deleteAdmin": "Xóa (Admin)",
+        "submitReport": "Gửi tố cáo",
+        "removeImage": "Gỡ ảnh",
+        "image": "Ảnh",
+        "sending": "Đang gửi...",
+        "saving": "Đang lưu...",
+        "uploadingImage": "Đang tải ảnh...",
+        "send": "Gửi",
+        "reply": "Reply",
+        "sendReply": "Gửi reply",
+        "chooseImage": "Chọn ảnh",
+        "posting": "Đang đăng...",
+        "post": "Đăng bài",
+        "chooseAnotherImage": "Chọn ảnh khác",
+        "saveEdit": "Lưu chỉnh sửa"
+      },
+      "confirmDelete": {
+        "title": "Xóa bài viết",
+        "content": "Bạn có chắc chắn muốn xóa bài viết này không?",
+        "okText": "Xóa",
+        "cancelText": "Hủy"
+      },
+      "confirmDeleteComment": {
+        "title": "Xóa bình luận",
+        "content": "Bạn có chắc chắn muốn xóa bình luận này không?",
+        "okText": "Xóa",
+        "cancelText": "Hủy"
+      },
+      "validation": {
+        "uploadingImage": "Ảnh đang được tải lên, vui lòng đợi",
+        "emptyPost": "Vui lòng nhập nội dung hoặc chọn ảnh trước khi đăng",
+        "noTopicAvailable": "Hiện chưa có chủ đề khả dụng để đăng bài, vui lòng thử lại sau",
+        "noTopicAvailableForUpdate": "Hiện chưa có chủ đề khả dụng để cập nhật bài viết, vui lòng thử lại sau",
+        "editOwnPostOnly": "Bạn chỉ có thể chỉnh sửa bài viết của chính mình",
+        "deleteOwnPostOnly": "Bạn chỉ có thể xóa bài viết của chính mình",
+        "reportOtherPostOnly": "Bạn chỉ có thể báo cáo bài viết của người khác",
+        "reportPostReasonRequired": "Vui lòng chọn lý do báo cáo bài viết",
+        "editOwnCommentOnly": "Bạn chỉ có thể chỉnh sửa bình luận của chính mình",
+        "deleteOwnCommentOnly": "Bạn không có quyền xóa bình luận này",
+        "reportReasonRequired": "Vui lòng nhập nội dung tố cáo",
+        "commentImageUploading": "Ảnh bình luận đang được tải lên, vui lòng đợi",
+        "commentRequired": "Vui lòng nhập bình luận hoặc chọn ảnh",
+        "replyImageUploading": "Ảnh phản hồi đang được tải lên, vui lòng đợi",
+        "replyRequired": "Vui lòng nhập reply hoặc chọn ảnh"
+      }
+    },
+    "chatbot": {
+      "actions": {
+        "delete": "Xóa",
+        "optionsAria": "Tùy chọn cuộc trò chuyện",
+        "rename": "Đổi tên"
+      },
+      "assistantTitle": "Trợ lý AI",
+      "confirmDelete": {
+        "cancelText": "Hủy",
+        "content": "Bạn có chắc chắn muốn xóa cuộc trò chuyện này không?",
+        "okText": "Xóa",
+        "title": "Xóa cuộc trò chuyện"
+      },
+      "deleteFailed": "Không thể xóa cuộc trò chuyện",
+      "messageBox": {
+        "aiResponding": "AI đang phản hồi",
+        "attachImage": "Đính kèm ảnh",
+        "disclaimer": "AI có thể tạo ra thông tin chưa chính xác. Vui lòng kiểm tra lại nội dung quan trọng.",
+        "emptyState": "Bắt đầu cuộc trò chuyện mới với AI",
+        "genericError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+        "inputPlaceholder": "Nhập câu hỏi của bạn...",
+        "loadingOldMessages": "Đang tải tin nhắn cũ...",
+        "previewAlt": "Ảnh xem trước",
+        "removeImage": "Xóa ảnh",
+        "send": "Gửi",
+        "uploadFailed": "Tải ảnh lên thất bại",
+        "uploadingImage": "Đang tải ảnh",
+        "uploadingImageLong": "Đang tải ảnh lên, vui lòng đợi...",
+        "userImageAlt": "Ảnh người dùng gửi",
+        "validation": {
+          "imageOnly": "Chỉ được chọn tệp hình ảnh"
+        }
+      },
+      "newConversationButton": "Cuộc trò chuyện mới",
+      "newConversationDefaultName": "Cuộc trò chuyện mới",
+      "newRoomFailed": "Không thể tạo cuộc trò chuyện mới",
+      "recentHistory": "Lịch sử gần đây",
+      "renameFailed": "Không thể đổi tên cuộc trò chuyện",
+      "renameModal": {
+        "cancelText": "Hủy",
+        "okText": "Lưu",
+        "placeholder": "Nhập tên cuộc trò chuyện",
+        "title": "Đổi tên cuộc trò chuyện"
+      },
+      "validation": {
+        "emptyRoomName": "Tên cuộc trò chuyện không được để trống"
+      }
+    }
   }
 }

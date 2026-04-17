@@ -1,791 +1,1041 @@
 {
-	"sidebar": {
-		"brandSubtitle": "PetcareX",
-		"defaultClinicName": "PetCareX",
-		"defaultUser": "Người dùng",
-		"logoutAriaLabel": "Đăng xuất",
-		"notificationBellAriaLabel": "Xem thông báo phòng khám",
-		"toggleAriaLabel": "Ẩn hoặc hiện thanh bên",
-		"menu": {
-			"appointments": "Lịch hẹn",
-			"records": "Sổ y tế điện tử",
-			"revenue": "Doanh thu",
-			"doctors": "Bác sĩ",
-			"forms": "Xem phiếu khám",
-			"forum": "Forum",
-			"chatbot": "ChatBot",
-			"editor": "Chỉnh sửa giao diện phòng khám",
-			"portalEditor": "Chỉnh sửa trang phòng khám",
-			"homeEditor": "Chỉnh Sửa Trang Chủ",
-			"clinicEditor": "Chỉnh Sửa Phòng Khám"
-		},
-		"errors": {
-			"missingClinicId": "Không xác định được clinicId của phòng khám hiện tại"
-		},
-		"notifications": {
-			"panelTitle": "Thông báo phòng khám",
-			"summary": "{{unread}} chưa đọc / {{total}} thông báo",
-			"markRead": "Đánh dấu đã đọc",
-			"empty": "Không có thông báo phù hợp",
-			"filters": {
-				"all": "Tất cả",
-				"unread": "Chưa đọc",
-				"allTypes": "Mọi loại",
-				"appointment": "Lịch hẹn",
-				"payment": "Thanh toán",
-				"review": "Đánh giá",
-				"aiDiagnosis": "Chẩn đoán AI",
-				"forumComment": "Bình luận",
-				"forumLike": "Lượt thích",
-				"forumReply": "Phản hồi",
-				"system": "Hệ thống"
-			},
-			"types": {
-				"appointment": "Lịch hẹn",
-				"system": "Hệ thống",
-				"review": "Đánh giá",
-				"payment": "Thanh toán",
-				"aiDiagnosis": "Chẩn đoán AI",
-				"forumComment": "Bình luận",
-				"forumLike": "Lượt thích",
-				"forumReply": "Phản hồi",
-				"other": "Khác"
-			},
-			"time": {
-				"justNow": "Vừa xong",
-				"minutesAgo": "{{count}} phút trước",
-				"hoursAgo": "{{count}} giờ trước",
-				"daysAgo": "{{count}} ngày trước"
-			},
-			"mock": {
-				"newAppointmentTitle": "Có lịch khám mới từ khách hàng",
-				"newAppointmentDescription": "Nguyễn Minh An vừa đặt lịch tại {{clinicName}} cho bé Mít với dịch vụ Khám tổng quát lúc 09:30 hôm nay.",
-				"changedAppointmentTitle": "Khách hàng đã đổi khung giờ khám",
-				"changedAppointmentDescription": "Lê Thu Hằng đã đổi lịch cho bé Bông từ 14:00 sang 15:30, dịch vụ Tiêm phòng nhắc lại.",
-				"paymentTitle": "Thanh toán hóa đơn thành công",
-				"paymentDescription": "Hóa đơn MR-2308 cho lịch khám của bé Cún đã được thanh toán online đầy đủ.",
-				"reviewTitle": "Bạn nhận được đánh giá mới 5 sao",
-				"reviewDescription": "Khách hàng Phạm Hải Đăng để lại phản hồi tốt về dịch vụ Khám da liễu cho thú cưng.",
-				"systemTitle": "Nhắc nhở lịch hẹn ngày mai",
-				"systemDescription": "Bạn có 7 lịch hẹn vào ngày mai. Hãy xác nhận đủ bác sĩ trực để tránh quá tải."
-			}
-		}
-	},
-	"portalEditor": {
-		"subtitle": "Quản lý nội dung trang chủ và thông tin hiển thị phòng khám tại cùng một nơi."
-	},
-	"appointments": {
-		"common": {
-			"missingFromAppointment": "Không có trong dữ liệu lịch hẹn",
-			"notUpdated": "Chưa cập nhật",
-			"unknown": "Không rõ",
-			"noNotes": "Không có ghi chú",
-			"notAssigned": "Chưa phân công",
-			"male": "Đực",
-			"female": "Cái",
-			"monthsOld": "{{count}} tháng",
-			"yearsOld": "{{count}} tuổi"
-		},
-		"card": {
-			"ownerPrefix": "Chủ: {{owner}}"
-		},
-		"status": {
-			"paid": "Đã thanh toán",
-			"unpaid": "Chưa thanh toán"
-		},
-		"messages": {
-			"fetchFailed": "Không thể tải danh sách lịch khám của phòng khám",
-			"updateSuccess": "Đã cập nhật trạng thái thành {{status}}",
-			"updateFailed": "Cập nhật trạng thái thất bại",
-			"cancelSuccess": "Đã hủy lịch đặt khám",
-			"cancelFailed": "Không thể hủy lịch đặt"
-		},
-		"cancelModal": {
-			"title": "Xóa lịch đặt",
-			"content": "Xác nhận hủy lịch đặt này?",
-			"okText": "Xóa lịch"
-		},
-		"searchPlaceholder": "Tìm thú cưng, chủ nuôi, dịch vụ...",
-		"pageTitle": "Quản lý lịch khám",
-		"pageSubtitle": "Tổng {{count}} lịch hẹn của ngày hiện tại.",
-		"filters": {
-			"examDate": "Ngày khám",
-			"examTime": "Giờ khám",
-			"timePlaceholder": "Chọn khung giờ"
-		},
-		"empty": "Không có lịch hẹn",
-		"detailModal": {
-			"title": "THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM",
-			"actions": {
-				"deleteBooking": "Xóa lịch đặt"
-			},
-			"petSectionTitle": "Thông tin Thú cưng",
-			"appointmentSectionTitle": "Thông tin Lịch Khám",
-			"fields": {
-				"petName": "Tên thú cưng:",
-				"birthAndAge": "Ngày sinh / Tuổi:",
-				"species": "Loài:",
-				"gender": "Giới tính:",
-				"breed": "Giống:",
-				"ownerName": "Tên chủ thú cưng:",
-				"feature": "Đặc điểm nhận dạng:",
-				"phone": "Số điện thoại:",
-				"clinic": "Phòng khám:",
-				"dateTime": "Ngày & giờ:",
-				"address": "Địa chỉ:",
-				"service": "Dịch vụ:",
-				"veterinarian": "Bác sĩ:",
-				"status": "Trạng thái:",
-				"note": "Ghi chú:"
-			}
-		}
-	},
-	"veterinarians": {
-		"common": {
-			"notUpdated": "Chưa cập nhật",
-			"cancel": "Hủy",
-			"save": "Lưu hồ sơ",
-			"uploadingImage": "Đang tải ảnh..."
-		},
-		"fields": {
-			"name": "Tên",
-			"fullName": "Họ và tên",
-			"specialty": "Chuyên khoa",
-			"email": "Email",
-			"password": "Mật khẩu",
-			"phone": "Số điện thoại",
-			"address": "Địa chỉ",
-			"experience": "Kinh nghiệm (năm)",
-			"description": "Giới thiệu",
-			"experiencePlaceholder": "Số năm kinh nghiệm",
-			"descriptionPlaceholder": "Mô tả ngắn về bác sĩ...",
-			"role": "Vai trò",
-			"joinDate": "Ngày tham gia"
-		},
-		"validation": {
-			"nameRequired": "Vui lòng nhập tên bác sĩ",
-			"specialtyRequired": "Vui lòng chọn chuyên khoa",
-			"emailRequired": "Vui lòng nhập email",
-			"emailInvalid": "Email không đúng định dạng",
-			"passwordRequired": "Vui lòng nhập mật khẩu",
-			"passwordMin": "Mật khẩu tối thiểu là 6 ký tự",
-			"passwordPolicy": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số",
-			"phoneRequired": "Vui lòng nhập số điện thoại",
-			"phoneFormat": "Số điện thoại phải đúng 10 số (VD: 0901234567)",
-			"phoneNoSpaces": "Số điện thoại không được chứa khoảng trắng",
-			"phoneDigitsOnly": "Số điện thoại chỉ được chứa chữ số",
-			"phoneLength": "Số điện thoại phải đúng 10 chữ số",
-			"addressRequired": "Vui lòng nhập địa chỉ",
-			"fullNameRequired": "Vui lòng nhập họ tên",
-			"fullNameNoEdgeSpaces": "Họ tên không được có khoảng trắng ở đầu hoặc cuối",
-			"fullNameNoDoubleSpaces": "Họ tên không được chứa 2 khoảng trắng liên tiếp",
-			"fullNameCharacters": "Họ tên chỉ được chứa chữ cái và khoảng trắng"
-		},
-		"management": {
-			"searchPlaceholder": "Tìm kiếm bác sĩ theo tên, email...",
-			"title": "Đội ngũ Bác sĩ",
-			"subtitle": "Quản lý danh sách bác sĩ của phòng khám.",
-			"addButton": "Thêm bác sĩ mới",
-			"filters": {
-				"all": "Tất cả bác sĩ",
-				"internalMedicine": "Nội khoa",
-				"surgery": "Phẫu thuật",
-				"ultrasound": "Siêu âm",
-				"vaccination": "Tiêm phòng và phòng ngừa"
-			},
-			"states": {
-				"loading": "Đang tải danh sách bác sĩ...",
-				"empty": "Không có bác sĩ phù hợp với bộ lọc hiện tại"
-			},
-			"status": {
-				"active": "Đang làm việc",
-				"inactive": "Nghỉ"
-			},
-			"pagination": {
-				"prev": "Trang trước",
-				"next": "Trang sau",
-				"summary": "Trang {{current}}/{{total}}"
-			}
-		},
-		"add": {
-			"pageTitle": "Thêm mới bác sĩ",
-			"defaultName": "Tên",
-			"submitButton": "Thêm bác sĩ",
-			"placeholders": {
-				"name": "Nhập tên bác sĩ",
-				"specialty": "Chọn chuyên khoa",
-				"email": "example@email.com",
-				"password": "Nhập mật khẩu",
-				"phone": "Nhập số điện thoại",
-				"address": "Nhập địa chỉ"
-			},
-			"messages": {
-				"avatarUploading": "Ảnh đang được tải lên, vui lòng đợi",
-				"missingUserId": "Tạo bác sĩ thành công nhưng không nhận được userId",
-				"rollbackFailed": "Cập nhật thông tin thất bại và không thể tự hủy tài khoản. Vui lòng xóa thủ công bác sĩ vừa tạo.",
-				"contactUpdateFailed": "Không thể cập nhật SĐT/địa chỉ. Tài khoản đã được hủy, vui lòng thử lại.",
-				"addSuccess": "Thêm bác sĩ mới thành công",
-				"saveFailed": "Không thể lưu thông tin bác sĩ",
-				"avatarUrlMissing": "Không nhận được URL ảnh từ server",
-				"avatarUploadSuccess": "Tải ảnh đại diện thành công",
-				"avatarUploadFailed": "Không thể tải ảnh đại diện"
-			},
-			"confirmDiscard": {
-				"title": "Bạn muốn thoát thay đổi?",
-				"content": "Bạn đang nhập thông tin. Chọn \"Lưu thông tin\" để lưu, hoặc \"Thoát không lưu\".",
-				"okText": "Lưu thông tin",
-				"cancelText": "Thoát không lưu"
-			}
-		},
-		"info": {
-			"pageTitle": "Thông tin bác sĩ",
-			"editButton": "Chỉnh sửa hồ sơ",
-			"personalInfoTitle": "Thông tin cá nhân",
-			"messages": {
-				"avatarUploading": "Ảnh đang được tải lên, vui lòng đợi",
-				"updateSuccess": "Cập nhật hồ sơ bác sĩ thành công",
-				"updateFailed": "Không thể cập nhật hồ sơ bác sĩ",
-				"avatarUploadingWait": "Ảnh đang được tải lên, vui lòng đợi hoàn tất",
-				"avatarUrlMissing": "Không nhận được URL ảnh từ server",
-				"avatarUploadSuccess": "Tải ảnh đại diện thành công",
-				"avatarUploadFailed": "Không thể tải ảnh đại diện"
-			},
-			"confirmDiscard": {
-				"title": "Xác nhận hủy chỉnh sửa",
-				"content": "Bạn đang nhập dở thông tin. Nếu hủy, các thay đổi chưa lưu sẽ bị mất.",
-				"okText": "Bỏ thay đổi",
-				"cancelText": "Tiếp tục chỉnh sửa"
-			},
-			"editModal": {
-				"title": "Chỉnh sửa hồ sơ bác sĩ",
-				"changeAvatar": "Đổi ảnh đại diện"
-			}
-		}
-	},
-	"medicalRecords": {
-		"common": {
-			"fallback": "Không",
-			"contactFallback": "Chưa cập nhật được",
-			"none": "Không có",
-			"pet": "Thú cưng",
-			"male": "Đực",
-			"female": "Cái",
-			"unknownOrder": "Chỉ định chưa xác định",
-			"unknownOwner": "Chủ nuôi chưa rõ",
-			"unknownPetName": "Thú cưng chưa rõ",
-			"currencyVnd": "VND",
-			"zeroVnd": "0 VND"
-		},
-		"filters": {
-			"allSpecies": "Tất cả loài"
-		},
-		"list": {
-			"pageTitle": "Danh sách hồ sơ y tế",
-			"searchPlaceholder": "Tìm theo tên thú cưng, chủ nuôi hoặc giống loài...",
-			"emptyTitle": "Không có hồ sơ phù hợp",
-			"emptyDescription": "Thử thay đổi bộ lọc hoặc từ khóa để tìm hồ sơ khác.",
-			"appointmentCount": "{{count}} lịch hẹn",
-			"viewDetail": "Xem chi tiết",
-			"columns": {
-				"pet": "Thú cưng",
-				"species": "Loài / Giống",
-				"owner": "Chủ nuôi",
-				"examDate": "Ngày khám gần nhất",
-				"followUpDate": "Ngày tái khám",
-				"actions": "Thao tác"
-			}
-		},
-		"messages": {
-			"fetchFailed": "Không thể tải danh sách hồ sơ y tế",
-			"petNotFound": "Không tìm thấy thông tin thú cưng",
-			"loadFailed": "Không thể tải hồ sơ khám bệnh",
-			"loadFailedHint": "Không thể tải hồ sơ khám bệnh. Vui lòng thử lại hoặc kiểm tra dữ liệu thú cưng.",
-			"loadExamFailed": "Không thể tải dữ liệu phiếu khám",
-			"noExamToPrint": "Chưa có phiếu khám để in hóa đơn",
-			"printInitFailed": "Không thể khởi tạo chế độ in. Vui lòng thử lại.",
-			"noExamToPay": "Chưa có phiếu khám để thanh toán",
-			"appointmentNotFoundForPayment": "Không tìm thấy lịch khám để xác nhận thanh toán",
-			"medicalNotFoundForPayment": "Không tìm thấy hồ sơ bệnh án để thanh toán",
-			"paymentSuccess": "Thanh toán thành công",
-			"paymentFailed": "Không thể xác nhận thanh toán"
-		},
-		"view": {
-			"pageTitle": "Hồ sơ chi tiết",
-			"timelineTitle": "Dòng thời gian sức khỏe",
-			"loadingSuffix": "(đang tải...)",
-			"expand": "Xem chi tiết",
-			"collapse": "Thu gọn"
-		},
-		"timeline": {
-			"emptyHint": "Chưa có hồ sơ để hiển thị. Hãy chọn thú cưng từ danh sách để xem đúng hồ sơ riêng.",
-			"examSlip": "Phiếu khám",
-			"left": {
-				"clinicName": "Tên phòng khám",
-				"examDate": "Ngày khám"
-			},
-			"right": {
-				"veterinarianName": "Tên bác sĩ",
-				"followUpDate": "Ngày tái khám"
-			},
-			"vitals": {
-				"weight": "Cân nặng",
-				"temperature": "Nhiệt độ",
-				"heartRate": "Nhịp tim",
-				"bloodPressure": "Huyết áp"
-			},
-			"detail": {
-				"symptoms": "Triệu chứng",
-				"diagnosis": "Chẩn đoán",
-				"conclusion": "Kết luận",
-				"note": "Lời dặn bác sĩ",
-				"orders": "Chỉ định xét nghiệm",
-				"medicines": "Đơn thuốc"
-			}
-		},
-		"reminder": {
-			"followUpTitle": "Tái khám - {{petName}}",
-			"defaultTitle": "Nhắc lịch khám",
-			"createdDate": "Ngày tạo: {{date}}"
-		},
-		"clinic": {
-			"defaultName": "Phòng khám thú y"
-		},
-		"petExam": {
-			"header": {
-				"title": "PHIẾU KHÁM BỆNH & CHỈ ĐỊNH",
-				"examCode": "Mã hồ sơ",
-				"examDate": "Ngày khám"
-			},
-			"sections": {
-				"customerPetInfo": "Thông tin khách hàng & Thú cưng",
-				"vitals": "Chỉ số sinh tồn",
-				"clinicalInfo": "Thông tin lâm sàng",
-				"orders": "Phiếu chỉ định xét nghiệm/X-Quang",
-				"medicines": "Đơn thuốc chỉ định"
-			},
-			"fields": {
-				"examName": "TÊN PHIẾU KHÁM",
-				"followUpDate": "NGÀY TÁI KHÁM",
-				"customerName": "TÊN KHÁCH HÀNG",
-				"email": "EMAIL",
-				"phone": "SĐT",
-				"address": "ĐỊA CHỈ",
-				"petName": "TÊN THÚ CƯNG",
-				"species": "LOÀI",
-				"breed": "GIỐNG LOÀI",
-				"weightKg": "CÂN NẶNG (KG)",
-				"temperature": "NHIỆT ĐỘ (°C)",
-				"heartRate": "NHỊP TIM (L/P/M)",
-				"bloodPressure": "HUYẾT ÁP (MMHG)",
-				"symptoms": "TRIỆU CHỨNG & TÌNH TRẠNG",
-				"preDiagnosis": "CHẨN ĐOÁN SƠ BỘ",
-				"conclusion": "KẾT LUẬN",
-				"doctorNote": "LỜI DẶN BÁC SĨ",
-				"createdDate": "Ngày tạo",
-				"attendingVet": "BÁC SĨ ĐIỀU TRỊ"
-			},
-			"table": {
-				"index": "STT",
-				"orderType": "LOẠI XÉT NGHIỆM / CHẨN ĐOÁN HÌNH ẢNH",
-				"orderNote": "GHI CHÚ YÊU CẦU",
-				"status": "TRẠNG THÁI",
-				"assigned": "Đã chỉ định",
-				"medicineName": "TÊN THUỐC / HÀM LƯỢNG",
-				"dosage": "LIỀU DÙNG",
-				"frequency": "TẦN SUẤT",
-				"note": "GHI CHÚ"
-			},
-			"empty": {
-				"noOrders": "Chưa có chỉ định xét nghiệm",
-				"noMedicines": "Chưa có đơn thuốc"
-			},
-			"actions": {
-				"printInvoice": "In hóa đơn",
-				"pay": "Thanh toán"
-			},
-			"defaultOrderName": "Chỉ định xét nghiệm",
-			"invoice": {
-				"title": "Hóa đơn",
-				"headerTitle": "HÓA ĐƠN KHÁM BỆNH",
-				"codeLabel": "Mã hóa đơn",
-				"examCodeLabel": "Mã hồ sơ",
-				"examDateLabel": "Ngày khám",
-				"customerSection": "Khách hàng",
-				"petSection": "Thú cưng",
-				"nameLabel": "Tên",
-				"phoneLabel": "SĐT",
-				"addressLabel": "Địa chỉ",
-				"openHoursLabel": "Giờ mở",
-				"speciesBreedLabel": "Loài / Giống",
-				"weightLabel": "Cân nặng",
-				"medicineSection": "Thuốc đã kê",
-				"orderSection": "Xét nghiệm & chỉ định",
-				"contentColumn": "Nội dung",
-				"amountColumn": "Thành tiền",
-				"provisionalTotal": "Tạm tính",
-				"grandTotal": "Tổng cộng",
-				"doctorNote": "Lời dặn bác sĩ",
-				"printDate": "Ngày in",
-				"attendingVet": "Bác sĩ điều trị",
-				"noMedicineData": "Không có dữ liệu thuốc",
-				"noOrderData": "Không có dữ liệu chỉ định"
-			},
-			"payment": {
-				"summaryTitle": "Tóm tắt hóa đơn",
-				"invoiceCode": "MÃ HÓA ĐƠN",
-				"customerLabel": "Khách hàng",
-				"petLabel": "Thú cưng",
-				"medicineSection": "THUỐC ĐÃ KÊ ĐƠN",
-				"orderSection": "XÉT NGHIỆM & CHẨN ĐOÁN",
-				"noMedicineData": "Không có dữ liệu thuốc",
-				"noOrderData": "Không có dữ liệu chỉ định",
-				"provisionalTotal": "Tạm tính",
-				"grandTotal": "Tổng cộng",
-				"confirmButton": "Xác nhận thanh toán",
-				"confirming": "Đang xác nhận...",
-				"noteAtClinic": "Thanh toán tại phòng khám"
-			}
-		}
-	},
-	"examForm": {
-		"common": {
-			"unknownAge": "Không rõ tuổi",
-			"monthsOld": "{{count}} tháng",
-			"yearsOld": "{{count}} tuổi",
-			"unknownStatus": "Không rõ",
-			"unknownPetName": "Thú cưng chưa rõ",
-			"unknownOwner": "Chủ nuôi chưa rõ",
-			"noNotes": "Không có ghi chú"
-		},
-		"messages": {
-			"fetchFailed": "Không thể tải danh sách phiếu khám",
-			"notFound": "Không tìm thấy thông tin lịch khám"
-		},
-		"filters": {
-			"allSpecies": "Tất cả loài",
-			"selectDate": "Chọn ngày khám"
-		},
-		"list": {
-			"pageTitle": "Danh sách phiếu khám",
-			"emptyTitle": "Không có dữ liệu phiếu khám",
-			"emptyDescription": "Hãy điều chỉnh bộ lọc để xem thêm kết quả.",
-			"viewExamSlip": "Xem phiếu khám",
-			"fields": {
-				"petName": "Tên thú cưng",
-				"age": "Tuổi",
-				"species": "Loài",
-				"owner": "Chủ nuôi",
-				"examDate": "Ngày khám"
-			}
-		}
-	},
-	"homeEditor": {
-		"messages": {
-			"missingClinicIdEdit": "Thiếu clinicId để chỉnh sửa trang chủ phòng khám.",
-			"permissionDenied": "Bạn chỉ có thể chỉnh sửa trang chủ của phòng khám đang đăng nhập.",
-			"invalidImageType": "Vui lòng chọn đúng file ảnh.",
-			"imageUrlMissing": "Không nhận được URL ảnh sau khi upload.",
-			"uploadImageSuccess": "Tải ảnh lên thành công.",
-			"uploadImageFailed": "Tải ảnh thất bại.",
-			"unknownFile": "file không xác định",
-			"galleryUploadSuccess": "Đã tải lên {{count}} ảnh thư viện.",
-			"galleryUploadFailed": "Có {{count}} ảnh tải lên thất bại.",
-			"missingClinicIdSave": "Thiếu clinicId để lưu dữ liệu.",
-			"saveSuccess": "Lưu thành công"
-		},
-		"confirm": {
-			"leaveTitle": "Xác nhận",
-			"leaveContent": "Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?",
-			"continueEditing": "Tiếp tục chỉnh sửa",
-			"discardChanges": "Hủy bỏ thay đổi"
-		},
-		"sections": {
-			"hero": "PHẦN ĐẦU TRANG",
-			"about": "GIỚI THIỆU BỆNH VIỆN",
-			"gallery": "THƯ VIỆN ẢNH",
-			"team": "ĐỘI NGŨ BÁC SĨ",
-			"location": "ĐỊA CHỈ PHÒNG KHÁM (Google Maps)"
-		},
-		"labels": {
-			"heroTitle": "Tên phòng khám và lời chào mừng",
-			"heroDescription": "Slogan riêng cho phòng khám",
-			"aboutTitle": "Tên phòng khám đầy đủ",
-			"aboutDescription": "Nội dung giới thiệu bệnh viện",
-			"aboutHighlightNumber": "Số năm thành lập",
-			"aboutHighlightLabel": "Số chi nhánh",
-			"galleryTitle": "Thư viện hình ảnh và nội dung nổi bật",
-			"gallerySubtitle": "Mô tả thư viện ảnh",
-			"locationAddress": "Địa chỉ chi tiết",
-			"locationMapEmbed": "NHÚNG BẢN ĐỒ (HTML)"
-		},
-		"placeholders": {
-			"heroTitle": "Ví dụ: PetCar - Nơi sức khỏe thú cưng được chăm sóc tận tâm",
-			"heroDescription": "Ví dụ: Chào mừng đến với PetCar, phòng khám thú y hàng đầu tại Đà Nẵng.",
-			"heroCtaText": "Nội dung nút CTA",
-			"heroBannerImage": "Ảnh banner đầu trang (URL hoặc đường dẫn public)",
-			"aboutLabel": "Nhãn phần giới thiệu",
-			"aboutTitle": "Ví dụ: Bệnh viện thú y PetCar Đà Nẵng",
-			"aboutDescription": "Ví dụ: Phòng khám thú y của chúng tôi là nơi cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho thú cưng với đội ngũ bác sĩ thú y giàu kinh nghiệm, tận tâm và yêu thương động vật. Chúng tôi chuyên khám, tư vấn, tiêm phòng, điều trị bệnh, chăm sóc sức khỏe định kỳ và làm đẹp cho thú cưng trong môi trường hiện đại, an toàn và thân thiện. Với phương châm đặt sức khỏe và sự thoải mái của thú cưng lên hàng đầu, phòng khám luôn nỗ lực mang đến dịch vụ chất lượng cao, giúp các bé thú cưng luôn khỏe mạnh và mang lại sự an tâm tuyệt đối cho chủ nuôi.",
-			"aboutHighlightNumber": "Số năm thành lập phòng khám của bạn",
-			"aboutHighlightLabel": "Số chi nhánh phòng khám của bạn",
-			"galleryTitle": "Tiêu đề thư viện ảnh",
-			"gallerySubtitle": "Ví dụ: Hoạt động thường niên của phòng khám giúp các bé thú cưng khỏe mạnh hơn",
-			"teamTitle": "Tiêu đề khối đội ngũ",
-			"doctorName": "Ví dụ: ThS. Nguyễn Văn A - Bác sĩ Nội Khoa",
-			"doctorImage": "Ảnh bác sĩ",
-			"locationTitle": "Tiêu đề phần địa chỉ",
-			"locationSubtitle": "Mô tả ngắn",
-			"locationAddress": "Ví dụ: 123 Đường ABC, Quận XYZ, Đà Nẵng",
-			"locationMapEmbed": "Vào Google Maps, tìm địa chỉ phòng khám, chọn chia sẻ, sau đó chọn NHÚNG BẢN ĐỒ và sao chép đoạn mã HTML vào đây"
-		},
-		"actions": {
-			"uploadImage": "Tải ảnh lên",
-			"uploadGalleryImages": "Tải ảnh thư viện",
-			"uploading": "Đang tải...",
-			"cancel": "Hủy",
-			"saveChanges": "Lưu thay đổi"
-		},
-		"alt": {
-			"heroBanner": "Banner đầu trang"
-		},
-		"gallery": {
-			"imageAlt": "Ảnh thư viện {{index}}",
-			"removeImageAria": "Xóa ảnh thư viện {{index}}",
-			"empty": "Chưa có ảnh thư viện. Hãy tải ảnh lên để hiển thị tại đây."
-		},
-		"team": {
-			"addDoctor": "Thêm bác sĩ",
-			"doctorCardTitle": "Bác sĩ {{index}}",
-			"removeDoctorTitle": "Xóa bác sĩ",
-			"removeDoctorContent": "Bạn có muốn xóa bác sĩ này không?",
-			"removeDoctorConfirm": "Xóa",
-			"removeDoctorImageAria": "Xóa ảnh bác sĩ {{index}}"
-		},
-		"preview": {
-			"title": "Xem trước trang chủ sau khi lưu"
-		}
-	},
-	"clinicEditor": {
-		"messages": {
-			"missingClinicIdEdit": "Thiếu clinicId để chỉnh sửa thông tin phòng khám.",
-			"permissionDenied": "Bạn chỉ có thể chỉnh sửa thông tin của phòng khám đang đăng nhập.",
-			"avatarUrlMissing": "Không nhận được URL ảnh từ server",
-			"avatarUploadSuccess": "Tải ảnh đại diện thành công",
-			"avatarUploadFailed": "Không thể tải ảnh đại diện",
-			"missingClinicIdSave": "Thiếu clinicId để lưu dữ liệu.",
-			"saveSuccess": "Lưu thành công",
-			"saveFailed": "Không thể lưu thông tin phòng khám"
-		},
-		"confirm": {
-			"leaveTitle": "Xác nhận",
-			"leaveContent": "Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?",
-			"continueEditing": "Tiếp tục chỉnh sửa",
-			"discardChanges": "Hủy bỏ thay đổi"
-		},
-		"fields": {
-			"name": "Tên phòng khám",
-			"address": "Địa chỉ",
-			"phone": "Số điện thoại",
-			"openingTime": "Giờ mở cửa",
-			"closingTime": "Giờ đóng cửa"
-		},
-		"validation": {
-			"nameRequired": "Vui lòng nhập tên phòng khám",
-			"nameMax": "Tên phòng khám tối đa 120 ký tự",
-			"addressRequired": "Vui lòng nhập địa chỉ",
-			"addressMin": "Địa chỉ cần ít nhất 5 ký tự",
-			"addressMax": "Địa chỉ tối đa 220 ký tự",
-			"phoneRequired": "Vui lòng nhập số điện thoại",
-			"phoneInvalid": "Số điện thoại không hợp lệ (ví dụ: 0912345678 hoặc +84912345678)",
-			"openingTimeRequired": "Vui lòng nhập giờ mở cửa",
-			"closingTimeRequired": "Vui lòng nhập giờ đóng cửa"
-		},
-		"placeholders": {
-			"name": "Nhập tên phòng khám",
-			"address": "Nhập địa chỉ phòng khám",
-			"phone": "Nhập số điện thoại"
-		},
-		"preview": {
-			"title": "Xem trước sau khi thay đổi",
-			"noImage": "Chưa có ảnh",
-			"avatarAlt": "Ảnh đại diện phòng khám",
-			"defaultClinicName": "Tên phòng khám",
-			"defaultAddress": "Địa chỉ phòng khám",
-			"defaultPhone": "Số điện thoại"
-		},
-		"actions": {
-			"uploadAvatar": "Tải ảnh đại diện",
-			"cancel": "Hủy",
-			"saveChanges": "Lưu thay đổi"
-		}
-	},
-	"profile": {
-		"messages": {
-			"loadFailed": "Không thể tải thông tin tài khoản",
-			"cancelled": "Đã hủy thay đổi",
-			"accountNotFound": "Không tìm thấy thông tin tài khoản để cập nhật",
-			"saveSuccess": "Lưu thông tin thành công",
-			"saveFailed": "Không thể lưu thông tin"
-		},
-		"defaults": {
-			"clinicName": "Phòng khám"
-		},
-		"page": {
-			"subtitle": "Trang cá nhân phòng khám"
-		},
-		"labels": {
-			"role": "Vai trò",
-			"email": "Email",
-			"phone": "Số điện thoại",
-			"address": "Địa chỉ"
-		},
-		"validation": {
-			"phoneRequired": "Vui lòng nhập số điện thoại",
-			"phoneInvalid": "Số điện thoại không hợp lệ",
-			"addressRequired": "Vui lòng nhập địa chỉ",
-			"addressMin": "Địa chỉ cần ít nhất 5 ký tự",
-			"addressMax": "Địa chỉ tối đa 200 ký tự"
-		},
-		"placeholders": {
-			"phone": "Nhập số điện thoại",
-			"address": "Nhập địa chỉ"
-		},
-		"actions": {
-			"cancel": "Hủy",
-			"save": "Lưu"
-		}
-	},
-	"accountMenu": {
-		"defaults": {
-			"name": "Người dùng",
-			"meta": "Tài khoản"
-		},
-		"actions": {
-			"profile": "Trang cá nhân",
-			"changePassword": "Đổi mật khẩu",
-			"logout": "Đăng xuất"
-		},
-		"profileModal": {
-			"title": "Trang cá nhân",
-			"upload": {
-				"changeAvatar": "Đổi ảnh đại diện"
-			},
-			"fields": {
-				"fullName": "Họ và tên",
-				"email": "Email",
-				"phone": "Số điện thoại",
-				"address": "Địa chỉ"
-			},
-			"placeholders": {
-				"fullName": "Nhập họ và tên",
-				"email": "Nhập email",
-				"phone": "Nhập số điện thoại",
-				"address": "Nhập địa chỉ"
-			},
-			"validation": {
-				"fullNameRequired": "Vui lòng nhập họ và tên",
-				"emailRequired": "Vui lòng nhập email",
-				"emailInvalid": "Email không hợp lệ",
-				"phoneRequired": "Vui lòng nhập số điện thoại",
-				"phoneInvalid": "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0",
-				"addressRequired": "Vui lòng nhập địa chỉ"
-			},
-			"buttons": {
-				"cancel": "Hủy",
-				"save": "Lưu thay đổi"
-			}
-		},
-		"passwordModal": {
-			"title": "Đổi mật khẩu",
-			"fields": {
-				"currentPassword": "Mật khẩu hiện tại",
-				"newPassword": "Mật khẩu mới",
-				"confirmPassword": "Xác nhận mật khẩu mới"
-			},
-			"validation": {
-				"currentRequired": "Vui lòng nhập mật khẩu hiện tại",
-				"newRequired": "Vui lòng nhập mật khẩu mới",
-				"newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
-				"confirmRequired": "Vui lòng xác nhận mật khẩu mới",
-				"confirmMismatch": "Mật khẩu xác nhận không khớp"
-			},
-			"buttons": {
-				"cancel": "Hủy",
-				"save": "Đổi mật khẩu",
-				"saving": "Đang cập nhật..."
-			}
-		},
-		"messages": {
-			"profileLoadFailed": "Không thể tải thông tin tài khoản",
-			"profileSaved": "Cập nhật thông tin thành công",
-			"profileSaveFailed": "Không thể cập nhật thông tin",
-			"avatarUploading": "Đang tải ảnh đại diện...",
-			"avatarUploadSuccess": "Tải ảnh đại diện thành công",
-			"avatarUploadFailed": "Không thể tải ảnh đại diện",
-			"avatarMissingUrl": "Không nhận được URL ảnh từ hệ thống",
-			"passwordChanged": "Đổi mật khẩu thành công",
-			"passwordChangeFailed": "Không thể đổi mật khẩu"
-		}
-	},
-	"common": {},
-	"revenue": {
-		"pageTitle": "BÁO CÁO DOANH THU",
-		"loading": "Đang tải dữ liệu doanh thu...",
-		"period": {
-			"today": "Hôm nay",
-			"week": "Tuần này",
-			"month": "Tháng này",
-			"year": "Năm nay"
-		},
-		"todayHighlight": {
-			"title": "Doanh thu hôm nay",
-			"subtitle": "Cập nhật trực tiếp từ phòng khám",
-			"paidLabel": "Hoá đơn đã thanh toán",
-			"unpaidLabel": "Hoá đơn chưa thanh toán",
-			"hint": "Chọn Tuần này / Tháng này / Năm nay để xem biểu đồ xu hướng."
-		},
-		"cards": {
-			"totalRevenue": "Tổng doanh thu",
-			"paidInvoices": "Đã thanh toán",
-			"unpaidInvoices": "Chưa thanh toán"
-		},
-		"chart": {
-			"dailyTitle": "Doanh thu theo ngày",
-			"serviceTitle": "Theo loại dịch vụ",
-			"revenueLegend": "Doanh thu",
-			"countLegend": "Số lượt khám"
-		},
-		"specialty": {
-			"internalMedicine": "Khám bệnh",
-			"surgery": "Phẫu thuật",
-			"vaccination": "Tiêm vắc-xin",
-			"ultrasound": "Siêu âm",
-			"other": "Khác"
-		},
-		"topVets": {
-			"titleToday": "Top 5 Bác sĩ khám nhiều nhất — Hôm nay",
-			"titleMonthly": "Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}",
-			"doctor": "Bác sĩ",
-			"records": "Số lượt"
-		},
-		"invoices": {
-			"title": "Hoá đơn gần đây",
-			"filterAll": "Tất cả",
-			"filterPaid": "Đã thanh toán",
-			"filterUnpaid": "Chưa thanh toán",
-			"colRecord": "Phiếu khám",
-			"colPet": "Thú cưng",
-			"colDate": "Ngày",
-			"colAmount": "Tổng tiền",
-			"colStatus": "Trạng thái",
-			"statusPaid": "Đã thanh toán",
-			"statusUnpaid": "Chưa thanh toán"
-		},
-		"empty": {
-			"noChartData": "Chưa có dữ liệu doanh thu để hiển thị biểu đồ",
-			"noServiceData": "Chưa có dữ liệu phân bổ dịch vụ",
-			"noVetData": "Chưa có dữ liệu bác sĩ",
-			"noInvoices": "Không còn hóa đơn cần thanh toán."
-		}
-	}
+  "sidebar": {
+    "brandSubtitle": "PetcareX",
+    "defaultClinicName": "PetCareX",
+    "defaultUser": "Người dùng",
+    "logoutAriaLabel": "Đăng xuất",
+    "notificationBellAriaLabel": "Xem thông báo phòng khám",
+    "toggleAriaLabel": "Ẩn hoặc hiện thanh bên",
+    "menu": {
+      "appointments": "Lịch hẹn",
+      "records": "Sổ y tế điện tử",
+      "revenue": "Doanh thu",
+      "doctors": "Bác sĩ",
+      "forms": "Xem phiếu khám",
+      "forum": "Forum",
+      "chatbot": "ChatBot",
+      "editor": "Chỉnh sửa giao diện phòng khám",
+      "portalEditor": "Chỉnh sửa trang phòng khám",
+      "homeEditor": "Chỉnh Sửa Trang Chủ",
+      "clinicEditor": "Chỉnh Sửa Phòng Khám"
+    },
+    "errors": {
+      "missingClinicId": "Không xác định được clinicId của phòng khám hiện tại"
+    },
+    "notifications": {
+      "panelTitle": "Thông báo phòng khám",
+      "summary": "{{unread}} chưa đọc / {{total}} thông báo",
+      "markRead": "Đánh dấu đã đọc",
+      "empty": "Không có thông báo phù hợp",
+      "filters": {
+        "all": "Tất cả",
+        "unread": "Chưa đọc",
+        "allTypes": "Mọi loại",
+        "appointment": "Lịch hẹn",
+        "payment": "Thanh toán",
+        "review": "Đánh giá",
+        "aiDiagnosis": "Chẩn đoán AI",
+        "forumComment": "Bình luận",
+        "forumLike": "Lượt thích",
+        "forumReply": "Phản hồi",
+        "system": "Hệ thống"
+      },
+      "types": {
+        "appointment": "Lịch hẹn",
+        "system": "Hệ thống",
+        "review": "Đánh giá",
+        "payment": "Thanh toán",
+        "aiDiagnosis": "Chẩn đoán AI",
+        "forumComment": "Bình luận",
+        "forumLike": "Lượt thích",
+        "forumReply": "Phản hồi",
+        "other": "Khác"
+      },
+      "time": {
+        "justNow": "Vừa xong",
+        "minutesAgo": "{{count}} phút trước",
+        "hoursAgo": "{{count}} giờ trước",
+        "daysAgo": "{{count}} ngày trước"
+      },
+      "mock": {
+        "newAppointmentTitle": "Có lịch khám mới từ khách hàng",
+        "newAppointmentDescription": "Nguyễn Minh An vừa đặt lịch tại {{clinicName}} cho bé Mít với dịch vụ Khám tổng quát lúc 09:30 hôm nay.",
+        "changedAppointmentTitle": "Khách hàng đã đổi khung giờ khám",
+        "changedAppointmentDescription": "Lê Thu Hằng đã đổi lịch cho bé Bông từ 14:00 sang 15:30, dịch vụ Tiêm phòng nhắc lại.",
+        "paymentTitle": "Thanh toán hóa đơn thành công",
+        "paymentDescription": "Hóa đơn MR-2308 cho lịch khám của bé Cún đã được thanh toán online đầy đủ.",
+        "reviewTitle": "Bạn nhận được đánh giá mới 5 sao",
+        "reviewDescription": "Khách hàng Phạm Hải Đăng để lại phản hồi tốt về dịch vụ Khám da liễu cho thú cưng.",
+        "systemTitle": "Nhắc nhở lịch hẹn ngày mai",
+        "systemDescription": "Bạn có 7 lịch hẹn vào ngày mai. Hãy xác nhận đủ bác sĩ trực để tránh quá tải."
+      }
+    }
+  },
+  "portalEditor": {
+    "subtitle": "Quản lý nội dung trang chủ và thông tin hiển thị phòng khám tại cùng một nơi."
+  },
+  "appointments": {
+    "common": {
+      "missingFromAppointment": "Không có trong dữ liệu lịch hẹn",
+      "notUpdated": "Chưa cập nhật",
+      "unknown": "Không rõ",
+      "noNotes": "Không có ghi chú",
+      "notAssigned": "Chưa phân công",
+      "male": "Đực",
+      "female": "Cái",
+      "monthsOld": "{{count}} tháng",
+      "yearsOld": "{{count}} tuổi"
+    },
+    "card": {
+      "ownerPrefix": "Chủ: {{owner}}"
+    },
+    "status": {
+      "paid": "Đã thanh toán",
+      "unpaid": "Chưa thanh toán"
+    },
+    "messages": {
+      "fetchFailed": "Không thể tải danh sách lịch khám của phòng khám",
+      "updateSuccess": "Đã cập nhật trạng thái thành {{status}}",
+      "updateFailed": "Cập nhật trạng thái thất bại",
+      "cancelSuccess": "Đã hủy lịch đặt khám",
+      "cancelFailed": "Không thể hủy lịch đặt"
+    },
+    "cancelModal": {
+      "title": "Xóa lịch đặt",
+      "content": "Xác nhận hủy lịch đặt này?",
+      "okText": "Xóa lịch"
+    },
+    "searchPlaceholder": "Tìm thú cưng, chủ nuôi, dịch vụ...",
+    "pageTitle": "Quản lý lịch khám",
+    "pageSubtitle": "Tổng {{count}} lịch hẹn của ngày hiện tại.",
+    "filters": {
+      "examDate": "Ngày khám",
+      "examTime": "Giờ khám",
+      "timePlaceholder": "Chọn khung giờ"
+    },
+    "empty": "Không có lịch hẹn",
+    "detailModal": {
+      "title": "THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM",
+      "actions": {
+        "deleteBooking": "Xóa lịch đặt"
+      },
+      "petSectionTitle": "Thông tin Thú cưng",
+      "appointmentSectionTitle": "Thông tin Lịch Khám",
+      "fields": {
+        "petName": "Tên thú cưng:",
+        "birthAndAge": "Ngày sinh / Tuổi:",
+        "species": "Loài:",
+        "gender": "Giới tính:",
+        "breed": "Giống:",
+        "ownerName": "Tên chủ thú cưng:",
+        "feature": "Đặc điểm nhận dạng:",
+        "phone": "Số điện thoại:",
+        "clinic": "Phòng khám:",
+        "dateTime": "Ngày & giờ:",
+        "address": "Địa chỉ:",
+        "service": "Dịch vụ:",
+        "veterinarian": "Bác sĩ:",
+        "status": "Trạng thái:",
+        "note": "Ghi chú:"
+      }
+    }
+  },
+  "veterinarians": {
+    "common": {
+      "notUpdated": "Chưa cập nhật",
+      "cancel": "Hủy",
+      "save": "Lưu hồ sơ",
+      "uploadingImage": "Đang tải ảnh..."
+    },
+    "fields": {
+      "name": "Tên",
+      "fullName": "Họ và tên",
+      "specialty": "Chuyên khoa",
+      "email": "Email",
+      "password": "Mật khẩu",
+      "phone": "Số điện thoại",
+      "address": "Địa chỉ",
+      "experience": "Kinh nghiệm (năm)",
+      "description": "Giới thiệu",
+      "experiencePlaceholder": "Số năm kinh nghiệm",
+      "descriptionPlaceholder": "Mô tả ngắn về bác sĩ...",
+      "role": "Vai trò",
+      "joinDate": "Ngày tham gia"
+    },
+    "validation": {
+      "nameRequired": "Vui lòng nhập tên bác sĩ",
+      "specialtyRequired": "Vui lòng chọn chuyên khoa",
+      "emailRequired": "Vui lòng nhập email",
+      "emailInvalid": "Email không đúng định dạng",
+      "passwordRequired": "Vui lòng nhập mật khẩu",
+      "passwordMin": "Mật khẩu tối thiểu là 6 ký tự",
+      "passwordPolicy": "Mật khẩu phải chứa ít nhất một chữ hoa, một chữ thường và một số",
+      "phoneRequired": "Vui lòng nhập số điện thoại",
+      "phoneFormat": "Số điện thoại phải đúng 10 số (VD: 0901234567)",
+      "phoneNoSpaces": "Số điện thoại không được chứa khoảng trắng",
+      "phoneDigitsOnly": "Số điện thoại chỉ được chứa chữ số",
+      "phoneLength": "Số điện thoại phải đúng 10 chữ số",
+      "addressRequired": "Vui lòng nhập địa chỉ",
+      "fullNameRequired": "Vui lòng nhập họ tên",
+      "fullNameNoEdgeSpaces": "Họ tên không được có khoảng trắng ở đầu hoặc cuối",
+      "fullNameNoDoubleSpaces": "Họ tên không được chứa 2 khoảng trắng liên tiếp",
+      "fullNameCharacters": "Họ tên chỉ được chứa chữ cái và khoảng trắng"
+    },
+    "management": {
+      "searchPlaceholder": "Tìm kiếm bác sĩ theo tên, email...",
+      "title": "Đội ngũ Bác sĩ",
+      "subtitle": "Quản lý danh sách bác sĩ của phòng khám.",
+      "addButton": "Thêm bác sĩ mới",
+      "filters": {
+        "all": "Tất cả bác sĩ",
+        "internalMedicine": "Nội khoa",
+        "surgery": "Phẫu thuật",
+        "ultrasound": "Siêu âm",
+        "vaccination": "Tiêm phòng và phòng ngừa"
+      },
+      "states": {
+        "loading": "Đang tải danh sách bác sĩ...",
+        "empty": "Không có bác sĩ phù hợp với bộ lọc hiện tại"
+      },
+      "status": {
+        "active": "Đang làm việc",
+        "inactive": "Nghỉ"
+      },
+      "pagination": {
+        "prev": "Trang trước",
+        "next": "Trang sau",
+        "summary": "Trang {{current}}/{{total}}"
+      }
+    },
+    "add": {
+      "pageTitle": "Thêm mới bác sĩ",
+      "defaultName": "Tên",
+      "submitButton": "Thêm bác sĩ",
+      "placeholders": {
+        "name": "Nhập tên bác sĩ",
+        "specialty": "Chọn chuyên khoa",
+        "email": "example@email.com",
+        "password": "Nhập mật khẩu",
+        "phone": "Nhập số điện thoại",
+        "address": "Nhập địa chỉ"
+      },
+      "messages": {
+        "avatarUploading": "Ảnh đang được tải lên, vui lòng đợi",
+        "missingUserId": "Tạo bác sĩ thành công nhưng không nhận được userId",
+        "rollbackFailed": "Cập nhật thông tin thất bại và không thể tự hủy tài khoản. Vui lòng xóa thủ công bác sĩ vừa tạo.",
+        "contactUpdateFailed": "Không thể cập nhật SĐT/địa chỉ. Tài khoản đã được hủy, vui lòng thử lại.",
+        "addSuccess": "Thêm bác sĩ mới thành công",
+        "saveFailed": "Không thể lưu thông tin bác sĩ",
+        "avatarUrlMissing": "Không nhận được URL ảnh từ server",
+        "avatarUploadSuccess": "Tải ảnh đại diện thành công",
+        "avatarUploadFailed": "Không thể tải ảnh đại diện"
+      },
+      "confirmDiscard": {
+        "title": "Bạn muốn thoát thay đổi?",
+        "content": "Bạn đang nhập thông tin. Chọn \"Lưu thông tin\" để lưu, hoặc \"Thoát không lưu\".",
+        "okText": "Lưu thông tin",
+        "cancelText": "Thoát không lưu"
+      }
+    },
+    "info": {
+      "pageTitle": "Thông tin bác sĩ",
+      "editButton": "Chỉnh sửa hồ sơ",
+      "personalInfoTitle": "Thông tin cá nhân",
+      "messages": {
+        "avatarUploading": "Ảnh đang được tải lên, vui lòng đợi",
+        "updateSuccess": "Cập nhật hồ sơ bác sĩ thành công",
+        "updateFailed": "Không thể cập nhật hồ sơ bác sĩ",
+        "avatarUploadingWait": "Ảnh đang được tải lên, vui lòng đợi hoàn tất",
+        "avatarUrlMissing": "Không nhận được URL ảnh từ server",
+        "avatarUploadSuccess": "Tải ảnh đại diện thành công",
+        "avatarUploadFailed": "Không thể tải ảnh đại diện"
+      },
+      "confirmDiscard": {
+        "title": "Xác nhận hủy chỉnh sửa",
+        "content": "Bạn đang nhập dở thông tin. Nếu hủy, các thay đổi chưa lưu sẽ bị mất.",
+        "okText": "Bỏ thay đổi",
+        "cancelText": "Tiếp tục chỉnh sửa"
+      },
+      "editModal": {
+        "title": "Chỉnh sửa hồ sơ bác sĩ",
+        "changeAvatar": "Đổi ảnh đại diện"
+      }
+    }
+  },
+  "medicalRecords": {
+    "common": {
+      "fallback": "Không",
+      "contactFallback": "Chưa cập nhật được",
+      "none": "Không có",
+      "pet": "Thú cưng",
+      "male": "Đực",
+      "female": "Cái",
+      "unknownOrder": "Chỉ định chưa xác định",
+      "unknownOwner": "Chủ nuôi chưa rõ",
+      "unknownPetName": "Thú cưng chưa rõ",
+      "currencyVnd": "VND",
+      "zeroVnd": "0 VND"
+    },
+    "filters": {
+      "allSpecies": "Tất cả loài"
+    },
+    "list": {
+      "pageTitle": "Danh sách hồ sơ y tế",
+      "searchPlaceholder": "Tìm theo tên thú cưng, chủ nuôi hoặc giống loài...",
+      "emptyTitle": "Không có hồ sơ phù hợp",
+      "emptyDescription": "Thử thay đổi bộ lọc hoặc từ khóa để tìm hồ sơ khác.",
+      "appointmentCount": "{{count}} lịch hẹn",
+      "viewDetail": "Xem chi tiết",
+      "columns": {
+        "pet": "Thú cưng",
+        "species": "Loài / Giống",
+        "owner": "Chủ nuôi",
+        "examDate": "Ngày khám gần nhất",
+        "followUpDate": "Ngày tái khám",
+        "actions": "Thao tác"
+      }
+    },
+    "messages": {
+      "fetchFailed": "Không thể tải danh sách hồ sơ y tế",
+      "petNotFound": "Không tìm thấy thông tin thú cưng",
+      "loadFailed": "Không thể tải hồ sơ khám bệnh",
+      "loadFailedHint": "Không thể tải hồ sơ khám bệnh. Vui lòng thử lại hoặc kiểm tra dữ liệu thú cưng.",
+      "loadExamFailed": "Không thể tải dữ liệu phiếu khám",
+      "noExamToPrint": "Chưa có phiếu khám để in hóa đơn",
+      "printInitFailed": "Không thể khởi tạo chế độ in. Vui lòng thử lại.",
+      "noExamToPay": "Chưa có phiếu khám để thanh toán",
+      "appointmentNotFoundForPayment": "Không tìm thấy lịch khám để xác nhận thanh toán",
+      "medicalNotFoundForPayment": "Không tìm thấy hồ sơ bệnh án để thanh toán",
+      "paymentSuccess": "Thanh toán thành công",
+      "paymentFailed": "Không thể xác nhận thanh toán"
+    },
+    "view": {
+      "pageTitle": "Hồ sơ chi tiết",
+      "timelineTitle": "Dòng thời gian sức khỏe",
+      "loadingSuffix": "(đang tải...)",
+      "expand": "Xem chi tiết",
+      "collapse": "Thu gọn"
+    },
+    "timeline": {
+      "emptyHint": "Chưa có hồ sơ để hiển thị. Hãy chọn thú cưng từ danh sách để xem đúng hồ sơ riêng.",
+      "examSlip": "Phiếu khám",
+      "left": {
+        "clinicName": "Tên phòng khám",
+        "examDate": "Ngày khám"
+      },
+      "right": {
+        "veterinarianName": "Tên bác sĩ",
+        "followUpDate": "Ngày tái khám"
+      },
+      "vitals": {
+        "weight": "Cân nặng",
+        "temperature": "Nhiệt độ",
+        "heartRate": "Nhịp tim",
+        "bloodPressure": "Huyết áp"
+      },
+      "detail": {
+        "symptoms": "Triệu chứng",
+        "diagnosis": "Chẩn đoán",
+        "conclusion": "Kết luận",
+        "note": "Lời dặn bác sĩ",
+        "orders": "Chỉ định xét nghiệm",
+        "medicines": "Đơn thuốc"
+      }
+    },
+    "reminder": {
+      "followUpTitle": "Tái khám - {{petName}}",
+      "defaultTitle": "Nhắc lịch khám",
+      "createdDate": "Ngày tạo: {{date}}"
+    },
+    "clinic": {
+      "defaultName": "Phòng khám thú y"
+    },
+    "petExam": {
+      "header": {
+        "title": "PHIẾU KHÁM BỆNH & CHỈ ĐỊNH",
+        "examCode": "Mã hồ sơ",
+        "examDate": "Ngày khám"
+      },
+      "sections": {
+        "customerPetInfo": "Thông tin khách hàng & Thú cưng",
+        "vitals": "Chỉ số sinh tồn",
+        "clinicalInfo": "Thông tin lâm sàng",
+        "orders": "Phiếu chỉ định xét nghiệm/X-Quang",
+        "medicines": "Đơn thuốc chỉ định"
+      },
+      "fields": {
+        "examName": "TÊN PHIẾU KHÁM",
+        "followUpDate": "NGÀY TÁI KHÁM",
+        "customerName": "TÊN KHÁCH HÀNG",
+        "email": "EMAIL",
+        "phone": "SĐT",
+        "address": "ĐỊA CHỈ",
+        "petName": "TÊN THÚ CƯNG",
+        "species": "LOÀI",
+        "breed": "GIỐNG LOÀI",
+        "weightKg": "CÂN NẶNG (KG)",
+        "temperature": "NHIỆT ĐỘ (°C)",
+        "heartRate": "NHỊP TIM (L/P/M)",
+        "bloodPressure": "HUYẾT ÁP (MMHG)",
+        "symptoms": "TRIỆU CHỨNG & TÌNH TRẠNG",
+        "preDiagnosis": "CHẨN ĐOÁN SƠ BỘ",
+        "conclusion": "KẾT LUẬN",
+        "doctorNote": "LỜI DẶN BÁC SĨ",
+        "createdDate": "Ngày tạo",
+        "attendingVet": "BÁC SĨ ĐIỀU TRỊ"
+      },
+      "table": {
+        "index": "STT",
+        "orderType": "LOẠI XÉT NGHIỆM / CHẨN ĐOÁN HÌNH ẢNH",
+        "orderNote": "GHI CHÚ YÊU CẦU",
+        "status": "TRẠNG THÁI",
+        "assigned": "Đã chỉ định",
+        "medicineName": "TÊN THUỐC / HÀM LƯỢNG",
+        "dosage": "LIỀU DÙNG",
+        "frequency": "TẦN SUẤT",
+        "note": "GHI CHÚ"
+      },
+      "empty": {
+        "noOrders": "Chưa có chỉ định xét nghiệm",
+        "noMedicines": "Chưa có đơn thuốc"
+      },
+      "actions": {
+        "printInvoice": "In hóa đơn",
+        "pay": "Thanh toán"
+      },
+      "defaultOrderName": "Chỉ định xét nghiệm",
+      "invoice": {
+        "title": "Hóa đơn",
+        "headerTitle": "HÓA ĐƠN KHÁM BỆNH",
+        "codeLabel": "Mã hóa đơn",
+        "examCodeLabel": "Mã hồ sơ",
+        "examDateLabel": "Ngày khám",
+        "customerSection": "Khách hàng",
+        "petSection": "Thú cưng",
+        "nameLabel": "Tên",
+        "phoneLabel": "SĐT",
+        "addressLabel": "Địa chỉ",
+        "openHoursLabel": "Giờ mở",
+        "speciesBreedLabel": "Loài / Giống",
+        "weightLabel": "Cân nặng",
+        "medicineSection": "Thuốc đã kê",
+        "orderSection": "Xét nghiệm & chỉ định",
+        "contentColumn": "Nội dung",
+        "amountColumn": "Thành tiền",
+        "provisionalTotal": "Tạm tính",
+        "grandTotal": "Tổng cộng",
+        "doctorNote": "Lời dặn bác sĩ",
+        "printDate": "Ngày in",
+        "attendingVet": "Bác sĩ điều trị",
+        "noMedicineData": "Không có dữ liệu thuốc",
+        "noOrderData": "Không có dữ liệu chỉ định"
+      },
+      "payment": {
+        "summaryTitle": "Tóm tắt hóa đơn",
+        "invoiceCode": "MÃ HÓA ĐƠN",
+        "customerLabel": "Khách hàng",
+        "petLabel": "Thú cưng",
+        "medicineSection": "THUỐC ĐÃ KÊ ĐƠN",
+        "orderSection": "XÉT NGHIỆM & CHẨN ĐOÁN",
+        "noMedicineData": "Không có dữ liệu thuốc",
+        "noOrderData": "Không có dữ liệu chỉ định",
+        "provisionalTotal": "Tạm tính",
+        "grandTotal": "Tổng cộng",
+        "confirmButton": "Xác nhận thanh toán",
+        "confirming": "Đang xác nhận...",
+        "noteAtClinic": "Thanh toán tại phòng khám"
+      }
+    }
+  },
+  "examForm": {
+    "common": {
+      "unknownAge": "Không rõ tuổi",
+      "monthsOld": "{{count}} tháng",
+      "yearsOld": "{{count}} tuổi",
+      "unknownStatus": "Không rõ",
+      "unknownPetName": "Thú cưng chưa rõ",
+      "unknownOwner": "Chủ nuôi chưa rõ",
+      "noNotes": "Không có ghi chú"
+    },
+    "messages": {
+      "fetchFailed": "Không thể tải danh sách phiếu khám",
+      "notFound": "Không tìm thấy thông tin lịch khám"
+    },
+    "filters": {
+      "allSpecies": "Tất cả loài",
+      "selectDate": "Chọn ngày khám"
+    },
+    "list": {
+      "pageTitle": "Danh sách phiếu khám",
+      "emptyTitle": "Không có dữ liệu phiếu khám",
+      "emptyDescription": "Hãy điều chỉnh bộ lọc để xem thêm kết quả.",
+      "viewExamSlip": "Xem phiếu khám",
+      "fields": {
+        "petName": "Tên thú cưng",
+        "age": "Tuổi",
+        "species": "Loài",
+        "owner": "Chủ nuôi",
+        "examDate": "Ngày khám"
+      }
+    }
+  },
+  "homeEditor": {
+    "messages": {
+      "missingClinicIdEdit": "Thiếu clinicId để chỉnh sửa trang chủ phòng khám.",
+      "permissionDenied": "Bạn chỉ có thể chỉnh sửa trang chủ của phòng khám đang đăng nhập.",
+      "invalidImageType": "Vui lòng chọn đúng file ảnh.",
+      "imageUrlMissing": "Không nhận được URL ảnh sau khi upload.",
+      "uploadImageSuccess": "Tải ảnh lên thành công.",
+      "uploadImageFailed": "Tải ảnh thất bại.",
+      "unknownFile": "file không xác định",
+      "galleryUploadSuccess": "Đã tải lên {{count}} ảnh thư viện.",
+      "galleryUploadFailed": "Có {{count}} ảnh tải lên thất bại.",
+      "missingClinicIdSave": "Thiếu clinicId để lưu dữ liệu.",
+      "saveSuccess": "Lưu thành công"
+    },
+    "confirm": {
+      "leaveTitle": "Xác nhận",
+      "leaveContent": "Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?",
+      "continueEditing": "Tiếp tục chỉnh sửa",
+      "discardChanges": "Hủy bỏ thay đổi"
+    },
+    "sections": {
+      "hero": "PHẦN ĐẦU TRANG",
+      "about": "GIỚI THIỆU BỆNH VIỆN",
+      "gallery": "THƯ VIỆN ẢNH",
+      "team": "ĐỘI NGŨ BÁC SĨ",
+      "location": "ĐỊA CHỈ PHÒNG KHÁM (Google Maps)"
+    },
+    "labels": {
+      "heroTitle": "Tên phòng khám và lời chào mừng",
+      "heroDescription": "Slogan riêng cho phòng khám",
+      "aboutTitle": "Tên phòng khám đầy đủ",
+      "aboutDescription": "Nội dung giới thiệu bệnh viện",
+      "aboutHighlightNumber": "Số năm thành lập",
+      "aboutHighlightLabel": "Số chi nhánh",
+      "galleryTitle": "Thư viện hình ảnh và nội dung nổi bật",
+      "gallerySubtitle": "Mô tả thư viện ảnh",
+      "locationAddress": "Địa chỉ chi tiết",
+      "locationMapEmbed": "NHÚNG BẢN ĐỒ (HTML)"
+    },
+    "placeholders": {
+      "heroTitle": "Ví dụ: PetCar - Nơi sức khỏe thú cưng được chăm sóc tận tâm",
+      "heroDescription": "Ví dụ: Chào mừng đến với PetCar, phòng khám thú y hàng đầu tại Đà Nẵng.",
+      "heroCtaText": "Nội dung nút CTA",
+      "heroBannerImage": "Ảnh banner đầu trang (URL hoặc đường dẫn public)",
+      "aboutLabel": "Nhãn phần giới thiệu",
+      "aboutTitle": "Ví dụ: Bệnh viện thú y PetCar Đà Nẵng",
+      "aboutDescription": "Ví dụ: Phòng khám thú y của chúng tôi là nơi cung cấp dịch vụ chăm sóc sức khỏe toàn diện cho thú cưng với đội ngũ bác sĩ thú y giàu kinh nghiệm, tận tâm và yêu thương động vật. Chúng tôi chuyên khám, tư vấn, tiêm phòng, điều trị bệnh, chăm sóc sức khỏe định kỳ và làm đẹp cho thú cưng trong môi trường hiện đại, an toàn và thân thiện. Với phương châm đặt sức khỏe và sự thoải mái của thú cưng lên hàng đầu, phòng khám luôn nỗ lực mang đến dịch vụ chất lượng cao, giúp các bé thú cưng luôn khỏe mạnh và mang lại sự an tâm tuyệt đối cho chủ nuôi.",
+      "aboutHighlightNumber": "Số năm thành lập phòng khám của bạn",
+      "aboutHighlightLabel": "Số chi nhánh phòng khám của bạn",
+      "galleryTitle": "Tiêu đề thư viện ảnh",
+      "gallerySubtitle": "Ví dụ: Hoạt động thường niên của phòng khám giúp các bé thú cưng khỏe mạnh hơn",
+      "teamTitle": "Tiêu đề khối đội ngũ",
+      "doctorName": "Ví dụ: ThS. Nguyễn Văn A - Bác sĩ Nội Khoa",
+      "doctorImage": "Ảnh bác sĩ",
+      "locationTitle": "Tiêu đề phần địa chỉ",
+      "locationSubtitle": "Mô tả ngắn",
+      "locationAddress": "Ví dụ: 123 Đường ABC, Quận XYZ, Đà Nẵng",
+      "locationMapEmbed": "Vào Google Maps, tìm địa chỉ phòng khám, chọn chia sẻ, sau đó chọn NHÚNG BẢN ĐỒ và sao chép đoạn mã HTML vào đây"
+    },
+    "actions": {
+      "uploadImage": "Tải ảnh lên",
+      "uploadGalleryImages": "Tải ảnh thư viện",
+      "uploading": "Đang tải...",
+      "cancel": "Hủy",
+      "saveChanges": "Lưu thay đổi"
+    },
+    "alt": {
+      "heroBanner": "Banner đầu trang"
+    },
+    "gallery": {
+      "imageAlt": "Ảnh thư viện {{index}}",
+      "removeImageAria": "Xóa ảnh thư viện {{index}}",
+      "empty": "Chưa có ảnh thư viện. Hãy tải ảnh lên để hiển thị tại đây."
+    },
+    "team": {
+      "addDoctor": "Thêm bác sĩ",
+      "doctorCardTitle": "Bác sĩ {{index}}",
+      "removeDoctorTitle": "Xóa bác sĩ",
+      "removeDoctorContent": "Bạn có muốn xóa bác sĩ này không?",
+      "removeDoctorConfirm": "Xóa",
+      "removeDoctorImageAria": "Xóa ảnh bác sĩ {{index}}"
+    },
+    "preview": {
+      "title": "Xem trước trang chủ sau khi lưu"
+    }
+  },
+  "clinicEditor": {
+    "messages": {
+      "missingClinicIdEdit": "Thiếu clinicId để chỉnh sửa thông tin phòng khám.",
+      "permissionDenied": "Bạn chỉ có thể chỉnh sửa thông tin của phòng khám đang đăng nhập.",
+      "avatarUrlMissing": "Không nhận được URL ảnh từ server",
+      "avatarUploadSuccess": "Tải ảnh đại diện thành công",
+      "avatarUploadFailed": "Không thể tải ảnh đại diện",
+      "missingClinicIdSave": "Thiếu clinicId để lưu dữ liệu.",
+      "saveSuccess": "Lưu thành công",
+      "saveFailed": "Không thể lưu thông tin phòng khám"
+    },
+    "confirm": {
+      "leaveTitle": "Xác nhận",
+      "leaveContent": "Bạn có muốn tiếp tục chỉnh sửa hay hủy bỏ thay đổi?",
+      "continueEditing": "Tiếp tục chỉnh sửa",
+      "discardChanges": "Hủy bỏ thay đổi"
+    },
+    "fields": {
+      "name": "Tên phòng khám",
+      "address": "Địa chỉ",
+      "phone": "Số điện thoại",
+      "openingTime": "Giờ mở cửa",
+      "closingTime": "Giờ đóng cửa"
+    },
+    "validation": {
+      "nameRequired": "Vui lòng nhập tên phòng khám",
+      "nameMax": "Tên phòng khám tối đa 120 ký tự",
+      "addressRequired": "Vui lòng nhập địa chỉ",
+      "addressMin": "Địa chỉ cần ít nhất 5 ký tự",
+      "addressMax": "Địa chỉ tối đa 220 ký tự",
+      "phoneRequired": "Vui lòng nhập số điện thoại",
+      "phoneInvalid": "Số điện thoại không hợp lệ (ví dụ: 0912345678 hoặc +84912345678)",
+      "openingTimeRequired": "Vui lòng nhập giờ mở cửa",
+      "closingTimeRequired": "Vui lòng nhập giờ đóng cửa"
+    },
+    "placeholders": {
+      "name": "Nhập tên phòng khám",
+      "address": "Nhập địa chỉ phòng khám",
+      "phone": "Nhập số điện thoại"
+    },
+    "preview": {
+      "title": "Xem trước sau khi thay đổi",
+      "noImage": "Chưa có ảnh",
+      "avatarAlt": "Ảnh đại diện phòng khám",
+      "defaultClinicName": "Tên phòng khám",
+      "defaultAddress": "Địa chỉ phòng khám",
+      "defaultPhone": "Số điện thoại"
+    },
+    "actions": {
+      "uploadAvatar": "Tải ảnh đại diện",
+      "cancel": "Hủy",
+      "saveChanges": "Lưu thay đổi"
+    }
+  },
+  "profile": {
+    "messages": {
+      "loadFailed": "Không thể tải thông tin tài khoản",
+      "cancelled": "Đã hủy thay đổi",
+      "accountNotFound": "Không tìm thấy thông tin tài khoản để cập nhật",
+      "saveSuccess": "Lưu thông tin thành công",
+      "saveFailed": "Không thể lưu thông tin"
+    },
+    "defaults": {
+      "clinicName": "Phòng khám"
+    },
+    "page": {
+      "subtitle": "Trang cá nhân phòng khám"
+    },
+    "labels": {
+      "role": "Vai trò",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "address": "Địa chỉ"
+    },
+    "validation": {
+      "phoneRequired": "Vui lòng nhập số điện thoại",
+      "phoneInvalid": "Số điện thoại không hợp lệ",
+      "addressRequired": "Vui lòng nhập địa chỉ",
+      "addressMin": "Địa chỉ cần ít nhất 5 ký tự",
+      "addressMax": "Địa chỉ tối đa 200 ký tự"
+    },
+    "placeholders": {
+      "phone": "Nhập số điện thoại",
+      "address": "Nhập địa chỉ"
+    },
+    "actions": {
+      "cancel": "Hủy",
+      "save": "Lưu"
+    }
+  },
+  "accountMenu": {
+    "defaults": {
+      "name": "Người dùng",
+      "meta": "Tài khoản"
+    },
+    "actions": {
+      "profile": "Trang cá nhân",
+      "changePassword": "Đổi mật khẩu",
+      "logout": "Đăng xuất"
+    },
+    "profileModal": {
+      "title": "Trang cá nhân",
+      "upload": {
+        "changeAvatar": "Đổi ảnh đại diện"
+      },
+      "fields": {
+        "fullName": "Họ và tên",
+        "email": "Email",
+        "phone": "Số điện thoại",
+        "address": "Địa chỉ"
+      },
+      "placeholders": {
+        "fullName": "Nhập họ và tên",
+        "email": "Nhập email",
+        "phone": "Nhập số điện thoại",
+        "address": "Nhập địa chỉ"
+      },
+      "validation": {
+        "fullNameRequired": "Vui lòng nhập họ và tên",
+        "emailRequired": "Vui lòng nhập email",
+        "emailInvalid": "Email không hợp lệ",
+        "phoneRequired": "Vui lòng nhập số điện thoại",
+        "phoneInvalid": "Số điện thoại phải gồm đúng 10 chữ số và bắt đầu bằng 0",
+        "addressRequired": "Vui lòng nhập địa chỉ"
+      },
+      "buttons": {
+        "cancel": "Hủy",
+        "save": "Lưu thay đổi"
+      }
+    },
+    "passwordModal": {
+      "title": "Đổi mật khẩu",
+      "fields": {
+        "currentPassword": "Mật khẩu hiện tại",
+        "newPassword": "Mật khẩu mới",
+        "confirmPassword": "Xác nhận mật khẩu mới"
+      },
+      "validation": {
+        "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
+        "newRequired": "Vui lòng nhập mật khẩu mới",
+        "newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
+        "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
+        "confirmMismatch": "Mật khẩu xác nhận không khớp"
+      },
+      "buttons": {
+        "cancel": "Hủy",
+        "save": "Đổi mật khẩu",
+        "saving": "Đang cập nhật..."
+      }
+    },
+    "messages": {
+      "profileLoadFailed": "Không thể tải thông tin tài khoản",
+      "profileSaved": "Cập nhật thông tin thành công",
+      "profileSaveFailed": "Không thể cập nhật thông tin",
+      "avatarUploading": "Đang tải ảnh đại diện...",
+      "avatarUploadSuccess": "Tải ảnh đại diện thành công",
+      "avatarUploadFailed": "Không thể tải ảnh đại diện",
+      "avatarMissingUrl": "Không nhận được URL ảnh từ hệ thống",
+      "passwordChanged": "Đổi mật khẩu thành công",
+      "passwordChangeFailed": "Không thể đổi mật khẩu"
+    }
+  },
+  "common": {
+    "actions": {
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "close": "Đóng",
+      "delete": "Xóa",
+      "edit": "Chỉnh sửa",
+      "confirm": "Xác nhận",
+      "back": "Quay lại",
+      "continue": "Tiếp tục",
+      "viewDetail": "Xem chi tiết",
+      "readMore": "Đọc thêm",
+      "retry": "Thử lại"
+    },
+    "states": {
+      "loading": "Đang tải...",
+      "empty": "Không có dữ liệu",
+      "updating": "Đang cập nhật...",
+      "notUpdated": "Chưa cập nhật",
+      "notAvailable": "Không có",
+      "unknown": "Không xác định"
+    },
+    "labels": {
+      "name": "Tên",
+      "email": "Email",
+      "phone": "Số điện thoại",
+      "address": "Địa chỉ",
+      "date": "Ngày",
+      "time": "Giờ",
+      "status": "Trạng thái",
+      "service": "Dịch vụ",
+      "doctor": "Bác sĩ",
+      "clinic": "Phòng khám",
+      "note": "Ghi chú",
+      "symptom": "Triệu chứng",
+      "search": "Tìm kiếm"
+    },
+    "placeholders": {
+      "select": "Vui lòng chọn",
+      "input": "Vui lòng nhập",
+      "search": "Nhập để tìm kiếm"
+    },
+    "dialogs": {
+      "confirmDeleteTitle": "Xác nhận xóa",
+      "confirmDeleteContent": "Bạn có chắc chắn muốn xóa mục này?",
+      "confirmCancelTitle": "Xác nhận hủy",
+      "confirmCancelContent": "Bạn có chắc chắn muốn hủy thao tác?"
+    },
+    "aria": {
+      "scrollToTop": "Cuộn lên đầu trang"
+    }
+  },
+  "revenue": {
+    "pageTitle": "BÁO CÁO DOANH THU",
+    "loading": "Đang tải dữ liệu doanh thu...",
+    "period": {
+      "today": "Hôm nay",
+      "week": "Tuần này",
+      "month": "Tháng này",
+      "year": "Năm nay"
+    },
+    "todayHighlight": {
+      "title": "Doanh thu hôm nay",
+      "subtitle": "Cập nhật trực tiếp từ phòng khám",
+      "paidLabel": "Hoá đơn đã thanh toán",
+      "unpaidLabel": "Hoá đơn chưa thanh toán",
+      "hint": "Chọn Tuần này / Tháng này / Năm nay để xem biểu đồ xu hướng."
+    },
+    "cards": {
+      "totalRevenue": "Tổng doanh thu",
+      "paidInvoices": "Đã thanh toán",
+      "unpaidInvoices": "Chưa thanh toán"
+    },
+    "chart": {
+      "dailyTitle": "Doanh thu theo ngày",
+      "serviceTitle": "Theo loại dịch vụ",
+      "revenueLegend": "Doanh thu",
+      "countLegend": "Số lượt khám"
+    },
+    "specialty": {
+      "internalMedicine": "Khám bệnh",
+      "surgery": "Phẫu thuật",
+      "vaccination": "Tiêm vắc-xin",
+      "ultrasound": "Siêu âm",
+      "other": "Khác"
+    },
+    "topVets": {
+      "titleToday": "Top 5 Bác sĩ khám nhiều nhất — Hôm nay",
+      "titleMonthly": "Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}",
+      "doctor": "Bác sĩ",
+      "records": "Số lượt"
+    },
+    "invoices": {
+      "title": "Hoá đơn gần đây",
+      "filterAll": "Tất cả",
+      "filterPaid": "Đã thanh toán",
+      "filterUnpaid": "Chưa thanh toán",
+      "colRecord": "Phiếu khám",
+      "colPet": "Thú cưng",
+      "colDate": "Ngày",
+      "colAmount": "Tổng tiền",
+      "colStatus": "Trạng thái",
+      "statusPaid": "Đã thanh toán",
+      "statusUnpaid": "Chưa thanh toán"
+    },
+    "empty": {
+      "noChartData": "Chưa có dữ liệu doanh thu để hiển thị biểu đồ",
+      "noServiceData": "Chưa có dữ liệu phân bổ dịch vụ",
+      "noVetData": "Chưa có dữ liệu bác sĩ",
+      "noInvoices": "Không còn hóa đơn cần thanh toán."
+    }
+  },
+  "header": {
+    "user": {
+      "defaultName": "Người dùng"
+    }
+  },
+  "pages": {
+    "forum": {
+      "title": "Diễn đàn",
+      "loadPostsFailed": "Không thể tải danh sách bài viết",
+      "postSuccess": "Đăng bài thành công",
+      "postFailed": "Đăng bài thất bại",
+      "loadTopicsFailed": "Không thể tải chủ đề",
+      "loadCommentsFailed": "Không thể tải bình luận",
+      "updatePostSuccess": "Cập nhật bài viết thành công",
+      "updatePostFailed": "Không thể cập nhật bài viết",
+      "deleteSuccess": "Đã xóa bài viết",
+      "deleteFailed": "Không thể xóa bài viết",
+      "uploadNoUrl": "Không nhận được URL ảnh từ server",
+      "uploadPostImageSuccess": "Tải ảnh bài viết thành công",
+      "uploadCommentImageSuccess": "Tải ảnh bình luận thành công",
+      "uploadReplyImageSuccess": "Tải ảnh phản hồi thành công",
+      "readImageFailed": "Không thể đọc ảnh đã chọn",
+      "createCommentFailed": "Không thể tạo bình luận",
+      "replyFailed": "Không thể phản hồi bình luận",
+      "updateCommentSuccess": "Cập nhật bình luận thành công",
+      "updateCommentFailed": "Không thể cập nhật bình luận",
+      "deleteCommentSuccess": "Đã xóa bình luận",
+      "deleteCommentFailed": "Không thể xóa bình luận",
+      "reportPostModalTitle": "Báo cáo bài viết",
+      "reportPostBy": "Bạn đang báo cáo bài viết của {{name}}",
+      "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
+      "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
+      "reportPostFailed": "Không thể gửi báo cáo bài viết. Vui lòng thử lại.",
+      "reportCommentSuccess": "Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.",
+      "reportCommentFailed": "Không thể gửi báo cáo bình luận. Vui lòng thử lại.",
+      "reportModalTitle": "TỐ CÁO BÌNH LUẬN",
+      "reportCommentBy": "Bạn đang tố cáo bình luận của {{name}}",
+      "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.",
+      "likeSuccess": "Đã thích bài viết của {{author}}",
+      "likeFailed": "Không thể cập nhật lượt thích",
+      "justNow": "Vừa xong",
+      "minutesAgo": "{{count}} phút trước",
+      "hoursAgo": "{{count}} giờ trước",
+      "daysAgo": "{{count}} ngày trước",
+      "topic": "Chủ đề",
+      "featured": "Nổi bật",
+      "topContributors": "Người đóng góp hàng đầu",
+      "viewAllRankings": "Xem tất cả bảng xếp hạng",
+      "createPostTitle": "Tạo bài viết mới",
+      "editPostTitle": "Chỉnh sửa bài viết",
+      "editCommentTitle": "Chỉnh sửa bình luận",
+      "postTopic": "Chủ đề bài viết",
+      "loadingPosts": "Đang tải bài viết...",
+      "loadingComments": "Đang tải bình luận...",
+      "avatarAlt": "Ảnh đại diện",
+      "postTagDefault": "Bài viết",
+      "imagePlaceholder": "Hình ảnh",
+      "maxImages": "Bạn chỉ có thể chọn tối đa {{count}} ảnh",
+      "maxImagesPerPost": "Chỉ nhận tối đa {{count}} ảnh cho mỗi bài viết",
+      "replyingTo": "Đang reply cho {{user}}",
+      "postImageAlt": "Bài viết {{index}}",
+      "postPreviewAlt": "Ảnh xem trước bài viết {{index}}",
+      "editPostPreviewAlt": "Ảnh xem trước khi chỉnh sửa",
+      "commentImagePreviewAlt": "Ảnh xem trước bình luận",
+      "replyImagePreviewAlt": "Ảnh xem trước phản hồi",
+      "replyImageAlt": "Ảnh phản hồi",
+      "previewImageAlt": "Ảnh xem trước",
+      "topicFilter": {
+        "all": "Tất cả chủ đề",
+        "none": "Không có chủ đề"
+      },
+      "topicSelect": {
+        "noTopic": "Không chọn chủ đề"
+      },
+      "topics": {
+        "dailyCare": "Chăm sóc thú cưng hằng ngày",
+        "vaccinationAndPrevention": "Tiêm phòng và phòng bệnh",
+        "symptomConsulting": "Tư vấn triệu chứng",
+        "postOpRecovery": "Hậu phẫu và phục hồi",
+        "veterinaryNutrition": "Dinh dưỡng thú y",
+        "clinicExperience": "Kinh nghiệm phòng khám"
+      },
+      "placeholders": {
+        "shareToday": "Bạn muốn chia sẻ điều gì về thú cưng hôm nay?",
+        "comment": "Viết bình luận...",
+        "reply": "Viết reply...",
+        "reportReason": "Nhập nội dung tố cáo...",
+        "reportPostReason": "Chọn lý do báo cáo",
+        "reportPostDetail": "Mô tả thêm (không bắt buộc)",
+        "choosePostTopic": "Chọn chủ đề bài viết",
+        "chooseTopic": "Chọn chủ đề",
+        "editPost": "Bạn muốn chỉnh sửa điều gì trong bài viết?"
+      },
+      "reportReason": {
+        "spam": "Spam",
+        "inappropriate": "Nội dung không phù hợp",
+        "misleading": "Thông tin sai lệch",
+        "other": "Khác"
+      },
+      "actions": {
+        "selectTopicTitle": "Chọn chủ đề",
+        "commentOptionsAria": "Tùy chọn bình luận",
+        "reportComment": "Tố cáo bình luận",
+        "reportPost": "Báo cáo bài viết",
+        "deleteAdmin": "Xóa (Admin)",
+        "submitReport": "Gửi tố cáo",
+        "removeImage": "Gỡ ảnh",
+        "image": "Ảnh",
+        "sending": "Đang gửi...",
+        "saving": "Đang lưu...",
+        "uploadingImage": "Đang tải ảnh...",
+        "send": "Gửi",
+        "reply": "Reply",
+        "sendReply": "Gửi reply",
+        "chooseImage": "Chọn ảnh",
+        "posting": "Đang đăng...",
+        "post": "Đăng bài",
+        "chooseAnotherImage": "Chọn ảnh khác",
+        "saveEdit": "Lưu chỉnh sửa"
+      },
+      "confirmDelete": {
+        "title": "Xóa bài viết",
+        "content": "Bạn có chắc chắn muốn xóa bài viết này không?",
+        "okText": "Xóa",
+        "cancelText": "Hủy"
+      },
+      "confirmDeleteComment": {
+        "title": "Xóa bình luận",
+        "content": "Bạn có chắc chắn muốn xóa bình luận này không?",
+        "okText": "Xóa",
+        "cancelText": "Hủy"
+      },
+      "validation": {
+        "uploadingImage": "Ảnh đang được tải lên, vui lòng đợi",
+        "emptyPost": "Vui lòng nhập nội dung hoặc chọn ảnh trước khi đăng",
+        "noTopicAvailable": "Hiện chưa có chủ đề khả dụng để đăng bài, vui lòng thử lại sau",
+        "noTopicAvailableForUpdate": "Hiện chưa có chủ đề khả dụng để cập nhật bài viết, vui lòng thử lại sau",
+        "editOwnPostOnly": "Bạn chỉ có thể chỉnh sửa bài viết của chính mình",
+        "deleteOwnPostOnly": "Bạn chỉ có thể xóa bài viết của chính mình",
+        "reportOtherPostOnly": "Bạn chỉ có thể báo cáo bài viết của người khác",
+        "reportPostReasonRequired": "Vui lòng chọn lý do báo cáo bài viết",
+        "editOwnCommentOnly": "Bạn chỉ có thể chỉnh sửa bình luận của chính mình",
+        "deleteOwnCommentOnly": "Bạn không có quyền xóa bình luận này",
+        "reportReasonRequired": "Vui lòng nhập nội dung tố cáo",
+        "commentImageUploading": "Ảnh bình luận đang được tải lên, vui lòng đợi",
+        "commentRequired": "Vui lòng nhập bình luận hoặc chọn ảnh",
+        "replyImageUploading": "Ảnh phản hồi đang được tải lên, vui lòng đợi",
+        "replyRequired": "Vui lòng nhập reply hoặc chọn ảnh"
+      }
+    },
+    "chatbot": {
+      "actions": {
+        "delete": "Xóa",
+        "optionsAria": "Tùy chọn cuộc trò chuyện",
+        "rename": "Đổi tên"
+      },
+      "assistantTitle": "Trợ lý AI",
+      "confirmDelete": {
+        "cancelText": "Hủy",
+        "content": "Bạn có chắc chắn muốn xóa cuộc trò chuyện này không?",
+        "okText": "Xóa",
+        "title": "Xóa cuộc trò chuyện"
+      },
+      "deleteFailed": "Không thể xóa cuộc trò chuyện",
+      "messageBox": {
+        "aiResponding": "AI đang phản hồi",
+        "attachImage": "Đính kèm ảnh",
+        "disclaimer": "AI có thể tạo ra thông tin chưa chính xác. Vui lòng kiểm tra lại nội dung quan trọng.",
+        "emptyState": "Bắt đầu cuộc trò chuyện mới với AI",
+        "genericError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+        "inputPlaceholder": "Nhập câu hỏi của bạn...",
+        "loadingOldMessages": "Đang tải tin nhắn cũ...",
+        "previewAlt": "Ảnh xem trước",
+        "removeImage": "Xóa ảnh",
+        "send": "Gửi",
+        "uploadFailed": "Tải ảnh lên thất bại",
+        "uploadingImage": "Đang tải ảnh",
+        "uploadingImageLong": "Đang tải ảnh lên, vui lòng đợi...",
+        "userImageAlt": "Ảnh người dùng gửi",
+        "validation": {
+          "imageOnly": "Chỉ được chọn tệp hình ảnh"
+        }
+      },
+      "newConversationButton": "Cuộc trò chuyện mới",
+      "newConversationDefaultName": "Cuộc trò chuyện mới",
+      "newRoomFailed": "Không thể tạo cuộc trò chuyện mới",
+      "recentHistory": "Lịch sử gần đây",
+      "renameFailed": "Không thể đổi tên cuộc trò chuyện",
+      "renameModal": {
+        "cancelText": "Hủy",
+        "okText": "Lưu",
+        "placeholder": "Nhập tên cuộc trò chuyện",
+        "title": "Đổi tên cuộc trò chuyện"
+      },
+      "validation": {
+        "emptyRoomName": "Tên cuộc trò chuyện không được để trống"
+      }
+    }
+  }
 }
