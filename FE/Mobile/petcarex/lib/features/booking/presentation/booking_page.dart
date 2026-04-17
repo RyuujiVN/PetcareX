@@ -330,6 +330,9 @@ class _BookingPageState extends State<BookingPage> {
         }
         content = StepDoctorSelector(
           selectedDoctorId: bookingProvider.selectedDoctor?.userId,
+          selectedDoctor: bookingProvider.selectedDoctor,
+          selectedDoctorAccount: bookingProvider.selectedDoctorAccount,
+          isDoctorAccountLoading: bookingProvider.isDoctorAccountLoading,
           onSelected: (doc) => bookingProvider.selectDoctor(doc),
           doctors: bookingProvider.doctors,
         );

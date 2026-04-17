@@ -9,6 +9,7 @@ class BookingProvider extends ChangeNotifier {
   String? _selectedPetId;
   Clinic? _selectedClinic;
   Veterinarian? _selectedDoctor;
+  VetUser? _selectedDoctorAccount;
   String? _selectedServiceName;
   DateTime? _selectedDate;
   String? _selectedTime;
@@ -20,6 +21,7 @@ class BookingProvider extends ChangeNotifier {
 
   bool _isLoading = false;
   bool _isDoctorsLoading = false;
+  bool _isDoctorAccountLoading = false;
   String? _errorMessage;
   bool _isSuccess = false;
   Map<String, dynamic>? _appointmentResult;
@@ -28,6 +30,7 @@ class BookingProvider extends ChangeNotifier {
   String? get selectedPetId => _selectedPetId;
   Clinic? get selectedClinic => _selectedClinic;
   Veterinarian? get selectedDoctor => _selectedDoctor;
+  VetUser? get selectedDoctorAccount => _selectedDoctorAccount;
   String? get selectedServiceName => _selectedServiceName;
   DateTime? get selectedDate => _selectedDate;
   String? get selectedTime => _selectedTime;
@@ -37,6 +40,7 @@ class BookingProvider extends ChangeNotifier {
   List<Veterinarian> get doctors => _doctors;
   bool get isLoading => _isLoading;
   bool get isDoctorsLoading => _isDoctorsLoading;
+  bool get isDoctorAccountLoading => _isDoctorAccountLoading;
   String? get errorMessage => _errorMessage;
   bool get isSuccess => _isSuccess;
   Map<String, dynamic>? get appointmentResult => _appointmentResult;
@@ -50,13 +54,25 @@ class BookingProvider extends ChangeNotifier {
   void selectClinic(Clinic clinic) {
     _selectedClinic = clinic;
     _selectedDoctor = null; // Clear doctor khi clinic changes
+    _selectedDoctorAccount = null;
+    _isDoctorAccountLoading = false;
     _doctors = [];
     notifyListeners();
     fetchDoctors(clinic.id);
   }
 
   void selectDoctor(Veterinarian doctor) {
+    if (_selectedDoctor?.userId == doctor.userId) {
+      _selectedDoctor = null;
+      _selectedDoctorAccount = null;
+      _isDoctorAccountLoading = false;
+      notifyListeners();
+      return;
+    }
+
     _selectedDoctor = doctor;
+    _selectedDoctorAccount = doctor.user;
+    _isDoctorAccountLoading = false;
     notifyListeners();
   }
 
@@ -169,12 +185,14 @@ class BookingProvider extends ChangeNotifier {
     _selectedPetId = null;
     _selectedClinic = null;
     _selectedDoctor = null;
+    _selectedDoctorAccount = null;
     _selectedServiceName = null;
     _selectedDate = null;
     _selectedTime = null;
     _symptomsNote = null;
     _isSuccess = false;
     _isDoctorsLoading = false;
+    _isDoctorAccountLoading = false;
     _appointmentResult = null;
     notifyListeners();
   }
