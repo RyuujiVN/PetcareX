@@ -4,9 +4,10 @@ import {
 } from '@ant-design/icons'
 import { Spin, message } from 'antd'
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { FaUserCircle } from 'react-icons/fa'
 import { FaCakeCandles, FaDog, FaMars } from 'react-icons/fa6'
 import { MdHealthAndSafety } from 'react-icons/md'
-import { useTranslation } from 'react-i18next'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
@@ -113,6 +114,15 @@ const toPetSummary = (pet) => {
 	}
 }
 
+const toOwnerSummary = (owner) => {
+	if (!owner) return null
+	const name = owner?.fullName || ''
+	const email = owner?.email || ''
+	const phone = owner?.phone || ''
+	if (!name && !email && !phone) return null
+	return { name, email, phone }
+}
+
 const resolveMedicineUnitLabel = (item) => {
 	const unitValue =
 		item?.medicine?.unit ||
@@ -178,6 +188,7 @@ const toTimelineRecord = (record, _medicalOrders = [], medicines = []) => {
 		status: done ? tVet('medicalRecords.detail.status.done') : tVet('medicalRecords.detail.status.pending'),
 		statusType: done ? 'done' : 'pending',
 		examDate: resolveExamDate(record),
+		veterinarianName: record?.veterinarian?.fullName || '',
 		leftInfo: [
 			{ label: tVet('medicalRecords.detail.labels.examDate'), value: resolveExamDate(record) },
 		],
@@ -196,6 +207,7 @@ export default function ViewPetMedicalRecords() {
 	const [loading, setLoading] = useState(false)
 	const [timeline, setTimeline] = useState([])
 	const [petSummary, setPetSummary] = useState(() => buildDefaultPet())
+	const [ownerSummary, setOwnerSummary] = useState(null)
 	const [expandedRecords, setExpandedRecords] = useState(() => new Set())
 
 	const selectedRecord = location?.state?.record
@@ -296,9 +308,14 @@ export default function ViewPetMedicalRecords() {
 					setPetSummary(toPetSummary(firstPet))
 				}
 			}
+
+			// Extract owner info from the first record (all records share the same owner)
+			const firstOwner = records[0]?.pet?.owner
+			setOwnerSummary(toOwnerSummary(firstOwner))
 		} catch (error) {
 			setTimeline([])
 			setPetSummary(buildDefaultPet())
+			setOwnerSummary(null)
 			message.error(error?.message || tVet('medicalRecords.detail.messages.loadError'))
 		} finally {
 			setLoading(false)
@@ -350,6 +367,25 @@ export default function ViewPetMedicalRecords() {
 				</div>
 			</section>
 
+			{ownerSummary && (
+				<section className={styles.ownerSection}>
+					<div className={styles.ownerMainInfo}>
+						<FaUserCircle className={styles.ownerIcon} />
+						<div className={styles.ownerDetails}>
+							{ownerSummary.name && (
+								<span className={styles.ownerName}>{ownerSummary.name}</span>
+							)}
+							{ownerSummary.email && (
+								<span className={styles.ownerContact}>{ownerSummary.email}</span>
+							)}
+							{ownerSummary.phone && (
+								<span className={styles.ownerContact}>{ownerSummary.phone}</span>
+							)}
+						</div>
+					</div>
+				</section>
+			)}
+
 			<section className={styles.timelinePanel}>
 				<h3>
 					<MdHealthAndSafety /> {tVet('medicalRecords.detail.title')}
@@ -376,6 +412,11 @@ export default function ViewPetMedicalRecords() {
 										<div className={styles.cardHeader}>
 											<div className={styles.headerMain}>
 												<h4 className={styles.cardTitle}>{item.title}</h4>
+												{item.veterinarianName && (
+													<span className={styles.vetName}>
+														{tVet('medicalRecords.detail.labels.veterinarian')}: {item.veterinarianName}
+													</span>
+												)}
 											</div>
 
 											<div className={styles.headerActions}>

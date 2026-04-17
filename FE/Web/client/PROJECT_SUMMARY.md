@@ -66,6 +66,65 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - File sửa: `src/services/notificationService.js`.
 - Bổ sung mapping cho các type `REPORT`, `POST_REPORTED`, `COMMENT_REPORTED`.
 - Chuẩn hóa thêm field target `reportId`, `reportType` và hỗ trợ resolve portal `admin`.
+### Cập nhật (2026-04-17) — Tái cấu trúc luồng Phiếu khám: đổi tên + gộp danh sách + fix dữ liệu trống
+
+**Phạm vi:**
+- Đổi tên "Phiếu khám khẩn cấp" → "Phiếu khám ngoài" (UI, i18n, mã code prefix `EMG` → `WK`).
+- Gộp 2 danh sách (lịch hẹn + walk-in) thành **1 danh sách thống nhất** dùng API mới `GET /api/medical/veterinarian?page=&limit=`.
+- Fix lỗi khi mở lại phiếu walk-in hiển thị trống toàn bộ thông tin khách hàng & thú cưng.
+- Bỏ 2 field `gender` và `dateOfBirth` của pet khỏi form walk-in (BE DTO không hỗ trợ, lưu sẽ thất lạc).
+
+**Thay đổi i18n (`src/locales/vererianrian/{vi,en}.json`):**
+- `examForm.list.actions.createWalkIn`: "Phiếu khám ngoài" / "Walk-in Examination".
+- Thêm `examForm.list.table.type` = "LOẠI" / "TYPE".
+- Thêm `examForm.list.badges` = { appointment, walkIn } cho badge phân loại.
+- Bỏ `examForm.list.tabs` (không còn Tabs), gộp `pagination.summary` (bỏ `walkInSummary`).
+- Bỏ `states.emptyWalkIn` (gộp vào `states.empty`).
+- Thêm `examForm.record.messages.ownerContactMissing` để báo BE không trả email/phone walk-in.
+- Đổi nội dung `walkInSaveSuccess/Error` từ "khẩn cấp" → "ngoài".
+
+**Form walk-in (`src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`):**
+- Xóa imports `ManOutlined`, `WomanOutlined`; xóa helper `normalizeGenderValue`, `resolveDateOfBirth`; xóa `genderSelectOptions` useMemo.
+- `buildInitialValues`: với walk-in reopen, hydrate `customerName / email / phone / petName / species / breed` từ `editableMedicalRecord.pet` + `editableMedicalRecord.pet.owner` (trước đây luôn rỗng vì `isWalkIn=true` đi nhánh clear).
+- Bỏ `Form.Item` ẩn `petGender / petDateOfBirth / petAge` và cả 3 `<Col>` nhập tay tương ứng trong block walk-in.
+- Đơn giản hóa `handleWalkInSubmit`: bỏ validate `genderValue` / `petDateOfBirth`, không còn gửi 2 field trên trong payload.
+- Prefix mã phiếu `EMG` → `WK`.
+
+**Danh sách gộp (`src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx` — rewrite):**
+- Data source DUY NHẤT: `getVeterinarianMedicalRecordsApi(instance, page, 10)` → `GET /medical/veterinarian`.
+- Pagination server-side dùng `meta.totalPages` + `meta.totalItems`, nút prev/next.
+- Bỏ `Tabs`, bỏ `DatePicker`, bỏ 2 luồng fetch song song (`getMyAppointmentsApi` + `getMedicalByClinicApi`).
+- Thêm cột **LOẠI** hiển thị `<Tag>`: `Lịch hẹn` (blue) vs `Khám ngoài` (orange).
+- Classifier (heuristic FE do BE thiếu field): `isAppointment = appointmentLinkedIds.has(record.id)`, với set = hợp của:
+  1. localStorage `veterinarian:appointmentMedicalMap` (từ flow tạo qua appointment).
+  2. `GET /appointment/my` → gom `item.medical.id` (fail-safe, lỗi chỉ log).
+- Click "Mở phiếu khám": điều hướng theo phân loại — appointment mở `?medicalId=`, walk-in mở `?mode=walkin&medicalId=`.
+- Focus/visibilitychange refresh cả records + appointmentLinkedIds (silent).
+
+**Service (`src/services/medicalService.js`):**
+- Thêm `getVeterinarianMedicalRecordsApi(instance, page, limit)` gọi `GET /medical/veterinarian`.
+- Fix bug pre-existing: `getLatestMedicalByPetIdApi` có dòng `const payload = ...` bị comment-out → uncommented (đang reference biến không tồn tại, 6 lint errors).
+
+**Root cause — dữ liệu trống khi mở walk-in:**
+- `buildInitialValues` có nhánh `isWalkIn ? '' : ...` → mọi lần mở lại phiếu walk-in đều set customer/pet rỗng (không đọc từ `editableMedicalRecord`).
+- Fix: với walk-in mode + có `editableMedicalRecord`, ưu tiên lấy `recordPet = editableMedicalRecord.pet` và `recordOwner = recordPet.owner`.
+
+**Giới hạn BE (báo cáo, không tự sửa):**
+1. ~~`GET /medical/:id` KHÔNG trả `pet.owner.email` và `pet.owner.phone`~~ → **ĐÃ FIX bởi BE**: giờ trả `pet.owner.{id, fullName, email, phone}`, `pet.gender`, `pet.dateOfBirth`, `veterinarian.{id, fullName, specialty}`, `clinic.{id, name}`. FE đã đồng bộ UI hiển thị thông tin owner + bác sĩ trong ViewPetMedicalRecords.
+2. ~~`GET /medical/:id` KHÔNG trả `pet.gender`, `pet.dateOfBirth`, `pet.weight`~~ → **ĐÃ FIX bởi BE**: giờ trả đầy đủ.
+3. `MedicalRecord` entity KHÔNG có `appointmentId` hay `type` để phân biệt walk-in vs appointment → FE phải dùng heuristic localStorage + map từ `/appointment/my`. Đề xuất BE: thêm cột `type: ENUM('APPOINTMENT','WALK_IN')` hoặc FK `appointmentId NULL`.
+4. `GET /user/:id` restricted ADMIN/ADMIN_CLINIC → VET không thể recover email/phone chủ nuôi từ ownerId. **Workaround**: FE lấy owner info từ `GET /medical/:id` response (pet.owner) thay vì gọi `/user/:id`.
+
+**Fix cập nhật SĐT từ danh sách gộp (ListExaminationForm → RecordExaminationForm):**
+- Thêm `directMedicalId`: khi mở phiếu khám từ list với `?medicalId=XXX` (non-walkin, không có appointmentId), form load record trực tiếp bằng `getMedicalByIdApi`.
+- `onFinish` fallback `ownerId` từ `editableMedicalRecord.pet.owner.id` khi `appointment` state là null.
+- `existingOwnerPhone` fallback từ `editableMedicalRecord.pet.owner.phone`.
+
+**Regression:**
+- `npx eslint` trên 3 file thay đổi: clean.
+- `npx vite build`: thành công (5960 modules, ~21s).
+
+---
 
 ### Cập nhật (2026-04-17) — Đơn giản hóa luồng Walk-in (khám cấp cứu) & loại bỏ tạo tài khoản FE
 

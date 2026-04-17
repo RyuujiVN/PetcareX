@@ -10,6 +10,14 @@ export const getMedicalByClinicApi = (instance, page = 1, limit = 10) => {
     })
     .then((response) => response.data)
 }
+// Lấy danh sách phiếu khám của bác sĩ đang đăng nhập (gộp cả phiếu từ lịch hẹn và khám ngoài)
+export const getVeterinarianMedicalRecordsApi = (instance, page = 1, limit = 10) => {
+  return instance
+    .get('/medical/veterinarian', {
+      params: { page, limit },
+    })
+    .then((response) => response.data)
+}
 // Lấy danh sách hồ sơ bệnh án theo id pet
 export const getMedicalByPetIdApi = (instance, petId, page = 1, limit = 10) => {
   return instance
@@ -41,7 +49,7 @@ export const updateMedicalApi = (instance, id, data) => {
 export const getLatestMedicalByPetIdApi = async (instance, petId) => {
   if (!petId) return null
 
-  // const payload = await getMedicalByPetIdApi(instance, petId, 1, 200)
+  const payload = await getMedicalByPetIdApi(instance, petId, 1, 200)
   const records = Array.isArray(payload?.items)
     ? payload.items
     : Array.isArray(payload?.data)

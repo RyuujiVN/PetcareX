@@ -92,7 +92,7 @@
 		"list": {
 			"title": "Danh sách phiếu khám",
 			"actions": {
-				"createWalkIn": "Phiếu khám khẩn cấp",
+				"createWalkIn": "Phiếu khám ngoài",
 				"create": "Tạo phiếu khám",
 				"open": "Mở phiếu khám"
 			},
@@ -101,20 +101,19 @@
 				"owner": "CHỦ NUÔI",
 				"createdDate": "NGÀY TẠO",
 				"formName": "TÊN PHIẾU KHÁM",
+				"type": "LOẠI",
 				"action": "THAO TÁC"
 			},
-			"tabs": {
-				"appointments": "Theo lịch hẹn",
-				"walkIn": "Phiếu khám khẩn cấp"
+			"badges": {
+				"appointment": "Lịch hẹn",
+				"walkIn": "Khám ngoài"
 			},
 			"states": {
-				"empty": "Không có lịch hẹn theo ngày đã chọn",
-				"emptyWalkIn": "Không có phiếu khám khẩn cấp theo ngày đã chọn",
+				"empty": "Không có phiếu khám để hiển thị",
 				"notUpdated": "Chưa cập nhật"
 			},
 			"pagination": {
-				"summary": "Hiển thị {{shown}} trong số {{total}} lịch hẹn",
-				"walkInSummary": "Hiển thị {{shown}} trong số {{total}} phiếu khám"
+				"summary": "Hiển thị {{shown}} trong số {{total}} phiếu khám"
 			},
 			"messages": {
 				"loadError": "Không thể tải danh sách phiếu khám",
@@ -317,13 +316,14 @@
 				"ownerIdMissingError": "Thiếu mã khách hàng, vui lòng kiểm tra API user",
 				"petResolveError": "Không thể xác định thú cưng, vui lòng kiểm tra API pet",
 				"medicalIdMissingError": "Không nhận được mã phiếu khám từ hệ thống",
-				"walkInSaveSuccess": "Lưu phiếu khám khẩn cấp thành công",
-				"walkInSaveError": "Không thể tạo phiếu khám khẩn cấp",
+				"walkInSaveSuccess": "Lưu phiếu khám ngoài thành công",
+				"walkInSaveError": "Không thể tạo phiếu khám ngoài",
 				"petMissingError": "Không tìm thấy thú cưng từ lịch hẹn, vui lòng chọn lại lịch hẹn trước khi lưu",
 				"saveSuccessCreate": "Lưu hồ sơ thành công",
 				"saveSuccessUpdate": "Cập nhật phiếu khám thành công",
 				"saveError": "Không thể lưu hồ sơ",
-				"walkInStepSaving": "Đang tạo phiếu khám..."
+				"walkInStepSaving": "Đang tạo phiếu khám...",
+				"ownerContactMissing": "Hệ thống chưa lưu email/SĐT trên phiếu khám ngoài"
 			},
 			"fallbacks": {
 				"recordName": "Phiếu khám",
@@ -391,7 +391,8 @@
 				"conclusion": "Kết luận",
 				"doctorAdvice": "Lời dặn bác sĩ",
 				"orders": "Chỉ định xét nghiệm",
-				"medicines": "Đơn thuốc"
+				"medicines": "Đơn thuốc",
+				"veterinarian": "Bác sĩ"
 			},
 			"pet": {
 				"nameFallback": "Chưa có dữ liệu thú cưng",

@@ -4,14 +4,12 @@
 	ExperimentOutlined,
 	HeartOutlined,
 	InfoCircleOutlined,
-	ManOutlined,
 	MedicineBoxOutlined,
 	PlusCircleOutlined,
 	SaveOutlined,
 	UpOutlined,
 	UserOutlined,
 	WarningOutlined,
-	WomanOutlined,
 } from '@ant-design/icons'
 import {
 	Alert,
@@ -154,21 +152,6 @@ const parseLegacyBloodPressure = (value) => {
 const normalizePhone = (value) => String(value || '').replace(/\D/g, '')
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase()
-
-const normalizeGenderValue = (value) => {
-	if (value === true || value === false) return value
-	if (value === 'male') return true
-	if (value === 'female') return false
-	return undefined
-}
-
-const resolveDateOfBirth = (dateValue, ageValue) => {
-	if (dateValue) return dayjs(dateValue).format('YYYY-MM-DD')
-	if (ageValue) {
-		return dayjs().subtract(Number(ageValue), 'year').format('YYYY-MM-DD')
-	}
-	return undefined
-}
 
 const buildErrorMessage = (error, fallback) => {
 	const responseMessage = error?.response?.data?.message
@@ -492,30 +475,29 @@ const buildInitialValues = (
 	const systolicValue = toNumberOrUndefined(editableMedicalRecord?.systolic ?? legacyBloodPressure.systolic)
 	const diastolicValue = toNumberOrUndefined(editableMedicalRecord?.diastolic ?? legacyBloodPressure.diastolic)
 
+	// For walk-in reopen, hydrate customer/pet fields from the existing record (BE doesn't store email/phone there).
+	const recordPet = editableMedicalRecord?.pet || {}
+	const recordOwner = recordPet?.owner || {}
+
 	return {
 		formName: isWalkIn ? '' : serviceLabel,
 		serviceType: resolvedServiceType,
 		enableFollowUpDate: Boolean(editableMedicalRecord?.followUpDate),
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
-		customerName: isWalkIn ? '' : appointment?.ownerName || owner?.fullName || '',
-		email: isWalkIn ? '' : owner?.email || appointment?.ownerEmail || '',
-		phone: isWalkIn ? '' : normalizePhone(owner?.phone || appointment?.ownerPhone || ''),
-		petName: isWalkIn ? '' : appointment?.petName || pet?.name || '',
-		species: isWalkIn ? undefined : pet?.species || undefined,
-		breed: isWalkIn ? undefined : pet?.breed || undefined,
-		petGender: !isWalkIn
-			? pet?.gender === true
-				? 'male'
-				: pet?.gender === false
-					? 'female'
-					: undefined
-			: undefined,
-		petDateOfBirth: isWalkIn
-			? null
-			: pet?.dateOfBirth
-				? dayjs(pet.dateOfBirth)
-				: null,
-		petAge: undefined,
+		customerName: isWalkIn
+			? recordOwner?.fullName || ''
+			: appointment?.ownerName || owner?.fullName || '',
+		email: isWalkIn
+			? recordOwner?.email || ''
+			: owner?.email || appointment?.ownerEmail || '',
+		phone: isWalkIn
+			? normalizePhone(recordOwner?.phone || '')
+			: normalizePhone(owner?.phone || appointment?.ownerPhone || ''),
+		petName: isWalkIn
+			? recordPet?.name || editableMedicalRecord?.petName || ''
+			: appointment?.petName || pet?.name || '',
+		species: isWalkIn ? recordPet?.species || undefined : pet?.species || undefined,
+		breed: isWalkIn ? recordPet?.breed || undefined : pet?.breed || undefined,
 		weight: latestWeight ?? petWeight,
 		temperature: toNumberOrUndefined(editableMedicalRecord?.temperature),
 		heartRate: toNumberOrUndefined(editableMedicalRecord?.heartRate),
@@ -597,6 +579,9 @@ export default function RecordExaminationForm() {
 	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
 	const appointmentId = searchParams.get('appointmentId')
 	const walkInMedicalId = isWalkIn ? searchParams.get('medicalId') : null
+	// When opening from the unified list with ?medicalId=XXX (no appointmentId, not walkin),
+	// we need to load the medical record directly by ID.
+	const directMedicalId = !isWalkIn && !appointmentId ? searchParams.get('medicalId') : null
 	const [mappedMedicalId, setMappedMedicalId] = useState(() =>
 		resolveAppointmentLinkedMedicalId(searchParams.get('appointmentId')),
 	)
@@ -761,6 +746,45 @@ export default function RecordExaminationForm() {
 				return
 			}
 
+			// --- Direct medical record from unified list (?medicalId=XXX, no appointment) ---
+			if (directMedicalId) {
+				try {
+					const resolvedMedical = await getMedicalByIdApi(getAdminInstance(), directMedicalId).catch(() => null)
+					if (!resolvedMedical || !active) {
+						if (active) setIsResolvingExamState(false)
+						return
+					}
+
+					const [orders, medicines] = await Promise.all([
+						getMedicalOrdersByMedicalIdApi(getAdminInstance(), resolvedMedical.id).catch(() => []),
+						getMedicinesByMedicalIdApi(getAdminInstance(), resolvedMedical.id).catch(() => []),
+					])
+
+					if (!active) return
+
+					setEditableMedicalRecord(resolvedMedical)
+					setEditableMedicalOrders(Array.isArray(orders) ? orders : [])
+					setEditableMedicines(Array.isArray(medicines) ? medicines : [])
+
+					try {
+						const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), resolvedMedical.id)
+						if (active) {
+							setIsLockedByPayment(invoice?.status === INVOICE_STATUS.PAID)
+						}
+					} catch (invoiceErr) {
+						if (active) {
+							setIsLockedByPayment(invoiceErr?.response?.status === 404 ? false : false)
+						}
+					}
+				} catch {
+					// Ignore — form starts blank
+				}
+				if (active) {
+					setIsResolvingExamState(false)
+				}
+				return
+			}
+
 			const petId = appointment?.petRaw?.id || appointment?.pet?.id || appointment?.petId
 			const appointmentMedicalId = appointment?.medical?.id
 			const linkedMedicalId = appointmentMedicalId || mappedMedicalId
@@ -898,7 +922,7 @@ export default function RecordExaminationForm() {
 		return () => {
 			active = false
 		}
-	}, [appointment, appointmentId, mappedMedicalId, isWalkIn, walkInMedicalId])
+	}, [appointment, appointmentId, mappedMedicalId, isWalkIn, walkInMedicalId, directMedicalId])
 
 	useEffect(() => {
 		let active = true
@@ -1072,7 +1096,7 @@ export default function RecordExaminationForm() {
 	}, [])
 
 	const examinationCode = useMemo(() => {
-		const prefix = isWalkIn ? 'EMG' : 'AP'
+		const prefix = isWalkIn ? 'WK' : 'AP'
 		if (appointmentId) {
 			return `${prefix}-${String(appointmentId).slice(0, 8).toUpperCase()}`
 		}
@@ -1103,10 +1127,20 @@ export default function RecordExaminationForm() {
 	}, [editableMedicalRecord?.weight, historyPet, latestMedicalRecord?.weight, petDetail, t])
 
 	const patientInfo = useMemo(() => {
-		if (isWalkIn) return null
+		const isWalkInReopen = isWalkIn && Boolean(editableMedicalRecord)
+		if (isWalkIn && !isWalkInReopen) return null
 
-		const pet = petDetail || appointment?.petRaw || appointment?.pet || null
-		const owner = pet?.owner || appointment?.petRaw?.owner || {}
+		const pet =
+			petDetail ||
+			appointment?.petRaw ||
+			appointment?.pet ||
+			editableMedicalRecord?.pet ||
+			null
+		const owner =
+			pet?.owner ||
+			appointment?.petRaw?.owner ||
+			editableMedicalRecord?.pet?.owner ||
+			{}
 		if (!pet && !owner?.id) return null
 
 		const noInfo = t('examForm.record.patientInfo.noInfo')
@@ -1130,7 +1164,7 @@ export default function RecordExaminationForm() {
 			petAge: pet?.dateOfBirth ? getAgeLabel(pet.dateOfBirth) : noInfo,
 			petWeight: petWeightValue ? `${petWeightValue} kg` : noInfo,
 		}
-	}, [appointment, editableMedicalRecord?.weight, isWalkIn, latestMedicalRecord?.weight, petDetail, t])
+	}, [appointment, editableMedicalRecord, isWalkIn, latestMedicalRecord?.weight, petDetail, t])
 
 	const serviceOptions = useMemo(() => {
 		return Object.values(ServiceEnum).map((service) => ({
@@ -1138,30 +1172,6 @@ export default function RecordExaminationForm() {
 			label: getServiceLabel(service),
 		}))
 	}, [])
-
-	const genderSelectOptions = useMemo(
-		() => [
-			{
-				value: 'male',
-				label: (
-					<span>
-						<ManOutlined style={{ marginRight: 8 }} />
-						{t('examForm.record.options.male')}
-					</span>
-				),
-			},
-			{
-				value: 'female',
-				label: (
-					<span>
-						<WomanOutlined style={{ marginRight: 8 }} />
-						{t('examForm.record.options.female')}
-					</span>
-				),
-			},
-		],
-		[t],
-	)
 
 	const handleValuesChange = (_, allValues) => {
 		const normalized = {
@@ -1234,8 +1244,6 @@ export default function RecordExaminationForm() {
 		const systolic = toNumberOrUndefined(values.systolic)
 		const diastolic = toNumberOrUndefined(values.diastolic)
 		const weight = toNumberOrUndefined(values.weight)
-		const genderValue = normalizeGenderValue(values.petGender)
-		const dateOfBirth = resolveDateOfBirth(values.petDateOfBirth, values.petAge)
 		const selectedServiceType = values.serviceType
 		const resolvedServiceName = selectedServiceType ? getServiceLabel(selectedServiceType, '') : ''
 
@@ -1257,16 +1265,6 @@ export default function RecordExaminationForm() {
 
 		if (!normalizedEmail) {
 			message.error(t('examForm.record.messages.emailRequiredError'))
-			return
-		}
-
-		if (!dateOfBirth) {
-			message.error(t('examForm.record.messages.petDobRequiredError'))
-			return
-		}
-
-		if (genderValue === undefined) {
-			message.error(t('examForm.record.messages.petGenderRequiredError'))
 			return
 		}
 
@@ -1576,8 +1574,8 @@ export default function RecordExaminationForm() {
 				setMappedMedicalId(medicalIdValue)
 			}
 
-			const ownerId = appointment?.petRaw?.owner?.id || appointment?.pet?.owner?.id
-			const existingOwnerPhone = normalizePhone(appointment?.petRaw?.owner?.phone || appointment?.pet?.owner?.phone || '')
+			const ownerId = appointment?.petRaw?.owner?.id || appointment?.pet?.owner?.id || editableMedicalRecord?.pet?.owner?.id
+			const existingOwnerPhone = normalizePhone(appointment?.petRaw?.owner?.phone || appointment?.pet?.owner?.phone || editableMedicalRecord?.pet?.owner?.phone || '')
 			if (ownerId && resolvedPhone && resolvedPhone !== existingOwnerPhone) {
 				await updateUserProfileApi(getAdminInstance(), ownerId, { phone: resolvedPhone }).catch((err) => {
 					console.warn('[RecordExamForm] Cập nhật SĐT khách hàng thất bại', err)
@@ -1669,7 +1667,7 @@ export default function RecordExaminationForm() {
 						/>
 					) : null}
 
-				{!isWalkIn && patientInfo ? (
+				{patientInfo ? (
 					<Card
 						className={styles.patientInfoCard}
 						title={
@@ -1863,19 +1861,10 @@ export default function RecordExaminationForm() {
 						<Form.Item name="breed" hidden>
 							<Input />
 						</Form.Item>
-						<Form.Item name="petGender" hidden>
-							<Input />
-						</Form.Item>
-						<Form.Item name="petDateOfBirth" hidden>
-							<Input />
-						</Form.Item>
-						<Form.Item name="petAge" hidden>
-							<Input />
-						</Form.Item>
 					</div>
 				) : null}
 
-				{isWalkIn ? (
+				{isWalkIn && !editableMedicalRecord ? (
 					<Card className={styles.sectionCard} title={<span><UserOutlined /> {t('examForm.record.sections.walkInCustomerPet')}</span>}>
 						<Row gutter={12}>
 							<Col xs={24} md={8}>
@@ -1955,39 +1944,6 @@ export default function RecordExaminationForm() {
 								</Form.Item>
 							</Col>
 
-							<Col xs={24} md={8}>
-								<Form.Item
-									label={t('examForm.record.fields.petGender')}
-									name="petGender"
-									rules={isWalkIn ? [{ required: true, message: t('examForm.record.validation.petGenderRequired') }] : []}
-								>
-									<Select
-										size="large"
-										placeholder={t('examForm.record.placeholders.petGender')}
-										options={genderSelectOptions}
-									/>
-								</Form.Item>
-							</Col>
-							<Col xs={24} md={8}>
-								<Form.Item label={t('examForm.record.fields.petDateOfBirth')} name="petDateOfBirth">
-									<DatePicker
-										format="DD/MM/YYYY"
-										placeholder={t('examForm.record.placeholders.date')}
-										className={styles.fullWidth}
-										disabledDate={(current) => current && current > dayjs().endOf('day')}
-									/>
-								</Form.Item>
-							</Col>
-							<Col xs={24} md={8}>
-								<Form.Item label={t('examForm.record.fields.petAge')} name="petAge">
-									<InputNumber
-										min={0}
-										max={50}
-										className={styles.fullWidth}
-										placeholder={t('examForm.record.placeholders.petAge')}
-									/>
-								</Form.Item>
-							</Col>
 						</Row>
 					</Card>
 				) : null}
