@@ -22,6 +22,32 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-17)
 
+### Cập nhật (2026-04-17) — Đơn giản hóa luồng Walk-in (khám cấp cứu) & loại bỏ tạo tài khoản FE
+
+**Vấn đề gốc:**
+- Walk-in flow gọi `registerApi` (POST /api/auth/register) với mật khẩu hardcode `Baophan1234` để tạo tài khoản khách hàng mới từ FE.
+- Mật khẩu hardcode là lỗ hổng bảo mật nghiêm trọng.
+- BE đã chuyển sang tự tạo tài khoản bên trong `POST /api/medical` (random password + email thông báo), nên FE không cần tạo nữa.
+
+**Fix FE đã triển khai:**
+- File sửa: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Xóa `import { registerApi }` và hằng số `EMERGENCY_TEMP_PASSWORD`.
+- Xóa `import { createPetApi }` (không còn gọi tạo pet riêng lẻ từ FE).
+- Viết lại hoàn toàn `handleWalkInSubmit`:
+  - Bỏ multi-step flow (checking owner → creating owner → checking pet → creating pet → saving).
+  - Luồng mới: validate → best-effort tìm user/pet hiện tại (nếu RBAC cho phép) → gọi POST /api/medical (có/không petId) → best-effort cập nhật SĐT cho user hiện tại → success.
+  - User lookup (`findExistingUserByEmail`) và pet lookup (`findPetByOwnerAndName`) đều fail-safe: nếu RBAC chặn (vet không có quyền GET /user) thì bỏ qua, để BE tự xử lý.
+- Đổi tên `findUserByEmail` → `findExistingUserByEmail`, cả 2 helper giờ dùng try/catch trả `null` thay vì throw.
+- Dọn i18n: xóa 8 key multi-step cũ (`walkInStepCheckingOwner`, `walkInStepCreatingOwner`, `walkInStepOwnerReady`, `walkInStepUpdatingOwner`, `walkInStepUpdateOwnerError`, `walkInStepCheckingPet`, `walkInStepCreatingPet`, `walkInStepPetReady`), giữ lại `walkInStepSaving` với text mới "Đang tạo phiếu khám..." / "Creating examination form...".
+- Luồng appointment (onFinish): đã đúng — dùng `appointment?.petRaw?.owner?.id` cho cập nhật SĐT, không thay đổi.
+
+**Regression:**
+- `npx vite build` → thành công (5960 modules transformed, built in ~16s).
+
+---
+
+## Lịch sử cập nhật trước (2026-04-17)
+
 ### Cập nhật bổ sung (2026-04-17) — Fix nhầm khóa thanh toán giữa 2 lịch hẹn gần nhau (Veterinarian RecordExaminationForm)
 
 **Triệu chứng thực tế:**

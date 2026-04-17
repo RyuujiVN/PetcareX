@@ -96,12 +96,18 @@
 				"formName": "TÊN PHIẾU KHÁM",
 				"action": "THAO TÁC"
 			},
+			"tabs": {
+				"appointments": "Theo lịch hẹn",
+				"walkIn": "Phiếu khám khẩn cấp"
+			},
 			"states": {
 				"empty": "Không có lịch hẹn theo ngày đã chọn",
+				"emptyWalkIn": "Không có phiếu khám khẩn cấp theo ngày đã chọn",
 				"notUpdated": "Chưa cập nhật"
 			},
 			"pagination": {
-				"summary": "Hiển thị {{shown}} trong số {{total}} lịch hẹn"
+				"summary": "Hiển thị {{shown}} trong số {{total}} lịch hẹn",
+				"walkInSummary": "Hiển thị {{shown}} trong số {{total}} phiếu khám"
 			},
 			"messages": {
 				"loadError": "Không thể tải danh sách phiếu khám",
@@ -310,15 +316,7 @@
 				"saveSuccessCreate": "Lưu hồ sơ thành công",
 				"saveSuccessUpdate": "Cập nhật phiếu khám thành công",
 				"saveError": "Không thể lưu hồ sơ",
-				"walkInStepCheckingOwner": "Đang kiểm tra tài khoản khách hàng...",
-				"walkInStepCreatingOwner": "Đang tạo tài khoản khách hàng...",
-				"walkInStepOwnerReady": "Đã sẵn sàng tài khoản khách hàng",
-				"walkInStepUpdatingOwner": "Đang cập nhật thông tin liên hệ khách hàng...",
-				"walkInStepUpdateOwnerError": "Không thể cập nhật thông tin liên hệ cho khách hàng",
-				"walkInStepCheckingPet": "Đang kiểm tra thú cưng...",
-				"walkInStepCreatingPet": "Đang tạo thú cưng mới...",
-				"walkInStepPetReady": "Đã sẵn sàng thú cưng",
-				"walkInStepSaving": "Đang lưu phiếu khám..."
+				"walkInStepSaving": "Đang tạo phiếu khám..."
 			},
 			"fallbacks": {
 				"recordName": "Phiếu khám",

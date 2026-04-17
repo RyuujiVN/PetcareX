@@ -45,7 +45,6 @@ import {
 	getMyAppointmentsApi,
 	updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
-import { registerApi } from '../../../services/authService'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
 import {
 	createMedicalMedicineApi,
@@ -62,7 +61,6 @@ import {
 	updateMedicalRecordApi
 } from '../../../services/medicalService'
 import {
-	createPetApi,
 	getBreedLabel,
 	getBreedsBySpeciesApi,
 	getPetByIdApi,
@@ -75,12 +73,12 @@ import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
-const EMERGENCY_TEMP_PASSWORD = 'Baophan1234'
 const VET_APPOINTMENT_MEDICAL_MAP_STORAGE_KEY = 'veterinarian:appointmentMedicalMap'
 
 const tVet = (key, options = {}) => i18n.t(key, { ns: 'vererianrian', ...options })
 
 const normalizeCollection = (payload) => {
+
 	if (Array.isArray(payload)) return payload
 	if (Array.isArray(payload?.items)) return payload.items
 	if (Array.isArray(payload?.data)) return payload.data
@@ -598,6 +596,7 @@ export default function RecordExaminationForm() {
 
 	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
 	const appointmentId = searchParams.get('appointmentId')
+	const walkInMedicalId = isWalkIn ? searchParams.get('medicalId') : null
 	const [mappedMedicalId, setMappedMedicalId] = useState(() =>
 		resolveAppointmentLinkedMedicalId(searchParams.get('appointmentId')),
 	)
@@ -722,6 +721,40 @@ export default function RecordExaminationForm() {
 			}
 
 			if (isWalkIn) {
+				// If reopening an existing walk-in record, hydrate it
+				if (walkInMedicalId) {
+					try {
+						const resolvedMedical = await getMedicalByIdApi(getAdminInstance(), walkInMedicalId).catch(() => null)
+						if (!resolvedMedical || !active) {
+							if (active) setIsResolvingExamState(false)
+							return
+						}
+
+						const [orders, medicines] = await Promise.all([
+							getMedicalOrdersByMedicalIdApi(getAdminInstance(), resolvedMedical.id).catch(() => []),
+							getMedicinesByMedicalIdApi(getAdminInstance(), resolvedMedical.id).catch(() => []),
+						])
+
+						if (!active) return
+
+						setEditableMedicalRecord(resolvedMedical)
+						setEditableMedicalOrders(Array.isArray(orders) ? orders : [])
+						setEditableMedicines(Array.isArray(medicines) ? medicines : [])
+
+						try {
+							const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), resolvedMedical.id)
+							if (active) {
+								setIsLockedByPayment(invoice?.status === INVOICE_STATUS.PAID)
+							}
+						} catch (invoiceErr) {
+							if (active) {
+								setIsLockedByPayment(invoiceErr?.response?.status === 404 ? false : false)
+							}
+						}
+					} catch {
+						// Ignore — form starts blank
+					}
+				}
 				if (active) {
 					setIsResolvingExamState(false)
 				}
@@ -865,7 +898,7 @@ export default function RecordExaminationForm() {
 		return () => {
 			active = false
 		}
-	}, [appointment, appointmentId, mappedMedicalId, isWalkIn])
+	}, [appointment, appointmentId, mappedMedicalId, isWalkIn, walkInMedicalId])
 
 	useEffect(() => {
 		let active = true
@@ -1140,7 +1173,7 @@ export default function RecordExaminationForm() {
 	}
 
 	const goBackToList = () => {
-		navigate('/veterinarian/exam-forms')
+		navigate(isWalkIn ? '/veterinarian/exam-forms?tab=walkin' : '/veterinarian/exam-forms')
 	}
 
 	const handleCancel = () => {
@@ -1166,14 +1199,14 @@ export default function RecordExaminationForm() {
 		})
 	}
 
-	const findUserByEmail = async (email) => {
+	const findExistingUserByEmail = async (email) => {
 		try {
 			const searchResponse = await getUserListApi(getAdminInstance(), 1, 50, email)
 			const payload = searchResponse.data
 			const users = normalizeCollection(payload)
 			return users.find((user) => normalizeEmail(user?.email) === email) || null
 		} catch {
-			throw new Error(t('examForm.record.messages.findUserError'))
+			return null
 		}
 	}
 
@@ -1184,7 +1217,7 @@ export default function RecordExaminationForm() {
 			const normalizedName = String(petName || '').trim().toLowerCase()
 			return pets.find((pet) => String(pet?.name || '').trim().toLowerCase() === normalizedName) || null
 		} catch {
-			throw new Error(t('examForm.record.messages.findPetError'))
+			return null
 		}
 	}
 
@@ -1244,66 +1277,23 @@ export default function RecordExaminationForm() {
 
 		try {
 			setSaving(true)
-			showWalkInStep(t('examForm.record.messages.walkInStepCheckingOwner'))
-
-			let owner = await findUserByEmail(normalizedEmail)
-			if (!owner) {
-				showWalkInStep(t('examForm.record.messages.walkInStepCreatingOwner'))
-				// Placeholder password; backend should replace with random password + email notification.
-				await registerApi(getAdminInstance(), {
-					fullName: values.customerName,
-					email: normalizedEmail,
-					password: EMERGENCY_TEMP_PASSWORD,
-				})
-				owner = await findUserByEmail(normalizedEmail)
-			}
-
-			if (!owner) {
-				throw new Error(t('examForm.record.messages.ownerResolveError'))
-			}
-
-			showWalkInStep(t('examForm.record.messages.walkInStepOwnerReady'), 'success')
-
-			const ownerId = owner?.id || owner?.user?.id
-			if (!ownerId) {
-				throw new Error(t('examForm.record.messages.ownerIdMissingError'))
-			}
-
-			showWalkInStep(t('examForm.record.messages.walkInStepUpdatingOwner'))
-			try {
-				await updateUserProfileApi(getAdminInstance(), ownerId, {
-					phone: normalizedPhone,
-					fullName: values.customerName,
-				})
-			} catch (updateErr) {
-				console.warn('[WalkIn] Update owner contact failed', updateErr)
-				message.warning(t('examForm.record.messages.walkInStepUpdateOwnerError'))
-			}
-
-			showWalkInStep(t('examForm.record.messages.walkInStepCheckingPet'))
-			let pet = await findPetByOwnerAndName(ownerId, values.petName)
-			if (!pet) {
-				showWalkInStep(t('examForm.record.messages.walkInStepCreatingPet'))
-				pet = await createPetApi(getAdminInstance(), {
-					ownerId,
-					name: values.petName,
-					species: values.species,
-					breed: values.breed,
-					gender: genderValue,
-					dateOfBirth,
-					weight,
-				})
-			}
-
-			if (!pet?.id) {
-				throw new Error(t('examForm.record.messages.petResolveError'))
-			}
-
-			showWalkInStep(t('examForm.record.messages.walkInStepPetReady'), 'success')
-
 			showWalkInStep(t('examForm.record.messages.walkInStepSaving'))
+
+			// Best-effort: look up existing user + pet to resolve petId
+			// (RBAC may block vet from user/pet lookup — if so, skip and let BE handle)
+			let resolvedPetId = undefined
+			let existingOwnerId = undefined
+			const existingOwner = await findExistingUserByEmail(normalizedEmail)
+			if (existingOwner) {
+				existingOwnerId = existingOwner?.id || existingOwner?.user?.id
+				if (existingOwnerId) {
+					const existingPet = await findPetByOwnerAndName(existingOwnerId, values.petName)
+					if (existingPet?.id) resolvedPetId = existingPet.id
+				}
+			}
+
 			const createPayload = {
-				petId: pet.id,
+				...(resolvedPetId ? { petId: resolvedPetId } : {}),
 				species: values.species,
 				breed: values.breed,
 				petName: values.petName,
@@ -1400,6 +1390,15 @@ export default function RecordExaminationForm() {
 						})
 					}),
 			)
+
+			// Best-effort: update phone for existing user (new user already has phone from BE)
+			if (existingOwnerId && normalizedPhone) {
+				try {
+					await updateUserProfileApi(getAdminInstance(), existingOwnerId, { phone: normalizedPhone })
+				} catch (updateErr) {
+					console.warn('[WalkIn] Update owner phone failed (non-blocking)', updateErr)
+				}
+			}
 
 			showWalkInStep(t('examForm.record.messages.walkInSaveSuccess'), 'success')
 			goBackToList()

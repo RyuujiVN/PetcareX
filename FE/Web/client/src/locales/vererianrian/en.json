@@ -96,12 +96,18 @@
 				"formName": "FORM NAME",
 				"action": "ACTION"
 			},
+			"tabs": {
+				"appointments": "By appointment",
+				"walkIn": "Walk-in records"
+			},
 			"states": {
 				"empty": "No appointments on the selected date",
+				"emptyWalkIn": "No walk-in records on the selected date",
 				"notUpdated": "Not updated"
 			},
 			"pagination": {
-				"summary": "Showing {{shown}} of {{total}} appointments"
+				"summary": "Showing {{shown}} of {{total}} appointments",
+				"walkInSummary": "Showing {{shown}} of {{total}} records"
 			},
 			"messages": {
 				"loadError": "Unable to load examination form list",
@@ -310,15 +316,7 @@
 				"saveSuccessCreate": "Record saved successfully",
 				"saveSuccessUpdate": "Examination form updated successfully",
 				"saveError": "Unable to save record",
-				"walkInStepCheckingOwner": "Checking customer account...",
-				"walkInStepCreatingOwner": "Creating customer account...",
-				"walkInStepOwnerReady": "Customer account is ready",
-				"walkInStepUpdatingOwner": "Updating customer contact info...",
-				"walkInStepUpdateOwnerError": "Failed to update customer contact info",
-				"walkInStepCheckingPet": "Checking pet...",
-				"walkInStepCreatingPet": "Creating new pet...",
-				"walkInStepPetReady": "Pet is ready",
-				"walkInStepSaving": "Saving examination form..."
+				"walkInStepSaving": "Creating examination form..."
 			},
 			"fallbacks": {
 				"recordName": "Examination form",
