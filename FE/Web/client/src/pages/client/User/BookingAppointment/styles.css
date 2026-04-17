@@ -235,6 +235,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-radius: 999px;
+
   margin-bottom: 0 auto;
   color: var(--color-text-primary);
   font-weight: 700;
@@ -274,7 +276,7 @@
 .calendar-grid-body {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  grid-template-rows: repeat(6, minmax(46px, auto));
+  grid-auto-rows: minmax(46px, auto);
   gap: 8px;
 }
 
@@ -430,7 +432,7 @@
 .time-slots {
   display: flex;
   flex-direction: column;
-  gap: 45px;
+  gap: 12px;
 }
 
 .lead-time-note {
@@ -469,10 +471,10 @@
 .slots-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(130px, 1fr));
-  gap: 12px;
+  gap: 13px;
 }
 .slot {
-  padding: 20px 12px;
+  padding: 17px 12px;
   border: 1px solid #dce5ef;
   border-radius: 14px;
   text-align: center;

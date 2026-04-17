@@ -6,11 +6,10 @@ import {
     SmileOutlined,
     SunOutlined,
     UserOutlined,
-    LeftOutlined,
-    RightOutlined,
 } from '@ant-design/icons';
 import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import { BsArrowRightShort, BsArrowLeftShort } from "react-icons/bs";
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SERVICE_TO_SPECIALTY_MAP } from '../../../../constants/enumLabels';
@@ -342,8 +341,47 @@ export default function BookingAppointment() {
       }
     }
 
-    while (weeks.length < 6) {
-      weeks.push(new Array(7).fill(null));
+    // Compact mode: if month spills into a 6th row, move those trailing days
+    // into the first row's leading empty slots to avoid a nearly-empty last row.
+    if (weeks.length === 6) {
+      const firstWeek = [...weeks[0]];
+      const lastWeek = [...weeks[weeks.length - 1]];
+
+      const leadingEmptyIndexes = [];
+      for (let i = 0; i < firstWeek.length; i += 1) {
+        if (firstWeek[i] === null) {
+          leadingEmptyIndexes.push(i);
+        } else {
+          break;
+        }
+      }
+
+      const trailingDayIndexes = [];
+      for (let i = 0; i < lastWeek.length; i += 1) {
+        if (lastWeek[i] !== null) {
+          trailingDayIndexes.push(i);
+        } else {
+          break;
+        }
+      }
+
+      if (
+        trailingDayIndexes.length > 0 &&
+        trailingDayIndexes.length <= leadingEmptyIndexes.length
+      ) {
+        trailingDayIndexes.forEach((fromIndex, moveIndex) => {
+          const targetIndex = leadingEmptyIndexes[moveIndex];
+          firstWeek[targetIndex] = lastWeek[fromIndex];
+          lastWeek[fromIndex] = null;
+        });
+
+        weeks[0] = firstWeek;
+        if (lastWeek.every((day) => day === null)) {
+          weeks.pop();
+        } else {
+          weeks[weeks.length - 1] = lastWeek;
+        }
+      }
     }
 
     return weeks;
@@ -747,9 +785,9 @@ export default function BookingAppointment() {
               <div className="date-time-selector">
                 <div className="calendar">
                   <div className="month-header" style={{color: 'white', backgroundColor: 'var(--color-brand-primary)'}}>
-                    <button type="button" onClick={prevMonth} style={{color: 'white'}}><LeftOutlined /></button>
+                    <button type="button" onClick={prevMonth} style={{color: 'white', fontSize: 30}}><BsArrowLeftShort /></button>
                     <span>{t('pages.booking.calendar.monthLabel', { month: calendarMonth + 1, year: calendarYear })}</span>
-                    <button type="button" onClick={nextMonth} style={{color: 'white'}}><RightOutlined /></button>
+                    <button type="button" onClick={nextMonth} style={{color: 'white', fontSize: 30}}><BsArrowRightShort /></button>
                   </div>
                   <div className="calendar-grid-head" style={{color: 'var(--color-text-primary)'}}>
                     <span>{t('pages.booking.calendar.days.sun')}</span>
