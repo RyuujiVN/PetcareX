@@ -235,7 +235,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 0 auto;
   color: var(--color-text-primary);
   font-weight: 700;
   font-size: 18px;
@@ -245,16 +245,16 @@
   background: transparent;
   border: none;
   width: 32px;
-  height: 32px;
+  height: 52px;
   border-radius: 999px;
-  font-size: 24px;
+  font-size: 26px;
   color: #1f2f49;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .calendar .month-header button:hover {
-  background: #eff3fa;
+  color: var(--color-brand-primary);
 }
 
 .calendar-grid-head {
@@ -274,6 +274,7 @@
 .calendar-grid-body {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: repeat(6, minmax(46px, auto));
   gap: 8px;
 }
 
@@ -429,7 +430,7 @@
 .time-slots {
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 45px;
 }
 
 .lead-time-note {
@@ -456,12 +457,12 @@
   align-items: center;
   gap: 8px;
   color: #335f97;
-  font-size: 26px;
+  font-size: 20px;
   font-weight: 700;
 }
 
 .time-slot-icon {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
 }
 
@@ -471,7 +472,7 @@
   gap: 12px;
 }
 .slot {
-  padding: 14px 12px;
+  padding: 20px 12px;
   border: 1px solid #dce5ef;
   border-radius: 14px;
   text-align: center;

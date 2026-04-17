@@ -145,6 +145,7 @@
 .header-notification-popover .ant-popover-inner {
     border-radius: 16px;
     padding: 0;
+    cursor: pointer;
     overflow: hidden;
 }
 

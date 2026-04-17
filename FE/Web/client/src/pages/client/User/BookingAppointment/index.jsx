@@ -6,6 +6,8 @@ import {
     SmileOutlined,
     SunOutlined,
     UserOutlined,
+    LeftOutlined,
+    RightOutlined,
 } from '@ant-design/icons';
 import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
@@ -338,6 +340,10 @@ export default function BookingAppointment() {
         weeks.push(week);
         week = new Array(7).fill(null);
       }
+    }
+
+    while (weeks.length < 6) {
+      weeks.push(new Array(7).fill(null));
     }
 
     return weeks;
@@ -717,7 +723,6 @@ export default function BookingAppointment() {
                   label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('common.labels.symptom')}</span>}
                   name="symptoms"
                   rules={[
-                    { required: true, message: t('pages.booking.validation.symptomsRequired') },
                     { validator: validateSymptoms },
                   ]}
                 >
@@ -741,10 +746,10 @@ export default function BookingAppointment() {
               </div>
               <div className="date-time-selector">
                 <div className="calendar">
-                  <div className="month-header" style={{color: 'var(--color-text-primary)'}}>
-                    <button type="button" onClick={prevMonth}>&lt;</button>
+                  <div className="month-header" style={{color: 'white', backgroundColor: 'var(--color-brand-primary)'}}>
+                    <button type="button" onClick={prevMonth} style={{color: 'white'}}><LeftOutlined /></button>
                     <span>{t('pages.booking.calendar.monthLabel', { month: calendarMonth + 1, year: calendarYear })}</span>
-                    <button type="button" onClick={nextMonth}>&gt;</button>
+                    <button type="button" onClick={nextMonth} style={{color: 'white'}}><RightOutlined /></button>
                   </div>
                   <div className="calendar-grid-head" style={{color: 'var(--color-text-primary)'}}>
                     <span>{t('pages.booking.calendar.days.sun')}</span>
