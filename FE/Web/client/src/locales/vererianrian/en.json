@@ -85,7 +85,7 @@
 		"list": {
 			"title": "Examination form list",
 			"actions": {
-				"createWalkIn": "Emergency Examination Form",
+				"createWalkIn": "Walk-in Examination",
 				"create": "Create form",
 				"open": "Open form"
 			},
@@ -94,20 +94,19 @@
 				"owner": "OWNER",
 				"createdDate": "CREATED DATE",
 				"formName": "FORM NAME",
+				"type": "TYPE",
 				"action": "ACTION"
 			},
-			"tabs": {
-				"appointments": "By appointment",
-				"walkIn": "Walk-in records"
+			"badges": {
+				"appointment": "Appointment",
+				"walkIn": "Walk-in"
 			},
 			"states": {
-				"empty": "No appointments on the selected date",
-				"emptyWalkIn": "No walk-in records on the selected date",
+				"empty": "No examination forms to display",
 				"notUpdated": "Not updated"
 			},
 			"pagination": {
-				"summary": "Showing {{shown}} of {{total}} appointments",
-				"walkInSummary": "Showing {{shown}} of {{total}} records"
+				"summary": "Showing {{shown}} of {{total}} forms"
 			},
 			"messages": {
 				"loadError": "Unable to load examination form list",
@@ -312,6 +311,7 @@
 				"medicalIdMissingError": "No medical record ID returned from system",
 				"walkInSaveSuccess": "Walk-in examination form saved successfully",
 				"walkInSaveError": "Unable to create walk-in examination form",
+				"ownerContactMissing": "Owner email/phone are not stored on walk-in records",
 				"petMissingError": "Pet not found from appointment. Please reselect appointment before saving",
 				"saveSuccessCreate": "Record saved successfully",
 				"saveSuccessUpdate": "Examination form updated successfully",
@@ -384,7 +384,8 @@
 				"conclusion": "Conclusion",
 				"doctorAdvice": "Doctor advice",
 				"orders": "Lab orders",
-				"medicines": "Prescription"
+				"medicines": "Prescription",
+				"veterinarian": "Veterinarian"
 			},
 			"pet": {
 				"nameFallback": "No pet data",

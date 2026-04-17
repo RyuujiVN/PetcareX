@@ -84,6 +84,54 @@
 	background: var(--vet-color-surface-card);
 }
 
+.ownerSection {
+	margin-top: 10px;
+	padding: 12px 18px;
+	background: var(--vet-color-surface-card);
+	border: 1px solid var(--vet-color-border-soft);
+	border-radius: 14px;
+	box-shadow: var(--vet-shadow-card);
+}
+
+.ownerMainInfo {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.ownerIcon {
+	font-size: 36px;
+	color: var(--vet-color-brand-primary);
+	flex-shrink: 0;
+}
+
+.ownerDetails {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px 16px;
+}
+
+.ownerName {
+	font-size: 15px;
+	font-weight: 700;
+	color: var(--vet-color-text-primary);
+}
+
+.ownerContact {
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--vet-color-text-secondary);
+}
+
+.vetName {
+	display: block;
+	font-size: 13px;
+	font-weight: 600;
+	color: var(--vet-color-text-secondary);
+	margin-top: 2px;
+}
+
 .timelinePanel {
 	margin-top: 12px;
 	padding: 14px;
