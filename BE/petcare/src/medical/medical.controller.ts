@@ -37,7 +37,6 @@ export class MedicalController {
   constructor(private readonly medicalService: MedicalService) {}
 
   // ------------------------ Phiếu khám -----------------------------
-
   @Get('clinic')
   @RequiredRole(RoleEnum.ADMIN_CLINIC, RoleEnum.VETERINARIAN)
   @ApiOperation({ summary: 'Lấy danh sách phiếu khám bên phòng khám' })
@@ -52,6 +51,23 @@ export class MedicalController {
       page,
       limit,
       clinicId: req?.user?.clinicId,
+    });
+  }
+
+  @Get('veterinarian')
+  @RequiredRole(RoleEnum.VETERINARIAN)
+  @ApiOperation({ summary: 'Lấy danh sách phiếu khám bên phòng khám' })
+  @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
+  @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
+  getAllMedicalRecordOfVeterianrian(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(1), ParseIntPipe) limit: number,
+    @Req() req,
+  ) {
+    return this.medicalService.findAllPaginationByVeterinarian({
+      page,
+      limit,
+      veterinarianId: req?.user?.id,
     });
   }
 

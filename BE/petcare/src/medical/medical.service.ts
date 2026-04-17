@@ -279,6 +279,37 @@ export class MedicalService {
     return paginate<MedicalRecord>(queryBuilder, options);
   }
 
+  // Danh sách phiếu khám theo bác sĩ
+  async findAllPaginationByVeterinarian(
+    options: MedicalRecordPagination,
+  ): Promise<Pagination<MedicalRecord>> {
+    const queryBuilder = this.medicalRecordRepository
+      .createQueryBuilder('medical_record')
+      .leftJoin('medical_record.pet', 'pet')
+      .leftJoin('pet.owner', 'owner')
+      .where('medical_record.veterinarianId = :veterinarianId', {
+        veterinarianId: options.veterinarianId,
+      })
+      .select([
+        'medical_record.id',
+        'medical_record.name',
+        'medical_record.createdAt',
+        'medical_record.followUpDate',
+
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+        'pet.species',
+        'pet.breed',
+
+        'owner.id',
+        'owner.fullName',
+      ])
+      .orderBy('medical_record.createdAt', 'DESC');
+
+    return paginate<MedicalRecord>(queryBuilder, options);
+  }
+
   // Danh sách phiếu khám theo pet của user
   async findAllPaginationByPet(options: MedicalRecordPagination) {
     const queryBuilder = this.medicalRecordRepository
