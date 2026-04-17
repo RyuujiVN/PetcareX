@@ -22,6 +22,84 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-17)
 
+### Cập nhật bổ sung (2026-04-17) — Fix nhầm khóa thanh toán giữa 2 lịch hẹn gần nhau (Veterinarian RecordExaminationForm)
+
+**Triệu chứng thực tế:**
+- Cùng 1 thú cưng đặt 2 lịch hẹn gần nhau (cùng bác sĩ/phòng khám), sau khi lịch 1 đã thanh toán thì mở lịch 2 ở màn `RecordExaminationForm` có thể bị báo khóa do đã thanh toán.
+- Form của lịch 2 bị prefill dữ liệu từ phiếu khám cũ (lịch 1), dẫn đến nguy cơ ghi đè sai hồ sơ.
+
+**Nguyên nhân gốc đã xác nhận:**
+- FE đang dùng heuristic `selectMedicalRecordByAppointment` để đoán phiếu khám theo `pet + cùng ngày + gần giờ`, thay vì liên kết định danh tường minh theo appointment.
+- Khi có 2 lịch gần giờ, heuristic có thể match nhầm sang medical record cũ đã `PAID`.
+- API `GET /appointment/my` (role VETERINARIAN) hiện không trả `medical.id`, nên FE thiếu khóa liên kết chắc chắn giữa lịch hẹn và phiếu khám.
+
+**Fix FE đã triển khai (an toàn, không sửa BE):**
+- File sửa: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Gỡ hoàn toàn heuristic match theo thời gian gần đúng.
+- Chỉ hydrate phiếu khám khi có liên kết định danh rõ ràng:
+  - `appointment.medical.id` (nếu BE trả về), hoặc
+  - map cục bộ `appointmentId -> medicalId` trong localStorage key `veterinarian:appointmentMedicalMap`.
+- Mỗi lần vào appointment mới, reset ngay `editableMedicalRecord/orders/medicines` trước khi hydrate để tránh "rò" UI từ phiếu trước.
+- Sau khi tạo/cập nhật phiếu khám thành công, lưu lại map `appointmentId -> medicalId` để lần mở lại sau khớp đúng record.
+- Nếu map cục bộ bị stale (medical id không còn thuộc pet/clinic hiện tại), FE tự xóa map stale và không auto-link.
+
+**Kết quả mong đợi sau fix:**
+- Lịch hẹn 2 không còn bị khóa thanh toán nhầm bởi invoice của lịch 1.
+- Dữ liệu form không còn tự kéo từ phiếu cũ chỉ vì "gần giờ".
+
+**Regression:**
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` → không lỗi.
+- `npx vite build` → thành công (5960 modules transformed, built in ~13s).
+
+**⚠️ BE cần báo lại dev (không thể giải quyết dứt điểm chỉ bằng FE):**
+1. `GET /appointment/my` cần trả liên kết medical định danh (`medical.id` hoặc `medicalRecordId`) cho từng appointment.
+2. Nên bổ sung liên kết dữ liệu cứng giữa appointment và medical record (ví dụ `appointment_id` trong bảng `medical_record`, unique theo nghiệp vụ) để triệt tiêu hoàn toàn việc FE phải đoán.
+3. Có thể cân nhắc endpoint truy vấn theo appointment (ví dụ `GET /medical/by-appointment/:appointmentId`) để mở đúng phiếu khám mà không phụ thuộc cache cục bộ.
+
+### Cập nhật bổ sung (2026-04-17) — Follow-up: mở lại phiếu khám đã tạo khi thiếu liên kết định danh
+
+**Bối cảnh phát sinh sau bản fix trước:**
+- Sau khi bỏ hoàn toàn heuristic theo giờ để tránh lock nhầm, một số lịch hẹn đã tạo phiếu nhưng thiếu `medicalId` trong payload `/appointment/my` và chưa có map local sẽ hiển thị như "chưa từng tạo phiếu" khi mở lại.
+
+**Fix FE follow-up đã triển khai:**
+- File sửa tiếp: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Thêm fallback có điều kiện `inferMedicalRecordForCompletedAppointment(records, appointment)`:
+  - **Chỉ chạy khi appointment status = `COMPLETED`**.
+  - Match chặt theo cùng `appointmentDate` (theo ngày), `clinicId`, `petName`, `service`.
+  - Ưu tiên record có `createdAt` gần `appointmentTime` nhất (cửa sổ strict 12 giờ).
+- Nếu infer thành công, FE tự persist lại map `appointmentId -> medicalId` vào localStorage để lần mở sau dùng link định danh trực tiếp.
+
+**Guard để không quay lại bug cũ:**
+- Fallback infer **không chạy** cho trạng thái `BOOKED/IN_PROGRESS`, nên không còn tự kéo nhầm phiếu đã thanh toán của lịch hẹn khác trong ngày.
+
+**Regression (follow-up):**
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` → không lỗi.
+- `npx vite build` → thành công (5960 modules transformed, built in ~13.6s).
+
+### Cập nhật bổ sung (2026-04-17) — UX fix: bỏ hiện tượng "chớp" trạng thái phiếu khám khi mở lại
+
+**Triệu chứng:**
+- Khi mở lại phiếu đã hoàn thành, UI có thể chớp alert: thoáng hiện trạng thái "đang chỉnh sửa" rồi mới chuyển sang "đã khóa sau thanh toán".
+
+**Nguyên nhân:**
+- Trước đó trạng thái payment lock được hydrate ở effect riêng, đến sau effect hydrate medical record nên có một khoảng ngắn render trạng thái trung gian.
+
+**Fix FE đã triển khai:**
+- File: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Gom resolve `medical record + invoice lock` vào cùng luồng hydrate ban đầu của phiếu khám.
+- Thêm state `isResolvingExamState` để:
+  - tạm khóa form trong lúc resolve trạng thái,
+  - chỉ render các alert trạng thái (notCreated/editable/paymentLocked) sau khi resolve xong.
+- Bỏ effect hydrate payment lock riêng để tránh race condition render.
+
+**Kết quả UX:**
+- Không còn hiệu ứng chớp trạng thái khi mở phiếu khám đã hoàn thành.
+- Người dùng chỉ thấy trạng thái cuối cùng, đúng với dữ liệu thực tế.
+
+**Regression (UX fix):**
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` → không lỗi.
+- `npx vite build` → thành công (5960 modules transformed, built in ~18s).
+
 ### Cập nhật bổ sung (2026-04-17) — 3 nhóm: SĐT trong phiếu khám + Tối ưu Clinic Chart + Đổi trang Admin Revenue → Activity
 
 **Nhóm 1 — Cập nhật SĐT khách hàng khi tạo phiếu khám:**

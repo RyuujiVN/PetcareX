@@ -1,35 +1,35 @@
 ﻿import {
-    DeleteOutlined,
-    DownOutlined,
-    ExperimentOutlined,
-    HeartOutlined,
-    InfoCircleOutlined,
-    ManOutlined,
-    MedicineBoxOutlined,
-    PlusCircleOutlined,
-    SaveOutlined,
-    UpOutlined,
-    UserOutlined,
-    WarningOutlined,
-    WomanOutlined,
+	DeleteOutlined,
+	DownOutlined,
+	ExperimentOutlined,
+	HeartOutlined,
+	InfoCircleOutlined,
+	ManOutlined,
+	MedicineBoxOutlined,
+	PlusCircleOutlined,
+	SaveOutlined,
+	UpOutlined,
+	UserOutlined,
+	WarningOutlined,
+	WomanOutlined,
 } from '@ant-design/icons'
 import {
-    Alert,
-    Button,
-    Card,
-    Checkbox,
-    Col,
-    DatePicker,
-    Divider,
-    Form,
-    Input,
-    InputNumber,
-    message,
-    Modal,
-    Row,
-    Select,
-    Spin,
-    Tabs,
+	Alert,
+	Button,
+	Card,
+	Checkbox,
+	Col,
+	DatePicker,
+	Divider,
+	Form,
+	Input,
+	InputNumber,
+	message,
+	Modal,
+	Row,
+	Select,
+	Spin,
+	Tabs,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -40,35 +40,35 @@ import { ServiceEnum } from '../../../enum/service.enum'
 import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
-    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-    APPOINTMENT_STATUS,
-    getMyAppointmentsApi,
-    updateAppointmentStatusApi,
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+	APPOINTMENT_STATUS,
+	getMyAppointmentsApi,
+	updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { registerApi } from '../../../services/authService'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
 import {
-    createMedicalMedicineApi,
-    createMedicalOrderApi,
-    createMedicalRecordApi,
-    deleteMedicalOrderApi,
-    deleteMedicineApi,
-    getMedicalByIdApi,
-    getMedicalByPetIClinicdApi,
-    getMedicalOrderCatalogApi,
-    getMedicalOrdersByMedicalIdApi,
-    getMedicineCatalogApi,
-    getMedicinesByMedicalIdApi,
-    updateMedicalRecordApi
+	createMedicalMedicineApi,
+	createMedicalOrderApi,
+	createMedicalRecordApi,
+	deleteMedicalOrderApi,
+	deleteMedicineApi,
+	getMedicalByIdApi,
+	getMedicalByPetIClinicdApi,
+	getMedicalOrderCatalogApi,
+	getMedicalOrdersByMedicalIdApi,
+	getMedicineCatalogApi,
+	getMedicinesByMedicalIdApi,
+	updateMedicalRecordApi
 } from '../../../services/medicalService'
 import {
-    createPetApi,
-    getBreedLabel,
-    getBreedsBySpeciesApi,
-    getPetByIdApi,
-    getPetsByOwnerApi,
-    getPetSpeciesApi,
-    getSpeciesLabel,
+	createPetApi,
+	getBreedLabel,
+	getBreedsBySpeciesApi,
+	getPetByIdApi,
+	getPetsByOwnerApi,
+	getPetSpeciesApi,
+	getSpeciesLabel,
 } from '../../../services/petService'
 import { getUserListApi, updateUserProfileApi } from '../../../services/userService'
 import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
@@ -76,6 +76,7 @@ import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
 
 const EMERGENCY_TEMP_PASSWORD = 'Baophan1234'
+const VET_APPOINTMENT_MEDICAL_MAP_STORAGE_KEY = 'veterinarian:appointmentMedicalMap'
 
 const tVet = (key, options = {}) => i18n.t(key, { ns: 'vererianrian', ...options })
 
@@ -138,7 +139,7 @@ const parseLegacyBloodPressure = (value) => {
 		}
 	}
 
-	const segments = normalized.split(/[\/-]/).map((item) => toNumberOrUndefined(item))
+	const segments = normalized.split(/[/-]/).map((item) => toNumberOrUndefined(item))
 	if (segments.length >= 2) {
 		return {
 			systolic: segments[0],
@@ -297,6 +298,73 @@ const resolveServiceTypeFromName = (name) => {
 	)
 }
 
+const readAppointmentMedicalMap = () => {
+	if (typeof window === 'undefined') return {}
+
+	try {
+		const raw = window.localStorage.getItem(VET_APPOINTMENT_MEDICAL_MAP_STORAGE_KEY)
+		if (!raw) return {}
+		const parsed = JSON.parse(raw)
+		return parsed && typeof parsed === 'object' ? parsed : {}
+	} catch {
+		return {}
+	}
+}
+
+const resolveAppointmentLinkedMedicalId = (appointmentId) => {
+	const appointmentKey = String(appointmentId || '').trim()
+	if (!appointmentKey) return ''
+
+	const map = readAppointmentMedicalMap()
+	const entry = map[appointmentKey]
+
+	if (typeof entry === 'string') return entry
+	if (entry && typeof entry === 'object' && entry.medicalId) {
+		return String(entry.medicalId)
+	}
+
+	return ''
+}
+
+const persistAppointmentMedicalLink = (appointmentId, medicalId) => {
+	const appointmentKey = String(appointmentId || '').trim()
+	const medicalKey = String(medicalId || '').trim()
+	if (!appointmentKey || !medicalKey || typeof window === 'undefined') return
+
+	try {
+		const map = readAppointmentMedicalMap()
+		map[appointmentKey] = {
+			medicalId: medicalKey,
+			updatedAt: new Date().toISOString(),
+		}
+
+		window.localStorage.setItem(
+			VET_APPOINTMENT_MEDICAL_MAP_STORAGE_KEY,
+			JSON.stringify(map),
+		)
+	} catch {
+		// Ignore localStorage write errors (private mode, quota, etc.).
+	}
+}
+
+const removeAppointmentMedicalLink = (appointmentId) => {
+	const appointmentKey = String(appointmentId || '').trim()
+	if (!appointmentKey || typeof window === 'undefined') return
+
+	try {
+		const map = readAppointmentMedicalMap()
+		if (!(appointmentKey in map)) return
+		delete map[appointmentKey]
+
+		window.localStorage.setItem(
+			VET_APPOINTMENT_MEDICAL_MAP_STORAGE_KEY,
+			JSON.stringify(map),
+		)
+	} catch {
+		// Ignore localStorage write errors (private mode, quota, etc.).
+	}
+}
+
 const toDayStamp = (value) => {
 	if (!value) return ''
 	const date = new Date(value)
@@ -316,50 +384,71 @@ const toDateTime = (appointmentDate, appointmentTime) => {
 	return Number.isNaN(candidate.getTime()) ? null : candidate
 }
 
-const selectMedicalRecordByAppointment = (records, appointment) => {
+const inferMedicalRecordForCompletedAppointment = (records, appointment) => {
 	if (!Array.isArray(records) || records.length === 0 || !appointment) return null
 
+	const appointmentStatus = String(appointment?.status || '').toUpperCase()
+	if (appointmentStatus !== APPOINTMENT_STATUS.COMPLETED) return null
+
 	const appointmentDay = toDayStamp(appointment?.appointmentDate)
-	const appointmentDateTime = toDateTime(appointment?.appointmentDate, appointment?.appointmentTime)
+	if (!appointmentDay) return null
+
 	const appointmentClinicId = String(appointment?.clinicId || appointment?.clinic?.id || '')
+	const appointmentPetName = String(
+		appointment?.petName || appointment?.petRaw?.name || appointment?.pet?.name || '',
+	).trim().toLowerCase()
+	const appointmentServiceName = String(
+		getServiceLabel(appointment?.service, appointment?.service || appointment?.formName || '') ||
+			appointment?.formName ||
+			'',
+	).trim().toLowerCase()
+	const appointmentDateTime = toDateTime(appointment?.appointmentDate, appointment?.appointmentTime)
 
-	const ranked = records
+	const candidates = records.filter((record) => {
+		if (toDayStamp(record?.createdAt) !== appointmentDay) return false
+
+		const recordClinicId = String(record?.clinicId || record?.clinic?.id || '')
+		if (appointmentClinicId && recordClinicId && appointmentClinicId !== recordClinicId) return false
+
+		const recordPetName = String(record?.petName || record?.pet?.name || '').trim().toLowerCase()
+		if (appointmentPetName && recordPetName && appointmentPetName !== recordPetName) return false
+
+		const recordServiceName = String(record?.name || '').trim().toLowerCase()
+		if (appointmentServiceName && recordServiceName && appointmentServiceName !== recordServiceName) return false
+
+		return true
+	})
+
+	if (candidates.length === 0) return null
+
+	const ranked = candidates
 		.map((record) => {
-			let score = 0
-
-			if (appointmentDay && toDayStamp(record?.createdAt) === appointmentDay) {
-				score += 100
-			}
-
-			if (appointmentClinicId && String(record?.clinicId || record?.clinic?.id || '') === appointmentClinicId) {
-				score += 40
-			}
-
-			const recordCreatedTime = new Date(record?.createdAt || 0).getTime()
-			if (appointmentDateTime && Number.isFinite(recordCreatedTime) && recordCreatedTime > 0) {
-				const diffHours = Math.abs(recordCreatedTime - appointmentDateTime.getTime()) / (1000 * 60 * 60)
-				score += Math.max(0, 24 - diffHours)
-			}
+			const createdAt = new Date(record?.createdAt || 0).getTime()
+			const diffMs =
+				appointmentDateTime && Number.isFinite(createdAt) && createdAt > 0
+					? Math.abs(createdAt - appointmentDateTime.getTime())
+					: Number.POSITIVE_INFINITY
 
 			return {
 				record,
-				score,
-				createdAt: recordCreatedTime,
+				createdAt,
+				diffMs,
 			}
 		})
-		.sort((a, b) => {
-			if (b.score !== a.score) return b.score - a.score
-			return b.createdAt - a.createdAt
-		})
+		.filter((item) => Boolean(item?.record?.id))
 
-	const best = ranked[0]
-	if (!best) return null
+	if (ranked.length === 0) return null
 
-	if (appointmentDay && best.score < 90) {
-		return null
-	}
+	const strictWindowMs = 12 * 60 * 60 * 1000
+	const strictMatches = ranked.filter((item) => Number.isFinite(item.diffMs) && item.diffMs <= strictWindowMs)
+	const source = strictMatches.length > 0 ? strictMatches : ranked
 
-	return best.record || null
+	source.sort((a, b) => {
+		if (a.diffMs !== b.diffMs) return a.diffMs - b.diffMs
+		return b.createdAt - a.createdAt
+	})
+
+	return source[0]?.record || null
 }
 
 const buildInitialValues = (
@@ -460,6 +549,7 @@ const toAppointmentViewModel = (item) => {
 
 	return {
 		appointmentId: item?.id,
+		status: item?.status,
 		service: item?.service,
 		appointmentDate: item?.appointmentDate || null,
 		appointmentTime: item?.appointmentTime || '',
@@ -496,6 +586,7 @@ export default function RecordExaminationForm() {
 	const [editableMedicalOrders, setEditableMedicalOrders] = useState([])
 	const [editableMedicines, setEditableMedicines] = useState([])
 	const [isLockedByPayment, setIsLockedByPayment] = useState(false)
+	const [isResolvingExamState, setIsResolvingExamState] = useState(true)
 	const [isDirty, setIsDirty] = useState(false)
 	const enableFollowUpDate = Form.useWatch('enableFollowUpDate', form)
 	const [historyLoading, setHistoryLoading] = useState(false)
@@ -507,8 +598,15 @@ export default function RecordExaminationForm() {
 
 	const isWalkIn = String(searchParams.get('mode') || '').toLowerCase() === 'walkin'
 	const appointmentId = searchParams.get('appointmentId')
+	const [mappedMedicalId, setMappedMedicalId] = useState(() =>
+		resolveAppointmentLinkedMedicalId(searchParams.get('appointmentId')),
+	)
 	const editableMedicalId = editableMedicalRecord?.id || appointment?.medical?.id || ''
-	const isReadOnlyForm = isLockedByPayment
+	const isReadOnlyForm = isLockedByPayment || (!isWalkIn && isResolvingExamState)
+
+	useEffect(() => {
+		setMappedMedicalId(resolveAppointmentLinkedMedicalId(appointmentId))
+	}, [appointmentId])
 
 	const historyPetId = useMemo(() => {
 		return (
@@ -619,14 +717,36 @@ export default function RecordExaminationForm() {
 		let active = true
 
 		const hydrateLatestMedicalRecord = async () => {
+			if (active && !isWalkIn) {
+				setIsResolvingExamState(true)
+			}
+
+			if (isWalkIn) {
+				if (active) {
+					setIsResolvingExamState(false)
+				}
+				return
+			}
+
 			const petId = appointment?.petRaw?.id || appointment?.pet?.id || appointment?.petId
 			const appointmentMedicalId = appointment?.medical?.id
+			const linkedMedicalId = appointmentMedicalId || mappedMedicalId
+
+			if (active) {
+				setEditableMedicalRecord(null)
+				setEditableMedicalOrders([])
+				setEditableMedicines([])
+			}
+
 			if (!petId) {
 				if (active) {
 					setLatestMedicalRecord(null)
-					setEditableMedicalRecord(null)
-					setEditableMedicalOrders([])
-					setEditableMedicines([])
+					setIsLockedByPayment(false)
+					if (mappedMedicalId && appointmentId) {
+						removeAppointmentMedicalLink(appointmentId)
+						setMappedMedicalId('')
+					}
+					setIsResolvingExamState(false)
 				}
 				return
 			}
@@ -645,9 +765,11 @@ export default function RecordExaminationForm() {
 
 				if (records.length === 0) {
 					setLatestMedicalRecord(null)
-					setEditableMedicalRecord(null)
-					setEditableMedicalOrders([])
-					setEditableMedicines([])
+					setIsLockedByPayment(false)
+					if (mappedMedicalId && appointmentId) {
+						removeAppointmentMedicalLink(appointmentId)
+						setMappedMedicalId('')
+					}
 					return
 				}
 
@@ -659,27 +781,34 @@ export default function RecordExaminationForm() {
 
 				setLatestMedicalRecord(latestRecord || null)
 
-				const matchedMedicalById = appointmentMedicalId
-					? records.find((record) => String(record?.id || '') === String(appointmentMedicalId)) || null
+				const matchedMedicalById = linkedMedicalId
+					? records.find((record) => String(record?.id || '') === String(linkedMedicalId)) || null
 					: null
+				const inferredMedicalByCompletedAppointment =
+					!matchedMedicalById
+						? inferMedicalRecordForCompletedAppointment(records, appointment)
+						: null
+				const matchedMedical = matchedMedicalById || inferredMedicalByCompletedAppointment
 
-				const matchedMedical = matchedMedicalById || selectMedicalRecordByAppointment(records, appointment)
-
-				if (!matchedMedical && !appointmentMedicalId) {
-					setEditableMedicalRecord(null)
-					setEditableMedicalOrders([])
-					setEditableMedicines([])
+				if (!matchedMedical) {
+					setIsLockedByPayment(false)
+					if (mappedMedicalId && !appointmentMedicalId && appointmentId) {
+						removeAppointmentMedicalLink(appointmentId)
+						setMappedMedicalId('')
+					}
 					return
 				}
 
-				const idToFetch = matchedMedical?.id || appointmentMedicalId
+				const idToFetch = matchedMedical?.id || linkedMedicalId
 				const resolvedMedical = idToFetch
 					? await getMedicalByIdApi(getAdminInstance(),idToFetch).catch(() => matchedMedical || null)
 					: null
 				if (!resolvedMedical || !active) {
-					setEditableMedicalRecord(null)
-					setEditableMedicalOrders([])
-					setEditableMedicines([])
+					setIsLockedByPayment(false)
+					if (mappedMedicalId && !appointmentMedicalId && appointmentId) {
+						removeAppointmentMedicalLink(appointmentId)
+						setMappedMedicalId('')
+					}
 					return
 				}
 
@@ -693,12 +822,40 @@ export default function RecordExaminationForm() {
 				setEditableMedicalRecord(resolvedMedical)
 				setEditableMedicalOrders(Array.isArray(orders) ? orders : [])
 				setEditableMedicines(Array.isArray(medicines) ? medicines : [])
+
+				try {
+					const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), resolvedMedical.id)
+					if (active) {
+						setIsLockedByPayment(invoice?.status === INVOICE_STATUS.PAID)
+					}
+				} catch (error) {
+					if (!active) return
+					if (error?.response?.status === 404) {
+						setIsLockedByPayment(false)
+						return
+					}
+
+					setIsLockedByPayment(false)
+				}
+
+				if (appointmentId && resolvedMedical?.id) {
+					const nextMedicalId = String(resolvedMedical.id)
+					persistAppointmentMedicalLink(appointmentId, nextMedicalId)
+					if (nextMedicalId !== mappedMedicalId) {
+						setMappedMedicalId(nextMedicalId)
+					}
+				}
 			} catch {
 				if (active) {
 					setLatestMedicalRecord(null)
+					setIsLockedByPayment(false)
 					setEditableMedicalRecord(null)
 					setEditableMedicalOrders([])
 					setEditableMedicines([])
+				}
+			} finally {
+				if (active) {
+					setIsResolvingExamState(false)
 				}
 			}
 		}
@@ -708,7 +865,7 @@ export default function RecordExaminationForm() {
 		return () => {
 			active = false
 		}
-	}, [appointment, appointment?.medical?.id, appointment?.petRaw?.id])
+	}, [appointment, appointmentId, mappedMedicalId, isWalkIn])
 
 	useEffect(() => {
 		let active = true
@@ -796,37 +953,6 @@ export default function RecordExaminationForm() {
 	}, [appointment?.pet, appointment?.petRaw, appointment?.pet?.id, appointment?.petRaw?.id, historyPetId, isWalkIn])
 
 	useEffect(() => {
-		let active = true
-
-		const hydratePaymentLock = async () => {
-			if (!editableMedicalId) {
-				if (active) setIsLockedByPayment(false)
-				return
-			}
-
-			try {
-				const invoice = await getInvoiceByMedicalRecordIdApi(getAdminInstance(), editableMedicalId)
-				if (!active) return
-				setIsLockedByPayment(invoice?.status === INVOICE_STATUS.PAID)
-			} catch (error) {
-				if (!active) return
-				if (error?.response?.status === 404) {
-					setIsLockedByPayment(false)
-					return
-				}
-
-				setIsLockedByPayment(false)
-			}
-		}
-
-		hydratePaymentLock()
-
-		return () => {
-			active = false
-		}
-	}, [editableMedicalId])
-
-	useEffect(() => {
 		const syncPaymentLock = (event) => {
 			if (event.key !== APPOINTMENT_PAYMENT_SYNC_EVENT_KEY || !event.newValue || !appointmentId) return
 
@@ -838,6 +964,7 @@ export default function RecordExaminationForm() {
 					setIsLockedByPayment(true)
 				}
 			} catch {
+				// Ignore malformed cross-tab sync payload.
 			}
 		}
 
@@ -921,6 +1048,7 @@ export default function RecordExaminationForm() {
 	}, [appointmentId, isWalkIn])
 
 	const hasCreatedMedical = Boolean(editableMedicalId)
+	const shouldShowExamStateAlerts = isWalkIn || !isResolvingExamState
 	const historySummary = useMemo(() => {
 		const sourcePet = petDetail || historyPet
 		if (!sourcePet) return null
@@ -1443,6 +1571,12 @@ export default function RecordExaminationForm() {
 				}).catch(() => undefined)
 			}
 
+			if (appointmentId && medicalId) {
+				const medicalIdValue = String(medicalId)
+				persistAppointmentMedicalLink(appointmentId, medicalIdValue)
+				setMappedMedicalId(medicalIdValue)
+			}
+
 			const ownerId = appointment?.petRaw?.owner?.id || appointment?.pet?.owner?.id
 			const existingOwnerPhone = normalizePhone(appointment?.petRaw?.owner?.phone || appointment?.pet?.owner?.phone || '')
 			if (ownerId && resolvedPhone && resolvedPhone !== existingOwnerPhone) {
@@ -1506,7 +1640,7 @@ export default function RecordExaminationForm() {
 							label: t('examForm.record.tabs.currentExam'),
 							children: (
 						<div className={styles.formScrollableContent}>
-					{!hasCreatedMedical ? (
+					{shouldShowExamStateAlerts && !hasCreatedMedical ? (
 						<Alert
 							className={styles.editLockAlert}
 							type="info"
@@ -1516,7 +1650,7 @@ export default function RecordExaminationForm() {
 						/>
 					) : null}
 
-					{hasCreatedMedical && !isLockedByPayment ? (
+					{shouldShowExamStateAlerts && hasCreatedMedical && !isLockedByPayment ? (
 						<Alert
 							className={styles.editLockAlert}
 							type="success"
@@ -1526,7 +1660,7 @@ export default function RecordExaminationForm() {
 						/>
 					) : null}
 
-					{isLockedByPayment ? (
+					{shouldShowExamStateAlerts && isLockedByPayment ? (
 						<Alert
 							className={styles.editLockAlert}
 							type="error"
