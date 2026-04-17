@@ -1,5 +1,6 @@
 import { CreateMedicalRecordDTO } from './dtos/create-medical-record.dto';
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
@@ -414,21 +415,33 @@ export class MedicalService {
     veterinarianId: string,
   ) {
     return await this.dataSource.transaction(async (manager) => {
-      // 1. Kiểm tra xem user đã tồn tại chưa
       const userRepo = manager.getRepository(User);
       const petRepo = manager.getRepository(Pet);
       let savedPet;
       let password;
-      const user = await userRepo.findOne({
+
+      // 1. Kiểm tra tồn tại sđt
+      const existedPhone = await userRepo.findOne({
+        where: { phone: createDTO.phone },
+      });
+
+      if (existedPhone)
+        throw new ConflictException(
+          'Số điện thoại đã được sử dụng bởi người khác',
+        );
+
+      // 2. Kiểm tra xem user đã tồn tại chưa
+      const existedEmail = await userRepo.findOne({
         where: { email: createDTO.email },
       });
 
-      // 2. Nếu chưa có thì sẽ tạo user
-      if (!user) {
+      // 3. Nếu chưa có thì sẽ tạo user
+      if (!existedEmail) {
         const userPayload = {
           fullName: createDTO.customerName,
           email: createDTO.email,
           role: RoleEnum.CUSTOMER,
+          phone: createDTO.phone,
         };
 
         password = this.userService.generatePassword();
@@ -438,7 +451,7 @@ export class MedicalService {
           password: await bcrypt.hash(password, 10),
         });
 
-        // 3. Tạo pet cho user
+        // 4. Tạo pet cho user
         const petPayload = {
           name: createDTO.petName,
           species: createDTO.species,
@@ -449,7 +462,7 @@ export class MedicalService {
 
         savedPet = await petRepo.save(petPayload);
       } else {
-        // 4. Nếu có rồi thì lấy pet
+        // 5. Nếu có rồi thì lấy pet
         savedPet = await petRepo.findOne({
           where: {
             id: createDTO.petId,
@@ -459,7 +472,7 @@ export class MedicalService {
         if (!savedPet) throw new NotFoundException('Không tìm thấy pet');
       }
 
-      // 5. Tạo mới phiếu khám
+      // 6. Tạo mới phiếu khám
       const medicalRepo = manager.getRepository(MedicalRecord);
 
       const medicalRecord = medicalRepo.create(createDTO);
@@ -469,7 +482,7 @@ export class MedicalService {
 
       const savedMedicalRecord = await medicalRepo.save(medicalRecord);
 
-      // 6. Gửi mail thông tin đăng nhập
+      // 6=7. Gửi mail thông tin đăng nhập
       if (password) {
         const subject = 'Thông tin tài khoản đăng nhập của bạn';
         const html = `
@@ -511,7 +524,7 @@ export class MedicalService {
           html: html,
         };
 
-        // Thêm job vào emailQueue
+        // 8. Thêm job vào emailQueue
         await this.emailQueue.add(JobNameEnum.SEND_MAIL, payload, {
           attempts: 3,
           removeOnComplete: true,
@@ -521,8 +534,6 @@ export class MedicalService {
             delay: 4000,
           },
         });
-
-        await this.mailService.sendMail(createDTO.email, subject, html);
       }
 
       return savedMedicalRecord;
