@@ -3,8 +3,14 @@ name: Main CI/CD Pipeline
 on:
   push:
     branches: ["**"]
+    paths-ignore:
+      - "ansible/**"
+      - ".github/workflows/infra-ansible.yml"
   pull_request:
     branches: ["main"]
+    paths-ignore:
+      - "ansible/**"
+      - ".github/workflows/infra-ansible.yml"
   workflow_dispatch:
 
 permissions:
