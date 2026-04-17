@@ -313,6 +313,8 @@
 				"walkInStepCheckingOwner": "Đang kiểm tra tài khoản khách hàng...",
 				"walkInStepCreatingOwner": "Đang tạo tài khoản khách hàng...",
 				"walkInStepOwnerReady": "Đã sẵn sàng tài khoản khách hàng",
+				"walkInStepUpdatingOwner": "Đang cập nhật thông tin liên hệ khách hàng...",
+				"walkInStepUpdateOwnerError": "Không thể cập nhật thông tin liên hệ cho khách hàng",
 				"walkInStepCheckingPet": "Đang kiểm tra thú cưng...",
 				"walkInStepCreatingPet": "Đang tạo thú cưng mới...",
 				"walkInStepPetReady": "Đã sẵn sàng thú cưng",

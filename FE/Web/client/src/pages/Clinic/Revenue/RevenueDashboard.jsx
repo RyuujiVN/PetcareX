@@ -5,6 +5,7 @@ import useRevenue from '../../../hooks/Clinic/useRevenue'
 import RecentInvoicesTable from './components/RecentInvoicesTable'
 import RevenueChart from './components/RevenueChart'
 import RevenueSummaryCards from './components/RevenueSummaryCards'
+import TodayHighlightCard from './components/TodayHighlightCard'
 import TopVeterinariansTable from './components/TopVeterinariansTable'
 import styles from './revenue.module.css'
 
@@ -18,8 +19,9 @@ export default function RevenueDashboard() {
     invoiceFilter,
     setInvoiceFilter,
     fetchRevenue,
+    fetchChart,
     summary,
-    dailyRevenue,
+    chartData,
     topVeterinariansMonthly,
     recentInvoices,
     PERIOD_KEYS,
@@ -27,7 +29,8 @@ export default function RevenueDashboard() {
 
   useEffect(() => {
     fetchRevenue()
-  }, [fetchRevenue])
+    fetchChart(PERIOD_KEYS.MONTH)
+  }, [fetchRevenue, fetchChart, PERIOD_KEYS.MONTH])
 
   const periodOptions = [
     { key: PERIOD_KEYS.TODAY, label: t('revenue.period.today') },
@@ -56,23 +59,31 @@ export default function RevenueDashboard() {
     )
   }
 
+  const isToday = period === PERIOD_KEYS.TODAY
+
   return (
     <div className={styles.pageWrapper}>
-      {/* Header */}
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>{t('revenue.pageTitle')}</h1>
       </div>
 
-      {/* Summary Cards — luôn hiển thị dữ liệu hôm nay */}
       <RevenueSummaryCards summary={summary} />
 
-      {/* Chart — filter period ảnh hưởng chart */}
-      <RevenueChart
-        dailyRevenue={dailyRevenue}
-        periodOptions={periodOptions}
-        period={period}
-        onPeriodChange={setPeriod}
-      />
+      {isToday ? (
+        <TodayHighlightCard
+          summary={summary}
+          periodOptions={periodOptions}
+          period={period}
+          onPeriodChange={setPeriod}
+        />
+      ) : (
+        <RevenueChart
+          dailyRevenue={chartData}
+          periodOptions={periodOptions}
+          period={period}
+          onPeriodChange={setPeriod}
+        />
+      )}
 
       <div className={styles.bottomRow}>
         <TopVeterinariansTable veterinarians={topVeterinariansMonthly} />

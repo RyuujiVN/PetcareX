@@ -313,6 +313,8 @@
 				"walkInStepCheckingOwner": "Checking customer account...",
 				"walkInStepCreatingOwner": "Creating customer account...",
 				"walkInStepOwnerReady": "Customer account is ready",
+				"walkInStepUpdatingOwner": "Updating customer contact info...",
+				"walkInStepUpdateOwnerError": "Failed to update customer contact info",
 				"walkInStepCheckingPet": "Checking pet...",
 				"walkInStepCreatingPet": "Creating new pet...",
 				"walkInStepPetReady": "Pet is ready",

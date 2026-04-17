@@ -719,9 +719,16 @@
 		"loading": "Loading revenue data...",
 		"period": {
 			"today": "Today",
-			"week": "7 days",
+			"week": "This week",
 			"month": "This month",
 			"year": "This year"
+		},
+		"todayHighlight": {
+			"title": "Today's revenue",
+			"subtitle": "Live data from the clinic",
+			"paidLabel": "Paid invoices",
+			"unpaidLabel": "Unpaid invoices",
+			"hint": "Pick This week / This month / This year to view the trend chart."
 		},
 		"cards": {
 			"totalRevenue": "Total Revenue",

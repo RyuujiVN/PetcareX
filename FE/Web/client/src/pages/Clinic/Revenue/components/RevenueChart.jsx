@@ -28,7 +28,7 @@ const formatDateLabel = (dateStr) => {
     }
   }
   const d = dayjs(dateStr)
-  return d.isValid() ? d.format('DD.MM') : dateStr
+  return d.isValid() ? d.format('DD/MM') : dateStr
 }
 
 const CustomTooltip = ({ active, payload, label }) => {

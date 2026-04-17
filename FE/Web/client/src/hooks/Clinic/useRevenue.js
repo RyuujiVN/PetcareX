@@ -1,54 +1,31 @@
-import dayjs from 'dayjs'
 import { useCallback, useMemo, useState } from 'react'
 import { getAdminInstance } from '../../services/apiClient'
 import {
     aggregateRevenueData,
-    calculateDailyRevenue,
-    calculateSummary,
     calculateTopVeterinariansByVisits,
+    getChartParams,
     getRecentInvoices,
+    getRevenueChart,
+    getRevenueSummary,
+    transformChartData,
 } from '../../services/revenueService'
 
 const PERIOD_KEYS = {
   TODAY: 'today',
-  WEEK: '7days',
+  WEEK: 'week',
   MONTH: 'month',
   YEAR: 'year',
 }
 
-const getPeriodRange = (periodKey) => {
-  const now = dayjs()
-  switch (periodKey) {
-    case PERIOD_KEYS.TODAY:
-      return [now.startOf('day'), now.endOf('day')]
-    case PERIOD_KEYS.WEEK:
-      return [now.subtract(6, 'day').startOf('day'), now.endOf('day')]
-    case PERIOD_KEYS.MONTH:
-      return [now.startOf('month'), now.endOf('day')]
-    case PERIOD_KEYS.YEAR:
-      return [now.startOf('year'), now.endOf('day')]
-    default:
-      return [null, null]
-  }
-}
-
-const filterRecordsByPeriod = (records, periodKey) => {
-  const [start, end] = getPeriodRange(periodKey)
-  if (!start || !end) return records
-
-  return records.filter((record) => {
-    const dateStr = record.invoice?.createdAt || record.createdAt || ''
-    if (!dateStr) return false
-    const d = dayjs(dateStr)
-    return (
-      d.isAfter(start.subtract(1, 'millisecond'))
-      && d.isBefore(end.add(1, 'millisecond'))
-    )
-  })
-}
-
 export default function useRevenue() {
   const [allRecords, setAllRecords] = useState([])
+  const [summary, setSummary] = useState({
+    totalRevenue: 0,
+    totalPaidInvoices: 0,
+    totalUnpaidInvoices: 0,
+  })
+  const [chartData, setChartData] = useState([])
+  const [chartLoading, setChartLoading] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [period, setPeriod] = useState(PERIOD_KEYS.MONTH)
@@ -58,8 +35,21 @@ export default function useRevenue() {
     try {
       setLoading(true)
       setError('')
-      const data = await aggregateRevenueData(getAdminInstance())
-      setAllRecords(data)
+      const instance = getAdminInstance()
+      const [summaryRes, recordsRes] = await Promise.allSettled([
+        getRevenueSummary(instance),
+        aggregateRevenueData(instance),
+      ])
+
+      if (summaryRes.status === 'fulfilled') {
+        setSummary(summaryRes.value)
+      }
+      if (recordsRes.status === 'fulfilled') {
+        setAllRecords(recordsRes.value)
+      }
+      if (summaryRes.status === 'rejected' && recordsRes.status === 'rejected') {
+        setError(summaryRes.reason?.message || 'Không thể tải dữ liệu doanh thu')
+      }
     } catch (err) {
       setError(err.message || 'Không thể tải dữ liệu doanh thu')
     } finally {
@@ -67,20 +57,29 @@ export default function useRevenue() {
     }
   }, [])
 
-  const filteredRecords = useMemo(
-    () => filterRecordsByPeriod(allRecords, period),
-    [allRecords, period],
-  )
+  const fetchChart = useCallback(async (periodKey) => {
+    try {
+      setChartLoading(true)
+      const params = getChartParams(periodKey)
+      const data = await getRevenueChart(
+        getAdminInstance(),
+        params.dateStart,
+        params.dateEnd,
+        params.groupBy,
+      )
+      setChartData(transformChartData(data, params.groupBy, params.dateStart, params.dateEnd))
+    } catch (err) {
+      console.warn('[useRevenue] fetchChart error', err)
+      setChartData([])
+    } finally {
+      setChartLoading(false)
+    }
+  }, [])
 
-  const summary = useMemo(
-    () => calculateSummary(filteredRecords),
-    [filteredRecords],
-  )
-
-  const dailyRevenue = useMemo(
-    () => calculateDailyRevenue(filteredRecords),
-    [filteredRecords],
-  )
+  const changePeriod = useCallback((next) => {
+    setPeriod(next)
+    fetchChart(next)
+  }, [fetchChart])
 
   const topVeterinariansMonthly = useMemo(
     () => calculateTopVeterinariansByVisits(allRecords, 5),
@@ -88,24 +87,25 @@ export default function useRevenue() {
   )
 
   const recentInvoices = useMemo(() => {
-    const invoices = getRecentInvoices(filteredRecords)
+    const invoices = getRecentInvoices(allRecords)
     if (invoiceFilter === 'all') return invoices
     return invoices.filter((record) => record.invoice?.status === invoiceFilter)
-  }, [filteredRecords, invoiceFilter])
+  }, [allRecords, invoiceFilter])
 
   return {
     loading,
     error,
     period,
-    setPeriod,
+    setPeriod: changePeriod,
     invoiceFilter,
     setInvoiceFilter,
     fetchRevenue,
+    fetchChart,
     summary,
-    dailyRevenue,
+    chartData,
+    chartLoading,
     topVeterinariansMonthly,
     recentInvoices,
-    filteredRecords,
     PERIOD_KEYS,
   }
 }

@@ -9,7 +9,7 @@
       "clinics": "Clinic Management",
       "users": "User Management",
       "posts": "Post Management",
-      "revenue": "System Revenue"
+      "activity": "Clinic Activity"
     },
     "profile": {
       "defaultName": "Admin Name",
@@ -348,53 +348,33 @@
       "passwordChangeFailed": "Unable to change password"
     }
   },
-  "revenue": {
-    "pageTitle": "System Revenue",
-    "pageSubtitle": "Revenue overview and business performance across all clinics",
-    "loading": "Loading revenue data...",
+  "activity": {
+    "pageTitle": "Clinic Activity Statistics",
+    "pageSubtitle": "Monitor activity levels and performance of clinics in the system",
+    "loading": "Loading activity data...",
     "period": {
-      "today": "Today",
-      "week": "7 days",
-      "month": "This month",
-      "year": "This year"
+      "thisMonth": "This month",
+      "lastMonth": "Last month",
+      "thisQuarter": "This quarter"
     },
     "kpi": {
-      "totalRevenue": "Total Revenue",
-      "totalClinics": "Active Clinics",
-      "totalVisits": "Total Visits",
-      "paidInvoices": "Paid Invoices"
-    },
-    "chart": {
-      "title": "Revenue Trend Over Time",
-      "revenueLegend": "Revenue"
+      "totalClinics": "Total Clinics",
+      "totalVisits": "Total Visits This Month",
+      "activeClinics": "Active Clinics",
+      "inactiveClinics": "Inactive Clinics"
     },
     "ranking": {
-      "title": "Clinic Revenue Ranking",
+      "title": "Clinic Activity Ranking",
       "searchPlaceholder": "Search clinics...",
-      "colClinic": "CLINIC",
-      "colRevenue": "REVENUE",
-      "colVisits": "VISITS",
-      "colPaid": "PAID",
-      "colUnpaid": "UNPAID"
-    },
-    "invoices": {
-      "title": "Recent Invoices Across System",
-      "filterAll": "All",
-      "filterPaid": "Paid",
-      "filterUnpaid": "Unpaid",
-      "colRecord": "Record",
-      "colClinic": "Clinic",
-      "colPet": "Pet",
-      "colDate": "Date",
-      "colAmount": "Amount",
-      "colStatus": "Status",
-      "statusPaid": "Paid",
-      "statusUnpaid": "Unpaid"
-    },
-    "empty": {
-      "noChartData": "No chart data for this period",
-      "noClinicData": "No clinic data available",
-      "noInvoices": "No invoices for this period"
+      "colName": "CLINIC",
+      "colAddress": "ADDRESS",
+      "colCurrent": "VISITS (CURRENT)",
+      "colPrevious": "VISITS (PREVIOUS)",
+      "colGrowth": "GROWTH",
+      "colStatus": "STATUS",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
+      "empty": "No clinic data available"
     }
   },
   "common": {

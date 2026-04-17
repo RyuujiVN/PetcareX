@@ -20,7 +20,32 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-10)
+## Cập nhật mới nhất (2026-04-17)
+
+### Cập nhật bổ sung (2026-04-17) — 3 nhóm: SĐT trong phiếu khám + Tối ưu Clinic Chart + Đổi trang Admin Revenue → Activity
+
+**Nhóm 1 — Cập nhật SĐT khách hàng khi tạo phiếu khám:**
+- Luồng thường (`recordExaminationForm.jsx`): sau khi submit phiếu khám thành công, nếu SĐT input ≠ SĐT hiện tại của owner → gọi `PUT /api/user/{ownerId}` cập nhật `phone`. Vai trò Veterinarian được phép sửa hồ sơ user.
+- Luồng walk-in: chèn bước "đang cập nhật thông tin chủ" giữa "owner-ready" và "checking-pet" → gọi `PUT /api/user/{ownerId}` cập nhật `phone` + `fullName` (best-effort, lỗi chỉ warn). Thêm 2 i18n key `walkInStepUpdatingOwner` / `walkInStepUpdateOwnerError` cho cả vi/en.
+- ⚠️ **VẤN ĐỀ BE CẦN BÁO LẠI CHO DEV:** `POST /api/auth/register` chỉ trả `{ message }`, không trả user id → walk-in flow phải workaround bằng `GET /api/user?email=` (admin-only). Veterinarian vẫn 403 nếu BE không bổ sung quyền hoặc thay register response.
+
+**Nhóm 2 — Tối ưu biểu đồ doanh thu Clinic:**
+- `revenueService.js#getChartParams`: chuẩn hóa mapping period → `dateStart` / `dateEnd` / `groupBy`. Đổi key `7days` → `week`, tính Mon-Sun thủ công (không có isoWeek plugin). Month/Year dùng `endOf('month')` / `endOf('year')` thay vì `endOf('day')`.
+- `useRevenue.js`: tách `fetchChart` riêng (tự refetch khi đổi period), `fetchRevenue` lấy summary qua `GET /revenue/summary`, top vet + recent invoices vẫn từ aggregate cũ (BE chưa có endpoint thay thế).
+- `RevenueDashboard.jsx`: khi `period === TODAY` và chart có ≤ 1 điểm → render `TodayHighlightCard` (component mới: card lớn show tổng doanh thu hôm nay, số hóa đơn paid/unpaid). Các period còn lại render Area chart như cũ.
+- `RevenueChart.jsx`: format trục X `DD/MM` (kết hợp ngày + tháng), parse `total` (string) → number.
+- i18n vi/en: đổi label `period.week` thành `Tuần này / This week`; thêm block `todayHighlight.*`.
+
+**Nhóm 3 — Thay trang Admin Revenue → Thống kê Hoạt động Phòng khám:**
+- Xóa hoàn toàn: `pages/admin/Dashboard/Revenue/`, `hooks/admin/useAdminRevenue.js`, `services/adminRevenueService.js`.
+- Thay bằng: `pages/admin/Dashboard/Activity/{index.jsx, activity.module.css, components/ActivityKPICards.jsx, components/ClinicActivityRankingTable.jsx}`, `hooks/admin/useAdminActivity.js`, `services/adminActivityService.js`.
+- Routing: `/admin/dashboard/revenue` → `/admin/dashboard/activity` (`AppRoutes.jsx`); menu `AdminLayout.jsx` đổi key `revenue` → `activity`, icon `DollarOutlined` → `BarChartOutlined`.
+- i18n admin vi/en: đổi `layout.menu.revenue` → `layout.menu.activity`; thay block `revenue` → `activity` (KPI: totalClinics/totalVisits/activeClinics/inactiveClinics; period: thisMonth/lastMonth/thisQuarter; ranking columns + status badges).
+- UI: 4 KPI cards (tổng phòng khám, lượt khám tháng này, active/inactive); bảng xếp hạng phòng khám theo lượt khám (kỳ hiện tại / kỳ trước / % tăng trưởng / trạng thái); period tabs + search clinic. **Ẩn hoàn toàn doanh thu** theo yêu cầu SaaS.
+- ⚠️ **VẤN ĐỀ BE CẦN BÁO LẠI CHO DEV:** Không có endpoint admin-scoped để lấy số lượt khám per clinic (`GET /medical/clinic` dùng `req.user.clinicId` từ JWT → admin gọi sẽ trống). Visit count hiện sẽ = 0 cho admin cho đến khi BE bổ sung endpoint `/medical?clinicId=` hoặc `/admin/clinic-activity`.
+- ⚠️ **VẤN ĐỀ BE CẦN BÁO LẠI CHO DEV (vẫn tồn đọng):** 3 API `/revenue/*` (summary/chart/top-veterinarian) chỉ allow `ADMIN_CLINIC` → admin vẫn không gọi được nếu sau này muốn dùng cho dashboard tổng.
+
+**Regression:** `npx eslint` 0 lỗi trên các file đã sửa, `npx vite build` thành công (5960 modules transformed, 19.41s).
 
 ### Cập nhật bổ sung (2026-04-16) — Khôi phục Clinic Revenue UI (giữ Recent Invoices, bỏ Pie chart)
 

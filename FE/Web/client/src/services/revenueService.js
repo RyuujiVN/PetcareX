@@ -304,9 +304,14 @@ export const transformChartData = (apiData, groupBy, dateStart, dateEnd) => {
 
 /**
  * Map period key sang params cho chart API.
+ * Tuần này: thứ Hai → Chủ nhật (dayjs default Sunday-start, nên tự offset).
  */
 export const getChartParams = (periodKey) => {
   const now = dayjs()
+  const dayOfWeek = now.day()
+  const monday = now.subtract((dayOfWeek + 6) % 7, 'day').startOf('day')
+  const sunday = monday.add(6, 'day').endOf('day')
+
   switch (periodKey) {
     case 'today':
       return {
@@ -314,28 +319,28 @@ export const getChartParams = (periodKey) => {
         dateEnd: now.endOf('day').toISOString(),
         groupBy: 'DAY',
       }
-    case '7days':
+    case 'week':
       return {
-        dateStart: now.subtract(6, 'day').startOf('day').toISOString(),
-        dateEnd: now.endOf('day').toISOString(),
+        dateStart: monday.toISOString(),
+        dateEnd: sunday.toISOString(),
         groupBy: 'DAY',
       }
     case 'month':
       return {
         dateStart: now.startOf('month').toISOString(),
-        dateEnd: now.endOf('day').toISOString(),
+        dateEnd: now.endOf('month').toISOString(),
         groupBy: 'DAY',
       }
     case 'year':
       return {
         dateStart: now.startOf('year').toISOString(),
-        dateEnd: now.endOf('day').toISOString(),
+        dateEnd: now.endOf('year').toISOString(),
         groupBy: 'MONTH',
       }
     default:
       return {
         dateStart: now.startOf('month').toISOString(),
-        dateEnd: now.endOf('day').toISOString(),
+        dateEnd: now.endOf('month').toISOString(),
         groupBy: 'DAY',
       }
   }

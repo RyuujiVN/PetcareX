@@ -719,9 +719,16 @@
 		"loading": "Đang tải dữ liệu doanh thu...",
 		"period": {
 			"today": "Hôm nay",
-			"week": "7 ngày",
+			"week": "Tuần này",
 			"month": "Tháng này",
 			"year": "Năm nay"
+		},
+		"todayHighlight": {
+			"title": "Doanh thu hôm nay",
+			"subtitle": "Cập nhật trực tiếp từ phòng khám",
+			"paidLabel": "Hoá đơn đã thanh toán",
+			"unpaidLabel": "Hoá đơn chưa thanh toán",
+			"hint": "Chọn Tuần này / Tháng này / Năm nay để xem biểu đồ xu hướng."
 		},
 		"cards": {
 			"totalRevenue": "Tổng doanh thu",

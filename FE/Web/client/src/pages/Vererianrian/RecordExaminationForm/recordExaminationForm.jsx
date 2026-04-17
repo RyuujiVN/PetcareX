@@ -70,7 +70,7 @@ import {
     getPetSpeciesApi,
     getSpeciesLabel,
 } from '../../../services/petService'
-import { getUserListApi } from '../../../services/userService'
+import { getUserListApi, updateUserProfileApi } from '../../../services/userService'
 import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
@@ -1141,6 +1141,17 @@ export default function RecordExaminationForm() {
 				throw new Error(t('examForm.record.messages.ownerIdMissingError'))
 			}
 
+			showWalkInStep(t('examForm.record.messages.walkInStepUpdatingOwner'))
+			try {
+				await updateUserProfileApi(getAdminInstance(), ownerId, {
+					phone: normalizedPhone,
+					fullName: values.customerName,
+				})
+			} catch (updateErr) {
+				console.warn('[WalkIn] Update owner contact failed', updateErr)
+				message.warning(t('examForm.record.messages.walkInStepUpdateOwnerError'))
+			}
+
 			showWalkInStep(t('examForm.record.messages.walkInStepCheckingPet'))
 			let pet = await findPetByOwnerAndName(ownerId, values.petName)
 			if (!pet) {
@@ -1430,6 +1441,14 @@ export default function RecordExaminationForm() {
 				await updateAppointmentStatusApi(getAdminInstance(), appointmentId, {
 					status: APPOINTMENT_STATUS.COMPLETED,
 				}).catch(() => undefined)
+			}
+
+			const ownerId = appointment?.petRaw?.owner?.id || appointment?.pet?.owner?.id
+			const existingOwnerPhone = normalizePhone(appointment?.petRaw?.owner?.phone || appointment?.pet?.owner?.phone || '')
+			if (ownerId && resolvedPhone && resolvedPhone !== existingOwnerPhone) {
+				await updateUserProfileApi(getAdminInstance(), ownerId, { phone: resolvedPhone }).catch((err) => {
+					console.warn('[RecordExamForm] Cập nhật SĐT khách hàng thất bại', err)
+				})
 			}
 
 			message.success(

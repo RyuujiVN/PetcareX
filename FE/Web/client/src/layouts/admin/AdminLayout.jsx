@@ -1,5 +1,5 @@
 import {
-  DollarOutlined,
+  BarChartOutlined,
   FileTextOutlined,
   MedicineBoxOutlined,
   TeamOutlined,
@@ -45,11 +45,11 @@ const menuItems = [
     activePaths: ["/admin/dashboard/posts"],
   },
   {
-    key: "revenue",
-    labelKey: "layout.menu.revenue",
-    icon: DollarOutlined,
-    path: "/admin/dashboard/revenue",
-    activePaths: ["/admin/dashboard/revenue"],
+    key: "activity",
+    labelKey: "layout.menu.activity",
+    icon: BarChartOutlined,
+    path: "/admin/dashboard/activity",
+    activePaths: ["/admin/dashboard/activity"],
   },
 ];
 
