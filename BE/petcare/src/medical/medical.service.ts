@@ -237,7 +237,11 @@ export class MedicalService {
         owner: record.pet.owner && {
           id: record.pet.owner.id,
           fullName: record.pet.owner.fullName,
+          email: record.pet.owner.email,
+          phone: record.pet.owner.phone,
         },
+        gender: record.pet.gender,
+        dateOfBirth: record.pet.dateOfBirth,
       },
 
       veterinarian: record.veterinarian && {
