@@ -56,6 +56,12 @@ export class UserController {
   }
 
   @Get('profile')
+  @RequiredRole(
+    RoleEnum.ADMIN,
+    RoleEnum.ADMIN_CLINIC,
+    RoleEnum.CUSTOMER,
+    RoleEnum.VETERINARIAN,
+  )
   @ApiOperation({ summary: 'Lấy thông tin tài khoản đang đăng nhập' })
   getMyAcountInfo(@Req() req) {
     return this.userService.findOneByid(req?.user?.id);
