@@ -22,6 +22,51 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-17)
 
+### Cập nhật (2026-04-17) — Booking Doctor Panel + Forum Report Service + Clinic Vet Fields + Admin View-as-User
+
+**1) Forum Report Service (FE):**
+- Tạo mới `src/services/forumReportService.js`.
+- Cung cấp các hàm:
+  - `reportPostApi(instance, postId, payload)` → `POST /post/:postId/report`
+  - `reportCommentApi(instance, commentId, payload)` → `POST /comment/:commentId/report`
+  - `getReportsApi(instance, params)` → `GET /report`
+  - `updateReportStatusApi(instance, reportId, payload)` → `PATCH /report/:id`
+  - `createGenericReportApi(instance, payload)` → fallback `POST /report`
+- FE Forum đã dùng try/catch fallback: ưu tiên endpoint report theo post/comment; nếu BE chưa hỗ trợ thì fallback sang `POST /report`; nếu vẫn không có thì hiện toast ghi nhận.
+
+**2) Booking Appointment — Doctor Detail Panel:**
+- File sửa: `src/pages/client/User/BookingAppointment/index.jsx`, `src/pages/client/User/BookingAppointment/styles.css`.
+- Khi chọn bác sĩ, panel bên phải hiển thị:
+  - Avatar + tên
+  - Chuyên khoa
+  - Kinh nghiệm (nếu có)
+  - Giới thiệu (đọc từ `description` hoặc `introduce` hoặc `bio` nếu có)
+- Có fallback an toàn khi dữ liệu null/undefined.
+
+**3) Clinic Portal — bổ sung field kinh nghiệm & giới thiệu cho bác sĩ:**
+- File sửa: `src/pages/Clinic/InformationVererianrian/InformationVererianrian.jsx`.
+- Thêm vào form chỉnh sửa:
+  - `experience` (InputNumber)
+  - `description` (TextArea)
+- Payload update đã gửi thêm: `experience`, `description`, `introduce` (để tương thích contract BE hiện có).
+- Bổ sung hiển thị 2 field này trong phần thông tin cá nhân.
+- i18n đã thêm key cho `clinic/vi.json` và `clinic/en.json`.
+
+**4) Admin View-as-User mode cho Forum:**
+- Tạo utility mới: `src/utils/storage/adminViewModeStorage.js` (dùng `sessionStorage`).
+- Admin notification click (đặc biệt report) trong `src/layouts/admin/AdminLayout.jsx`:
+  - điều hướng sang forum kèm query param mục tiêu (nếu có).
+- Client header (`src/components/layouts/client/header.jsx` + `header.css`):
+  - tích hợp điều hướng thống nhất tới khu vực forum xử lý.
+- Forum (`src/pages/client/User/Forum/forum.jsx`):
+  - khi user là ADMIN và vào forum quản trị, menu post/comment có thêm quyền xóa mở rộng “Xóa (Admin)”,
+  - dùng `adminDeletePostApi` / `adminDeleteCommentApi` (fallback client instance) trong `src/services/forumService.js`.
+
+**5) Notification mapping/href cho admin report flow:**
+- File sửa: `src/services/notificationService.js`.
+- Bổ sung mapping cho các type `REPORT`, `POST_REPORTED`, `COMMENT_REPORTED`.
+- Chuẩn hóa thêm field target `reportId`, `reportType` và hỗ trợ resolve portal `admin`.
+
 ### Cập nhật (2026-04-17) — Đơn giản hóa luồng Walk-in (khám cấp cứu) & loại bỏ tạo tài khoản FE
 
 **Vấn đề gốc:**

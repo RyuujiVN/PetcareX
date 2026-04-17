@@ -12,6 +12,8 @@
 			"revenue": "Revenue",
 			"doctors": "Veterinarians",
 			"forms": "View Examination Slips",
+			"forum": "Forum",
+			"chatbot": "ChatBot",
 			"editor": "Clinic editor",
 			"portalEditor": "Clinic page editor",
 			"homeEditor": "Edit Homepage",
@@ -32,6 +34,10 @@
 				"appointment": "Appointment",
 				"payment": "Payment",
 				"review": "Review",
+				"aiDiagnosis": "AI Diagnosis",
+				"forumComment": "Comment",
+				"forumLike": "Like",
+				"forumReply": "Reply",
 				"system": "System"
 			},
 			"types": {
@@ -39,6 +45,10 @@
 				"system": "System",
 				"review": "Review",
 				"payment": "Payment",
+				"aiDiagnosis": "AI Diagnosis",
+				"forumComment": "Comment",
+				"forumLike": "Like",
+				"forumReply": "Reply",
 				"other": "Other"
 			},
 			"time": {
@@ -145,6 +155,10 @@
 			"password": "Password",
 			"phone": "Phone",
 			"address": "Address",
+			"experience": "Experience (years)",
+			"description": "Introduction",
+			"experiencePlaceholder": "Years of experience",
+			"descriptionPlaceholder": "Short description about the veterinarian...",
 			"role": "Role",
 			"joinDate": "Join date"
 		},

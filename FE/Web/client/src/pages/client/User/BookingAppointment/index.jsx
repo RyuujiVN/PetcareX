@@ -2,12 +2,13 @@ import {
     ClockCircleOutlined,
     EnvironmentOutlined,
     ExperimentOutlined,
+  MedicineBoxOutlined,
     MoonOutlined,
     SmileOutlined,
     SunOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin } from 'antd';
+import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin, Tag } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { BsArrowRightShort, BsArrowLeftShort } from "react-icons/bs";
 import { useTranslation } from 'react-i18next';
@@ -138,6 +139,15 @@ export default function BookingAppointment() {
   );
 
   const selectedDoctorName = selectedDoctor?.user?.fullName || '';
+  const selectedDoctorAvatar = selectedDoctor?.user?.avatarUrl || selectedDoctor?.avatarUrl || '';
+  const selectedDoctorExperience = selectedDoctor?.experience ?? selectedDoctor?.yearsOfExperience;
+  const selectedDoctorDescription =
+    selectedDoctor?.description || selectedDoctor?.introduce || selectedDoctor?.bio || '';
+  const hasDoctorExperience =
+    selectedDoctorExperience !== null &&
+    selectedDoctorExperience !== undefined &&
+    String(selectedDoctorExperience).trim() !== '';
+  const hasDoctorDescription = String(selectedDoctorDescription || '').trim() !== '';
   const selectedDoctorSpecialtyLabel = selectedDoctor?.specialty
     ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, {
         defaultValue: getSpecialtyLabel(selectedDoctor.specialty),
@@ -734,24 +744,61 @@ export default function BookingAppointment() {
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Card
-                      style={{ borderRadius: 12 }}
-                      bodyStyle={{ display: 'flex', alignItems: 'center', gap: 16 }}
-                    >
-                      <Avatar
-                        size={64}
-                        src={selectedDoctor?.user?.avatarUrl || '/bs1.png'}
-                      />
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 16 }}>
-                          {selectedDoctorName || t('pages.booking.notSelectedDoctor')}
+                    {selectedDoctor ? (
+                      <div className="doctor-detail-panel">
+                        <div className="doctor-header">
+                          <Avatar
+                            src={selectedDoctorAvatar || undefined}
+                            size={64}
+                            icon={<UserOutlined />}
+                          />
+                          <div className="doctor-header-info">
+                            <h3>{selectedDoctorName}</h3>
+                            <Tag color="blue">{selectedDoctorSpecialtyLabel}</Tag>
+                          </div>
                         </div>
-                        <div style={{ color: 'var(--color-text-secondary)' }}>
-                          {selectedDoctorSpecialtyLabel}
+
+                        <div className="doctor-details">
+                          <div className="doctor-detail-row">
+                            <MedicineBoxOutlined />
+                            <span className="doctor-detail-label">{t('pages.booking.doctorDetail.specialty')}</span>
+                            <span>{selectedDoctorSpecialtyLabel}</span>
+                          </div>
+
+                          {hasDoctorExperience ? (
+                            <div className="doctor-detail-row">
+                              <ClockCircleOutlined />
+                              <span className="doctor-detail-label">{t('pages.booking.doctorDetail.experience')}</span>
+                              <span>
+                                {selectedDoctorExperience} {t('pages.booking.doctorDetail.years')}
+                              </span>
+                            </div>
+                          ) : null}
+
+                          {hasDoctorDescription ? (
+                            <div className="doctor-description">
+                              <div className="doctor-detail-label">{t('pages.booking.doctorDetail.description')}</div>
+                              <p>{selectedDoctorDescription}</p>
+                            </div>
+                          ) : null}
                         </div>
-                        {/* TODO: Doctor description panel - cần BE bổ sung field 'description' vào API GET /api/veterinarian */}
                       </div>
-                    </Card>
+                    ) : (
+                      <Card
+                        style={{ borderRadius: 12 }}
+                        bodyStyle={{ display: 'flex', alignItems: 'center', gap: 16 }}
+                      >
+                        <Avatar size={64} src="/bs1.png" />
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 16 }}>
+                            {t('pages.booking.notSelectedDoctor')}
+                          </div>
+                          <div style={{ color: 'var(--color-text-secondary)' }}>
+                            {t('pages.booking.noSpecialty')}
+                          </div>
+                        </div>
+                      </Card>
+                    )}
                   </Col>
                 </Row>
 

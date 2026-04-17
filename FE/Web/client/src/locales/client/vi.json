@@ -70,6 +70,10 @@
         "forumLikeTitle": "{{name}} đã thích bài viết của bạn",
         "forumCommentTitle": "{{name}} đã bình luận bài viết của bạn",
         "forumReplyTitle": "{{name}} đã trả lời bình luận của bạn",
+        "reportTitle": "Có báo cáo mới về {{targetType}}",
+        "reportDescription": "{{name}} đã gửi báo cáo cần xử lý.",
+        "reportTargetPost": "bài viết",
+        "reportTargetComment": "bình luận",
         "forumActionLike": "đã thích bài viết của bạn",
         "forumActionComment": "đã bình luận bài viết của bạn",
         "forumActionReply": "đã trả lời bình luận của bạn",
@@ -684,6 +688,12 @@
       "noSlotsByLeadTime": "Không có khung giờ hợp lệ (cần đặt trước {{hours}} tiếng)",
       "notSelectedDoctor": "Chưa chọn bác sĩ",
       "noSpecialty": "Chưa có chuyên môn",
+      "doctorDetail": {
+        "specialty": "Chuyên khoa:",
+        "experience": "Kinh nghiệm:",
+        "description": "Giới thiệu:",
+        "years": "năm"
+      },
       "calendar": {
         "monthLabel": "Tháng {{month}}, {{year}}",
         "days": {
@@ -1040,6 +1050,8 @@
       "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
       "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
       "reportPostFailed": "Không thể gửi báo cáo bài viết. Vui lòng thử lại.",
+      "reportCommentSuccess": "Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.",
+      "reportCommentFailed": "Không thể gửi báo cáo bình luận. Vui lòng thử lại.",
       "reportModalTitle": "TỐ CÁO BÌNH LUẬN",
       "reportCommentBy": "Bạn đang tố cáo bình luận của {{name}}",
       "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.",
@@ -1109,6 +1121,7 @@
         "commentOptionsAria": "Tùy chọn bình luận",
         "reportComment": "Tố cáo bình luận",
         "reportPost": "Báo cáo bài viết",
+        "deleteAdmin": "Xóa (Admin)",
         "submitReport": "Gửi tố cáo",
         "removeImage": "Gỡ ảnh",
         "image": "Ảnh",

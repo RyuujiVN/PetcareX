@@ -10,7 +10,9 @@
 		"menu": {
 			"appointments": "Lịch hẹn",
 			"records": "Hồ sơ bệnh án",
-			"examForms": "Phiếu khám"
+			"examForms": "Phiếu khám",
+			"forum": "Forum",
+			"chatbot": "ChatBot"
 		},
 		"notifications": {
 			"panelTitle": "Thông báo bác sĩ",
@@ -23,12 +25,17 @@
 				"allTypes": "Mọi loại",
 				"appointment": "Lịch hẹn",
 				"aiDiagnosis": "Chẩn đoán AI",
+				"forumLike": "Lượt thích",
+				"forumComment": "Bình luận",
+				"forumReply": "Phản hồi",
 				"system": "Hệ thống"
 			},
 			"types": {
 				"appointment": "Lịch hẹn",
 				"aiDiagnosis": "Chẩn đoán AI",
 				"system": "Hệ thống",
+				"forumLike": "Lượt thích",
+				"forumReply": "Phản hồi",
 				"forumComment": "Bình luận",
 				"other": "Khác"
 			},

@@ -10,7 +10,9 @@
 		"menu": {
 			"appointments": "Appointments",
 			"records": "Medical Records",
-			"examForms": "Examination Forms"
+			"examForms": "Examination Forms",
+			"forum": "Forum",
+			"chatbot": "ChatBot"
 		},
 		"notifications": {
 			"panelTitle": "Veterinarian Notifications",
@@ -23,12 +25,17 @@
 				"allTypes": "All types",
 				"appointment": "Appointment",
 				"aiDiagnosis": "AI Diagnosis",
+				"forumLike": "Like",
+				"forumComment": "Comment",
+				"forumReply": "Reply",
 				"system": "System"
 			},
 			"types": {
 				"appointment": "Appointment",
 				"aiDiagnosis": "AI Diagnosis",
 				"system": "System",
+				"forumLike": "Like",
+				"forumReply": "Reply",
 				"forumComment": "Comment",
 				"other": "Other"
 			},

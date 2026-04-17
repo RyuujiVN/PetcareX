@@ -3,9 +3,11 @@ import {
   FileSearchOutlined,
   HomeOutlined,
   LineChartOutlined,
+  MessageOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MedicineBoxOutlined,
+  RobotOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
 import {
@@ -78,6 +80,20 @@ const menuItemConfigs = [
     path: "/clinic/exam-slips",
     activePaths: ["/clinic/exam-slips"],
   },
+  {
+    key: "forum",
+    labelKey: "sidebar.menu.forum",
+    icon: MessageOutlined,
+    path: "/clinic/forum",
+    activePaths: ["/clinic/forum"],
+  },
+  {
+    key: "chatbot",
+    labelKey: "sidebar.menu.chatbot",
+    icon: RobotOutlined,
+    path: "/clinic/chatbot",
+    activePaths: ["/clinic/chatbot"],
+  },
 ];
 
 const clinicEditorPathPrefixes = [
@@ -92,6 +108,8 @@ const NOTIFICATION_TYPE_COLORS = {
   review: "purple",
   "ai-diagnosis": "purple",
   system: "gold",
+  "forum-like": "geekblue",
+  "forum-reply": "cyan",
   "forum-comment": "cyan",
 };
 
@@ -119,6 +137,16 @@ const getNotificationTypeLabel = (type, t) => {
   if (type === "forum-comment") {
     return t("sidebar.notifications.types.forumComment", {
       defaultValue: "Bình luận",
+    });
+  }
+  if (type === "forum-like") {
+    return t("sidebar.notifications.types.forumLike", {
+      defaultValue: "Lượt thích",
+    });
+  }
+  if (type === "forum-reply") {
+    return t("sidebar.notifications.types.forumReply", {
+      defaultValue: "Phản hồi",
     });
   }
   if (type === "system") {
@@ -201,7 +229,9 @@ const handoffAdminAuthToNewTab = () => {
         window.localStorage.setItem(key, value);
       }
     });
-  } catch {}
+  } catch (error) {
+    void error;
+  }
 };
 
 export default function AdminClinicLayout() {
@@ -431,6 +461,18 @@ export default function AdminClinicLayout() {
                 value: "forum-comment",
                 label: t("sidebar.notifications.filters.forumComment", {
                   defaultValue: "Bình luận",
+                }),
+              },
+              {
+                value: "forum-like",
+                label: t("sidebar.notifications.filters.forumLike", {
+                  defaultValue: "Lượt thích",
+                }),
+              },
+              {
+                value: "forum-reply",
+                label: t("sidebar.notifications.filters.forumReply", {
+                  defaultValue: "Phản hồi",
                 }),
               },
               {

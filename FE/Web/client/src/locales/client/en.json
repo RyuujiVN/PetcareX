@@ -70,6 +70,10 @@
         "forumLikeTitle": "{{name}} liked your post",
         "forumCommentTitle": "{{name}} commented on your post",
         "forumReplyTitle": "{{name}} replied to your comment",
+        "reportTitle": "New report on {{targetType}}",
+        "reportDescription": "{{name}} submitted a report that needs review.",
+        "reportTargetPost": "post",
+        "reportTargetComment": "comment",
         "forumActionLike": "liked your post",
         "forumActionComment": "commented on your post",
         "forumActionReply": "replied to your comment",
@@ -684,6 +688,12 @@
       "noSlotsByLeadTime": "No valid time slots (must book at least {{hours}} hours in advance)",
       "notSelectedDoctor": "No doctor selected",
       "noSpecialty": "No specialty available",
+      "doctorDetail": {
+        "specialty": "Specialty:",
+        "experience": "Experience:",
+        "description": "Introduction:",
+        "years": "years"
+      },
       "calendar": {
         "monthLabel": "Month {{month}}, {{year}}",
         "days": {
@@ -1040,6 +1050,8 @@
       "reportPostSuccess": "Thank you for your report. We will review this post.",
       "reportPostRecorded": "Your report has been recorded",
       "reportPostFailed": "Unable to submit report. Please try again.",
+      "reportCommentSuccess": "Thank you for reporting this comment. We will review it soon.",
+      "reportCommentFailed": "Unable to submit comment report. Please try again.",
       "reportModalTitle": "Report comment",
       "reportCommentBy": "You are reporting {{name}}'s comment",
       "reportBackendUnavailable": "Backend does not support report-comment endpoint yet. Please contact an administrator.",
@@ -1109,6 +1121,7 @@
         "commentOptionsAria": "Comment options",
         "reportComment": "Report comment",
         "reportPost": "Report post",
+        "deleteAdmin": "Delete (Admin)",
         "submitReport": "Submit report",
         "removeImage": "Remove image",
         "image": "Image",

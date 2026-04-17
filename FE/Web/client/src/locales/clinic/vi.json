@@ -12,6 +12,8 @@
 			"revenue": "Doanh thu",
 			"doctors": "Bác sĩ",
 			"forms": "Xem phiếu khám",
+			"forum": "Forum",
+			"chatbot": "ChatBot",
 			"editor": "Chỉnh sửa giao diện phòng khám",
 			"portalEditor": "Chỉnh sửa trang phòng khám",
 			"homeEditor": "Chỉnh Sửa Trang Chủ",
@@ -32,6 +34,10 @@
 				"appointment": "Lịch hẹn",
 				"payment": "Thanh toán",
 				"review": "Đánh giá",
+				"aiDiagnosis": "Chẩn đoán AI",
+				"forumComment": "Bình luận",
+				"forumLike": "Lượt thích",
+				"forumReply": "Phản hồi",
 				"system": "Hệ thống"
 			},
 			"types": {
@@ -39,6 +45,10 @@
 				"system": "Hệ thống",
 				"review": "Đánh giá",
 				"payment": "Thanh toán",
+				"aiDiagnosis": "Chẩn đoán AI",
+				"forumComment": "Bình luận",
+				"forumLike": "Lượt thích",
+				"forumReply": "Phản hồi",
 				"other": "Khác"
 			},
 			"time": {
@@ -145,6 +155,10 @@
 			"password": "Mật khẩu",
 			"phone": "Số điện thoại",
 			"address": "Địa chỉ",
+			"experience": "Kinh nghiệm (năm)",
+			"description": "Giới thiệu",
+			"experiencePlaceholder": "Số năm kinh nghiệm",
+			"descriptionPlaceholder": "Mô tả ngắn về bác sĩ...",
 			"role": "Vai trò",
 			"joinDate": "Ngày tham gia"
 		},

@@ -9,7 +9,9 @@
       "clinics": "Quản lý phòng khám",
       "users": "Quản lý người dùng",
       "posts": "Quản lý bài đăng",
-      "activity": "Hoạt động phòng khám"
+      "activity": "Hoạt động phòng khám",
+      "forum": "Forum",
+      "chatbot": "ChatBot"
     },
     "profile": {
       "defaultName": "Admin Name",

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import "./styles.css";
 import { MessageCircle, Plus } from "lucide-react";
 import {
@@ -7,7 +7,7 @@ import {
   EllipsisOutlined,
 } from "@ant-design/icons";
 import { Dropdown, Input, Modal, message } from "antd";
-import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCreateRoom,
@@ -18,6 +18,14 @@ import {
 import chatSocket from "../../../../socket/chatSocket";
 
 const TITLE_PREVIEW_LIMIT = 28;
+
+const resolveChatbotBasePath = (pathname = "") => {
+  if (pathname === "/admin/chatbot" || pathname.startsWith("/admin/chatbot/")) return "/admin/chatbot";
+  if (pathname === "/clinic/chatbot" || pathname.startsWith("/clinic/chatbot/")) return "/clinic/chatbot";
+  if (pathname === "/veterinarian/chatbot" || pathname.startsWith("/veterinarian/chatbot/")) return "/veterinarian/chatbot";
+  if (pathname === "/chat" || pathname.startsWith("/chat/")) return "/chat";
+  return "/chatbot";
+};
 
 const formatConversationTitle = (value) => {
   const full = (value || "Cuộc trò chuyện mới").trim();
@@ -41,9 +49,18 @@ export default function ChatBotAI() {
   const dispatch = useDispatch();
   const rooms = useSelector((state) => state.room.rooms || []);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const { roomId } = useParams();
   const activeConversation = roomId;
+  const chatbotBasePath = useMemo(
+    () => resolveChatbotBasePath(location.pathname),
+    [location.pathname],
+  );
+  const buildChatPath = useCallback(
+    (id) => (id ? `${chatbotBasePath}/${id}` : chatbotBasePath),
+    [chatbotBasePath],
+  );
 
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [renameRoomId, setRenameRoomId] = useState(null);
@@ -51,7 +68,7 @@ export default function ChatBotAI() {
   const [hoveredRoomId, setHoveredRoomId] = useState(null);
 
   const handleNavigateRoom = (id) => {
-    navigate(`/chatbot/${id}`);
+    navigate(buildChatPath(id));
   };
 
   useEffect(() => {
@@ -82,7 +99,7 @@ export default function ChatBotAI() {
         fetchCreateRoom({ name: "Cuộc trò chuyện mới" }),
       ).unwrap();
       if (created?.id) {
-        navigate(`/chatbot/${created.id}`);
+        navigate(buildChatPath(created.id));
       }
     } catch (error) {
       message.error(error?.message || "Không thể tạo cuộc trò chuyện mới");
@@ -134,7 +151,7 @@ export default function ChatBotAI() {
         try {
           await dispatch(fetchDeleteRoom({ id })).unwrap();
           if (String(activeConversation) === String(id)) {
-            navigate(`/chatbot`);
+            navigate(buildChatPath());
           }
         } catch (error) {
           message.error(error?.message || "Xoá phòng chat thất bại");

@@ -1,7 +1,10 @@
 import {
   BarChartOutlined,
   FileTextOutlined,
+  FlagOutlined,
+  MessageOutlined,
   MedicineBoxOutlined,
+  RobotOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
 import { Badge } from "antd";
@@ -51,6 +54,20 @@ const menuItems = [
     path: "/admin/dashboard/activity",
     activePaths: ["/admin/dashboard/activity"],
   },
+  {
+    key: "forum",
+    labelKey: "layout.menu.forum",
+    icon: MessageOutlined,
+    path: "/admin/forum",
+    activePaths: ["/admin/forum"],
+  },
+  {
+    key: "chatbot",
+    labelKey: "layout.menu.chatbot",
+    icon: RobotOutlined,
+    path: "/admin/chatbot",
+    activePaths: ["/admin/chatbot"],
+  },
 ];
 
 const normalizePath = (path) => {
@@ -77,7 +94,10 @@ const NOTIFICATION_CATEGORY_ICONS = {
   appointment: <MedicineBoxOutlined />,
   "ai-diagnosis": <FileTextOutlined />,
   system: <TeamOutlined />,
+  "forum-like": <MessageOutlined />,
+  "forum-reply": <MessageOutlined />,
   "forum-comment": <FileTextOutlined />,
+  report: <FlagOutlined />,
 };
 
 const formatAdminTimeAgo = (dateValue, t) => {
@@ -178,7 +198,25 @@ export default function AdminLayout() {
       void markAsRead(item.id);
       setNotificationOpen(false);
 
-      const targetHref = resolveNotificationHref(item, "client");
+      const isReportType =
+        String(item?.beType || "").toUpperCase() === "REPORT" ||
+        String(item?.beType || "").toUpperCase() === "POST_REPORTED" ||
+        String(item?.beType || "").toUpperCase() === "COMMENT_REPORTED" ||
+        String(item?.type || "").toLowerCase() === "report";
+
+      if (isReportType) {
+        const postId = String(item?.postId || item?.target?.postId || "").trim();
+        const commentId = String(item?.commentId || item?.target?.commentId || "").trim();
+        const params = new URLSearchParams();
+        if (postId) params.set("postId", postId);
+        if (commentId) params.set("commentId", commentId);
+        params.set("adminAction", "delete");
+        const queryString = params.toString();
+        navigate(queryString ? `/admin/forum?${queryString}` : "/admin/forum");
+        return;
+      }
+
+      const targetHref = resolveNotificationHref(item, "admin");
       if (targetHref) {
         navigate(targetHref);
       }

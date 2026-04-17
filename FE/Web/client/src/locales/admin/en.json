@@ -9,7 +9,9 @@
       "clinics": "Clinic Management",
       "users": "User Management",
       "posts": "Post Management",
-      "activity": "Clinic Activity"
+      "activity": "Clinic Activity",
+      "forum": "Forum",
+      "chatbot": "ChatBot"
     },
     "profile": {
       "defaultName": "Admin Name",

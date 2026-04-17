@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Form, Input, message } from "antd";
 import { Pause, Plus, Send, X } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
@@ -15,6 +15,14 @@ import ChatMessage from "./ChatMessage";
 import chatSocket from "../../../../socket/chatSocket";
 import { uploadOneFileResize } from "../../../../services/cloudinaryService";
 import { BsRobot } from "react-icons/bs";
+
+const resolveChatbotBasePath = (pathname = "") => {
+  if (pathname === "/admin/chatbot" || pathname.startsWith("/admin/chatbot/")) return "/admin/chatbot";
+  if (pathname === "/clinic/chatbot" || pathname.startsWith("/clinic/chatbot/")) return "/clinic/chatbot";
+  if (pathname === "/veterinarian/chatbot" || pathname.startsWith("/veterinarian/chatbot/")) return "/veterinarian/chatbot";
+  if (pathname === "/chat" || pathname.startsWith("/chat/")) return "/chat";
+  return "/chatbot";
+};
 
 const TypingIndicator = () => {
   return (
@@ -35,10 +43,19 @@ const MessageBox = () => {
   const hasMoreMessage = useSelector((state) => state.message.hasMoreMessage);
   const [isLoadingMore, setIsLoadingMore] = useState(true);
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const [form] = Form.useForm();
 
   const { roomId } = useParams();
+  const chatbotBasePath = useMemo(
+    () => resolveChatbotBasePath(location.pathname),
+    [location.pathname],
+  );
+  const buildChatPath = useCallback(
+    (id) => (id ? `${chatbotBasePath}/${id}` : chatbotBasePath),
+    [chatbotBasePath],
+  );
 
   const messagesEndRef = useRef();
   const messagesContainerRef = useRef(null);
@@ -206,7 +223,7 @@ const MessageBox = () => {
 
     // Lắng nghe server response về
     const onServerResponseMessage = (data) => {
-      if (!roomId) navigate(`/chatbot/${data.roomId}`);
+      if (!roomId) navigate(buildChatPath(data.roomId));
 
       dispatch(addMessage(data));
       scrollToBottom();
@@ -215,7 +232,7 @@ const MessageBox = () => {
     // Lắng nghe server trả về roomId khi tạo room lần đầu
     const onServerResponseRoom = (data) => {
       if (!roomId && data?.roomId) {
-        navigate(`/chatbot/${data.roomId}`);
+        navigate(buildChatPath(data.roomId));
       }
     };
 
@@ -233,7 +250,7 @@ const MessageBox = () => {
     // Lắng nghe server trả room khi nhắn lần đầu chưa có room
     const serverResponseNewRoom = (data) => {
       dispatch(addRoom(data));
-      navigate(`/chatbot/${data.id}`);
+      navigate(buildChatPath(data.id));
     };
 
     // Lắng nghe lỗi từ backend
@@ -264,7 +281,7 @@ const MessageBox = () => {
         chatSocket.emit("leaveRoom", { roomId });
       }
     };
-  }, [roomId, dispatch, navigate]);
+  }, [roomId, dispatch, navigate, buildChatPath]);
 
   // Bắt sự kiện khi cuộn lên đầu thì sẽ loading tiếp tin nhắn cũ
   useEffect(() => {
@@ -286,7 +303,7 @@ const MessageBox = () => {
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [roomId, messages, dispatch]);
+  }, [roomId, messages, dispatch, hasMoreMessage]);
 
   // Cuộn xuống cuối khi lần đầu vào room
   useEffect(() => {

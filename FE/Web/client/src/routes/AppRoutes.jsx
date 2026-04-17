@@ -62,6 +62,11 @@ export default function AppRoutes({ location }) {
           <Route path="/admin/dashboard/users" element={<Users />} />
           <Route path="/admin/dashboard/posts" element={<Posts />} />
           <Route path="/admin/dashboard/activity" element={<AdminActivity />} />
+          <Route path="/admin/forum" element={<Forum />} />
+          <Route path="/admin/chatbot" element={<ChatBotAI />}>
+            <Route index element={<MessageBox />} />
+            <Route path=":roomId" element={<MessageBox />} />
+          </Route>
         </Route>
       </Route>
 
@@ -81,6 +86,11 @@ export default function AppRoutes({ location }) {
           <Route path="/clinic/editor/:clinicId" element={<ClinicPortalEditor />} />
           <Route path="/clinic/home-editor/:clinicId" element={<ClinicPortalEditor />} />
           <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicPortalEditor />} />
+          <Route path="/clinic/forum" element={<Forum />} />
+          <Route path="/clinic/chatbot" element={<ChatBotAI />}>
+            <Route index element={<MessageBox />} />
+            <Route path=":roomId" element={<MessageBox />} />
+          </Route>
         </Route>
       </Route>
 
@@ -98,6 +108,11 @@ export default function AppRoutes({ location }) {
           <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
           <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
           <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
+          <Route path="/veterinarian/forum" element={<Forum />} />
+          <Route path="/veterinarian/chatbot" element={<ChatBotAI />}>
+            <Route index element={<MessageBox />} />
+            <Route path=":roomId" element={<MessageBox />} />
+          </Route>
         </Route>
       </Route>
 
