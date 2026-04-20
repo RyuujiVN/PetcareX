@@ -3,11 +3,11 @@
 	--forum-primary-hover: var(--user-primary-hover);
 	--forum-primary-soft: var(--user-primary-alpha-10);
 
-	height: 100vh;
-	padding-top: 60px;
+	height: 100%;
+	/* padding-top: 60px; */
     overflow: hidden;
 	background: #fffdfd;
-	padding-bottom: 260px;
+	/* padding-bottom: 260px; */
 	overflow-x: hidden;
 }
 
