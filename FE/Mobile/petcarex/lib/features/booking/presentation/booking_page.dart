@@ -146,6 +146,7 @@ class _BookingPageState extends State<BookingPage> {
       setState(() => _currentStep--);
     } else {
       if (Navigator.canPop(context)) {
+        context.read<BookingProvider>().reset();
         Navigator.pop(context);
       }
     }
@@ -166,7 +167,13 @@ class _BookingPageState extends State<BookingPage> {
     return PopScope(
       canPop: (_currentStep == 0 && Navigator.canPop(context)) || isSuccess,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
+        if (didPop) {
+          // Reset provider when exiting from step 0 or success screen
+          if (_currentStep == 0 || isSuccess) {
+            context.read<BookingProvider>().reset();
+          }
+          return;
+        }
         _previousStep();
       },
       child: Scaffold(
