@@ -4,21 +4,19 @@
 	--forum-primary-soft: var(--user-primary-alpha-10);
 
 	height: 100vh;
-	padding-top: 60px;
-    overflow: hidden;
+    /* overflow: hidden; */
 	background: #fffdfd;
 	padding-bottom: 260px;
-	overflow-x: hidden;
+	/* overflow-x: hidden; */
 }
 
 .pageWrap {
-	width: 95%;
+	width: 100%;
 	justify-self: center;
-	padding: 10px 28px 56px;
+	/* padding: 10px 28px 56px; */
 	display: grid;
-	/* grid-template-columns: minmax(0, 100%) 360px; */
 	gap: 24px;
-	overflow: hidden;
+	/* overflow: hidden; */
 	min-width: 0;
 }
 

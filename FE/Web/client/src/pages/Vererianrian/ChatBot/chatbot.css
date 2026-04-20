@@ -1,11 +1,8 @@
 .chatbot-container {
   display: flex;
-  height: 100dvh;
+  height: 100%;
   box-sizing: border-box;
-  padding-top: var(--petcare-header-height, 70px);
-  width: 91%;
-  margin: 0 auto;
-  min-height: 0;
+  width: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
     'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
@@ -684,10 +681,6 @@
 }
 
 @media (max-width: 768px) {
-  .chatbot-container {
-    flex-direction: column;
-  }
-
   .chatbot-sidebar {
     width: 100%;
     height: auto;

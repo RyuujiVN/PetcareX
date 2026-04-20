@@ -163,6 +163,9 @@ export default function AdminVererianrianLayout() {
     '/veterinarian/viewRecords',
   ]
   const isExamFormFocusMode = location.pathname === '/veterinarian/exam-forms/create'
+  const isChatbotRoute =
+    location.pathname === '/veterinarian/chatbot' ||
+    location.pathname.startsWith('/veterinarian/chatbot/')
   const isViewPetMedicalRecordsRoute =
     location.pathname === '/veterinarian/viewRecords' ||
     location.pathname.startsWith('/veterinarian/viewRecords/')
@@ -464,7 +467,7 @@ export default function AdminVererianrianLayout() {
           </header>
         ) : null}
 
-        <section className={`${styles.content} ${isExamFormFocusMode ? styles.contentFocus : ''}`}>
+        <section className={`${styles.content} ${isExamFormFocusMode ? styles.contentFocus : ''} ${isChatbotRoute ? styles.contentChatbot : ''}`}>
           <Outlet />
         </section>
       </main>
