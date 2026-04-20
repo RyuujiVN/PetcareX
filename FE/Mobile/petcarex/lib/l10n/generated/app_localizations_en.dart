@@ -439,6 +439,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingClinicSub => 'Select a clinic suitable for your pet';
 
   @override
+  String get clinicNoReviews => 'No reviews yet';
+
+  @override
+  String clinicReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reviews',
+      one: '1 review',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get bookingServiceSub =>
       'Select a service and enter required symptoms';
 

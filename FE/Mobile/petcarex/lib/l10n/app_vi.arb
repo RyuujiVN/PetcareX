@@ -141,6 +141,13 @@
   "choosePet": "Chọn thú cưng của bạn",
   "choosePetSub": "Chọn thú cưng cần được thăm khám hôm nay",
   "bookingClinicSub": "Chọn phòng khám phù hợp cho thú cưng",
+  "clinicNoReviews": "Chưa có đánh giá",
+  "clinicReviewCount": "{count, plural, =1{1 đánh giá} other{{count} đánh giá}}",
+  "@clinicReviewCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "bookingServiceSub": "Chọn dịch vụ và nhập triệu chứng bắt buộc",
   "bookingDoctorSub": "Chọn bác sĩ thú y phù hợp",
   "bookingTimeSub": "Chọn ngày và khung giờ khám",

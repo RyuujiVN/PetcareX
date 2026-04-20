@@ -20,6 +20,13 @@ class BookingProvider extends ChangeNotifier {
   List<Clinic> _clinics = [];
   List<Veterinarian> _doctors = [];
 
+  // Clinic pagination state
+  static const int _clinicsPageSize = 20;
+  int _clinicsCurrentPage = 1;
+  int _clinicsTotalPages = 1;
+  bool _hasMoreClinics = true;
+  bool _isLoadingMoreClinics = false;
+
   bool _isLoading = false;
   bool _isDoctorsLoading = false;
   bool _isDoctorAccountLoading = false;
@@ -41,6 +48,8 @@ class BookingProvider extends ChangeNotifier {
   List<Clinic> get clinics => _clinics;
   List<Veterinarian> get doctors => _doctors;
   bool get isLoading => _isLoading;
+  bool get isLoadingMoreClinics => _isLoadingMoreClinics;
+  bool get hasMoreClinics => _hasMoreClinics;
   bool get isDoctorsLoading => _isDoctorsLoading;
   bool get isDoctorAccountLoading => _isDoctorAccountLoading;
   String? get errorMessage => _errorMessage;
@@ -115,17 +124,66 @@ class BookingProvider extends ChangeNotifier {
   Future<void> fetchClinics() async {
     _isLoading = true;
     _errorMessage = null;
+    _clinicsCurrentPage = 1;
+    _clinicsTotalPages = 1;
+    _hasMoreClinics = true;
+    _isLoadingMoreClinics = false;
     notifyListeners();
 
     try {
-      final result = await _repository.getClinics();
-      _clinics = result['items'];
+      final result = await _repository.getClinics(
+        page: 1,
+        limit: _clinicsPageSize,
+      );
+      final items = (result['items'] as List).cast<Clinic>();
+      _clinics = _sortClinicsByRating(items);
+      _clinicsCurrentPage = (result['currentPage'] as int?) ?? 1;
+      _clinicsTotalPages = (result['totalPages'] as int?) ?? 1;
+      _hasMoreClinics = _clinicsCurrentPage < _clinicsTotalPages;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  Future<void> loadMoreClinics() async {
+    if (_isLoadingMoreClinics || !_hasMoreClinics || _isLoading) return;
+
+    _isLoadingMoreClinics = true;
+    notifyListeners();
+
+    try {
+      final nextPage = _clinicsCurrentPage + 1;
+      final result = await _repository.getClinics(
+        page: nextPage,
+        limit: _clinicsPageSize,
+      );
+      final items = (result['items'] as List).cast<Clinic>();
+      _clinics = _sortClinicsByRating([..._clinics, ...items]);
+      _clinicsCurrentPage = (result['currentPage'] as int?) ?? nextPage;
+      _clinicsTotalPages = (result['totalPages'] as int?) ?? _clinicsTotalPages;
+      _hasMoreClinics = _clinicsCurrentPage < _clinicsTotalPages;
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoadingMoreClinics = false;
+      notifyListeners();
+    }
+  }
+
+  // Sort: clinics with reviews first (desc by avgRating), unrated clinics last.
+  List<Clinic> _sortClinicsByRating(List<Clinic> input) {
+    final list = List<Clinic>.from(input);
+    list.sort((a, b) {
+      final aHas = a.totalReviews > 0;
+      final bHas = b.totalReviews > 0;
+      if (aHas && !bHas) return -1;
+      if (!aHas && bHas) return 1;
+      return b.avgRating.compareTo(a.avgRating);
+    });
+    return list;
   }
 
   Future<void> fetchDoctors(String clinicId) async {

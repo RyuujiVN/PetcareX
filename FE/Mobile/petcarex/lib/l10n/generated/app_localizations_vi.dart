@@ -438,6 +438,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get bookingClinicSub => 'Chọn phòng khám phù hợp cho thú cưng';
 
   @override
+  String get clinicNoReviews => 'Chưa có đánh giá';
+
+  @override
+  String clinicReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count đánh giá',
+      one: '1 đánh giá',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get bookingServiceSub => 'Chọn dịch vụ và nhập triệu chứng bắt buộc';
 
   @override

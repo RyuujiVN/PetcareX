@@ -1,60 +1,95 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/widgets/star_rating_widget.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/models/booking_models.dart';
 
 class StepClinicSelector extends StatelessWidget {
   final String? selectedClinicId;
-  final Function(Clinic) onSelected;
+  final ValueChanged<Clinic> onSelected;
   final List<Clinic> clinics;
+  final bool isLoadingMore;
+  final bool hasMore;
 
   const StepClinicSelector({
     super.key,
     required this.selectedClinicId,
     required this.onSelected,
     required this.clinics,
+    this.isLoadingMore = false,
+    this.hasMore = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: clinics.length,
-      itemBuilder: (context, i) => _listTile(
-        clinics[i],
-        clinics[i].name,
-        clinics[i].address,
-        selectedClinicId,
-        onSelected,
-        Icons.medical_services_outlined,
-      ),
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverList.builder(
+          itemCount: clinics.length,
+          itemBuilder: (context, i) {
+            final clinic = clinics[i];
+            return _ClinicCard(
+              clinic: clinic,
+              isSelected: clinic.id == selectedClinicId,
+              onTap: () => onSelected(clinic),
+            );
+          },
+        ),
+        if (isLoadingMore)
+          const SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
+                    strokeWidth: 2,
+                  ),
+                ),
+              ),
+            ),
+          )
+        else if (!hasMore && clinics.isNotEmpty)
+          const SliverToBoxAdapter(child: SizedBox(height: 8)),
+      ],
     );
   }
+}
 
-  Widget _listTile(
-    Clinic clinic,
-    String title,
-    String sub,
-    String? selectedVarId,
-    Function(Clinic) onSelect,
-    IconData icon,
-  ) {
-    bool isSel = selectedVarId == clinic.id;
+class _ClinicCard extends StatelessWidget {
+  final Clinic clinic;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _ClinicCard({
+    required this.clinic,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final hasReviews = clinic.totalReviews > 0;
+
     return GestureDetector(
-      onTap: () => onSelect(clinic),
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSel ? AppColors.primary : AppColors.divider,
+            color: isSelected ? AppColors.primary : AppColors.divider,
             width: 1.5,
           ),
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
               padding: const EdgeInsets.all(8),
@@ -62,7 +97,10 @@ class StepClinicSelector extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(icon, color: AppColors.primary),
+              child: const Icon(
+                Icons.medical_services_outlined,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -70,18 +108,68 @@ class StepClinicSelector extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    clinic.name,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textDark,
+                    ),
                   ),
+                  const SizedBox(height: 4),
                   Text(
-                    sub,
-                    style: const TextStyle(fontSize: 12, color: AppColors.grey),
+                    clinic.address,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textGrey,
+                    ),
                   ),
+                  const SizedBox(height: 6),
+                  if (hasReviews)
+                    Row(
+                      children: [
+                        StarRatingWidget(rating: clinic.avgRating),
+                        const SizedBox(width: 6),
+                        Text(
+                          clinic.avgRating.toStringAsFixed(1),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textDark,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Flexible(
+                          child: Text(
+                            '(${l10n.clinicReviewCount(clinic.totalReviews)})',
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AppColors.textGrey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Text(
+                      l10n.clinicNoReviews,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: AppColors.textGrey,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
                 ],
               ),
             ),
-            if (isSel)
-              const Icon(Icons.check_circle, color: AppColors.primary, size: 24),
+            if (isSelected)
+              const Padding(
+                padding: EdgeInsets.only(left: 8, top: 4),
+                child: Icon(
+                  Icons.check_circle,
+                  color: AppColors.primary,
+                  size: 24,
+                ),
+              ),
           ],
         ),
       ),

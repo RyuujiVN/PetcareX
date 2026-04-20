@@ -32,6 +32,8 @@ class _BookingPageState extends State<BookingPage> {
 
   late final List<DateTime> _availableDates;
 
+  final ScrollController _clinicScrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +41,8 @@ class _BookingPageState extends State<BookingPage> {
       7,
       (index) => DateTime.now().add(Duration(days: index)),
     );
+
+    _clinicScrollController.addListener(_onClinicScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
@@ -50,6 +54,25 @@ class _BookingPageState extends State<BookingPage> {
         }
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _clinicScrollController.removeListener(_onClinicScroll);
+    _clinicScrollController.dispose();
+    super.dispose();
+  }
+
+  void _onClinicScroll() {
+    if (_currentStep != 0) return;
+    if (!_clinicScrollController.hasClients) return;
+
+    final position = _clinicScrollController.position;
+    if (position.maxScrollExtent <= 0) return;
+
+    if (position.pixels >= position.maxScrollExtent * 0.8) {
+      context.read<BookingProvider>().loadMoreClinics();
+    }
   }
 
   void _nextStep(AppLocalizations l10n) async {
@@ -280,6 +303,7 @@ class _BookingPageState extends State<BookingPage> {
 
     return CustomScrollView(
       key: ValueKey(_currentStep),
+      controller: _currentStep == 0 ? _clinicScrollController : null,
       slivers: [
         _buildStepHeaderSliver(l10n),
         _buildStepContentSliver(),
@@ -381,12 +405,16 @@ class _BookingPageState extends State<BookingPage> {
             ),
           );
         }
-        content = StepClinicSelector(
-          selectedClinicId: bookingProvider.selectedClinic?.id,
-          onSelected: (clinic) => bookingProvider.selectClinic(clinic),
-          clinics: bookingProvider.clinics,
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          sliver: StepClinicSelector(
+            selectedClinicId: bookingProvider.selectedClinic?.id,
+            onSelected: (clinic) => bookingProvider.selectClinic(clinic),
+            clinics: bookingProvider.clinics,
+            isLoadingMore: bookingProvider.isLoadingMoreClinics,
+            hasMore: bookingProvider.hasMoreClinics,
+          ),
         );
-        break;
       case 1:
         if (petProvider.isLoading) {
           content = const Center(

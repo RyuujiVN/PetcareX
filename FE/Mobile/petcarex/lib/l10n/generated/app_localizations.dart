@@ -944,6 +944,18 @@ abstract class AppLocalizations {
   /// **'Chọn phòng khám phù hợp cho thú cưng'**
   String get bookingClinicSub;
 
+  /// No description provided for @clinicNoReviews.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có đánh giá'**
+  String get clinicNoReviews;
+
+  /// No description provided for @clinicReviewCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count, plural, =1{1 đánh giá} other{{count} đánh giá}}'**
+  String clinicReviewCount(int count);
+
   /// No description provided for @bookingServiceSub.
   ///
   /// In vi, this message translates to:

@@ -329,6 +329,32 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Xóa method `updateAppointmentStatus()` (dead code, gọi sai endpoint RBAC, không ai gọi).
     - **Lỗi BE phát hiện kèm (cần BE team fix):** Migration `1775632467242-update-notification-table` (DROP cột `sender_type` khỏi bảng notification) chưa chạy → INSERT notification khi tạo appointment bị `NOT NULL constraint violation` trên `sender_type` → HTTP 500. FE không liên quan, BE cần chạy migration.
     - **RBAC Matrix cho Mobile CUSTOMER:** Tất cả 48 API call từ mobile đều tương thích RBAC ngoại trừ lỗi cancel đã fix ở trên. Các endpoint chính: Pet (CUSTOMER), Appointment POST/GET (CUSTOMER), Medical GET (CUSTOMER), Clinic/Vet GET (ALL roles), Forum/Chat/Notification (JwtAuth only), Cloudinary (public).
+- **Booking Clinic List Pagination & Rating Sort (2026-04-20):**
+    - **Bối cảnh:** Bước `Phòng khám` trước đây chỉ hiển thị tối đa 10 phòng khám (trang 1) do `BookingRepository.getClinics()` dùng `limit=10` mặc định và `BookingProvider.fetchClinics()` không có cơ chế paginate/load more. BUG-009 đã mô tả vấn đề "mất các phòng khám tiếp theo".
+    - **Kịch bản rating (Kịch bản A):** BE đã lưu sẵn `avgRating` (`decimal(2,1)`) và `totalReviews` (`int`) trong entity `Clinic` (được cập nhật tại `ClinicReviewService.createClinicReview(...)` sau mỗi review mới). FE **không cần fetch review riêng cho từng clinic** — chỉ đọc trực tiếp từ response `GET /api/clinic` và sort ở FE sau khi fetch.
+    - **API contract:** `GET /api/clinic` trả về `{items, meta: {totalItems, totalPages, currentPage, ...}, links}` theo chuẩn `nestjs-typeorm-paginate`. BE hiện **không hỗ trợ sort param** → FE tự sort phía client.
+    - **Fix pagination (Infinite Scroll):**
+        - `BookingRepository.getClinics()` đổi default `limit=20`, trả thêm `totalPages`/`currentPage` để FE biết còn bao nhiêu trang.
+        - `BookingProvider` thêm state pagination: `_clinicsPageSize=20`, `_clinicsCurrentPage`, `_clinicsTotalPages`, `_hasMoreClinics`, `_isLoadingMoreClinics`, cùng getter `isLoadingMoreClinics` / `hasMoreClinics`.
+        - `fetchClinics()` reset list + page=1; bổ sung `loadMoreClinics()` để append trang tiếp theo, tự set `_hasMoreClinics=false` khi chạm trang cuối.
+        - `booking_page.dart` tạo `_clinicScrollController` gắn vào `CustomScrollView` khi `_currentStep==0`; listener gọi `loadMoreClinics()` khi scroll >= 80% `maxScrollExtent` và guard theo `_isLoadingMore` / `_hasMore` để không gọi API thừa.
+    - **Rating & Sort UI:**
+        - Thêm `Clinic.avgRating` (double) + `Clinic.totalReviews` (int) + `Clinic.avatarUrl` vào `booking_models.dart` (parse an toàn cả khi BE trả string/number cho decimal).
+        - Sort theo rule: clinic có đánh giá (`totalReviews > 0`) xếp trước theo `avgRating` giảm dần; clinic chưa có đánh giá xếp cuối. Re-sort sau mỗi lần `loadMoreClinics()` để giữ thứ tự nhất quán trong danh sách tích lũy.
+        - Tạo widget dùng chung `lib/core/widgets/star_rating_widget.dart` dùng `Icons.star_rounded` / `star_half_rounded` / `star_outline_rounded` (không cần package thứ 3), màu `AppColors.warning`, hỗ trợ filled/half/empty theo rule `>=N` / `>=N-0.5`.
+        - `step_clinic_selector.dart` được refactor thành **sliver** (`SliverMainAxisGroup` + `SliverList.builder`) để dùng lazy render trong `CustomScrollView` hiện hữu; kèm `SliverToBoxAdapter` loading indicator ở cuối khi đang load more. Card hiển thị: icon, tên, địa chỉ, sao + điểm số (1 số thập phân) + số lượt đánh giá (i18n plural), hoặc `clinicNoReviews` khi `totalReviews == 0`.
+    - **Trade-off đã phản biện:**
+        - Sort phía FE nghĩa là thứ tự chỉ đúng trong phạm vi đã load. Khi load thêm trang mới, clinic có rating cao hơn có thể "chen" vào giữa list đã hiển thị — chấp nhận được vì BE hiện chưa hỗ trợ sort và limit page 20 đủ lớn để case này hiếm xảy ra trong thực tế.
+        - Không chọn Kịch bản B (fetch `/api/clinic-review` cho từng clinic) vì BE đã cung cấp rating aggregate sẵn — tránh N+1 request và latency không cần thiết.
+    - **i18n mới:** `clinicNoReviews` + `clinicReviewCount` (ICU plural) cho VI/EN.
+    - **Files sửa:**
+        - `lib/features/booking/data/models/booking_models.dart`
+        - `lib/features/booking/data/booking_repository.dart`
+        - `lib/features/booking/presentation/provider/booking_provider.dart`
+        - `lib/features/booking/presentation/booking_page.dart`
+        - `lib/features/booking/presentation/widget/step_clinic_selector.dart`
+        - `lib/core/widgets/star_rating_widget.dart` (mới)
+        - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb`
 - **Booking Success Summary Contract Sync (2026-04-20):**
     - **Bối cảnh thực tế sau khi rà BE:** `POST /api/appointment` (AppointmentService.createAppointment) trả về `savedAppointment` dạng entity mỏng (id/date/time/service/status + foreign keys), không join sẵn `pet/clinic/veterinarian.user` như payload màn success từng giả định.
     - **Triệu chứng ở mobile:** Ở màn `Đặt lịch thành công`, các field `Thú cưng/Phòng khám/Bác sĩ` có thể rỗng dù đặt lịch thành công (thường chỉ còn `Dịch vụ/Giờ`).

@@ -141,6 +141,13 @@
   "choosePet": "Choose Your Pet",
   "choosePetSub": "Choose the pet that needs examination today",
   "bookingClinicSub": "Select a clinic suitable for your pet",
+  "clinicNoReviews": "No reviews yet",
+  "clinicReviewCount": "{count, plural, =1{1 review} other{{count} reviews}}",
+  "@clinicReviewCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "bookingServiceSub": "Select a service and enter required symptoms",
   "bookingDoctorSub": "Select a suitable veterinarian",
   "bookingTimeSub": "Select examination date and time",
