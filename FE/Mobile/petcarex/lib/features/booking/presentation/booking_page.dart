@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/enums/service_enum.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_notifier.dart';
+import '../../../../features/pet/data/models/pet_models.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
@@ -192,34 +193,72 @@ class _BookingPageState extends State<BookingPage> {
     final petProvider = context.watch<PetProvider>();
 
     if (_currentStep == 6) {
+      final selectedPet = _findSelectedPet(bookingProvider, petProvider);
       final res = bookingProvider.appointmentResult;
-      final rawService = res?['service'] ?? '';
+      final rawService =
+          _firstNonBlank([
+            _readNestedString(res, const ['service']),
+            bookingProvider.selectedServiceName,
+          ]) ??
+          '';
       final translatedService =
           ServiceEnum.fromValue(rawService)?.getTranslatedName(context) ??
           rawService;
-      final rawAppointmentTime = (res?['appointmentTime'] ?? '').toString();
+      final rawAppointmentTime =
+          _firstNonBlank([
+            _readNestedString(res, const ['appointmentTime']),
+            bookingProvider.selectedTime,
+          ]) ??
+          '';
+      final appointmentDate =
+          DateTime.tryParse(
+            _firstNonBlank([
+                  _readNestedString(res, const ['appointmentDate']),
+                  bookingProvider.selectedDate?.toIso8601String(),
+                ]) ??
+                '',
+          ) ??
+          bookingProvider.selectedDate ??
+          DateTime.now();
+
+      final petName =
+          _firstNonBlank([
+            _readNestedString(res, const ['pet', 'name']),
+            bookingProvider.selectedPetName,
+            selectedPet?.name,
+          ]) ??
+          l10n.stepPet;
+
+      final clinicName =
+          _firstNonBlank([
+            _readNestedString(res, const ['clinic', 'name']),
+            bookingProvider.selectedClinic?.name,
+          ]) ??
+          '';
+
+      final doctorName =
+          _firstNonBlank([
+            _readNestedString(res, const ['veterinarian', 'user', 'fullName']),
+            _readNestedString(res, const ['veterinarian', 'fullName']),
+            bookingProvider.selectedDoctor?.user.fullName,
+          ]) ??
+          '';
+
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSuccess(
-          petName: res?['pet']?['name'] ?? '',
-          clinicName: res?['clinic']?['name'] ?? '',
+          petName: petName,
+          clinicName: clinicName,
           serviceName: translatedService,
-          doctorName: res?['veterinarian']?['user']?['fullName'] ?? '',
+          doctorName: doctorName,
           time: _formatAppointmentTime(rawAppointmentTime),
-          date:
-              DateTime.tryParse(res?['appointmentDate'] ?? '') ??
-              DateTime.now(),
+          date: appointmentDate,
         ),
       );
     }
 
     if (_currentStep == 5) {
-      final pet =
-          petProvider.myPets.any((p) => p.id == bookingProvider.selectedPetId)
-          ? petProvider.myPets.firstWhere(
-              (p) => p.id == bookingProvider.selectedPetId,
-            )
-          : null;
+      final pet = _findSelectedPet(bookingProvider, petProvider);
 
       final rawService = bookingProvider.selectedServiceName ?? '';
       final translatedService =
@@ -229,7 +268,7 @@ class _BookingPageState extends State<BookingPage> {
       return SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: StepSummary(
-          petName: pet?.name ?? l10n.stepPet,
+          petName: pet?.name ?? bookingProvider.selectedPetName ?? l10n.stepPet,
           clinicName: bookingProvider.selectedClinic?.name ?? '',
           serviceName: translatedService,
           doctorName: bookingProvider.selectedDoctor?.user.fullName ?? '',
@@ -247,6 +286,56 @@ class _BookingPageState extends State<BookingPage> {
         const SliverToBoxAdapter(child: SizedBox(height: 50)),
       ],
     );
+  }
+
+  String? _firstNonBlank(List<String?> values) {
+    for (final value in values) {
+      if (value == null) {
+        continue;
+      }
+      final normalized = value.trim();
+      if (normalized.isNotEmpty) {
+        return normalized;
+      }
+    }
+    return null;
+  }
+
+  String? _readNestedString(Map<String, dynamic>? source, List<String> path) {
+    dynamic current = source;
+
+    for (final segment in path) {
+      if (current is Map && current.containsKey(segment)) {
+        current = current[segment];
+      } else {
+        return null;
+      }
+    }
+
+    if (current == null) {
+      return null;
+    }
+
+    final value = current.toString().trim();
+    return value.isEmpty ? null : value;
+  }
+
+  Pet? _findSelectedPet(
+    BookingProvider bookingProvider,
+    PetProvider petProvider,
+  ) {
+    final selectedPetId = bookingProvider.selectedPetId;
+    if (selectedPetId == null) {
+      return null;
+    }
+
+    for (final pet in petProvider.myPets) {
+      if (pet.id == selectedPetId) {
+        return pet;
+      }
+    }
+
+    return null;
   }
 
   String _formatAppointmentTime(String rawTime) {
@@ -306,7 +395,8 @@ class _BookingPageState extends State<BookingPage> {
         } else {
           content = StepPetSelector(
             selectedPetId: bookingProvider.selectedPetId,
-            onSelected: (pet) => bookingProvider.selectPet(pet.id),
+            onSelected: (pet) =>
+                bookingProvider.selectPet(pet.id, petName: pet.name),
             pets: petProvider.myPets,
           );
         }

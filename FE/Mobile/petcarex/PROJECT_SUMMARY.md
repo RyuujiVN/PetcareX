@@ -329,6 +329,14 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Xóa method `updateAppointmentStatus()` (dead code, gọi sai endpoint RBAC, không ai gọi).
     - **Lỗi BE phát hiện kèm (cần BE team fix):** Migration `1775632467242-update-notification-table` (DROP cột `sender_type` khỏi bảng notification) chưa chạy → INSERT notification khi tạo appointment bị `NOT NULL constraint violation` trên `sender_type` → HTTP 500. FE không liên quan, BE cần chạy migration.
     - **RBAC Matrix cho Mobile CUSTOMER:** Tất cả 48 API call từ mobile đều tương thích RBAC ngoại trừ lỗi cancel đã fix ở trên. Các endpoint chính: Pet (CUSTOMER), Appointment POST/GET (CUSTOMER), Medical GET (CUSTOMER), Clinic/Vet GET (ALL roles), Forum/Chat/Notification (JwtAuth only), Cloudinary (public).
+- **Booking Success Summary Contract Sync (2026-04-20):**
+    - **Bối cảnh thực tế sau khi rà BE:** `POST /api/appointment` (AppointmentService.createAppointment) trả về `savedAppointment` dạng entity mỏng (id/date/time/service/status + foreign keys), không join sẵn `pet/clinic/veterinarian.user` như payload màn success từng giả định.
+    - **Triệu chứng ở mobile:** Ở màn `Đặt lịch thành công`, các field `Thú cưng/Phòng khám/Bác sĩ` có thể rỗng dù đặt lịch thành công (thường chỉ còn `Dịch vụ/Giờ`).
+    - **Fix FE tối ưu:** `booking_page.dart` đổi sang ưu tiên dữ liệu local đã chọn trong flow booking (`selectedClinic`, `selectedDoctor`, `selectedPetName`, `selectedTime`, `selectedDate`) và chỉ fallback sang response BE nếu có.
+    - **Chi tiết triển khai:**
+        - `BookingProvider` bổ sung `selectedPetName` và cập nhật `selectPet(petId, {petName})` để lưu snapshot tên thú cưng ngay khi user chọn.
+        - `StepSummary` và `StepSuccess` dùng chiến lược fallback nhiều tầng (local-first), đồng thời parse an toàn nhiều shape response (`veterinarian.user.fullName` hoặc `veterinarian.fullName`) để chịu được biến động contract BE.
+    - **Nguyên tắc maintain mới:** Không phụ thuộc relation object trong response của `POST /api/appointment` để render UI tóm tắt/success; coi đó là response xác nhận tạo lịch, còn dữ liệu hiển thị ưu tiên từ state đã chọn ở client.
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
 - **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo contract chuẩn enum key (`enum.name` và `enum.value` đều là key backend như `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`); không duy trì alias legacy để tránh logic mơ hồ.
 - **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).

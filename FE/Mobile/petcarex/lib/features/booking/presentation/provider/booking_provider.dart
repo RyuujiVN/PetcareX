@@ -7,6 +7,7 @@ class BookingProvider extends ChangeNotifier {
   final BookingRepository _repository = BookingRepository();
 
   String? _selectedPetId;
+  String? _selectedPetName;
   Clinic? _selectedClinic;
   Veterinarian? _selectedDoctor;
   VetUser? _selectedDoctorAccount;
@@ -28,6 +29,7 @@ class BookingProvider extends ChangeNotifier {
 
   // Getters
   String? get selectedPetId => _selectedPetId;
+  String? get selectedPetName => _selectedPetName;
   Clinic? get selectedClinic => _selectedClinic;
   Veterinarian? get selectedDoctor => _selectedDoctor;
   VetUser? get selectedDoctorAccount => _selectedDoctorAccount;
@@ -46,8 +48,12 @@ class BookingProvider extends ChangeNotifier {
   Map<String, dynamic>? get appointmentResult => _appointmentResult;
 
   // Setters
-  void selectPet(String petId) {
+  void selectPet(String petId, {String? petName}) {
     _selectedPetId = petId;
+    final normalizedName = petName?.trim();
+    if (normalizedName != null && normalizedName.isNotEmpty) {
+      _selectedPetName = normalizedName;
+    }
     notifyListeners();
   }
 
@@ -183,6 +189,7 @@ class BookingProvider extends ChangeNotifier {
 
   void reset() {
     _selectedPetId = null;
+    _selectedPetName = null;
     _selectedClinic = null;
     _selectedDoctor = null;
     _selectedDoctorAccount = null;
