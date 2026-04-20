@@ -16,6 +16,7 @@ import '../../../core/utils/image_helper.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../appointment/data/appointment_model.dart';
 import '../../appointment/presentation/provider/appointment_provider.dart';
+import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../../notification/presentation/widgets/notification_bell_button.dart';
@@ -272,7 +273,7 @@ class _HomePageState extends State<HomePage> {
           l10n.myAppointments,
           l10n.viewAll,
           onTap: () {
-            MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+            MainNavigationWrapper.of(context)?.setSelectedIndex(1);
           },
         ),
         const SizedBox(height: 16),
@@ -282,7 +283,7 @@ class _HomePageState extends State<HomePage> {
           l10n.petCareForum,
           l10n.explore,
           onTap: () {
-            MainNavigationWrapper.of(context)?.setSelectedIndex(3);
+            MainNavigationWrapper.of(context)?.setSelectedIndex(2);
           },
         ),
         const SizedBox(height: 16),
@@ -586,7 +587,10 @@ class _HomePageState extends State<HomePage> {
           AppColors.primaryAlpha(0.1),
           AppColors.primary,
           onTap: () {
-            MainNavigationWrapper.of(context)?.setSelectedIndex(1);
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const BookingPage()),
+            );
           },
         ),
         const SizedBox(height: 12),
@@ -1101,11 +1105,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _openBookingTab() {
-    MainNavigationWrapper.of(context)?.setSelectedIndex(1);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BookingPage()),
+    );
   }
 
   void _openAppointmentsTab() {
-    MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+    MainNavigationWrapper.of(context)?.setSelectedIndex(1);
   }
 
   Future<void> _confirmCancelFromHome(

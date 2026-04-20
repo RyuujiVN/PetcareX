@@ -86,7 +86,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         widget.onOpenAppointmentsTab!();
         return;
       }
-      mainNavState?.setSelectedIndex(2);
+      mainNavState?.setSelectedIndex(1);
     }
 
     void openCommunityTab() {
@@ -95,7 +95,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         widget.onOpenCommunityTab!();
         return;
       }
-      mainNavState?.setSelectedIndex(3);
+      mainNavState?.setSelectedIndex(2);
     }
 
     void openAppointmentDetail(String appointmentId, {bool expandAi = false}) {

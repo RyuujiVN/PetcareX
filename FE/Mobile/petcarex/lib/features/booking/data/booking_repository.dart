@@ -43,11 +43,13 @@ class BookingRepository {
     String clinicId, {
     int page = 1,
     int limit = 10,
+    String? specialty,
   }) async {
     final endpoint = ApiHelper.veterinariansEndpoint(
       page: page,
       limit: limit,
       clinicId: clinicId,
+      specialty: specialty,
     );
     final response = await _apiClient.get(endpoint);
 

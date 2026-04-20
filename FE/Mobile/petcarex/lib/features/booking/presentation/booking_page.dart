@@ -176,11 +176,16 @@ class _BookingPageState extends State<BookingPage> {
           elevation: 0,
           centerTitle: true,
           automaticallyImplyLeading: false,
-          leading: isSuccess || _currentStep == 0
+          leading: isSuccess
               ? const SizedBox()
               : IconButton(
-                  icon: const Icon(Icons.arrow_back, color: AppColors.textDark),
-                  onPressed: _previousStep,
+                  icon: Icon(
+                    _currentStep == 0 ? Icons.close : Icons.arrow_back,
+                    color: AppColors.textDark,
+                  ),
+                  onPressed: _currentStep == 0
+                      ? () => Navigator.pop(context)
+                      : _previousStep,
                 ),
           title: Text(
             l10n.bookingTitle,
@@ -388,7 +393,10 @@ class _BookingPageState extends State<BookingPage> {
       setState(() => _currentStep = 0);
     }
 
-    MainNavigationWrapper.of(context)?.setSelectedIndex(2);
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context);
+    }
+    MainNavigationWrapper.of(context)?.setSelectedIndex(1);
   }
 
   Widget _buildStepContentSliver() {
@@ -527,7 +535,7 @@ class _BookingPageState extends State<BookingPage> {
     final isSuccess = _currentStep == 6;
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(20, 5, 20, 0),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.divider)),

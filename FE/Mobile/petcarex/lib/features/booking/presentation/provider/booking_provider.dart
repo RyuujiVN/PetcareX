@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/enums/service_enum.dart';
+import '../../../../core/utils/service_specialty_mapper.dart';
 import '../../data/booking_repository.dart';
 import '../../data/models/booking_models.dart';
 
@@ -93,7 +95,18 @@ class BookingProvider extends ChangeNotifier {
 
   void selectService(String service) {
     _selectedServiceName = service;
+    _selectedDoctor = null;
+    _selectedDoctorAccount = null;
     notifyListeners();
+
+    // Re-fetch doctors filtered by specialty based on selected service
+    if (_selectedClinic != null) {
+      final serviceEnum = ServiceEnum.fromValue(service);
+      final specialty = serviceEnum != null
+          ? ServiceSpecialtyMapper.getPrimarySpecialtyValue(serviceEnum)
+          : null;
+      fetchDoctors(_selectedClinic!.id, specialty: specialty);
+    }
   }
 
   void setSymptomsNote(String note) {
@@ -186,13 +199,16 @@ class BookingProvider extends ChangeNotifier {
     return list;
   }
 
-  Future<void> fetchDoctors(String clinicId) async {
+  Future<void> fetchDoctors(String clinicId, {String? specialty}) async {
     _isDoctorsLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _doctors = await _repository.getVeterinariansByClinic(clinicId);
+      _doctors = await _repository.getVeterinariansByClinic(
+        clinicId,
+        specialty: specialty,
+      );
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

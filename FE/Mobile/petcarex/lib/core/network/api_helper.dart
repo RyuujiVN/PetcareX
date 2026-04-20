@@ -129,12 +129,14 @@ class ApiHelper {
     int page = 1,
     int limit = 10,
     String? clinicId,
+    String? specialty,
   }) => buildEndpoint(
     AppConstants.END_POINT_VETERINARIAN,
     queryParameters: <String, Object?>{
       'page': page,
       'limit': limit,
       'clinicId': clinicId,
+      'specialty': specialty,
     },
   );
 

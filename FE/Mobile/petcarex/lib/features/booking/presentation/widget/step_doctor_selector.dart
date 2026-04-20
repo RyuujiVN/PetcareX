@@ -28,8 +28,6 @@ class StepDoctorSelector extends StatefulWidget {
 }
 
 class _StepDoctorSelectorState extends State<StepDoctorSelector> {
-  String? _selectedSpecialty;
-
   String _nonEmptyOrDash(String? value) {
     if (value == null || value.trim().isEmpty) {
       return '--';
@@ -40,31 +38,10 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final filteredDoctors = _selectedSpecialty == null
-        ? widget.doctors
-        : widget.doctors
-              .where((d) => d.specialty == _selectedSpecialty)
-              .toList();
 
     return Column(
       children: [
-        // Filter chips using Enum
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildFilterChip(label: l10n.all, value: null),
-              ...VeterinarySpecialtyEnum.values.map(
-                (specialty) => _buildFilterChip(
-                  label: specialty.getTranslatedName(context),
-                  value: specialty.value,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (filteredDoctors.isEmpty)
+        if (widget.doctors.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Text(
@@ -74,15 +51,15 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
           )
         else
           ...List.generate(
-            filteredDoctors.length,
+            widget.doctors.length,
             (i) => _listTile(
-              filteredDoctors[i],
-              filteredDoctors[i].user.fullName,
-              filteredDoctors[i].specialty,
+              widget.doctors[i],
+              widget.doctors[i].user.fullName,
+              widget.doctors[i].specialty,
               widget.selectedDoctorId,
               widget.onSelected,
               Icons.person_outline,
-              filteredDoctors[i].user.avatarUrl,
+              widget.doctors[i].user.avatarUrl,
             ),
           ),
       ],
@@ -174,35 +151,6 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFilterChip({required String label, required String? value}) {
-    bool isSelected = _selectedSpecialty == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedSpecialty = value;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey.shade200,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
     );
   }
 
