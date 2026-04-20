@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       limit:
-        description: "Ansible --limit value (example: petcare_servers, vm1)"
+        description: "Ansible --limit value (petcare_servers, vm1)"
         required: false
         default: "petcare_servers"
       dry_run:
