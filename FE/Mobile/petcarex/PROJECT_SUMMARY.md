@@ -617,6 +617,40 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Không cần thay đổi contract API BE hiện tại.
     - `flutter analyze` sạch cho phạm vi `community` + `camera_service`.
 
+## ⭐ Clinic Review từ Hồ sơ Y tế (2026-04)
+
+### Bối cảnh
+- Sau khi khám bệnh xong (đã có medical record), khách hàng có thể đánh giá phòng khám trực tiếp từ thẻ lượt khám trong trang "Hồ sơ y tế".
+- API: `POST /api/clinic-review` (CUSTOMER only), payload `{ clinicId, medicalRecordId, rating, content? }`.
+
+### Triển khai FE
+- **Model update:** `PetMedicalRecordSummary` bổ sung `clinicId`, `clinicName` (parse từ `json['clinic']`), `isReview` (từ `json['isReview']`) + `copyWith()`.
+- **API layer:** `clinic_review_repository.dart` — `createClinicReview()` POST, `getClinicReviews()` GET.
+- **Widget mới:**
+    - `InteractiveStarRating` — widget sao tương tác (tap chọn 1–5 sao).
+    - `ReviewBottomSheet` — bottom sheet gồm interactive stars, rating label, optional comment field, submit/cancel buttons, loading state.
+- **Tích hợp vào `pet_medical_records_page.dart`:**
+    - Mỗi thẻ medical record hiển thị review section bên dưới ExpansionTile.
+    - `isReview == false` + `clinicId != null`: hiện sao trống + text "Đánh giá lượt khám này", tap mở ReviewBottomSheet.
+    - `isReview == true`: hiện badge "Đã đánh giá" (icon check + text xanh).
+    - Sau submit thành công: cập nhật local state `isReview = true` ngay để phản hồi tức thì.
+- **i18n keys mới:** `reviewClinicTitle`, `reviewThisVisit`, `reviewAlreadyReviewed`, `reviewCommentHint`, `reviewSubmit`, `reviewSuccess`, `reviewFailed`, `reviewRating1–5`.
+- **Files thay đổi/tạo mới:**
+    - `lib/core/constants/app_constants.dart` (sửa)
+    - `lib/core/network/api_helper.dart` (sửa)
+    - `lib/features/pet/data/models/pet_medical_record_models.dart` (sửa)
+    - `lib/features/pet/data/clinic_review_repository.dart` (mới)
+    - `lib/core/widgets/interactive_star_rating.dart` (mới)
+    - `lib/features/pet/presentation/widgets/review_bottom_sheet.dart` (mới)
+    - `lib/features/pet/presentation/pet_medical_records_page.dart` (sửa)
+    - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb` (sửa)
+
+### BE Issues phát hiện (cần dev BE xử lý)
+1. `CreateClinicReviewDTO.rating` không có `@Min/@Max` validation → FE tự enforce 1–5 client-side nhưng BE nên validate.
+2. BE set `isReview=true` sau khi tạo review nhưng **không kiểm tra** trước khi tạo → cho phép duplicate review.
+3. Không validate `medicalRecordId` thuộc về user đang gọi API → potential data integrity issue.
+4. **Không có module Report/Tố cáo** trong BE → Feature "Tố cáo bài viết/bình luận" **không thể triển khai ở FE** cho tới khi BE xây dựng module tương ứng.
+
 ## 📝 Hướng dẫn chạy dự án
 1. **Vào đúng root mobile trước khi chạy lệnh:** `Set-Location "F:\capstone 2\code\PetcareX\FE\Mobile\petcarex"`.
 2. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.

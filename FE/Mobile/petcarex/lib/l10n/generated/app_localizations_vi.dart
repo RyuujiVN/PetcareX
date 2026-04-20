@@ -1126,4 +1126,65 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get language => 'Ngôn ngữ';
+
+  @override
+  String get reviewClinicTitle => 'Đánh giá phòng khám';
+
+  @override
+  String get reviewThisVisit => 'Đánh giá lượt khám này';
+
+  @override
+  String get reviewAlreadyReviewed => 'Đã đánh giá';
+
+  @override
+  String get reviewCommentHint => 'Nhập nhận xét của bạn (không bắt buộc)';
+
+  @override
+  String get reviewSubmit => 'Gửi đánh giá';
+
+  @override
+  String get reviewSuccess => 'Đã gửi đánh giá thành công!';
+
+  @override
+  String get reviewFailed => 'Không thể gửi đánh giá. Vui lòng thử lại.';
+
+  @override
+  String get reviewRating1 => 'Rất tệ';
+
+  @override
+  String get reviewRating2 => 'Tệ';
+
+  @override
+  String get reviewRating3 => 'Bình thường';
+
+  @override
+  String get reviewRating4 => 'Tốt';
+
+  @override
+  String get reviewRating5 => 'Rất tốt';
+
+  @override
+  String get reportPostTitle => 'Tố cáo bài viết';
+
+  @override
+  String get reportCommentTitle => 'Tố cáo bình luận';
+
+  @override
+  String get reportReasonHint => 'Chọn lý do tố cáo';
+
+  @override
+  String get reportSubmit => 'Gửi tố cáo';
+
+  @override
+  String get reportSuccess =>
+      'Đã gửi tố cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất.';
+
+  @override
+  String get reportFailed => 'Không thể gửi tố cáo. Vui lòng thử lại.';
+
+  @override
+  String get reportAction => 'Tố cáo';
+
+  @override
+  String get reportDescriptionHint => 'Mô tả thêm (không bắt buộc)';
 }

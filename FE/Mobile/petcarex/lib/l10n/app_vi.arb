@@ -492,6 +492,28 @@
   "chatStatusSent": "Đã gửi",
   "chatStatusError": "Lỗi"
   ,
-  "language": "Ngôn ngữ"
+  "language": "Ngôn ngữ",
+
+  "reviewClinicTitle": "Đánh giá phòng khám",
+  "reviewThisVisit": "Đánh giá lượt khám này",
+  "reviewAlreadyReviewed": "Đã đánh giá",
+  "reviewCommentHint": "Nhập nhận xét của bạn (không bắt buộc)",
+  "reviewSubmit": "Gửi đánh giá",
+  "reviewSuccess": "Đã gửi đánh giá thành công!",
+  "reviewFailed": "Không thể gửi đánh giá. Vui lòng thử lại.",
+  "reviewRating1": "Rất tệ",
+  "reviewRating2": "Tệ",
+  "reviewRating3": "Bình thường",
+  "reviewRating4": "Tốt",
+  "reviewRating5": "Rất tốt",
+
+  "reportPostTitle": "Tố cáo bài viết",
+  "reportCommentTitle": "Tố cáo bình luận",
+  "reportReasonHint": "Chọn lý do tố cáo",
+  "reportSubmit": "Gửi tố cáo",
+  "reportSuccess": "Đã gửi tố cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất.",
+  "reportFailed": "Không thể gửi tố cáo. Vui lòng thử lại.",
+  "reportAction": "Tố cáo",
+  "reportDescriptionHint": "Mô tả thêm (không bắt buộc)"
 }
 
