@@ -1205,7 +1205,7 @@ export default function RecordExaminationForm() {
 		message[type]({
 			content,
 			key: 'walkin-step',
-			duration: type === 'loading' ? 0 : 2,
+			duration: type === 'loading' ? 0 : type === 'error' ? 4 : 2,
 		})
 	}
 
@@ -1401,7 +1401,7 @@ export default function RecordExaminationForm() {
 			showWalkInStep(t('examForm.record.messages.walkInSaveSuccess'), 'success')
 			goBackToList()
 		} catch (error) {
-			message.error(buildErrorMessage(error, t('examForm.record.messages.walkInSaveError')))
+			showWalkInStep(buildErrorMessage(error, t('examForm.record.messages.walkInSaveError')), 'error')
 		} finally {
 			setSaving(false)
 		}
@@ -1951,7 +1951,10 @@ export default function RecordExaminationForm() {
 				<Card className={styles.sectionCard} title={<span><HeartOutlined /> {t('examForm.record.sections.vital')}</span>}>
 					<div className={styles.vitalGrid}>
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>{t('examForm.record.fields.weight')}</p>
+							<p className={styles.vitalLabel}>
+								{t('examForm.record.fields.weight')}
+								<span className={styles.vitalLabelRequired} aria-hidden="true">*</span>
+							</p>
 							<Form.Item
 								name="weight"
 								rules={[
@@ -1966,7 +1969,10 @@ export default function RecordExaminationForm() {
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>{t('examForm.record.fields.temperature')}</p>
+							<p className={styles.vitalLabel}>
+								{t('examForm.record.fields.temperature')}
+								<span className={styles.vitalLabelRequired} aria-hidden="true">*</span>
+							</p>
 							<Form.Item
 								name="temperature"
 								rules={[{ required: true, message: t('examForm.record.validation.temperatureRequired') }]}
@@ -1977,7 +1983,10 @@ export default function RecordExaminationForm() {
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>{t('examForm.record.fields.heartRate')}</p>
+							<p className={styles.vitalLabel}>
+								{t('examForm.record.fields.heartRate')}
+								<span className={styles.vitalLabelRequired} aria-hidden="true">*</span>
+							</p>
 							<Form.Item
 								name="heartRate"
 								rules={[{ required: true, message: t('examForm.record.validation.heartRateRequired') }]}
@@ -1988,7 +1997,10 @@ export default function RecordExaminationForm() {
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>{t('examForm.record.fields.systolic')}</p>
+							<p className={styles.vitalLabel}>
+								{t('examForm.record.fields.systolic')}
+								<span className={styles.vitalLabelRequired} aria-hidden="true">*</span>
+							</p>
 							<Form.Item
 								name="systolic"
 								rules={[{ required: true, message: t('examForm.record.validation.systolicRequired') }]}
@@ -1999,7 +2011,10 @@ export default function RecordExaminationForm() {
 						</div>
 
 						<div className={styles.vitalBox}>
-							<p className={styles.vitalLabel}>{t('examForm.record.fields.diastolic')}</p>
+							<p className={styles.vitalLabel}>
+								{t('examForm.record.fields.diastolic')}
+								<span className={styles.vitalLabelRequired} aria-hidden="true">*</span>
+							</p>
 							<Form.Item
 								name="diastolic"
 								rules={[{ required: true, message: t('examForm.record.validation.diastolicRequired') }]}

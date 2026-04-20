@@ -20,7 +20,25 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-17)
+## Cập nhật mới nhất (2026-04-20)
+
+### Cập nhật (2026-04-20) — Fix UI treo khi tạo phiếu khám ngoài lỗi + bắt buộc chỉ số sinh tồn
+
+**Phạm vi:** `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` + `recordExaminationForm.module.css`.
+
+**Bug 1 — UI treo loading "Đang tạo phiếu khám..." khi BE trả lỗi (ví dụ số điện thoại đã được dùng):**
+- Nguyên nhân gốc: helper `showWalkInStep(content, type='loading')` mở `message.loading` với `key: 'walkin-step'` và `duration: 0` (persistent). Trong `handleWalkInSubmit` catch block, code cũ gọi `message.error(buildErrorMessage(...))` KHÔNG truyền `key: 'walkin-step'` → toast loading cũ không bị thay thế, vẫn hiển thị vĩnh viễn → UI "treo".
+- Fix:
+  - Catch block chuyển sang gọi `showWalkInStep(buildErrorMessage(...), 'error')` để thay thế toast cùng key.
+  - Nới duration cho `type === 'error'` → 4s (mặc định success 2s, loading 0s persistent) trong `showWalkInStep`.
+- Phản biện/tối ưu: cân nhắc dùng `message.destroy('walkin-step')` rồi `message.error(...)` — nhưng cùng-key-replace gọn hơn 1 call, không có flicker, và giữ a11y (role=alert của toast cũ bị cập nhật thay vì tạo mới).
+
+**Bug 2 — Chỉ số sinh tồn chưa hiển thị dấu `*` bắt buộc nhập:**
+- Quan sát: 5 field (`weight`, `temperature`, `heartRate`, `systolic`, `diastolic`) đã có `rules: [{ required: true, ... }]` (validate khi submit đã hoạt động), NHƯNG label được render bằng `<p className={styles.vitalLabel}>` nằm NGOÀI `Form.Item` và `Form.Item` không có prop `label` → AntD không tự chèn asterisk → user không biết bắt buộc.
+- Fix: thêm `<span className={styles.vitalLabelRequired} aria-hidden="true">*</span>` (đỏ `#ff4d4f`) vào mỗi `<p>` vitalLabel. Class mới `.vitalLabelRequired` thêm vào CSS module.
+- Phản biện: tại sao không chuyển sang dùng prop `label` của `Form.Item` (AntD tự làm asterisk)? Vì layout hiện tại `.vitalGrid > .vitalBox > <p> + <Form.Item>` là grid custom, đổi sang `label` prop sẽ phá spacing (AntD label có margin/padding riêng). Giải pháp asterisk thủ công giữ nguyên visual, đồng nhất với các field walk-in khác (`customerName`, `petName`) cũng dùng pattern label-ngoài.
+
+**Regression:** `npx eslint` trên file thay đổi → clean.
 
 ### Cập nhật (2026-04-17) — Booking Doctor Panel + Forum Report Service + Clinic Vet Fields + Admin View-as-User
 
