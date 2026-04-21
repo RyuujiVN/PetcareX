@@ -1,11 +1,6 @@
 name: Infra Ansible Setup
 
 on:
-  push:
-    branches: ["Deploy"]
-    paths:
-      - "ansible/**"
-      - ".github/workflows/infra-ansible.yml"
   workflow_dispatch:
     inputs:
       limit:
