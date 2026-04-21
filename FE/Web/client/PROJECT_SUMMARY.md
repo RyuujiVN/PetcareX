@@ -22,6 +22,108 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-21)
 
+### Cập nhật (2026-04-21) — Fix triệt để sticky header `PHIẾU KHÁM BỆNH & CHỈ ĐỊNH` (dời scroll container lên `formRoot`)
+
+**Phạm vi:** `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`.
+
+**Triệu chứng người dùng báo:**
+- Header `PHIẾU KHÁM BỆNH & CHỈ ĐỊNH` (khối `Mã hồ sơ` + `Ngày khám`) vẫn trôi đi khi cuộn nội dung phía dưới, dù đã đặt `position: sticky; top: 0` và tăng `z-index` ở lần fix trước.
+
+**Phân tích nguyên nhân gốc (tự phản biện):**
+- `position: sticky` chỉ dính với **scroll container gần nhất chứa chính nó**. Cấu trúc DOM trước đây:
+  - `.formRoot` (Form, height:100%, flex column, KHÔNG scroll)
+    - `.formHeader` (sticky top:0) ← nằm ngoài scroll container
+    - `Tabs` (flex:1) → mỗi `TabPane` chứa `.formScrollableContent` (`overflow-y:auto`) ← đây mới là scroll container thật.
+- Vì vậy khi người dùng cuộn `.formScrollableContent`, sticky của `.formHeader` hoàn toàn vô hiệu (không cùng container).
+- Phản biện phương án "duplicate header vào từng tab": xấu, lặp i18n, khó bảo trì, mỗi lần đổi tab header bị re-mount.
+- Phương án tối ưu đã chọn: **chuyển scroll container lên `.formRoot`**, bỏ scroll nội bộ ở `.formScrollableContent` và bỏ `flex:1` ở `.tabsRoot` để nội dung Tabs flow tự nhiên. Khi đó `.formHeader` nằm trong đúng scroll container và sticky hoạt động đúng.
+
+**Thay đổi đã triển khai (CSS):**
+- `.formRoot`: thêm `overflow-y:auto; overflow-x:hidden; scrollbar-width:none; -ms-overflow-style:none;` + `::-webkit-scrollbar { width:0; height:0; }` để biến nó thành scroll container ẩn scrollbar.
+- `.formScrollableContent`: bỏ `overflow-y:auto` và các thuộc tính ẩn scrollbar (không còn cần — giờ chỉ là wrapper nội dung tab).
+- `.tabsRoot`: bỏ `flex:1` (giữ `min-height:0`) để Tabs flow chiều cao theo nội dung, cho phép `formRoot` cuộn toàn bộ.
+- `.formHeader`: tăng `z-index` từ `12` → `20` và thêm `flex-shrink:0` đảm bảo không bị co khi flex column container cuộn.
+
+**Tác dụng phụ đã cân nhắc:**
+- Tab bar của Ant Tabs sẽ cuộn cùng với nội dung (không còn fixed). Người dùng chỉ yêu cầu cố định header phiếu khám nên chấp nhận được. Nếu về sau cần cố định tab bar, có thể thêm `position: sticky; top: <height formHeader>; z-index: 15; background: ...;` cho `.ant-tabs-nav` trong `.tabsRoot`.
+- Không đổi JSX, không đổi BE, không đổi i18n → tuân thủ rule "không sửa cross-boundary".
+
+**Regression:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (vite build, 5982 modules transformed, 28.93s).
+
+### Cập nhật (2026-04-21) — Tối ưu cuộn role bác sĩ (ẩn scrollbar), giữ cố định header phiếu khám, fix lỗi hiển thị key dạng "code"
+
+**Phạm vi:**
+- `src/layouts/Vererianrian/AdminVererianrianLayout.module.css`
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`
+- `src/locales/vererianrian/vi.json`
+- `src/locales/vererianrian/en.json`
+
+**Yêu cầu nghiệp vụ mới từ người dùng:**
+- Khôi phục cơ chế cuộn nhưng **không hiển thị thanh cuộn dài** (vẫn lăn chuột/touchpad bình thường).
+- Khối tiêu đề `PHIẾU KHÁM BỆNH & CHỈ ĐỊNH` phải bám cố định khi lướt nội dung.
+- Trong tab `Hồ sơ y tế` (ở form phiếu khám), không được hiện text kiểu "code".
+
+**Nguyên nhân gốc + tự phản biện:**
+- Sau fix trước, layout đã có scroll container ở `.content` nên cuộn hoạt động, nhưng thanh cuộn mặc định của trình duyệt hiển thị rõ → không đúng UX mong muốn.
+- Header phiếu khám đã dùng `position: sticky`, nhưng cần tăng độ ưu tiên layer để ổn định hơn khi cuộn nội dung dài.
+- Lỗi "hiện code" trong `Hồ sơ y tế` đến từ i18n key thiếu:
+  - Code dùng `t('common.actions.expand')` / `t('common.actions.collapse')`
+  - Locale `common.actions` chưa có 2 key này, nên UI render nguyên key path (trông như code).
+- Phương án tối ưu đã chọn:
+  - Không phá kiến trúc scroll hiện tại.
+  - Ẩn scrollbar bằng CSS cross-browser, vẫn giữ khả năng cuộn.
+  - Bổ sung key i18n thiếu thay vì hardcode text trong JSX.
+
+**Thay đổi đã triển khai:**
+- `AdminVererianrianLayout.module.css`
+  - Giữ `overflow-y: auto` cho `.content`.
+  - Thêm ẩn scrollbar cross-browser (`scrollbar-width: none`, `-ms-overflow-style: none`, `::-webkit-scrollbar { width: 0; height: 0; }`).
+- `recordExaminationForm.module.css`
+  - Thêm ẩn scrollbar cho `.formScrollableContent` (vẫn cuộn được).
+  - Tăng `z-index` của `.formHeader` từ `5` → `12` để sticky header ổn định hơn khi lướt.
+- `locales/vererianrian/{vi,en}.json`
+  - Thêm `common.actions.expand` và `common.actions.collapse` để chấm dứt hiện key i18n dạng "code" trên UI.
+
+**Regression:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (`vite build`, 5982 modules transformed).
+
+### Cập nhật (2026-04-21) — Fix lỗi role bác sĩ không cuộn được trong các form
+
+**Phạm vi:** `src/layouts/Vererianrian/AdminVererianrianLayout.module.css`.
+
+**Triệu chứng người dùng báo:**
+- Khi vào portal bác sĩ (`/veterinarian/*`), các trang form dài (đặc biệt phiếu khám) không thể cuộn, dẫn đến không thao tác được phần nội dung phía dưới.
+
+**Phân tích nguyên nhân gốc (đối chiếu code):**
+- Layout bác sĩ đang khóa viewport bằng:
+  - `.layout { height: 100vh; overflow: hidden; }`
+  - `.main { height: 100vh; overflow: hidden; }`
+- Vùng nội dung chính `.content` lại bị comment mất cơ chế cuộn (`overflow-y: auto; overflow-x: hidden;`).
+- Kết quả: nội dung vượt chiều cao màn hình bị cắt, không có scroll container ở tầng layout.
+- Đối chiếu với `AdminLayout` và `AdminClinicLayout`: cả hai đều bật `overflow-y: auto` cho vùng content/main nên không gặp lỗi tương tự.
+
+**Tự phản biện các phương án trước khi fix:**
+- Phương án 1: vá từng page form (thêm scroll nội bộ cho từng màn).
+  - Nhược: tốn công, dễ thiếu sót, khó bảo trì, có thể phát sinh nhiều scrollbar lồng nhau.
+- Phương án 2: mở cuộn ở `body`/`html` toàn cục.
+  - Nhược: phá kiến trúc layout hiện tại vốn dựa trên viewport shell, dễ ảnh hưởng portal khác.
+- Phương án 3 (chọn): khôi phục đúng trách nhiệm của `content` trong Vet layout (`overflow-y: auto`).
+  - Ưu điểm: diff nhỏ nhất, đúng gốc lỗi, đồng bộ với 2 portal còn lại, rủi ro thấp.
+
+**Fix đã áp dụng (tối ưu):**
+- Trong `AdminVererianrianLayout.module.css`, bật lại:
+  - `overflow-y: auto;`
+  - `overflow-x: hidden;`
+  cho class `.content`.
+- Giữ nguyên `contentChatbot { overflow: hidden; }` để không làm thay đổi hành vi màn chatbot.
+
+**Regression:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (`vite build`, 5982 modules transformed).
+
+**Bài học kiến trúc (để tránh lặp lại):**
+- Với layout dạng shell `100vh` + `overflow: hidden`, bắt buộc phải có ít nhất một scroll container rõ ràng (`main` hoặc `content`) cho route nội dung dài.
+
 ### Cập nhật (2026-04-21) — Điều chỉnh card chọn phòng khám: giữ giao diện cũ, chỉ đổi vị trí hiển thị đánh giá
 
 **Phạm vi:** `src/pages/client/Home/ClinicSelection/index.jsx`, `src/pages/client/Home/ClinicSelection/styles.css`, `src/locales/client/vi.json`, `src/locales/client/en.json`.

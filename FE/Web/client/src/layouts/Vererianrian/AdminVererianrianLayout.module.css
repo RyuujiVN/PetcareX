@@ -371,9 +371,16 @@
 .content {
   flex: 1;
   min-height: 0;
-  /* overflow-y: auto;
-  overflow-x: hidden; */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 10px 16px 40px;
+}
+
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .contentChatbot {
