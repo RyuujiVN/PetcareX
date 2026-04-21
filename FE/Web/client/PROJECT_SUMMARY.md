@@ -22,6 +22,46 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-21)
 
+### Cập nhật (2026-04-21) — Fix nghiêm trọng layout ChatBot Client: thanh nhập bị dồn lên cao ở route `/chatbot`
+
+**Phạm vi:**
+- `src/pages/client/Home/ChatBotAI/index.jsx`
+- `src/pages/client/Home/ChatBotAI/styles.css`
+
+**Triệu chứng người dùng báo:**
+- Khi mở mới route `/chatbot`, ô nhập chat không bám đáy mà nhảy lên vùng trên.
+- Khi bấm vào một lịch sử chat thì nội dung trông ổn hơn, nhưng vị trí thanh nhập vẫn cao hơn mong muốn.
+
+**Phân tích nguyên nhân gốc (đã tự phản biện):**
+- Client/Clinic/Veterinarian/Admin ChatBot đang dùng chung các class global trùng tên (`.chatbot-container`, `.chatbot-main`, ...).
+- Trong `AppRoutes.jsx`, các page ChatBot của nhiều portal được import tĩnh, nên CSS của các portal cùng được nạp và có thể override lẫn nhau theo thứ tự bundle.
+- Trên màn Client, rule đúng cần cho root là chiều cao theo viewport (trừ header cố định). Nhưng khi bị rule portal khác ghi đè thành `height: 100%`, root mất chiều cao hữu hiệu, làm dock input không còn bám đáy.
+
+**Tự phản biện phương án:**
+- Phương án 1: thêm `!important` cho nhiều thuộc tính.
+  - Nhanh nhưng khó bảo trì, dễ tạo hiệu ứng phụ khi sửa UI về sau.
+- Phương án 2: đổi toàn bộ sang CSS Modules cho ChatBot.
+  - Sạch nhất dài hạn nhưng diff lớn, rủi ro regression cao cho hotfix UI.
+- Phương án 3 (đã chọn): giữ cấu trúc hiện tại, **cô lập scope Client bằng class đặc thù + tăng specificity có kiểm soát**.
+  - Diff nhỏ, xử lý đúng gốc xung đột cross-portal, ít rủi ro nhất.
+
+**Fix đã triển khai (tối ưu):**
+- `index.jsx`: thêm class scope cho root: `chatbot-container client-chatbot-page`.
+- `styles.css`:
+  - Đổi selector root thành `.chatbot-container.client-chatbot-page` để thắng override global từ portal khác.
+  - Chuẩn hóa chiều cao root theo header fixed:
+    - `height: calc(100dvh - var(--petcare-header-height, 70px))`
+    - `margin-top: var(--petcare-header-height, 70px)`
+    - bỏ `padding-top` để tránh cộng dồn theo box model.
+  - Tăng độ ổn định cho vùng nội dung:
+    - `.chatbox-layout { height: 100%; }`
+    - `.empty-state { flex: 1; }`
+  => đảm bảo thanh nhập luôn neo ở đáy cả khi chưa chọn lịch sử lẫn khi đang chat.
+
+**Ghi chú kiến trúc để tránh lặp lỗi:**
+- Không nên dùng class global trùng nhau cho nhiều portal nếu không có namespace/scoping rõ ràng.
+- Với route có header fixed, nên ưu tiên công thức `height: calc(100dvh - headerHeight)` + `margin-top: headerHeight` thay vì padding-top trên container chính khi cần kiểm soát layout full-height.
+
 ### Cập nhật (2026-04-21) — Fix triệt để sticky header `PHIẾU KHÁM BỆNH & CHỈ ĐỊNH` (dời scroll container lên `formRoot`)
 
 **Phạm vi:** `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`.
