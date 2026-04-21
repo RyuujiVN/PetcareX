@@ -37,11 +37,11 @@ jobs:
         shell: bash
         run: |
           if [ -z "${{ secrets.SSH_PRIVATE_KEY }}" ]; then
-            echo "Missing secret: ANSIBLE_SSH_PRIVATE_KEY"
+            echo "Missing secret: SSH_PRIVATE_KEY"
             exit 1
           fi
-          if [ -z "${{ secrets.ANSIBLE_INVENTORY }}" ]; then
-            echo "Missing secret: ANSIBLE_INVENTORY"
+          if [ -z "${{ secrets.ANSIBLE_INVENTORY }}" ] && [ ! -f ansible/inventory.ini ]; then
+            echo "Missing inventory. Provide ANSIBLE_INVENTORY secret or commit ansible/inventory.ini"
             exit 1
           fi
 
