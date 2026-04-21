@@ -511,6 +511,7 @@
         "title": "Chọn phòng khám phù hợp",
         "searchPlaceholder": "Tìm kiếm theo tên",
         "chooseButton": "Chọn",
+        "ratingBadgeFallback": "Mới",
         "reviewCount": "đánh giá",
         "noReview": "Chưa có đánh giá",
         "loadListFailed": "Không thể tải danh sách phòng khám",

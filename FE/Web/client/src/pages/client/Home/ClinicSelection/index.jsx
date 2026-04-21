@@ -1,15 +1,15 @@
-﻿import { message, Rate, Spin } from "antd";
+﻿import { message, Spin } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaStar } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClientInstance } from "../../../../services/apiClient";
 import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
 import {
-  CLINIC_INFO_STORAGE_PREFIX,
-  CLINIC_INFO_UPDATED_EVENT,
-  formatClinicOpenHours,
-  getClinicInfoContent,
+    CLINIC_INFO_STORAGE_PREFIX,
+    CLINIC_INFO_UPDATED_EVENT,
+    formatClinicOpenHours,
+    getClinicInfoContent,
 } from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
 
@@ -235,76 +235,75 @@ useEffect(() => {
 
       <Spin spinning={loading}>
         <div className="clinic-grid">
-          {filtered.map((clinic, index) => (
-            <div key={clinic.id} className="clinic-card">
-              <img
-                src={clinic.image}
-                alt={clinic.name}
-                className="clinic-img"
-              />
+          {filtered.map((clinic, index) => {
+            const avgRating = Number(clinic.avgRating) || 0;
+            const totalReviews = Number(clinic.totalReviews) || 0;
+            const hasReviews = totalReviews > 0;
 
-              <div className="clinic-info" style={{ color: "var(--color-text-primary)" }}>
-                <h3
-                  className="clinic-name"
-                  title={clinic.name}
-                  ref={(el) => (nameRefs.current[index] = el)}
+            return (
+              <div key={clinic.id} className="clinic-card">
+                <img
+                  src={clinic.image}
+                  alt={clinic.name}
+                  className="clinic-img"
+                />
+
+                <div
+                  className={`clinic-rating-badge ${hasReviews ? "" : "is-empty"}`}
+                  title={
+                    hasReviews
+                      ? `${avgRating.toFixed(1)} • ${totalReviews} ${t("pages.home.clinicSelection.reviewCount")}`
+                      : t("pages.home.clinicSelection.noReview")
+                  }
                 >
-                  <span className="clinic-name-text">
-                    {clinic.name}
+                  <FaStar className="clinic-rating-badge-icon" aria-hidden="true" />
+                  <span className="clinic-rating-badge-value">
+                    {hasReviews
+                      ? avgRating.toFixed(1)
+                      : t("pages.home.clinicSelection.ratingBadgeFallback")}
                   </span>
-                </h3>
+                </div>
 
-                <p className="clinic-address" title={clinic.address}>
-                  {clinic.address}
-                </p>
+                <div className="clinic-info" style={{ color: "var(--color-text-primary)" }}>
+                  <h3
+                    className="clinic-name"
+                    title={clinic.name}
+                    ref={(el) => (nameRefs.current[index] = el)}
+                  >
+                    <span className="clinic-name-text">
+                      {clinic.name}
+                    </span>
+                  </h3>
 
-                <p className="clinic-time" title={clinic.time}>
-                  {clinic.time}
-                </p>
+                  <p className="clinic-address" title={clinic.address}>
+                    {clinic.address}
+                  </p>
 
-                {(() => {
-                  const clinicPhone = clinic.phone || clinic.localInfo?.phone;
-                  if (!clinicPhone) return null;
+                  <p className="clinic-time" title={clinic.time}>
+                    {clinic.time}
+                  </p>
 
-                  return (
-                    <p className="clinic-phone" title={clinicPhone}>
-                      {t("common.labels.phone")}: {formatPhoneVN(clinicPhone)}
-                    </p>
-                  );
-                })()}
+                  {(() => {
+                    const clinicPhone = clinic.phone || clinic.localInfo?.phone;
+                    if (!clinicPhone) return null;
 
-                {(() => {
-                  const avgRating = Number(clinic.avgRating) || 0;
-                  const totalReviews = Number(clinic.totalReviews) || 0;
-                  const hasReviews = totalReviews > 0;
+                    return (
+                      <p className="clinic-phone" title={clinicPhone}>
+                        {t("common.labels.phone")}: {formatPhoneVN(clinicPhone)}
+                      </p>
+                    );
+                  })()}
+                </div>
 
-                  return (
-                    <div className="clinic-rating">
-                      <Rate
-                        disabled
-                        allowHalf
-                        value={hasReviews ? avgRating : 0}
-                        className="clinic-rating-stars"
-                      />
-                      {hasReviews ? (
-                        <p className="clinic-rating-text">
-                          {avgRating.toFixed(1)} • {totalReviews} {t("pages.home.clinicSelection.reviewCount")}
-                        </p>
-                      ) : (
-                        <p className="clinic-rating-empty">{t("pages.home.clinicSelection.noReview")}</p>
-                      )}
-                    </div>
-                  );
-                })()}
+                <button
+                  className="btn-choose"
+                  onClick={() => handleChoose(clinic)}
+                >
+                  {t("pages.home.clinicSelection.chooseButton")}
+                </button>
               </div>
-              <button
-                className="btn-choose"
-                onClick={() => handleChoose(clinic)}
-              >
-                {t("pages.home.clinicSelection.chooseButton")}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Spin>
     </div>

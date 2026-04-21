@@ -20,7 +20,39 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-20)
+## Cập nhật mới nhất (2026-04-21)
+
+### Cập nhật (2026-04-21) — Điều chỉnh card chọn phòng khám: giữ giao diện cũ, chỉ đổi vị trí hiển thị đánh giá
+
+**Phạm vi:** `src/pages/client/Home/ClinicSelection/index.jsx`, `src/pages/client/Home/ClinicSelection/styles.css`, `src/locales/client/vi.json`, `src/locales/client/en.json`.
+
+**Yêu cầu nghiệp vụ cuối cùng:**
+- Giữ nguyên giao diện cũ (typography, spacing, cấu trúc thông tin, nút `Chọn`).
+- Chỉ thay phần đánh giá: chuyển lên badge nổi ở góc trên ảnh, giống mock tham chiếu.
+
+**Phân tích + phản biện (đã áp dụng):**
+- Đã thử hướng redesign toàn card theo style hiện đại hơn, nhưng không phù hợp yêu cầu thực tế vì làm thay đổi quá nhiều thành phần ngoài phạm vi.
+- Phương án tối ưu cuối cùng: rollback toàn bộ thay đổi ngoài phạm vi và giữ diff nhỏ nhất, chỉ gồm phần rating badge.
+
+**Thay đổi chính đã triển khai (minimal diff):**
+- JSX:
+  - Bỏ khối rating cũ trong thân card.
+  - Thêm badge `clinic-rating-badge` hiển thị điểm ở góc phải trên ảnh.
+  - Giữ nguyên layout cũ của tên, địa chỉ, giờ mở cửa, điện thoại và nút `Chọn`.
+- CSS:
+  - Giữ nguyên stylesheet cũ.
+  - Chỉ thêm `position: relative` cho `.clinic-card` và các class badge rating.
+  - Bổ sung tinh chỉnh vị trí badge cho mobile.
+- i18n:
+  - Thêm key `pages.home.clinicSelection.ratingBadgeFallback`:
+    - vi: `Mới`
+    - en: `New`
+
+**Regression:**
+- `npx eslint src/pages/client/Home/ClinicSelection/index.jsx` → clean.
+
+**Quy ước thao tác file (bổ sung để dùng lại):**
+- Khi ghi file bằng PowerShell (`Set-Content` / `Out-File`) phải chỉ định `-Encoding utf8` để tránh lỗi tiếng Việt.
 
 ### Cập nhật (2026-04-20) — Fix UI treo khi tạo phiếu khám ngoài lỗi + bắt buộc chỉ số sinh tồn
 

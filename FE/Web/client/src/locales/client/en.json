@@ -511,6 +511,7 @@
         "title": "Choose the right clinic",
         "searchPlaceholder": "Search by clinic name",
         "chooseButton": "Choose",
+        "ratingBadgeFallback": "New",
         "reviewCount": "reviews",
         "noReview": "No reviews yet",
         "loadListFailed": "Unable to load clinic list",
