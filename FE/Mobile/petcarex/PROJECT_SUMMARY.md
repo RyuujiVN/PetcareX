@@ -126,6 +126,29 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
     - Giữ dedup URL ở `_extractImageUrlsFromHtml` làm defensive layer.
 - **Kết quả:** 1 ảnh trong comment/post hiển thị như một khung hình thống nhất, không còn "viền trắng tách đôi" khiến người dùng tưởng có 2-3 ảnh. Portrait không bị stretch; landscape không bị letterbox.
 
+### 10) Community Comment Multi-Image Facebook-style Grid (2026-04-22)
+- **Vấn đề phát hiện sau fix (9):**
+    - Ở comment có **2+ ảnh**, các nhánh `count == 2/3/4/5+` trong `_buildImageGrid` ép tất cả ảnh vào khung cao ~120px (vì `compact=true`, `totalHeight=160`, `h = totalHeight * 0.75`).
+    - Với 5+ ảnh, chỉ hiển thị 5 cái đầu kèm overlay "+N", các ảnh còn lại bị ẩn khỏi bubble comment → user cảm giác "không hiển thị đầy đủ".
+    - Mỗi ảnh trong grid bị co nhỏ tới mức không đọc/nhìn được nội dung.
+- **Lần lặp 1 (đã loại):** Horizontal carousel ngang. Mọi ảnh đều xem được nhưng break pattern social feed quen thuộc, user mong đợi kiểu FB "thumbnail + số ảnh còn lại".
+- **Lần lặp 2 (đã áp dụng theo request của user):** **Facebook comment-style thumbnail grid + "+N" overlay**.
+    - Container: `Align(centerLeft) + FractionallySizedBox(widthFactor: 0.75) + AspectRatio(1:1)` → block vuông, căn trái, rộng 75% bubble comment.
+    - Layout theo số ảnh hiển thị (tối đa 4):
+        - 2 ảnh: 2 cột đều
+        - 3 ảnh: 1 tile trái + 2 tile nhỏ phải xếp dọc (FB style)
+        - 4 ảnh: grid 2×2
+        - ≥5 ảnh: grid 2×2, tile thứ 4 có overlay **+N** (N = count - 4)
+    - Tái sử dụng helper `_fbImage(..., overlayCount: ...)` đã có sẵn cho post feed → đồng bộ render (cover, bo góc, overlay) giữa post và comment, giảm trùng code.
+    - Tap bất kỳ tile nào mở `ImageViewer` với đúng `initialIndex` — tile "+N" mở viewer từ ảnh thứ 4, user vuốt để xem hết các ảnh bị ẩn.
+- **Giữ nguyên cho post feed (non-compact):** các nhánh grid `count == 2/3/4/5+` gốc không đổi để nhịp đọc feed nhất quán.
+- **Nguyên tắc tuân thủ:** chỉ sửa FE mobile, không đụng BE; giữ nguyên contract HTML content.
+- **Kết quả:**
+    - Comment nhiều ảnh giờ gọn gàng theo đúng pattern FB/social feed.
+    - Thumbnail đủ lớn để nhìn (tile ~(0.75 × bubble_width) / 2 ≈ 100–130px mỗi tile).
+    - Không ảnh nào bị "mất" — user tap "+N" là vào full gallery.
+    - Reuse `_fbImage` giúp post và comment có visual language đồng nhất.
+
 ## 🐾 Pet Avatar Fullscreen Fix (2026-03-27)
 
 ### Bối cảnh lỗi

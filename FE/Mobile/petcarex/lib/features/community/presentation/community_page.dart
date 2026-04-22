@@ -118,6 +118,94 @@ class _CommunityPageState extends State<CommunityPage> {
       );
     }
 
+    // Comment/reply (compact) với nhiều ảnh: grid thumbnail kiểu Facebook,
+    // hiển thị tối đa 4 tile, tile cuối có overlay "+N" nếu còn ảnh ẩn.
+    // Toàn block là vuông 1:1, rộng 75% bubble, căn trái.
+    if (compact) {
+      final displayUrls = imageUrls.take(4).toList();
+      final displayCount = displayUrls.length;
+      final moreCount = count - displayCount;
+      const gap = 3.0;
+
+      Widget body;
+      if (displayCount == 2) {
+        body = Row(
+          children: [
+            Expanded(child: _fbImage(displayUrls, 0, allUrls: imageUrls)),
+            const SizedBox(width: gap),
+            Expanded(child: _fbImage(displayUrls, 1, allUrls: imageUrls)),
+          ],
+        );
+      } else if (displayCount == 3) {
+        body = Row(
+          children: [
+            Expanded(child: _fbImage(displayUrls, 0, allUrls: imageUrls)),
+            const SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: _fbImage(displayUrls, 1, allUrls: imageUrls),
+                  ),
+                  const SizedBox(height: gap),
+                  Expanded(
+                    child: _fbImage(displayUrls, 2, allUrls: imageUrls),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      } else {
+        // displayCount == 4
+        body = Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _fbImage(displayUrls, 0, allUrls: imageUrls),
+                  ),
+                  const SizedBox(width: gap),
+                  Expanded(
+                    child: _fbImage(displayUrls, 1, allUrls: imageUrls),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: gap),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _fbImage(displayUrls, 2, allUrls: imageUrls),
+                  ),
+                  const SizedBox(width: gap),
+                  Expanded(
+                    child: _fbImage(
+                      displayUrls,
+                      3,
+                      overlayCount: moreCount > 0 ? moreCount : null,
+                      allUrls: imageUrls,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: 0.75,
+          alignment: Alignment.centerLeft,
+          child: AspectRatio(aspectRatio: 1.0, child: body),
+        ),
+      );
+    }
+
     // 2 ảnh: hai cột bằng nhau
     if (count == 2) {
       return SizedBox(
@@ -2133,7 +2221,7 @@ class _AdaptiveSingleImageState extends State<_AdaptiveSingleImage> {
   Widget build(BuildContext context) {
     final ratio = _aspectRatio ?? (widget.compact ? 4.0 / 3.0 : 4.0 / 3.0);
 
-    return GestureDetector(
+    final imageWidget = GestureDetector(
       onTap: () =>
           ImageViewer.show(context, widget.allUrls, initialIndex: 0),
       child: ClipRRect(
@@ -2151,5 +2239,20 @@ class _AdaptiveSingleImageState extends State<_AdaptiveSingleImage> {
         ),
       ),
     );
+
+    // Ở comment (compact) căn ảnh về trái và thu hẹp bề ngang
+    // để không bị "trôi" vào giữa bubble bình luận.
+    if (widget.compact) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: 0.75,
+          alignment: Alignment.centerLeft,
+          child: imageWidget,
+        ),
+      );
+    }
+
+    return imageWidget;
   }
 }
