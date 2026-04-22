@@ -17,6 +17,7 @@ import { Like } from '../entities/like.entity';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationEnum } from 'src/common/enums/notification.enum';
 import { NotificationGateway } from 'src/notification/notification.gateway';
+import { PostSearchService } from './post-search.service';
 
 @Injectable()
 export class PostService {
@@ -27,12 +28,15 @@ export class PostService {
     private readonly postRepository: Repository<ForumPost>,
     @InjectRepository(Notification)
     private readonly notificationRepository: Repository<Notification>,
+    private readonly postSearchService: PostSearchService,
     private readonly notificationGateway: NotificationGateway,
     private readonly dataSource: DataSource,
   ) {}
 
   // Lấy danh sách bài đăng
   async findAllPagination(options: PostPagination, userId: string) {
+    const postIds = await this.postSearchService.searchPostIds(options);
+
     const queryBuilder = this.postRepository
       .createQueryBuilder('post')
       .leftJoin('post.author', 'author')
@@ -43,6 +47,7 @@ export class PostService {
         'like.postId = post.id AND like.userId = :id',
         { id: userId },
       )
+      .whereInIds(postIds)
       .select([
         'post.id',
         'post.content',
@@ -60,13 +65,8 @@ export class PostService {
         'topic.nameEng',
       ])
       .addSelect('like.postId IS NOT NULL', 'liked')
-      .limit(options.limit)
-      .orderBy('post.createdAt', 'DESC');
-
-    if (options.lastPostTime)
-      queryBuilder.andWhere('post.createdAt < :time', {
-        time: new Date(options.lastPostTime),
-      });
+      .orderBy(`ARRAY_POSITION(ARRAY[:...postIds]::uuid[], post.id)`) // Giữ đúng thứ tự elastic trả về
+      .setParameter('postIds', postIds);
 
     const posts = await queryBuilder.getRawMany();
 
@@ -181,14 +181,21 @@ export class PostService {
   }
 
   // Tạo mới bài đăng
-  async createPost(
-    createDTO: CreatePostDTO,
-    authorId: string,
-  ): Promise<ForumPost> {
+  async createPost(createDTO: CreatePostDTO, author: User) {
     const post = this.postRepository.create(createDTO);
-    post.authorId = authorId;
+    post.authorId = author.id;
 
-    return await this.postRepository.save(post);
+    const savedPost = await this.postRepository.save(post);
+
+    const postDoc = {
+      ...savedPost,
+      authorName: author.fullName,
+      avatarUrl: author.avatarUrl,
+    };
+
+    await this.postSearchService.createPost(postDoc);
+
+    return savedPost;
   }
 
   // Chỉnh sửa bài đăng
@@ -199,6 +206,8 @@ export class PostService {
 
     Object.assign(post, updateDTO);
     await this.postRepository.save(post);
+
+    await this.postSearchService.updatePost(updateDTO, id);
   }
 
   // Xoá bài đăng
