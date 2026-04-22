@@ -43,15 +43,26 @@ export class PostController {
     type: Date,
     description: 'Phân trang dựa vào thời gian bài viết cuối',
   })
-  getAllPost(
+  @ApiQuery({ name: 'sortRecent', required: false, type: Boolean })
+  @ApiQuery({
+    name: 'keyword',
+    required: false,
+    type: String,
+    description: 'Tìm kiếm bài viết',
+  })
+  async getAllPost(
+    @Req() req,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('lastPostTime') lastPostTime: Date,
-    @Req() req,
+    @Query('keyword') keyword?: string,
+    @Query('sortRecent') sortRecent?: boolean,
   ) {
     return this.postService.findAllPagination(
       {
         limit,
         lastPostTime,
+        keyword,
+        sortRecent,
       },
       req?.user?.id,
     );
@@ -80,7 +91,7 @@ export class PostController {
     type: CreatePostDTO,
   })
   createPost(@Body() createDTO: CreatePostDTO, @Req() req) {
-    return this.postService.createPost(createDTO, req?.user?.id);
+    return this.postService.createPost(createDTO, req?.user);
   }
 
   @Post(':id/like')

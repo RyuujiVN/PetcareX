@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class CreatePostDTO {
   @ApiProperty()
@@ -11,4 +17,10 @@ export class CreatePostDTO {
   @IsString()
   @IsNotEmpty({ message: 'Nội dung không được để trống' })
   content: string;
+
+  @ApiProperty()
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  images?: string[];
 }
