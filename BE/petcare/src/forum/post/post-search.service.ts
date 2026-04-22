@@ -139,6 +139,32 @@ export class PostSearchService implements OnModuleInit {
     });
   }
 
+  // Tạo mới nhiều document
+  async createManyPosts(posts: any[]) {
+    const operations = posts.flatMap((post) => [
+      { index: { _index: FORUM_POST_INDEX, _id: post.id } },
+      {
+        id: post.id,
+        authorId: post.authorId,
+        topicId: post.topicId,
+        content: post.content,
+        createdAt: post.createdAt,
+      },
+    ]);
+
+    const result = await this.elasticSearchService.bulk({
+      refresh: true,
+      operations,
+    });
+
+    if (result.errors) {
+      const errors = result.items.filter((item) => item.index?.error);
+      this.logger.error('Bulk index errors', JSON.stringify(errors));
+    }
+
+    return result;
+  }
+
   // Chỉnh sửa document
   async updatePost(data: UpdatePostDTO, postId: string) {
     await this.elasticSearchService.update({

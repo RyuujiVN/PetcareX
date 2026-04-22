@@ -94,6 +94,16 @@ export class PostController {
     return this.postService.createPost(createDTO, req?.user);
   }
 
+  @Post('bulk')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Tạo mới nhiều bài viết' })
+  @ApiBody({
+    type: [CreatePostDTO],
+  })
+  createManyPost(@Body() createDTOs: CreatePostDTO[], @Req() req) {
+    return this.postService.createManyPost(createDTOs, req?.user);
+  }
+
   @Post(':id/like')
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Like bài viết' })

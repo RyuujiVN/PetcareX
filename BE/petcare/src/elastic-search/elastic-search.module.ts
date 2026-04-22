@@ -11,7 +11,6 @@ import { ElasticsearchModule } from '@nestjs/elasticsearch';
         auth: {
           apiKey: process.env.ELASTIC_SEARCH_API_KEY as string,
         },
-        serverMode: 'serverless',
       }),
     }),
   ],
