@@ -198,6 +198,27 @@ export class PostService {
     return savedPost;
   }
 
+  // Tạo mới nhiều bài đăng
+  async createManyPost(createDTOs: CreatePostDTO[], author: User) {
+    const posts = createDTOs.map((dto) => {
+      const post = this.postRepository.create(dto);
+      post.authorId = author.id;
+      return post;
+    });
+
+    const savedPosts = await this.postRepository.save(posts);
+
+    const postDocs = savedPosts.map((savedPost) => ({
+      ...savedPost,
+      authorName: author.fullName,
+      avatarUrl: author.avatarUrl,
+    }));
+
+    await this.postSearchService.createManyPosts(postDocs);
+
+    return savedPosts;
+  }
+
   // Chỉnh sửa bài đăng
   async updatePost(updateDTO: UpdatePostDTO, id: string) {
     const post = await this.postRepository.findOne({ where: { id: id } });
