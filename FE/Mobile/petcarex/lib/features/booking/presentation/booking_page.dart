@@ -165,13 +165,16 @@ class _BookingPageState extends State<BookingPage> {
     ];
 
     return PopScope(
-      canPop: (_currentStep == 0 && Navigator.canPop(context)) || isSuccess,
+      canPop: _currentStep == 0 && Navigator.canPop(context),
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
-          // Reset provider when exiting from step 0 or success screen
-          if (_currentStep == 0 || isSuccess) {
+          if (_currentStep == 0) {
             context.read<BookingProvider>().reset();
           }
+          return;
+        }
+        if (isSuccess) {
+          _closeSuccessAndGoToAppointments(context.read<BookingProvider>());
           return;
         }
         _previousStep();
@@ -400,10 +403,11 @@ class _BookingPageState extends State<BookingPage> {
       setState(() => _currentStep = 0);
     }
 
+    MainNavigationWrapper.activeState?.setSelectedIndex(1);
+
     if (Navigator.canPop(context)) {
       Navigator.pop(context);
     }
-    MainNavigationWrapper.of(context)?.setSelectedIndex(1);
   }
 
   Widget _buildStepContentSliver() {

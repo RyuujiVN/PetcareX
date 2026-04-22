@@ -363,6 +363,18 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
         - `BookingProvider` bổ sung `selectedPetName` và cập nhật `selectPet(petId, {petName})` để lưu snapshot tên thú cưng ngay khi user chọn.
         - `StepSummary` và `StepSuccess` dùng chiến lược fallback nhiều tầng (local-first), đồng thời parse an toàn nhiều shape response (`veterinarian.user.fullName` hoặc `veterinarian.fullName`) để chịu được biến động contract BE.
     - **Nguyên tắc maintain mới:** Không phụ thuộc relation object trong response của `POST /api/appointment` để render UI tóm tắt/success; coi đó là response xác nhận tạo lịch, còn dữ liệu hiển thị ưu tiên từ state đã chọn ở client.
+- **Booking Success Screen Simplification (2026-04-22):**
+    - **Bối cảnh:** Màn `Đặt lịch thành công` trước đây hiển thị kèm khối **Mã QR check-in** (icon QR placeholder + hướng dẫn xuất trình tại quầy). Do mobile hiện chưa có pipeline sinh/verify QR thật và luồng check-in tại clinic chưa chốt, khối này chỉ là UI trống gây hiểu nhầm cho người dùng.
+    - **Thay đổi UI:** Gỡ toàn bộ block QR (`bookingCheckinQrTitle`, icon `Icons.qr_code_2`, `bookingQrInstruction`) trong `step_success.dart`; màn thành công chỉ còn icon check + tiêu đề + bảng tóm tắt lịch hẹn.
+    - **Thay đổi điều hướng – thứ tự tối ưu (quan trọng):** `BookingPage` được push bằng `MaterialPageRoute` đè lên `IndexedStack` của `MainNavigationWrapper`. Khi đóng màn success, thứ tự bắt buộc là:
+        1. `MainNavigationWrapper.activeState?.setSelectedIndex(1)` – đổi `IndexedStack.index` sang **Lịch hẹn** TRƯỚC khi pop. Vì `BookingPage` vẫn đang đè lên trên, user không nhìn thấy tab đang chuyển bên dưới.
+        2. `Navigator.pop(context)` – animation pop của `MaterialPageRoute` reveal thẳng vào `AppointmentPage` ngay từ frame đầu tiên, không còn hiện Home flash.
+    - **Lý do phải đảo thứ tự so với bản trước:** Nếu pop trước rồi mới `setSelectedIndex` (kể cả bọc trong `addPostFrameCallback`), toàn bộ animation pop (~300ms) vẫn diễn ra trên nền tab cũ (Home) do `IndexedStack` chưa đổi index → user thấy Home nhấp nháy trước khi chuyển sang Lịch hẹn. Đổi index trước thì frame nền đã sẵn là Appointment trước khi pop animation bắt đầu.
+    - **Back-gesture / nút back cứng:** `PopScope.canPop` KHÔNG được set `true` ở trạng thái success. Thay vào đó `canPop = _currentStep == 0 && Navigator.canPop(context)` và `onPopInvokedWithResult` nhận `didPop=false` ở success để gọi cùng hàm `_closeSuccessAndGoToAppointments(...)`. Nếu để `canPop=true`, hệ thống auto-pop ngay sẽ quay về bước 1 (pop trước khi đổi tab) và tái hiện flash Home.
+    - **Dùng `MainNavigationWrapper.activeState` (static) thay vì `of(context)`:** đảm bảo lấy được state wrapper bất kể context của `BookingPage` đang ở đâu trong tree và tránh edge case `findAncestorStateOfType` trả null trong quá trình unmount.
+    - **Files sửa:**
+        - `lib/features/booking/presentation/widget/step_success.dart`
+        - `lib/features/booking/presentation/booking_page.dart`
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
 - **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo contract chuẩn enum key (`enum.name` và `enum.value` đều là key backend như `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`); không duy trì alias legacy để tránh logic mơ hồ.
 - **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).
