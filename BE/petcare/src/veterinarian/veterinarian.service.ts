@@ -80,6 +80,8 @@ export class VeterinarianService {
       veterinarian.clinicId = createDTO.clinicId;
       veterinarian.userId = user.id;
       veterinarian.specialty = createDTO.specialty;
+      veterinarian.experience = createDTO.experience;
+      veterinarian.introduce = createDTO.introduce;
 
       const newVeterinarian = await vetRepo.save(veterinarian);
 

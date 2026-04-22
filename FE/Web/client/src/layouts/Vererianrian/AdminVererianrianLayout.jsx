@@ -2,8 +2,10 @@ import {
     CalendarOutlined,
     FileTextOutlined,
     FormOutlined,
+  MessageOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  RobotOutlined,
     SearchOutlined,
 } from '@ant-design/icons'
 import { Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography, notification } from 'antd'
@@ -53,12 +55,28 @@ const buildMenuItems = (t) => [
     path: '/veterinarian/exam-forms',
     activePaths: ['/veterinarian/exam-forms'],
   },
+  {
+    key: 'forum',
+    label: t('layout.menu.forum'),
+    icon: MessageOutlined,
+    path: '/veterinarian/forum',
+    activePaths: ['/veterinarian/forum'],
+  },
+  {
+    key: 'chatbot',
+    label: t('layout.menu.chatbot'),
+    icon: RobotOutlined,
+    path: '/veterinarian/chatbot',
+    activePaths: ['/veterinarian/chatbot'],
+  },
 ]
 
 const NOTIFICATION_TYPE_COLORS = {
   appointment: 'blue',
   'ai-diagnosis': 'purple',
   system: 'gold',
+	'forum-like': 'geekblue',
+	'forum-reply': 'cyan',
   'forum-comment': 'cyan',
 }
 
@@ -66,6 +84,8 @@ const getNotificationTypeLabel = (type, t) => {
   if (type === 'appointment') return t('layout.notifications.types.appointment')
   if (type === 'ai-diagnosis') return t('layout.notifications.types.aiDiagnosis')
   if (type === 'system') return t('layout.notifications.types.system')
+  if (type === 'forum-like') return t('layout.notifications.types.forumLike')
+  if (type === 'forum-reply') return t('layout.notifications.types.forumReply')
   if (type === 'forum-comment') return t('layout.notifications.types.forumComment')
   return t('layout.notifications.types.other')
 }
@@ -143,6 +163,9 @@ export default function AdminVererianrianLayout() {
     '/veterinarian/viewRecords',
   ]
   const isExamFormFocusMode = location.pathname === '/veterinarian/exam-forms/create'
+  const isChatbotRoute =
+    location.pathname === '/veterinarian/chatbot' ||
+    location.pathname.startsWith('/veterinarian/chatbot/')
   const isViewPetMedicalRecordsRoute =
     location.pathname === '/veterinarian/viewRecords' ||
     location.pathname.startsWith('/veterinarian/viewRecords/')
@@ -277,6 +300,9 @@ export default function AdminVererianrianLayout() {
               { value: 'all', label: t('layout.notifications.filters.allTypes') },
               { value: 'appointment', label: t('layout.notifications.filters.appointment') },
               { value: 'ai-diagnosis', label: t('layout.notifications.filters.aiDiagnosis') },
+				{ value: 'forum-like', label: t('layout.notifications.filters.forumLike') },
+				{ value: 'forum-comment', label: t('layout.notifications.filters.forumComment') },
+				{ value: 'forum-reply', label: t('layout.notifications.filters.forumReply') },
               { value: 'system', label: t('layout.notifications.filters.system') },
             ]}
           />
@@ -441,7 +467,7 @@ export default function AdminVererianrianLayout() {
           </header>
         ) : null}
 
-        <section className={`${styles.content} ${isExamFormFocusMode ? styles.contentFocus : ''}`}>
+        <section className={`${styles.content} ${isExamFormFocusMode ? styles.contentFocus : ''} ${isChatbotRoute ? styles.contentChatbot : ''}`}>
           <Outlet />
         </section>
       </main>

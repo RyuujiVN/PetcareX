@@ -1,10 +1,10 @@
-.chatbot-container {
+.chatbot-container.client-chatbot-page {
   display: flex;
-  height: 100dvh;
+  height: calc(100dvh - var(--petcare-header-height, 70px));
   box-sizing: border-box;
-  padding-top: var(--petcare-header-height, 70px);
+  padding-top: 0;
   width: 91%;
-  margin: 0 auto;
+  margin: var(--petcare-header-height, 70px) auto 0;
   min-height: 0;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
@@ -196,6 +196,7 @@
 
 .chatbox-layout {
   flex: 1;
+  height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
@@ -276,6 +277,7 @@
 }
 
 .empty-state {
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -396,6 +398,51 @@
 
 .message-bubble.loading span {
   color: #6b7280;
+}
+
+.typing-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f3f7;
+  color: var(--home-chatbot-primary);
+  flex-shrink: 0;
+}
+
+.typing-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  border-radius: 18px;
+  background: #f0f3f7;
+  min-height: 40px;
+}
+
+.typing-indicator-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  background: #94a3b8;
+  animation: typing-bounce 1.4s infinite ease-in-out;
+}
+
+@keyframes typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+
+  30% {
+    transform: translateY(-8px);
+    opacity: 1;
+  }
 }
 
 .check-list {

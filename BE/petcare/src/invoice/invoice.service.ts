@@ -10,6 +10,8 @@ import { CreateInvoiceDTO } from './dtos/create-invoice.dto';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
 import { UpdateInvoiceDTO } from './dtos/update-invoice.dto';
+import { InvoicePagination } from './types/invoice-pagination.type';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class InvoiceService {
@@ -68,7 +70,34 @@ export class InvoiceService {
     return response;
   }
 
-  async createInvoice(createDTO: CreateInvoiceDTO) {
+  async findAllPagination(
+    options: InvoicePagination,
+    clinicId: string,
+  ): Promise<Pagination<Invoice>> {
+    const queryBuilder = this.invoiceRepository
+      .createQueryBuilder('invoice')
+      .innerJoin('invoice.medicalRecord', 'medicalRecord')
+      .leftJoin('invoice.petOwner', 'petOwner')
+      .select([
+        'invoice.createdAt',
+        'invoice.totalAmount',
+        'invoice.status',
+
+        'petOwner.fullName',
+
+        'medicalRecord.name',
+      ])
+      .where('invoice.clinicId = :clinicId', { clinicId: clinicId });
+
+    if (options.status)
+      queryBuilder.andWhere('invoice.status = :status', {
+        status: options.status,
+      });
+
+    return paginate<Invoice>(queryBuilder, options);
+  }
+
+  async createInvoice(createDTO: CreateInvoiceDTO, clinicId: string) {
     const medicalRecord = await this.medicalRecordRepo.findOne({
       where: { id: createDTO.medicalRecordId },
       relations: [
@@ -97,14 +126,27 @@ export class InvoiceService {
     invoice.medicalRecordId = createDTO.medicalRecordId;
     invoice.totalAmount = totalCostMedicalOrders + totalCostMedicines;
     invoice.status = InvoiceStatusEnum.UNPAID;
+    invoice.clinicId = clinicId;
 
     return await this.invoiceRepository.save(invoice);
   }
 
-  async updateInvoice(updateDTO: UpdateInvoiceDTO, id: string) {
+  async updateInvoice(
+    updateDTO: UpdateInvoiceDTO,
+    id: string,
+    clinicId: string,
+  ) {
     const invoice = await this.invoiceRepository.findOne({ where: { id: id } });
 
     if (!invoice) throw new NotFoundException('Không tìm thấy hoá đơn');
+
+    if (invoice.clinicId !== clinicId)
+      throw new ForbiddenException('Không có quyền sửa hoá đơn này');
+
+    if (invoice.status === InvoiceStatusEnum.PAID)
+      throw new ForbiddenException(
+        'Hoá đơn đã thanh toán, không có quyền chỉnh sửa',
+      );
 
     Object.assign(invoice, updateDTO);
 
@@ -117,7 +159,7 @@ export class InvoiceService {
     if (!invoice) throw new NotFoundException('Không tìm thấy hoá đơn');
 
     if (invoice.status === InvoiceStatusEnum.PAID)
-      throw new ForbiddenException('Hoá đơn đã thanh toán không có quyền xoá');
+      throw new ForbiddenException('Hoá đơn đã thanh toán, không có quyền xoá');
 
     await this.invoiceRepository.delete({ id: invoice.id });
   }

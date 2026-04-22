@@ -3,9 +3,11 @@ import {
   FileSearchOutlined,
   HomeOutlined,
   LineChartOutlined,
+  MessageOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   MedicineBoxOutlined,
+  RobotOutlined,
   TeamOutlined,
 } from "@ant-design/icons";
 import {
@@ -78,6 +80,20 @@ const menuItemConfigs = [
     path: "/clinic/exam-slips",
     activePaths: ["/clinic/exam-slips"],
   },
+  {
+    key: "forum",
+    labelKey: "sidebar.menu.forum",
+    icon: MessageOutlined,
+    path: "/clinic/forum",
+    activePaths: ["/clinic/forum"],
+  },
+  {
+    key: "chatbot",
+    labelKey: "sidebar.menu.chatbot",
+    icon: RobotOutlined,
+    path: "/clinic/chatbot",
+    activePaths: ["/clinic/chatbot"],
+  },
 ];
 
 const clinicEditorPathPrefixes = [
@@ -92,6 +108,8 @@ const NOTIFICATION_TYPE_COLORS = {
   review: "purple",
   "ai-diagnosis": "purple",
   system: "gold",
+  "forum-like": "geekblue",
+  "forum-reply": "cyan",
   "forum-comment": "cyan",
 };
 
@@ -119,6 +137,16 @@ const getNotificationTypeLabel = (type, t) => {
   if (type === "forum-comment") {
     return t("sidebar.notifications.types.forumComment", {
       defaultValue: "Bình luận",
+    });
+  }
+  if (type === "forum-like") {
+    return t("sidebar.notifications.types.forumLike", {
+      defaultValue: "Lượt thích",
+    });
+  }
+  if (type === "forum-reply") {
+    return t("sidebar.notifications.types.forumReply", {
+      defaultValue: "Phản hồi",
     });
   }
   if (type === "system") {
@@ -201,7 +229,9 @@ const handoffAdminAuthToNewTab = () => {
         window.localStorage.setItem(key, value);
       }
     });
-  } catch {}
+  } catch (error) {
+    void error;
+  }
 };
 
 export default function AdminClinicLayout() {
@@ -235,6 +265,13 @@ export default function AdminClinicLayout() {
     location.pathname.startsWith("/clinic/editor/") ||
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
+
+  const isFullscreenRoute =
+    location.pathname === "/clinic/forum" ||
+    location.pathname.startsWith("/clinic/forum/") ||
+    location.pathname === "/clinic/chatbot" ||
+    location.pathname.startsWith("/clinic/chatbot/");
+
   const shouldEmbedActionBarInTopBar =
     location.pathname === "/clinic/appointments" ||
     location.pathname.startsWith("/clinic/appointments/") ||
@@ -434,6 +471,18 @@ export default function AdminClinicLayout() {
                 }),
               },
               {
+                value: "forum-like",
+                label: t("sidebar.notifications.filters.forumLike", {
+                  defaultValue: "Lượt thích",
+                }),
+              },
+              {
+                value: "forum-reply",
+                label: t("sidebar.notifications.filters.forumReply", {
+                  defaultValue: "Phản hồi",
+                }),
+              },
+              {
                 value: "system",
                 label: t("sidebar.notifications.filters.system", {
                   defaultValue: "Hệ thống",
@@ -553,9 +602,9 @@ export default function AdminClinicLayout() {
       </aside>
       ) : null}
 
-      <main className={styles.main}>
+      <main className={`${styles.main} ${isFullscreenRoute ? styles.mainFullscreen : ""}`}>
         {notificationContextHolder}
-        {!isClinicEditorRoute && !isSidebarVisible ? (
+        {!isClinicEditorRoute && !isFullscreenRoute && !isSidebarVisible ? (
           <Button
             type="text"
             aria-label={t("sidebar.toggleAriaLabel", { defaultValue: "Ẩn/hiện sidebar" })}
@@ -564,7 +613,37 @@ export default function AdminClinicLayout() {
             onClick={() => setIsSidebarVisible(true)}
           />
         ) : null}
-        {!isClinicEditorRoute ? (
+
+        {isFullscreenRoute ? (
+          <div className={styles.inlineTopBar}>
+            <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
+            <Popover
+              trigger="click"
+              placement="bottomRight"
+              overlayClassName={styles.notificationPopoverOverlay}
+              content={notificationContent}
+              open={notificationPopoverOpen}
+              onOpenChange={setNotificationPopoverOpen}
+            >
+              <Button
+                type="text"
+                aria-label={t("sidebar.notificationBellAriaLabel")}
+                className={styles.notificationBellButton}
+                icon={
+                  <Badge
+                    count={unreadNotificationCount}
+                    size="small"
+                    overflowCount={9}
+                  >
+                    <span className={styles.notificationBellIcon}>
+                      <IoMdNotificationsOutline />
+                    </span>
+                  </Badge>
+                }
+              />
+            </Popover>
+          </div>
+        ) : !isClinicEditorRoute ? (
         <div
           className={`${styles.mainActionBar} ${shouldEmbedActionBarInTopBar ? styles.mainActionBarEmbedded : ""}`}
         >
@@ -600,7 +679,13 @@ export default function AdminClinicLayout() {
         </div>
         ) : null}
 
-        <Outlet />
+        {isFullscreenRoute ? (
+          <div className={styles.contentFullscreen}>
+            <Outlet />
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </main>
     </div>
   );

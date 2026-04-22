@@ -7,8 +7,10 @@ import {
   IsNotEmpty,
   IsString,
   IsUUID,
+  Matches,
   MinDate,
 } from 'class-validator';
+import { regex } from 'src/common/constants/rexgex.constant';
 import { ServiceEnum } from 'src/common/enums/service.enum';
 
 export class CreateAppointmentDTO {
@@ -39,6 +41,9 @@ export class CreateAppointmentDTO {
   @ApiProperty()
   @IsString()
   @IsNotEmpty({ message: 'Giờ hẹn không được để trống' })
+  @Matches(regex.timeRegex, {
+    message: 'Giờ hẹn phải đúng theo HH:MM format',
+  })
   appointmentTime: string;
 
   @ApiProperty({ enum: ServiceEnum })

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Clinic } from './entities/clinic.entity';
 import { DataSource, Repository } from 'typeorm';
@@ -80,6 +84,13 @@ export class ClinicService {
 
   // Chỉnh sửa thông tin phòng khám
   async updateClinic(id: string, clinicDTO: UpdateClinicDTO) {
+    if (
+      clinicDTO?.closingTime &&
+      clinicDTO?.openingTime &&
+      clinicDTO?.openingTime >= clinicDTO?.closingTime
+    )
+      throw new BadRequestException('Giờ đóng cửa phải lớn hơn giờ mở cửa');
+
     const clinic = await this.findOneById(id);
 
     Object.assign(clinic, clinicDTO);

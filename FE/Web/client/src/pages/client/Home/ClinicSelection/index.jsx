@@ -1,12 +1,29 @@
-﻿import { message, Rate, Spin } from "antd";
-import { useEffect, useRef, useState } from "react";
+﻿import { message, Spin } from "antd";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaSearch } from "react-icons/fa";
+import { FaSearch, FaStar } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClientInstance } from "../../../../services/apiClient";
 import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
-import { getClinicInfoContent } from "../../../../utils/storage/clinicInfoStorage";
+import {
+    CLINIC_INFO_STORAGE_PREFIX,
+    CLINIC_INFO_UPDATED_EVENT,
+    formatClinicOpenHours,
+    getClinicInfoContent,
+} from "../../../../utils/storage/clinicInfoStorage";
 import "./styles.css";
+
+const formatPhoneVN = (phone) => {
+  if (!phone) return "";
+
+  const digits = String(phone).replace(/\D/g, "");
+
+  if (digits.length === 10) {
+    return `${digits.slice(0, 4)} ${digits.slice(4, 7)} ${digits.slice(7)}`;
+  }
+
+  return String(phone);
+};
 
 export default function ClinicSelection() {
   const { t } = useTranslation();
@@ -15,6 +32,44 @@ export default function ClinicSelection() {
   const [loading, setLoading] = useState(false);
   const nameRefs = useRef([]);
   const navigate = useNavigate();
+
+  const hydrateClinicFromLocalInfo = useCallback((clinic) => {
+    const clinicInfo = getClinicInfoContent(clinic.id, clinic);
+    const mergedName = String(clinicInfo.name || clinic.name || "").trim();
+    const mergedAddress = String(clinicInfo.address || clinic.address || "").trim();
+    const mergedPhone = String(clinicInfo.phone || clinic.phone || clinic.phoneNumber || "").trim();
+    const mergedOpeningTime = String(
+      clinicInfo.openingTime || clinicInfo.opening_time || clinic.openingTime || clinic.opening_time || "",
+    ).trim();
+    const mergedClosingTime = String(
+      clinicInfo.closingTime || clinicInfo.closing_time || clinic.closingTime || clinic.closing_time || "",
+    ).trim();
+    const mergedTime =
+      formatClinicOpenHours({ openingTime: mergedOpeningTime, closingTime: mergedClosingTime }) ||
+      String(clinicInfo.timeDisplay || clinic.time || "").trim() ||
+      "8:00 - 20:00";
+
+    const rawImage =
+      String(clinicInfo.avatarUrl || clinic.avatarUrl || clinic.image || "/miniPet.png").trim();
+    const imageVersion = Number(clinicInfo.updatedAt) || 0;
+    const mergedImage =
+      rawImage && /^https?:\/\//i.test(rawImage) && imageVersion > 0
+        ? `${rawImage}${rawImage.includes("?") ? "&" : "?"}v=${imageVersion}`
+        : rawImage;
+
+    return {
+      ...clinic,
+      ...clinicInfo,
+      name: mergedName,
+      address: mergedAddress,
+      phone: mergedPhone,
+      openingTime: mergedOpeningTime,
+      closingTime: mergedClosingTime,
+      localInfo: clinicInfo,
+      time: mergedTime,
+      image: mergedImage,
+    };
+  }, []);
 
   useEffect(() => {
     let mounted = true;
@@ -27,16 +82,7 @@ export default function ClinicSelection() {
 
         if (!mounted) return;
 
-        const normalized = clinicItems.map((clinic) => {
-          const clinicInfo = getClinicInfoContent(clinic.id, clinic);
-
-          return {
-            ...clinic,
-            ...clinicInfo,
-            time: clinicInfo.timeDisplay || "8:00 - 20:00",
-            image: clinicInfo.avatarUrl || clinic.avatarUrl || "/miniPet.png",
-          };
-        });
+        const normalized = clinicItems.map((clinic) => hydrateClinicFromLocalInfo(clinic));
 
         setClinics(normalized);
       } catch (error) {
@@ -51,7 +97,60 @@ export default function ClinicSelection() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [hydrateClinicFromLocalInfo, t]);
+
+  useEffect(() => {
+    const syncClinicsFromLocalStorage = (clinicId = "") => {
+      const normalizedClinicId = String(clinicId || "").trim();
+
+      setClinics((prev) =>
+        prev.map((clinic) => {
+          if (!normalizedClinicId || String(clinic.id) === normalizedClinicId) {
+            return hydrateClinicFromLocalInfo(clinic);
+          }
+
+          return clinic;
+        }),
+      );
+    };
+
+    const handleStorage = (event) => {
+      if (!event?.key || !event.key.startsWith(CLINIC_INFO_STORAGE_PREFIX)) {
+        return;
+      }
+
+      const changedClinicId = String(event.key || "")
+        .replace(CLINIC_INFO_STORAGE_PREFIX, "")
+        .trim();
+      syncClinicsFromLocalStorage(changedClinicId);
+    };
+
+    const handleClinicInfoUpdated = (event) => {
+      syncClinicsFromLocalStorage(event?.detail?.clinicId || "");
+    };
+
+    const handleWindowFocus = () => {
+      syncClinicsFromLocalStorage();
+    };
+
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        syncClinicsFromLocalStorage();
+      }
+    };
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(CLINIC_INFO_UPDATED_EVENT, handleClinicInfoUpdated);
+    window.addEventListener("focus", handleWindowFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(CLINIC_INFO_UPDATED_EVENT, handleClinicInfoUpdated);
+      window.removeEventListener("focus", handleWindowFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [hydrateClinicFromLocalInfo]);
 
   const getRatingPercentage = (clinic) => {
     const avgRating = Number(clinic?.avgRating) || 0;
@@ -136,71 +235,75 @@ useEffect(() => {
 
       <Spin spinning={loading}>
         <div className="clinic-grid">
-          {filtered.map((clinic, index) => (
-            <div key={clinic.id} className="clinic-card">
-              <img
-                src={clinic.image}
-                alt={clinic.name}
-                className="clinic-img"
-              />
+          {filtered.map((clinic, index) => {
+            const avgRating = Number(clinic.avgRating) || 0;
+            const totalReviews = Number(clinic.totalReviews) || 0;
+            const hasReviews = totalReviews > 0;
 
-              <div className="clinic-info" style={{ color: "var(--color-text-primary)" }}>
-                <h3
-                  className="clinic-name"
-                  title={clinic.name}
-                  ref={(el) => (nameRefs.current[index] = el)}
+            return (
+              <div key={clinic.id} className="clinic-card">
+                <img
+                  src={clinic.image}
+                  alt={clinic.name}
+                  className="clinic-img"
+                />
+
+                <div
+                  className={`clinic-rating-badge ${hasReviews ? "" : "is-empty"}`}
+                  title={
+                    hasReviews
+                      ? `${avgRating.toFixed(1)} • ${totalReviews} ${t("pages.home.clinicSelection.reviewCount")}`
+                      : t("pages.home.clinicSelection.noReview")
+                  }
                 >
-                  <span className="clinic-name-text">
-                    {clinic.name}
+                  <FaStar className="clinic-rating-badge-icon" aria-hidden="true" />
+                  <span className="clinic-rating-badge-value">
+                    {hasReviews
+                      ? avgRating.toFixed(1)
+                      : t("pages.home.clinicSelection.ratingBadgeFallback")}
                   </span>
-                </h3>
+                </div>
 
-                <p className="clinic-address" title={clinic.address}>
-                  {clinic.address}
-                </p>
+                <div className="clinic-info" style={{ color: "var(--color-text-primary)" }}>
+                  <h3
+                    className="clinic-name"
+                    title={clinic.name}
+                    ref={(el) => (nameRefs.current[index] = el)}
+                  >
+                    <span className="clinic-name-text">
+                      {clinic.name}
+                    </span>
+                  </h3>
 
-                <p className="clinic-time" title={clinic.time}>
-                  {clinic.time}
-                </p>
-
-                {clinic.phone ? (
-                  <p className="clinic-phone" title={clinic.phone}>
-                    {t("common.labels.phone")}: {clinic.phone}
+                  <p className="clinic-address" title={clinic.address}>
+                    {clinic.address}
                   </p>
-                ) : null}
 
-                {(() => {
-                  const avgRating = Number(clinic.avgRating) || 0;
-                  const totalReviews = Number(clinic.totalReviews) || 0;
-                  const hasReviews = totalReviews > 0;
+                  <p className="clinic-time" title={clinic.time}>
+                    {clinic.time}
+                  </p>
 
-                  return (
-                    <div className="clinic-rating">
-                      <Rate
-                        disabled
-                        allowHalf
-                        value={hasReviews ? avgRating : 0}
-                        className="clinic-rating-stars"
-                      />
-                      {hasReviews ? (
-                        <p className="clinic-rating-text">
-                          {avgRating.toFixed(1)} • {totalReviews} {t("pages.home.clinicSelection.reviewCount")}
-                        </p>
-                      ) : (
-                        <p className="clinic-rating-empty">{t("pages.home.clinicSelection.noReview")}</p>
-                      )}
-                    </div>
-                  );
-                })()}
+                  {(() => {
+                    const clinicPhone = clinic.phone || clinic.localInfo?.phone;
+                    if (!clinicPhone) return null;
+
+                    return (
+                      <p className="clinic-phone" title={clinicPhone}>
+                        {t("common.labels.phone")}: {formatPhoneVN(clinicPhone)}
+                      </p>
+                    );
+                  })()}
+                </div>
+
+                <button
+                  className="btn-choose"
+                  onClick={() => handleChoose(clinic)}
+                >
+                  {t("pages.home.clinicSelection.chooseButton")}
+                </button>
               </div>
-              <button
-                className="btn-choose"
-                onClick={() => handleChoose(clinic)}
-              >
-                {t("pages.home.clinicSelection.chooseButton")}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Spin>
     </div>

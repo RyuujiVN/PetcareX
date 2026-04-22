@@ -1,6 +1,5 @@
 import { Button, Form, Input, message, Spin } from 'antd';
 import React from 'react';
-import { FaPaw } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { forgotPasswordApi } from '../../../../services/authService';

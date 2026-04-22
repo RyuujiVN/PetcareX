@@ -9,11 +9,13 @@ import {
 } from 'react-icons/fa6'
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
 	createCommentApi,
 	createPostApi,
+	adminDeleteCommentApi,
+	adminDeletePostApi,
 	deleteCommentApi,
 	deletePostApi,
 	getAllTopicsApi,
@@ -21,11 +23,15 @@ import {
 	getPostsApi,
 	getRepliesApi,
 	likePostApi,
-	reportPostApi,
 	unlikePostApi,
 	updateCommentApi,
 	updatePostApi,
 } from '../../../../services/forumService'
+import {
+	createGenericReportApi,
+	reportCommentApi,
+	reportPostApi,
+} from '../../../../services/forumReportService'
 import {
 	ADMIN_AUTH_STORAGE,
 	CLIENT_AUTH_STORAGE,
@@ -266,10 +272,12 @@ const removeCommentFromThreads = (threads = [], commentId) => {
 function Forum() {
 	const { t, i18n } = useTranslation()
 	const { userProfile } = useAuth()
+	const location = useLocation()
 	const navigate = useNavigate()
 	const [searchParams, setSearchParams] = useSearchParams()
 	const composerRef = useRef(null)
 	const feedScrollRef = useRef(null)
+	const feedSavedScrollTopRef = useRef(0)
 	const postHighlightTimeoutRef = useRef(null)
 	const commentHighlightTimeoutRef = useRef(null)
 	const processedRealtimeLikeNotifRef = useRef(new Set())
@@ -382,34 +390,6 @@ function Forum() {
 			})),
 		[topicFilterOptions],
 	)
-
-	const topContributors = useMemo(() => {
-	const stats = new Map()
-
-	apiPosts.forEach((post) => {
-		const key = post.authorId || post.author
-
-		if (!stats.has(key)) {
-			stats.set(key, {
-				id: key,
-				name: post.author,
-				avatar: post.avatar || DEFAULT_COMPOSER_AVATAR,
-				count: 0,
-			})
-		}
-
-		stats.get(key).count += 1
-	})
-
-	return Array.from(stats.values())
-		.sort((a, b) => b.count - a.count)
-		.slice(0, 3)
-		.map((item, index) => ({
-			...item,
-			score: `${item.count}`,
-			rank: `#${index + 1}`,
-		}))
-}, [apiPosts])
 
 	const featuredPostIds = useMemo(() => {
 		return new Set(
@@ -581,7 +561,79 @@ function Forum() {
 		}
 
 		loadInitialData()
-	}, [i18n.language, t])
+	}, [])
+
+	useEffect(() => {
+		setApiPosts((prev) =>
+			prev.map((post) => {
+				const currentTopic = apiTopics.find(
+					(topic) => String(topic?.id || '') === String(post?.actualTopicId || ''),
+				)
+				const topicName = getTopicDisplayName(currentTopic, { language: i18n.language, t })
+				const tagTypeName = getTopicDisplayName(currentTopic, { language: 'vi', t })
+				const isNoTopic = Boolean(post?.noTopicSelected || !post?.actualTopicId)
+
+				return {
+					...post,
+					time: formatTimeAgo(post.createdAt, t),
+					tag: isNoTopic
+						? t('pages.forum.postTagDefault').toUpperCase()
+						: (topicName || t('pages.forum.postTagDefault')).toUpperCase(),
+					tagType: isNoTopic ? 'no-topic' : normalizeTagType(tagTypeName),
+				}
+			}),
+		)
+
+		setCommentsByPost((prev) => {
+			const next = {}
+
+			Object.entries(prev).forEach(([postId, value]) => {
+				const threads = Array.isArray(value?.threads) ? value.threads : []
+				next[postId] = {
+					...value,
+					threads: threads.map((thread) => ({
+						...thread,
+						main: thread?.main
+							? {
+								...thread.main,
+								time: formatTimeAgo(thread.main.createdAt, t),
+							}
+							: thread?.main,
+						replies: Array.isArray(thread?.replies)
+							? thread.replies.map((reply) => ({
+									...reply,
+									time: formatTimeAgo(reply.createdAt, t),
+							  }))
+							: [],
+					})),
+				}
+			})
+
+			return next
+		})
+	}, [apiTopics, i18n.language, t])
+
+	useEffect(() => {
+		const container = feedScrollRef.current
+		if (!container) return
+
+		const saveScroll = () => {
+			feedSavedScrollTopRef.current = container.scrollTop
+		}
+
+		container.addEventListener('scroll', saveScroll, { passive: true })
+		return () => container.removeEventListener('scroll', saveScroll)
+	}, [])
+
+	useEffect(() => {
+		const container = feedScrollRef.current
+		const savedTop = feedSavedScrollTopRef.current
+		if (!container || savedTop <= 0) return
+
+		window.requestAnimationFrame(() => {
+			container.scrollTop = savedTop
+		})
+	}, [i18n.language])
 
 	useEffect(() => {
 		if (!selectedPostIdFromQuery) return
@@ -644,7 +696,8 @@ function Forum() {
 			}
 		})
 		const query = next.toString()
-		navigate(query ? `/forum?${query}` : '/forum', { replace: Boolean(options.replace) })
+		const forumBasePath = location.pathname || '/forum'
+		navigate(query ? `${forumBasePath}?${query}` : forumBasePath, { replace: Boolean(options.replace) })
 	}
 
 	const handleCreatePost = async () => {
@@ -836,7 +889,8 @@ function Forum() {
 
 	const handleDeletePost = (post) => {
 		setMenuPostId(null)
-		if (!isOwnPost(post)) {
+		const canDelete = isOwnPost(post) || isAdminMode
+		if (!canDelete) {
 			message.warning(t('pages.forum.validation.deleteOwnPostOnly'))
 			return
 		}
@@ -850,7 +904,11 @@ function Forum() {
 			centered: true,
 			onOk: async () => {
 				try {
-					await deletePostApi(getClientInstance(), post.id)
+					if (isAdminMode && !isOwnPost(post)) {
+						await adminDeletePostApi(post.id)
+					} else {
+						await deletePostApi(getClientInstance(), post.id)
+					}
 					message.success(t('pages.forum.deleteSuccess'))
 					if (expandedPostId === post.id) {
 						setExpandedPostId(null)
@@ -905,9 +963,11 @@ function Forum() {
 
 		setSubmittingPostReport(true)
 		try {
+			const normalizedReason = String(postReportReason || '').trim()
+			const normalizedDetail = String(postReportDetail || '').trim()
 			const payload = {
-				reason: postReportReason,
-				detail: String(postReportDetail || '').trim() || undefined,
+				reason: normalizedReason,
+				detail: normalizedDetail || undefined,
 			}
 
 			try {
@@ -920,15 +980,35 @@ function Forum() {
 			} catch (error) {
 				const status = Number(error?.response?.status || 0)
 				if (status === 404 || status === 405) {
-					console.info('[Forum] Report post deferred because backend endpoint is unavailable', {
-						postId: reportingPost.id,
-						payload,
-					})
-					message.success(
-						t('pages.forum.reportPostRecorded', {
-							defaultValue: 'Đã ghi nhận báo cáo của bạn',
-						}),
-					)
+					try {
+						await createGenericReportApi(getClientInstance(), {
+							targetId: reportingPost.id,
+							targetType: 'POST',
+							reason: normalizedDetail
+								? `${normalizedReason}: ${normalizedDetail}`
+								: normalizedReason,
+						})
+						message.success(
+							t('pages.forum.reportPostSuccess', {
+								defaultValue: 'Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.',
+							}),
+						)
+					} catch (fallbackError) {
+						const fallbackStatus = Number(fallbackError?.response?.status || 0)
+						if (fallbackStatus === 404 || fallbackStatus === 405) {
+							console.info('[Forum] Report post deferred because backend endpoint is unavailable', {
+								postId: reportingPost.id,
+								payload,
+							})
+							message.success(
+								t('pages.forum.reportPostRecorded', {
+									defaultValue: 'Đã ghi nhận báo cáo của bạn',
+								}),
+							)
+						} else {
+							throw fallbackError
+						}
+					}
 				} else {
 					throw error
 				}
@@ -1378,6 +1458,8 @@ function Forum() {
 	}, [userProfile?.avatarUrl, userProfile?.id, userProfile?.role])
 
 	const isAdminUser = currentUserRole === RoleEnum.ADMIN
+	const isAdminPortalPath = location.pathname.startsWith('/admin/forum')
+	const isAdminMode = isAdminUser && isAdminPortalPath
 
 	const isCommentOwner = useCallback(
 		(comment) => {
@@ -1534,7 +1616,7 @@ function Forum() {
 
 	const handleDeleteComment = useCallback(
 		async (comment, postId) => {
-			const canDelete = isCommentOwner(comment) || isAdminUser
+			const canDelete = isCommentOwner(comment) || isAdminMode
 			if (!canDelete) {
 				message.warning(t('pages.forum.validation.deleteOwnCommentOnly', { defaultValue: 'Bạn không có quyền xóa bình luận này' }))
 				return
@@ -1549,7 +1631,11 @@ function Forum() {
 				centered: true,
 				onOk: async () => {
 					try {
-						await deleteCommentApi(getClientInstance(), comment.id)
+						if (isAdminMode && !isCommentOwner(comment)) {
+							await adminDeleteCommentApi(comment.id)
+						} else {
+							await deleteCommentApi(getClientInstance(), comment.id)
+						}
 
 						const currentThreads = commentsByPost[postId] || []
 						const { nextThreads, removedCount } = removeCommentFromThreads(currentThreads, comment.id)
@@ -1591,7 +1677,7 @@ function Forum() {
 				},
 			})
 		},
-		[closeEditCommentModal, commentsByPost, editingComment?.id, isAdminUser, isCommentOwner, replyingComment?.parentId, t],
+		[closeEditCommentModal, commentsByPost, editingComment?.id, isAdminMode, isCommentOwner, replyingComment?.parentId, t],
 	)
 
 	const handleSubmitCommentReport = useCallback(async () => {
@@ -1604,13 +1690,55 @@ function Forum() {
 
 		setSubmittingReport(true)
 		try {
-			// Backend currently does not expose report-comment API.
-			message.warning(
-				t('pages.forum.reportBackendUnavailable', {
-					defaultValue: 'Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.',
-				}),
-			)
+			const normalizedReason = String(reportReason || '').trim()
+
+			try {
+				await reportCommentApi(getClientInstance(), reportingComment.id, {
+					reason: normalizedReason,
+				})
+				message.success(
+					t('pages.forum.reportCommentSuccess', {
+						defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
+					}),
+				)
+			} catch (error) {
+				const status = Number(error?.response?.status || 0)
+				if (status === 404 || status === 405) {
+					try {
+						await createGenericReportApi(getClientInstance(), {
+							targetId: reportingComment.id,
+							targetType: 'COMMENT',
+							reason: normalizedReason,
+						})
+						message.success(
+							t('pages.forum.reportCommentSuccess', {
+								defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
+							}),
+						)
+					} catch (fallbackError) {
+						const fallbackStatus = Number(fallbackError?.response?.status || 0)
+						if (fallbackStatus === 404 || fallbackStatus === 405) {
+							message.warning(
+								t('pages.forum.reportBackendUnavailable', {
+									defaultValue: 'Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.',
+								}),
+							)
+						} else {
+							throw fallbackError
+						}
+					}
+				} else {
+					throw error
+				}
+			}
 			closeReportModal()
+		} catch (error) {
+			message.error(
+				error?.message ||
+					t('pages.forum.reportCommentFailed', {
+						defaultValue: 'Không thể gửi báo cáo bình luận. Vui lòng thử lại.',
+					}),
+			)
 		} finally {
 			setSubmittingReport(false)
 		}
@@ -1646,17 +1774,21 @@ function Forum() {
 			if (isCommentOwner(comment)) {
 				return [
 					{ key: 'edit', label: t('common.actions.edit') },
-					{ key: 'delete', label: t('common.actions.delete'), danger: true },
+					{
+						key: 'delete',
+						label: isAdminMode ? t('pages.forum.actions.deleteAdmin') : t('common.actions.delete'),
+						danger: true,
+					},
 				]
 			}
 
-			if (isAdminUser) {
-				return [{ key: 'delete', label: t('common.actions.delete'), danger: true }]
+			if (isAdminMode) {
+				return [{ key: 'delete', label: t('pages.forum.actions.deleteAdmin'), danger: true }]
 			}
 
 			return [{ key: 'report', label: t('pages.forum.actions.reportComment', { defaultValue: 'Tố cáo bình luận' }) }]
 		},
-		[isAdminUser, isCommentOwner, t],
+		[isAdminMode, isCommentOwner, t],
 	)
 
 	const renderCommentMenuButton = useCallback(
@@ -1829,14 +1961,25 @@ function Forum() {
 															className={`${styles.postMenuItem} ${styles.postMenuDanger}`}
 															onClick={() => handleDeletePost(post)}
 														>
-															{t('common.actions.delete')}
+																{isAdminMode ? t('pages.forum.actions.deleteAdmin') : t('common.actions.delete')}
 														</button>
 													</>
 												) : (
-													<button type="button" className={styles.postMenuItem} onClick={() => handleStartReportPost(post)}>
-														<FlagOutlined style={{ marginRight: 8 }} />
-														{t('pages.forum.actions.reportPost', { defaultValue: 'Báo cáo bài viết' })}
-													</button>
+														<>
+															{isAdminMode ? (
+																<button
+																	type="button"
+																	className={`${styles.postMenuItem} ${styles.postMenuDanger}`}
+																	onClick={() => handleDeletePost(post)}
+																>
+																	{t('pages.forum.actions.deleteAdmin')}
+																</button>
+															) : null}
+															<button type="button" className={styles.postMenuItem} onClick={() => handleStartReportPost(post)}>
+																<FlagOutlined style={{ marginRight: 8 }} />
+																{t('pages.forum.actions.reportPost', { defaultValue: 'Báo cáo bài viết' })}
+															</button>
+														</>
 												)}
 											</div>
 										) : null}

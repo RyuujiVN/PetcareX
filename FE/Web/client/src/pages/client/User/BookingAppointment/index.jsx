@@ -2,15 +2,18 @@ import {
     ClockCircleOutlined,
     EnvironmentOutlined,
     ExperimentOutlined,
+  MedicineBoxOutlined,
     MoonOutlined,
     SmileOutlined,
     SunOutlined,
     UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin } from 'antd';
+import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin, Tag } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
+import { BsArrowRightShort, BsArrowLeftShort } from "react-icons/bs";
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { SERVICE_TO_SPECIALTY_MAP } from '../../../../constants/enumLabels';
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import { getClientInstance } from '../../../../services/apiClient';
@@ -114,6 +117,8 @@ export default function BookingAppointment() {
   const [clinicDetail, setClinicDetail] = useState(null);
   const [doctors, setDoctors] = useState([]);
   const [myAppointments, setMyAppointments] = useState([]);
+  const [vetLoading, setVetLoading] = useState(false);
+  const [filterSpecialty, setFilterSpecialty] = useState('');
 
 
 
@@ -134,6 +139,20 @@ export default function BookingAppointment() {
   );
 
   const selectedDoctorName = selectedDoctor?.user?.fullName || '';
+  const selectedDoctorAvatar = selectedDoctor?.user?.avatarUrl || selectedDoctor?.avatarUrl || '';
+  const selectedDoctorExperience = selectedDoctor?.experience ?? selectedDoctor?.yearsOfExperience;
+  const selectedDoctorDescription =
+    selectedDoctor?.description || selectedDoctor?.introduce || selectedDoctor?.bio || '';
+  const hasDoctorExperience =
+    selectedDoctorExperience !== null &&
+    selectedDoctorExperience !== undefined &&
+    String(selectedDoctorExperience).trim() !== '';
+  const hasDoctorDescription = String(selectedDoctorDescription || '').trim() !== '';
+  const selectedDoctorSpecialtyLabel = selectedDoctor?.specialty
+    ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, {
+        defaultValue: getSpecialtyLabel(selectedDoctor.specialty),
+      })
+    : t('pages.booking.noSpecialty');
 
   const bookingHeaderStyle = useMemo(() => {
     const avatarUrl = String(userProfile?.avatarUrl || '').trim();
@@ -207,27 +226,52 @@ export default function BookingAppointment() {
     setMyAppointments(Array.isArray(res?.items) ? res.items : []);
   };
 
-  const fetchDoctorsByClinic = async (nextClinicId) => {
+  const fetchDoctorsByClinic = async (nextClinicId, specialty = '') => {
     if (!nextClinicId) {
       setDoctors([]);
       form.setFieldValue('doctorId', '');
       return;
     }
 
-    const res = await getVeterinarianByClinicApi(getClientInstance(), nextClinicId, 1, 50);
-    const doctorList = Array.isArray(res?.items) ? res.items : [];
-    setDoctors(doctorList);
+    setVetLoading(true);
 
-    const currentDoctorId = form.getFieldValue('doctorId');
-    const currentDoctorExists = doctorList.some(
-      (item) => String(item.userId) === String(currentDoctorId),
-    );
+    try {
+      const res = await getVeterinarianByClinicApi(
+        getClientInstance(),
+        nextClinicId,
+        1,
+        50,
+        '',
+        specialty || '',
+      );
+      const doctorList = Array.isArray(res?.items)
+        ? res.items
+        : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res)
+            ? res
+            : [];
+      setDoctors(doctorList);
 
-    if (doctorList.length > 0) {
-      form.setFieldValue('doctorId', currentDoctorExists ? currentDoctorId : doctorList[0].userId);
-    } else {
-      form.setFieldValue('doctorId', '');
+      const currentDoctorId = form.getFieldValue('doctorId');
+      const currentDoctorExists = doctorList.some(
+        (item) => String(item.userId) === String(currentDoctorId),
+      );
+
+      if (doctorList.length > 0) {
+        form.setFieldValue('doctorId', currentDoctorExists ? currentDoctorId : doctorList[0].userId);
+      } else {
+        form.setFieldValue('doctorId', '');
+      }
+    } finally {
+      setVetLoading(false);
     }
+  };
+
+  const handleServiceChange = (serviceValue) => {
+    form.setFieldValue('service', serviceValue);
+    form.setFieldValue('doctorId', '');
+    setFilterSpecialty(SERVICE_TO_SPECIALTY_MAP[serviceValue] || '');
   };
 
   const fetchClinicById = async (nextClinicId) => {
@@ -266,10 +310,19 @@ export default function BookingAppointment() {
       return;
     }
 
-    Promise.all([fetchDoctorsByClinic(clinicId), fetchClinicById(clinicId)]).catch((error) => {
+    Promise.all([fetchDoctorsByClinic(clinicId, filterSpecialty), fetchClinicById(clinicId)]).catch((error) => {
       message.error(error.message || t('pages.booking.loadClinicDoctorFailed'));
     });
-  }, [clinicId]);
+  }, [clinicId, filterSpecialty]);
+
+  useEffect(() => {
+    if (!service) {
+      setFilterSpecialty('');
+      return;
+    }
+
+    setFilterSpecialty(SERVICE_TO_SPECIALTY_MAP[service] || '');
+  }, [service]);
 
   useEffect(() => {
     if (!selectedTime) {
@@ -295,6 +348,49 @@ export default function BookingAppointment() {
       if (weekday === 6 || d === lastDay.getDate()) {
         weeks.push(week);
         week = new Array(7).fill(null);
+      }
+    }
+
+    // Compact mode: if month spills into a 6th row, move those trailing days
+    // into the first row's leading empty slots to avoid a nearly-empty last row.
+    if (weeks.length === 6) {
+      const firstWeek = [...weeks[0]];
+      const lastWeek = [...weeks[weeks.length - 1]];
+
+      const leadingEmptyIndexes = [];
+      for (let i = 0; i < firstWeek.length; i += 1) {
+        if (firstWeek[i] === null) {
+          leadingEmptyIndexes.push(i);
+        } else {
+          break;
+        }
+      }
+
+      const trailingDayIndexes = [];
+      for (let i = 0; i < lastWeek.length; i += 1) {
+        if (lastWeek[i] !== null) {
+          trailingDayIndexes.push(i);
+        } else {
+          break;
+        }
+      }
+
+      if (
+        trailingDayIndexes.length > 0 &&
+        trailingDayIndexes.length <= leadingEmptyIndexes.length
+      ) {
+        trailingDayIndexes.forEach((fromIndex, moveIndex) => {
+          const targetIndex = leadingEmptyIndexes[moveIndex];
+          firstWeek[targetIndex] = lastWeek[fromIndex];
+          lastWeek[fromIndex] = null;
+        });
+
+        weeks[0] = firstWeek;
+        if (lastWeek.every((day) => day === null)) {
+          weeks.pop();
+        } else {
+          weeks[weeks.length - 1] = lastWeek;
+        }
       }
     }
 
@@ -582,6 +678,7 @@ export default function BookingAppointment() {
                     <Select
                       size="large"
                       options={serviceOptions}
+                      onChange={handleServiceChange}
                     />
                   </Form.Item>
                 </Col>
@@ -618,6 +715,7 @@ export default function BookingAppointment() {
                       rules={[{ required: true, message: t('pages.booking.validation.doctorRequired') }]}
                     >
                       <Select
+                        loading={vetLoading}
                         size="large"
                         style={{ marginBottom: 20 }}
                         optionLabelProp="displayLabel"
@@ -626,7 +724,11 @@ export default function BookingAppointment() {
                           <Select.Option
                             key={item.userId}
                             value={item.userId}
-                            displayLabel={item.user?.fullName}
+                            displayLabel={`${item.user?.fullName || ''} - ${item.specialty
+                              ? t(`enums.veterinarySpecialty.${item.specialty}`, {
+                                defaultValue: getSpecialtyLabel(item.specialty),
+                              })
+                              : t('pages.booking.noSpecialty')}`}
                           >
                             <div className="doctor-option">
                               <div className="doctor-option-name">{item.user?.fullName}</div>
@@ -642,34 +744,72 @@ export default function BookingAppointment() {
                     </Form.Item>
                   </Col>
                   <Col span={12}>
-                    <Card
-                      style={{ borderRadius: 12 }}
-                      bodyStyle={{ display: 'flex', alignItems: 'center', gap: 16 }}
-                    >
-                      <Avatar
-                        size={64}
-                        src={selectedDoctor?.user?.avatarUrl || '/bs1.png'}
-                      />
-                      <div>
-                        <div style={{ fontWeight: 600, fontSize: 16 }}>
-                          {selectedDoctorName || t('pages.booking.notSelectedDoctor')}
+                    {selectedDoctor ? (
+                      <div className="doctor-detail-panel">
+                        <div className="doctor-header">
+                          <Avatar
+                            src={selectedDoctorAvatar || undefined}
+                            size={64}
+                            icon={<UserOutlined />}
+                          />
+                          <div className="doctor-header-info">
+                            <h3>{selectedDoctorName}</h3>
+                            <Tag color="blue">{selectedDoctorSpecialtyLabel}</Tag>
+                          </div>
                         </div>
-                        <div style={{ color: 'var(--color-text-secondary)' }}>
-                          {selectedDoctor?.specialty
-                            ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, { defaultValue: getSpecialtyLabel(selectedDoctor.specialty, 'vi') })
-                            : t('pages.booking.noSpecialty')}
+
+                        <div className="doctor-details">
+                          <div className="doctor-detail-row">
+                            <MedicineBoxOutlined />
+                            <span className="doctor-detail-label">{t('pages.booking.doctorDetail.specialty')}</span>
+                            <span>{selectedDoctorSpecialtyLabel}</span>
+                          </div>
+
+                          {hasDoctorExperience ? (
+                            <div className="doctor-detail-row">
+                              <ClockCircleOutlined />
+                              <span className="doctor-detail-label">{t('pages.booking.doctorDetail.experience')}</span>
+                              <span>
+                                {selectedDoctorExperience} {t('pages.booking.doctorDetail.years')}
+                              </span>
+                            </div>
+                          ) : null}
+
+                          {hasDoctorDescription ? (
+                            <div className="doctor-description">
+                              <div className="doctor-detail-label">{t('pages.booking.doctorDetail.description')}</div>
+                              <p>{selectedDoctorDescription}</p>
+                            </div>
+                          ) : null}
                         </div>
-                        {/* TODO: Doctor description panel - cần BE bổ sung field 'description' vào API GET /api/veterinarian */}
                       </div>
-                    </Card>
+                    ) : (
+                      <Card
+                        style={{ borderRadius: 12 }}
+                        bodyStyle={{ display: 'flex', alignItems: 'center', gap: 16 }}
+                      >
+                        <Avatar size={64} src="/bs1.png" />
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 16 }}>
+                            {t('pages.booking.notSelectedDoctor')}
+                          </div>
+                          <div style={{ color: 'var(--color-text-secondary)' }}>
+                            {t('pages.booking.noSpecialty')}
+                          </div>
+                        </div>
+                      </Card>
+                    )}
                   </Col>
                 </Row>
 
               <div style={{ marginTop: 16 }}>
                 <Form.Item
+                  required
                   label={<span style={{ color: 'var(--color-text-primary)', padding: 2, fontSize: 16 }}>{t('common.labels.symptom')}</span>}
                   name="symptoms"
-                  rules={[{ validator: validateSymptoms }]}
+                  rules={[
+                    { validator: validateSymptoms },
+                  ]}
                 >
                   <Input.TextArea
                     placeholder={t('pages.booking.form.symptomPlaceholder')}
@@ -691,51 +831,50 @@ export default function BookingAppointment() {
               </div>
               <div className="date-time-selector">
                 <div className="calendar">
-                  <div className="month-header" style={{color: 'var(--color-text-primary)'}}>
-                    <button onClick={prevMonth}>&lt;</button>
+                  <div className="month-header" style={{color: 'white', backgroundColor: 'var(--color-brand-primary)'}}>
+                    <button type="button" onClick={prevMonth} style={{color: 'white', fontSize: 30}}><BsArrowLeftShort /></button>
                     <span>{t('pages.booking.calendar.monthLabel', { month: calendarMonth + 1, year: calendarYear })}</span>
-                    <button onClick={nextMonth}>&gt;</button>
+                    <button type="button" onClick={nextMonth} style={{color: 'white', fontSize: 30}}><BsArrowRightShort /></button>
                   </div>
-                  <table style={{color: 'var(--color-text-primary)'}}>
-                    <thead>
-                      <tr >
-                        <th>{t('pages.booking.calendar.days.sun')}</th>
-                        <th>{t('pages.booking.calendar.days.mon')}</th>
-                        <th>{t('pages.booking.calendar.days.tue')}</th>
-                        <th>{t('pages.booking.calendar.days.wed')}</th>
-                        <th>{t('pages.booking.calendar.days.thu')}</th>
-                        <th>{t('pages.booking.calendar.days.fri')}</th>
-                        <th>{t('pages.booking.calendar.days.sat')}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {getWeeks(calendarYear, calendarMonth).map((week, i) => (
-                        <tr key={i}>
-                          {week.map((day, j) => {
-                            const currentDate = day
-                              ? `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-                              : '';
-                            const isSelected = day && selectedDate === currentDate;
-                            const disabled = day && isPastDay(calendarYear, calendarMonth, day);
+                  <div className="calendar-grid-head" style={{color: 'var(--color-text-primary)'}}>
+                    <span>{t('pages.booking.calendar.days.sun')}</span>
+                    <span>{t('pages.booking.calendar.days.mon')}</span>
+                    <span>{t('pages.booking.calendar.days.tue')}</span>
+                    <span>{t('pages.booking.calendar.days.wed')}</span>
+                    <span>{t('pages.booking.calendar.days.thu')}</span>
+                    <span>{t('pages.booking.calendar.days.fri')}</span>
+                    <span>{t('pages.booking.calendar.days.sat')}</span>
+                  </div>
 
-                            return (
-                              <td
-                                key={j}
-                                className={`${isSelected ? 'selected-day' : ''} ${disabled ? 'disabled-day' : ''}`}
-                                onClick={() => {
-                                  if (day && !disabled) {
-                                    form.setFieldValue('selectedDate', currentDate);
-                                  }
-                                }}
-                              >
-                                {day || ''}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                  <div className="calendar-grid-body" role="grid" aria-label={t('pages.booking.steps.chooseDateTime')}>
+                    {getWeeks(calendarYear, calendarMonth).flat().map((day, index) => {
+                      const currentDate = day
+                        ? `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+                        : '';
+                      const isSelected = day && selectedDate === currentDate;
+                      const disabled = day && isPastDay(calendarYear, calendarMonth, day);
+
+                      if (!day) {
+                        return <div key={`blank-${index}`} className="calendar-day-empty" aria-hidden />;
+                      }
+
+                      return (
+                        <button
+                          key={currentDate}
+                          type="button"
+                          role="gridcell"
+                          className={`calendar-day-pill ${isSelected ? 'selected-day' : ''} ${disabled ? 'disabled-day' : ''}`}
+                          onClick={() => {
+                            if (!disabled) {
+                              form.setFieldValue('selectedDate', currentDate);
+                            }
+                          }}
+                        >
+                          {day}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="time-slots" style={{color: 'var(--color-text-primary)'}}>
                   {TIME_SLOT_GROUPS.map((group) => (

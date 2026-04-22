@@ -39,6 +39,12 @@ export class Veterinarian {
   })
   specialty: VeterinarySpecialtyEnum;
 
+  @Column({ nullable: true })
+  experience: string;
+
+  @Column({ type: 'text', nullable: true })
+  introduce: string;
+
   @OneToMany(() => Appointment, (appointment) => appointment.veterinarian)
   appointments: Appointment[];
 

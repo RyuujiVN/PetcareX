@@ -1,0 +1,181 @@
+.pageWrapper {
+  padding: 24px;
+  min-height: 100vh;
+  background: var(--color-surface-page);
+}
+
+.pageHeader {
+  margin-bottom: 20px;
+  padding-top: 8px;
+  padding-right: 120px;
+}
+
+.pageTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0 0 4px;
+}
+
+.pageSubtitle {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.loadingWrapper,
+.emptyWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+}
+
+.emptyText {
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpiCard {
+  background: var(--color-surface-card);
+  border-radius: 12px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: var(--shadow-sm);
+}
+
+.kpiIconWrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  color: var(--color-surface-card);
+  flex-shrink: 0;
+}
+
+.kpiClinics { background: var(--admin-revenue-blue, #4672b4); }
+.kpiVisits { background: var(--admin-revenue-green, #2fa67f); }
+.kpiActive { background: var(--admin-revenue-purple, #8b5cf6); }
+.kpiInactive { background: var(--admin-revenue-orange, #f59e0b); }
+
+.kpiBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.kpiLabel {
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0;
+}
+
+.kpiValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.sectionCard {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.periodTabs {
+  display: flex;
+  gap: 0;
+  background: var(--color-surface-soft);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  width: fit-content;
+}
+
+.periodTab {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.periodTab:hover { color: var(--color-text-primary); }
+
+.periodTabActive {
+  color: var(--color-surface-card);
+  background: var(--admin-revenue-blue, #4672b4);
+}
+
+.searchInput {
+  max-width: 280px;
+  width: 100%;
+}
+
+.statusBadge {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.statusActive {
+  background: rgba(47, 166, 127, 0.12);
+  color: var(--admin-revenue-green, #2fa67f);
+}
+
+.statusInactive {
+  background: rgba(245, 158, 11, 0.12);
+  color: var(--admin-revenue-orange, #f59e0b);
+}
+
+.growthUp { color: var(--admin-revenue-green, #2fa67f); font-weight: 600; }
+.growthDown { color: #dc2626; font-weight: 600; }
+.growthNeutral { color: var(--color-text-secondary); }
+
+@media (max-width: 1200px) {
+  .kpiGrid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .kpiGrid { grid-template-columns: 1fr; }
+  .pageWrapper { padding: 16px; }
+}
