@@ -2,7 +2,7 @@ name: Main CI/CD Pipeline
 
 on:
   push:
-    branches: ["**"]
+    branches: ["Deploy"]
     paths-ignore:
       - "ansible/**"
       - ".github/workflows/infra-ansible.yml"
@@ -37,7 +37,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: FE/Web/client/package-lock.json
+          cache-dependency-path: FE/Web/client/package.json
 
       - name: Install dependencies
         run: npm ci
@@ -61,7 +61,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: BE/petcare/package-lock.json
+          cache-dependency-path: BE/petcare/package.json
 
       - name: Install dependencies
         run: npm ci
