@@ -38,10 +38,14 @@ class _CommunityPageState extends State<CommunityPage> {
       caseSensitive: false,
     ).allMatches(html);
 
-    return matches
-        .map((m) => m.group(1)?.trim() ?? '')
-        .where((url) => url.isNotEmpty)
-        .toList();
+    final seen = <String>{};
+    final result = <String>[];
+    for (final m in matches) {
+      final url = m.group(1)?.trim() ?? '';
+      if (url.isEmpty) continue;
+      if (seen.add(url)) result.add(url);
+    }
+    return result;
   }
 
   String _extractPlainTextFromHtml(String html) {
@@ -104,22 +108,13 @@ class _CommunityPageState extends State<CommunityPage> {
 
     if (count == 0) return const SizedBox.shrink();
 
-    // 1 ảnh: full width, giữ tỉ lệ gốc (contain)
+    // 1 ảnh: đọc tỉ lệ thực của ảnh, clamp trong dải hợp lý, rồi BoxFit.cover
+    // để không có dải letterbox trắng gây cảm giác "nhiều ô ảnh".
     if (count == 1) {
-      return GestureDetector(
-        onTap: () => ImageViewer.show(context, imageUrls, initialIndex: 0),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: double.infinity,
-            height: h,
-            color: AppColors.background,
-            child: CachedNetworkImage(
-              imageUrl: ImageHelper.getThumbnailUrl(imageUrls[0]),
-              fit: BoxFit.contain,
-            ),
-          ),
-        ),
+      return _AdaptiveSingleImage(
+        url: imageUrls[0],
+        allUrls: imageUrls,
+        compact: compact,
       );
     }
 
@@ -2073,4 +2068,88 @@ class _CommentComposerImage {
   bool isUploadFailed = false;
 
   _CommentComposerImage({required this.file});
+}
+
+class _AdaptiveSingleImage extends StatefulWidget {
+  final String url;
+  final List<String> allUrls;
+  final bool compact;
+
+  const _AdaptiveSingleImage({
+    required this.url,
+    required this.allUrls,
+    required this.compact,
+  });
+
+  @override
+  State<_AdaptiveSingleImage> createState() => _AdaptiveSingleImageState();
+}
+
+class _AdaptiveSingleImageState extends State<_AdaptiveSingleImage> {
+  double? _aspectRatio;
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveDimensions();
+  }
+
+  @override
+  void dispose() {
+    if (_stream != null && _listener != null) {
+      _stream!.removeListener(_listener!);
+    }
+    super.dispose();
+  }
+
+  void _resolveDimensions() {
+    final provider = CachedNetworkImageProvider(
+      ImageHelper.getThumbnailUrl(widget.url),
+    );
+    _stream = provider.resolve(const ImageConfiguration());
+    _listener = ImageStreamListener(
+      (info, _) {
+        if (!mounted) return;
+        final w = info.image.width.toDouble();
+        final h = info.image.height.toDouble();
+        if (w <= 0 || h <= 0) return;
+
+        final minR = widget.compact ? 4.0 / 3.0 : 4.0 / 5.0;
+        const maxR = 16.0 / 9.0;
+        double ratio = w / h;
+        if (ratio < minR) ratio = minR;
+        if (ratio > maxR) ratio = maxR;
+
+        setState(() => _aspectRatio = ratio);
+      },
+      onError: (_, _) {},
+    );
+    _stream!.addListener(_listener!);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = _aspectRatio ?? (widget.compact ? 4.0 / 3.0 : 4.0 / 3.0);
+
+    return GestureDetector(
+      onTap: () =>
+          ImageViewer.show(context, widget.allUrls, initialIndex: 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: AspectRatio(
+          aspectRatio: ratio,
+          child: CachedNetworkImage(
+            imageUrl: ImageHelper.getThumbnailUrl(widget.url),
+            fit: BoxFit.cover,
+            placeholder: (_, _) =>
+                Container(color: AppColors.background),
+            errorWidget: (_, _, _) =>
+                Container(color: AppColors.background),
+          ),
+        ),
+      ),
+    );
+  }
 }

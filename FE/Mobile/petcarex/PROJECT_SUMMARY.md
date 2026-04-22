@@ -101,6 +101,31 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
     - Chỉ `Navigator.pop(true)` khi toàn bộ điều kiện hợp lệ.
 - **Kết quả UX:** Người dùng không còn bị đá ra khỏi dialog khi bấm cập nhật quá sớm; có thể chờ upload xong rồi tiếp tục chỉnh sửa trong cùng ngữ cảnh.
 
+### 9) Community Single-Image Render Fix — "1 ảnh mà nhìn như 2-3 ảnh" (2026-04-22)
+- **Triệu chứng:** Ở comment/post chỉ có **1 ảnh**, UI xuất hiện các dải trắng trên-dưới/hai bên nên mắt người đọc tách thành 2-3 vùng hình riêng biệt, nhất là với ảnh có mảng màu đồng nhất (trần trắng, tường, bầu trời).
+- **Root cause (phân tích + phản biện kỹ):**
+    - Nhánh `count == 1` trong `_buildImageGrid` ở `community_page.dart` dùng `Container(height: fixed) + BoxFit.contain + color: AppColors.background`.
+    - Khi tỉ lệ ảnh gốc **không khớp** với khung cố định (120px cho comment compact, 220px cho post), `contain` sinh **letterbox** bằng nền sáng `AppColors.background`.
+    - Letterbox này + các mảng màu đồng nhất trong ảnh → tạo cảm giác nhiều ô ảnh, KHÔNG phải do HTML có nhiều `<img>` trùng URL.
+    - Trước đó đã thêm dedup URL ở `_extractImageUrlsFromHtml` như defensive fix (giữ lại), nhưng không giải quyết được trường hợp layout này.
+- **Các giải pháp đã cân nhắc:**
+    - A. Đổi sang `BoxFit.cover` + `AspectRatio` cố định 4:3 → đơn giản nhưng portrait bị crop quá đà cho post.
+    - B. Đọc tỉ lệ thực của ảnh rồi **clamp theo dải**, sau đó `BoxFit.cover` (Facebook-style) → đồng nhất, không letterbox, portrait không bị ép landscape.
+    - C. Chỉ đổi màu letterbox → xử lý triệu chứng, vẫn thấy 2 vùng → loại.
+- **Giải pháp đã áp dụng (B):** Thêm widget `_AdaptiveSingleImage` (Stateful) trong `community_page.dart`:
+    - Dùng `CachedNetworkImageProvider.resolve(...)` + `ImageStreamListener` để đọc `width/height` thực của ảnh sau khi tải.
+    - Clamp tỉ lệ `w/h` theo ngữ cảnh:
+        - **Comment (compact = true):** dải `[4/3, 16/9]` — luôn landscape-leaning cho gọn thread, portrait bị center-crop có chủ đích.
+        - **Post (compact = false):** dải `[4/5, 16/9]` — cho phép portrait vừa phải như feed Facebook.
+    - Bọc ảnh trong `AspectRatio` + `BoxFit.cover` → không còn dải letterbox trắng.
+    - Placeholder/error dùng nền `AppColors.background` đồng bộ với phần còn lại của card.
+    - Dọn dẹp `ImageStreamListener` trong `dispose()` để tránh leak.
+- **Nguyên tắc tuân thủ khi triển khai:**
+    - **Không đụng BE** theo đúng rule dự án; toàn bộ fix nằm ở FE mobile.
+    - Giữ logic grid cho `count >= 2` nguyên vẹn, chỉ thay nhánh `count == 1`.
+    - Giữ dedup URL ở `_extractImageUrlsFromHtml` làm defensive layer.
+- **Kết quả:** 1 ảnh trong comment/post hiển thị như một khung hình thống nhất, không còn "viền trắng tách đôi" khiến người dùng tưởng có 2-3 ảnh. Portrait không bị stretch; landscape không bị letterbox.
+
 ## 🐾 Pet Avatar Fullscreen Fix (2026-03-27)
 
 ### Bối cảnh lỗi
