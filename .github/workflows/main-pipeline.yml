@@ -97,6 +97,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Prepare FE build env
+        shell: bash
+        run: |
+          if [ -n "${{ secrets.FE_BUILD_ENV }}" ]; then
+            printf "%s\n" "${{ secrets.FE_BUILD_ENV }}" > FE/Web/client/.env.production
+          else
+            echo "FE_BUILD_ENV is empty. FE will use default/fallback values."
+          fi
+
       - name: Build and push FE image
         uses: docker/build-push-action@v6
         with:
@@ -179,11 +188,12 @@ jobs:
             } > .env
 
             if [ -n "${{ secrets.STACK_ENV }}" ]; then
-              printf "%s" "${{ secrets.STACK_ENV }}" >> .env
+              printf "\n%s\n" "${{ secrets.STACK_ENV }}" >> .env
             fi
 
+            : > .env.app
             if [ -n "${{ secrets.BE_APP_ENV }}" ]; then
-              printf "%s" "${{ secrets.BE_APP_ENV }}" > .env.app
+              printf "%s\n" "${{ secrets.BE_APP_ENV }}" > .env.app
             fi
 
             docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" -p "${{ secrets.DOCKERHUB_TOKEN }}"
