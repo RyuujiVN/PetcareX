@@ -27,11 +27,7 @@ import {
 	updateCommentApi,
 	updatePostApi,
 } from '../../../../services/forumService'
-import {
-	createGenericReportApi,
-	reportCommentApi,
-	reportPostApi,
-} from '../../../../services/forumReportService'
+import { createGenericReportApi } from '../../../../services/forumReportService'
 import {
 	ADMIN_AUTH_STORAGE,
 	CLIENT_AUTH_STORAGE,
@@ -330,7 +326,12 @@ function Forum() {
 	const [submittingPostReport, setSubmittingPostReport] = useState(false)
 	const [reportingComment, setReportingComment] = useState(null)
 	const [reportReason, setReportReason] = useState('')
+	const [commentReportReason, setCommentReportReason] = useState('')
+	const [commentReportDetail, setCommentReportDetail] = useState('')
 	const [submittingReport, setSubmittingReport] = useState(false)
+	// Theo dõi ID đã tố cáo trong phiên (in-memory, reset khi reload)
+	const reportedPostIds = useRef(new Set())
+	const reportedCommentIds = useRef(new Set())
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
 	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
@@ -412,15 +413,20 @@ function Forum() {
 	const selectedPostIdFromQuery = String(searchParams.get('postId') || searchParams.get('post') || '').trim()
 	const selectedCommentIdFromQuery = String(searchParams.get('commentId') || '').trim()
 	const isAnyOverlayOpen = Boolean(editingPost || editingComment || reportingComment || reportingPost)
-	const postReportReasonOptions = useMemo(
+	// Danh sách lý do tố cáo — khớp với mobile (6 lý do cố định)
+	const reportReasonOptions = useMemo(
 		() => [
-			{ value: 'spam', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam' }) },
-			{ value: 'inappropriate', label: t('pages.forum.reportReason.inappropriate', { defaultValue: 'Nội dung không phù hợp' }) },
-			{ value: 'misleading', label: t('pages.forum.reportReason.misleading', { defaultValue: 'Thông tin sai lệch' }) },
-			{ value: 'other', label: t('pages.forum.reportReason.other', { defaultValue: 'Khác' }) },
+			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam / Quảng cáo' }) },
+			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Ngôn ngữ thô tục / Xúc phạm' }) },
+			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Quấy rối / Bắt nạt' }) },
+			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Thông tin sai sự thật' }) },
+			{ value: 'VIOLENCE', label: t('pages.forum.reportReason.violence', { defaultValue: 'Bạo lực / Phản cảm' }) },
+			{ value: 'OTHER', label: t('pages.forum.reportReason.other', { defaultValue: 'Khác' }) },
 		],
 		[t],
 	)
+	const postReportReasonOptions = reportReasonOptions
+	const commentReportReasonOptions = reportReasonOptions
 
 	const scrollElementIntoFeed = useCallback((element) => {
 		if (!element) return
@@ -937,6 +943,11 @@ function Forum() {
 				return
 			}
 
+			if (reportedPostIds.current.has(String(post.id))) {
+				message.warning(t('pages.forum.validation.postAlreadyReported', { defaultValue: 'Bạn đã tố cáo bài viết này.' }))
+				return
+			}
+
 			setReportingPost({
 				id: post.id,
 				authorName: post.author || t('header.user.defaultName'),
@@ -963,57 +974,24 @@ function Forum() {
 
 		setSubmittingPostReport(true)
 		try {
-			const normalizedReason = String(postReportReason || '').trim()
-			const normalizedDetail = String(postReportDetail || '').trim()
-			const payload = {
-				reason: normalizedReason,
-				detail: normalizedDetail || undefined,
-			}
+			const selectedReason = String(postReportReason || '').trim()
+			const detail = String(postReportDetail || '').trim()
+			// Đồng bộ format với Mobile: OTHER ghép free-text, các lý do khác gửi nguyên value
+			const reason = selectedReason === 'OTHER' && detail ? `OTHER: ${detail}` : selectedReason
 
-			try {
-				await reportPostApi(getClientInstance(), reportingPost.id, payload)
-				message.success(
-					t('pages.forum.reportPostSuccess', {
-						defaultValue: 'Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.',
-					}),
-				)
-			} catch (error) {
-				const status = Number(error?.response?.status || 0)
-				if (status === 404 || status === 405) {
-					try {
-						await createGenericReportApi(getClientInstance(), {
-							targetId: reportingPost.id,
-							targetType: 'POST',
-							reason: normalizedDetail
-								? `${normalizedReason}: ${normalizedDetail}`
-								: normalizedReason,
-						})
-						message.success(
-							t('pages.forum.reportPostSuccess', {
-								defaultValue: 'Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.',
-							}),
-						)
-					} catch (fallbackError) {
-						const fallbackStatus = Number(fallbackError?.response?.status || 0)
-						if (fallbackStatus === 404 || fallbackStatus === 405) {
-							console.info('[Forum] Report post deferred because backend endpoint is unavailable', {
-								postId: reportingPost.id,
-								payload,
-							})
-							message.success(
-								t('pages.forum.reportPostRecorded', {
-									defaultValue: 'Đã ghi nhận báo cáo của bạn',
-								}),
-							)
-						} else {
-							throw fallbackError
-						}
-					}
-				} else {
-					throw error
-				}
-			}
+			await createGenericReportApi(getClientInstance(), {
+				targetId: reportingPost.id,
+				targetType: 'POST',
+				reason,
+			})
+			message.success(
+				t('pages.forum.reportPostSuccess', {
+					defaultValue: 'Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.',
+				}),
+			)
 
+			// Đánh dấu đã tố cáo trong phiên để tránh tố cáo lặp
+			reportedPostIds.current.add(String(reportingPost.id))
 			closePostReportModal()
 		} catch (error) {
 			message.error(
@@ -1481,6 +1459,8 @@ function Forum() {
 	const closeReportModal = useCallback(() => {
 		setReportingComment(null)
 		setReportReason('')
+		setCommentReportReason('')
+		setCommentReportDetail('')
 		setSubmittingReport(false)
 	}, [])
 
@@ -1683,54 +1663,30 @@ function Forum() {
 	const handleSubmitCommentReport = useCallback(async () => {
 		if (!reportingComment?.id) return
 
-		if (!String(reportReason || '').trim()) {
-			message.warning(t('pages.forum.validation.reportReasonRequired', { defaultValue: 'Vui lòng nhập nội dung tố cáo' }))
+		if (!String(commentReportReason || '').trim()) {
+			message.warning(t('pages.forum.validation.reportReasonRequired', { defaultValue: 'Vui lòng chọn lý do tố cáo' }))
 			return
 		}
 
 		setSubmittingReport(true)
 		try {
-			const normalizedReason = String(reportReason || '').trim()
+			const selectedReason = String(commentReportReason || '').trim()
+			const detail = String(commentReportDetail || '').trim()
+			// Đồng bộ format với Mobile: OTHER ghép free-text, các lý do khác gửi nguyên value
+			const reason = selectedReason === 'OTHER' && detail ? `OTHER: ${detail}` : selectedReason
 
-			try {
-				await reportCommentApi(getClientInstance(), reportingComment.id, {
-					reason: normalizedReason,
-				})
-				message.success(
-					t('pages.forum.reportCommentSuccess', {
-						defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
-					}),
-				)
-			} catch (error) {
-				const status = Number(error?.response?.status || 0)
-				if (status === 404 || status === 405) {
-					try {
-						await createGenericReportApi(getClientInstance(), {
-							targetId: reportingComment.id,
-							targetType: 'COMMENT',
-							reason: normalizedReason,
-						})
-						message.success(
-							t('pages.forum.reportCommentSuccess', {
-								defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
-							}),
-						)
-					} catch (fallbackError) {
-						const fallbackStatus = Number(fallbackError?.response?.status || 0)
-						if (fallbackStatus === 404 || fallbackStatus === 405) {
-							message.warning(
-								t('pages.forum.reportBackendUnavailable', {
-									defaultValue: 'Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.',
-								}),
-							)
-						} else {
-							throw fallbackError
-						}
-					}
-				} else {
-					throw error
-				}
-			}
+			await createGenericReportApi(getClientInstance(), {
+				targetId: reportingComment.id,
+				targetType: 'COMMENT',
+				reason,
+			})
+			message.success(
+				t('pages.forum.reportCommentSuccess', {
+					defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
+				}),
+			)
+			// Đánh dấu đã tố cáo trong phiên để tránh tố cáo lặp
+			reportedCommentIds.current.add(String(reportingComment.id))
 			closeReportModal()
 		} catch (error) {
 			message.error(
@@ -1742,7 +1698,7 @@ function Forum() {
 		} finally {
 			setSubmittingReport(false)
 		}
-	}, [closeReportModal, reportReason, reportingComment?.id, t])
+	}, [closeReportModal, commentReportDetail, commentReportReason, reportingComment?.id, t])
 
 	const handleCommentAction = useCallback(
 		(action, comment, postId) => {
@@ -1757,12 +1713,18 @@ function Forum() {
 			}
 
 			if (action === 'report') {
+				if (reportedCommentIds.current.has(String(comment.id))) {
+					message.warning(t('pages.forum.validation.commentAlreadyReported', { defaultValue: 'Bạn đã tố cáo bình luận này.' }))
+					return
+				}
 				setReportingComment({
 					id: comment.id,
 					postId,
 					commentOwnerName: comment.user?.fullName || t('header.user.defaultName'),
 					content: comment.content || '',
 				})
+				setCommentReportReason('')
+				setCommentReportDetail('')
 				setReportReason('')
 			}
 		},
@@ -2509,21 +2471,24 @@ function Forum() {
 
 						<Select
 							value={postReportReason || undefined}
-							onChange={setPostReportReason}
+							onChange={(val) => { setPostReportReason(val); setPostReportDetail('') }}
 							placeholder={t('pages.forum.placeholders.reportPostReason', {
 								defaultValue: 'Chọn lý do báo cáo',
 							})}
 							options={postReportReasonOptions}
+							style={{ width: '100%' }}
 						/>
 
-						<textarea
-							className={styles.reportTextarea}
-							value={postReportDetail}
-							onChange={(event) => setPostReportDetail(event.target.value)}
-							placeholder={t('pages.forum.placeholders.reportPostDetail', {
-								defaultValue: 'Mô tả thêm (không bắt buộc)',
-							})}
-						/>
+						{postReportReason === 'OTHER' ? (
+							<textarea
+								className={styles.reportTextarea}
+								value={postReportDetail}
+								onChange={(event) => setPostReportDetail(event.target.value)}
+								placeholder={t('pages.forum.placeholders.reportPostDetail', {
+									defaultValue: 'Mô tả thêm (không bắt buộc)',
+								})}
+							/>
+						) : null}
 					</div>
 				</Modal>
 			) : null}
@@ -2537,13 +2502,12 @@ function Forum() {
 					cancelText={t('common.actions.cancel')}
 					confirmLoading={submittingReport}
 					okButtonProps={{
-						disabled: !String(reportReason || '').trim(),
+						disabled: !String(commentReportReason || '').trim(),
 					}}
-					style={{textAlign: 'center'}}
+					title={t('pages.forum.reportModalTitle', { defaultValue: 'Tố cáo bình luận' })}
 					centered
 				>
 					<div className={styles.reportModalBody}>
-						<h3>{t('pages.forum.reportModalTitle', { defaultValue: 'TỐ CÁO BÌNH LUẬN' })}</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportCommentBy', {
 								defaultValue: 'Bạn đang tố cáo bình luận của {{name}}',
@@ -2553,12 +2517,26 @@ function Forum() {
 						{reportingComment.content ? (
 							<p className={styles.reportPreviewText}>{reportingComment.content}</p>
 						) : null}
-						<textarea
-							className={styles.reportTextarea}
-							value={reportReason}
-							onChange={(event) => setReportReason(event.target.value)}
-							placeholder={t('pages.forum.placeholders.reportReason', { defaultValue: 'Nhập nội dung tố cáo...' })}
+						<Select
+							value={commentReportReason || undefined}
+							onChange={(val) => { setCommentReportReason(val); setCommentReportDetail('') }}
+							placeholder={t('pages.forum.placeholders.reportPostReason', {
+								defaultValue: 'Chọn lý do tố cáo',
+							})}
+							options={commentReportReasonOptions}
+							style={{ width: '100%' }}
 						/>
+
+						{commentReportReason === 'OTHER' ? (
+							<textarea
+								className={styles.reportTextarea}
+								value={commentReportDetail}
+								onChange={(event) => setCommentReportDetail(event.target.value)}
+								placeholder={t('pages.forum.placeholders.reportPostDetail', {
+									defaultValue: 'Mô tả thêm (không bắt buộc)',
+								})}
+							/>
+						) : null}
 					</div>
 				</Modal>
 			) : null}

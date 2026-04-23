@@ -2117,3 +2117,52 @@ All API service files live in `services/` with pattern `{domain}Service.js`.
 8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
 9. Hoàn thiện trang super admin còn lại: Overview.
 10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).
+
+### Cập nhật (2026-04-23) — Tố cáo bài viết/bình luận trên Web (Report Post/Comment)
+
+**Phạm vi:**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/client/User/Forum/forum.module.css`
+
+**Yêu cầu:**
+- Port tính năng tố cáo từ Mobile Flutter lên Web, giao diện tương đương.
+- Tố cáo bài viết người khác: chọn lý do preset (6 lý do) + mô tả thêm tùy chọn.
+- Tố cáo bình luận người khác: cùng UX (trước đây chỉ có textarea free-text).
+- Chặn tố cáo lặp cùng post/comment trong một phiên.
+- Fix text "Báo cáo bài viết" bị xuống hàng trong post menu.
+
+**Phân tích & tự phản biện:**
+- Phương án A (tracking "đã tố cáo") — `useState + Set` vs `useRef + Set`:
+  - `useState`: khi add vào Set sẽ không trigger re-render vì Set là mutation (cần spread mới) → dùng sai.
+  - `useRef` (đã chọn): không cần re-render, chỉ cần check trước khi mở modal → đúng use-case.
+- Phương án B (cấu trúc lý do tố cáo) — align với Mobile vs giữ nguyên:
+  - Web cũ có 4 lý do (spam, inappropriate, misleading, other) → không khớp Mobile (spam, offensive, harassment, misinformation, violence, other).
+  - Quyết định: align với Mobile — 6 lý do, value uppercase (SPAM, OFFENSIVE, ...) để admin đọc report đồng nhất.
+  - Tạo 1 `reportReasonOptions` dùng chung cho cả post và comment (DRY).
+- Phương án C (comment report modal) — giữ textarea vs thêm Select:
+  - Textarea free-text: user không biết gõ gì, không nhất quán với post modal.
+  - Select + optional textarea (đã chọn): nhất quán với post modal, nhất quán với Mobile.
+- Phương án D (CSS text-wrap) — `white-space: nowrap` vs tăng `min-width`:
+  - Tăng `min-width`: có thể bị tràn trên màn nhỏ.
+  - `white-space: nowrap` (đã chọn): đúng nguyên nhân gốc, text menu không bao giờ bị wrap, an toàn hơn.
+
+**Thay đổi đã triển khai:**
+
+*forum.module.css:*
+- `.postMenuItem`: thêm `white-space: nowrap` → fix text bị xuống hàng.
+
+*forum.jsx:*
+- Thêm state: `commentReportReason`, `commentReportDetail` (Select + optional textarea cho comment modal).
+- Thêm ref: `reportedPostIds` (`useRef(new Set())`), `reportedCommentIds` (`useRef(new Set())`).
+- Refactor `postReportReasonOptions` → `reportReasonOptions` dùng chung, 6 lý do align Mobile (value uppercase).
+- `handleStartReportPost`: check `reportedPostIds.current.has(postId)` trước khi mở modal → show `message.warning` nếu đã tố cáo.
+- `handleSubmitPostReport`: sau khi submit thành công → `reportedPostIds.current.add(postId)`.
+- `handleCommentAction` (branch 'report'): check `reportedCommentIds.current.has(commentId)` → show warning nếu đã tố cáo; reset `commentReportReason` và `commentReportDetail` khi mở modal.
+- `handleSubmitCommentReport`: validate `commentReportReason` (Select), build payload `{reason, detail}`, fallback generic endpoint cùng pattern post, mark `reportedCommentIds.current.add(commentId)` sau khi thành công.
+- `closeReportModal`: reset `commentReportReason` + `commentReportDetail`.
+- Comment report modal UI: thêm `<Select>` chọn lý do + `<textarea>` mô tả thêm (tùy chọn), title đặt đúng qua prop `title` của Modal (bỏ `<h3>` inline + `style textAlign: center`), `okButtonProps.disabled` check `commentReportReason`.
+
+**Ghi chú kiến trúc:**
+- Tracking "đã tố cáo" là in-memory (reset khi reload page). BE không validate duplicate → đây là UX safeguard phía FE, giống Mobile.
+- `forumReportService.js` không thay đổi — fallback chain (endpoint theo post/comment → generic POST /report) vẫn hoạt động.
+- Không động BE, không động các forum role khác (AdminForum, ClinicForum, VetForum) — chỉ `client/User/Forum/forum.jsx`.
