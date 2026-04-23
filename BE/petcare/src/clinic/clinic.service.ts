@@ -14,6 +14,7 @@ import { UpdateClinicDTO } from './dtos/update-clinic.dto';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { FilterPagination } from 'src/common/types/pagination.type';
+import { ClinicSearchService, FilterNearClinic } from './clinic-search.service';
 
 @Injectable()
 export class ClinicService {
@@ -22,6 +23,7 @@ export class ClinicService {
     private readonly clinicRepository: Repository<Clinic>,
     private readonly dataSource: DataSource,
     private readonly userService: UserService,
+    private readonly clinicSearchService: ClinicSearchService,
   ) {}
 
   // Phân trang phòng khám
@@ -42,6 +44,11 @@ export class ClinicService {
     return paginate<Clinic>(queryBuilder, options);
   }
 
+  // Phân trang phòng khám cho user
+  async findAllPaginationUser(options: FilterNearClinic) {
+    return await this.clinicSearchService.searchClinics(options);
+  }
+
   // Chi tiết phòng khám
   async findOneById(id: string): Promise<Clinic> {
     const clinic = await this.clinicRepository.findOne({ where: { id: id } });
@@ -57,7 +64,7 @@ export class ClinicService {
     userDTO: CreateUserDTO,
   ): Promise<Clinic> {
     // Bắt đầu transaction
-    return await this.dataSource.transaction(async (manager) => {
+    const saved = await this.dataSource.transaction(async (manager) => {
       const clinicRepo = manager.getRepository(Clinic);
       const adminClinicRepo = manager.getRepository(AdminClinic);
 
@@ -71,6 +78,7 @@ export class ClinicService {
         RoleEnum.ADMIN_CLINIC,
         manager,
       );
+
       const adminClinic = adminClinicRepo.create({
         userId: user.id,
         clinicId: savedClinic.id,
@@ -80,21 +88,27 @@ export class ClinicService {
 
       return savedClinic;
     });
+
+    await this.clinicSearchService.createClinic(saved);
+
+    return saved;
   }
 
   // Chỉnh sửa thông tin phòng khám
   async updateClinic(id: string, clinicDTO: UpdateClinicDTO) {
     if (
-      clinicDTO?.closing_time &&
-      clinicDTO?.opening_time &&
-      clinicDTO?.opening_time >= clinicDTO?.closing_time
+      clinicDTO?.closingTime &&
+      clinicDTO?.openingTime &&
+      clinicDTO?.openingTime >= clinicDTO?.closingTime
     )
       throw new BadRequestException('Giờ đóng cửa phải lớn hơn giờ mở cửa');
 
     const clinic = await this.findOneById(id);
 
     Object.assign(clinic, clinicDTO);
-    await this.clinicRepository.save(clinic);
+    const updatedClinic = await this.clinicRepository.save(clinic);
+
+    await this.clinicSearchService.updateClinic(updatedClinic);
   }
 
   // Xoá phòng khám
@@ -104,5 +118,7 @@ export class ClinicService {
     });
 
     if (result.affected === 0) throw new NotFoundException();
+
+    await this.clinicSearchService.deleteClinic(id);
   }
 }

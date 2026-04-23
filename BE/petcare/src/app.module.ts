@@ -29,6 +29,8 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { TaskModule } from './task/task.module';
 import { ClinicReviewModule } from './clinic-review/clinic-review.module';
 import { RevenueModule } from './revenue/revenue.module';
+import { ReportModule } from './report/report.module';
+import { ElasticSearchModule } from './elastic-search/elastic-search.module';
 
 @Module({
   imports: [
@@ -64,6 +66,8 @@ import { RevenueModule } from './revenue/revenue.module';
     TaskModule,
     ClinicReviewModule,
     RevenueModule,
+    ReportModule,
+    ElasticSearchModule,
   ],
   controllers: [AppController],
   providers: [

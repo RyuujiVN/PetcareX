@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   Matches,
@@ -24,6 +25,16 @@ export class CreateVeterinarianDTO {
   @IsNotEmpty({ message: 'Email không được để trống' })
   @IsEmail({}, { message: 'Email không hợp lệ' })
   email: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  experience: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  introduce: string;
 
   @ApiProperty()
   @IsString()

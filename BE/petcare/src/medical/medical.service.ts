@@ -1,12 +1,13 @@
 import { CreateMedicalRecordDTO } from './dtos/create-medical-record.dto';
 import {
+  ConflictException,
   ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { MedicalRecord } from './entities/medical-record.entity';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Not, Repository } from 'typeorm';
 import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
 import { MedicalRecordPagination } from './types/medial.type';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
@@ -236,7 +237,11 @@ export class MedicalService {
         owner: record.pet.owner && {
           id: record.pet.owner.id,
           fullName: record.pet.owner.fullName,
+          email: record.pet.owner.email,
+          phone: record.pet.owner.phone,
         },
+        gender: record.pet.gender,
+        dateOfBirth: record.pet.dateOfBirth,
       },
 
       veterinarian: record.veterinarian && {
@@ -257,6 +262,37 @@ export class MedicalService {
       .leftJoin('pet.owner', 'owner')
       .where('medical_record.clinicId = :clinicId', {
         clinicId: options.clinicId,
+      })
+      .select([
+        'medical_record.id',
+        'medical_record.name',
+        'medical_record.createdAt',
+        'medical_record.followUpDate',
+
+        'pet.id',
+        'pet.name',
+        'pet.avatar',
+        'pet.species',
+        'pet.breed',
+
+        'owner.id',
+        'owner.fullName',
+      ])
+      .orderBy('medical_record.createdAt', 'DESC');
+
+    return paginate<MedicalRecord>(queryBuilder, options);
+  }
+
+  // Danh sách phiếu khám theo bác sĩ
+  async findAllPaginationByVeterinarian(
+    options: MedicalRecordPagination,
+  ): Promise<Pagination<MedicalRecord>> {
+    const queryBuilder = this.medicalRecordRepository
+      .createQueryBuilder('medical_record')
+      .leftJoin('medical_record.pet', 'pet')
+      .leftJoin('pet.owner', 'owner')
+      .where('medical_record.veterinarianId = :veterinarianId', {
+        veterinarianId: options.veterinarianId,
       })
       .select([
         'medical_record.id',
@@ -414,21 +450,27 @@ export class MedicalService {
     veterinarianId: string,
   ) {
     return await this.dataSource.transaction(async (manager) => {
-      // 1. Kiểm tra xem user đã tồn tại chưa
       const userRepo = manager.getRepository(User);
       const petRepo = manager.getRepository(Pet);
       let savedPet;
       let password;
-      const user = await userRepo.findOne({
+
+      // 1. Kiểm tra xem user đã tồn tại chưa
+      const existedEmail = await userRepo.findOne({
         where: { email: createDTO.email },
+        select: {
+          id: true,
+          email: true,
+        },
       });
 
       // 2. Nếu chưa có thì sẽ tạo user
-      if (!user) {
+      if (!existedEmail) {
         const userPayload = {
           fullName: createDTO.customerName,
           email: createDTO.email,
           role: RoleEnum.CUSTOMER,
+          phone: createDTO.phone,
         };
 
         password = this.userService.generatePassword();
@@ -449,6 +491,16 @@ export class MedicalService {
 
         savedPet = await petRepo.save(petPayload);
       } else {
+        // Kiểm tra sđt có tồn tại không
+        const existedPhone = await userRepo.findOne({
+          where: { phone: createDTO.phone, id: Not(existedEmail.id) },
+        });
+
+        if (existedPhone)
+          throw new ConflictException(
+            'Số điện thoại đã được sử dụng bởi người khác',
+          );
+
         // 4. Nếu có rồi thì lấy pet
         savedPet = await petRepo.findOne({
           where: {
@@ -511,7 +563,7 @@ export class MedicalService {
           html: html,
         };
 
-        // Thêm job vào emailQueue
+        // 7. Thêm job vào emailQueue
         await this.emailQueue.add(JobNameEnum.SEND_MAIL, payload, {
           attempts: 3,
           removeOnComplete: true,
@@ -521,8 +573,6 @@ export class MedicalService {
             delay: 4000,
           },
         });
-
-        await this.mailService.sendMail(createDTO.email, subject, html);
       }
 
       return savedMedicalRecord;

@@ -141,7 +141,6 @@ export class TaskService {
   // Chạy mỗi tiếng để dọn otp
   @Cron('0 0 * * * *')
   async handleDeleteOtp() {
-    console.log('Hi');
     await this.otpRepo.delete({
       expiredAt: LessThan(new Date()),
     });
