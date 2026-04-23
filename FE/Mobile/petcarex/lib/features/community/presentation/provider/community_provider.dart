@@ -14,6 +14,10 @@ class CommunityProvider with ChangeNotifier {
   final Map<String, bool> _isRepliesLoading = {};
   final Map<String, bool> _isLikeUpdating = {};
 
+  // Theo dõi các comment/bài viết đã tố cáo trong phiên hiện tại (in-memory, reset khi logout)
+  final Set<String> _reportedCommentIds = {};
+  final Set<String> _reportedPostIds = {};
+
   bool _isLoading = false;
   bool _isMoreLoading = false;
   String? _errorMessage;
@@ -43,6 +47,24 @@ class CommunityProvider with ChangeNotifier {
   bool isRepliesLoading(String commentId) =>
       _isRepliesLoading[commentId] ?? false;
   bool isLikeUpdating(String postId) => _isLikeUpdating[postId] ?? false;
+  bool isCommentReported(String commentId) =>
+      _reportedCommentIds.contains(commentId);
+  bool isPostReported(String postId) => _reportedPostIds.contains(postId);
+
+  void markCommentReported(String commentId) {
+    _reportedCommentIds.add(commentId);
+    notifyListeners();
+  }
+
+  void markPostReported(String postId) {
+    _reportedPostIds.add(postId);
+    notifyListeners();
+  }
+
+  void clearReportState() {
+    _reportedCommentIds.clear();
+    _reportedPostIds.clear();
+  }
 
   void setReplyTarget(Comment? comment) {
     _activeReplyTarget = comment;

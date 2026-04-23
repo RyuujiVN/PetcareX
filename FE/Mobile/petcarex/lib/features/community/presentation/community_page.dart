@@ -14,6 +14,8 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import '../../notification/presentation/widgets/notification_bell_button.dart';
 import '../data/models/community_models.dart';
+import '../../report/data/models/report_models.dart';
+import '../../report/presentation/widgets/report_reason_sheet.dart';
 import 'create_post_page.dart';
 import 'provider/community_provider.dart';
 import 'widgets/image_viewer.dart';
@@ -1608,7 +1610,8 @@ class _CommunityPageState extends State<CommunityPage> {
                                   ),
                                 ),
                               ),
-                              if (isMyComment)
+                              // Hiển thị menu cho cả comment chính chủ lẫn comment người khác
+                              if (currentUserId != null)
                                 SizedBox(
                                   width: 28,
                                   height: 24,
@@ -1640,18 +1643,57 @@ class _CommunityPageState extends State<CommunityPage> {
                                           l10n: l10n,
                                           parentId: parentCommentId,
                                         );
+                                      } else if (value == 'report') {
+                                        // Kiểm tra đã tố cáo comment này chưa trong phiên
+                                        if (provider.isCommentReported(comment.id)) {
+                                          AppNotifier.showInfo(
+                                            context,
+                                            l10n.reportAlreadyReported,
+                                          );
+                                          return;
+                                        }
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (_) => ReportReasonSheet(
+                                            targetId: comment.id,
+                                            targetType: ReportTargetType.comment,
+                                            onReported: () =>
+                                                provider.markCommentReported(comment.id),
+                                          ),
+                                        );
                                       }
                                     },
-                                    itemBuilder: (_) => [
-                                      PopupMenuItem(
-                                        value: 'edit',
-                                        child: Text(l10n.update),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'delete',
-                                        child: Text(l10n.delete),
-                                      ),
-                                    ],
+                                    itemBuilder: (_) => isMyComment
+                                        ? [
+                                            // Comment chính chủ: Edit & Delete
+                                            PopupMenuItem(
+                                              value: 'edit',
+                                              child: Text(l10n.update),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'delete',
+                                              child: Text(l10n.delete),
+                                            ),
+                                          ]
+                                        : [
+                                            // Comment người khác: Tố cáo
+                                            PopupMenuItem(
+                                              value: 'report',
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.flag_outlined,
+                                                    size: 18,
+                                                    color: AppColors.textGrey,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(l10n.reportAction),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                   ),
                                 ),
                             ],
@@ -2048,7 +2090,7 @@ class _CommunityPageState extends State<CommunityPage> {
                 ],
               ),
               const Spacer(),
-              if (currentUserId != null && currentUserId == post.author.id)
+              if (currentUserId != null)
                 PopupMenuButton<String>(
                   tooltip: '',
                   icon: const Icon(Icons.more_horiz, color: AppColors.iconGrey),
@@ -2057,12 +2099,56 @@ class _CommunityPageState extends State<CommunityPage> {
                       _showEditPostDialog(post, provider, l10n);
                     } else if (value == 'delete') {
                       _showDeletePostConfirm(post, provider, l10n);
+                    } else if (value == 'report') {
+                      if (provider.isPostReported(post.id)) {
+                        AppNotifier.showInfo(
+                          context,
+                          l10n.reportPostAlreadyReported,
+                        );
+                        return;
+                      }
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => ReportReasonSheet(
+                          targetId: post.id,
+                          targetType: ReportTargetType.post,
+                          onReported: () => provider.markPostReported(post.id),
+                        ),
+                      );
                     }
                   },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(value: 'edit', child: Text(l10n.editPost)),
-                    PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
-                  ],
+                  itemBuilder: (context) =>
+                      currentUserId == post.author.id
+                          ? [
+                              // Bài viết chính chủ: Edit & Delete
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Text(l10n.editPost),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text(l10n.delete),
+                              ),
+                            ]
+                          : [
+                              // Bài viết người khác: Tố cáo
+                              PopupMenuItem(
+                                value: 'report',
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.flag_outlined,
+                                      size: 18,
+                                      color: AppColors.textGrey,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(l10n.reportAction),
+                                  ],
+                                ),
+                              ),
+                            ],
                 )
               else
                 const Icon(Icons.more_horiz, color: AppColors.iconGrey),

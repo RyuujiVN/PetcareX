@@ -2305,6 +2305,54 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Mô tả thêm (không bắt buộc)'**
   String get reportDescriptionHint;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In vi, this message translates to:
+  /// **'Spam / Quảng cáo'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonOffensive.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngôn ngữ thô tục / Xúc phạm'**
+  String get reportReasonOffensive;
+
+  /// No description provided for @reportReasonHarassment.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quấy rối / Bắt nạt'**
+  String get reportReasonHarassment;
+
+  /// No description provided for @reportReasonMisinformation.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin sai sự thật'**
+  String get reportReasonMisinformation;
+
+  /// No description provided for @reportReasonViolence.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạo lực / Phản cảm'**
+  String get reportReasonViolence;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khác'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportAlreadyReported.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã tố cáo bình luận này.'**
+  String get reportAlreadyReported;
+
+  /// No description provided for @reportPostAlreadyReported.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã tố cáo bài viết này.'**
+  String get reportPostAlreadyReported;
 }
 
 class _AppLocalizationsDelegate

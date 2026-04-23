@@ -1187,4 +1187,28 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get reportDescriptionHint => 'Mô tả thêm (không bắt buộc)';
+
+  @override
+  String get reportReasonSpam => 'Spam / Quảng cáo';
+
+  @override
+  String get reportReasonOffensive => 'Ngôn ngữ thô tục / Xúc phạm';
+
+  @override
+  String get reportReasonHarassment => 'Quấy rối / Bắt nạt';
+
+  @override
+  String get reportReasonMisinformation => 'Thông tin sai sự thật';
+
+  @override
+  String get reportReasonViolence => 'Bạo lực / Phản cảm';
+
+  @override
+  String get reportReasonOther => 'Khác';
+
+  @override
+  String get reportAlreadyReported => 'Bạn đã tố cáo bình luận này.';
+
+  @override
+  String get reportPostAlreadyReported => 'Bạn đã tố cáo bài viết này.';
 }

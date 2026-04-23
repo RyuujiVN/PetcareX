@@ -486,5 +486,13 @@
   "reportSuccess": "Report submitted. We will review it as soon as possible.",
   "reportFailed": "Failed to submit report. Please try again.",
   "reportAction": "Report",
-  "reportDescriptionHint": "Additional description (optional)"
+  "reportDescriptionHint": "Additional description (optional)",
+  "reportReasonSpam": "Spam / Advertising",
+  "reportReasonOffensive": "Offensive language",
+  "reportReasonHarassment": "Harassment / Bullying",
+  "reportReasonMisinformation": "Misinformation",
+  "reportReasonViolence": "Violence / Disturbing content",
+  "reportReasonOther": "Other",
+  "reportAlreadyReported": "You already reported this comment.",
+  "reportPostAlreadyReported": "You already reported this post."
 }

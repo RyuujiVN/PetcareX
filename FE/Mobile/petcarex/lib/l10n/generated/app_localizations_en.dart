@@ -1222,4 +1222,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportDescriptionHint => 'Additional description (optional)';
+
+  @override
+  String get reportReasonSpam => 'Spam / Advertising';
+
+  @override
+  String get reportReasonOffensive => 'Offensive language';
+
+  @override
+  String get reportReasonHarassment => 'Harassment / Bullying';
+
+  @override
+  String get reportReasonMisinformation => 'Misinformation';
+
+  @override
+  String get reportReasonViolence => 'Violence / Disturbing content';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportAlreadyReported => 'You already reported this comment.';
+
+  @override
+  String get reportPostAlreadyReported => 'You already reported this post.';
 }

@@ -514,6 +514,14 @@
   "reportSuccess": "Đã gửi tố cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất.",
   "reportFailed": "Không thể gửi tố cáo. Vui lòng thử lại.",
   "reportAction": "Tố cáo",
-  "reportDescriptionHint": "Mô tả thêm (không bắt buộc)"
+  "reportDescriptionHint": "Mô tả thêm (không bắt buộc)",
+  "reportReasonSpam": "Spam / Quảng cáo",
+  "reportReasonOffensive": "Ngôn ngữ thô tục / Xúc phạm",
+  "reportReasonHarassment": "Quấy rối / Bắt nạt",
+  "reportReasonMisinformation": "Thông tin sai sự thật",
+  "reportReasonViolence": "Bạo lực / Phản cảm",
+  "reportReasonOther": "Khác",
+  "reportAlreadyReported": "Bạn đã tố cáo bình luận này.",
+  "reportPostAlreadyReported": "Bạn đã tố cáo bài viết này."
 }
 
