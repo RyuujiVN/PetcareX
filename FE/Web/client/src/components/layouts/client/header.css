@@ -43,9 +43,17 @@
 }
 
 .logo-icon {
-    font-size: 32px;
     display: flex;
     align-items: center;
+    justify-content: center;
+}
+
+.logo-image {
+    width: 36px;
+    height: 36px;
+    object-fit: cover;
+    border-radius: 10px;
+    display: block;
 }
 
 .logo-text {

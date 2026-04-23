@@ -1,27 +1,27 @@
 import {
-    ClockCircleOutlined,
-    EnvironmentOutlined,
-    ExperimentOutlined,
+  ClockCircleOutlined,
+  EnvironmentOutlined,
+  ExperimentOutlined,
   MedicineBoxOutlined,
-    MoonOutlined,
-    SmileOutlined,
-    SunOutlined,
-    UserOutlined,
+  MoonOutlined,
+  SmileOutlined,
+  SunOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin, Tag } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { BsArrowRightShort, BsArrowLeftShort } from "react-icons/bs";
 import { useTranslation } from 'react-i18next';
+import { BsArrowLeftShort, BsArrowRightShort } from "react-icons/bs";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SERVICE_TO_SPECIALTY_MAP } from '../../../../constants/enumLabels';
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import { getClientInstance } from '../../../../services/apiClient';
 import {
-    APPOINTMENT_STATUS,
-    createAppointmentApi,
-    getMyAppointmentsApi,
-    SERVICE_OPTIONS,
+  APPOINTMENT_STATUS,
+  createAppointmentApi,
+  getMyAppointmentsApi,
+  SERVICE_OPTIONS,
 } from '../../../../services/appointmentService';
 import { getClinicByIdApi, getClinicListApi } from '../../../../services/clinicService';
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
