@@ -23,7 +23,8 @@ import {
   getMyAppointmentsApi,
   SERVICE_OPTIONS,
 } from '../../../../services/appointmentService';
-import { getClinicByIdApi, getClinicListApi } from '../../../../services/clinicService';
+import { getClinicByIdApi, getNearbyClinicListApi } from '../../../../services/clinicService';
+import { useUserLocation } from '../../../../hooks/client/useUserLocation';
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
 import { getVeterinarianByClinicApi } from '../../../../services/veterinarianService';
 import './styles.css';
@@ -70,6 +71,7 @@ export default function BookingAppointment() {
   const [showSummary, setShowSummary] = useState(false);
   const location = useLocation();
   const { userProfile } = useAuth();
+  const { lat: userLat, lon: userLon, isLoading: locationLoading } = useUserLocation();
   const today = useMemo(() => new Date(), []);
   const serviceOptions = useMemo(() => {
     if (Array.isArray(SERVICE_OPTIONS)) {
@@ -201,10 +203,16 @@ export default function BookingAppointment() {
   };
 
   const fetchClinics = async () => {
-    const res = await getClinicListApi(getClientInstance(), 1, 50);
-    const clinicList = Array.isArray(res?.items) ? res.items : [];
-    setClinics(clinicList);
-    if (clinicList.length > 0) {
+    const clinicList = await getNearbyClinicListApi(getClientInstance(), {
+      page: 1,
+      limit: 50,
+      lat: userLat,
+      lon: userLon,
+      sortBy: 'distance',
+    });
+    const safeList = Array.isArray(clinicList) ? clinicList : [];
+    setClinics(safeList);
+    if (safeList.length > 0) {
       const hasPreselectedClinic = preselectedClinicId
         ? clinicList.some((item) => String(item.id) === String(preselectedClinicId))
         : false;
@@ -216,7 +224,7 @@ export default function BookingAppointment() {
 
       const currentClinicId = form.getFieldValue('clinicId');
       if (!currentClinicId) {
-        form.setFieldValue('clinicId', clinicList[0].id);
+        form.setFieldValue('clinicId', safeList[0].id);
       }
     }
   };
@@ -296,8 +304,11 @@ export default function BookingAppointment() {
   };
 
   useEffect(() => {
+    // Chờ resolve vị trí (user thật hoặc fallback) rồi mới fetch clinics để truyền lat/lon đúng.
+    if (locationLoading) return;
     bootstrapData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationLoading, userLat, userLon]);
 
   useEffect(() => {
     if (preselectedClinicId) {

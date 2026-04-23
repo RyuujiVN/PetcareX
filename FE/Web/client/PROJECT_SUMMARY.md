@@ -20,7 +20,44 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-21)
+## Cập nhật mới nhất (2026-04-23)
+
+### Cập nhật (2026-04-23) — Tích hợp vị trí địa lý (lat/lon) vào tìm kiếm phòng khám gần nhất
+
+**Phạm vi (FE only, không đụng BE):**
+- `src/constants/location.js` (mới) — `DEFAULT_LOCATION = { lat: 16.061063335944954, lon: 108.21931990, label: 'Đà Nẵng' }`, `GEOLOCATION_TIMEOUT_MS = 10000`, `GEOLOCATION_MAX_AGE_MS = 5 * 60 * 1000`.
+- `src/utils/formatDistance.js` (mới) — `formatDistance(distanceKm)` format theo quy ước `<1km → "Xm"`, `>=1km → "X.Xkm"`. Lưu ý: BE trả distance **đơn vị km** (ES `_geo_distance` với `unit: 'km'`).
+- `src/hooks/client/useUserLocation.js` (mới) — hook quản lý vị trí user: gọi `navigator.geolocation.getCurrentPosition` với timeout 10s, thất bại/từ chối/không support → fallback về `DEFAULT_LOCATION` + `isDefault: true`. Cache ở module scope để không hỏi permission mỗi lần mount. Trả về `{ lat, lon, isDefault, isLoading, error, retry }`.
+- `src/services/clinicService.js`:
+  - `getClinicListApi(instance, page, limit, search)` **đã đổi path** từ `/clinic/user` → `/clinic` (endpoint admin, trả `{items, meta}` chuẩn `nestjs-typeorm-paginate`). Admin dashboard và `adminActivityService` dùng hàm này.
+  - Thêm `getNearbyClinicListApi(instance, { page, limit, search, lat, lon, sortBy })` hit `/clinic/user`. BE trả raw array (không có `items/meta`), mỗi item kèm field `distance` (km). Hàm normalize về array đã chuẩn hoá `openingTime/closingTime`.
+- `src/pages/client/Home/ClinicSelection/index.jsx` + `styles.css` + `locales/client/{vi,en}.json`:
+  - Dùng `useUserLocation` + `getNearbyClinicListApi` với `sortBy: 'distance'`.
+  - Bỏ sort theo rating ở FE (BE đã sort theo khoảng cách — phải giữ thứ tự BE trả).
+  - Thêm banner fallback `.clinic-location-banner` khi `isDefault`: icon địa chỉ + text + button "Cho phép vị trí của tôi" → gọi `retry`.
+  - Thêm `.clinic-distance` trong card (icon `FaMapMarkerAlt` + `formatDistance(clinic.distance)`) ngay dưới địa chỉ.
+  - i18n key mới: `pages.home.clinicSelection.locationFallbackNotice`, `pages.home.clinicSelection.locationFallbackAction`.
+- `src/pages/client/User/BookingAppointment/index.jsx`: dùng `useUserLocation` + `getNearbyClinicListApi`, `useEffect` bootstrap chờ `!locationLoading` mới fetch để tránh 2 lần gọi (default + real). Logic preselectedClinicId giữ nguyên.
+
+**BE API đã confirm (đọc file, không sửa):**
+- Clinic entity (`BE/petcare/src/clinic/entities/clinic.entity.ts`): field `lat: decimal`, `lon: decimal` (tên chính xác).
+- Endpoint `GET /api/clinic/user` (`clinic.controller.ts`): query params **bắt buộc** `page`, `limit`, `lat`, `lon`; optional `sortBy: 'distance' | 'rating'` (default `'distance'`) và `search`. Role cho phép: ADMIN, ADMIN_CLINIC, VETERINARIAN, CUSTOMER.
+- Service: `ClinicSearchService.searchClinics` (Elasticsearch) sort theo `_geo_distance` (km), trả `hits.hits.map(hit => ({ ...hit._source, distance: hit.sort.at(-1) }))` — **raw array**, không có pagination wrapper.
+- Endpoint `GET /api/clinic` (admin-only, `paginate<Clinic>`) trả `{items, meta, links}` — FE `getClinicListApi` chuyển sang dùng endpoint này cho admin dashboard.
+
+**Phương án fallback UX:**
+- Khi đang hỏi permission (`locationLoading`): `<Spin>` bao quanh lưới clinic, không fire request.
+- Thất bại/từ chối → dùng `DEFAULT_LOCATION`, hiện banner không obtrusive với nút retry. Không spam toast.
+- Có vị trí thật → không banner, load danh sách bình thường.
+- Không tự tính Haversine ở FE (BE đã sort theo ES geo_distance, nếu sau này BE không trả `distance` thì chỉ bỏ dòng hiển thị, không cần tính lại phía client).
+
+**Tự kiểm tra:**
+- `npx eslint` các file đã sửa → sạch (1 warning pre-existing về `fetchDoctorsByClinic` không liên quan).
+- `npm run build` → thành công (5984 modules, 29.66s).
+
+**⚠️ Vấn đề BE cần dev biết (không tự fix):**
+- `GET /api/clinic/user` hiện trả raw array từ Elasticsearch, không còn `{items, meta}`. Nếu muốn phân trang phía user (load more / infinite scroll) thì BE cần wrap lại response (ví dụ: `{ items, meta: { totalItems, currentPage, itemsPerPage, totalPages } }`). FE tạm thời fetch `limit=50` không phân trang ở user portal.
+- `page` ở ES search hiện truyền thẳng vào `from` — nếu `page > 1` thì ý nghĩa khác (ES `from` là offset, không phải page). Không ảnh hưởng FE hiện tại vì chỉ gọi `page=1, limit=50`, nhưng cần lưu ý khi bật pagination.
 
 ### Cập nhật (2026-04-21) — Fix nghiêm trọng layout ChatBot Client: thanh nhập bị dồn lên cao ở route `/chatbot`
 

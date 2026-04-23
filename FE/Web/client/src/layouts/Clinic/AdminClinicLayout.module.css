@@ -52,14 +52,16 @@
 }
 
 .brandIcon {
-  width: 100px;
-  height: 60px;
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
   border-radius: 10px;
   background: var(--admin-sidebar-brand-icon);
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 35px;
+  font-size: 24px;
+  overflow: hidden;
 }
 
 .brandImage {

@@ -515,7 +515,9 @@
         "reviewCount": "reviews",
         "noReview": "No reviews yet",
         "loadListFailed": "Unable to load clinic list",
-        "loadDetailFailed": "Unable to load clinic details"
+        "loadDetailFailed": "Unable to load clinic details",
+        "locationFallbackNotice": "Showing clinics near {{city}} (default location).",
+        "locationFallbackAction": "Use my location"
       },
       "homePageClinic": {
         "mapIframeTitle": "Google Maps clinic address",

@@ -515,7 +515,9 @@
         "reviewCount": "đánh giá",
         "noReview": "Chưa có đánh giá",
         "loadListFailed": "Không thể tải danh sách phòng khám",
-        "loadDetailFailed": "Không thể tải chi tiết phòng khám"
+        "loadDetailFailed": "Không thể tải chi tiết phòng khám",
+        "locationFallbackNotice": "Đang hiển thị phòng khám gần {{city}} (vị trí mặc định).",
+        "locationFallbackAction": "Cho phép vị trí của tôi"
       },
       "homePageClinic": {
         "mapIframeTitle": "Google Maps địa chỉ phòng khám",
