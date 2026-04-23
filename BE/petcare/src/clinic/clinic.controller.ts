@@ -26,6 +26,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { RoleGuard } from 'src/common/guards/role.guard';
 import { RequiredRole } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/enums/role.enum';
+import { ClinicSortBy } from './clinic-search.service';
 
 @Controller('clinic')
 @ApiBearerAuth('JWT-auth')
@@ -74,11 +75,20 @@ export class ClinicController {
     type: String,
     description: 'Tìm theo tên phòng khám',
   })
+  @ApiQuery({
+    name: 'sortBy',
+    required: false,
+    enum: ['distance', 'rating'],
+    description:
+      'Sắp xếp: distance (gần nhất, mặc định) hoặc rating (rating cao nhất)',
+  })
   getNearbyClinics(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('lat') lat: number,
     @Query('lon') lon: number,
+    @Query('sortBy', new DefaultValuePipe('distance'))
+    sortBy?: 'distance' | 'rating',
     @Query('search') search?: string,
   ) {
     return this.clinicService.findAllPaginationUser({
@@ -87,6 +97,7 @@ export class ClinicController {
       search,
       lat,
       lon,
+      sortBy,
     });
   }
 

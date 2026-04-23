@@ -4,9 +4,12 @@ import { CLINIC_INDEX, ClinicIndexMapping } from './clinic.index';
 import { Clinic } from './entities/clinic.entity';
 import { FilterPagination } from 'src/common/types/pagination.type';
 
+export type ClinicSortBy = 'distance' | 'rating';
+
 export type FilterNearClinic = FilterPagination & {
   lat: number;
   lon: number;
+  sortBy?: ClinicSortBy;
 };
 
 @Injectable()
@@ -30,9 +33,25 @@ export class ClinicSearchService implements OnModuleInit {
     }
   }
 
-  // Tìm kiếm và phân trang
+  private buildSort(options: FilterNearClinic): any[] {
+    const geoSort = {
+      _geo_distance: {
+        location: { lat: options.lat, lon: options.lon },
+        order: 'asc',
+        unit: 'km',
+      },
+    };
+
+    if (options.sortBy === 'rating') {
+      return [{ avgRating: { order: 'desc' } }, geoSort];
+    }
+
+    return [geoSort];
+  }
+
   async searchClinics(options: FilterNearClinic) {
     const hasKeyword = options.search?.trim();
+    const sort = this.buildSort(options);
 
     let clinicDocuments: any;
 
@@ -52,22 +71,10 @@ export class ClinicSearchService implements OnModuleInit {
                 },
               },
             },
-
             filter: [{ term: { deleted: false } }],
           },
         },
-        sort: [
-          {
-            _geo_distance: {
-              location: {
-                lat: options.lat,
-                lon: options.lon,
-              },
-              order: 'asc',
-              unit: 'km',
-            },
-          },
-        ],
+        sort,
       });
     } else {
       clinicDocuments = await this.elasticSearchService.search({
@@ -79,22 +86,14 @@ export class ClinicSearchService implements OnModuleInit {
             filter: [{ term: { deleted: false } }],
           },
         },
-        sort: [
-          {
-            _geo_distance: {
-              location: {
-                lat: options.lat,
-                lon: options.lon,
-              },
-              order: 'asc',
-              unit: 'km',
-            },
-          },
-        ],
+        sort,
       });
     }
 
-    return clinicDocuments?.hits?.hits;
+    return clinicDocuments?.hits?.hits.map((hit: any) => ({
+      ...hit._source,
+      distance: hit.sort.at(-1),
+    }));
   }
 
   // Tạo mới document

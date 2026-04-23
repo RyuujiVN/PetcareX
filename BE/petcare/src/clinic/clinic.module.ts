@@ -16,5 +16,6 @@ import { ClinicSearchService } from './clinic-search.service';
   ],
   providers: [ClinicService, ClinicSearchService],
   controllers: [ClinicController],
+  exports: [ClinicSearchService],
 })
 export class ClinicModule {}
