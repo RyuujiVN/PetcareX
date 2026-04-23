@@ -41,6 +41,12 @@ export class PostSearchService implements OnModuleInit {
       });
     }
 
+    if (options.topicId) {
+      filter.push({
+        term: { topicId: options.topicId },
+      });
+    }
+
     if (options.sortRecent) {
       sort.push({
         createAt: 'desc',
@@ -71,6 +77,7 @@ export class PostSearchService implements OnModuleInit {
                             content: {
                               query: hasKeyword,
                               fuzziness: 'AUTO',
+                              minimum_should_match: '2<70%',
                             },
                           },
                         },
