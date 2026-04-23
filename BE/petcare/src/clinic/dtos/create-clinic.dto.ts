@@ -1,7 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
   IsEmail,
+  IsInt,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsString,
   Matches,
@@ -29,6 +31,16 @@ export class CreateClinicDTO {
   @IsString()
   @IsOptional()
   avatarUrl: string;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty({ message: 'Vĩ độ không được để trống' })
+  lat: number;
+
+  @ApiProperty()
+  @IsNumber()
+  @IsNotEmpty({ message: 'Kinh độ không được để trống' })
+  lon: number;
 
   @ApiProperty()
   @IsString()

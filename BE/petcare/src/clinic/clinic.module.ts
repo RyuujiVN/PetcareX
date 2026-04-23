@@ -6,6 +6,7 @@ import { Clinic } from './entities/clinic.entity';
 import { AdminClinic } from 'src/user/entities/admin-clinic.entity';
 import { UserModule } from 'src/user/user.module';
 import { ElasticSearchModule } from 'src/elastic-search/elastic-search.module';
+import { ClinicSearchService } from './clinic-search.service';
 
 @Module({
   imports: [
@@ -13,7 +14,7 @@ import { ElasticSearchModule } from 'src/elastic-search/elastic-search.module';
     ElasticSearchModule,
     UserModule,
   ],
-  providers: [ClinicService],
+  providers: [ClinicService, ClinicSearchService],
   controllers: [ClinicController],
 })
 export class ClinicModule {}
