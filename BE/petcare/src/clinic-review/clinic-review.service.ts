@@ -7,6 +7,7 @@ import { Clinic } from 'src/clinic/entities/clinic.entity';
 import { MedicalRecord } from 'src/medical/entities/medical-record.entity';
 import { ClinicReviewPagination } from './types/clinic-review.type';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { ClinicSearchService } from 'src/clinic/clinic-search.service';
 
 @Injectable()
 export class ClinicReviewService {
@@ -14,6 +15,7 @@ export class ClinicReviewService {
     @InjectRepository(ClinicReview)
     private readonly reviewRepository: Repository<ClinicReview>,
     private readonly dataSource: DataSource,
+    private readonly clinicSearchService: ClinicSearchService,
   ) {}
 
   // Lấy danh sách review
@@ -44,7 +46,7 @@ export class ClinicReviewService {
 
   // Thêm mới review
   async createClinicReview(createDTO: CreateClinicReviewDTO, userId: string) {
-    return await this.dataSource.transaction(async (manager) => {
+    const updatedClinic = await this.dataSource.transaction(async (manager) => {
       const reviewRepo = manager.getRepository(ClinicReview);
       const clinicRepo = manager.getRepository(Clinic);
       const medicalRecordRepo = manager.getRepository(MedicalRecord);
@@ -78,6 +80,10 @@ export class ClinicReviewService {
           { isReview: true },
         ),
       ]);
+
+      return clinic;
     });
+
+    await this.clinicSearchService.updateClinic(updatedClinic);
   }
 }

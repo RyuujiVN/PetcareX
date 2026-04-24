@@ -43,7 +43,19 @@ export class PostController {
     type: Date,
     description: 'Phân trang dựa vào thời gian bài viết cuối',
   })
-  @ApiQuery({ name: 'sortRecent', required: false, type: Boolean })
+  @ApiQuery({
+    name: 'topicId',
+    required: false,
+    type: Date,
+    description: 'Phân trang dựa vào chủ đề',
+  })
+  @ApiQuery({
+    name: 'sortRecent',
+    required: false,
+    type: Boolean,
+    description:
+      'Mặc đinh là tìm kiếm những bài post liên quan nhất, nếu bật thì sẽ sắp xếp theo thời gian',
+  })
   @ApiQuery({
     name: 'keyword',
     required: false,
@@ -54,6 +66,7 @@ export class PostController {
     @Req() req,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('lastPostTime') lastPostTime: Date,
+    @Query('topicId') topicId?: string,
     @Query('keyword') keyword?: string,
     @Query('sortRecent') sortRecent?: boolean,
   ) {
@@ -63,6 +76,7 @@ export class PostController {
         lastPostTime,
         keyword,
         sortRecent,
+        topicId,
       },
       req?.user?.id,
     );

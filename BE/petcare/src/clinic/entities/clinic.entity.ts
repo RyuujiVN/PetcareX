@@ -39,6 +39,12 @@ export class Clinic {
   @Column({ type: 'decimal', precision: 2, scale: 1, default: 0 })
   avgRating: number;
 
+  @Column({ type: 'decimal', default: 0 })
+  lat: number;
+
+  @Column({ type: 'decimal', default: 0 })
+  lon: number;
+
   @Column({ type: 'int', default: 0 })
   totalReviews: number;
 

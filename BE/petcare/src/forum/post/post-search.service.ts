@@ -3,7 +3,6 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { FORUM_POST_INDEX, ForumPostIndexMapping } from './post.index';
 import { UpdatePostDTO } from './dtos/update-post.dto';
 import { PostPagination } from './types/post-pagination.type';
-import { range } from 'rxjs';
 
 @Injectable()
 export class PostSearchService implements OnModuleInit {
@@ -26,7 +25,7 @@ export class PostSearchService implements OnModuleInit {
         ForumPostIndexMapping as any,
       );
 
-      this.logger.log(`Createdd index: ${FORUM_POST_INDEX}`);
+      this.logger.log(`Created index: ${FORUM_POST_INDEX}`);
     }
   }
 
@@ -38,6 +37,12 @@ export class PostSearchService implements OnModuleInit {
     if (options.lastPostTime) {
       filter.push({
         range: { createdAt: { lt: new Date(options.lastPostTime) } },
+      });
+    }
+
+    if (options.topicId) {
+      filter.push({
+        term: { topicId: options.topicId },
       });
     }
 
@@ -71,6 +76,7 @@ export class PostSearchService implements OnModuleInit {
                             content: {
                               query: hasKeyword,
                               fuzziness: 'AUTO',
+                              minimum_should_match: '2<70%',
                             },
                           },
                         },
