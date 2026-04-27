@@ -22,6 +22,39 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-04-27)
 
+### Cập nhật (2026-04-27) — Cải thiện Select "Phòng khám gần bạn" trong BookingAppointment: hiện tên + địa chỉ + khoảng cách
+
+**Phạm vi (FE only):**
+- `src/pages/client/User/BookingAppointment/index.jsx`:
+  - Import thêm `formatDistance` (`src/utils/formatDistance.js`) và `DEFAULT_LOCATION` (`src/constants/location.js`).
+  - `useUserLocation` lấy thêm `isDefault: locationIsDefault`, `retry: retryLocation`.
+  - Refactor Select clinicId từ `options=[{label,value}]` (1 dòng tên) sang `<Select.Option>` JSX với 3 thông tin:
+    - **Selected (collapsed)** dùng `optionLabelProp="displayLabel"` → hiển thị compact `"Tên phòng khám · 2.3km"` (không tràn input).
+    - **Option (dropdown row)**: grid 2 cột — left: tên (line 1, đậm) + địa chỉ kèm icon `EnvironmentOutlined` (line 2, nhạt, ellipsis); right: badge khoảng cách (`formatDistance(item.distance)`).
+    - `popupMatchSelectWidth={420}` → dropdown rộng đủ để show address mà không bóp tên/địa chỉ.
+  - Banner fallback `clinic-location-banner` hiện ngay dưới Select khi `locationIsDefault=true` và không có `preselectedClinicId`: icon vị trí + text "Đang tính khoảng cách từ Đà Nẵng (vị trí mặc định)" + nút "Cho phép vị trí của tôi" → gọi `retryLocation`. Nút disabled khi `locationLoading` để tránh double-fire.
+- `src/pages/client/User/BookingAppointment/styles.css`:
+  - Thêm `.clinic-option`, `.clinic-option-main`, `.clinic-option-name`, `.clinic-option-address`, `.clinic-option-distance` (badge pill màu brand-primary).
+  - Thêm `.clinic-location-banner` + `.clinic-location-banner-action` cho banner fallback.
+- `src/locales/client/{vi,en}.json` — thêm `pages.booking.form.locationFallbackNotice` (`{{city}}` placeholder) + `pages.booking.form.locationFallbackAction`. Reuse `DEFAULT_LOCATION.label` ("Đà Nẵng") làm `city` thay vì hardcode.
+
+**Định vị — đã rà soát chính xác:**
+- `useUserLocation` đã có `enableHighAccuracy: true` + timeout 10s + cache module-scope → tận dụng GPS/WiFi triangulation, tránh IP-based fallback (ISP/datacenter lệch hàng chục km).
+- BookingAppointment chờ `!locationLoading` mới `bootstrapData()` (line 306-311) → đảm bảo `lat/lon` truyền vào `getNearbyClinicListApi` luôn là vị trí đã resolve (real or default), không bao giờ là `null`.
+- Banner fallback CHỈ hiện khi `isDefault=true` → user biết được khoảng cách hiển thị đang tính từ Đà Nẵng (default), không bị nhầm tưởng đó là vị trí thật.
+
+**Phương án UI/UX đã chọn — Phương án A (custom render trong AntD Select qua `optionLabelProp`):**
+- Lý do: surgical, đồng bộ pattern doctor select đã dùng (line 750-775 cùng file), giữ nguyên AntD Form integration (validation, keyboard nav, tab order).
+- Đã phản biện và **loại Phương án B** (custom Popover + List): linh hoạt hơn nhưng phá vỡ pattern Form Select hiện có, mất kiểu validation tự động của AntD → vi phạm "match existing style" trong CLAUDE.md.
+
+**Tự kiểm tra:**
+- `npm run build` → thành công (vite build, 22.90s).
+- Backward-compat: 3 caller khác của `getNearbyClinicListApi` (ClinicSelection, các nơi khác) không bị ảnh hưởng — chỉ thay đổi UI hiển thị tại BookingAppointment.
+
+**Ghi chú kiến trúc để tham khảo sau:**
+- Khi cần hiển thị nhiều thông tin trong AntD `<Select>` value mà giữ collapsed view gọn: dùng `optionLabelProp` + JSX option children. Đây là pattern chuẩn của AntD, đã có 2 chỗ dùng trong codebase (doctor select + clinic select mới).
+- Nếu sau này cần search trong Select clinic → bật `showSearch` + custom `filterOption` so với cả `name` và `address`.
+
 ### Cập nhật (2026-04-27) — Thêm tính năng Search vào Forum (Client portal)
 
 **Phạm vi (FE only, không đụng BE):**

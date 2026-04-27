@@ -673,7 +673,9 @@
       "form": {
         "serviceLabel": "Chọn dịch vụ",
         "clinicLabel": "Phòng khám gần bạn",
-        "symptomPlaceholder": "Ghi triệu chứng của thú cưng"
+        "symptomPlaceholder": "Ghi triệu chứng của thú cưng",
+        "locationFallbackNotice": "Đang tính khoảng cách từ {{city}} (vị trí mặc định).",
+        "locationFallbackAction": "Cho phép vị trí của tôi"
       },
       "validation": {
         "petRequired": "Vui lòng chọn thú cưng",

@@ -673,7 +673,9 @@
       "form": {
         "serviceLabel": "Select service",
         "clinicLabel": "Nearby clinic",
-        "symptomPlaceholder": "Describe your pet's symptoms"
+        "symptomPlaceholder": "Describe your pet's symptoms",
+        "locationFallbackNotice": "Showing distances from {{city}} (default location).",
+        "locationFallbackAction": "Use my real location"
       },
       "validation": {
         "petRequired": "Please choose a pet",

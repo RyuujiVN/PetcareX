@@ -25,6 +25,8 @@ import {
 } from '../../../../services/appointmentService';
 import { getClinicByIdApi, getNearbyClinicListApi } from '../../../../services/clinicService';
 import { useUserLocation } from '../../../../hooks/client/useUserLocation';
+import { DEFAULT_LOCATION } from '../../../../constants/location';
+import { formatDistance } from '../../../../utils/formatDistance';
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
 import { getVeterinarianByClinicApi } from '../../../../services/veterinarianService';
 import './styles.css';
@@ -71,7 +73,13 @@ export default function BookingAppointment() {
   const [showSummary, setShowSummary] = useState(false);
   const location = useLocation();
   const { userProfile } = useAuth();
-  const { lat: userLat, lon: userLon, isLoading: locationLoading } = useUserLocation();
+  const {
+    lat: userLat,
+    lon: userLon,
+    isLoading: locationLoading,
+    isDefault: locationIsDefault,
+    retry: retryLocation,
+  } = useUserLocation();
   const today = useMemo(() => new Date(), []);
   const serviceOptions = useMemo(() => {
     if (Array.isArray(SERVICE_OPTIONS)) {
@@ -725,12 +733,61 @@ export default function BookingAppointment() {
                     <Select
                       size="large"
                       disabled={Boolean(preselectedClinicId)}
-                      options={clinics.map((item) => ({
-                        label: item.name,
-                        value: item.id,
-                      }))}
-                    />
+                      optionLabelProp="displayLabel"
+                      popupMatchSelectWidth={520}
+                      popupClassName="clinic-select-popup"
+                    >
+                      {clinics.map((item) => {
+                        const distanceText = formatDistance(item.distance);
+                        const collapsedLabel = distanceText
+                          ? `${item.name} · ${distanceText}`
+                          : item.name;
+                        return (
+                          <Select.Option
+                            key={item.id}
+                            value={item.id}
+                            displayLabel={collapsedLabel}
+                          >
+                            <div className="clinic-option">
+                              <div className="clinic-option-main">
+                                <div className="clinic-option-name">{item.name}</div>
+                                {item.address ? (
+                                  <div className="clinic-option-address">
+                                    <EnvironmentOutlined aria-hidden />
+                                    <span>{item.address}</span>
+                                  </div>
+                                ) : null}
+                              </div>
+                              {distanceText ? (
+                                <span className="clinic-option-distance">{distanceText}</span>
+                              ) : null}
+                            </div>
+                          </Select.Option>
+                        );
+                      })}
+                    </Select>
                   </Form.Item>
+                  {locationIsDefault && !preselectedClinicId ? (
+                    <div className="clinic-location-banner" role="status">
+                      <EnvironmentOutlined aria-hidden />
+                      <span>
+                        {t('pages.booking.form.locationFallbackNotice', {
+                          city: DEFAULT_LOCATION.label,
+                          defaultValue: `Đang tính khoảng cách từ ${DEFAULT_LOCATION.label} (vị trí mặc định).`,
+                        })}
+                      </span>
+                      <button
+                        type="button"
+                        className="clinic-location-banner-action"
+                        onClick={retryLocation}
+                        disabled={locationLoading}
+                      >
+                        {t('pages.booking.form.locationFallbackAction', {
+                          defaultValue: 'Cho phép vị trí của tôi',
+                        })}
+                      </button>
+                    </div>
+                  ) : null}
                 </Col>
               </Row>
             </section>

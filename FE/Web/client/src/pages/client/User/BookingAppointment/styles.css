@@ -712,3 +712,108 @@
   margin: 6px 0 0;
   white-space: pre-wrap;
 }
+
+/* ── Clinic option (name + address + distance) inside dropdown ── */
+/* Override AntD's `.ant-select-item-option-content` defaults
+   (white-space: nowrap; overflow: hidden; text-overflow: ellipsis)
+   để name/address có thể xuống dòng mà không bị cắt hoặc đè lên badge. */
+.clinic-select-popup .ant-select-item-option-content {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.clinic-select-popup .ant-select-item {
+  align-items: stretch;
+}
+
+.clinic-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  line-height: 1.45;
+  white-space: normal;
+  width: 100%;
+}
+
+.clinic-option-main {
+  min-width: 0;
+}
+
+.clinic-option-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+.clinic-option-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.clinic-option-address > :global(.anticon),
+.clinic-option-address > svg {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.clinic-option-address span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.clinic-option-distance {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-brand-primary);
+  background: var(--color-brand-primary-soft, rgba(24, 144, 255, 0.08));
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.clinic-location-banner {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(24, 144, 255, 0.06);
+  border: 1px solid rgba(24, 144, 255, 0.18);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.clinic-location-banner-action {
+  border: none;
+  background: transparent;
+  color: var(--color-brand-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  margin-left: auto;
+}
+
+.clinic-location-banner-action:hover {
+  text-decoration: underline;
+}
+
+.clinic-location-banner-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  text-decoration: none;
+}
