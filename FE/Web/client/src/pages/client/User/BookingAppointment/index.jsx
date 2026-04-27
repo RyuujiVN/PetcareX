@@ -311,20 +311,42 @@ export default function BookingAppointment() {
   }, [locationLoading, userLat, userLon]);
 
   useEffect(() => {
-    if (preselectedClinicId) {
+    // Chỉ seed clinicId từ preselected khi list nearby đã load và preselected nằm trong list.
+    // Tránh đẩy ID stale từ sessionStorage vào form rồi fire fetchClinicById → 404.
+    if (!preselectedClinicId || clinics.length === 0) return;
+
+    const exists = clinics.some((item) => String(item.id) === String(preselectedClinicId));
+    if (!exists) return;
+
+    if (form.getFieldValue('clinicId') !== String(preselectedClinicId)) {
       form.setFieldValue('clinicId', String(preselectedClinicId));
     }
-  }, [form, preselectedClinicId]);
+  }, [form, preselectedClinicId, clinics]);
 
   useEffect(() => {
     if (!clinicId) {
       return;
     }
 
+    // Đợi clinics list load xong mới validate. Nếu clinicId không thuộc list (stale từ
+    // sessionStorage / state cũ), clear cache và fallback về clinic đầu tiên thay vì
+    // fire GET /clinic/:id với ID không tồn tại → 404.
+    if (clinics.length === 0) return;
+
+    const existsInList = clinics.some((item) => String(item.id) === String(clinicId));
+    if (!existsInList) {
+      if (sessionStorage.getItem('selectedClinicId') === String(clinicId)) {
+        sessionStorage.removeItem('selectedClinicId');
+      }
+      form.setFieldValue('clinicId', clinics[0].id);
+      return;
+    }
+
     Promise.all([fetchDoctorsByClinic(clinicId, filterSpecialty), fetchClinicById(clinicId)]).catch((error) => {
       message.error(error.message || t('pages.booking.loadClinicDoctorFailed'));
     });
-  }, [clinicId, filterSpecialty]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clinicId, filterSpecialty, clinics]);
 
   useEffect(() => {
     if (!service) {

@@ -63,7 +63,9 @@ const resolveLocation = () => {
       {
         timeout: GEOLOCATION_TIMEOUT_MS - 500,
         maximumAge: GEOLOCATION_MAX_AGE_MS,
-        enableHighAccuracy: false,
+        // Bật high accuracy để dùng GPS/WiFi triangulation thay vì IP-based geolocation
+        // (IP-based trả về vị trí ISP/datacenter, lệch hàng chục–trăm km so với vị trí thật).
+        enableHighAccuracy: true,
       },
     )
   })

@@ -1091,6 +1091,14 @@
         "all": "All topics",
         "none": "No topic"
       },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "Found {{count}} posts",
+        "emptyTitle": "No posts found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
+      },
       "topicSelect": {
         "noTopic": "No topic"
       },

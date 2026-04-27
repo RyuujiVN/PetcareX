@@ -6,6 +6,7 @@ import {
     FaEllipsis,
     FaFilter,
     FaImage,
+    FaMagnifyingGlass,
     FaRegComment,
     FaRegThumbsUp,
     FaThumbsUp,
@@ -38,6 +39,7 @@ import {
     updatePostApi,
 } from '../../../../services/forumService'
 import { uploadUserImageApi, uploadUserImagesApi } from '../../../../services/userService'
+import ForumSearchBar from './ForumSearchBar'
 import styles from './forum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
@@ -333,6 +335,7 @@ function Forum() {
 	const reportedPostIds = useRef(new Set())
 	const reportedCommentIds = useRef(new Set())
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
+	const [searchKeyword, setSearchKeyword] = useState('')
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
 	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
 	const [highlightedPostId, setHighlightedPostId] = useState('')
@@ -539,10 +542,22 @@ function Forum() {
 		return fileUrl
 	}
 
-	const loadPosts = async () => {
+	const searchKeywordRef = useRef('')
+	useEffect(() => {
+		searchKeywordRef.current = searchKeyword
+	}, [searchKeyword])
+
+	const loadPosts = async ({ keyword } = {}) => {
 		setLoadingPosts(true)
 		try {
-			const data = await getPostsApi(getClientInstance(), { limit: 1000 })
+			const effectiveKeyword = keyword !== undefined ? keyword : searchKeywordRef.current
+			// BE giới hạn: khi search keyword, ES RRF rank_window_size=50 → size phải <= 50.
+			// Khi không search, giữ limit cao để fetch toàn bộ feed như cũ.
+			const limit = effectiveKeyword ? 50 : 1000
+			const data = await getPostsApi(getClientInstance(), {
+				limit,
+				keyword: effectiveKeyword,
+			})
 			setApiPosts(Array.isArray(data) ? data.map((item) => mapPostToUi(item, t, i18n.language)) : [])
 		} catch (error) {
 			message.error(error.message || t('pages.forum.loadPostsFailed'))
@@ -567,7 +582,18 @@ function Forum() {
 		}
 
 		loadInitialData()
+		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
+
+	const didMountSearchRef = useRef(false)
+	useEffect(() => {
+		if (!didMountSearchRef.current) {
+			didMountSearchRef.current = true
+			return
+		}
+		loadPosts({ keyword: searchKeyword })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [searchKeyword])
 
 	useEffect(() => {
 		setApiPosts((prev) =>
@@ -1802,6 +1828,12 @@ function Forum() {
 			return String(post.rawTopicId) === selectedTopicFilter
 		})
 
+		// Khi đang search: giữ nguyên thứ tự relevance từ BE (Elasticsearch RRF rerank).
+		// Không sort lại theo createdAt, không prioritize featured — sẽ phá ranking.
+		if (searchKeyword) {
+			return filtered.map((post) => ({ ...post, isFeatured: false }))
+		}
+
 		const prioritizedFeatured = [...filtered]
 			.filter((post) => featuredPostIds.has(post.id))
 			.sort((a, b) => {
@@ -1827,12 +1859,40 @@ function Forum() {
 			...post,
 			isFeatured: index < FEATURED_POST_LIMIT && featuredPostIds.has(post.id),
 		}))
-	}, [sourcePosts, selectedTopicFilter, featuredPostIds])
+	}, [sourcePosts, selectedTopicFilter, featuredPostIds, searchKeyword])
 
 	return (
 		<div className={styles.pageRoot}>
 			<main className={styles.pageWrap}>
 				<section ref={feedScrollRef} className={styles.leftColumn}>
+					<div className={styles.searchCard}>
+						<ForumSearchBar
+							value={searchKeyword}
+							onSearch={setSearchKeyword}
+							placeholder={t('pages.forum.search.placeholder')}
+							ariaLabel={t('pages.forum.search.placeholder')}
+						/>
+						{searchKeyword ? (
+							<div className={styles.searchStatusRow}>
+								<span className={styles.searchActiveChip}>
+									{t('pages.forum.search.activeLabel', { keyword: searchKeyword })}
+								</span>
+								<button
+									type="button"
+									className={styles.searchClearLink}
+									onClick={() => setSearchKeyword('')}
+								>
+									{t('pages.forum.search.clear')}
+								</button>
+								{!loadingPosts ? (
+									<span className={styles.searchResultCount}>
+										{t('pages.forum.search.resultCount', { count: visiblePosts.length })}
+									</span>
+								) : null}
+							</div>
+						) : null}
+					</div>
+
 					<div className={styles.composeCard}>
 						<div className={styles.composeTop}>
 							<img src={composerAvatar} alt={t('pages.forum.avatarAlt')} className={styles.composeAvatar} />
@@ -1871,6 +1931,15 @@ function Forum() {
 
 					<div className={styles.feedList}>
 						{loadingPosts ? <p className={styles.loadingText}>{t('pages.forum.loadingPosts')}</p> : null}
+						{!loadingPosts && searchKeyword && visiblePosts.length === 0 ? (
+							<div className={styles.searchEmptyState}>
+								<FaMagnifyingGlass className={styles.searchEmptyIcon} aria-hidden="true" />
+								<p className={styles.searchEmptyTitle}>
+									{t('pages.forum.search.emptyTitle', { keyword: searchKeyword })}
+								</p>
+								<p className={styles.searchEmptyHint}>{t('pages.forum.search.emptyHint')}</p>
+							</div>
+						) : null}
 						{visiblePosts.map((post) => (
 							<article
 								key={post.id}
@@ -2069,7 +2138,16 @@ function Forum() {
 															<strong>{thread.main.user.fullName}</strong>
 															{thread.main.content ? <p>{thread.main.content}</p> : null}
 															{thread.main.image ? (
-																<img src={thread.main.image} alt="comment" className={styles.commentImage} />
+																<button
+																	type="button"
+																	className={styles.commentImageBtn}
+																	onClick={(event) => {
+																		event.stopPropagation()
+																		handlePreviewPostImage(thread.main.image)
+																	}}
+																>
+																	<img src={thread.main.image} alt="comment" className={styles.commentImage} />
+																</button>
 															) : null}
 														</div>
 															{renderCommentMenuButton(thread.main, post.id)}
@@ -2190,7 +2268,16 @@ function Forum() {
 																<strong>{reply.user.fullName}</strong>
 																{reply.content ? <p>{reply.content}</p> : null}
 																{reply.image ? (
-																	<img src={reply.image} alt={t('pages.forum.replyImageAlt')} className={styles.commentImage} />
+																	<button
+																		type="button"
+																		className={styles.commentImageBtn}
+																		onClick={(event) => {
+																			event.stopPropagation()
+																			handlePreviewPostImage(reply.image)
+																		}}
+																	>
+																		<img src={reply.image} alt={t('pages.forum.replyImageAlt')} className={styles.commentImage} />
+																	</button>
 																) : null}
 															</div>
 

@@ -1091,6 +1091,14 @@
         "all": "Tất cả chủ đề",
         "none": "Không có chủ đề"
       },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "Tìm thấy {{count}} bài viết",
+        "emptyTitle": "Không tìm thấy bài viết nào cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
+      },
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
       },

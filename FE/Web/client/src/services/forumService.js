@@ -1,10 +1,17 @@
 import { getAdminInstance, getClientInstance } from './apiClient'
 
 // Lấy danh sách bài viết
-export const getPostsApi = async (instance, { limit = 20, lastPostTime } = {}) => {
-  const response = await instance.get('/post', {
-    params: { limit, lastPostTime },
-  })
+export const getPostsApi = async (
+  instance,
+  { limit = 20, lastPostTime, keyword, topicId, sortRecent } = {},
+) => {
+  const params = { limit }
+  if (lastPostTime) params.lastPostTime = lastPostTime
+  const trimmedKeyword = typeof keyword === 'string' ? keyword.trim() : ''
+  if (trimmedKeyword) params.keyword = trimmedKeyword
+  if (topicId) params.topicId = topicId
+  if (sortRecent) params.sortRecent = sortRecent
+  const response = await instance.get('/post', { params })
   return response.data
 }
 // Tạo bài viết mới
