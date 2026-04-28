@@ -7,14 +7,17 @@ import { Like } from '../entities/like.entity';
 import { CommentModule } from '../comment/comment.module';
 import { Notification } from 'src/notification/entities/notification.entity';
 import { NotificationModule } from 'src/notification/notification.module';
+import { ElasticSearchModule } from 'src/elastic-search/elastic-search.module';
+import { PostSearchService } from './post-search.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ForumPost, Like, Notification]),
     CommentModule,
     NotificationModule,
+    ElasticSearchModule,
   ],
-  providers: [PostService],
+  providers: [PostService, PostSearchService],
   controllers: [PostController],
 })
 export class PostModule {}

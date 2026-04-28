@@ -26,6 +26,9 @@ export class ForumPost {
   @Column({ type: 'text' })
   content: string;
 
+  @Column({ type: 'jsonb', default: () => "'[]'" })
+  images: string[];
+
   @Column({ type: 'int', name: 'comment_count', default: 0 })
   commentCount: number;
 

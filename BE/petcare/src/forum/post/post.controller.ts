@@ -43,15 +43,40 @@ export class PostController {
     type: Date,
     description: 'Phân trang dựa vào thời gian bài viết cuối',
   })
-  getAllPost(
+  @ApiQuery({
+    name: 'topicId',
+    required: false,
+    type: Date,
+    description: 'Phân trang dựa vào chủ đề',
+  })
+  @ApiQuery({
+    name: 'sortRecent',
+    required: false,
+    type: Boolean,
+    description:
+      'Mặc đinh là tìm kiếm những bài post liên quan nhất, nếu bật thì sẽ sắp xếp theo thời gian',
+  })
+  @ApiQuery({
+    name: 'keyword',
+    required: false,
+    type: String,
+    description: 'Tìm kiếm bài viết',
+  })
+  async getAllPost(
+    @Req() req,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('lastPostTime') lastPostTime: Date,
-    @Req() req,
+    @Query('topicId') topicId?: string,
+    @Query('keyword') keyword?: string,
+    @Query('sortRecent') sortRecent?: boolean,
   ) {
     return this.postService.findAllPagination(
       {
         limit,
         lastPostTime,
+        keyword,
+        sortRecent,
+        topicId,
       },
       req?.user?.id,
     );
@@ -80,7 +105,17 @@ export class PostController {
     type: CreatePostDTO,
   })
   createPost(@Body() createDTO: CreatePostDTO, @Req() req) {
-    return this.postService.createPost(createDTO, req?.user?.id);
+    return this.postService.createPost(createDTO, req?.user);
+  }
+
+  @Post('bulk')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Tạo mới nhiều bài viết' })
+  @ApiBody({
+    type: [CreatePostDTO],
+  })
+  createManyPost(@Body() createDTOs: CreatePostDTO[], @Req() req) {
+    return this.postService.createManyPost(createDTOs, req?.user);
   }
 
   @Post(':id/like')
