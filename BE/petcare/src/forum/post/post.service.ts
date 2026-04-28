@@ -37,8 +37,6 @@ export class PostService {
   async findAllPagination(options: PostPagination, userId: string) {
     const postIds = await this.postSearchService.searchPostIds(options);
 
-    console.log(postIds);
-
     const queryBuilder = this.postRepository
       .createQueryBuilder('post')
       .leftJoin('post.author', 'author')
