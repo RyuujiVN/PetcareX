@@ -110,6 +110,8 @@ export class VeterinarianService {
         throw new NotFoundException('Không tìm thấy người dùng');
 
       veterinarian.specialty = updateDTO.specialty ?? veterinarian.specialty;
+      veterinarian.experience = updateDTO.experience ?? veterinarian.experience;
+      veterinarian.introduce = updateDTO.introduce ?? veterinarian.introduce;
       await veterinarianRepo.save(veterinarian);
     });
   }
