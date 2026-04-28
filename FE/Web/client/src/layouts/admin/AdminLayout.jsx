@@ -302,7 +302,6 @@ export default function AdminLayout() {
       <div className={styles.main}>
         <header className={styles.header}>
           <h1 className={styles.headerTitle}>
-            <MessageCircle style={{color: '#4672b4'}} />
             {isChatbotRoute ? t("pages.chatbot.assistantTitle") : t("layout.header.title")}
           </h1>
           <div className={styles.headerActions}>

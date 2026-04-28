@@ -2088,9 +2088,6 @@ function Forum() {
 										<button type="button" onClick={() => handleOpenComments(post)}>
 											<FaRegComment /> {post.comments}
 										</button>
-										{/* <button type="button" className={styles.shareBtn} onClick={() => handleOpenComments(post)}>
-											<FaShareNodes />
-										</button> */}
 									</footer>
 								) : null}
 
