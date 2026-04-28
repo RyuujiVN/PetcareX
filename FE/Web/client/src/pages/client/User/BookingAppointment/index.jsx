@@ -48,7 +48,7 @@ const TIME_SLOT_GROUPS = [
 
 const WORKING_SLOTS = TIME_SLOT_GROUPS.flatMap((group) => group.times);
 const BOOKING_MIN_LEAD_HOURS = 3;
-const TRUNCATE_LIMIT = 80;
+const TRUNCATE_LIMIT = 60;
 
 const formatDate = (date) => {
   const y = date.getFullYear();
