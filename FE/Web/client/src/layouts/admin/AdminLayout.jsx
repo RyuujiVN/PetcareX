@@ -23,6 +23,7 @@ import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
+import { MessageCircle } from "lucide-react";
 import "../../styles/admin/colorsToken.css";
 import styles from "./AdminLayout.module.css";
 
@@ -301,6 +302,7 @@ export default function AdminLayout() {
       <div className={styles.main}>
         <header className={styles.header}>
           <h1 className={styles.headerTitle}>
+            <MessageCircle style={{color: '#4672b4'}} />
             {isChatbotRoute ? t("pages.chatbot.assistantTitle") : t("layout.header.title")}
           </h1>
           <div className={styles.headerActions}>

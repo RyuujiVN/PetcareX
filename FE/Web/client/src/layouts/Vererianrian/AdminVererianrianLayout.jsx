@@ -22,6 +22,7 @@ import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import useNotificationSocket from '../../hooks/useNotificationSocket'
 import { getAdminInstance } from '../../services/apiClient'
+import { MessageCircle } from "lucide-react";
 import { resolveNotificationHref } from '../../services/notificationService'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
@@ -428,7 +429,7 @@ export default function AdminVererianrianLayout() {
           >
             <div className={styles.headerSearchWrap}>
               {isChatbotRoute ? (
-                <h1 className={styles.headerTitle}>{t('pages.chatbot.assistantTitle')}</h1>
+                <h1 className={styles.headerTitle} >{t('pages.chatbot.assistantTitle')}</h1>
               ) : shouldUseMedicalRecordHeader ? (
                 <h1 className={styles.headerTitle}>{t('layout.medicalHeaderTitle')}</h1>
               ) : !shouldHideSearch ? (

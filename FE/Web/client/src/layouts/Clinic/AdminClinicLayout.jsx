@@ -40,6 +40,7 @@ import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import styles from "./AdminClinicLayout.module.css";
+import { MessageCircle } from "lucide-react";
 
 const { Text } = Typography;
 
@@ -625,7 +626,7 @@ export default function AdminClinicLayout() {
           <div className={`${styles.inlineTopBar} ${isChatbotRoute ? styles.inlineTopBarChatbot : ""}`}>
             {isChatbotRoute ? (
               <div className={styles.chatbotHeaderTitle}>
-                <RobotOutlined />
+                <MessageCircle style={{color: '#4672b4'}} />
                 <span>{t('pages.chatbot.assistantTitle')}</span>
               </div>
             ) : null}
