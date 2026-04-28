@@ -19,6 +19,8 @@ class Clinic {
   final double avgRating;
   final int totalReviews;
   final DateTime createdAt;
+  // Khoảng cách (km) từ vị trí user, BE trả về qua endpoint /clinic/user. Null nếu không sort theo distance.
+  final double? distance;
 
   Clinic({
     required this.id,
@@ -32,6 +34,7 @@ class Clinic {
     required this.avgRating,
     required this.totalReviews,
     required this.createdAt,
+    this.distance,
   });
 
   factory Clinic.fromJson(Map<String, dynamic> json) {
@@ -49,6 +52,7 @@ class Clinic {
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
+      distance: json['distance'] == null ? null : _parseDouble(json['distance']),
     );
   }
 

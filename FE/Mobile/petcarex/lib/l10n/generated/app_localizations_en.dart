@@ -534,6 +534,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchHint => 'Search posts, pets...';
 
   @override
+  String get forumSearchPlaceholder => 'Search posts by content...';
+
+  @override
+  String forumSearchActive(String keyword) {
+    return 'Searching: $keyword';
+  }
+
+  @override
+  String get forumSearchClear => 'Clear search';
+
+  @override
+  String get forumSearchEmptyTitle => 'No posts found';
+
+  @override
+  String get forumSearchEmptyHint => 'Try a different keyword.';
+
+  @override
+  String get locationFallbackNotice => 'Using default location (Da Nang)';
+
+  @override
+  String get locationServiceDisabledTitle => 'Bật dịch vụ vị trí';
+
+  @override
+  String get locationServiceDisabledMessage =>
+      'Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.';
+
+  @override
+  String get locationPermissionDeniedTitle => 'Cấp quyền vị trí';
+
+  @override
+  String get locationPermissionDeniedMessage =>
+      'Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.';
+
+  @override
+  String get locationDialogCancel => 'Để sau';
+
+  @override
+  String get locationDialogOpenSettings => 'Mở Cài đặt';
+
+  @override
   String get shareSomething =>
       'What do you want to share about your pet today?';
 

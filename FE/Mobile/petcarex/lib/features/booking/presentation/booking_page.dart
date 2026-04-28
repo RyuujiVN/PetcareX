@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/enums/service_enum.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/app_notifier.dart';
 import '../../../../features/pet/data/models/pet_models.dart';
@@ -48,12 +49,103 @@ class _BookingPageState extends State<BookingPage> {
       if (mounted) {
         context.read<PetProvider>().fetchMyPets();
         final bp = context.read<BookingProvider>();
-        bp.fetchClinics();
+        bp.fetchClinics().then((_) => _handleLocationOutcome(bp));
         if (bp.selectedDate == null) {
           bp.selectDate(_availableDates[0]);
         }
       }
     });
+  }
+
+  Future<void> _handleLocationOutcome(BookingProvider bp) async {
+    if (!mounted || !bp.isLocationDefault) return;
+
+    final l10n = AppLocalizations.of(context)!;
+
+    switch (bp.locationReason) {
+      case LocationFailureReason.serviceDisabled:
+        // Cứng hơn SnackBar: yêu cầu user mở Location Services lên trên thiết bị.
+        // Sau khi user quay lại, retry để re-fetch với vị trí thật.
+        await _showLocationServiceDialog(bp, l10n);
+        break;
+      case LocationFailureReason.permissionPermanentlyDenied:
+        await _showOpenAppSettingsDialog(bp, l10n);
+        break;
+      case LocationFailureReason.permissionDenied:
+      case LocationFailureReason.unknown:
+      case LocationFailureReason.none:
+        AppNotifier.showInfo(context, l10n.locationFallbackNotice);
+        break;
+    }
+  }
+
+  Future<void> _showLocationServiceDialog(
+    BookingProvider bp,
+    AppLocalizations l10n,
+  ) async {
+    final opened = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.locationServiceDisabledTitle),
+        content: Text(l10n.locationServiceDisabledMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.locationDialogCancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.locationDialogOpenSettings),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (opened == true) {
+      await bp.locationService.openLocationSettings();
+      // User quay lại app — retry. Nếu vẫn fail thì handler sẽ gọi lại dialog.
+      if (!mounted) return;
+      await bp.retryLocation();
+      _handleLocationOutcome(bp);
+    } else {
+      AppNotifier.showInfo(context, l10n.locationFallbackNotice);
+    }
+  }
+
+  Future<void> _showOpenAppSettingsDialog(
+    BookingProvider bp,
+    AppLocalizations l10n,
+  ) async {
+    final opened = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(l10n.locationPermissionDeniedTitle),
+        content: Text(l10n.locationPermissionDeniedMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l10n.locationDialogCancel),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(l10n.locationDialogOpenSettings),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    if (opened == true) {
+      await bp.locationService.openAppSettings();
+      if (!mounted) return;
+      await bp.retryLocation();
+      _handleLocationOutcome(bp);
+    } else {
+      AppNotifier.showInfo(context, l10n.locationFallbackNotice);
+    }
   }
 
   @override

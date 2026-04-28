@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/distance_formatter.dart';
 import '../../../../../core/widgets/star_rating_widget.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/models/booking_models.dart';
@@ -122,6 +123,27 @@ class _ClinicCard extends StatelessWidget {
                       color: AppColors.textGrey,
                     ),
                   ),
+                  if (formatDistance(clinic.distance).isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_outlined,
+                          size: 14,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          formatDistance(clinic.distance),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 6),
                   if (hasReviews)
                     Row(

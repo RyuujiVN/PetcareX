@@ -8,15 +8,22 @@ import 'models/booking_models.dart';
 class BookingRepository {
   final ApiClient _apiClient = ApiClient();
 
-  // Get list of clinics with pagination
-  Future<Map<String, dynamic>> getClinics({
+  // Get nearby clinics sorted by distance from user's location.
+  // BE endpoint /clinic/user trả về raw array (không có items/meta) — mỗi clinic kèm field `distance` (km).
+  Future<List<Clinic>> getNearbyClinics({
     int page = 1,
     int limit = 20,
+    required double lat,
+    required double lon,
+    String sortBy = 'distance',
     String? search,
   }) async {
-    final endpoint = ApiHelper.clinicsEndpoint(
+    final endpoint = ApiHelper.nearbyClinicsEndpoint(
       page: page,
       limit: limit,
+      lat: lat,
+      lon: lon,
+      sortBy: sortBy,
       search: search,
     );
 
@@ -24,15 +31,12 @@ class BookingRepository {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final meta = data['meta'] ?? const {};
-      return {
-        'items': (data['items'] as List)
-            .map((i) => Clinic.fromJson(i))
-            .toList(),
-        'totalItems': meta['totalItems'] ?? 0,
-        'totalPages': meta['totalPages'] ?? 1,
-        'currentPage': meta['currentPage'] ?? page,
-      };
+      final List rawItems = data is List
+          ? data
+          : (data is Map && data['items'] is List)
+              ? data['items'] as List
+              : const [];
+      return rawItems.map((i) => Clinic.fromJson(i)).toList();
     } else {
       throw Exception('Failed to load clinics');
     }

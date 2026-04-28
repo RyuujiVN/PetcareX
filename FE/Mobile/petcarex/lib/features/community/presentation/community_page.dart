@@ -18,6 +18,7 @@ import '../../report/data/models/report_models.dart';
 import '../../report/presentation/widgets/report_reason_sheet.dart';
 import 'create_post_page.dart';
 import 'provider/community_provider.dart';
+import 'widgets/forum_search_bar.dart';
 import 'widgets/image_viewer.dart';
 
 class CommunityPage extends StatefulWidget {
@@ -1810,6 +1811,7 @@ class _CommunityPageState extends State<CommunityPage> {
         child: Column(
           children: [
             _buildSearchBar(l10n),
+            if (provider.isSearching) _buildSearchStatusChip(provider, l10n),
             _buildCategoryTabs(provider, l10n, languageCode),
             Expanded(
               child: RefreshIndicator(
@@ -1821,22 +1823,27 @@ class _CommunityPageState extends State<CommunityPage> {
                           color: AppColors.primary,
                         ),
                       )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.only(bottom: 20),
-                        itemCount: provider.posts.length + 1,
-                        itemBuilder: (context, index) {
-                          if (index == 0) return _buildPostInput(l10n);
-                          return _buildPostCard(
-                            provider.posts[index - 1],
-                            provider,
-                            l10n,
-                            languageCode,
-                            currentUser?.id,
-                            provider.posts[index - 1].id == _highlightedPostId,
-                          );
-                        },
-                      ),
+                    : (provider.isSearching && provider.posts.isEmpty && !provider.isLoading)
+                        ? ListView(
+                            controller: _scrollController,
+                            children: [_buildSearchEmptyState(l10n)],
+                          )
+                        : ListView.builder(
+                            controller: _scrollController,
+                            padding: const EdgeInsets.only(bottom: 20),
+                            itemCount: provider.posts.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index == 0) return _buildPostInput(l10n);
+                              return _buildPostCard(
+                                provider.posts[index - 1],
+                                provider,
+                                l10n,
+                                languageCode,
+                                currentUser?.id,
+                                provider.posts[index - 1].id == _highlightedPostId,
+                              );
+                            },
+                          ),
               ),
             ),
           ],
@@ -1857,6 +1864,7 @@ class _CommunityPageState extends State<CommunityPage> {
   }
 
   Widget _buildSearchBar(AppLocalizations l10n) {
+    final provider = context.watch<CommunityProvider>();
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: const BoxDecoration(
@@ -1866,32 +1874,90 @@ class _CommunityPageState extends State<CommunityPage> {
       child: Row(
         children: [
           Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.formFillDisabled,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.search, color: AppColors.iconGrey, size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    l10n.searchHint,
-                    style: const TextStyle(
-                      color: AppColors.textGrey,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
+            child: ForumSearchBar(
+              value: provider.searchKeyword,
+              hintText: l10n.forumSearchPlaceholder,
+              onSearch: (keyword) =>
+                  context.read<CommunityProvider>().setSearchKeyword(keyword),
             ),
           ),
           const SizedBox(width: 12),
           const NotificationBellButton(
             iconColor: AppColors.textDark,
             iconSize: 28,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchStatusChip(CommunityProvider provider, AppLocalizations l10n) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: AppColors.appBarBackground,
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                l10n.forumSearchActive(provider.searchKeyword),
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => context.read<CommunityProvider>().setSearchKeyword(''),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Text(
+                l10n.forumSearchClear,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchEmptyState(AppLocalizations l10n) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 60),
+      child: Column(
+        children: [
+          const Icon(Icons.search_off, size: 56, color: AppColors.iconGrey),
+          const SizedBox(height: 12),
+          Text(
+            l10n.forumSearchEmptyTitle,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textDark,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            l10n.forumSearchEmptyHint,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.textGrey,
+            ),
           ),
         ],
       ),

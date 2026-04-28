@@ -1,7 +1,7 @@
 // Vị trí mặc định (Đà Nẵng) — dùng khi không lấy được vị trí thật từ browser Geolocation.
 export const DEFAULT_LOCATION = {
-  lat: 16.061063335944954,
-  lon: 108.21931990,
+  lat: 16.061010,
+  lon: 108.218862,
   label: 'Đà Nẵng',
 }
 

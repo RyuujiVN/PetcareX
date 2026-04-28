@@ -174,6 +174,23 @@
   "time": "Thời gian",
   "note": "Ghi chú",
   "searchHint": "Tìm kiếm bài viết, thú cưng...",
+  "forumSearchPlaceholder": "Tìm bài viết theo nội dung...",
+  "forumSearchActive": "Đang tìm: {keyword}",
+  "@forumSearchActive": {
+    "placeholders": {
+      "keyword": { "type": "String" }
+    }
+  },
+  "forumSearchClear": "Xóa tìm kiếm",
+  "forumSearchEmptyTitle": "Không tìm thấy bài viết nào",
+  "forumSearchEmptyHint": "Thử tìm với từ khóa khác.",
+  "locationFallbackNotice": "Đang dùng vị trí mặc định (Đà Nẵng)",
+  "locationServiceDisabledTitle": "Bật dịch vụ vị trí",
+  "locationServiceDisabledMessage": "Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.",
+  "locationPermissionDeniedTitle": "Cấp quyền vị trí",
+  "locationPermissionDeniedMessage": "Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.",
+  "locationDialogCancel": "Để sau",
+  "locationDialogOpenSettings": "Mở Cài đặt",
   "shareSomething": "Bạn muốn chia sẻ điều gì về thú cưng hôm nay?",
   "chooseTopic": "Chọn chủ đề",
   "pleaseChooseTopic": "Vui lòng chọn một chủ đề",

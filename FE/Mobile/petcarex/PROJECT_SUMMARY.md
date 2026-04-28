@@ -772,3 +772,64 @@ Tích hợp hệ thống thông báo realtime vào Mobile App, đồng bộ UX v
 - **Pull-to-refresh:** Kéo xuống để tải lại danh sách.
 - **Infinite scroll:** Tự động load thêm khi cuộn đến cuối.
 - **Cleanup on logout:** Ngắt socket, reset state khi đăng xuất.
+
+## 📍 Geolocation Clinic + Search Forum (2026-04-28) — Port từ Web
+
+### Tính năng 1 — Nearby Clinic theo vị trí user
+**Phạm vi (FE only, không đụng BE):**
+- `pubspec.yaml` — thêm `geolocator: ^13.0.1` (đã có sẵn `permission_handler`).
+- `android/app/src/main/AndroidManifest.xml` — thêm `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`.
+- `ios/Runner/Info.plist` — thêm `NSLocationWhenInUseUsageDescription`.
+- `lib/core/constants/location_constants.dart` (mới) — `LocationConstants.defaultLat/defaultLon/defaultLabel` (Đà Nẵng) + `geolocationTimeout: 10s`. Đồng bộ với Web `src/constants/location.js`.
+- `lib/core/services/location_service.dart` (mới) — `LocationService.getUserLocation()`: kiểm tra service enabled → request permission → `Geolocator.getCurrentPosition(LocationAccuracy.high, timeout 10s)` → fallback `LocationConstants.default*` + `isDefault=true` khi denied/disabled/timeout. Cache module-scope (`_cached`, `_inflight`) để mọi nơi gọi không hỏi lại permission. Có method `refresh()` để force fetch lại.
+- `lib/core/utils/distance_formatter.dart` (mới) — `formatDistance(num? km)`: `<1km → "Xm"`, `>=1km → "X.Xkm"`, null/<0 → ''. Đơn vị km vì BE Elasticsearch `_geo_distance` trả về km.
+- `lib/core/network/api_helper.dart` — thêm `nearbyClinicsEndpoint(page, limit, lat, lon, sortBy, search)` hit `/clinic/user`. Endpoint cũ `clinicsEndpoint` (`/clinic`, ADMIN-only) giữ nguyên cho admin sau này.
+- `lib/features/booking/data/models/booking_models.dart` — `Clinic` thêm field `distance: double?` parse từ `json['distance']` (BE trả km qua `/clinic/user`).
+- `lib/features/booking/data/booking_repository.dart` — đổi `getClinics()` → `getNearbyClinics({page, limit, lat, lon, sortBy='distance', search})` hit `/clinic/user`. BE trả raw array (không có items/meta) → suy luận hết trang qua `items.length < pageSize`.
+- `lib/features/booking/presentation/provider/booking_provider.dart`:
+  - Inject `LocationService`. Field `_isLocationDefault` + getter `isLocationDefault` cho UI hiện SnackBar fallback.
+  - `fetchClinics()` & `loadMoreClinics()`: gọi `_locationService.getUserLocation()` → truyền lat/lon vào `getNearbyClinics`. Bỏ `_sortClinicsByRating` (BE đã sort theo distance, FE sort lại sẽ ghi đè thứ tự đúng). Pagination dedup theo id.
+- `lib/features/booking/presentation/booking_page.dart` — sau `fetchClinics()` xong, nếu `bp.isLocationDefault` → `AppNotifier.showInfo(context, l10n.locationFallbackNotice)`. Không banner — dùng SnackBar mobile-native pattern.
+- `lib/features/booking/presentation/widget/step_clinic_selector.dart` — clinic card hiển thị khoảng cách dưới address: `Icon(Icons.location_on_outlined) + formatDistance(clinic.distance)` màu `AppColors.primary`. Chỉ hiện khi `formatDistance` không rỗng.
+
+**BE đã confirm (đọc, không sửa):**
+- `GET /api/clinic/user` — query bắt buộc `page, limit, lat, lon`; optional `sortBy: 'distance'|'rating'` (default `'distance'`), `search`. Role: ADMIN/ADMIN_CLINIC/VETERINARIAN/CUSTOMER. Trả raw array, mỗi item kèm `distance` (km, ES `_geo_distance` unit km).
+
+### Tính năng 2 — Search Forum
+**Phạm vi (FE only, không đụng BE):**
+- `lib/core/network/api_helper.dart` — `postsEndpoint` thêm param optional `keyword`.
+- `lib/features/community/data/community_repository.dart` — `getPosts(...)` thêm param optional `keyword`.
+- `lib/features/community/presentation/provider/community_provider.dart`:
+  - State `_searchKeyword` + getters `searchKeyword`, `isSearching`. Const `_searchLimit = 50` (BE Elasticsearch RRF `rank_window_size` hardcode 50, > 50 → 500).
+  - Helper `_limitForSearch()` trả `_searchLimit` khi đang search, null (→ default 20) khi không.
+  - `setSearchKeyword(keyword)`: trim, skip nếu không đổi, reset post list, fetch lại với `limit=50` (search) / `limit=20` (no search).
+  - `fetchInitialData()` & `selectTopic()`: thread keyword + limit động xuống `getPosts`.
+  - `loadMore()`: bỏ qua khi đang search (BE RRF không hỗ trợ pagination ổn định, đồng bộ Web FE).
+- `lib/features/community/presentation/widgets/forum_search_bar.dart` (mới) — `ForumSearchBar` widget tái sử dụng:
+  - `TextField` debounce 500ms, icon `Icons.search` bên trái, nút clear `Icons.close` bên phải (chỉ hiện khi có text).
+  - Đồng bộ external `value` ↔ internal controller qua `_lastEmitted` để tránh loop khi parent reset.
+  - Props: `value, onSearch(keyword), hintText, debounce`.
+- `lib/features/community/presentation/community_page.dart`:
+  - `_buildSearchBar()` đổi từ placeholder UI tĩnh → bind vào `ForumSearchBar` + `provider.setSearchKeyword`.
+  - Thêm `_buildSearchStatusChip()` chip "Đang tìm: [keyword]" + nút "Xóa tìm kiếm" — chỉ hiện khi `provider.isSearching`.
+  - Thêm `_buildSearchEmptyState()` — icon `Icons.search_off` + title + hint khi search không có kết quả.
+- `lib/l10n/app_vi.arb` + `lib/l10n/app_en.arb` — thêm i18n: `forumSearchPlaceholder`, `forumSearchActive` (placeholder `keyword`), `forumSearchClear`, `forumSearchEmptyTitle`, `forumSearchEmptyHint`, `locationFallbackNotice`.
+
+**Phương án UI/UX đã chọn:**
+- **Search bar**: Phương án A (luôn visible ở đầu trang community) — `_buildSearchBar` đã có sẵn vị trí header, chỉ cần biến nó thành chức năng thật. Phương án B (icon → expand AppBar) bị loại vì community page không có AppBar và sẽ phá layout hiện có (vi phạm "match existing style").
+- **Geolocation fallback**: SnackBar via `AppNotifier.showInfo` (mobile-native), không banner.
+- **Distance display**: chỉ hiện khi BE trả `distance` — adaptive, không gây rỗng UI khi endpoint khác không có field này.
+
+**BE đã confirm (đọc, không sửa):**
+- `GET /api/post` — optional `keyword` filter qua Elasticsearch RRF (BM25 trên `content` + semantic search).
+- BE rank_window_size hardcode 50 → FE clamp `limit=50` khi search.
+
+**Tự kiểm tra:**
+- `flutter analyze` các file đã sửa → 0 issue mới (1 info warning pre-existing tại `community_provider.dart:412` về curly braces, không liên quan).
+- `flutter pub get` → resolved geolocator 13.0.1 thành công.
+- `flutter gen-l10n` → 5 keys mới được generate cho cả vi & en.
+
+**Ghi chú kiến trúc:**
+- `LocationService` cache module-scope tương đương Web `useUserLocation` — cùng pattern, port 1-1.
+- `formatDistance` đơn vị km — đồng bộ Web (BE trả km).
+- Khi search forum → BE đi nhánh ES RRF, limit phải <= 50 và pagination cursor `lastPostTime` không deterministic → FE bỏ infinite scroll trong chế độ search.
