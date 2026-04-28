@@ -101,6 +101,54 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
     - Chỉ `Navigator.pop(true)` khi toàn bộ điều kiện hợp lệ.
 - **Kết quả UX:** Người dùng không còn bị đá ra khỏi dialog khi bấm cập nhật quá sớm; có thể chờ upload xong rồi tiếp tục chỉnh sửa trong cùng ngữ cảnh.
 
+### 9) Community Single-Image Render Fix — "1 ảnh mà nhìn như 2-3 ảnh" (2026-04-22)
+- **Triệu chứng:** Ở comment/post chỉ có **1 ảnh**, UI xuất hiện các dải trắng trên-dưới/hai bên nên mắt người đọc tách thành 2-3 vùng hình riêng biệt, nhất là với ảnh có mảng màu đồng nhất (trần trắng, tường, bầu trời).
+- **Root cause (phân tích + phản biện kỹ):**
+    - Nhánh `count == 1` trong `_buildImageGrid` ở `community_page.dart` dùng `Container(height: fixed) + BoxFit.contain + color: AppColors.background`.
+    - Khi tỉ lệ ảnh gốc **không khớp** với khung cố định (120px cho comment compact, 220px cho post), `contain` sinh **letterbox** bằng nền sáng `AppColors.background`.
+    - Letterbox này + các mảng màu đồng nhất trong ảnh → tạo cảm giác nhiều ô ảnh, KHÔNG phải do HTML có nhiều `<img>` trùng URL.
+    - Trước đó đã thêm dedup URL ở `_extractImageUrlsFromHtml` như defensive fix (giữ lại), nhưng không giải quyết được trường hợp layout này.
+- **Các giải pháp đã cân nhắc:**
+    - A. Đổi sang `BoxFit.cover` + `AspectRatio` cố định 4:3 → đơn giản nhưng portrait bị crop quá đà cho post.
+    - B. Đọc tỉ lệ thực của ảnh rồi **clamp theo dải**, sau đó `BoxFit.cover` (Facebook-style) → đồng nhất, không letterbox, portrait không bị ép landscape.
+    - C. Chỉ đổi màu letterbox → xử lý triệu chứng, vẫn thấy 2 vùng → loại.
+- **Giải pháp đã áp dụng (B):** Thêm widget `_AdaptiveSingleImage` (Stateful) trong `community_page.dart`:
+    - Dùng `CachedNetworkImageProvider.resolve(...)` + `ImageStreamListener` để đọc `width/height` thực của ảnh sau khi tải.
+    - Clamp tỉ lệ `w/h` theo ngữ cảnh:
+        - **Comment (compact = true):** dải `[4/3, 16/9]` — luôn landscape-leaning cho gọn thread, portrait bị center-crop có chủ đích.
+        - **Post (compact = false):** dải `[4/5, 16/9]` — cho phép portrait vừa phải như feed Facebook.
+    - Bọc ảnh trong `AspectRatio` + `BoxFit.cover` → không còn dải letterbox trắng.
+    - Placeholder/error dùng nền `AppColors.background` đồng bộ với phần còn lại của card.
+    - Dọn dẹp `ImageStreamListener` trong `dispose()` để tránh leak.
+- **Nguyên tắc tuân thủ khi triển khai:**
+    - **Không đụng BE** theo đúng rule dự án; toàn bộ fix nằm ở FE mobile.
+    - Giữ logic grid cho `count >= 2` nguyên vẹn, chỉ thay nhánh `count == 1`.
+    - Giữ dedup URL ở `_extractImageUrlsFromHtml` làm defensive layer.
+- **Kết quả:** 1 ảnh trong comment/post hiển thị như một khung hình thống nhất, không còn "viền trắng tách đôi" khiến người dùng tưởng có 2-3 ảnh. Portrait không bị stretch; landscape không bị letterbox.
+
+### 10) Community Comment Multi-Image Facebook-style Grid (2026-04-22)
+- **Vấn đề phát hiện sau fix (9):**
+    - Ở comment có **2+ ảnh**, các nhánh `count == 2/3/4/5+` trong `_buildImageGrid` ép tất cả ảnh vào khung cao ~120px (vì `compact=true`, `totalHeight=160`, `h = totalHeight * 0.75`).
+    - Với 5+ ảnh, chỉ hiển thị 5 cái đầu kèm overlay "+N", các ảnh còn lại bị ẩn khỏi bubble comment → user cảm giác "không hiển thị đầy đủ".
+    - Mỗi ảnh trong grid bị co nhỏ tới mức không đọc/nhìn được nội dung.
+- **Lần lặp 1 (đã loại):** Horizontal carousel ngang. Mọi ảnh đều xem được nhưng break pattern social feed quen thuộc, user mong đợi kiểu FB "thumbnail + số ảnh còn lại".
+- **Lần lặp 2 (đã áp dụng theo request của user):** **Facebook comment-style thumbnail grid + "+N" overlay**.
+    - Container: `Align(centerLeft) + FractionallySizedBox(widthFactor: 0.75) + AspectRatio(1:1)` → block vuông, căn trái, rộng 75% bubble comment.
+    - Layout theo số ảnh hiển thị (tối đa 4):
+        - 2 ảnh: 2 cột đều
+        - 3 ảnh: 1 tile trái + 2 tile nhỏ phải xếp dọc (FB style)
+        - 4 ảnh: grid 2×2
+        - ≥5 ảnh: grid 2×2, tile thứ 4 có overlay **+N** (N = count - 4)
+    - Tái sử dụng helper `_fbImage(..., overlayCount: ...)` đã có sẵn cho post feed → đồng bộ render (cover, bo góc, overlay) giữa post và comment, giảm trùng code.
+    - Tap bất kỳ tile nào mở `ImageViewer` với đúng `initialIndex` — tile "+N" mở viewer từ ảnh thứ 4, user vuốt để xem hết các ảnh bị ẩn.
+- **Giữ nguyên cho post feed (non-compact):** các nhánh grid `count == 2/3/4/5+` gốc không đổi để nhịp đọc feed nhất quán.
+- **Nguyên tắc tuân thủ:** chỉ sửa FE mobile, không đụng BE; giữ nguyên contract HTML content.
+- **Kết quả:**
+    - Comment nhiều ảnh giờ gọn gàng theo đúng pattern FB/social feed.
+    - Thumbnail đủ lớn để nhìn (tile ~(0.75 × bubble_width) / 2 ≈ 100–130px mỗi tile).
+    - Không ảnh nào bị "mất" — user tap "+N" là vào full gallery.
+    - Reuse `_fbImage` giúp post và comment có visual language đồng nhất.
+
 ## 🐾 Pet Avatar Fullscreen Fix (2026-03-27)
 
 ### Bối cảnh lỗi
@@ -329,6 +377,52 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Xóa method `updateAppointmentStatus()` (dead code, gọi sai endpoint RBAC, không ai gọi).
     - **Lỗi BE phát hiện kèm (cần BE team fix):** Migration `1775632467242-update-notification-table` (DROP cột `sender_type` khỏi bảng notification) chưa chạy → INSERT notification khi tạo appointment bị `NOT NULL constraint violation` trên `sender_type` → HTTP 500. FE không liên quan, BE cần chạy migration.
     - **RBAC Matrix cho Mobile CUSTOMER:** Tất cả 48 API call từ mobile đều tương thích RBAC ngoại trừ lỗi cancel đã fix ở trên. Các endpoint chính: Pet (CUSTOMER), Appointment POST/GET (CUSTOMER), Medical GET (CUSTOMER), Clinic/Vet GET (ALL roles), Forum/Chat/Notification (JwtAuth only), Cloudinary (public).
+- **Booking Clinic List Pagination & Rating Sort (2026-04-20):**
+    - **Bối cảnh:** Bước `Phòng khám` trước đây chỉ hiển thị tối đa 10 phòng khám (trang 1) do `BookingRepository.getClinics()` dùng `limit=10` mặc định và `BookingProvider.fetchClinics()` không có cơ chế paginate/load more. BUG-009 đã mô tả vấn đề "mất các phòng khám tiếp theo".
+    - **Kịch bản rating (Kịch bản A):** BE đã lưu sẵn `avgRating` (`decimal(2,1)`) và `totalReviews` (`int`) trong entity `Clinic` (được cập nhật tại `ClinicReviewService.createClinicReview(...)` sau mỗi review mới). FE **không cần fetch review riêng cho từng clinic** — chỉ đọc trực tiếp từ response `GET /api/clinic` và sort ở FE sau khi fetch.
+    - **API contract:** `GET /api/clinic` trả về `{items, meta: {totalItems, totalPages, currentPage, ...}, links}` theo chuẩn `nestjs-typeorm-paginate`. BE hiện **không hỗ trợ sort param** → FE tự sort phía client.
+    - **Fix pagination (Infinite Scroll):**
+        - `BookingRepository.getClinics()` đổi default `limit=20`, trả thêm `totalPages`/`currentPage` để FE biết còn bao nhiêu trang.
+        - `BookingProvider` thêm state pagination: `_clinicsPageSize=20`, `_clinicsCurrentPage`, `_clinicsTotalPages`, `_hasMoreClinics`, `_isLoadingMoreClinics`, cùng getter `isLoadingMoreClinics` / `hasMoreClinics`.
+        - `fetchClinics()` reset list + page=1; bổ sung `loadMoreClinics()` để append trang tiếp theo, tự set `_hasMoreClinics=false` khi chạm trang cuối.
+        - `booking_page.dart` tạo `_clinicScrollController` gắn vào `CustomScrollView` khi `_currentStep==0`; listener gọi `loadMoreClinics()` khi scroll >= 80% `maxScrollExtent` và guard theo `_isLoadingMore` / `_hasMore` để không gọi API thừa.
+    - **Rating & Sort UI:**
+        - Thêm `Clinic.avgRating` (double) + `Clinic.totalReviews` (int) + `Clinic.avatarUrl` vào `booking_models.dart` (parse an toàn cả khi BE trả string/number cho decimal).
+        - Sort theo rule: clinic có đánh giá (`totalReviews > 0`) xếp trước theo `avgRating` giảm dần; clinic chưa có đánh giá xếp cuối. Re-sort sau mỗi lần `loadMoreClinics()` để giữ thứ tự nhất quán trong danh sách tích lũy.
+        - Tạo widget dùng chung `lib/core/widgets/star_rating_widget.dart` dùng `Icons.star_rounded` / `star_half_rounded` / `star_outline_rounded` (không cần package thứ 3), màu `AppColors.warning`, hỗ trợ filled/half/empty theo rule `>=N` / `>=N-0.5`.
+        - `step_clinic_selector.dart` được refactor thành **sliver** (`SliverMainAxisGroup` + `SliverList.builder`) để dùng lazy render trong `CustomScrollView` hiện hữu; kèm `SliverToBoxAdapter` loading indicator ở cuối khi đang load more. Card hiển thị: icon, tên, địa chỉ, sao + điểm số (1 số thập phân) + số lượt đánh giá (i18n plural), hoặc `clinicNoReviews` khi `totalReviews == 0`.
+    - **Trade-off đã phản biện:**
+        - Sort phía FE nghĩa là thứ tự chỉ đúng trong phạm vi đã load. Khi load thêm trang mới, clinic có rating cao hơn có thể "chen" vào giữa list đã hiển thị — chấp nhận được vì BE hiện chưa hỗ trợ sort và limit page 20 đủ lớn để case này hiếm xảy ra trong thực tế.
+        - Không chọn Kịch bản B (fetch `/api/clinic-review` cho từng clinic) vì BE đã cung cấp rating aggregate sẵn — tránh N+1 request và latency không cần thiết.
+    - **i18n mới:** `clinicNoReviews` + `clinicReviewCount` (ICU plural) cho VI/EN.
+    - **Files sửa:**
+        - `lib/features/booking/data/models/booking_models.dart`
+        - `lib/features/booking/data/booking_repository.dart`
+        - `lib/features/booking/presentation/provider/booking_provider.dart`
+        - `lib/features/booking/presentation/booking_page.dart`
+        - `lib/features/booking/presentation/widget/step_clinic_selector.dart`
+        - `lib/core/widgets/star_rating_widget.dart` (mới)
+        - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb`
+- **Booking Success Summary Contract Sync (2026-04-20):**
+    - **Bối cảnh thực tế sau khi rà BE:** `POST /api/appointment` (AppointmentService.createAppointment) trả về `savedAppointment` dạng entity mỏng (id/date/time/service/status + foreign keys), không join sẵn `pet/clinic/veterinarian.user` như payload màn success từng giả định.
+    - **Triệu chứng ở mobile:** Ở màn `Đặt lịch thành công`, các field `Thú cưng/Phòng khám/Bác sĩ` có thể rỗng dù đặt lịch thành công (thường chỉ còn `Dịch vụ/Giờ`).
+    - **Fix FE tối ưu:** `booking_page.dart` đổi sang ưu tiên dữ liệu local đã chọn trong flow booking (`selectedClinic`, `selectedDoctor`, `selectedPetName`, `selectedTime`, `selectedDate`) và chỉ fallback sang response BE nếu có.
+    - **Chi tiết triển khai:**
+        - `BookingProvider` bổ sung `selectedPetName` và cập nhật `selectPet(petId, {petName})` để lưu snapshot tên thú cưng ngay khi user chọn.
+        - `StepSummary` và `StepSuccess` dùng chiến lược fallback nhiều tầng (local-first), đồng thời parse an toàn nhiều shape response (`veterinarian.user.fullName` hoặc `veterinarian.fullName`) để chịu được biến động contract BE.
+    - **Nguyên tắc maintain mới:** Không phụ thuộc relation object trong response của `POST /api/appointment` để render UI tóm tắt/success; coi đó là response xác nhận tạo lịch, còn dữ liệu hiển thị ưu tiên từ state đã chọn ở client.
+- **Booking Success Screen Simplification (2026-04-22):**
+    - **Bối cảnh:** Màn `Đặt lịch thành công` trước đây hiển thị kèm khối **Mã QR check-in** (icon QR placeholder + hướng dẫn xuất trình tại quầy). Do mobile hiện chưa có pipeline sinh/verify QR thật và luồng check-in tại clinic chưa chốt, khối này chỉ là UI trống gây hiểu nhầm cho người dùng.
+    - **Thay đổi UI:** Gỡ toàn bộ block QR (`bookingCheckinQrTitle`, icon `Icons.qr_code_2`, `bookingQrInstruction`) trong `step_success.dart`; màn thành công chỉ còn icon check + tiêu đề + bảng tóm tắt lịch hẹn.
+    - **Thay đổi điều hướng – thứ tự tối ưu (quan trọng):** `BookingPage` được push bằng `MaterialPageRoute` đè lên `IndexedStack` của `MainNavigationWrapper`. Khi đóng màn success, thứ tự bắt buộc là:
+        1. `MainNavigationWrapper.activeState?.setSelectedIndex(1)` – đổi `IndexedStack.index` sang **Lịch hẹn** TRƯỚC khi pop. Vì `BookingPage` vẫn đang đè lên trên, user không nhìn thấy tab đang chuyển bên dưới.
+        2. `Navigator.pop(context)` – animation pop của `MaterialPageRoute` reveal thẳng vào `AppointmentPage` ngay từ frame đầu tiên, không còn hiện Home flash.
+    - **Lý do phải đảo thứ tự so với bản trước:** Nếu pop trước rồi mới `setSelectedIndex` (kể cả bọc trong `addPostFrameCallback`), toàn bộ animation pop (~300ms) vẫn diễn ra trên nền tab cũ (Home) do `IndexedStack` chưa đổi index → user thấy Home nhấp nháy trước khi chuyển sang Lịch hẹn. Đổi index trước thì frame nền đã sẵn là Appointment trước khi pop animation bắt đầu.
+    - **Back-gesture / nút back cứng:** `PopScope.canPop` KHÔNG được set `true` ở trạng thái success. Thay vào đó `canPop = _currentStep == 0 && Navigator.canPop(context)` và `onPopInvokedWithResult` nhận `didPop=false` ở success để gọi cùng hàm `_closeSuccessAndGoToAppointments(...)`. Nếu để `canPop=true`, hệ thống auto-pop ngay sẽ quay về bước 1 (pop trước khi đổi tab) và tái hiện flash Home.
+    - **Dùng `MainNavigationWrapper.activeState` (static) thay vì `of(context)`:** đảm bảo lấy được state wrapper bất kể context của `BookingPage` đang ở đâu trong tree và tránh edge case `findAncestorStateOfType` trả null trong quá trình unmount.
+    - **Files sửa:**
+        - `lib/features/booking/presentation/widget/step_success.dart`
+        - `lib/features/booking/presentation/booking_page.dart`
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
 - **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo contract chuẩn enum key (`enum.name` và `enum.value` đều là key backend như `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`); không duy trì alias legacy để tránh logic mơ hồ.
 - **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).
@@ -582,6 +676,40 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Người dùng có thể đính kèm ảnh khi đăng bài, bình luận và trả lời.
     - Không cần thay đổi contract API BE hiện tại.
     - `flutter analyze` sạch cho phạm vi `community` + `camera_service`.
+
+## ⭐ Clinic Review từ Hồ sơ Y tế (2026-04)
+
+### Bối cảnh
+- Sau khi khám bệnh xong (đã có medical record), khách hàng có thể đánh giá phòng khám trực tiếp từ thẻ lượt khám trong trang "Hồ sơ y tế".
+- API: `POST /api/clinic-review` (CUSTOMER only), payload `{ clinicId, medicalRecordId, rating, content? }`.
+
+### Triển khai FE
+- **Model update:** `PetMedicalRecordSummary` bổ sung `clinicId`, `clinicName` (parse từ `json['clinic']`), `isReview` (từ `json['isReview']`) + `copyWith()`.
+- **API layer:** `clinic_review_repository.dart` — `createClinicReview()` POST, `getClinicReviews()` GET.
+- **Widget mới:**
+    - `InteractiveStarRating` — widget sao tương tác (tap chọn 1–5 sao).
+    - `ReviewBottomSheet` — bottom sheet gồm interactive stars, rating label, optional comment field, submit/cancel buttons, loading state.
+- **Tích hợp vào `pet_medical_records_page.dart`:**
+    - Mỗi thẻ medical record hiển thị review section bên dưới ExpansionTile.
+    - `isReview == false` + `clinicId != null`: hiện sao trống + text "Đánh giá lượt khám này", tap mở ReviewBottomSheet.
+    - `isReview == true`: hiện badge "Đã đánh giá" (icon check + text xanh).
+    - Sau submit thành công: cập nhật local state `isReview = true` ngay để phản hồi tức thì.
+- **i18n keys mới:** `reviewClinicTitle`, `reviewThisVisit`, `reviewAlreadyReviewed`, `reviewCommentHint`, `reviewSubmit`, `reviewSuccess`, `reviewFailed`, `reviewRating1–5`.
+- **Files thay đổi/tạo mới:**
+    - `lib/core/constants/app_constants.dart` (sửa)
+    - `lib/core/network/api_helper.dart` (sửa)
+    - `lib/features/pet/data/models/pet_medical_record_models.dart` (sửa)
+    - `lib/features/pet/data/clinic_review_repository.dart` (mới)
+    - `lib/core/widgets/interactive_star_rating.dart` (mới)
+    - `lib/features/pet/presentation/widgets/review_bottom_sheet.dart` (mới)
+    - `lib/features/pet/presentation/pet_medical_records_page.dart` (sửa)
+    - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb` (sửa)
+
+### BE Issues phát hiện (cần dev BE xử lý)
+1. `CreateClinicReviewDTO.rating` không có `@Min/@Max` validation → FE tự enforce 1–5 client-side nhưng BE nên validate.
+2. BE set `isReview=true` sau khi tạo review nhưng **không kiểm tra** trước khi tạo → cho phép duplicate review.
+3. Không validate `medicalRecordId` thuộc về user đang gọi API → potential data integrity issue.
+4. **Không có module Report/Tố cáo** trong BE → Feature "Tố cáo bài viết/bình luận" **không thể triển khai ở FE** cho tới khi BE xây dựng module tương ứng.
 
 ## 📝 Hướng dẫn chạy dự án
 1. **Vào đúng root mobile trước khi chạy lệnh:** `Set-Location "F:\capstone 2\code\PetcareX\FE\Mobile\petcarex"`.

@@ -500,6 +500,8 @@
       "back": "Back",
       "continue": "Continue",
       "viewDetail": "View details",
+      "expand": "View details",
+      "collapse": "Collapse",
       "readMore": "Read more",
       "retry": "Retry"
     },

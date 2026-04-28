@@ -11,7 +11,7 @@ class BookingRepository {
   // Get list of clinics with pagination
   Future<Map<String, dynamic>> getClinics({
     int page = 1,
-    int limit = 10,
+    int limit = 20,
     String? search,
   }) async {
     final endpoint = ApiHelper.clinicsEndpoint(
@@ -24,11 +24,14 @@ class BookingRepository {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
+      final meta = data['meta'] ?? const {};
       return {
         'items': (data['items'] as List)
             .map((i) => Clinic.fromJson(i))
             .toList(),
-        'total': data['meta']['totalItems'],
+        'totalItems': meta['totalItems'] ?? 0,
+        'totalPages': meta['totalPages'] ?? 1,
+        'currentPage': meta['currentPage'] ?? page,
       };
     } else {
       throw Exception('Failed to load clinics');
@@ -40,11 +43,13 @@ class BookingRepository {
     String clinicId, {
     int page = 1,
     int limit = 10,
+    String? specialty,
   }) async {
     final endpoint = ApiHelper.veterinariansEndpoint(
       page: page,
       limit: limit,
       clinicId: clinicId,
+      specialty: specialty,
     );
     final response = await _apiClient.get(endpoint);
 

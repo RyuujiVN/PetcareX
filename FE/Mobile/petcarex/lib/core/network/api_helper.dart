@@ -129,12 +129,14 @@ class ApiHelper {
     int page = 1,
     int limit = 10,
     String? clinicId,
+    String? specialty,
   }) => buildEndpoint(
     AppConstants.END_POINT_VETERINARIAN,
     queryParameters: <String, Object?>{
       'page': page,
       'limit': limit,
       'clinicId': clinicId,
+      'specialty': specialty,
     },
   );
 
@@ -211,4 +213,21 @@ class ApiHelper {
       'createdAt': createdAt,
     },
   );
+
+  // Clinic Review endpoint helpers
+  static String clinicReviewsEndpoint({
+    int page = 1,
+    int limit = 10,
+    String? clinicId,
+  }) => buildEndpoint(
+    AppConstants.END_POINT_CLINIC_REVIEW,
+    queryParameters: <String, Object?>{
+      'page': page,
+      'limit': limit,
+      'clinicId': clinicId,
+    },
+  );
+
+  static String clinicReviewByIdEndpoint(String reviewId) =>
+      '${AppConstants.END_POINT_CLINIC_REVIEW}/$reviewId';
 }

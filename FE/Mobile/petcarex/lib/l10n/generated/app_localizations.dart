@@ -944,6 +944,18 @@ abstract class AppLocalizations {
   /// **'Chọn phòng khám phù hợp cho thú cưng'**
   String get bookingClinicSub;
 
+  /// No description provided for @clinicNoReviews.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có đánh giá'**
+  String get clinicNoReviews;
+
+  /// No description provided for @clinicReviewCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count, plural, =1{1 đánh giá} other{{count} đánh giá}}'**
+  String clinicReviewCount(int count);
+
   /// No description provided for @bookingServiceSub.
   ///
   /// In vi, this message translates to:
@@ -2173,6 +2185,174 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Ngôn ngữ'**
   String get language;
+
+  /// No description provided for @reviewClinicTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh giá phòng khám'**
+  String get reviewClinicTitle;
+
+  /// No description provided for @reviewThisVisit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh giá lượt khám này'**
+  String get reviewThisVisit;
+
+  /// No description provided for @reviewAlreadyReviewed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đánh giá'**
+  String get reviewAlreadyReviewed;
+
+  /// No description provided for @reviewCommentHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập nhận xét của bạn (không bắt buộc)'**
+  String get reviewCommentHint;
+
+  /// No description provided for @reviewSubmit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi đánh giá'**
+  String get reviewSubmit;
+
+  /// No description provided for @reviewSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi đánh giá thành công!'**
+  String get reviewSuccess;
+
+  /// No description provided for @reviewFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể gửi đánh giá. Vui lòng thử lại.'**
+  String get reviewFailed;
+
+  /// No description provided for @reviewRating1.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rất tệ'**
+  String get reviewRating1;
+
+  /// No description provided for @reviewRating2.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tệ'**
+  String get reviewRating2;
+
+  /// No description provided for @reviewRating3.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bình thường'**
+  String get reviewRating3;
+
+  /// No description provided for @reviewRating4.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tốt'**
+  String get reviewRating4;
+
+  /// No description provided for @reviewRating5.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rất tốt'**
+  String get reviewRating5;
+
+  /// No description provided for @reportPostTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tố cáo bài viết'**
+  String get reportPostTitle;
+
+  /// No description provided for @reportCommentTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tố cáo bình luận'**
+  String get reportCommentTitle;
+
+  /// No description provided for @reportReasonHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn lý do tố cáo'**
+  String get reportReasonHint;
+
+  /// No description provided for @reportSubmit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi tố cáo'**
+  String get reportSubmit;
+
+  /// No description provided for @reportSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi tố cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất.'**
+  String get reportSuccess;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể gửi tố cáo. Vui lòng thử lại.'**
+  String get reportFailed;
+
+  /// No description provided for @reportAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tố cáo'**
+  String get reportAction;
+
+  /// No description provided for @reportDescriptionHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mô tả thêm (không bắt buộc)'**
+  String get reportDescriptionHint;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In vi, this message translates to:
+  /// **'Spam / Quảng cáo'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonOffensive.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngôn ngữ thô tục / Xúc phạm'**
+  String get reportReasonOffensive;
+
+  /// No description provided for @reportReasonHarassment.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quấy rối / Bắt nạt'**
+  String get reportReasonHarassment;
+
+  /// No description provided for @reportReasonMisinformation.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin sai sự thật'**
+  String get reportReasonMisinformation;
+
+  /// No description provided for @reportReasonViolence.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạo lực / Phản cảm'**
+  String get reportReasonViolence;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khác'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportAlreadyReported.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã tố cáo bình luận này.'**
+  String get reportAlreadyReported;
+
+  /// No description provided for @reportPostAlreadyReported.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã tố cáo bài viết này.'**
+  String get reportPostAlreadyReported;
 }
 
 class _AppLocalizationsDelegate

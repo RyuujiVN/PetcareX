@@ -66,6 +66,14 @@
   font-size: 35px;
 }
 
+.brandImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
 .brandWrap h2 {
   margin: 0;
   font-size: 21px;
@@ -371,9 +379,16 @@
 .content {
   flex: 1;
   min-height: 0;
-  /* overflow-y: auto;
-  overflow-x: hidden; */
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
   padding: 10px 16px 40px;
+}
+
+.content::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .contentChatbot {

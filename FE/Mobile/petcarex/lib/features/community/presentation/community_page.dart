@@ -14,6 +14,8 @@ import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import '../../notification/presentation/widgets/notification_bell_button.dart';
 import '../data/models/community_models.dart';
+import '../../report/data/models/report_models.dart';
+import '../../report/presentation/widgets/report_reason_sheet.dart';
 import 'create_post_page.dart';
 import 'provider/community_provider.dart';
 import 'widgets/image_viewer.dart';
@@ -38,10 +40,14 @@ class _CommunityPageState extends State<CommunityPage> {
       caseSensitive: false,
     ).allMatches(html);
 
-    return matches
-        .map((m) => m.group(1)?.trim() ?? '')
-        .where((url) => url.isNotEmpty)
-        .toList();
+    final seen = <String>{};
+    final result = <String>[];
+    for (final m in matches) {
+      final url = m.group(1)?.trim() ?? '';
+      if (url.isEmpty) continue;
+      if (seen.add(url)) result.add(url);
+    }
+    return result;
   }
 
   String _extractPlainTextFromHtml(String html) {
@@ -104,21 +110,100 @@ class _CommunityPageState extends State<CommunityPage> {
 
     if (count == 0) return const SizedBox.shrink();
 
-    // 1 ảnh: full width, giữ tỉ lệ gốc (contain)
+    // 1 ảnh: đọc tỉ lệ thực của ảnh, clamp trong dải hợp lý, rồi BoxFit.cover
+    // để không có dải letterbox trắng gây cảm giác "nhiều ô ảnh".
     if (count == 1) {
-      return GestureDetector(
-        onTap: () => ImageViewer.show(context, imageUrls, initialIndex: 0),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            width: double.infinity,
-            height: h,
-            color: AppColors.background,
-            child: CachedNetworkImage(
-              imageUrl: ImageHelper.getThumbnailUrl(imageUrls[0]),
-              fit: BoxFit.contain,
+      return _AdaptiveSingleImage(
+        url: imageUrls[0],
+        allUrls: imageUrls,
+        compact: compact,
+      );
+    }
+
+    // Comment/reply (compact) với nhiều ảnh: grid thumbnail kiểu Facebook,
+    // hiển thị tối đa 4 tile, tile cuối có overlay "+N" nếu còn ảnh ẩn.
+    // Toàn block là vuông 1:1, rộng 75% bubble, căn trái.
+    if (compact) {
+      final displayUrls = imageUrls.take(4).toList();
+      final displayCount = displayUrls.length;
+      final moreCount = count - displayCount;
+      const gap = 3.0;
+
+      Widget body;
+      if (displayCount == 2) {
+        body = Row(
+          children: [
+            Expanded(child: _fbImage(displayUrls, 0, allUrls: imageUrls)),
+            const SizedBox(width: gap),
+            Expanded(child: _fbImage(displayUrls, 1, allUrls: imageUrls)),
+          ],
+        );
+      } else if (displayCount == 3) {
+        body = Row(
+          children: [
+            Expanded(child: _fbImage(displayUrls, 0, allUrls: imageUrls)),
+            const SizedBox(width: gap),
+            Expanded(
+              child: Column(
+                children: [
+                  Expanded(
+                    child: _fbImage(displayUrls, 1, allUrls: imageUrls),
+                  ),
+                  const SizedBox(height: gap),
+                  Expanded(
+                    child: _fbImage(displayUrls, 2, allUrls: imageUrls),
+                  ),
+                ],
+              ),
             ),
-          ),
+          ],
+        );
+      } else {
+        // displayCount == 4
+        body = Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _fbImage(displayUrls, 0, allUrls: imageUrls),
+                  ),
+                  const SizedBox(width: gap),
+                  Expanded(
+                    child: _fbImage(displayUrls, 1, allUrls: imageUrls),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: gap),
+            Expanded(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _fbImage(displayUrls, 2, allUrls: imageUrls),
+                  ),
+                  const SizedBox(width: gap),
+                  Expanded(
+                    child: _fbImage(
+                      displayUrls,
+                      3,
+                      overlayCount: moreCount > 0 ? moreCount : null,
+                      allUrls: imageUrls,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: 0.75,
+          alignment: Alignment.centerLeft,
+          child: AspectRatio(aspectRatio: 1.0, child: body),
         ),
       );
     }
@@ -1525,7 +1610,8 @@ class _CommunityPageState extends State<CommunityPage> {
                                   ),
                                 ),
                               ),
-                              if (isMyComment)
+                              // Hiển thị menu cho cả comment chính chủ lẫn comment người khác
+                              if (currentUserId != null)
                                 SizedBox(
                                   width: 28,
                                   height: 24,
@@ -1557,18 +1643,57 @@ class _CommunityPageState extends State<CommunityPage> {
                                           l10n: l10n,
                                           parentId: parentCommentId,
                                         );
+                                      } else if (value == 'report') {
+                                        // Kiểm tra đã tố cáo comment này chưa trong phiên
+                                        if (provider.isCommentReported(comment.id)) {
+                                          AppNotifier.showInfo(
+                                            context,
+                                            l10n.reportAlreadyReported,
+                                          );
+                                          return;
+                                        }
+                                        showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          backgroundColor: Colors.transparent,
+                                          builder: (_) => ReportReasonSheet(
+                                            targetId: comment.id,
+                                            targetType: ReportTargetType.comment,
+                                            onReported: () =>
+                                                provider.markCommentReported(comment.id),
+                                          ),
+                                        );
                                       }
                                     },
-                                    itemBuilder: (_) => [
-                                      PopupMenuItem(
-                                        value: 'edit',
-                                        child: Text(l10n.update),
-                                      ),
-                                      PopupMenuItem(
-                                        value: 'delete',
-                                        child: Text(l10n.delete),
-                                      ),
-                                    ],
+                                    itemBuilder: (_) => isMyComment
+                                        ? [
+                                            // Comment chính chủ: Edit & Delete
+                                            PopupMenuItem(
+                                              value: 'edit',
+                                              child: Text(l10n.update),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'delete',
+                                              child: Text(l10n.delete),
+                                            ),
+                                          ]
+                                        : [
+                                            // Comment người khác: Tố cáo
+                                            PopupMenuItem(
+                                              value: 'report',
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.flag_outlined,
+                                                    size: 18,
+                                                    color: AppColors.textGrey,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(l10n.reportAction),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                   ),
                                 ),
                             ],
@@ -1965,7 +2090,7 @@ class _CommunityPageState extends State<CommunityPage> {
                 ],
               ),
               const Spacer(),
-              if (currentUserId != null && currentUserId == post.author.id)
+              if (currentUserId != null)
                 PopupMenuButton<String>(
                   tooltip: '',
                   icon: const Icon(Icons.more_horiz, color: AppColors.iconGrey),
@@ -1974,12 +2099,56 @@ class _CommunityPageState extends State<CommunityPage> {
                       _showEditPostDialog(post, provider, l10n);
                     } else if (value == 'delete') {
                       _showDeletePostConfirm(post, provider, l10n);
+                    } else if (value == 'report') {
+                      if (provider.isPostReported(post.id)) {
+                        AppNotifier.showInfo(
+                          context,
+                          l10n.reportPostAlreadyReported,
+                        );
+                        return;
+                      }
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (_) => ReportReasonSheet(
+                          targetId: post.id,
+                          targetType: ReportTargetType.post,
+                          onReported: () => provider.markPostReported(post.id),
+                        ),
+                      );
                     }
                   },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(value: 'edit', child: Text(l10n.editPost)),
-                    PopupMenuItem(value: 'delete', child: Text(l10n.delete)),
-                  ],
+                  itemBuilder: (context) =>
+                      currentUserId == post.author.id
+                          ? [
+                              // Bài viết chính chủ: Edit & Delete
+                              PopupMenuItem(
+                                value: 'edit',
+                                child: Text(l10n.editPost),
+                              ),
+                              PopupMenuItem(
+                                value: 'delete',
+                                child: Text(l10n.delete),
+                              ),
+                            ]
+                          : [
+                              // Bài viết người khác: Tố cáo
+                              PopupMenuItem(
+                                value: 'report',
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.flag_outlined,
+                                      size: 18,
+                                      color: AppColors.textGrey,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(l10n.reportAction),
+                                  ],
+                                ),
+                              ),
+                            ],
                 )
               else
                 const Icon(Icons.more_horiz, color: AppColors.iconGrey),
@@ -2073,4 +2242,103 @@ class _CommentComposerImage {
   bool isUploadFailed = false;
 
   _CommentComposerImage({required this.file});
+}
+
+class _AdaptiveSingleImage extends StatefulWidget {
+  final String url;
+  final List<String> allUrls;
+  final bool compact;
+
+  const _AdaptiveSingleImage({
+    required this.url,
+    required this.allUrls,
+    required this.compact,
+  });
+
+  @override
+  State<_AdaptiveSingleImage> createState() => _AdaptiveSingleImageState();
+}
+
+class _AdaptiveSingleImageState extends State<_AdaptiveSingleImage> {
+  double? _aspectRatio;
+  ImageStream? _stream;
+  ImageStreamListener? _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _resolveDimensions();
+  }
+
+  @override
+  void dispose() {
+    if (_stream != null && _listener != null) {
+      _stream!.removeListener(_listener!);
+    }
+    super.dispose();
+  }
+
+  void _resolveDimensions() {
+    final provider = CachedNetworkImageProvider(
+      ImageHelper.getThumbnailUrl(widget.url),
+    );
+    _stream = provider.resolve(const ImageConfiguration());
+    _listener = ImageStreamListener(
+      (info, _) {
+        if (!mounted) return;
+        final w = info.image.width.toDouble();
+        final h = info.image.height.toDouble();
+        if (w <= 0 || h <= 0) return;
+
+        final minR = widget.compact ? 4.0 / 3.0 : 4.0 / 5.0;
+        const maxR = 16.0 / 9.0;
+        double ratio = w / h;
+        if (ratio < minR) ratio = minR;
+        if (ratio > maxR) ratio = maxR;
+
+        setState(() => _aspectRatio = ratio);
+      },
+      onError: (_, _) {},
+    );
+    _stream!.addListener(_listener!);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = _aspectRatio ?? (widget.compact ? 4.0 / 3.0 : 4.0 / 3.0);
+
+    final imageWidget = GestureDetector(
+      onTap: () =>
+          ImageViewer.show(context, widget.allUrls, initialIndex: 0),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: AspectRatio(
+          aspectRatio: ratio,
+          child: CachedNetworkImage(
+            imageUrl: ImageHelper.getThumbnailUrl(widget.url),
+            fit: BoxFit.cover,
+            placeholder: (_, _) =>
+                Container(color: AppColors.background),
+            errorWidget: (_, _, _) =>
+                Container(color: AppColors.background),
+          ),
+        ),
+      ),
+    );
+
+    // Ở comment (compact) căn ảnh về trái và thu hẹp bề ngang
+    // để không bị "trôi" vào giữa bubble bình luận.
+    if (widget.compact) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: FractionallySizedBox(
+          widthFactor: 0.75,
+          alignment: Alignment.centerLeft,
+          child: imageWidget,
+        ),
+      );
+    }
+
+    return imageWidget;
+  }
 }

@@ -511,10 +511,13 @@
         "title": "Choose the right clinic",
         "searchPlaceholder": "Search by clinic name",
         "chooseButton": "Choose",
+        "ratingBadgeFallback": "New",
         "reviewCount": "reviews",
         "noReview": "No reviews yet",
         "loadListFailed": "Unable to load clinic list",
-        "loadDetailFailed": "Unable to load clinic details"
+        "loadDetailFailed": "Unable to load clinic details",
+        "locationFallbackNotice": "Showing clinics near {{city}} (default location).",
+        "locationFallbackAction": "Use my location"
       },
       "homePageClinic": {
         "mapIframeTitle": "Google Maps clinic address",
@@ -670,7 +673,9 @@
       "form": {
         "serviceLabel": "Select service",
         "clinicLabel": "Nearby clinic",
-        "symptomPlaceholder": "Describe your pet's symptoms"
+        "symptomPlaceholder": "Describe your pet's symptoms",
+        "locationFallbackNotice": "Showing distances from {{city}} (default location).",
+        "locationFallbackAction": "Use my real location"
       },
       "validation": {
         "petRequired": "Please choose a pet",
@@ -1087,6 +1092,14 @@
       "topicFilter": {
         "all": "All topics",
         "none": "No topic"
+      },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "Found {{count}} posts",
+        "emptyTitle": "No posts found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
       },
       "topicSelect": {
         "noTopic": "No topic"

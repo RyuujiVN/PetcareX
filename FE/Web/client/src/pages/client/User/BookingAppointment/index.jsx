@@ -1,29 +1,32 @@
 import {
-    ClockCircleOutlined,
-    EnvironmentOutlined,
-    ExperimentOutlined,
+  ClockCircleOutlined,
+  EnvironmentOutlined,
+  ExperimentOutlined,
   MedicineBoxOutlined,
-    MoonOutlined,
-    SmileOutlined,
-    SunOutlined,
-    UserOutlined,
+  MoonOutlined,
+  SmileOutlined,
+  SunOutlined,
+  UserOutlined,
 } from '@ant-design/icons';
 import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin, Tag } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
-import { BsArrowRightShort, BsArrowLeftShort } from "react-icons/bs";
 import { useTranslation } from 'react-i18next';
+import { BsArrowLeftShort, BsArrowRightShort } from "react-icons/bs";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SERVICE_TO_SPECIALTY_MAP } from '../../../../constants/enumLabels';
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import { useAuth } from '../../../../hooks/client/AuthContext';
 import { getClientInstance } from '../../../../services/apiClient';
 import {
-    APPOINTMENT_STATUS,
-    createAppointmentApi,
-    getMyAppointmentsApi,
-    SERVICE_OPTIONS,
+  APPOINTMENT_STATUS,
+  createAppointmentApi,
+  getMyAppointmentsApi,
+  SERVICE_OPTIONS,
 } from '../../../../services/appointmentService';
-import { getClinicByIdApi, getClinicListApi } from '../../../../services/clinicService';
+import { getClinicByIdApi, getNearbyClinicListApi } from '../../../../services/clinicService';
+import { useUserLocation } from '../../../../hooks/client/useUserLocation';
+import { DEFAULT_LOCATION } from '../../../../constants/location';
+import { formatDistance } from '../../../../utils/formatDistance';
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
 import { getVeterinarianByClinicApi } from '../../../../services/veterinarianService';
 import './styles.css';
@@ -70,6 +73,13 @@ export default function BookingAppointment() {
   const [showSummary, setShowSummary] = useState(false);
   const location = useLocation();
   const { userProfile } = useAuth();
+  const {
+    lat: userLat,
+    lon: userLon,
+    isLoading: locationLoading,
+    isDefault: locationIsDefault,
+    retry: retryLocation,
+  } = useUserLocation();
   const today = useMemo(() => new Date(), []);
   const serviceOptions = useMemo(() => {
     if (Array.isArray(SERVICE_OPTIONS)) {
@@ -201,10 +211,16 @@ export default function BookingAppointment() {
   };
 
   const fetchClinics = async () => {
-    const res = await getClinicListApi(getClientInstance(), 1, 50);
-    const clinicList = Array.isArray(res?.items) ? res.items : [];
-    setClinics(clinicList);
-    if (clinicList.length > 0) {
+    const clinicList = await getNearbyClinicListApi(getClientInstance(), {
+      page: 1,
+      limit: 50,
+      lat: userLat,
+      lon: userLon,
+      sortBy: 'distance',
+    });
+    const safeList = Array.isArray(clinicList) ? clinicList : [];
+    setClinics(safeList);
+    if (safeList.length > 0) {
       const hasPreselectedClinic = preselectedClinicId
         ? clinicList.some((item) => String(item.id) === String(preselectedClinicId))
         : false;
@@ -216,7 +232,7 @@ export default function BookingAppointment() {
 
       const currentClinicId = form.getFieldValue('clinicId');
       if (!currentClinicId) {
-        form.setFieldValue('clinicId', clinicList[0].id);
+        form.setFieldValue('clinicId', safeList[0].id);
       }
     }
   };
@@ -296,24 +312,49 @@ export default function BookingAppointment() {
   };
 
   useEffect(() => {
+    // Chờ resolve vị trí (user thật hoặc fallback) rồi mới fetch clinics để truyền lat/lon đúng.
+    if (locationLoading) return;
     bootstrapData();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationLoading, userLat, userLon]);
 
   useEffect(() => {
-    if (preselectedClinicId) {
+    // Chỉ seed clinicId từ preselected khi list nearby đã load và preselected nằm trong list.
+    // Tránh đẩy ID stale từ sessionStorage vào form rồi fire fetchClinicById → 404.
+    if (!preselectedClinicId || clinics.length === 0) return;
+
+    const exists = clinics.some((item) => String(item.id) === String(preselectedClinicId));
+    if (!exists) return;
+
+    if (form.getFieldValue('clinicId') !== String(preselectedClinicId)) {
       form.setFieldValue('clinicId', String(preselectedClinicId));
     }
-  }, [form, preselectedClinicId]);
+  }, [form, preselectedClinicId, clinics]);
 
   useEffect(() => {
     if (!clinicId) {
       return;
     }
 
+    // Đợi clinics list load xong mới validate. Nếu clinicId không thuộc list (stale từ
+    // sessionStorage / state cũ), clear cache và fallback về clinic đầu tiên thay vì
+    // fire GET /clinic/:id với ID không tồn tại → 404.
+    if (clinics.length === 0) return;
+
+    const existsInList = clinics.some((item) => String(item.id) === String(clinicId));
+    if (!existsInList) {
+      if (sessionStorage.getItem('selectedClinicId') === String(clinicId)) {
+        sessionStorage.removeItem('selectedClinicId');
+      }
+      form.setFieldValue('clinicId', clinics[0].id);
+      return;
+    }
+
     Promise.all([fetchDoctorsByClinic(clinicId, filterSpecialty), fetchClinicById(clinicId)]).catch((error) => {
       message.error(error.message || t('pages.booking.loadClinicDoctorFailed'));
     });
-  }, [clinicId, filterSpecialty]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clinicId, filterSpecialty, clinics]);
 
   useEffect(() => {
     if (!service) {
@@ -692,12 +733,61 @@ export default function BookingAppointment() {
                     <Select
                       size="large"
                       disabled={Boolean(preselectedClinicId)}
-                      options={clinics.map((item) => ({
-                        label: item.name,
-                        value: item.id,
-                      }))}
-                    />
+                      optionLabelProp="displayLabel"
+                      popupMatchSelectWidth={520}
+                      popupClassName="clinic-select-popup"
+                    >
+                      {clinics.map((item) => {
+                        const distanceText = formatDistance(item.distance);
+                        const collapsedLabel = distanceText
+                          ? `${item.name} · ${distanceText}`
+                          : item.name;
+                        return (
+                          <Select.Option
+                            key={item.id}
+                            value={item.id}
+                            displayLabel={collapsedLabel}
+                          >
+                            <div className="clinic-option">
+                              <div className="clinic-option-main">
+                                <div className="clinic-option-name">{item.name}</div>
+                                {item.address ? (
+                                  <div className="clinic-option-address">
+                                    <EnvironmentOutlined aria-hidden />
+                                    <span>{item.address}</span>
+                                  </div>
+                                ) : null}
+                              </div>
+                              {distanceText ? (
+                                <span className="clinic-option-distance">{distanceText}</span>
+                              ) : null}
+                            </div>
+                          </Select.Option>
+                        );
+                      })}
+                    </Select>
                   </Form.Item>
+                  {locationIsDefault && !preselectedClinicId ? (
+                    <div className="clinic-location-banner" role="status">
+                      <EnvironmentOutlined aria-hidden />
+                      <span>
+                        {t('pages.booking.form.locationFallbackNotice', {
+                          city: DEFAULT_LOCATION.label,
+                          defaultValue: `Đang tính khoảng cách từ ${DEFAULT_LOCATION.label} (vị trí mặc định).`,
+                        })}
+                      </span>
+                      <button
+                        type="button"
+                        className="clinic-location-banner-action"
+                        onClick={retryLocation}
+                        disabled={locationLoading}
+                      >
+                        {t('pages.booking.form.locationFallbackAction', {
+                          defaultValue: 'Cho phép vị trí của tôi',
+                        })}
+                      </button>
+                    </div>
+                  ) : null}
                 </Col>
               </Row>
             </section>

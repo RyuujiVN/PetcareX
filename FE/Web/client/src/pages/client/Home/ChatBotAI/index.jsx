@@ -1,21 +1,21 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import "./styles.css";
-import { MessageCircle, Plus } from "lucide-react";
 import {
-  DeleteOutlined,
-  EditOutlined,
-  EllipsisOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    EllipsisOutlined,
 } from "@ant-design/icons";
 import { Dropdown, Input, Modal, message } from "antd";
-import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+import { MessageCircle, Plus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
-  fetchCreateRoom,
-  fetchDeleteRoom,
-  fetchRooms,
-  fetchRenameRoom,
+    fetchCreateRoom,
+    fetchDeleteRoom,
+    fetchRenameRoom,
+    fetchRooms,
 } from "../../../../redux/slices/roomSlice";
 import chatSocket from "../../../../socket/chatSocket";
+import "./styles.css";
 
 const TITLE_PREVIEW_LIMIT = 28;
 
@@ -161,7 +161,7 @@ export default function ChatBotAI() {
   };
 
   return (
-    <div className="chatbot-container">
+    <div className="chatbot-container client-chatbot-page">
       <aside className="chatbot-sidebar">
         <button
           className="new-conversation-btn"

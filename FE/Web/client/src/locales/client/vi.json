@@ -511,10 +511,13 @@
         "title": "Chọn phòng khám phù hợp",
         "searchPlaceholder": "Tìm kiếm theo tên",
         "chooseButton": "Chọn",
+        "ratingBadgeFallback": "Mới",
         "reviewCount": "đánh giá",
         "noReview": "Chưa có đánh giá",
         "loadListFailed": "Không thể tải danh sách phòng khám",
-        "loadDetailFailed": "Không thể tải chi tiết phòng khám"
+        "loadDetailFailed": "Không thể tải chi tiết phòng khám",
+        "locationFallbackNotice": "Đang hiển thị phòng khám gần {{city}} (vị trí mặc định).",
+        "locationFallbackAction": "Cho phép vị trí của tôi"
       },
       "homePageClinic": {
         "mapIframeTitle": "Google Maps địa chỉ phòng khám",
@@ -670,7 +673,9 @@
       "form": {
         "serviceLabel": "Chọn dịch vụ",
         "clinicLabel": "Phòng khám gần bạn",
-        "symptomPlaceholder": "Ghi triệu chứng của thú cưng"
+        "symptomPlaceholder": "Ghi triệu chứng của thú cưng",
+        "locationFallbackNotice": "Đang tính khoảng cách từ {{city}} (vị trí mặc định).",
+        "locationFallbackAction": "Cho phép vị trí của tôi"
       },
       "validation": {
         "petRequired": "Vui lòng chọn thú cưng",
@@ -1087,6 +1092,14 @@
       "topicFilter": {
         "all": "Tất cả chủ đề",
         "none": "Không có chủ đề"
+      },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "Tìm thấy {{count}} bài viết",
+        "emptyTitle": "Không tìm thấy bài viết nào cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
       },
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"

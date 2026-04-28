@@ -81,4 +81,11 @@ class AppConstants {
 
   // Topic Endpoints
   static const String END_POINT_TOPIC_GET_ALL = '$END_POINT_TOPIC/get-all';
+
+  // Clinic Review Endpoints
+  static const String END_POINT_CLINIC_REVIEW =
+      '${AppConfig.apiPrefix}/clinic-review';
+
+  // Report Endpoints
+  static const String END_POINT_REPORT = '${AppConfig.apiPrefix}/report';
 }

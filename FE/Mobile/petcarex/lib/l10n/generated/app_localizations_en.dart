@@ -439,6 +439,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingClinicSub => 'Select a clinic suitable for your pet';
 
   @override
+  String get clinicNoReviews => 'No reviews yet';
+
+  @override
+  String clinicReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reviews',
+      one: '1 review',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get bookingServiceSub =>
       'Select a service and enter required symptoms';
 
@@ -1147,4 +1161,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get reviewClinicTitle => 'Rate this clinic';
+
+  @override
+  String get reviewThisVisit => 'Rate this visit';
+
+  @override
+  String get reviewAlreadyReviewed => 'Reviewed';
+
+  @override
+  String get reviewCommentHint => 'Write your review (optional)';
+
+  @override
+  String get reviewSubmit => 'Submit review';
+
+  @override
+  String get reviewSuccess => 'Review submitted successfully!';
+
+  @override
+  String get reviewFailed => 'Failed to submit review. Please try again.';
+
+  @override
+  String get reviewRating1 => 'Very bad';
+
+  @override
+  String get reviewRating2 => 'Bad';
+
+  @override
+  String get reviewRating3 => 'Average';
+
+  @override
+  String get reviewRating4 => 'Good';
+
+  @override
+  String get reviewRating5 => 'Excellent';
+
+  @override
+  String get reportPostTitle => 'Report post';
+
+  @override
+  String get reportCommentTitle => 'Report comment';
+
+  @override
+  String get reportReasonHint => 'Select a reason';
+
+  @override
+  String get reportSubmit => 'Submit report';
+
+  @override
+  String get reportSuccess =>
+      'Report submitted. We will review it as soon as possible.';
+
+  @override
+  String get reportFailed => 'Failed to submit report. Please try again.';
+
+  @override
+  String get reportAction => 'Report';
+
+  @override
+  String get reportDescriptionHint => 'Additional description (optional)';
+
+  @override
+  String get reportReasonSpam => 'Spam / Advertising';
+
+  @override
+  String get reportReasonOffensive => 'Offensive language';
+
+  @override
+  String get reportReasonHarassment => 'Harassment / Bullying';
+
+  @override
+  String get reportReasonMisinformation => 'Misinformation';
+
+  @override
+  String get reportReasonViolence => 'Violence / Disturbing content';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportAlreadyReported => 'You already reported this comment.';
+
+  @override
+  String get reportPostAlreadyReported => 'You already reported this post.';
 }

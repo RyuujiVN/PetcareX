@@ -2,7 +2,6 @@ import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Divider, Form, Input, Typography, message } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FaPaw } from "react-icons/fa";
 import { FcGoogle } from 'react-icons/fc';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
@@ -126,7 +125,11 @@ export default function Login() {
     <div className="login-container">
       <div className="login-card" style={{ padding: '40px 30px', background: 'var(--color-surface-card)', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <FaPaw style={{ fontSize: '48px', color: 'var(--auth-primary)', marginLeft: 'auto', marginRight: 'auto' }} />
+          <img
+            src="/avatarProject.png"
+            alt={t('pages.auth.login.title')}
+            style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '16px', marginLeft: 'auto', marginRight: 'auto', display: 'block' }}
+          />
           <Title level={2} style={{ margin: '16px 0 8px' }}>{t('pages.auth.login.title')}</Title>
           <Text type="secondary">{t('pages.auth.login.welcome')}</Text>
         </div>

@@ -141,6 +141,13 @@
   "choosePet": "Choose Your Pet",
   "choosePetSub": "Choose the pet that needs examination today",
   "bookingClinicSub": "Select a clinic suitable for your pet",
+  "clinicNoReviews": "No reviews yet",
+  "clinicReviewCount": "{count, plural, =1{1 review} other{{count} reviews}}",
+  "@clinicReviewCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "bookingServiceSub": "Select a service and enter required symptoms",
   "bookingDoctorSub": "Select a suitable veterinarian",
   "bookingTimeSub": "Select examination date and time",
@@ -457,5 +464,35 @@
   "chatStatusSent": "Sent",
   "chatStatusError": "Error"
   ,
-  "language": "Language"
+  "language": "Language",
+
+  "reviewClinicTitle": "Rate this clinic",
+  "reviewThisVisit": "Rate this visit",
+  "reviewAlreadyReviewed": "Reviewed",
+  "reviewCommentHint": "Write your review (optional)",
+  "reviewSubmit": "Submit review",
+  "reviewSuccess": "Review submitted successfully!",
+  "reviewFailed": "Failed to submit review. Please try again.",
+  "reviewRating1": "Very bad",
+  "reviewRating2": "Bad",
+  "reviewRating3": "Average",
+  "reviewRating4": "Good",
+  "reviewRating5": "Excellent",
+
+  "reportPostTitle": "Report post",
+  "reportCommentTitle": "Report comment",
+  "reportReasonHint": "Select a reason",
+  "reportSubmit": "Submit report",
+  "reportSuccess": "Report submitted. We will review it as soon as possible.",
+  "reportFailed": "Failed to submit report. Please try again.",
+  "reportAction": "Report",
+  "reportDescriptionHint": "Additional description (optional)",
+  "reportReasonSpam": "Spam / Advertising",
+  "reportReasonOffensive": "Offensive language",
+  "reportReasonHarassment": "Harassment / Bullying",
+  "reportReasonMisinformation": "Misinformation",
+  "reportReasonViolence": "Violence / Disturbing content",
+  "reportReasonOther": "Other",
+  "reportAlreadyReported": "You already reported this comment.",
+  "reportPostAlreadyReported": "You already reported this post."
 }
