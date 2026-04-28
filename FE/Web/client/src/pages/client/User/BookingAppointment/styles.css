@@ -446,6 +446,7 @@
   margin-top: 1px;
   margin-bottom: 0;
   max-width: 420px;
+  box-shadow: 0 0 0 4px rgba(218, 20, 20, 0.16), 0 6px 13px rgba(214, 37, 37, 0.34);
 }
 
 .time-slot-group {
@@ -493,10 +494,10 @@
   box-shadow: 0 10px 18px rgba(53, 95, 151, 0.18);
 }
 .slot.selected {
-  background: #ffffff;
-  color: #1f4f88;
+  background: linear-gradient(145deg, #4d7fca 0%, #356fbc 100%);
+  color: white;
   border-color: #2d669f;
-  box-shadow: 0 0 0 2px rgba(53, 108, 171, 0.17);
+  box-shadow: 0 0 0 4px rgba(55, 104, 173, 0.16), 0 10px 18px rgba(45, 95, 162, 0.34);
 }
 
 .slot.disabled-slot {
