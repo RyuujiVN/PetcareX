@@ -480,7 +480,7 @@ const buildInitialValues = (
 	const recordOwner = recordPet?.owner || {}
 
 	return {
-		formName: isWalkIn ? '' : serviceLabel,
+		formName: isWalkIn ? '' : (editableMedicalRecord?.name || serviceLabel),
 		serviceType: resolvedServiceType,
 		enableFollowUpDate: Boolean(editableMedicalRecord?.followUpDate),
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
