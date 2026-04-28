@@ -10,8 +10,8 @@
       "users": "Quản lý người dùng",
       "posts": "Quản lý bài đăng",
       "activity": "Hoạt động phòng khám",
-      "forum": "Forum",
-      "chatbot": "ChatBot"
+      "forum": "Diễn đàn",
+      "chatbot": "Trợ Lý AI"
     },
     "profile": {
       "defaultName": "Admin Name",
