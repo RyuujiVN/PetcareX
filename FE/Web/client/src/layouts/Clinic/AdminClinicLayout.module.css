@@ -181,6 +181,13 @@
   border-bottom: 1px solid #f4f5f7;
 }
 
+.inlineTopBarLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .inlineTopBarChatbot {
   min-height: 56px;
 }
@@ -190,6 +197,14 @@
   display: inline-flex;
   align-items: center;
   gap: 10px;
+}
+
+.forumHeaderSearchSlot {
+  flex: 0 1 320px;
+  min-width: 220px;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
 }
 
 .chatbotHeaderTitle {

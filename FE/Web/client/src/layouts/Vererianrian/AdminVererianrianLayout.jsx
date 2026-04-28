@@ -170,6 +170,9 @@ export default function AdminVererianrianLayout() {
     location.pathname === '/veterinarian/viewRecords' ||
     location.pathname.startsWith('/veterinarian/viewRecords/')
   const shouldUseMedicalRecordHeader = isViewPetMedicalRecordsRoute && !isExamFormFocusMode
+  const isForumRoute =
+    location.pathname === '/veterinarian/forum' ||
+    location.pathname.startsWith('/veterinarian/forum/')
 
   const {
     notifications: notificationItems,
@@ -429,9 +432,17 @@ export default function AdminVererianrianLayout() {
           >
             <div className={styles.headerSearchWrap}>
               {isChatbotRoute ? (
-                <h1 className={styles.headerTitle} >{t('pages.chatbot.assistantTitle')}</h1>
+                <div className={styles.chatbotHeaderTitle}>
+                  <MessageCircle size={18} />
+                  <span>{t('pages.chatbot.assistantTitle')}</span>
+                </div>
               ) : shouldUseMedicalRecordHeader ? (
                 <h1 className={styles.headerTitle}>{t('layout.medicalHeaderTitle')}</h1>
+              ) : isForumRoute ? (
+                <div
+                  id="forum-search-slot-vet"
+                  className={styles.forumHeaderSearchSlot}
+                />
               ) : !shouldHideSearch ? (
                 <Input
                   className={styles.searchInput}

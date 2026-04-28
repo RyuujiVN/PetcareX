@@ -269,6 +269,9 @@ export default function AdminClinicLayout() {
   const isChatbotRoute =
     location.pathname === "/clinic/chatbot" ||
     location.pathname.startsWith("/clinic/chatbot/");
+  const isForumRoute =
+    location.pathname === "/clinic/forum" ||
+    location.pathname.startsWith("/clinic/forum/");
 
   const isFullscreenRoute =
     location.pathname === "/clinic/forum" ||
@@ -624,12 +627,20 @@ export default function AdminClinicLayout() {
 
         {isFullscreenRoute ? (
           <div className={`${styles.inlineTopBar} ${isChatbotRoute ? styles.inlineTopBarChatbot : ""}`}>
-            {isChatbotRoute ? (
-              <div className={styles.chatbotHeaderTitle}>
-                <MessageCircle style={{color: '#4672b4'}} />
-                <span>{t('pages.chatbot.assistantTitle')}</span>
-              </div>
-            ) : null}
+            <div className={styles.inlineTopBarLeft}>
+              {isForumRoute ? (
+                <div
+                  id="forum-search-slot-clinic"
+                  className={styles.forumHeaderSearchSlot}
+                />
+              ) : null}
+              {isChatbotRoute ? (
+                <div className={styles.chatbotHeaderTitle}>
+                  <MessageCircle style={{color: '#4672b4'}} />
+                  <span>{t('pages.chatbot.assistantTitle')}</span>
+                </div>
+              ) : null}
+            </div>
             <div className={styles.inlineTopBarActions}>
               <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
               <Popover

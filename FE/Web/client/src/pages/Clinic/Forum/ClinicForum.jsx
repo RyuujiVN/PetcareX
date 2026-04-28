@@ -1,6 +1,7 @@
 import { FlagOutlined } from '@ant-design/icons'
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import {
     FaEllipsis,
@@ -335,6 +336,7 @@ function Forum() {
 	const [submittingReport, setSubmittingReport] = useState(false)
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
 	const [searchKeyword, setSearchKeyword] = useState('')
+	const [searchPortalNode, setSearchPortalNode] = useState(null)
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
 	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
 	const [highlightedPostId, setHighlightedPostId] = useState('')
@@ -540,6 +542,10 @@ function Forum() {
 	useEffect(() => {
 		searchKeywordRef.current = searchKeyword
 	}, [searchKeyword])
+
+	useEffect(() => {
+		setSearchPortalNode(document.getElementById('forum-search-slot-clinic'))
+	}, [])
 
 	const loadPosts = async ({ keyword } = {}) => {
 		setLoadingPosts(true)
@@ -1894,18 +1900,25 @@ function Forum() {
 		}))
 	}, [sourcePosts, selectedTopicFilter, featuredPostIds, searchKeyword])
 
+	const searchPortal = searchPortalNode
+		? createPortal(
+			<ForumSearchBar
+				value={searchKeyword}
+				onSearch={setSearchKeyword}
+				placeholder={t('pages.forum.search.placeholder')}
+				ariaLabel={t('pages.forum.search.placeholder')}
+			/>,
+			searchPortalNode,
+		)
+		: null
+
 	return (
 		<div className={styles.pageRoot}>
+			{searchPortal}
 			<main className={styles.pageWrap}>
 				<section ref={feedScrollRef} className={styles.leftColumn}>
-					<div className={styles.searchCard}>
-						<ForumSearchBar
-							value={searchKeyword}
-							onSearch={setSearchKeyword}
-							placeholder={t('pages.forum.search.placeholder')}
-							ariaLabel={t('pages.forum.search.placeholder')}
-						/>
-						{searchKeyword ? (
+					{searchKeyword ? (
+						<div className={styles.searchCard}>
 							<div className={styles.searchStatusRow}>
 								<span className={styles.searchActiveChip}>
 									{t('pages.forum.search.activeLabel', { keyword: searchKeyword })}
@@ -1923,8 +1936,8 @@ function Forum() {
 									</span>
 								) : null}
 							</div>
-						) : null}
-					</div>
+						</div>
+					) : null}
 					<div className={styles.composeCard}>
 						<div className={styles.composeTop}>
 							<img src={composerAvatar} alt={t('pages.forum.avatarAlt')} className={styles.composeAvatar} />

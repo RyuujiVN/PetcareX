@@ -192,6 +192,14 @@
   gap: 10px;
 }
 
+.forumHeaderSearchSlot {
+  flex: 0 1 320px;
+  min-width: 220px;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
+}
+
 .headerMedicalRecord {
   min-height: 64px;
   margin-bottom: 0;
@@ -209,6 +217,15 @@
 
 .headerTitle {
   margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--vet-color-text-heading);
+}
+
+.chatbotHeaderTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 18px;
   font-weight: 600;
   color: var(--vet-color-text-heading);

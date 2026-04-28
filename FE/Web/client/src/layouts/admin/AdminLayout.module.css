@@ -200,6 +200,13 @@
   flex-shrink: 0;
 }
 
+.headerLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
 .headerTitle {
   display: inline-flex;
   align-items: center;
@@ -209,10 +216,24 @@
   color: #1e2f48;
 }
 
+.chatbotHeaderTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .headerActions {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.forumHeaderSearchSlot {
+  flex: 0 1 320px;
+  min-width: 220px;
+  max-width: 360px;
+  display: flex;
+  align-items: center;
 }
 
 .notificationWrapper {

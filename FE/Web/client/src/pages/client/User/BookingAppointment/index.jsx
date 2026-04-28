@@ -48,7 +48,7 @@ const TIME_SLOT_GROUPS = [
 
 const WORKING_SLOTS = TIME_SLOT_GROUPS.flatMap((group) => group.times);
 const BOOKING_MIN_LEAD_HOURS = 3;
-const TRUNCATE_LIMIT = 100;
+const TRUNCATE_LIMIT = 80;
 
 const formatDate = (date) => {
   const y = date.getFullYear();
@@ -879,9 +879,11 @@ export default function BookingAppointment() {
           </div>
 
           <p>
-            {needsTruncate(selectedDoctorExperienceText)
-              ? truncateText(selectedDoctorExperienceText)
-              : selectedDoctorExperienceText}
+            <span className="doctor-preview-text">
+              {needsTruncate(selectedDoctorExperienceText)
+                ? truncateText(selectedDoctorExperienceText)
+                : selectedDoctorExperienceText}
+            </span>
 
             {needsTruncate(selectedDoctorExperienceText) && (
               <button
@@ -906,7 +908,9 @@ export default function BookingAppointment() {
           </div>
 
           <p>
-            {truncateText(selectedDoctorDescriptionText)}
+            <span className="doctor-preview-text">
+              {truncateText(selectedDoctorDescriptionText)}
+            </span>
 
             {needsTruncate(selectedDoctorDescriptionText) && (
               <button

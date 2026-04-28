@@ -141,6 +141,9 @@ export default function AdminLayout() {
   const isChatbotRoute =
     location.pathname === "/admin/chatbot" ||
     location.pathname.startsWith("/admin/chatbot/");
+  const isForumRoute =
+    location.pathname === "/admin/forum" ||
+    location.pathname.startsWith("/admin/forum/");
 
   const {
     notifications: notificationItems,
@@ -301,9 +304,26 @@ export default function AdminLayout() {
       {/* ── Main ── */}
       <div className={styles.main}>
         <header className={styles.header}>
-          <h1 className={styles.headerTitle}>
-            {isChatbotRoute ? t("pages.chatbot.assistantTitle") : t("layout.header.title")}
-          </h1>
+          <div className={styles.headerLeft}>
+            {!isForumRoute ? (
+              <h1 className={styles.headerTitle}>
+                {isChatbotRoute ? (
+                  <span className={styles.chatbotHeaderTitle}>
+                    <MessageCircle size={18} />
+                    <span>{t("pages.chatbot.assistantTitle")}</span>
+                  </span>
+                ) : (
+                  t("layout.header.title")
+                )}
+              </h1>
+            ) : null}
+            {isForumRoute ? (
+              <div
+                id="forum-search-slot-admin"
+                className={styles.forumHeaderSearchSlot}
+              />
+            ) : null}
+          </div>
           <div className={styles.headerActions}>
             <LanguageSwitcher scope={LANGUAGE_SCOPE.client} />
 
