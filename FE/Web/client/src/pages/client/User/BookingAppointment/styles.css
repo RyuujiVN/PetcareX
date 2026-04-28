@@ -683,34 +683,60 @@
 }
 
 .doctor-details {
-  display: flex;
-  flex-direction: column;
+  width: 100%;
+}
+
+/* Chia 2 cột ngang hàng */
+.doctor-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .doctor-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.doctor-info-item {
+  font-size: 14px;
+  color: var(--color-text, #333);
 }
 
 .doctor-detail-row {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 6px;
 }
 
 .doctor-detail-label {
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text-secondary, #666);
-  min-width: 90px;
 }
 
-.doctor-description {
-  margin-top: 8px;
-  font-size: 14px;
+.doctor-info-item p {
+  margin: 0;
   line-height: 1.6;
-  color: var(--color-text, #333);
+  white-space: pre-wrap;
 }
 
-.doctor-description p {
-  margin: 6px 0 0;
-  white-space: pre-wrap;
+.doctor-read-more {
+  border: none;
+  background: transparent;
+  color: var(--color-brand-primary);
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  font-size: 13px;
+}
+
+.doctor-read-more:hover {
+  text-decoration: underline;
 }
 
 /* ── Clinic option (name + address + distance) inside dropdown ── */

@@ -512,6 +512,14 @@
       "topicSelect": {
         "noTopic": "No topic"
       },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "{{count}} results",
+        "emptyTitle": "No results found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
+      },
       "topics": {
         "dailyCare": "Daily pet care",
         "vaccinationAndPrevention": "Vaccination and prevention",

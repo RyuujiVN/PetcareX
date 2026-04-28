@@ -265,6 +265,10 @@ export default function AdminClinicLayout() {
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
 
+  const isChatbotRoute =
+    location.pathname === "/clinic/chatbot" ||
+    location.pathname.startsWith("/clinic/chatbot/");
+
   const isFullscreenRoute =
     location.pathname === "/clinic/forum" ||
     location.pathname.startsWith("/clinic/forum/") ||
@@ -536,7 +540,7 @@ export default function AdminClinicLayout() {
 
   return (
     <div
-      className={`${styles.layout} ${!isSidebarVisible || isClinicEditorRoute ? styles.layoutSingleColumn : ""}`}
+      className={`${styles.layout} ${!isSidebarVisible || isClinicEditorRoute ? styles.layoutSingleColumn : ""} ${isChatbotRoute ? styles.chatbotRouteActive : ""}`}
     >
       {!isClinicEditorRoute && isSidebarVisible ? (
       <aside className={styles.sidebar}>
@@ -607,7 +611,7 @@ export default function AdminClinicLayout() {
 
       <main className={`${styles.main} ${isFullscreenRoute ? styles.mainFullscreen : ""}`}>
         {notificationContextHolder}
-        {!isClinicEditorRoute && !isFullscreenRoute && !isSidebarVisible ? (
+        {!isClinicEditorRoute && !isSidebarVisible ? (
           <Button
             type="text"
             aria-label={t("sidebar.toggleAriaLabel", { defaultValue: "Ẩn/hiện sidebar" })}
@@ -618,33 +622,41 @@ export default function AdminClinicLayout() {
         ) : null}
 
         {isFullscreenRoute ? (
-          <div className={styles.inlineTopBar}>
-            <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
-            <Popover
-              trigger="click"
-              placement="bottomRight"
-              overlayClassName={styles.notificationPopoverOverlay}
-              content={notificationContent}
-              open={notificationPopoverOpen}
-              onOpenChange={setNotificationPopoverOpen}
-            >
-              <Button
-                type="text"
-                aria-label={t("sidebar.notificationBellAriaLabel")}
-                className={styles.notificationBellButton}
-                icon={
-                  <Badge
-                    count={unreadNotificationCount}
-                    size="small"
-                    overflowCount={9}
-                  >
-                    <span className={styles.notificationBellIcon}>
-                      <IoMdNotificationsOutline />
-                    </span>
-                  </Badge>
-                }
-              />
-            </Popover>
+          <div className={`${styles.inlineTopBar} ${isChatbotRoute ? styles.inlineTopBarChatbot : ""}`}>
+            {isChatbotRoute ? (
+              <div className={styles.chatbotHeaderTitle}>
+                <RobotOutlined />
+                <span>{t('pages.chatbot.assistantTitle')}</span>
+              </div>
+            ) : null}
+            <div className={styles.inlineTopBarActions}>
+              <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                overlayClassName={styles.notificationPopoverOverlay}
+                content={notificationContent}
+                open={notificationPopoverOpen}
+                onOpenChange={setNotificationPopoverOpen}
+              >
+                <Button
+                  type="text"
+                  aria-label={t("sidebar.notificationBellAriaLabel")}
+                  className={styles.notificationBellButton}
+                  icon={
+                    <Badge
+                      count={unreadNotificationCount}
+                      size="small"
+                      overflowCount={9}
+                    >
+                      <span className={styles.notificationBellIcon}>
+                        <IoMdNotificationsOutline />
+                      </span>
+                    </Badge>
+                  }
+                />
+              </Popover>
+            </div>
           </div>
         ) : !isClinicEditorRoute ? (
         <div

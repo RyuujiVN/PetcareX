@@ -350,7 +350,7 @@ export default function AdminVererianrianLayout() {
 
   return (
     <div
-      className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''} ${!isSidebarVisible || isExamFormFocusMode ? styles.layoutSingleColumn : ''}`}
+      className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''} ${!isSidebarVisible || isExamFormFocusMode ? styles.layoutSingleColumn : ''} ${isChatbotRoute ? styles.chatbotRouteActive : ''}`}
     >
       {notificationContextHolder}
       {!isExamFormFocusMode && !isSidebarVisible ? (
@@ -427,7 +427,9 @@ export default function AdminVererianrianLayout() {
             className={`${styles.header} ${shouldUseMedicalRecordHeader ? styles.headerMedicalRecord : ''}`}
           >
             <div className={styles.headerSearchWrap}>
-              {shouldUseMedicalRecordHeader ? (
+              {isChatbotRoute ? (
+                <h1 className={styles.headerTitle}>{t('pages.chatbot.assistantTitle')}</h1>
+              ) : shouldUseMedicalRecordHeader ? (
                 <h1 className={styles.headerTitle}>{t('layout.medicalHeaderTitle')}</h1>
               ) : !shouldHideSearch ? (
                 <Input

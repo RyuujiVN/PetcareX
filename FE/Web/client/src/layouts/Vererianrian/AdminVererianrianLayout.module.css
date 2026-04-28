@@ -396,6 +396,10 @@
   overflow: hidden;
 }
 
+.chatbotRouteActive :global(.chatbot-header) {
+  display: none;
+}
+
 .contentFocus {
   padding: 0 2px;
 }

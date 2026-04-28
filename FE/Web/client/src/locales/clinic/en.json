@@ -155,10 +155,10 @@
       "password": "Password",
       "phone": "Phone",
       "address": "Address",
-      "experience": "Experience (years)",
+      "experience": "Experience",
       "description": "Introduction",
-      "experiencePlaceholder": "Years of experience",
-      "descriptionPlaceholder": "Short description about the veterinarian...",
+      "experiencePlaceholder": "Example: 5 years in surgery",
+      "descriptionPlaceholder": "Describe the veterinarian...",
       "role": "Role",
       "joinDate": "Join date"
     },
@@ -912,6 +912,14 @@
       },
       "topicSelect": {
         "noTopic": "No topic"
+      },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "{{count}} results",
+        "emptyTitle": "No results found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
       },
       "topics": {
         "dailyCare": "Daily pet care",

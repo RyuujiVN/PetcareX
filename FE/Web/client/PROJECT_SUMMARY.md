@@ -20,7 +20,31 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-27)
+## Cập nhật mới nhất (2026-04-28)
+
+### Cập nhật (2026-04-28) — Tinh chỉnh UI/UX đa portal: Doctor Panel, Vet Fields, ChatBot Header, Sidebar Toggle, Forum Search
+
+**Phạm vi (FE only):**
+- `src/pages/client/User/BookingAppointment/index.jsx` + `styles.css`:
+  - Doctor detail panel truncate 100 ký tự cho `experience`/`description`, thêm nút **Xem thêm** mở AntD Modal.
+  - `experience` hiển thị dạng text (không ép hậu tố "năm").
+  - Thêm style `.doctor-read-more`.
+- `src/pages/Clinic/InformationVererianrian/InformationVererianrian.jsx` + `src/pages/Clinic/AddNewVererianrian/addNewVererianrian.jsx`:
+  - Field `experience` dùng `Input` (string), `description` dùng `TextArea` ở cả form thêm mới và chỉnh sửa.
+  - Payload update gửi `experience`, `description`, `introduce` (alias).
+- `src/layouts/Clinic/AdminClinicLayout.jsx`, `src/layouts/Vererianrian/AdminVererianrianLayout.jsx`, `src/layouts/admin/AdminLayout.jsx`:
+  - Khi route ChatBot: ẩn header nội bộ `.chatbot-header`, title AI hiển thị ở layout header/action bar.
+  - Admin layout thêm nút toggle sidebar (fixed) để luôn mở lại khi collapsed; Clinic toggle hiển thị cả ở fullscreen route.
+- `src/pages/Clinic/Forum/ClinicForum.jsx`, `src/pages/Vererianrian/Forum/VetForum.jsx`, `src/pages/admin/Forum/AdminForum.jsx`:
+  - Reuse `ForumSearchBar` và áp dụng limit = `keyword ? 50 : 1000` khi search.
+  - Thêm UI search card + empty state cho kết quả rỗng.
+- i18n: bổ sung key `pages.booking.doctor.*` và `pages.forum.search.*` cho `client`, `clinic`, `vererianrian`, `admin`.
+
+**Tự kiểm tra:**
+- `npx eslint` (các file chỉnh sửa) → còn warnings pre-existing:
+  - `InformationVererianrian.jsx`: `react-hooks/exhaustive-deps` (useMemo).
+  - `ClinicForum.jsx` / `VetForum.jsx` / `AdminForum.jsx`: `react-hooks/exhaustive-deps` (useEffect/useCallback).
+- `npm run build` → thành công (vite build, 5985 modules, 15.79s).
 
 ### Cập nhật (2026-04-27) — Cải thiện Select "Phòng khám gần bạn" trong BookingAppointment: hiện tên + địa chỉ + khoảng cách
 
