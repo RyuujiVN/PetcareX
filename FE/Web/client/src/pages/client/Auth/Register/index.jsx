@@ -52,6 +52,7 @@ export default function Register() {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
     if (!value) return Promise.reject(t('pages.auth.register.validation.passwordRequired'));
+    if (value.length > 256) return Promise.reject(t('pages.auth.register.validation.passwordTooLong'));
     if (!regex.test(value)) {
       return Promise.reject(t('pages.auth.register.validation.passwordComplexity'));
     }

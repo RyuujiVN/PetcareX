@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
 import { ManOutlined, WomanOutlined } from "@ant-design/icons";
 import { message, Modal, Radio, Select } from 'antd';
 import { FiCamera } from "react-icons/fi";
+import { getClientInstance } from '../../../../services/apiClient';
 import {
   createPetApi,
   getBreedLabel,
@@ -14,7 +15,6 @@ import {
   getSpeciesLabel,
   uploadPetAvatarApi,
 } from '../../../../services/petService';
-import { getClientInstance } from '../../../../services/apiClient';
 
 export default function AddPet() {
   const navigate = useNavigate();
@@ -153,7 +153,32 @@ export default function AddPet() {
       return;
     }
 
-    if (!name || !species || !breed || !gender || !birthday || !weight) {
+    if (!name.trim()) {
+      message.warning(t('pages.addPet.validation.nameRequired'));
+      return;
+    }
+
+    if (!species) {
+      message.warning(t('pages.addPet.validation.speciesRequired'));
+      return;
+    }
+
+    if (!gender) {
+      message.warning(t('pages.addPet.validation.genderRequired'));
+      return;
+    }
+
+    if (!birthday) {
+      message.warning(t('pages.addPet.validation.birthdayRequired'));
+      return;
+    }
+
+    if (!weight || Number(weight) <= 0) {
+      message.warning(t('pages.addPet.validation.weightInvalid'));
+      return;
+    }
+
+    if (!breed) {
       message.warning(t('pages.addPet.validation.requiredFields'));
       return;
     }

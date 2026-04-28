@@ -66,7 +66,7 @@ import {
 	getPetSpeciesApi,
 	getSpeciesLabel,
 } from '../../../services/petService'
-import { getUserListApi, updateUserProfileApi } from '../../../services/userService'
+import { getUserListApi } from '../../../services/userService'
 import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
 import { getMedicineUnitLabel, getServiceLabel } from '../../../utils/enumLabel'
 import styles from './recordExaminationForm.module.css'
@@ -1277,17 +1277,13 @@ export default function RecordExaminationForm() {
 			setSaving(true)
 			showWalkInStep(t('examForm.record.messages.walkInStepSaving'))
 
-			// Best-effort: look up existing user + pet to resolve petId
-			// (RBAC may block vet from user/pet lookup — if so, skip and let BE handle)
+			// Best-effort: look up existing pet to resolve petId (BE requires petId for existing users)
 			let resolvedPetId = undefined
-			let existingOwnerId = undefined
 			const existingOwner = await findExistingUserByEmail(normalizedEmail)
-			if (existingOwner) {
-				existingOwnerId = existingOwner?.id || existingOwner?.user?.id
-				if (existingOwnerId) {
-					const existingPet = await findPetByOwnerAndName(existingOwnerId, values.petName)
-					if (existingPet?.id) resolvedPetId = existingPet.id
-				}
+			const existingOwnerId = existingOwner?.id || existingOwner?.user?.id
+			if (existingOwnerId) {
+				const existingPet = await findPetByOwnerAndName(existingOwnerId, values.petName)
+				if (existingPet?.id) resolvedPetId = existingPet.id
 			}
 
 			const createPayload = {
@@ -1388,15 +1384,6 @@ export default function RecordExaminationForm() {
 						})
 					}),
 			)
-
-			// Best-effort: update phone for existing user (new user already has phone from BE)
-			if (existingOwnerId && normalizedPhone) {
-				try {
-					await updateUserProfileApi(getAdminInstance(), existingOwnerId, { phone: normalizedPhone })
-				} catch (updateErr) {
-					console.warn('[WalkIn] Update owner phone failed (non-blocking)', updateErr)
-				}
-			}
 
 			showWalkInStep(t('examForm.record.messages.walkInSaveSuccess'), 'success')
 			goBackToList()
@@ -1572,14 +1559,6 @@ export default function RecordExaminationForm() {
 				const medicalIdValue = String(medicalId)
 				persistAppointmentMedicalLink(appointmentId, medicalIdValue)
 				setMappedMedicalId(medicalIdValue)
-			}
-
-			const ownerId = appointment?.petRaw?.owner?.id || appointment?.pet?.owner?.id || editableMedicalRecord?.pet?.owner?.id
-			const existingOwnerPhone = normalizePhone(appointment?.petRaw?.owner?.phone || appointment?.pet?.owner?.phone || editableMedicalRecord?.pet?.owner?.phone || '')
-			if (ownerId && resolvedPhone && resolvedPhone !== existingOwnerPhone) {
-				await updateUserProfileApi(getAdminInstance(), ownerId, { phone: resolvedPhone }).catch((err) => {
-					console.warn('[RecordExamForm] Cập nhật SĐT khách hàng thất bại', err)
-				})
 			}
 
 			message.success(

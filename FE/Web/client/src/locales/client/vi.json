@@ -92,13 +92,13 @@
       "submit": "Xác nhận",
       "submitting": "Đang đổi mật khẩu...",
       "validation": {
-        "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
+        "currentRequired": "Vui lòng nhập mật khẩu cũ",
         "newRequired": "Vui lòng nhập mật khẩu mới",
         "newMinLength": "Mật khẩu mới phải có ít nhất {{count}} ký tự",
         "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
-        "confirmMismatch": "Mật khẩu xác nhận không khớp"
+        "confirmMismatch": "Xác nhận mật khẩu không trùng với mật khẩu mới"
       },
-      "success": "Đổi mật khẩu thành công",
+      "success": "Thay đổi mật khẩu thành công",
       "error": "Không thể đổi mật khẩu"
     }
   },
@@ -326,12 +326,13 @@
           "fullNameRequired": "Vui lòng nhập họ và tên",
           "fullNameInvalid": "Họ tên không được chứa số hoặc ký tự đặc biệt",
           "emailRequired": "Vui lòng nhập email",
-          "emailInvalid": "Email không hợp lệ",
+          "emailInvalid": "Email không đúng định dạng",
           "passwordRequired": "Vui lòng nhập mật khẩu",
           "passwordComplexity": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
-          "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
+          "confirmPasswordRequired": "Vui lòng nhập xác nhận mật khẩu",
           "confirmPasswordMismatch": "Mật khẩu xác nhận không khớp",
-          "agreeRequired": "Bạn phải đồng ý với điều khoản"
+          "agreeRequired": "Bạn phải đồng ý với điều khoản",
+          "passwordTooLong": "Mật khẩu không được dài quá 256 ký tự"
         }
       },
       "forgotPassword": {
@@ -349,7 +350,7 @@
         "submitFailed": "Có lỗi xảy ra. Vui lòng thử lại.",
         "validation": {
           "emailRequired": "Vui lòng nhập email",
-          "emailInvalid": "Email không hợp lệ"
+          "emailInvalid": "Email không đúng định dạng"
         }
       },
       "resetPassword": {
@@ -381,7 +382,7 @@
           "newPasswordMin": "Mật khẩu phải có ít nhất 6 ký tự",
           "newPasswordComplexity": "Mật khẩu phải chứa chữ hoa, chữ thường, số và ký tự đặc biệt",
           "confirmPasswordRequired": "Vui lòng xác nhận mật khẩu",
-          "confirmPasswordMismatch": "Mật khẩu không khớp"
+          "confirmPasswordMismatch": "Xác nhận mật khẩu không trùng với mật khẩu"
         }
       }
     },
@@ -678,16 +679,16 @@
         "locationFallbackAction": "Cho phép vị trí của tôi"
       },
       "validation": {
-        "petRequired": "Vui lòng chọn thú cưng",
-        "serviceRequired": "Vui lòng chọn dịch vụ",
+        "petRequired": "Vui lòng chọn một thú cưng để đặt lịch!",
+        "serviceRequired": "Vui lòng chọn dịch vụ!",
         "clinicRequired": "Vui lòng chọn phòng khám",
-        "doctorRequired": "Vui lòng chọn bác sĩ",
-        "symptomsRequired": "Vui lòng nhập triệu chứng",
-        "dateRequired": "Vui lòng chọn ngày hẹn",
-        "dateInPast": "Không thể đặt lịch trong quá khứ",
-        "timeRequired": "Vui lòng chọn giờ hẹn",
+        "doctorRequired": "Vui lòng chọn bác sĩ thú y!",
+        "symptomsRequired": "Vui lòng nhập triệu chứng hoặc ghi chú cho thú cưng!",
+        "dateRequired": "Vui lòng chọn ngày khám!",
+        "dateInPast": "Ngày khám không hợp lệ (ngày đã qua)!",
+        "timeRequired": "Vui lòng chọn khung giờ khám!",
         "selectDateFirst": "Vui lòng chọn ngày hẹn trước",
-        "timeUnavailable": "Khung giờ này đã có lịch, vui lòng chọn giờ khác",
+        "timeUnavailable": "Khung giờ này đã được đặt!",
         "minLeadTime": "Bạn cần đặt lịch trước ít nhất {{hours}} tiếng"
       },
       "noSlotsByLeadTime": "Không có khung giờ hợp lệ (cần đặt trước {{hours}} tiếng)",
@@ -831,7 +832,12 @@
         "avatarUploading": "Ảnh đang được tải lên, vui lòng đợi trong giây lát",
         "requiredFields": "Vui lòng điền đầy đủ thông tin bắt buộc",
         "invalidBreed": "Vui lòng chọn giống hợp lệ theo loài đã chọn",
-        "avatarRequired": "Vui lòng tải ảnh đại diện thú cưng"
+        "avatarRequired": "Vui lòng tải ảnh đại diện thú cưng",
+        "nameRequired": "Vui lòng nhập tên thú cưng",
+        "speciesRequired": "Vui lòng chọn loài thú cưng",
+        "genderRequired": "Vui lòng chọn giới tính",
+        "birthdayRequired": "Vui lòng nhập ngày sinh",
+        "weightInvalid": "Cân nặng phải lớn hơn 0"
       },
       "confirmLeave": {
         "title": "Bạn có muốn lưu thay đổi?",

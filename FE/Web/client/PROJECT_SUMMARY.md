@@ -2308,3 +2308,25 @@ All API service files live in `services/` with pattern `{domain}Service.js`.
 - Web Geolocation API: property name là `coords.latitude` / `coords.longitude` (không phải `lat`/`lon`); `enableHighAccuracy: true` trên HTTPS hoặc localhost mới hoạt động — HTTP non-localhost browser block hoàn toàn API.
 - Guard pattern cho `clinicId` trong booking flow: bất kỳ effect nào dùng clinicId để gọi API chi tiết phải gate trên `clinics.length > 0` + kiểm tra ID thuộc list, vì clinicId có thể đến từ sessionStorage stale.
 - Không động BE — không cần (root cause đều ở FE).
+
+## Đơn giản hóa luồng tạo Phiếu khám — chỉ POST /api/medical (2026-04-28)
+
+**Bối cảnh:** BE đã hợp nhất logic xử lý 3 case (có TK + có SĐT / có TK + chưa có SĐT / chưa có TK) vào duy nhất `POST /api/medical`. FE bỏ bước phụ trợ `PUT /api/user/{id}` để cập nhật SĐT khách hàng trong luồng tạo phiếu khám.
+
+**DTO POST /api/medical (BE/petcare/src/medical/dtos/create-medical-record.dto.ts):**
+- Required: `species, breed, petName, name, customerName, email, phone, temperature, heartRate, systolic, diastolic, weight, diagnosis, symptoms`.
+- Optional: `petId` (FE truyền khi user đã có account → BE cần petId để liên kết phiếu với pet sẵn có).
+- `phone`: required, validate theo `regex.phoneRegex`.
+
+**Thay đổi FE (FE/Web/client/src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx):**
+- Xoá import `updateUserProfileApi` (giữ `getUserListApi` để resolve petId của user đã tồn tại).
+- Walk-in flow: xoá block `if (existingOwnerId && normalizedPhone) { await updateUserProfileApi(...) }` sau khi tạo orders/medicines. Đơn giản hóa khai báo `existingOwnerId` thành biến block-scope cục bộ.
+- Appointment flow: xoá block `ownerId` + `existingOwnerPhone` lookup + call `updateUserProfileApi` đặt giữa cập nhật appointment status và `message.success`.
+- Payload `createMedicalRecordApi` không thay đổi — vốn đã gửi `phone` (từ `normalizedPhone` / `resolvedPhone`).
+- Validation phone (`/^\d{10}$/`), UI input phone, read-only logic, loading state walk-in (`showWalkInStep`) giữ nguyên.
+
+**⚠️ Vấn đề BE cần dev xử lý (không tự sửa do ràng buộc):**
+- File: `BE/petcare/src/medical/medical.service.ts` (dòng 493-512, hàm `createMedicalRecord`).
+- Vấn đề: nhánh else (user đã tồn tại) hiện chỉ kiểm tra phone collision với user khác, **không** thực hiện `userRepo.update(existedEmail.id, { phone: createDTO.phone })`. Vì vậy case "Có TK + chưa có SĐT" (hoặc admin nhập SĐT mới khác SĐT cũ) sẽ không thực sự cập nhật user.phone trong DB, dù BE chấp nhận tạo phiếu khám thành công.
+- Ảnh hưởng FE: phiếu khám tạo OK, nhưng `user.phone` không đồng bộ với `phone` admin nhập trong form. Trước đây FE bù bằng PUT /api/user; sau task này thì không còn nữa.
+- Đề xuất: thêm `await userRepo.update(existedEmail.id, { phone: createDTO.phone })` ngay sau check collision trong nhánh else.
