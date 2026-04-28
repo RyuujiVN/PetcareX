@@ -1,36 +1,36 @@
 import {
-  CalendarOutlined,
-  FileSearchOutlined,
-  HomeOutlined,
-  LineChartOutlined,
-  MessageOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  MedicineBoxOutlined,
-  RobotOutlined,
-  TeamOutlined,
+    CalendarOutlined,
+    FileSearchOutlined,
+    HomeOutlined,
+    LineChartOutlined,
+    MedicineBoxOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
+    MessageOutlined,
+    RobotOutlined,
+    TeamOutlined,
 } from "@ant-design/icons";
 import {
-  Badge,
-  Button,
-  Empty,
-  Form,
-  List,
-  notification,
-  Popover,
-  Select,
-  Tag,
-  Typography,
-  message,
+    Badge,
+    Button,
+    Empty,
+    Form,
+    List,
+    message,
+    notification,
+    Popover,
+    Select,
+    Tag,
+    Typography,
 } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
+import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
 import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
-import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
 import { getRoleLabel } from "../../constants/veterinaryLabels";
 import { RoleEnum } from "../../enum/role.enum";
@@ -39,7 +39,6 @@ import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
-import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import styles from "./AdminClinicLayout.module.css";
 
 const { Text } = Typography;
@@ -552,7 +551,11 @@ export default function AdminClinicLayout() {
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
-              <CiHospital1 />
+              <img
+                src="/avatarProject.png"
+                alt={clinicDisplayName}
+                className={styles.brandImage}
+              />
             </div>
             <div>
               <h2>{clinicDisplayName}</h2>

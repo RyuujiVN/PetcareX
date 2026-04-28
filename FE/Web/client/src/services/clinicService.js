@@ -31,6 +31,7 @@ const normalizeClinicListResponse = (payload) => {
   }
 }
 
+// Danh sách phòng khám phía ADMIN (có pagination chuẩn {items, meta}).
 export const getClinicListApi = (
   instance,
   page = 1,
@@ -46,6 +47,30 @@ export const getClinicListApi = (
       },
     })
     .then((response) => normalizeClinicListResponse(response.data))
+}
+
+// Danh sách phòng khám gần nhất cho user (theo vị trí địa lý, BE sort theo distance hoặc rating).
+// BE trả về mảng clinic kèm field `distance` (km). Không có {items, meta}.
+export const getNearbyClinicListApi = (
+  instance,
+  { page = 1, limit = 50, search = '', lat, lon, sortBy = 'distance' } = {},
+) => {
+  return instance
+    .get('/clinic/user', {
+      params: {
+        page,
+        limit,
+        lat,
+        lon,
+        sortBy,
+        ...(search ? { search } : {}),
+      },
+    })
+    .then((response) => {
+      const data = response.data
+      const items = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : []
+      return items.map((clinic) => normalizeClinicRecord(clinic))
+    })
 }
 // Lấy thông tin chi tiết của phòng khám
 export const getClinicByIdApi = (instance, clinicId) => {

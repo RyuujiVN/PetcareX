@@ -1,24 +1,23 @@
 import {
-  BarChartOutlined,
-  FileTextOutlined,
-  FlagOutlined,
-  MessageOutlined,
-  MedicineBoxOutlined,
-  RobotOutlined,
-  TeamOutlined,
+    BarChartOutlined,
+    FileTextOutlined,
+    FlagOutlined,
+    MedicineBoxOutlined,
+    MessageOutlined,
+    RobotOutlined,
+    TeamOutlined,
 } from "@ant-design/icons";
 import { Badge } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../hooks/Clinic/AuthContext";
-import { getPrimaryRole } from "../../constants/authRole";
-import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
-import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { RoleEnum } from "../../enum/role.enum";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
+import { getPrimaryRole } from "../../constants/authRole";
+import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
+import { RoleEnum } from "../../enum/role.enum";
+import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
@@ -231,7 +230,11 @@ export default function AdminLayout() {
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
-              <CiHospital1 />
+              <img
+                src="/avatarProject.png"
+                alt={t("layout.brand.name")}
+                className={styles.brandImage}
+              />
             </div>
             <div>
               <h2>{t("layout.brand.name")}</h2>

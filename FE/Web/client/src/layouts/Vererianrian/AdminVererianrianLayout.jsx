@@ -2,25 +2,24 @@ import {
     CalendarOutlined,
     FileTextOutlined,
     FormOutlined,
-  MessageOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  RobotOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
+    MessageOutlined,
+    RobotOutlined,
     SearchOutlined,
 } from '@ant-design/icons'
 import { Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography, notification } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { CiHospital1 } from "react-icons/ci"
-import { IoMdNotificationsOutline } from 'react-icons/io'
 import { useTranslation } from 'react-i18next'
+import { IoMdNotificationsOutline } from 'react-icons/io'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageSwitcher'
+import PortalAccountMenu from '../../components/common/PortalAccountMenu/PortalAccountMenu'
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
+import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
 import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
-import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageSwitcher'
-import PortalAccountMenu from '../../components/common/PortalAccountMenu/PortalAccountMenu'
-import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
 import useNotificationSocket from '../../hooks/useNotificationSocket'
 import { getAdminInstance } from '../../services/apiClient'
 import { resolveNotificationHref } from '../../services/notificationService'
@@ -376,7 +375,11 @@ export default function AdminVererianrianLayout() {
           <div>
             <div className={styles.brandWrap}>
               <div className={styles.brandIcon}>
-                <CiHospital1 />
+                <img
+                  src="/avatarProject.png"
+                  alt={clinicDisplayName}
+                  className={styles.brandImage}
+                />
               </div>
               <div>
                 <h2>{clinicDisplayName}</h2>

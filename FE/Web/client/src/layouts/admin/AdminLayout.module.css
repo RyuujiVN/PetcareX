@@ -40,6 +40,14 @@
   flex-shrink: 0;
 }
 
+.brandImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: inherit;
+  display: block;
+}
+
 .brandBox h2 {
   margin: 0;
   font-size: 21px;

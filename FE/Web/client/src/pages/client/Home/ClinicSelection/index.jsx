@@ -1,10 +1,12 @@
 ﻿import { message, Spin } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaSearch, FaStar } from "react-icons/fa";
+import { FaMapMarkerAlt, FaSearch, FaStar } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getClientInstance } from "../../../../services/apiClient";
-import { getClinicByIdApi, getClinicListApi } from "../../../../services/clinicService";
+import { getClinicByIdApi, getNearbyClinicListApi } from "../../../../services/clinicService";
+import { useUserLocation } from "../../../../hooks/client/useUserLocation";
+import { formatDistance } from "../../../../utils/formatDistance";
 import {
     CLINIC_INFO_STORAGE_PREFIX,
     CLINIC_INFO_UPDATED_EVENT,
@@ -32,6 +34,7 @@ export default function ClinicSelection() {
   const [loading, setLoading] = useState(false);
   const nameRefs = useRef([]);
   const navigate = useNavigate();
+  const { lat, lon, isLoading: locationLoading } = useUserLocation();
 
   const hydrateClinicFromLocalInfo = useCallback((clinic) => {
     const clinicInfo = getClinicInfoContent(clinic.id, clinic);
@@ -72,17 +75,27 @@ export default function ClinicSelection() {
   }, []);
 
   useEffect(() => {
+    // Chờ xong bước lấy vị trí rồi mới fetch — tránh fire 2 request (default + real).
+    if (locationLoading) return;
+
     let mounted = true;
 
     const fetchClinics = async () => {
       try {
         setLoading(true);
-        const response = await getClinicListApi(getClientInstance(), 1, 50, "");
-        const clinicItems = Array.isArray(response?.items) ? response.items : [];
+        const clinicItems = await getNearbyClinicListApi(getClientInstance(), {
+          page: 1,
+          limit: 50,
+          lat,
+          lon,
+          sortBy: "distance",
+        });
 
         if (!mounted) return;
 
-        const normalized = clinicItems.map((clinic) => hydrateClinicFromLocalInfo(clinic));
+        const normalized = (Array.isArray(clinicItems) ? clinicItems : []).map((clinic) =>
+          hydrateClinicFromLocalInfo(clinic),
+        );
 
         setClinics(normalized);
       } catch (error) {
@@ -97,7 +110,7 @@ export default function ClinicSelection() {
     return () => {
       mounted = false;
     };
-  }, [hydrateClinicFromLocalInfo, t]);
+  }, [hydrateClinicFromLocalInfo, t, lat, lon, locationLoading]);
 
   useEffect(() => {
     const syncClinicsFromLocalStorage = (clinicId = "") => {
@@ -152,23 +165,10 @@ export default function ClinicSelection() {
     };
   }, [hydrateClinicFromLocalInfo]);
 
-  const getRatingPercentage = (clinic) => {
-    const avgRating = Number(clinic?.avgRating) || 0;
-    const boundedRating = Math.max(0, Math.min(5, avgRating));
-    return (boundedRating / 5) * 100;
-  };
-
+  // BE đã sort theo distance (ES _geo_distance) — giữ nguyên thứ tự, FE chỉ lọc theo tên.
   const filtered = clinics.filter((c) =>
     (c.name || "").toLowerCase().includes(searchText.toLowerCase())
-  ).sort((a, b) => {
-    const percentageDiff = getRatingPercentage(b) - getRatingPercentage(a);
-    if (percentageDiff !== 0) return percentageDiff;
-
-    const reviewDiff = (Number(b?.totalReviews) || 0) - (Number(a?.totalReviews) || 0);
-    if (reviewDiff !== 0) return reviewDiff;
-
-    return String(a?.name || "").localeCompare(String(b?.name || ""));
-  });
+  );
 
 useEffect(() => {
   const update = () => {
@@ -231,14 +231,16 @@ useEffect(() => {
             />
           </div>
         </div>
+
       </div>
 
-      <Spin spinning={loading}>
+      <Spin spinning={loading || locationLoading}>
         <div className="clinic-grid">
           {filtered.map((clinic, index) => {
             const avgRating = Number(clinic.avgRating) || 0;
             const totalReviews = Number(clinic.totalReviews) || 0;
             const hasReviews = totalReviews > 0;
+            const distanceLabel = formatDistance(clinic.distance);
 
             return (
               <div key={clinic.id} className="clinic-card">
@@ -278,6 +280,13 @@ useEffect(() => {
                   <p className="clinic-address" title={clinic.address}>
                     {clinic.address}
                   </p>
+
+                  {distanceLabel && (
+                    <p className="clinic-distance" title={distanceLabel}>
+                      <FaMapMarkerAlt className="clinic-distance-icon" aria-hidden="true" />
+                      <span>{distanceLabel}</span>
+                    </p>
+                  )}
 
                   <p className="clinic-time" title={clinic.time}>
                     {clinic.time}

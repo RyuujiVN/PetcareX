@@ -1,4 +1,7 @@
 import { FlagOutlined } from '@ant-design/icons'
+import { Dropdown, message, Modal, Select } from 'antd'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
 	FaEllipsis,
 	FaFilter,
@@ -7,15 +10,26 @@ import {
 	FaRegThumbsUp,
 	FaThumbsUp,
 } from 'react-icons/fa6'
-import { Dropdown, message, Modal, Select } from 'antd'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
+import ScrollToTopButton from '../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import {
-	createCommentApi,
-	createPostApi,
+	ADMIN_AUTH_STORAGE,
+	CLIENT_AUTH_STORAGE,
+	getAdminAuthItem,
+} from '../../../constants/authStorage'
+import { RoleEnum } from '../../../enum/role.enum'
+import { useAuth } from '../../../hooks/client/AuthContext'
+import { getClientInstance } from '../../../services/apiClient'
+import {
+	createGenericReportApi,
+	reportCommentApi,
+	reportPostApi,
+} from '../../../services/forumReportService'
+import {
 	adminDeleteCommentApi,
 	adminDeletePostApi,
+	createCommentApi,
+	createPostApi,
 	deleteCommentApi,
 	deletePostApi,
 	getAllTopicsApi,
@@ -27,21 +41,7 @@ import {
 	updateCommentApi,
 	updatePostApi,
 } from '../../../services/forumService'
-import {
-	createGenericReportApi,
-	reportCommentApi,
-	reportPostApi,
-} from '../../../services/forumReportService'
-import {
-	ADMIN_AUTH_STORAGE,
-	CLIENT_AUTH_STORAGE,
-	getAdminAuthItem,
-} from '../../../constants/authStorage'
-import { RoleEnum } from '../../../enum/role.enum'
-import { useAuth } from '../../../hooks/client/AuthContext'
-import { getClientInstance } from '../../../services/apiClient'
-import { uploadUserImagesApi, uploadUserImageApi } from '../../../services/userService'
-import ScrollToTopButton from '../../../components/common/ScrollToTopButton/ScrollToTopButton'
+import { uploadUserImageApi, uploadUserImagesApi } from '../../../services/userService'
 import styles from './AdminForum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'

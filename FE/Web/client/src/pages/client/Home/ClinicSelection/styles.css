@@ -112,6 +112,20 @@
   color: var(--color-text-secondary);
 }
 
+.clinic-distance {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px !important;
+  font-size: 13px !important;
+  color: var(--color-text-muted) !important;
+}
+
+.clinic-distance-icon {
+  color: var(--color-brand-primary-hover, var(--color-brand-muted));
+  font-size: 12px;
+}
+
 .clinic-info {
   padding: 16px 20px;
   flex: 1;

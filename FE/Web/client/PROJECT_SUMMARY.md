@@ -20,7 +20,116 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-21)
+## Cập nhật mới nhất (2026-04-27)
+
+### Cập nhật (2026-04-27) — Cải thiện Select "Phòng khám gần bạn" trong BookingAppointment: hiện tên + địa chỉ + khoảng cách
+
+**Phạm vi (FE only):**
+- `src/pages/client/User/BookingAppointment/index.jsx`:
+  - Import thêm `formatDistance` (`src/utils/formatDistance.js`) và `DEFAULT_LOCATION` (`src/constants/location.js`).
+  - `useUserLocation` lấy thêm `isDefault: locationIsDefault`, `retry: retryLocation`.
+  - Refactor Select clinicId từ `options=[{label,value}]` (1 dòng tên) sang `<Select.Option>` JSX với 3 thông tin:
+    - **Selected (collapsed)** dùng `optionLabelProp="displayLabel"` → hiển thị compact `"Tên phòng khám · 2.3km"` (không tràn input).
+    - **Option (dropdown row)**: grid 2 cột — left: tên (line 1, đậm) + địa chỉ kèm icon `EnvironmentOutlined` (line 2, nhạt, ellipsis); right: badge khoảng cách (`formatDistance(item.distance)`).
+    - `popupMatchSelectWidth={420}` → dropdown rộng đủ để show address mà không bóp tên/địa chỉ.
+  - Banner fallback `clinic-location-banner` hiện ngay dưới Select khi `locationIsDefault=true` và không có `preselectedClinicId`: icon vị trí + text "Đang tính khoảng cách từ Đà Nẵng (vị trí mặc định)" + nút "Cho phép vị trí của tôi" → gọi `retryLocation`. Nút disabled khi `locationLoading` để tránh double-fire.
+- `src/pages/client/User/BookingAppointment/styles.css`:
+  - Thêm `.clinic-option`, `.clinic-option-main`, `.clinic-option-name`, `.clinic-option-address`, `.clinic-option-distance` (badge pill màu brand-primary).
+  - Thêm `.clinic-location-banner` + `.clinic-location-banner-action` cho banner fallback.
+- `src/locales/client/{vi,en}.json` — thêm `pages.booking.form.locationFallbackNotice` (`{{city}}` placeholder) + `pages.booking.form.locationFallbackAction`. Reuse `DEFAULT_LOCATION.label` ("Đà Nẵng") làm `city` thay vì hardcode.
+
+**Định vị — đã rà soát chính xác:**
+- `useUserLocation` đã có `enableHighAccuracy: true` + timeout 10s + cache module-scope → tận dụng GPS/WiFi triangulation, tránh IP-based fallback (ISP/datacenter lệch hàng chục km).
+- BookingAppointment chờ `!locationLoading` mới `bootstrapData()` (line 306-311) → đảm bảo `lat/lon` truyền vào `getNearbyClinicListApi` luôn là vị trí đã resolve (real or default), không bao giờ là `null`.
+- Banner fallback CHỈ hiện khi `isDefault=true` → user biết được khoảng cách hiển thị đang tính từ Đà Nẵng (default), không bị nhầm tưởng đó là vị trí thật.
+
+**Phương án UI/UX đã chọn — Phương án A (custom render trong AntD Select qua `optionLabelProp`):**
+- Lý do: surgical, đồng bộ pattern doctor select đã dùng (line 750-775 cùng file), giữ nguyên AntD Form integration (validation, keyboard nav, tab order).
+- Đã phản biện và **loại Phương án B** (custom Popover + List): linh hoạt hơn nhưng phá vỡ pattern Form Select hiện có, mất kiểu validation tự động của AntD → vi phạm "match existing style" trong CLAUDE.md.
+
+**Tự kiểm tra:**
+- `npm run build` → thành công (vite build, 22.90s).
+- Backward-compat: 3 caller khác của `getNearbyClinicListApi` (ClinicSelection, các nơi khác) không bị ảnh hưởng — chỉ thay đổi UI hiển thị tại BookingAppointment.
+
+**Ghi chú kiến trúc để tham khảo sau:**
+- Khi cần hiển thị nhiều thông tin trong AntD `<Select>` value mà giữ collapsed view gọn: dùng `optionLabelProp` + JSX option children. Đây là pattern chuẩn của AntD, đã có 2 chỗ dùng trong codebase (doctor select + clinic select mới).
+- Nếu sau này cần search trong Select clinic → bật `showSearch` + custom `filterOption` so với cả `name` và `address`.
+
+### Cập nhật (2026-04-27) — Thêm tính năng Search vào Forum (Client portal)
+
+**Phạm vi (FE only, không đụng BE):**
+- `src/services/forumService.js` — `getPostsApi(instance, { limit, lastPostTime, keyword, topicId, sortRecent })`: thêm 3 param optional `keyword`, `topicId`, `sortRecent`. Param chỉ append vào query khi có giá trị (giữ backward-compat: 3 caller khác `AdminForum`, `VetForum`, `ClinicForum` truyền `{ limit: 1000 }` không bị ảnh hưởng).
+- `src/pages/client/User/Forum/ForumSearchBar.jsx` (mới) — component search input tái sử dụng được:
+  - Icon `FaMagnifyingGlass` bên trái + input + nút clear `FaXmark` bên phải (chỉ hiện khi có text).
+  - Debounce 500ms (configurable qua prop `debounceMs`) — không gọi API mỗi ký tự.
+  - Pattern đồng bộ external `value` ↔ internal state qua `lastEmittedRef` để tránh loop khi parent reset.
+  - Props: `value`, `onSearch(keyword)`, `placeholder`, `debounceMs`, `ariaLabel`. Style nhúng từ `forum.module.css` (token màu `--forum-primary*`, không hardcode hex cho màu chủ đạo).
+- `src/pages/client/User/Forum/forum.jsx`:
+  - Thêm state `searchKeyword` + `searchKeywordRef` để `loadPosts` đọc keyword hiện tại không cần là dependency.
+  - `loadPosts({ keyword })` truyền `keyword` xuống `getPostsApi`. Khi gọi không param thì lấy `searchKeywordRef.current` (giữ keyword hiện tại sau create/update/delete post).
+  - **Limit động theo trạng thái search**: `limit = keyword ? 50 : 1000`. Lý do: BE Elasticsearch RRF hardcode `rank_window_size: 50` (`post-search.service.ts:110`), ES yêu cầu `size <= rank_window_size` → khi search mà truyền `limit > 50` sẽ throw `action_request_validation_exception` (500). Khi không search BE đi nhánh query thường (không RRF) nên `limit: 1000` vẫn OK.
+  - `useEffect([searchKeyword])` + `didMountSearchRef` để bỏ qua lần fire đầu tiên (initial load đã fetch rồi) → mỗi lần keyword thay đổi sẽ refetch.
+  - JSX: thêm `searchCard` ngay trên `composeCard` trong `leftColumn`, chứa `<ForumSearchBar/>` + status row khi đang search (chip "Đang tìm: ...", nút "Xóa tìm kiếm", số lượng kết quả).
+  - Empty state khi search rỗng kết quả: icon kính lúp + tiêu đề + gợi ý "Thử tìm với từ khóa khác".
+- `src/pages/client/User/Forum/forum.module.css` — thêm `.searchCard`, `.searchBar`, `.searchBarIcon`, `.searchBarInput`, `.searchBarClearBtn`, `.searchStatusRow`, `.searchActiveChip`, `.searchClearLink`, `.searchResultCount`, `.searchEmptyState`, `.searchEmptyIcon`, `.searchEmptyTitle`, `.searchEmptyHint`. Dùng token `--forum-primary` / `--forum-primary-soft` cho màu nhấn (đồng bộ với rest of forum).
+- `src/locales/client/{vi,en}.json` — thêm namespace `pages.forum.search`: `placeholder`, `activeLabel`, `clear`, `resultCount`, `emptyTitle`, `emptyHint`.
+
+**BE API đã confirm (đọc file, không sửa):**
+- `GET /api/post` (`BE/petcare/src/forum/post/post.controller.ts:36-83`): query params `limit` (required), optional `lastPostTime`, `topicId`, `keyword`, `sortRecent`.
+- Search engine: Elasticsearch RRF kết hợp BM25 full-text trên field `content` (fuzziness AUTO) + semantic search trên `semantic_content` (`post-search.service.ts:55-128`). Filter `topicId` áp dụng cho cả 2 retriever → có thể kết hợp keyword + topic.
+- Search **chỉ trên content** (BE entity không có cột `title` riêng — title nhúng trong content qua token `[[title:...]]` ở FE, không index riêng).
+
+**Phương án UI/UX đã chọn — Phương án A (search bar tách card riêng phía trên composeCard):**
+- Lý do: tách rõ vai trò "find" (search) vs "create" (composer). Giữ được topic filter Dropdown đã có sẵn trong `composeActions` không bị xáo trộn.
+- Search bar full-width trong card riêng → dễ nhận biết, không tranh chỗ với composer.
+- Status row chỉ hiện khi đang search → không tốn không gian khi user chưa search.
+
+**Tự kiểm tra:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (vite build, 5985 modules transformed, 19.32s).
+- `npx eslint` các file đã sửa → 0 lỗi mới (3 issue pre-existing không liên quan ở line 330/1236/1558).
+
+**⚠️ Vấn đề BE cần dev biết (không tự fix):**
+- `BE/petcare/src/forum/post/post-search.service.ts:51` — sai chính tả `createAt` (thiếu chữ `d`, đúng phải là `createdAt`) trong sort khi `sortRecent=true` → sort không có hiệu lực. FE chưa truyền `sortRecent` nên không phá feature hiện tại.
+- `BE/petcare/src/forum/post/post-search.service.ts:55-128` — khi có `keyword` nhưng `sortRecent=false`, ES không có sort fallback theo `createdAt` → pagination cursor `lastPostTime` không deterministic. FE hiện fetch `limit:1000` không pagination thật nên chưa lộ vấn đề; cần fix nếu sau này bật infinite scroll.
+- `BE/petcare/src/forum/post/post.service.ts:40` — còn `console.log(postIds)` sót trong production code.
+- `BE/petcare/src/forum/post/post-search.service.ts:110` — `rank_window_size: 50` hardcoded → khi FE muốn search trả nhiều hơn 50 kết quả phải BE nâng `rank_window_size` (đồng thời chấp nhận tải nặng hơn cho ES rerank). FE đang clamp `limit=50` khi search để tránh 500.
+
+### Cập nhật (2026-04-23) — Tích hợp vị trí địa lý (lat/lon) vào tìm kiếm phòng khám gần nhất
+
+**Phạm vi (FE only, không đụng BE):**
+- `src/constants/location.js` (mới) — `DEFAULT_LOCATION = { lat: 16.061063335944954, lon: 108.21931990, label: 'Đà Nẵng' }`, `GEOLOCATION_TIMEOUT_MS = 10000`, `GEOLOCATION_MAX_AGE_MS = 5 * 60 * 1000`.
+- `src/utils/formatDistance.js` (mới) — `formatDistance(distanceKm)` format theo quy ước `<1km → "Xm"`, `>=1km → "X.Xkm"`. Lưu ý: BE trả distance **đơn vị km** (ES `_geo_distance` với `unit: 'km'`).
+- `src/hooks/client/useUserLocation.js` (mới) — hook quản lý vị trí user: gọi `navigator.geolocation.getCurrentPosition` với timeout 10s, thất bại/từ chối/không support → fallback về `DEFAULT_LOCATION` + `isDefault: true`. Cache ở module scope để không hỏi permission mỗi lần mount. Trả về `{ lat, lon, isDefault, isLoading, error, retry }`.
+- `src/services/clinicService.js`:
+  - `getClinicListApi(instance, page, limit, search)` **đã đổi path** từ `/clinic/user` → `/clinic` (endpoint admin, trả `{items, meta}` chuẩn `nestjs-typeorm-paginate`). Admin dashboard và `adminActivityService` dùng hàm này.
+  - Thêm `getNearbyClinicListApi(instance, { page, limit, search, lat, lon, sortBy })` hit `/clinic/user`. BE trả raw array (không có `items/meta`), mỗi item kèm field `distance` (km). Hàm normalize về array đã chuẩn hoá `openingTime/closingTime`.
+- `src/pages/client/Home/ClinicSelection/index.jsx` + `styles.css` + `locales/client/{vi,en}.json`:
+  - Dùng `useUserLocation` + `getNearbyClinicListApi` với `sortBy: 'distance'`.
+  - Bỏ sort theo rating ở FE (BE đã sort theo khoảng cách — phải giữ thứ tự BE trả).
+  - Thêm banner fallback `.clinic-location-banner` khi `isDefault`: icon địa chỉ + text + button "Cho phép vị trí của tôi" → gọi `retry`.
+  - Thêm `.clinic-distance` trong card (icon `FaMapMarkerAlt` + `formatDistance(clinic.distance)`) ngay dưới địa chỉ.
+  - i18n key mới: `pages.home.clinicSelection.locationFallbackNotice`, `pages.home.clinicSelection.locationFallbackAction`.
+- `src/pages/client/User/BookingAppointment/index.jsx`: dùng `useUserLocation` + `getNearbyClinicListApi`, `useEffect` bootstrap chờ `!locationLoading` mới fetch để tránh 2 lần gọi (default + real). Logic preselectedClinicId giữ nguyên.
+
+**BE API đã confirm (đọc file, không sửa):**
+- Clinic entity (`BE/petcare/src/clinic/entities/clinic.entity.ts`): field `lat: decimal`, `lon: decimal` (tên chính xác).
+- Endpoint `GET /api/clinic/user` (`clinic.controller.ts`): query params **bắt buộc** `page`, `limit`, `lat`, `lon`; optional `sortBy: 'distance' | 'rating'` (default `'distance'`) và `search`. Role cho phép: ADMIN, ADMIN_CLINIC, VETERINARIAN, CUSTOMER.
+- Service: `ClinicSearchService.searchClinics` (Elasticsearch) sort theo `_geo_distance` (km), trả `hits.hits.map(hit => ({ ...hit._source, distance: hit.sort.at(-1) }))` — **raw array**, không có pagination wrapper.
+- Endpoint `GET /api/clinic` (admin-only, `paginate<Clinic>`) trả `{items, meta, links}` — FE `getClinicListApi` chuyển sang dùng endpoint này cho admin dashboard.
+
+**Phương án fallback UX:**
+- Khi đang hỏi permission (`locationLoading`): `<Spin>` bao quanh lưới clinic, không fire request.
+- Thất bại/từ chối → dùng `DEFAULT_LOCATION`, hiện banner không obtrusive với nút retry. Không spam toast.
+- Có vị trí thật → không banner, load danh sách bình thường.
+- Không tự tính Haversine ở FE (BE đã sort theo ES geo_distance, nếu sau này BE không trả `distance` thì chỉ bỏ dòng hiển thị, không cần tính lại phía client).
+
+**Tự kiểm tra:**
+- `npx eslint` các file đã sửa → sạch (1 warning pre-existing về `fetchDoctorsByClinic` không liên quan).
+- `npm run build` → thành công (5984 modules, 29.66s).
+
+**⚠️ Vấn đề BE cần dev biết (không tự fix):**
+- `GET /api/clinic/user` hiện trả raw array từ Elasticsearch, không còn `{items, meta}`. Nếu muốn phân trang phía user (load more / infinite scroll) thì BE cần wrap lại response (ví dụ: `{ items, meta: { totalItems, currentPage, itemsPerPage, totalPages } }`). FE tạm thời fetch `limit=50` không phân trang ở user portal.
+- `page` ở ES search hiện truyền thẳng vào `from` — nếu `page > 1` thì ý nghĩa khác (ES `from` là offset, không phải page). Không ảnh hưởng FE hiện tại vì chỉ gọi `page=1, limit=50`, nhưng cần lưu ý khi bật pagination.
 
 ### Cập nhật (2026-04-21) — Fix nghiêm trọng layout ChatBot Client: thanh nhập bị dồn lên cao ở route `/chatbot`
 
@@ -2117,3 +2226,85 @@ All API service files live in `services/` with pattern `{domain}Service.js`.
 8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
 9. Hoàn thiện trang super admin còn lại: Overview.
 10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).
+
+### Cập nhật (2026-04-23) — Tố cáo bài viết/bình luận trên Web (Report Post/Comment)
+
+**Phạm vi:**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/client/User/Forum/forum.module.css`
+
+**Yêu cầu:**
+- Port tính năng tố cáo từ Mobile Flutter lên Web, giao diện tương đương.
+- Tố cáo bài viết người khác: chọn lý do preset (6 lý do) + mô tả thêm tùy chọn.
+- Tố cáo bình luận người khác: cùng UX (trước đây chỉ có textarea free-text).
+- Chặn tố cáo lặp cùng post/comment trong một phiên.
+- Fix text "Báo cáo bài viết" bị xuống hàng trong post menu.
+
+**Phân tích & tự phản biện:**
+- Phương án A (tracking "đã tố cáo") — `useState + Set` vs `useRef + Set`:
+  - `useState`: khi add vào Set sẽ không trigger re-render vì Set là mutation (cần spread mới) → dùng sai.
+  - `useRef` (đã chọn): không cần re-render, chỉ cần check trước khi mở modal → đúng use-case.
+- Phương án B (cấu trúc lý do tố cáo) — align với Mobile vs giữ nguyên:
+  - Web cũ có 4 lý do (spam, inappropriate, misleading, other) → không khớp Mobile (spam, offensive, harassment, misinformation, violence, other).
+  - Quyết định: align với Mobile — 6 lý do, value uppercase (SPAM, OFFENSIVE, ...) để admin đọc report đồng nhất.
+  - Tạo 1 `reportReasonOptions` dùng chung cho cả post và comment (DRY).
+- Phương án C (comment report modal) — giữ textarea vs thêm Select:
+  - Textarea free-text: user không biết gõ gì, không nhất quán với post modal.
+  - Select + optional textarea (đã chọn): nhất quán với post modal, nhất quán với Mobile.
+- Phương án D (CSS text-wrap) — `white-space: nowrap` vs tăng `min-width`:
+  - Tăng `min-width`: có thể bị tràn trên màn nhỏ.
+  - `white-space: nowrap` (đã chọn): đúng nguyên nhân gốc, text menu không bao giờ bị wrap, an toàn hơn.
+
+**Thay đổi đã triển khai:**
+
+*forum.module.css:*
+- `.postMenuItem`: thêm `white-space: nowrap` → fix text bị xuống hàng.
+
+*forum.jsx:*
+- Thêm state: `commentReportReason`, `commentReportDetail` (Select + optional textarea cho comment modal).
+- Thêm ref: `reportedPostIds` (`useRef(new Set())`), `reportedCommentIds` (`useRef(new Set())`).
+- Refactor `postReportReasonOptions` → `reportReasonOptions` dùng chung, 6 lý do align Mobile (value uppercase).
+- `handleStartReportPost`: check `reportedPostIds.current.has(postId)` trước khi mở modal → show `message.warning` nếu đã tố cáo.
+- `handleSubmitPostReport`: sau khi submit thành công → `reportedPostIds.current.add(postId)`.
+- `handleCommentAction` (branch 'report'): check `reportedCommentIds.current.has(commentId)` → show warning nếu đã tố cáo; reset `commentReportReason` và `commentReportDetail` khi mở modal.
+- `handleSubmitCommentReport`: validate `commentReportReason` (Select), build payload `{reason, detail}`, fallback generic endpoint cùng pattern post, mark `reportedCommentIds.current.add(commentId)` sau khi thành công.
+- `closeReportModal`: reset `commentReportReason` + `commentReportDetail`.
+- Comment report modal UI: thêm `<Select>` chọn lý do + `<textarea>` mô tả thêm (tùy chọn), title đặt đúng qua prop `title` của Modal (bỏ `<h3>` inline + `style textAlign: center`), `okButtonProps.disabled` check `commentReportReason`.
+
+**Ghi chú kiến trúc:**
+- Tracking "đã tố cáo" là in-memory (reset khi reload page). BE không validate duplicate → đây là UX safeguard phía FE, giống Mobile.
+- `forumReportService.js` không thay đổi — fallback chain (endpoint theo post/comment → generic POST /report) vẫn hoạt động.
+- Không động BE, không động các forum role khác (AdminForum, ClinicForum, VetForum) — chỉ `client/User/Forum/forum.jsx`.
+
+---
+
+## Fix: Geolocation lấy sai tọa độ + Booking Page 404
+
+**Bối cảnh:**
+- Lỗi 1: User cấp quyền vị trí, nhưng nearby clinic list sort sai vì tọa độ truyền vào API không đúng.
+- Lỗi 2: Mở `/booking` từ một số entry point → console báo `GET /api/clinic/{id}` 404.
+
+**Root cause Lỗi 1 — Geolocation:**
+- `useUserLocation.js` gọi `navigator.geolocation.getCurrentPosition()` với `enableHighAccuracy: false`.
+- Browser khi `enableHighAccuracy: false` ưu tiên IP-based geolocation (vị trí ISP/datacenter) thay vì GPS/WiFi triangulation → tọa độ trả về có thể lệch hàng chục–trăm km so với vị trí thật của user.
+- State `lat/lon` đúng là tọa độ "thật" do browser trả về, nhưng nguồn dữ liệu (IP) sai bản chất.
+
+**Root cause Lỗi 2 — Booking 404:**
+- `BookingAppointment` seed `preselectedClinicId` ưu tiên `location.state.selectedClinicId`, fallback `sessionStorage.getItem('selectedClinicId')`.
+- Một số entry point navigate sang `/booking` mà KHÔNG truyền state (`AppointmentDetail.handleBookingNew`, `MedicalRecords` truyền chỉ `service`) → fallback sang sessionStorage.
+- sessionStorage có thể giữ ID stale (clinic đã xoá / DB seed reset) từ session cũ → form clinicId = stale ID.
+- useEffect cũ trigger `fetchClinicById(clinicId)` ngay khi clinicId đổi, KHÔNG đợi `clinics` list load và KHÔNG validate ID có thuộc list → BE 404 với clinic không tồn tại.
+
+**Thay đổi đã triển khai:**
+
+*FE/Web/client/src/hooks/client/useUserLocation.js:*
+- Đổi `enableHighAccuracy: false` → `true` trong options của `getCurrentPosition` → dùng GPS/WiFi triangulation cho tọa độ chính xác.
+
+*FE/Web/client/src/pages/client/User/BookingAppointment/index.jsx:*
+- useEffect seed `clinicId` từ `preselectedClinicId`: thêm gate `clinics.length === 0` + validate preselected nằm trong list trước khi `setFieldValue` → tránh đẩy ID stale vào form quá sớm.
+- useEffect fetch doctor + clinic detail: thêm gate chờ `clinics` load. Nếu `clinicId` không thuộc nearby list → clear `sessionStorage.selectedClinicId` (nếu match) + fallback `form.clinicId = clinics[0].id` thay vì gọi `GET /clinic/:id` với ID lỗi → 404.
+
+**Lưu ý kiến trúc:**
+- Web Geolocation API: property name là `coords.latitude` / `coords.longitude` (không phải `lat`/`lon`); `enableHighAccuracy: true` trên HTTPS hoặc localhost mới hoạt động — HTTP non-localhost browser block hoàn toàn API.
+- Guard pattern cho `clinicId` trong booking flow: bất kỳ effect nào dùng clinicId để gọi API chi tiết phải gate trên `clinics.length > 0` + kiểm tra ID thuộc list, vì clinicId có thể đến từ sessionStorage stale.
+- Không động BE — không cần (root cause đều ở FE).
