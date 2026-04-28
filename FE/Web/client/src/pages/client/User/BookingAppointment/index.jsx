@@ -855,56 +855,75 @@ export default function BookingAppointment() {
                           />
                           <div className="doctor-header-info">
                             <h3>{selectedDoctorName}</h3>
-                            <Tag color="blue">{selectedDoctorSpecialtyLabel}</Tag>
-                          </div>
-                        </div>
-
-                        <div className="doctor-details">
-                          <div className="doctor-detail-row">
+                            {/* <Tag color="blue">{selectedDoctorSpecialtyLabel}</Tag> */}
+                            <div className="doctor-detail-row">
                             <MedicineBoxOutlined />
                             <span className="doctor-detail-label">{t('pages.booking.doctorDetail.specialty')}</span>
                             <span>{selectedDoctorSpecialtyLabel}</span>
                           </div>
-
-                          {hasDoctorExperience ? (
-                            <div className="doctor-detail-row">
-                              <ClockCircleOutlined />
-                              <span className="doctor-detail-label">{t('pages.booking.doctor.experience')}</span>
-                              <span>
-                                {needsTruncate(selectedDoctorExperienceText)
-                                  ? truncateText(selectedDoctorExperienceText)
-                                  : selectedDoctorExperienceText}
-                                {needsTruncate(selectedDoctorExperienceText) ? (
-                                  <button
-                                    type="button"
-                                    className="doctor-read-more"
-                                    onClick={() => setDoctorDetailModalOpen(true)}
-                                  >
-                                    {t('pages.booking.doctor.readMore')}
-                                  </button>
-                                ) : null}
-                              </span>
-                            </div>
-                          ) : null}
-
-                          {hasDoctorDescription ? (
-                            <div className="doctor-description">
-                              <div className="doctor-detail-label">{t('pages.booking.doctor.description')}</div>
-                              <p>
-                                {truncateText(selectedDoctorDescriptionText)}
-                                {needsTruncate(selectedDoctorDescriptionText) ? (
-                                  <button
-                                    type="button"
-                                    className="doctor-read-more"
-                                    onClick={() => setDoctorDetailModalOpen(true)}
-                                  >
-                                    {t('pages.booking.doctor.readMore')}
-                                  </button>
-                                ) : null}
-                              </p>
-                            </div>
-                          ) : null}
+                          </div>
                         </div>
+
+                        <div className="doctor-details">
+  {hasDoctorExperience || hasDoctorDescription ? (
+    <div className="doctor-info-grid">
+      
+      {/* Kinh nghiệm */}
+      {hasDoctorExperience ? (
+        <div className="doctor-info-item">
+          <div className="doctor-detail-row">
+            <ClockCircleOutlined />
+            <span className="doctor-detail-label">
+              {t('pages.booking.doctor.experience')}
+            </span>
+          </div>
+
+          <p>
+            {needsTruncate(selectedDoctorExperienceText)
+              ? truncateText(selectedDoctorExperienceText)
+              : selectedDoctorExperienceText}
+
+            {needsTruncate(selectedDoctorExperienceText) && (
+              <button
+                type="button"
+                className="doctor-read-more"
+                onClick={() => setDoctorDetailModalOpen(true)}
+              >
+                {t('pages.booking.doctor.readMore')}
+              </button>
+            )}
+          </p>
+        </div>
+      ) : null}
+
+      {/* Giới thiệu */}
+      {hasDoctorDescription ? (
+        <div className="doctor-info-item">
+          <div className="doctor-detail-row">
+            <span className="doctor-detail-label">
+              {t('pages.booking.doctor.description')}
+            </span>
+          </div>
+
+          <p>
+            {truncateText(selectedDoctorDescriptionText)}
+
+            {needsTruncate(selectedDoctorDescriptionText) && (
+              <button
+                type="button"
+                className="doctor-read-more"
+                onClick={() => setDoctorDetailModalOpen(true)}
+              >
+                {t('pages.booking.doctor.readMore')}
+              </button>
+            )}
+          </p>
+        </div>
+      ) : null}
+
+    </div>
+  ) : null}
+</div>
                       </div>
                     ) : (
                       <Card
