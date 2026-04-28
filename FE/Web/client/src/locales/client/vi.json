@@ -699,6 +699,12 @@
         "description": "Giới thiệu:",
         "years": "năm"
       },
+      "doctor": {
+        "experience": "Kinh nghiệm:",
+        "description": "Giới thiệu:",
+        "readMore": "Xem thêm",
+        "modalTitle": "Thông tin bác sĩ {{name}}"
+      },
       "calendar": {
         "monthLabel": "Tháng {{month}}, {{year}}",
         "days": {

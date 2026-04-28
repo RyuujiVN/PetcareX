@@ -20,7 +20,6 @@ import {
 	Divider,
 	Form,
 	Input,
-	InputNumber,
 	Modal,
 	Row,
 	Select,
@@ -53,8 +52,6 @@ const parseDay = (dateValue) => {
 	return parsed.isValid() ? parsed : null
 }
 
-const NAME_REGEX = /^[A-Za-zÀ-ỹ]+(?: [A-Za-zÀ-ỹ]+)*$/u
-
 const buildValidateFullName = (t) => async (_, value) => {
 	const rawValue = value || ''
 	const trimmedValue = rawValue.trim()
@@ -71,9 +68,6 @@ const buildValidateFullName = (t) => async (_, value) => {
 		throw new Error(t('veterinarians.validation.fullNameNoDoubleSpaces'))
 	}
 
-	if (!NAME_REGEX.test(trimmedValue)) {
-		throw new Error(t('veterinarians.validation.fullNameCharacters'))
-	}
 }
 
 const buildValidatePhone = (t) => async (_, value) => {
@@ -197,7 +191,7 @@ export default function InformationVererianrian() {
 			email: veterinarian?.user?.email || '',
 			phone: veterinarian?.user?.phone || '',
 			address: veterinarian?.user?.address || '',
-			experience: veterinarian?.experience ? Number(veterinarian.experience) : null,
+			experience: veterinarian?.experience || '',
 			description: veterinarian?.description || veterinarian?.introduce || '',
 			joinDate: parseDay(veterinarian?.user?.createdAt),
 			specialty: veterinarian?.specialty || 'GENERAL_EXAMINATION',
@@ -231,7 +225,7 @@ export default function InformationVererianrian() {
 		const normalizedFullName = values.fullName.trim()
 		const normalizedPhone = values.phone.trim()
 		const normalizedAddress = (values.address || '').trim()
-		const normalizedExperience = values.experience ?? null
+		const normalizedExperience = String(values.experience || '').trim()
 		const normalizedDescription = (values.description || '').trim()
 		setEditing(true)
 		try {
@@ -244,8 +238,8 @@ export default function InformationVererianrian() {
 				address: normalizedAddress,
 				avatarUrl,
 				specialty: values.specialty,
-				experience: normalizedExperience !== null ? String(normalizedExperience) : null,
-				description: normalizedDescription,
+				experience: normalizedExperience || undefined,
+				description: normalizedDescription || undefined,
 				introduce: normalizedDescription,
 			})
 
@@ -253,7 +247,7 @@ export default function InformationVererianrian() {
 				const updated = {
 					...prev,
 					specialty: values.specialty,
-					experience: normalizedExperience !== null ? String(normalizedExperience) : '',
+					experience: normalizedExperience,
 					description: normalizedDescription,
 					introduce: normalizedDescription,
 					user: {
@@ -502,11 +496,9 @@ export default function InformationVererianrian() {
 							</Col>
 							<Col span={12}>
 								<Form.Item name="experience" label={t('veterinarians.fields.experience')}>
-									<InputNumber
-										min={0}
-										max={50}
+									<Input
 										placeholder={t('veterinarians.fields.experiencePlaceholder')}
-										style={{ width: '100%' }}
+										maxLength={200}
 									/>
 								</Form.Item>
 							</Col>

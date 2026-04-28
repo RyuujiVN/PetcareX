@@ -155,10 +155,10 @@
       "password": "Mật khẩu",
       "phone": "Số điện thoại",
       "address": "Địa chỉ",
-      "experience": "Kinh nghiệm (năm)",
+      "experience": "Kinh nghiệm",
       "description": "Giới thiệu",
-      "experiencePlaceholder": "Số năm kinh nghiệm",
-      "descriptionPlaceholder": "Mô tả ngắn về bác sĩ...",
+      "experiencePlaceholder": "Ví dụ: 5 năm kinh nghiệm ngoại khoa",
+      "descriptionPlaceholder": "Mô tả về bác sĩ...",
       "role": "Vai trò",
       "joinDate": "Ngày tham gia"
     },
@@ -912,6 +912,14 @@
       },
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
+      },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "{{count}} kết quả",
+        "emptyTitle": "Không tìm thấy kết quả cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
       },
       "topics": {
         "dailyCare": "Chăm sóc thú cưng hằng ngày",

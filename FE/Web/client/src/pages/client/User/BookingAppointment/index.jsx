@@ -8,7 +8,7 @@ import {
   SunOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin, Tag } from 'antd';
+import { Avatar, Card, Col, Form, Input, Modal, message, Row, Select, Spin, Tag } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsArrowLeftShort, BsArrowRightShort } from "react-icons/bs";
@@ -48,6 +48,7 @@ const TIME_SLOT_GROUPS = [
 
 const WORKING_SLOTS = TIME_SLOT_GROUPS.flatMap((group) => group.times);
 const BOOKING_MIN_LEAD_HOURS = 3;
+const TRUNCATE_LIMIT = 100;
 
 const formatDate = (date) => {
   const y = date.getFullYear();
@@ -71,6 +72,7 @@ export default function BookingAppointment() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [showSummary, setShowSummary] = useState(false);
+  const [doctorDetailModalOpen, setDoctorDetailModalOpen] = useState(false);
   const location = useLocation();
   const { userProfile } = useAuth();
   const {
@@ -153,16 +155,25 @@ export default function BookingAppointment() {
   const selectedDoctorExperience = selectedDoctor?.experience ?? selectedDoctor?.yearsOfExperience;
   const selectedDoctorDescription =
     selectedDoctor?.description || selectedDoctor?.introduce || selectedDoctor?.bio || '';
-  const hasDoctorExperience =
-    selectedDoctorExperience !== null &&
-    selectedDoctorExperience !== undefined &&
-    String(selectedDoctorExperience).trim() !== '';
-  const hasDoctorDescription = String(selectedDoctorDescription || '').trim() !== '';
+  const selectedDoctorExperienceText =
+    selectedDoctorExperience !== null && selectedDoctorExperience !== undefined
+      ? String(selectedDoctorExperience).trim()
+      : '';
+  const selectedDoctorDescriptionText = String(selectedDoctorDescription || '').trim();
+  const hasDoctorExperience = selectedDoctorExperienceText !== '';
+  const hasDoctorDescription = selectedDoctorDescriptionText !== '';
   const selectedDoctorSpecialtyLabel = selectedDoctor?.specialty
     ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, {
         defaultValue: getSpecialtyLabel(selectedDoctor.specialty),
       })
     : t('pages.booking.noSpecialty');
+
+  const truncateText = (text, limit = TRUNCATE_LIMIT) => {
+    if (!text) return '';
+    return text.length > limit ? `${text.slice(0, limit)}...` : text;
+  };
+
+  const needsTruncate = (text, limit = TRUNCATE_LIMIT) => Boolean(text && text.length > limit);
 
   const bookingHeaderStyle = useMemo(() => {
     const avatarUrl = String(userProfile?.avatarUrl || '').trim();
@@ -858,17 +869,39 @@ export default function BookingAppointment() {
                           {hasDoctorExperience ? (
                             <div className="doctor-detail-row">
                               <ClockCircleOutlined />
-                              <span className="doctor-detail-label">{t('pages.booking.doctorDetail.experience')}</span>
+                              <span className="doctor-detail-label">{t('pages.booking.doctor.experience')}</span>
                               <span>
-                                {selectedDoctorExperience} {t('pages.booking.doctorDetail.years')}
+                                {needsTruncate(selectedDoctorExperienceText)
+                                  ? truncateText(selectedDoctorExperienceText)
+                                  : selectedDoctorExperienceText}
+                                {needsTruncate(selectedDoctorExperienceText) ? (
+                                  <button
+                                    type="button"
+                                    className="doctor-read-more"
+                                    onClick={() => setDoctorDetailModalOpen(true)}
+                                  >
+                                    {t('pages.booking.doctor.readMore')}
+                                  </button>
+                                ) : null}
                               </span>
                             </div>
                           ) : null}
 
                           {hasDoctorDescription ? (
                             <div className="doctor-description">
-                              <div className="doctor-detail-label">{t('pages.booking.doctorDetail.description')}</div>
-                              <p>{selectedDoctorDescription}</p>
+                              <div className="doctor-detail-label">{t('pages.booking.doctor.description')}</div>
+                              <p>
+                                {truncateText(selectedDoctorDescriptionText)}
+                                {needsTruncate(selectedDoctorDescriptionText) ? (
+                                  <button
+                                    type="button"
+                                    className="doctor-read-more"
+                                    onClick={() => setDoctorDetailModalOpen(true)}
+                                  >
+                                    {t('pages.booking.doctor.readMore')}
+                                  </button>
+                                ) : null}
+                              </p>
                             </div>
                           ) : null}
                         </div>
@@ -1031,6 +1064,36 @@ export default function BookingAppointment() {
           </div>
         </div>
       </Spin>
+      <Modal
+        open={doctorDetailModalOpen}
+        onCancel={() => setDoctorDetailModalOpen(false)}
+        footer={null}
+        title={t('pages.booking.doctor.modalTitle', {
+          name: selectedDoctorName,
+          defaultValue: selectedDoctorName,
+        })}
+        width={480}
+      >
+        {selectedDoctor ? (
+          <div>
+            <Tag color="blue" style={{ marginBottom: 12 }}>
+              {selectedDoctorSpecialtyLabel}
+            </Tag>
+            {hasDoctorExperience ? (
+              <div style={{ marginBottom: 12 }}>
+                <strong>{t('pages.booking.doctor.experience')}</strong>
+                <p style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{selectedDoctorExperienceText}</p>
+              </div>
+            ) : null}
+            {hasDoctorDescription ? (
+              <div>
+                <strong>{t('pages.booking.doctor.description')}</strong>
+                <p style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{selectedDoctorDescriptionText}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </Modal>
       {showSummary && (
   <div className="summary-overlay">
     <div className="summary-modal">

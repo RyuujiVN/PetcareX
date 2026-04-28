@@ -617,6 +617,14 @@
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
       },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "{{count}} kết quả",
+        "emptyTitle": "Không tìm thấy kết quả cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
+      },
       "topics": {
         "dailyCare": "Chăm sóc thú cưng hằng ngày",
         "vaccinationAndPrevention": "Tiêm phòng và phòng bệnh",

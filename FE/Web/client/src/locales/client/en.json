@@ -699,6 +699,12 @@
         "description": "Introduction:",
         "years": "years"
       },
+      "doctor": {
+        "experience": "Experience:",
+        "description": "Introduction:",
+        "readMore": "Read more",
+        "modalTitle": "Doctor details: {{name}}"
+      },
       "calendar": {
         "monthLabel": "Month {{month}}, {{year}}",
         "days": {

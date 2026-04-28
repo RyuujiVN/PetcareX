@@ -713,6 +713,21 @@
   white-space: pre-wrap;
 }
 
+.doctor-read-more {
+  border: none;
+  background: transparent;
+  color: var(--color-brand-primary);
+  font-weight: 600;
+  cursor: pointer;
+  margin-left: 6px;
+  padding: 0;
+  font-size: 13px;
+}
+
+.doctor-read-more:hover {
+  text-decoration: underline;
+}
+
 /* ── Clinic option (name + address + distance) inside dropdown ── */
 /* Override AntD's `.ant-select-item-option-content` defaults
    (white-space: nowrap; overflow: hidden; text-overflow: ellipsis)
