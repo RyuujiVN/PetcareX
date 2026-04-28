@@ -554,24 +554,24 @@ class AppLocalizationsEn extends AppLocalizations {
   String get locationFallbackNotice => 'Using default location (Da Nang)';
 
   @override
-  String get locationServiceDisabledTitle => 'Bật dịch vụ vị trí';
+  String get locationServiceDisabledTitle => 'Enable Location Service';
 
   @override
   String get locationServiceDisabledMessage =>
-      'Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.';
+      'You need to enable Location (GPS) on your device to find nearby clinics.';
 
   @override
-  String get locationPermissionDeniedTitle => 'Cấp quyền vị trí';
+  String get locationPermissionDeniedTitle => 'Grant Location Permission';
 
   @override
   String get locationPermissionDeniedMessage =>
-      'Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.';
+      'Location access permission was denied. Go to App Settings to grant permission and try again.';
 
   @override
-  String get locationDialogCancel => 'Để sau';
+  String get locationDialogCancel => 'Later';
 
   @override
-  String get locationDialogOpenSettings => 'Mở Cài đặt';
+  String get locationDialogOpenSettings => 'Open Settings';
 
   @override
   String get shareSomething =>

@@ -101,7 +101,14 @@ class _ForumSearchBarState extends State<ForumSearchBar> {
               ),
               decoration: InputDecoration(
                 isCollapsed: true,
+                filled: false,
+                contentPadding: EdgeInsets.zero,
                 border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                disabledBorder: InputBorder.none,
+                errorBorder: InputBorder.none,
+                focusedErrorBorder: InputBorder.none,
                 hintText: widget.hintText,
                 hintStyle: const TextStyle(
                   color: AppColors.textGrey,
