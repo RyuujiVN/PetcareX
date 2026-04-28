@@ -12,11 +12,13 @@ class CommunityRepository {
     String? lastPostTime,
     int limit = 20,
     String? topicId,
+    String? keyword,
   }) async {
     final endpoint = ApiHelper.postsEndpoint(
       limit: limit,
       lastPostTime: lastPostTime,
       topicId: topicId,
+      keyword: keyword,
     );
 
     final response = await _apiClient.get(endpoint);

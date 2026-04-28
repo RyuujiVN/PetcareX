@@ -174,6 +174,23 @@
   "time": "Time",
   "note": "Note",
   "searchHint": "Search posts, pets...",
+  "forumSearchPlaceholder": "Search posts by content...",
+  "forumSearchActive": "Searching: {keyword}",
+  "@forumSearchActive": {
+    "placeholders": {
+      "keyword": { "type": "String" }
+    }
+  },
+  "forumSearchClear": "Clear search",
+  "forumSearchEmptyTitle": "No posts found",
+  "forumSearchEmptyHint": "Try a different keyword.",
+  "locationFallbackNotice": "Using default location (Da Nang)",
+  "locationServiceDisabledTitle": "Enable Location Service",
+  "locationServiceDisabledMessage": "You need to enable Location (GPS) on your device to find nearby clinics.",
+  "locationPermissionDeniedTitle": "Grant Location Permission",
+  "locationPermissionDeniedMessage": "Location access permission was denied. Go to App Settings to grant permission and try again.",
+  "locationDialogCancel": "Later",
+  "locationDialogOpenSettings": "Open Settings",
   "shareSomething": "What do you want to share about your pet today?",
   "chooseTopic": "Choose topic",
   "pleaseChooseTopic": "Please choose a topic",

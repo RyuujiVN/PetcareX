@@ -1,12 +1,26 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/enums/service_enum.dart';
+import '../../../../core/services/location_service.dart';
 import '../../../../core/utils/service_specialty_mapper.dart';
 import '../../data/booking_repository.dart';
 import '../../data/models/booking_models.dart';
 
 class BookingProvider extends ChangeNotifier {
   final BookingRepository _repository = BookingRepository();
+  final LocationService _locationService = LocationService();
+
+  // Vị trí user dùng để gọi /clinic/user (sort theo distance). True nếu đang dùng fallback Đà Nẵng.
+  bool _isLocationDefault = false;
+  LocationFailureReason _locationReason = LocationFailureReason.none;
+  bool get isLocationDefault => _isLocationDefault;
+  LocationFailureReason get locationReason => _locationReason;
+  LocationService get locationService => _locationService;
+
+  Future<void> retryLocation() async {
+    await _locationService.refresh();
+    await fetchClinics();
+  }
 
   String? _selectedPetId;
   String? _selectedPetName;
@@ -25,7 +39,6 @@ class BookingProvider extends ChangeNotifier {
   // Clinic pagination state
   static const int _clinicsPageSize = 20;
   int _clinicsCurrentPage = 1;
-  int _clinicsTotalPages = 1;
   bool _hasMoreClinics = true;
   bool _isLoadingMoreClinics = false;
 
@@ -133,26 +146,30 @@ class BookingProvider extends ChangeNotifier {
     }
   }
 
-  // Fetching data
+  // Fetching data — dùng /clinic/user (Elasticsearch geo_distance), BE đã sort sẵn theo khoảng cách
+  // nên FE không re-sort. Endpoint trả raw array (không có meta pagination) → suy ra hết trang khi
+  // batch trả về < pageSize.
   Future<void> fetchClinics() async {
     _isLoading = true;
     _errorMessage = null;
     _clinicsCurrentPage = 1;
-    _clinicsTotalPages = 1;
     _hasMoreClinics = true;
     _isLoadingMoreClinics = false;
     notifyListeners();
 
     try {
-      final result = await _repository.getClinics(
+      final loc = await _locationService.getUserLocation();
+      _isLocationDefault = loc.isDefault;
+      _locationReason = loc.reason;
+
+      final items = await _repository.getNearbyClinics(
         page: 1,
         limit: _clinicsPageSize,
+        lat: loc.lat,
+        lon: loc.lon,
       );
-      final items = (result['items'] as List).cast<Clinic>();
-      _clinics = _sortClinicsByRating(items);
-      _clinicsCurrentPage = (result['currentPage'] as int?) ?? 1;
-      _clinicsTotalPages = (result['totalPages'] as int?) ?? 1;
-      _hasMoreClinics = _clinicsCurrentPage < _clinicsTotalPages;
+      _clinics = items;
+      _hasMoreClinics = items.length >= _clinicsPageSize;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
@@ -168,35 +185,26 @@ class BookingProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final loc = await _locationService.getUserLocation();
       final nextPage = _clinicsCurrentPage + 1;
-      final result = await _repository.getClinics(
+      final items = await _repository.getNearbyClinics(
         page: nextPage,
         limit: _clinicsPageSize,
+        lat: loc.lat,
+        lon: loc.lon,
       );
-      final items = (result['items'] as List).cast<Clinic>();
-      _clinics = _sortClinicsByRating([..._clinics, ...items]);
-      _clinicsCurrentPage = (result['currentPage'] as int?) ?? nextPage;
-      _clinicsTotalPages = (result['totalPages'] as int?) ?? _clinicsTotalPages;
-      _hasMoreClinics = _clinicsCurrentPage < _clinicsTotalPages;
+      // Dedup theo id để tránh trùng nếu BE trả overlap giữa các page.
+      final seen = _clinics.map((c) => c.id).toSet();
+      final fresh = items.where((c) => seen.add(c.id)).toList();
+      _clinics = [..._clinics, ...fresh];
+      _clinicsCurrentPage = nextPage;
+      _hasMoreClinics = items.length >= _clinicsPageSize;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {
       _isLoadingMoreClinics = false;
       notifyListeners();
     }
-  }
-
-  // Sort: clinics with reviews first (desc by avgRating), unrated clinics last.
-  List<Clinic> _sortClinicsByRating(List<Clinic> input) {
-    final list = List<Clinic>.from(input);
-    list.sort((a, b) {
-      final aHas = a.totalReviews > 0;
-      final bHas = b.totalReviews > 0;
-      if (aHas && !bHas) return -1;
-      if (!aHas && bHas) return 1;
-      return b.avgRating.compareTo(a.avgRating);
-    });
-    return list;
   }
 
   Future<void> fetchDoctors(String clinicId, {String? specialty}) async {

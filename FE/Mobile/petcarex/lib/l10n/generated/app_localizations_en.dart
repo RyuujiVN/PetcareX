@@ -534,6 +534,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchHint => 'Search posts, pets...';
 
   @override
+  String get forumSearchPlaceholder => 'Search posts by content...';
+
+  @override
+  String forumSearchActive(String keyword) {
+    return 'Searching: $keyword';
+  }
+
+  @override
+  String get forumSearchClear => 'Clear search';
+
+  @override
+  String get forumSearchEmptyTitle => 'No posts found';
+
+  @override
+  String get forumSearchEmptyHint => 'Try a different keyword.';
+
+  @override
+  String get locationFallbackNotice => 'Using default location (Da Nang)';
+
+  @override
+  String get locationServiceDisabledTitle => 'Enable Location Service';
+
+  @override
+  String get locationServiceDisabledMessage =>
+      'You need to enable Location (GPS) on your device to find nearby clinics.';
+
+  @override
+  String get locationPermissionDeniedTitle => 'Grant Location Permission';
+
+  @override
+  String get locationPermissionDeniedMessage =>
+      'Location access permission was denied. Go to App Settings to grant permission and try again.';
+
+  @override
+  String get locationDialogCancel => 'Later';
+
+  @override
+  String get locationDialogOpenSettings => 'Open Settings';
+
+  @override
   String get shareSomething =>
       'What do you want to share about your pet today?';
 

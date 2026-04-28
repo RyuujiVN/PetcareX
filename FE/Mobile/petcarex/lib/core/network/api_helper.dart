@@ -125,6 +125,27 @@ class ApiHelper {
     },
   );
 
+  // Endpoint /clinic/user — sort theo distance dựa trên lat/lon, mỗi clinic kèm field `distance` (km).
+  // Role cho phép: ADMIN / ADMIN_CLINIC / VETERINARIAN / CUSTOMER. lat/lon là param bắt buộc của BE.
+  static String nearbyClinicsEndpoint({
+    int page = 1,
+    int limit = 20,
+    required double lat,
+    required double lon,
+    String sortBy = 'distance',
+    String? search,
+  }) => buildEndpoint(
+    '${AppConstants.END_POINT_CLINIC}/user',
+    queryParameters: <String, Object?>{
+      'page': page,
+      'limit': limit,
+      'lat': lat,
+      'lon': lon,
+      'sortBy': sortBy,
+      'search': search,
+    },
+  );
+
   static String veterinariansEndpoint({
     int page = 1,
     int limit = 10,
@@ -144,12 +165,14 @@ class ApiHelper {
     String? lastPostTime,
     int limit = 20,
     String? topicId,
+    String? keyword,
   }) => buildEndpoint(
     AppConstants.END_POINT_POST,
     queryParameters: <String, Object?>{
       'limit': limit,
       'lastPostTime': lastPostTime,
       'topicId': topicId,
+      'keyword': keyword,
     },
   );
 

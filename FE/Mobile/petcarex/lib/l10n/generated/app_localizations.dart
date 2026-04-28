@@ -1112,6 +1112,78 @@ abstract class AppLocalizations {
   /// **'Tìm kiếm bài viết, thú cưng...'**
   String get searchHint;
 
+  /// No description provided for @forumSearchPlaceholder.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm bài viết theo nội dung...'**
+  String get forumSearchPlaceholder;
+
+  /// No description provided for @forumSearchActive.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tìm: {keyword}'**
+  String forumSearchActive(String keyword);
+
+  /// No description provided for @forumSearchClear.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa tìm kiếm'**
+  String get forumSearchClear;
+
+  /// No description provided for @forumSearchEmptyTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy bài viết nào'**
+  String get forumSearchEmptyTitle;
+
+  /// No description provided for @forumSearchEmptyHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử tìm với từ khóa khác.'**
+  String get forumSearchEmptyHint;
+
+  /// No description provided for @locationFallbackNotice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang dùng vị trí mặc định (Đà Nẵng)'**
+  String get locationFallbackNotice;
+
+  /// No description provided for @locationServiceDisabledTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bật dịch vụ vị trí'**
+  String get locationServiceDisabledTitle;
+
+  /// No description provided for @locationServiceDisabledMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.'**
+  String get locationServiceDisabledMessage;
+
+  /// No description provided for @locationPermissionDeniedTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấp quyền vị trí'**
+  String get locationPermissionDeniedTitle;
+
+  /// No description provided for @locationPermissionDeniedMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.'**
+  String get locationPermissionDeniedMessage;
+
+  /// No description provided for @locationDialogCancel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Để sau'**
+  String get locationDialogCancel;
+
+  /// No description provided for @locationDialogOpenSettings.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở Cài đặt'**
+  String get locationDialogOpenSettings;
+
   /// No description provided for @shareSomething.
   ///
   /// In vi, this message translates to:

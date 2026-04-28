@@ -532,6 +532,46 @@ class AppLocalizationsVi extends AppLocalizations {
   String get searchHint => 'Tìm kiếm bài viết, thú cưng...';
 
   @override
+  String get forumSearchPlaceholder => 'Tìm bài viết theo nội dung...';
+
+  @override
+  String forumSearchActive(String keyword) {
+    return 'Đang tìm: $keyword';
+  }
+
+  @override
+  String get forumSearchClear => 'Xóa tìm kiếm';
+
+  @override
+  String get forumSearchEmptyTitle => 'Không tìm thấy bài viết nào';
+
+  @override
+  String get forumSearchEmptyHint => 'Thử tìm với từ khóa khác.';
+
+  @override
+  String get locationFallbackNotice => 'Đang dùng vị trí mặc định (Đà Nẵng)';
+
+  @override
+  String get locationServiceDisabledTitle => 'Bật dịch vụ vị trí';
+
+  @override
+  String get locationServiceDisabledMessage =>
+      'Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.';
+
+  @override
+  String get locationPermissionDeniedTitle => 'Cấp quyền vị trí';
+
+  @override
+  String get locationPermissionDeniedMessage =>
+      'Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.';
+
+  @override
+  String get locationDialogCancel => 'Để sau';
+
+  @override
+  String get locationDialogOpenSettings => 'Mở Cài đặt';
+
+  @override
   String get shareSomething => 'Bạn muốn chia sẻ điều gì về thú cưng hôm nay?';
 
   @override
