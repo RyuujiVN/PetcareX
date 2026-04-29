@@ -5,12 +5,11 @@ import { Appointment } from 'src/appointment/entities/appointment.entity';
 import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
 import { Invoice } from 'src/invoice/entities/invoice.entity';
 import { Between, Repository } from 'typeorm';
-
-type RevenueFilterChart = {
-  dateStart: Date;
-  dateEnd: Date;
-  groupBy: 'DAY' | 'MONTH';
-};
+import { Clinic } from 'src/clinic/entities/clinic.entity';
+import {
+  RevenueBookedClinic,
+  RevenueFilterChart,
+} from './types/revenue-filter-chart';
 
 @Injectable()
 export class RevenueService {
@@ -19,10 +18,12 @@ export class RevenueService {
     private readonly invoiceRepository: Repository<Invoice>,
     @InjectRepository(Appointment)
     private readonly appointmentRepository: Repository<Appointment>,
+    @InjectRepository(Clinic)
+    private readonly clinicRepository: Repository<Clinic>,
   ) {}
 
   // Summary doanh thu hôm nay
-  async getSummaryToday(clinicId: string) {
+  async getSummaryTodayAdminClinic(clinicId: string) {
     const today = new Date();
 
     const start = new Date(today);
@@ -93,6 +94,7 @@ export class RevenueService {
     return await queryBuilder.getRawMany();
   }
 
+  // Top bác sĩ được đặt lịch nhiều nhất
   async topVeterinarian(clinicId: string) {
     const today = new Date();
 
@@ -137,5 +139,55 @@ export class RevenueService {
       totalAppointment: vet.totalappointment,
       specialty: vet.veterinarian_specialty,
     }));
+  }
+
+  // Summary số phòng khám
+  async getSummaryTodayAdmin() {
+    const [totalClinic, totalClinicActive, totalClinicInactive] =
+      await Promise.all([
+        this.clinicRepository.count(),
+        this.clinicRepository.count({
+          where: {
+            deleted: false,
+          },
+        }),
+        this.clinicRepository.count({
+          where: {
+            deleted: true,
+          },
+        }),
+      ]);
+
+    return {
+      totalClinic,
+      totalClinicActive,
+      totalClinicInactive,
+    };
+  }
+
+  async getTopBookedClinics(options: RevenueBookedClinic) {
+    const queryBuilder = this.clinicRepository
+      .createQueryBuilder('clinic')
+      .leftJoin(
+        'clinic.appointments',
+        'appointment',
+        `appointment.status = :status AND DATE_TRUNC('month', appointment.appointmentDate) = DATE_TRUNC('month', CURRENT_DATE)
+        `,
+        { status: AppointmentStatusEnum.COMPLETED },
+      )
+      .select([
+        'clinic.id',
+        'clinic.name',
+        'clinic.address',
+
+        'COUNT(appointment.id) as totalAppointments',
+      ])
+      .where('clinic.deleted = false')
+      .groupBy('clinic.id')
+      .addGroupBy('clinic.name')
+      .addGroupBy('clinic.address')
+      .orderBy('totalAppointments', options.orderByType);
+
+    return await queryBuilder.getRawMany();
   }
 }
