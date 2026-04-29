@@ -336,7 +336,7 @@ export default function AddNewVererianrian() {
 									label={t('veterinarians.fields.description')}
 								>
 									<Input.TextArea
-										rows={4}
+										rows={1}
 										placeholder={t('veterinarians.fields.descriptionPlaceholder')}
 										maxLength={1000}
 										showCount

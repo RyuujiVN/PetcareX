@@ -238,8 +238,8 @@ export default function InformationVererianrian() {
 				address: normalizedAddress,
 				avatarUrl,
 				specialty: values.specialty,
-				experience: normalizedExperience || undefined,
-				description: normalizedDescription || undefined,
+				experience: normalizedExperience,
+				description: normalizedDescription,
 				introduce: normalizedDescription,
 			})
 
@@ -386,17 +386,17 @@ export default function InformationVererianrian() {
 					<Row gutter={[16, 16]}>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title={t('veterinarians.fields.role')} value={veterinarianView.role} prefix={<IdcardOutlined />} />
+								<Statistic title={t('veterinarians.fields.role')} value={veterinarianView.role}/>
 							</Card>
 						</Col>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title={t('veterinarians.fields.specialty')} value={veterinarianView.specialty} prefix={<MedicineBoxOutlined />} />
+								<Statistic title={t('veterinarians.fields.specialty')} value={veterinarianView.specialty} />
 							</Card>
 						</Col>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title={t('veterinarians.fields.joinDate')} value={veterinarianView.joinDate} prefix={<CalendarOutlined />} />
+								<Statistic title={t('veterinarians.fields.joinDate')} value={veterinarianView.joinDate} />
 							</Card>
 						</Col>
 					</Row>
@@ -505,7 +505,7 @@ export default function InformationVererianrian() {
 							<Col span={24}>
 								<Form.Item name="description" label={t('veterinarians.fields.description')}>
 									<Input.TextArea
-										rows={4}
+										rows={1}
 										placeholder={t('veterinarians.fields.descriptionPlaceholder')}
 										maxLength={500}
 										showCount
