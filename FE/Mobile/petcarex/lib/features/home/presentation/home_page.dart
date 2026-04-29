@@ -18,6 +18,7 @@ import '../../appointment/data/appointment_model.dart';
 import '../../appointment/presentation/provider/appointment_provider.dart';
 import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
+import '../../clinic/presentation/nearby_clinic_page.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../../notification/presentation/widgets/notification_bell_button.dart';
 import '../../pet/data/models/pet_models.dart';
@@ -615,10 +616,9 @@ class _HomePageState extends State<HomePage> {
           AppColors.successAlpha(0.12),
           AppColors.success,
           onTap: () {
-            AppNotifier.showInfo(
+            Navigator.push(
               context,
-              'Developing...',
-              duration: const Duration(seconds: 2),
+              MaterialPageRoute(builder: (_) => const NearbyClinicPage()),
             );
           },
         ),

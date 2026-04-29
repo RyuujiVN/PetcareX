@@ -253,4 +253,8 @@ class ApiHelper {
 
   static String clinicReviewByIdEndpoint(String reviewId) =>
       '${AppConstants.END_POINT_CLINIC_REVIEW}/$reviewId';
+
+  // Clinic homepage setting endpoint
+  static String clinicHomepageSettingByIdEndpoint(String clinicId) =>
+      '${AppConstants.END_POINT_CLINIC_HOMEPAGE_SETTING}/$clinicId';
 }

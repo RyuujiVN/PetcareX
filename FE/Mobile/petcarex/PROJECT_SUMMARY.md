@@ -833,3 +833,59 @@ Tích hợp hệ thống thông báo realtime vào Mobile App, đồng bộ UX v
 - `LocationService` cache module-scope tương đương Web `useUserLocation` — cùng pattern, port 1-1.
 - `formatDistance` đơn vị km — đồng bộ Web (BE trả km).
 - Khi search forum → BE đi nhánh ES RRF, limit phải <= 50 và pagination cursor `lastPostTime` không deterministic → FE bỏ infinite scroll trong chế độ search.
+
+## 🏥 Nearby Clinic Feature (2026-04-29)
+
+### Bối cảnh nghiệp vụ
+- Home đã có CTA `Tìm phòng khám gần nhất` (action tile thứ 3) nhưng trước đó chỉ hiển thị toast `Developing...`. Feature này hoàn thiện luồng: từ Home → list clinic gần nhất → detail clinic → đặt lịch.
+- **Permission strict**: khác booking flow (booking dùng fallback Đà Nẵng + info notice), nearby clinic feature **không cho phép browse với fallback** vì mục đích chính là "gần nhất". Nếu không lấy được vị trí thật → toast lỗi + pop về Home.
+
+### Phản biện kiến trúc đã chọn
+- **Re-use BookingProvider hay tạo provider riêng?** → Tạo `NearbyClinicProvider` riêng. Re-use sẽ phá state booking đang dở (selectedClinic, selectedPet, ...). Trade-off: duplicate ~30 dòng fetch logic, đáng đánh đổi để decouple.
+- **Force re-prompt permission**: dùng `LocationService.getUserLocation()` trước (tận dụng cache nếu user đã grant ở booking). Nếu cache là default (denied/disabled trước đó) → gọi `refresh()` để re-prompt OS dialog. Tránh annoy user khi đã có cached real location.
+- **Không gọi BE khi `isLocationDefault==true`**: feature mất ý nghĩa nếu fallback Đà Nẵng → return sớm + caller pop.
+- **Nút "Đặt lịch" ở detail page**: pre-select clinic vào BookingProvider trước khi push BookingPage → user thấy flow tiếp tục từ step **Pet** thay vì phải chọn lại clinic. Có gọi `bookingProvider.reset()` trước để đảm bảo clean state.
+
+### API contract (BE đã có sẵn — không sửa BE)
+- `GET /api/clinic/user?page=&limit=&lat=&lon=&sortBy=distance` — list clinic gần (đã dùng ở booking).
+- `GET /api/clinic-homepage-setting/{clinicId}` — trả `{ banner: {title, subtitle}, introduction, services[], workingHours, contactPhone }`. Parser tolerant (chấp nhận thiếu field, trả về setting rỗng nếu BE chưa cấu hình).
+- `GET /api/clinic-review?clinicId=&page=&limit=` — trả `{ items, meta }`. FE chỉ load top 10 review ở detail page (không paginate).
+
+### Files mới tạo
+| File | Vai trò |
+|------|---------|
+| `lib/features/clinic/data/models/clinic_homepage_setting.dart` | Model parse `ClinicHomepageSetting` (banner/intro/services/workingHours/contactPhone). |
+| `lib/features/clinic/data/models/clinic_review_models.dart` | Model `ClinicReviewItem` + `ClinicReviewAuthor`. |
+| `lib/features/clinic/data/clinic_repository.dart` | `getHomepageSetting(clinicId)` + `getClinicReviews({clinicId, page, limit})`. |
+| `lib/features/clinic/presentation/provider/nearby_clinic_provider.dart` | State list (pagination dedup theo id) + detail (homepage setting + reviews fetch song song qua `Future.wait`). Strict permission: không fallback. |
+| `lib/features/clinic/presentation/widgets/nearby_clinic_card.dart` | Card list — copy layout từ `step_clinic_selector` nhưng bỏ trạng thái selected, thêm chevron right. |
+| `lib/features/clinic/presentation/nearby_clinic_page.dart` | Trang list. Guard permission strict: hiện dialog `Mở Cài đặt` cho service-disabled / permanently-denied; với denied/unknown → toast lỗi + pop. Sau khi user trở lại từ Settings, retry; nếu vẫn fail thì lại pop. |
+| `lib/features/clinic/presentation/clinic_detail_page.dart` | SliverAppBar gradient + body sections (intro, contact, services chips, reviews top 10) + bottom action bar nút "Đặt lịch ngay". Tap nút → reset BookingProvider + selectClinic + push BookingPage. |
+
+### Files đã sửa
+| File | Thay đổi |
+|------|----------|
+| `lib/core/constants/app_constants.dart` | Thêm `END_POINT_CLINIC_HOMEPAGE_SETTING`. |
+| `lib/core/network/api_helper.dart` | Thêm `clinicHomepageSettingByIdEndpoint(clinicId)`. |
+| `lib/main.dart` | Đăng ký `NearbyClinicProvider` vào `MultiProvider`. |
+| `lib/features/home/presentation/home_page.dart` | Action tile `findClinic` chuyển từ toast `Developing...` sang push `NearbyClinicPage`. |
+| `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb` | 13 keys mới: `nearbyClinicTitle`, `nearbyClinicEmpty`, `nearbyClinicLocationRequiredDenied/ServiceDisabled/PermanentlyDenied`, `clinicDetailIntroduction/IntroEmpty/Contact/WorkingHours/Phone/Email/ContactEmpty/Services/ServicesEmpty/Reviews/BookNow`. |
+
+### UX guard permission (chi tiết)
+- `serviceDisabled` → dialog "Bật dịch vụ vị trí" → user mở Settings → retry. Nếu user bấm `Để sau` → toast lỗi + pop.
+- `permissionPermanentlyDenied` → dialog "Cấp quyền vị trí" → mở App Settings → retry. Nếu `Để sau` → toast lỗi + pop.
+- `permissionDenied` (denied lần này, có thể hỏi lại) / `unknown` (timeout) → toast lỗi + pop trực tiếp.
+- Mọi nhánh đều set `_hasHandledLocationOutcome` để không trigger 2 lần khi `notifyListeners` rebuild.
+
+### UX detail page (đã chọn vs đã loại)
+- **Đã chọn**: SliverAppBar (220px) hiển thị banner gradient/avatar + overlay tối + title/subtitle từ `ClinicHomepageSetting.banner`. Body: summary card (tên, address, distance, rating) + 4 section card (Giới thiệu, Liên hệ, Dịch vụ, Đánh giá). Bottom action bar fixed có nút `Đặt lịch ngay`.
+- **Đã loại**: layout flat scroll (không có banner) — kém visual hierarchy; placement nút đặt lịch ở giữa body — dễ miss, user cần CTA luôn visible.
+- Section card pattern dùng cùng border + shadow với existing widget để đồng bộ visual language.
+- Service chips dùng `Wrap` với primary background + border alpha — match accent color của booking flow.
+- Review item: avatar + tên + ngày + sao + content. Empty state hiển thị `clinicNoReviews` (i18n đã có sẵn, reuse).
+
+### Tự kiểm tra
+- `flutter gen-l10n` → 13 keys mới generate sạch cho cả vi & en (l10n.yaml chạy tự động khi build).
+- `flutter analyze lib/features/clinic lib/features/home/presentation/home_page.dart lib/main.dart` → **No issues found**.
+- Tuân thủ memory rule **không cross-boundary edit BE/FE**: toàn bộ thay đổi nằm ở FE mobile, không đụng BE.
+- Tuân thủ semantic colors: chỉ dùng `AppColors.*`, không hardcode màu mới.

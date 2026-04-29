@@ -539,6 +539,22 @@
   "reportReasonViolence": "Bạo lực / Phản cảm",
   "reportReasonOther": "Khác",
   "reportAlreadyReported": "Bạn đã tố cáo bình luận này.",
-  "reportPostAlreadyReported": "Bạn đã tố cáo bài viết này."
+  "reportPostAlreadyReported": "Bạn đã tố cáo bài viết này.",
+  "nearbyClinicTitle": "Phòng khám gần bạn",
+  "nearbyClinicEmpty": "Chưa có phòng khám nào quanh bạn.",
+  "nearbyClinicLocationRequiredDenied": "Cần quyền vị trí để tìm phòng khám gần bạn. Vui lòng cấp quyền và thử lại.",
+  "nearbyClinicLocationRequiredServiceDisabled": "Vui lòng bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.",
+  "nearbyClinicLocationRequiredPermanentlyDenied": "Quyền vị trí đang bị từ chối vĩnh viễn. Mở Cài đặt ứng dụng để bật lại quyền vị trí.",
+  "clinicDetailIntroduction": "Giới thiệu",
+  "clinicDetailIntroEmpty": "Phòng khám chưa cập nhật phần giới thiệu.",
+  "clinicDetailContact": "Liên hệ",
+  "clinicDetailWorkingHours": "Giờ làm việc",
+  "clinicDetailPhone": "Điện thoại",
+  "clinicDetailEmail": "Email",
+  "clinicDetailContactEmpty": "Phòng khám chưa cập nhật thông tin liên hệ.",
+  "clinicDetailServices": "Dịch vụ",
+  "clinicDetailServicesEmpty": "Phòng khám chưa công bố danh sách dịch vụ.",
+  "clinicDetailReviews": "Đánh giá gần đây",
+  "clinicDetailBookNow": "Đặt lịch ngay"
 }
 

@@ -1251,4 +1251,58 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get reportPostAlreadyReported => 'Bạn đã tố cáo bài viết này.';
+
+  @override
+  String get nearbyClinicTitle => 'Phòng khám gần bạn';
+
+  @override
+  String get nearbyClinicEmpty => 'Chưa có phòng khám nào quanh bạn.';
+
+  @override
+  String get nearbyClinicLocationRequiredDenied =>
+      'Cần quyền vị trí để tìm phòng khám gần bạn. Vui lòng cấp quyền và thử lại.';
+
+  @override
+  String get nearbyClinicLocationRequiredServiceDisabled =>
+      'Vui lòng bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.';
+
+  @override
+  String get nearbyClinicLocationRequiredPermanentlyDenied =>
+      'Quyền vị trí đang bị từ chối vĩnh viễn. Mở Cài đặt ứng dụng để bật lại quyền vị trí.';
+
+  @override
+  String get clinicDetailIntroduction => 'Giới thiệu';
+
+  @override
+  String get clinicDetailIntroEmpty =>
+      'Phòng khám chưa cập nhật phần giới thiệu.';
+
+  @override
+  String get clinicDetailContact => 'Liên hệ';
+
+  @override
+  String get clinicDetailWorkingHours => 'Giờ làm việc';
+
+  @override
+  String get clinicDetailPhone => 'Điện thoại';
+
+  @override
+  String get clinicDetailEmail => 'Email';
+
+  @override
+  String get clinicDetailContactEmpty =>
+      'Phòng khám chưa cập nhật thông tin liên hệ.';
+
+  @override
+  String get clinicDetailServices => 'Dịch vụ';
+
+  @override
+  String get clinicDetailServicesEmpty =>
+      'Phòng khám chưa công bố danh sách dịch vụ.';
+
+  @override
+  String get clinicDetailReviews => 'Đánh giá gần đây';
+
+  @override
+  String get clinicDetailBookNow => 'Đặt lịch ngay';
 }
