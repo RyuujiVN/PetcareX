@@ -91,6 +91,21 @@ const buildValidatePhone = (t) => async (_, value) => {
 	}
 }
 
+const resolveDuplicateFieldMessage = (error, t) => {
+	const responseMessage = error?.response?.data?.message
+	const rawMessage = Array.isArray(responseMessage)
+		? responseMessage.filter(Boolean).join(' | ')
+		: responseMessage || error?.message || ''
+	const normalized = String(rawMessage).toLowerCase()
+
+	const hasPhoneConflict = normalized.includes('phone') || normalized.includes('số điện thoại') || normalized.includes('so dien thoai')
+	const hasEmailConflict = normalized.includes('email')
+
+	if (hasPhoneConflict) return t('veterinarians.validation.phoneExists')
+	if (hasEmailConflict) return t('veterinarians.validation.emailExists')
+	return ''
+}
+
 const getStoredVeterinarian = () => {
 	try {
 		const raw = sessionStorage.getItem('selectedVeterinarian')
@@ -267,6 +282,11 @@ export default function InformationVererianrian() {
 			setEditOpen(false)
 		} catch (error) {
 			if (error?.errorFields) return
+			const duplicateMessage = resolveDuplicateFieldMessage(error, t)
+			if (duplicateMessage) {
+				messageApi.error(duplicateMessage)
+				return
+			}
 			messageApi.error(error.message || t('veterinarians.info.messages.updateFailed'))
 		} finally {
 			setEditing(false)
@@ -403,7 +423,7 @@ export default function InformationVererianrian() {
 				</Card>
 
 				<Card className={styles.infoCard} title={t('veterinarians.info.personalInfoTitle')}>
-					<Descriptions column={{ xs: 1, md: 2 }} bordered size="middle">
+					<Descriptions className={styles.infoDescriptions} column={{ xs: 1, md: 2 }} bordered size="middle">
 						<Descriptions.Item label={t('veterinarians.fields.fullName')}>{veterinarianView.fullName}</Descriptions.Item>
 						<Descriptions.Item label={t('veterinarians.fields.phone')}>
 							<PhoneOutlined /> {veterinarianView.phone}
@@ -427,6 +447,7 @@ export default function InformationVererianrian() {
 					title={t('veterinarians.info.editModal.title')}
 					open={editOpen}
 					onCancel={closeModalWithGuard}
+					centered
 					footer={
 						<Space>
 							<Button onClick={closeModalWithGuard} disabled={editAvatarUploading || editing || saving}>{t('veterinarians.common.cancel')}</Button>
@@ -485,12 +506,20 @@ export default function InformationVererianrian() {
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="specialty" label={t('veterinarians.fields.specialty')}>
+								<Form.Item
+									name="specialty"
+									label={t('veterinarians.fields.specialty')}
+									rules={[{ required: true, message: t('veterinarians.validation.specialtyRequired') }]}
+								>
 									<Select  size="large" options={specialtyOptions} />
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="address" label={t('veterinarians.fields.address')}>
+								<Form.Item
+									name="address"
+									label={t('veterinarians.fields.address')}
+									rules={[{ required: true, message: t('veterinarians.validation.addressRequired') }]}
+								>
 									<Input prefix={<EnvironmentOutlined />} />
 								</Form.Item>
 							</Col>

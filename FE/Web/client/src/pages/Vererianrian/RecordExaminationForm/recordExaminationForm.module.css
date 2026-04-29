@@ -526,11 +526,10 @@
 	border: 1px solid var(--vet-color-border-soft);
 	padding: 14px 16px;
 	box-shadow: var(--vet-shadow-md);
-	transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+	transition: none;
 }
 
 .historyRecord:hover {
-	transform: translateY(-1px);
 	border-color: #d6e1ed;
 	box-shadow: 0 6px 18px rgba(24, 45, 75, 0.08);
 }
@@ -568,7 +567,7 @@
 	align-items: center;
 	gap: 6px;
 	cursor: pointer;
-	transition: all 0.2s ease;
+	transition: none;
 }
 
 .historyExpandButton:hover {
