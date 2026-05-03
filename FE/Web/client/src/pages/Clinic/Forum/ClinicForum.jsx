@@ -1,7 +1,6 @@
 import { FlagOutlined } from '@ant-design/icons'
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import {
     FaEllipsis,
@@ -12,6 +11,7 @@ import {
     FaRegThumbsUp,
     FaThumbsUp,
 } from 'react-icons/fa6'
+import { AiOutlineClose } from "react-icons/ai";
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ScrollToTopButton from '../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import {
@@ -44,7 +44,6 @@ import {
     updatePostApi,
 } from '../../../services/forumService'
 import { uploadUserImageApi, uploadUserImagesApi } from '../../../services/userService'
-import ForumSearchBar from '../../client/User/Forum/ForumSearchBar'
 import styles from './ClinicForum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
@@ -55,6 +54,14 @@ const NO_TOPIC_VALUE = 'no-topic'
 const NO_TOPIC_FILTER_VALUE = 'none'
 const FEATURED_POST_LIMIT = 3
 const MAX_POST_IMAGES = 10
+const POPUP_RESULT_LIMIT = 6
+
+const truncatePreviewText = (value, maxLength = 72) => {
+	const normalized = String(value || '').replace(/\s+/g, ' ').trim()
+	if (!normalized) return ''
+	if (normalized.length <= maxLength) return normalized
+	return `${normalized.slice(0, maxLength - 1)}...`
+}
 
 const TOPIC_TRANSLATION_KEYS = {
 	'cham soc thu cung hang ngay': 'pages.forum.topics.dailyCare',
@@ -336,7 +343,8 @@ function Forum() {
 	const [submittingReport, setSubmittingReport] = useState(false)
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
 	const [searchKeyword, setSearchKeyword] = useState('')
-	const [searchPortalNode, setSearchPortalNode] = useState(null)
+	const [searchOpen, setSearchOpen] = useState(false)
+
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
 	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
 	const [highlightedPostId, setHighlightedPostId] = useState('')
@@ -544,7 +552,7 @@ function Forum() {
 	}, [searchKeyword])
 
 	useEffect(() => {
-		setSearchPortalNode(document.getElementById('forum-search-slot-clinic'))
+
 	}, [])
 
 	const loadPosts = async ({ keyword } = {}) => {
@@ -1900,44 +1908,49 @@ function Forum() {
 		}))
 	}, [sourcePosts, selectedTopicFilter, featuredPostIds, searchKeyword])
 
-	const searchPortal = searchPortalNode
-		? createPortal(
-			<ForumSearchBar
-				value={searchKeyword}
-				onSearch={setSearchKeyword}
-				placeholder={t('pages.forum.search.placeholder')}
-				ariaLabel={t('pages.forum.search.placeholder')}
-			/>,
-			searchPortalNode,
-		)
-		: null
+	const popupSearchResults = useMemo(() => {
+		if (!searchKeyword.trim()) return []
+
+		return visiblePosts.slice(0, POPUP_RESULT_LIMIT).map((post) => ({
+			id: post.id,
+			author: post.author,
+			title: truncatePreviewText(post.title || post.content || 'Bai viet khong tieu de'),
+			snippet: truncatePreviewText(post.content || post.title || ''),
+		}))
+	}, [searchKeyword, visiblePosts])
+
+	const handleSearchResultSelect = useCallback(
+		(postId) => {
+			setSearchOpen(false)
+			window.setTimeout(() => {
+				const postElement = document.getElementById(`forum-post-${postId}`)
+				if (!postElement) return
+				scrollElementIntoFeed(postElement)
+				flashPostHighlight(postId)
+			}, 40)
+		},
+		[flashPostHighlight, scrollElementIntoFeed],
+	)
+
+	useEffect(() => {
+		if (!searchOpen) return undefined
+
+		const handleEsc = (event) => {
+			if (event.key === 'Escape') {
+				setSearchOpen(false)
+			}
+		}
+
+		window.addEventListener('keydown', handleEsc)
+		return () => window.removeEventListener('keydown', handleEsc)
+	}, [searchOpen])
+
+
 
 	return (
 		<div className={styles.pageRoot}>
-			{searchPortal}
 			<main className={styles.pageWrap}>
 				<section ref={feedScrollRef} className={styles.leftColumn}>
-					{searchKeyword ? (
-						<div className={styles.searchCard}>
-							<div className={styles.searchStatusRow}>
-								<span className={styles.searchActiveChip}>
-									{t('pages.forum.search.activeLabel', { keyword: searchKeyword })}
-								</span>
-								<button
-									type="button"
-									className={styles.searchClearLink}
-									onClick={() => setSearchKeyword('')}
-								>
-									{t('pages.forum.search.clear')}
-								</button>
-								{!loadingPosts ? (
-									<span className={styles.searchResultCount}>
-										{t('pages.forum.search.resultCount', { count: visiblePosts.length })}
-									</span>
-								) : null}
-							</div>
-						</div>
-					) : null}
 					<div className={styles.composeCard}>
 						<div className={styles.composeTop}>
 							<img src={composerAvatar} alt={t('pages.forum.avatarAlt')} className={styles.composeAvatar} />
@@ -1952,6 +1965,15 @@ function Forum() {
 								}}
 							/>
 							<div className={styles.composeActions}>
+								<button
+									type="button"
+									className={styles.searchIconBtn}
+									title={t('pages.forum.search.placeholder')}
+									onClick={() => setSearchOpen(!searchOpen)}
+									aria-expanded={searchOpen}
+								>
+									<FaMagnifyingGlass />
+								</button>
 								<Dropdown
 									trigger={['click']}
 									placement="bottomRight"
@@ -1972,6 +1994,60 @@ function Forum() {
 								</Dropdown>
 							</div>
 						</div>
+
+						{searchOpen ? (
+							<div className={styles.searchPopupOverlay} onClick={() => setSearchOpen(false)}>
+								<div className={styles.searchPopupCard} onClick={(event) => event.stopPropagation()}>
+									<div className={styles.searchPopupHeader}>
+										<FaMagnifyingGlass className={styles.searchPopupHeaderIcon} aria-hidden="true" />
+										<input
+											type="text"
+											value={searchKeyword}
+											onChange={(e) => setSearchKeyword(e.target.value)}
+											placeholder={t('pages.forum.search.placeholder')}
+											className={styles.searchPopupInput}
+											autoFocus
+										/>
+										<button
+											type="button"
+											className={styles.searchPopupEscBtn}
+											onClick={() => setSearchOpen(false)}
+										>
+											<AiOutlineClose />
+										</button>
+									</div>
+									<div className={styles.searchPopupBody}>
+										{!searchKeyword.trim() ? (
+											<p className={styles.searchPopupEmpty}>No recent searches</p>
+										) : popupSearchResults.length ? (
+											<div className={styles.searchPopupResultList}>
+												{popupSearchResults.map((result) => (
+													<button
+														key={result.id}
+														type="button"
+														className={styles.searchPopupResultItem}
+														onClick={() => handleSearchResultSelect(result.id)}
+													>
+														<div className={styles.searchPopupResultMain}>
+															{/* <p className={styles.searchPopupResultTitle}>{result.title}</p> */}
+															<p className={styles.searchPopupResultMeta}>@{result.author}</p>
+															{result.snippet ? <p className={styles.searchPopupResultSnippet}>{result.snippet}</p> : null}
+														</div>
+														<span className={styles.searchPopupResultArrow} aria-hidden="true">
+															›
+														</span>
+													</button>
+												))}
+											</div>
+										) : (
+											<p className={styles.searchPopupEmpty}>
+												{t('pages.forum.search.emptyTitle', { keyword: searchKeyword })}
+											</p>
+										)}
+									</div>
+								</div>
+							</div>
+						) : null}
 					</div>
 
 					<div className={styles.feedList}>

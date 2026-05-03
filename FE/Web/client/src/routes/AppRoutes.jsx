@@ -112,9 +112,6 @@ export default function AppRoutes({ location }) {
       <Route element={<RoleBasedRoute allowedRoles={[RoleEnum.VETERINARIAN]} />}>
         <Route element={<AdminVererianrianLayout/>}>
           <Route path="/veterinarian/appointments" element={<PetAppointmentVererianrian />} />
-          <Route path="/veterinarian/listRecords" element={<ListMedicalRecords />} />
-          <Route path="/veterinarian/medical-records/view" element={<ViewMedicalRecords />} />
-          <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
           <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
           <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
           <Route path="/veterinarian/forum" element={<VetForum />} />

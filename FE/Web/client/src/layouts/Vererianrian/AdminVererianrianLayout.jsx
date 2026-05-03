@@ -38,17 +38,6 @@ const buildMenuItems = (t) => [
     activePaths: ['/veterinarian/appointments'],
   },
   {
-    key: 'records',
-    label: t('layout.menu.records'),
-    icon: FileTextOutlined,
-    path: '/veterinarian/listRecords',
-    activePaths: [
-      '/veterinarian/listRecords',
-      '/veterinarian/medical-records',
-      '/veterinarian/viewRecords',
-    ],
-  },
-  {
     key: 'exam-slips',
     label: t('layout.menu.examForms'),
     icon: FormOutlined,

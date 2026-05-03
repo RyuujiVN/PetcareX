@@ -80,28 +80,28 @@ export default function ClinicActivityRankingTable({
     <div className={styles.sectionCard}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.sectionTitle}>{t('activity.ranking.title')}</h3>
-        <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
-          {periodOptions ? (
-            <div className={styles.periodTabs}>
-              {periodOptions.map((opt) => (
-                <button
-                  key={opt.key}
-                  className={`${styles.periodTab} ${period === opt.key ? styles.periodTabActive : ''}`}
-                  onClick={() => onPeriodChange(opt.key)}
-                >
-                  {opt.label}
-                </button>
-              ))}
-            </div>
-          ) : null}
-          <Input.Search
-            className={styles.searchInput}
-            placeholder={t('activity.ranking.searchPlaceholder')}
-            allowClear
-            value={clinicSearch}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
+          <div className={styles.filterRow}>
+            <Input
+              className={styles.searchInput}
+              placeholder={t('activity.ranking.searchPlaceholder')}
+              allowClear
+              value={clinicSearch}
+              onChange={(e) => onSearchChange(e.target.value)}
+            />
+            {periodOptions ? (
+              <div className={styles.periodTabs}>
+                {periodOptions.map((opt) => (
+                  <button
+                    key={opt.key}
+                    className={`${styles.periodTab} ${period === opt.key ? styles.periodTabActive : ''}`}
+                    onClick={() => onPeriodChange(opt.key)}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
       </div>
       <Table
         columns={columns}

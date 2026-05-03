@@ -23,6 +23,8 @@ import {
   getMyAppointmentsApi,
   SERVICE_OPTIONS,
 } from '../../../../services/appointmentService';
+import { IoChevronBack } from "react-icons/io5";
+import { IoChevronForward } from "react-icons/io5";
 import { getClinicByIdApi, getNearbyClinicListApi } from '../../../../services/clinicService';
 import { useUserLocation } from '../../../../hooks/client/useUserLocation';
 import { DEFAULT_LOCATION } from '../../../../constants/location';
@@ -123,6 +125,7 @@ export default function BookingAppointment() {
   const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [clinicPreselected, setClinicPreselected] = useState(Boolean(preselectedClinicId));
 
   const [pets, setPets] = useState([]);
   const [clinics, setClinics] = useState([]);
@@ -500,6 +503,13 @@ export default function BookingAppointment() {
     navigate('/add-pet');
   }
 
+  const handleClearClinicPreselection = () => {
+    setClinicPreselected(false);
+    form.setFieldValue('clinicId', '');
+    sessionStorage.removeItem('selectedClinicId');
+  };;
+
+
   const validateSymptoms = (_, value) => {
     if (!value || !String(value).trim()) {
       return Promise.reject(new Error(t('pages.booking.validation.symptomsRequired')));
@@ -741,44 +751,72 @@ export default function BookingAppointment() {
                     name="clinicId"
                     rules={[{ required: true, message: t('pages.booking.validation.clinicRequired') }]}
                   >
-                    <Select
-                      size="large"
-                      disabled={Boolean(preselectedClinicId)}
-                      optionLabelProp="displayLabel"
-                      popupMatchSelectWidth={520}
-                      popupClassName="clinic-select-popup"
-                    >
-                      {clinics.map((item) => {
-                        const distanceText = formatDistance(item.distance);
-                        const collapsedLabel = distanceText
-                          ? `${item.name} · ${distanceText}`
-                          : item.name;
-                        return (
-                          <Select.Option
-                            key={item.id}
-                            value={item.id}
-                            displayLabel={collapsedLabel}
-                          >
-                            <div className="clinic-option">
-                              <div className="clinic-option-main">
-                                <div className="clinic-option-name">{item.name}</div>
-                                {item.address ? (
-                                  <div className="clinic-option-address">
-                                    <EnvironmentOutlined aria-hidden />
-                                    <span>{item.address}</span>
-                                  </div>
-                                ) : null}
-                              </div>
-                              {distanceText ? (
-                                <span className="clinic-option-distance">{distanceText}</span>
+                    {clinicPreselected ? (
+                      <div className="clinic-preselected-display">
+                        <div className="clinic-preselected-content">
+                          <div className="clinic-option">
+                            <div className="clinic-option-main">
+                              <div className="clinic-option-name">{selectedClinic?.name}</div>
+                              {selectedClinic?.address ? (
+                                <div className="clinic-option-address">
+                                  <EnvironmentOutlined aria-hidden />
+                                  <span>{selectedClinic.address}</span>
+                                </div>
                               ) : null}
                             </div>
-                          </Select.Option>
-                        );
-                      })}
-                    </Select>
+                            {selectedClinic?.distance ? (
+                              <span className="clinic-option-distance">{formatDistance(selectedClinic.distance)}</span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="clinic-change-button"
+                          onClick={handleClearClinicPreselection}
+                        >
+                          {t('pages.booking.form.changeClinic', { defaultValue: 'Đổi phòng khám' })}
+                        </button>
+                      </div>
+                    ) : (
+                      <Select
+                        size="large"
+                        optionLabelProp="displayLabel"
+                        popupMatchSelectWidth={false}
+                        popupClassName="clinic-select-popup"
+                        style={{ minWidth: 420 }}
+                      >
+                        {clinics.map((item) => {
+                          const distanceText = formatDistance(item.distance);
+                          const collapsedLabel = distanceText
+                            ? `${item.name} · ${distanceText}`
+                            : item.name;
+                          return (
+                            <Select.Option
+                              key={item.id}
+                              value={item.id}
+                              displayLabel={collapsedLabel}
+                            >
+                              <div className="clinic-option">
+                                <div className="clinic-option-main">
+                                  <div className="clinic-option-name">{item.name}</div>
+                                  {item.address ? (
+                                    <div className="clinic-option-address">
+                                      <EnvironmentOutlined aria-hidden />
+                                      <span>{item.address}</span>
+                                    </div>
+                                  ) : null}
+                                </div>
+                                {distanceText ? (
+                                  <span className="clinic-option-distance">{distanceText}</span>
+                                ) : null}
+                              </div>
+                            </Select.Option>
+                          );
+                        })}
+                      </Select>
+                    )}
                   </Form.Item>
-                  {locationIsDefault && !preselectedClinicId ? (
+                  {locationIsDefault && !clinicPreselected ? (
                     <div className="clinic-location-banner" role="status">
                       <EnvironmentOutlined aria-hidden />
                       <span>
@@ -978,9 +1016,9 @@ export default function BookingAppointment() {
               <div className="date-time-selector">
                 <div className="calendar">
                   <div className="month-header" style={{color: 'white', backgroundColor: 'var(--color-brand-primary)'}}>
-                    <button type="button" onClick={prevMonth} style={{color: 'white', fontSize: 30}}><BsArrowLeftShort /></button>
+                    <button type="button" onClick={prevMonth} style={{color: 'white', fontSize: 25, paddingLeft: 20}}><IoChevronBack /></button>
                     <span>{t('pages.booking.calendar.monthLabel', { month: calendarMonth + 1, year: calendarYear })}</span>
-                    <button type="button" onClick={nextMonth} style={{color: 'white', fontSize: 30}}><BsArrowRightShort /></button>
+                    <button type="button" onClick={nextMonth} style={{color: 'white', fontSize: 25, paddingRight: 40}}><IoChevronForward /></button>
                   </div>
                   <div className="calendar-grid-head" style={{color: 'var(--color-text-primary)'}}>
                     <span>{t('pages.booking.calendar.days.sun')}</span>
