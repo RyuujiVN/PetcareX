@@ -648,8 +648,6 @@ export default function BookingAppointment() {
   return (
     <div className="booking-page">
       <header className="dashboard-header">
-        <h1 style={{marginRight: '46%', paddingTop: 30}}>{t('pages.booking.greeting', { name: userProfile?.fullName || t('pages.booking.defaultUserName') })}</h1>
-        <p style={{marginRight: '48%', paddingTop: 20}}>{t('pages.booking.subtitle')}</p>
       </header>
       <Spin spinning={loading}>
         <div className="booking-content">
