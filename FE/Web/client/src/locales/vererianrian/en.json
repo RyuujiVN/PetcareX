@@ -12,7 +12,7 @@
       "records": "Medical Records",
       "examForms": "Examination Forms",
       "forum": "Forum",
-      "chatbot": "ChatBot"
+      "chatbot": "Chat Bot AI"
     },
     "notifications": {
       "panelTitle": "Veterinarian Notifications",
@@ -276,7 +276,7 @@
         "emailRequired": "Please enter email",
         "emailInvalid": "Invalid email",
         "phoneRequired": "Please enter phone number",
-        "phoneFormat": "Phone number must be exactly 10 digits",
+        "phoneFormat": "Phone number must be 10 digits and start with 0",
         "petNameRequired": "Please enter pet name",
         "speciesRequired": "Please select species",
         "breedRequired": "Please select breed",
@@ -307,7 +307,7 @@
         "findPetError": "Unable to find pet by owner. Backend must support GET /pet?ownerId= or GET /pet/owner/:id.",
         "lockedWarning": "This examination form is read-only (editing window expired or invoice paid)",
         "vitalRequiredError": "Please enter all vital signs with valid values",
-        "phoneFormatError": "Phone number must be exactly 10 digits",
+        "phoneFormatError": "Phone number must be 10 digits and start with 0",
         "emailRequiredError": "Please enter customer email",
         "petDobRequiredError": "Please enter pet age or date of birth",
         "petGenderRequiredError": "Please select pet gender",
@@ -468,6 +468,7 @@
         "currentRequired": "Please enter current password",
         "newRequired": "Please enter new password",
         "newMinLength": "New password must be at least {{count}} characters",
+        "newComplexity": "Password must be at least 8 characters and include uppercase, lowercase, and a number",
         "confirmRequired": "Please confirm new password",
         "confirmMismatch": "Confirm password does not match"
       },
@@ -616,6 +617,14 @@
       },
       "topicSelect": {
         "noTopic": "No topic"
+      },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "{{count}} results",
+        "emptyTitle": "No results found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
       },
       "topics": {
         "dailyCare": "Daily pet care",

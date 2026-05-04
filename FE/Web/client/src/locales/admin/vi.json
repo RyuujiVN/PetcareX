@@ -10,8 +10,8 @@
       "users": "Quản lý người dùng",
       "posts": "Quản lý bài đăng",
       "activity": "Hoạt động phòng khám",
-      "forum": "Forum",
-      "chatbot": "ChatBot"
+      "forum": "Diễn đàn",
+      "chatbot": "Trợ Lý AI"
     },
     "profile": {
       "defaultName": "Admin Name",
@@ -100,6 +100,8 @@
         "clinicEmail": "Email phòng khám",
         "clinicPhone": "Số điện thoại",
         "clinicAddress": "Địa chỉ",
+        "clinicLat": "Vĩ độ",
+        "clinicLon": "Kinh độ",
         "clinicDescription": "Mô tả",
         "adminFullName": "Họ và tên quản trị",
         "adminEmail": "Email đăng nhập",
@@ -110,10 +112,12 @@
         "clinicEmail": "clinic@email.com",
         "clinicPhone": "0901234567",
         "clinicAddress": "VD: 123 Nguyễn Văn Linh, Đà Nẵng",
+        "clinicLat": "Nhập vĩ độ (ví dụ 10.762622)",
+        "clinicLon": "Nhập kinh độ (ví dụ 106.660172)",
         "clinicDescription": "Mô tả ngắn về phòng khám (không bắt buộc)",
         "adminFullName": "VD: Nguyễn Văn A",
         "adminEmail": "admin@email.com",
-        "adminPassword": "Tối thiểu 6 ký tự"
+        "adminPassword": "Mật khẩu mạnh (hoa, thường, số, ký tự đặc biệt)"
       },
       "validation": {
         "clinicNameRequired": "Vui lòng nhập tên phòng khám",
@@ -122,10 +126,17 @@
         "phoneRequired": "Vui lòng nhập SĐT",
         "phoneInvalid": "SĐT phải gồm 10 chữ số, bắt đầu bằng 0",
         "addressRequired": "Vui lòng nhập địa chỉ",
+        "latRequired": "Vui lòng nhập vĩ độ",
+        "latInvalid": "Vĩ độ không hợp lệ",
+        "latRange": "Vĩ độ phải nằm trong khoảng -90 đến 90",
+        "lonRequired": "Vui lòng nhập kinh độ",
+        "lonInvalid": "Kinh độ không hợp lệ",
+        "lonRange": "Kinh độ phải nằm trong khoảng -180 đến 180",
         "adminNameRequired": "Vui lòng nhập họ tên",
         "adminEmailRequired": "Vui lòng nhập email",
         "passwordRequired": "Vui lòng nhập mật khẩu",
-        "passwordMin": "Mật khẩu tối thiểu 6 ký tự"
+        "passwordMin": "Mật khẩu tối thiểu 6 ký tự",
+        "passwordPolicy": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường, số và kí tự đặc biệt"
       }
     },
     "detailModal": {
@@ -253,7 +264,7 @@
       "allDataLoaded": "Đã tải hết dữ liệu"
     },
     "pagination": {
-      "summary": "Hiển thị {{filtered}} / {{loaded}} bài đã tải"
+      "summary": "Hiển thị {{start}}-{{end}} trên {{total}} bài đăng"
     },
     "messages": {
       "fetchFailed": "Không thể tải danh sách bài đăng",
@@ -329,6 +340,7 @@
         "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
         "newRequired": "Vui lòng nhập mật khẩu mới",
         "newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
+        "newComplexity": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
         "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
         "confirmMismatch": "Mật khẩu xác nhận không khớp"
       },
@@ -512,6 +524,14 @@
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
       },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "{{count}} kết quả",
+        "emptyTitle": "Không tìm thấy kết quả cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
+      },
       "topics": {
         "dailyCare": "Chăm sóc thú cưng hằng ngày",
         "vaccinationAndPrevention": "Tiêm phòng và phòng bệnh",
@@ -594,7 +614,7 @@
         "optionsAria": "Tùy chọn cuộc trò chuyện",
         "rename": "Đổi tên"
       },
-      "assistantTitle": "Trợ lý AI",
+      "assistantTitle": "Trợ lý AI PetCareX",
       "confirmDelete": {
         "cancelText": "Hủy",
         "content": "Bạn có chắc chắn muốn xóa cuộc trò chuyện này không?",

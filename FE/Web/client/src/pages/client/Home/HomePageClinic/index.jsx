@@ -142,7 +142,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
             {showBookingButton ? (
               <div className="hero-button">
                 <button className="btn btn-secondary-hero" onClick={goToBookingAppointment}>
-                  <AiTwotoneSchedule style={{ marginRight: 8, fontSize: 25, color: '#4672b4' }} />
+                  <AiTwotoneSchedule style={{ marginRight: 8, fontSize: 25, color: 'white' }} />
                   {content.hero.ctaText}
                 </button>
               </div>

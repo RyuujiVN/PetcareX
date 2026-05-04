@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -15,9 +16,12 @@ import { paginate, Pagination } from 'nestjs-typeorm-paginate';
 import { RoleEnum } from 'src/common/enums/role.enum';
 import { FilterPagination } from 'src/common/types/pagination.type';
 import { ClinicSearchService, FilterNearClinic } from './clinic-search.service';
+import axios from 'axios';
 
 @Injectable()
 export class ClinicService {
+  private logger = new Logger(ClinicService.name);
+
   constructor(
     @InjectRepository(Clinic)
     private readonly clinicRepository: Repository<Clinic>,
@@ -36,17 +40,50 @@ export class ClinicService {
         deleted: false,
       });
 
-    if (options?.search)
-      queryBuilder.andWhere('clinic.name ILIKE :name', {
-        name: options?.search,
-      });
+    const normalizedSearch = String(options?.search || '').trim();
+    if (normalizedSearch) {
+      queryBuilder.andWhere(
+        '(clinic.name ILIKE :keyword OR clinic.phone ILIKE :keyword)',
+        {
+          keyword: `%${normalizedSearch}%`,
+        },
+      );
+    }
 
     return paginate<Clinic>(queryBuilder, options);
   }
 
   // Phân trang phòng khám cho user
   async findAllPaginationUser(options: FilterNearClinic) {
-    return await this.clinicSearchService.searchClinics(options);
+    const clinicNears = await this.clinicSearchService.searchClinics(options);
+
+    const locations: string[] = clinicNears.map((clinic) => {
+      const lat = clinic?.location?.lat;
+      const lon = clinic?.location?.lon;
+
+      return `${lon},${lat}`;
+    });
+
+    const coordinates = [`${options.lon},${options.lat}`, ...locations].join(
+      ';',
+    );
+
+    try {
+      const url = `http://router.project-osrm.org/table/v1/driving/${coordinates}?sources=0&annotations=distance`;
+
+      const result = await axios.get(url);
+
+      const distance: number[] = result.data.distances[0];
+
+      distance.shift();
+
+      return clinicNears.map((clinic, index) => ({
+        ...clinic,
+        distance: distance[index] / 1000,
+      }));
+    } catch (error) {
+      this.logger.error(error.message, error.stack);
+    }
   }
 
   // Chi tiết phòng khám

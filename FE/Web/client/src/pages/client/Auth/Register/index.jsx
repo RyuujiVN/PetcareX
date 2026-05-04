@@ -52,6 +52,7 @@ export default function Register() {
     const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
 
     if (!value) return Promise.reject(t('pages.auth.register.validation.passwordRequired'));
+    if (value.length > 256) return Promise.reject(t('pages.auth.register.validation.passwordTooLong'));
     if (!regex.test(value)) {
       return Promise.reject(t('pages.auth.register.validation.passwordComplexity'));
     }
@@ -132,7 +133,11 @@ export default function Register() {
     <div className="register-container">
       <div style={{ padding: '40px 25px', background: 'var(--color-surface-card)', borderRadius: '12px', boxShadow: 'var(--shadow-lg)', width: '100%', maxWidth: '650px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <UserOutlined style={{ fontSize: '48px', color: 'var(--auth-primary)' }} />
+          <img
+            src="/avatarProject.png"
+            alt={t('pages.auth.register.heading')}
+            style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '16px', marginLeft: 'auto', marginRight: 'auto', display: 'block' }}
+          />
           <Title level={2} style={{ margin: '16px 0 8px' }}>{t('pages.auth.register.heading')}</Title>
         </div>
 
@@ -254,7 +259,7 @@ export default function Register() {
               icon={<FcGoogle />}
               loading={googleLoading}
               size="large"
-              style={{ width: 360, height: 44, borderRadius: 999, fontWeight: 600 }}
+              style={{ width: 600, height: 44, fontWeight: 600 }}
             >
               {t('pages.auth.register.continueWithGoogle')}
             </Button>

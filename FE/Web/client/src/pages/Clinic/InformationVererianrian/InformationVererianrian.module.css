@@ -83,6 +83,16 @@
 	box-shadow: 0 10px 28px rgba(33, 76, 116, 0.1);
 }
 
+.infoDescriptions :global(.ant-descriptions-item-label) {
+	white-space: nowrap;
+}
+
+.infoDescriptions :global(.ant-descriptions-item-content) {
+	white-space: normal;
+	word-break: break-word;
+	overflow-wrap: anywhere;
+}
+
 .modalAvatarWrap {
 	display: flex;
 	align-items: center;

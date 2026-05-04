@@ -20,7 +20,6 @@ import {
 	Divider,
 	Form,
 	Input,
-	InputNumber,
 	Modal,
 	Row,
 	Select,
@@ -53,8 +52,6 @@ const parseDay = (dateValue) => {
 	return parsed.isValid() ? parsed : null
 }
 
-const NAME_REGEX = /^[A-Za-zÀ-ỹ]+(?: [A-Za-zÀ-ỹ]+)*$/u
-
 const buildValidateFullName = (t) => async (_, value) => {
 	const rawValue = value || ''
 	const trimmedValue = rawValue.trim()
@@ -71,9 +68,6 @@ const buildValidateFullName = (t) => async (_, value) => {
 		throw new Error(t('veterinarians.validation.fullNameNoDoubleSpaces'))
 	}
 
-	if (!NAME_REGEX.test(trimmedValue)) {
-		throw new Error(t('veterinarians.validation.fullNameCharacters'))
-	}
 }
 
 const buildValidatePhone = (t) => async (_, value) => {
@@ -95,6 +89,21 @@ const buildValidatePhone = (t) => async (_, value) => {
 	if (trimmedValue.length !== 10) {
 		throw new Error(t('veterinarians.validation.phoneLength'))
 	}
+}
+
+const resolveDuplicateFieldMessage = (error, t) => {
+	const responseMessage = error?.response?.data?.message
+	const rawMessage = Array.isArray(responseMessage)
+		? responseMessage.filter(Boolean).join(' | ')
+		: responseMessage || error?.message || ''
+	const normalized = String(rawMessage).toLowerCase()
+
+	const hasPhoneConflict = normalized.includes('phone') || normalized.includes('số điện thoại') || normalized.includes('so dien thoai')
+	const hasEmailConflict = normalized.includes('email')
+
+	if (hasPhoneConflict) return t('veterinarians.validation.phoneExists')
+	if (hasEmailConflict) return t('veterinarians.validation.emailExists')
+	return ''
 }
 
 const getStoredVeterinarian = () => {
@@ -197,7 +206,7 @@ export default function InformationVererianrian() {
 			email: veterinarian?.user?.email || '',
 			phone: veterinarian?.user?.phone || '',
 			address: veterinarian?.user?.address || '',
-			experience: veterinarian?.experience ? Number(veterinarian.experience) : null,
+			experience: veterinarian?.experience || '',
 			description: veterinarian?.description || veterinarian?.introduce || '',
 			joinDate: parseDay(veterinarian?.user?.createdAt),
 			specialty: veterinarian?.specialty || 'GENERAL_EXAMINATION',
@@ -231,7 +240,7 @@ export default function InformationVererianrian() {
 		const normalizedFullName = values.fullName.trim()
 		const normalizedPhone = values.phone.trim()
 		const normalizedAddress = (values.address || '').trim()
-		const normalizedExperience = values.experience ?? null
+		const normalizedExperience = String(values.experience || '').trim()
 		const normalizedDescription = (values.description || '').trim()
 		setEditing(true)
 		try {
@@ -244,7 +253,7 @@ export default function InformationVererianrian() {
 				address: normalizedAddress,
 				avatarUrl,
 				specialty: values.specialty,
-				experience: normalizedExperience !== null ? String(normalizedExperience) : null,
+				experience: normalizedExperience,
 				description: normalizedDescription,
 				introduce: normalizedDescription,
 			})
@@ -253,7 +262,7 @@ export default function InformationVererianrian() {
 				const updated = {
 					...prev,
 					specialty: values.specialty,
-					experience: normalizedExperience !== null ? String(normalizedExperience) : '',
+					experience: normalizedExperience,
 					description: normalizedDescription,
 					introduce: normalizedDescription,
 					user: {
@@ -273,6 +282,11 @@ export default function InformationVererianrian() {
 			setEditOpen(false)
 		} catch (error) {
 			if (error?.errorFields) return
+			const duplicateMessage = resolveDuplicateFieldMessage(error, t)
+			if (duplicateMessage) {
+				messageApi.error(duplicateMessage)
+				return
+			}
 			messageApi.error(error.message || t('veterinarians.info.messages.updateFailed'))
 		} finally {
 			setEditing(false)
@@ -392,24 +406,24 @@ export default function InformationVererianrian() {
 					<Row gutter={[16, 16]}>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title={t('veterinarians.fields.role')} value={veterinarianView.role} prefix={<IdcardOutlined />} />
+								<Statistic title={t('veterinarians.fields.role')} value={veterinarianView.role}/>
 							</Card>
 						</Col>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title={t('veterinarians.fields.specialty')} value={veterinarianView.specialty} prefix={<MedicineBoxOutlined />} />
+								<Statistic title={t('veterinarians.fields.specialty')} value={veterinarianView.specialty} />
 							</Card>
 						</Col>
 						<Col xs={24} md={8}>
 							<Card size="small" className={styles.statCard}>
-								<Statistic title={t('veterinarians.fields.joinDate')} value={veterinarianView.joinDate} prefix={<CalendarOutlined />} />
+								<Statistic title={t('veterinarians.fields.joinDate')} value={veterinarianView.joinDate} />
 							</Card>
 						</Col>
 					</Row>
 				</Card>
 
 				<Card className={styles.infoCard} title={t('veterinarians.info.personalInfoTitle')}>
-					<Descriptions column={{ xs: 1, md: 2 }} bordered size="middle">
+					<Descriptions className={styles.infoDescriptions} column={{ xs: 1, md: 2 }} bordered size="middle">
 						<Descriptions.Item label={t('veterinarians.fields.fullName')}>{veterinarianView.fullName}</Descriptions.Item>
 						<Descriptions.Item label={t('veterinarians.fields.phone')}>
 							<PhoneOutlined /> {veterinarianView.phone}
@@ -433,6 +447,7 @@ export default function InformationVererianrian() {
 					title={t('veterinarians.info.editModal.title')}
 					open={editOpen}
 					onCancel={closeModalWithGuard}
+					centered
 					footer={
 						<Space>
 							<Button onClick={closeModalWithGuard} disabled={editAvatarUploading || editing || saving}>{t('veterinarians.common.cancel')}</Button>
@@ -491,29 +506,35 @@ export default function InformationVererianrian() {
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="specialty" label={t('veterinarians.fields.specialty')}>
+								<Form.Item
+									name="specialty"
+									label={t('veterinarians.fields.specialty')}
+									rules={[{ required: true, message: t('veterinarians.validation.specialtyRequired') }]}
+								>
 									<Select  size="large" options={specialtyOptions} />
 								</Form.Item>
 							</Col>
 							<Col span={12}>
-								<Form.Item name="address" label={t('veterinarians.fields.address')}>
+								<Form.Item
+									name="address"
+									label={t('veterinarians.fields.address')}
+									rules={[{ required: true, message: t('veterinarians.validation.addressRequired') }]}
+								>
 									<Input prefix={<EnvironmentOutlined />} />
 								</Form.Item>
 							</Col>
 							<Col span={12}>
 								<Form.Item name="experience" label={t('veterinarians.fields.experience')}>
-									<InputNumber
-										min={0}
-										max={50}
+									<Input
 										placeholder={t('veterinarians.fields.experiencePlaceholder')}
-										style={{ width: '100%' }}
+										maxLength={200}
 									/>
 								</Form.Item>
 							</Col>
 							<Col span={24}>
 								<Form.Item name="description" label={t('veterinarians.fields.description')}>
 									<Input.TextArea
-										rows={4}
+										rows={1}
 										placeholder={t('veterinarians.fields.descriptionPlaceholder')}
 										maxLength={500}
 										showCount

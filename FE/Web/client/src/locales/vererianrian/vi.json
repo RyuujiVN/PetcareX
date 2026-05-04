@@ -11,8 +11,8 @@
       "appointments": "Lịch hẹn",
       "records": "Hồ sơ bệnh án",
       "examForms": "Phiếu khám",
-      "forum": "Forum",
-      "chatbot": "ChatBot"
+      "forum": "Diễn đàn",
+      "chatbot": "Trợ Lý AI"
     },
     "notifications": {
       "panelTitle": "Thông báo bác sĩ",
@@ -276,7 +276,7 @@
         "emailRequired": "Vui lòng nhập email",
         "emailInvalid": "Email không hợp lệ",
         "phoneRequired": "Vui lòng nhập số điện thoại",
-        "phoneFormat": "Số điện thoại phải gồm đúng 10 chữ số",
+        "phoneFormat": "SĐT phải gồm 10 chữ số, bắt đầu bằng 0",
         "petNameRequired": "Vui lòng nhập tên thú cưng",
         "speciesRequired": "Vui lòng chọn loài",
         "breedRequired": "Vui lòng chọn giống loài",
@@ -307,7 +307,7 @@
         "findPetError": "Không thể tra cứu thú cưng theo chủ nuôi. Backend cần hỗ trợ GET /pet?ownerId= hoặc GET /pet/owner/:id.",
         "lockedWarning": "Phiếu khám đang ở chế độ chỉ đọc (hết thời gian chỉnh sửa hoặc đã thanh toán)",
         "vitalRequiredError": "Vui lòng nhập đầy đủ và đúng định dạng các chỉ số sinh tồn",
-        "phoneFormatError": "Số điện thoại phải gồm đúng 10 chữ số",
+        "phoneFormatError": "SĐT phải gồm 10 chữ số, bắt đầu bằng 0",
         "emailRequiredError": "Vui lòng nhập email khách hàng",
         "petDobRequiredError": "Vui lòng nhập tuổi hoặc ngày sinh của thú cưng",
         "petGenderRequiredError": "Vui lòng chọn giới tính thú cưng",
@@ -468,6 +468,7 @@
         "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
         "newRequired": "Vui lòng nhập mật khẩu mới",
         "newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
+        "newComplexity": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
         "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
         "confirmMismatch": "Mật khẩu xác nhận không khớp"
       },
@@ -617,6 +618,14 @@
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
       },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "{{count}} kết quả",
+        "emptyTitle": "Không tìm thấy kết quả cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
+      },
       "topics": {
         "dailyCare": "Chăm sóc thú cưng hằng ngày",
         "vaccinationAndPrevention": "Tiêm phòng và phòng bệnh",
@@ -699,7 +708,7 @@
         "optionsAria": "Tùy chọn cuộc trò chuyện",
         "rename": "Đổi tên"
       },
-      "assistantTitle": "Trợ lý AI",
+      "assistantTitle": "Trợ lý AI PetCareX",
       "confirmDelete": {
         "cancelText": "Hủy",
         "content": "Bạn có chắc chắn muốn xóa cuộc trò chuyện này không?",

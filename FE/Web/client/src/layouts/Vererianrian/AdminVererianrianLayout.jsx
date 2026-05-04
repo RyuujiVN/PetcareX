@@ -22,6 +22,7 @@ import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import useNotificationSocket from '../../hooks/useNotificationSocket'
 import { getAdminInstance } from '../../services/apiClient'
+import { MessageCircle } from "lucide-react";
 import { resolveNotificationHref } from '../../services/notificationService'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
@@ -35,17 +36,6 @@ const buildMenuItems = (t) => [
     icon: CalendarOutlined,
     path: '/veterinarian/appointments',
     activePaths: ['/veterinarian/appointments'],
-  },
-  {
-    key: 'records',
-    label: t('layout.menu.records'),
-    icon: FileTextOutlined,
-    path: '/veterinarian/listRecords',
-    activePaths: [
-      '/veterinarian/listRecords',
-      '/veterinarian/medical-records',
-      '/veterinarian/viewRecords',
-    ],
   },
   {
     key: 'exam-slips',
@@ -169,6 +159,9 @@ export default function AdminVererianrianLayout() {
     location.pathname === '/veterinarian/viewRecords' ||
     location.pathname.startsWith('/veterinarian/viewRecords/')
   const shouldUseMedicalRecordHeader = isViewPetMedicalRecordsRoute && !isExamFormFocusMode
+  const isForumRoute =
+    location.pathname === '/veterinarian/forum' ||
+    location.pathname.startsWith('/veterinarian/forum/')
 
   const {
     notifications: notificationItems,
@@ -350,7 +343,7 @@ export default function AdminVererianrianLayout() {
 
   return (
     <div
-      className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''} ${!isSidebarVisible || isExamFormFocusMode ? styles.layoutSingleColumn : ''}`}
+      className={`${styles.layout} ${isExamFormFocusMode ? styles.layoutFocus : ''} ${!isSidebarVisible || isExamFormFocusMode ? styles.layoutSingleColumn : ''} ${isChatbotRoute ? styles.chatbotRouteActive : ''}`}
     >
       {notificationContextHolder}
       {!isExamFormFocusMode && !isSidebarVisible ? (
@@ -427,8 +420,18 @@ export default function AdminVererianrianLayout() {
             className={`${styles.header} ${shouldUseMedicalRecordHeader ? styles.headerMedicalRecord : ''}`}
           >
             <div className={styles.headerSearchWrap}>
-              {shouldUseMedicalRecordHeader ? (
+              {isChatbotRoute ? (
+                <div className={styles.chatbotHeaderTitle}>
+                  <MessageCircle size={18} />
+                  <span>{t('pages.chatbot.assistantTitle')}</span>
+                </div>
+              ) : shouldUseMedicalRecordHeader ? (
                 <h1 className={styles.headerTitle}>{t('layout.medicalHeaderTitle')}</h1>
+              ) : isForumRoute ? (
+                <div
+                  id="forum-search-slot-vet"
+                  className={styles.forumHeaderSearchSlot}
+                />
               ) : !shouldHideSearch ? (
                 <Input
                   className={styles.searchInput}

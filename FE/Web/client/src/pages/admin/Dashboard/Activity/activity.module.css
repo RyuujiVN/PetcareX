@@ -117,6 +117,14 @@
   margin: 0;
 }
 
+  .filterRow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
 .periodTabs {
   display: flex;
   gap: 0;
@@ -125,6 +133,7 @@
   overflow: hidden;
   border: 1px solid var(--color-border);
   width: fit-content;
+    flex-shrink: 0;
 }
 
 .periodTab {
@@ -146,7 +155,8 @@
 }
 
 .searchInput {
-  max-width: 280px;
+  flex: 1;
+  max-width: 300px;
   width: 100%;
 }
 

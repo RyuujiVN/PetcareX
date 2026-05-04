@@ -13,7 +13,7 @@
       "doctors": "Veterinarians",
       "forms": "View Examination Slips",
       "forum": "Forum",
-      "chatbot": "ChatBot",
+      "chatbot": "Chat Bot AI",
       "editor": "Clinic editor",
       "portalEditor": "Clinic page editor",
       "homeEditor": "Edit Homepage",
@@ -155,10 +155,10 @@
       "password": "Password",
       "phone": "Phone",
       "address": "Address",
-      "experience": "Experience (years)",
+      "experience": "Experience",
       "description": "Introduction",
-      "experiencePlaceholder": "Years of experience",
-      "descriptionPlaceholder": "Short description about the veterinarian...",
+      "experiencePlaceholder": "Example: 5 years in surgery",
+      "descriptionPlaceholder": "Describe the veterinarian...",
       "role": "Role",
       "joinDate": "Join date"
     },
@@ -175,7 +175,9 @@
       "phoneNoSpaces": "Phone number must not contain spaces",
       "phoneDigitsOnly": "Phone number must contain digits only",
       "phoneLength": "Phone number must be exactly 10 digits",
+      "phoneExists": "Phone number already exists",
       "addressRequired": "Please enter address",
+      "emailExists": "Email already exists",
       "fullNameRequired": "Please enter full name",
       "fullNameNoEdgeSpaces": "Full name must not contain leading or trailing spaces",
       "fullNameNoDoubleSpaces": "Full name must not contain consecutive spaces",
@@ -706,6 +708,7 @@
         "currentRequired": "Please enter current password",
         "newRequired": "Please enter new password",
         "newMinLength": "New password must be at least {{count}} characters",
+        "newComplexity": "Password must be at least 8 characters and include uppercase, lowercase, and a number",
         "confirmRequired": "Please confirm new password",
         "confirmMismatch": "Confirm password does not match"
       },
@@ -912,6 +915,14 @@
       },
       "topicSelect": {
         "noTopic": "No topic"
+      },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "{{count}} results",
+        "emptyTitle": "No results found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
       },
       "topics": {
         "dailyCare": "Daily pet care",

@@ -36,7 +36,9 @@
   padding: 14px 28px;
   font-size: 16px;
   background: var(--color-brand-primary);
-  color: var(--color-border-strong);
+  color: white;
+  box-shadow: 0 0 0 4px rgba(55, 104, 173, 0.16), 0 10px 18px rgba(45, 95, 162, 0.34);
+
 }
 
 .clinic-hero .btn:hover

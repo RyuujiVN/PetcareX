@@ -4,7 +4,6 @@ import {
     ClockCircleOutlined,
     LeftOutlined,
     PlayCircleOutlined,
-  ReloadOutlined,
     RightOutlined,
 } from '@ant-design/icons'
 import { Avatar, Button, Card, Col, Flex, message, Row, Segmented, Space, Spin, Tag, Typography } from 'antd'
@@ -96,7 +95,6 @@ export default function PetAppointmentVererianrian() {
   const [activeTab, setActiveTab] = useState('all')
   const [currentDate, setCurrentDate] = useState(getCurrentLocalDate)
   const [loading, setLoading] = useState(false)
-  const [isRefreshing, setIsRefreshing] = useState(false)
   const [allAppointments, setAllAppointments] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const inFlightRef = useRef(false)
@@ -137,7 +135,6 @@ export default function PetAppointmentVererianrian() {
       }
 
       if (hasLoadedOnceRef.current && silent) {
-        setIsRefreshing(true)
       }
 
       const response = await getMyAppointmentsApi(getAdminInstance(), 1, 500)
@@ -169,7 +166,6 @@ export default function PetAppointmentVererianrian() {
     } finally {
       inFlightRef.current = false
       setLoading(false)
-      setIsRefreshing(false)
     }
   }, [currentDate, t])
 
@@ -200,6 +196,18 @@ export default function PetAppointmentVererianrian() {
 
   useEffect(() => {
     fetchTodayAppointments()
+  }, [fetchTodayAppointments])
+
+  useEffect(() => {
+    const handleAppointmentNotification = () => {
+      fetchTodayAppointments({ silent: true })
+    }
+
+    window.addEventListener('notif:appointment', handleAppointmentNotification)
+
+    return () => {
+      window.removeEventListener('notif:appointment', handleAppointmentNotification)
+    }
   }, [fetchTodayAppointments])
 
   useEffect(() => {
@@ -348,10 +356,6 @@ export default function PetAppointmentVererianrian() {
     }
   }
 
-  const handleManualRefresh = async () => {
-    await fetchTodayAppointments({ silent: true })
-  }
-
   return (
     <div className={styles.pageWrap}>
       <Row gutter={[16, 16]}>
@@ -376,14 +380,6 @@ export default function PetAppointmentVererianrian() {
         <Flex justify="space-between" align="center" className={styles.tableHeader}>
           <Typography.Title className={styles.panelTitle}>{t('appointments.title')}</Typography.Title>
           <Space size={12} className={styles.headerActions}>
-            <Button
-              icon={<ReloadOutlined />}
-              onClick={handleManualRefresh}
-              loading={isRefreshing}
-              className={styles.reloadButton}
-            >
-              {t('appointments.actions.reloadPage')}
-            </Button>
             <Segmented options={tableTabs} value={activeTab} onChange={setActiveTab} className={styles.segmented} />
           </Space>
         </Flex>
