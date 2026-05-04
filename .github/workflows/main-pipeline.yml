@@ -2,7 +2,7 @@ name: Main CI/CD Pipeline
 
 on:
   push:
-    branches: ["Deploy"]
+    branches: ["Deploy", "main"]
     paths-ignore:
       - "ansible/**"
       - ".github/workflows/infra-ansible.yml"
@@ -73,7 +73,7 @@ jobs:
     name: Build and Push Images
     runs-on: ubuntu-latest
     needs: [ci-fe, ci-be]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/Deploy'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/Deploy' || github.ref == 'refs/heads/main')
 
     steps:
       - name: Checkout
@@ -130,7 +130,7 @@ jobs:
     name: Deploy FE + BE + DB (Single VPS)
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.event_name == 'push' && github.ref == 'refs/heads/Deploy'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/Deploy' || github.ref == 'refs/heads/main')
 
     steps:
       - name: Checkout
