@@ -92,7 +92,6 @@ export class ClinicSearchService implements OnModuleInit {
 
     return clinicDocuments?.hits?.hits.map((hit: any) => ({
       ...hit._source,
-      distance: hit.sort.at(-1),
     }));
   }
 
