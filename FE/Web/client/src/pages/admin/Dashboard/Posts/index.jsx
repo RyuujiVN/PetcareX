@@ -17,6 +17,7 @@ import {
   Flex,
   Input,
   Modal,
+  Pagination,
   Row,
   Select,
   Space,
@@ -26,13 +27,14 @@ import {
   Typography,
   message,
 } from 'antd'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getPostListApi } from '../../../../services/forumService'
 import { getAdminInstance } from '../../../../services/apiClient'
 import './style.css'
 
-const DEFAULT_LIMIT = 20
+const FETCH_LIMIT = 1000
+const PAGE_SIZE = 10
 
 const getAbbreviation = (name) => {
   if (!name) return ''
@@ -75,18 +77,11 @@ export default function Posts() {
   const noDataText = t('common.noData')
   const [posts, setPosts] = useState([])
   const [loading, setLoading] = useState(false)
-  const [loadingMore, setLoadingMore] = useState(false)
-  const [hasMore, setHasMore] = useState(true)
   const [search, setSearch] = useState('')
   const [topicFilter, setTopicFilter] = useState('ALL')
+  const [currentPage, setCurrentPage] = useState(1)
   const [viewModalOpen, setViewModalOpen] = useState(false)
   const [selectedPost, setSelectedPost] = useState(null)
-
-  const postsRef = useRef([])
-
-  useEffect(() => {
-    postsRef.current = posts
-  }, [posts])
 
   const getRoleLabelByLocale = (role) => {
     const normalizedRole = String(role || '').trim().toUpperCase()
@@ -94,50 +89,32 @@ export default function Posts() {
     return t(`users.role.${normalizedRole}`, { defaultValue: t('users.role.none') })
   }
 
-  const loadPosts = useCallback(async ({ reset = false } = {}) => {
-    const currentPosts = postsRef.current
-    const lastPostTime = reset
-      ? undefined
-      : currentPosts[currentPosts.length - 1]?.createdAt
-
-    if (reset) {
-      setLoading(true)
-    } else {
-      setLoadingMore(true)
-    }
+  const loadPosts = useCallback(async () => {
+    setLoading(true)
 
     try {
-      const data = await getPostListApi(getAdminInstance(), DEFAULT_LIMIT, lastPostTime)
+      const data = await getPostListApi(getAdminInstance(), FETCH_LIMIT)
       const incoming = Array.isArray(data) ? data : []
-
-      setPosts((prev) => {
-        if (reset) return incoming
-        const map = new Map(prev.map((item) => [item.id, item]))
-        incoming.forEach((item) => {
-          if (!map.has(item.id)) {
-            map.set(item.id, item)
-          }
-        })
-        return Array.from(map.values())
-      })
-      setHasMore(incoming.length === DEFAULT_LIMIT)
+      setPosts(incoming)
     } catch (error) {
       message.error(error.message || t('posts.messages.fetchFailed'))
     } finally {
-      if (reset) {
-        setLoading(false)
-      } else {
-        setLoadingMore(false)
-      }
+      setLoading(false)
     }
   }, [t])
 
   useEffect(() => {
-    loadPosts({ reset: true })
+    loadPosts()
   }, [loadPosts])
 
   const handleSearch = (value) => {
     setSearch(value)
+    setCurrentPage(1)
+  }
+
+  const handleTopicFilterChange = (value) => {
+    setTopicFilter(value)
+    setCurrentPage(1)
   }
 
   const handleViewPost = (post) => {
@@ -207,6 +184,18 @@ export default function Posts() {
       return matchKeyword && matchTopic
     })
   }, [posts, search, topicFilter])
+
+  useEffect(() => {
+    const totalPages = Math.max(1, Math.ceil(filteredPosts.length / PAGE_SIZE))
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages)
+    }
+  }, [filteredPosts.length, currentPage])
+
+  const paginatedPosts = useMemo(() => {
+    const startIndex = (currentPage - 1) * PAGE_SIZE
+    return filteredPosts.slice(startIndex, startIndex + PAGE_SIZE)
+  }, [currentPage, filteredPosts])
 
   const stats = useMemo(() => {
     return posts.reduce(
@@ -313,6 +302,8 @@ export default function Posts() {
 
   const totalFiltered = filteredPosts.length
   const totalLoaded = posts.length
+  const start = totalFiltered === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1
+  const end = totalFiltered === 0 ? 0 : Math.min(currentPage * PAGE_SIZE, totalFiltered)
 
   return (
     <div className="posts-page">
@@ -370,7 +361,7 @@ export default function Posts() {
               className="posts-topic"
               options={topicOptions}
               value={topicFilter}
-              onChange={setTopicFilter}
+              onChange={handleTopicFilterChange}
               placeholder={t('posts.filters.topicPlaceholder')}
             />
           </div>
@@ -378,7 +369,7 @@ export default function Posts() {
 
         <Table
           columns={columns}
-          dataSource={filteredPosts}
+          dataSource={paginatedPosts}
           loading={loading}
           pagination={false}
           locale={{ emptyText: t('posts.states.empty') }}
@@ -388,24 +379,20 @@ export default function Posts() {
 
         <Flex justify="space-between" align="center" className="pagination-bar">
           <Typography.Text>
-            {t('posts.pagination.summary', { filtered: totalFiltered, loaded: totalLoaded })}
+            {t('posts.pagination.summary', {
+              start,
+              end,
+              total: totalFiltered,
+              loaded: totalLoaded,
+            })}
           </Typography.Text>
-          <div className="load-more-actions">
-            {hasMore ? (
-              <Button
-                type="primary"
-                onClick={() => loadPosts({ reset: false })}
-                loading={loadingMore}
-                disabled={loading}
-              >
-                {t('posts.actions.loadMore')}
-              </Button>
-            ) : (
-              <Typography.Text type="secondary">
-                {t('posts.states.allDataLoaded')}
-              </Typography.Text>
-            )}
-          </div>
+          <Pagination
+            current={currentPage}
+            pageSize={PAGE_SIZE}
+            total={totalFiltered}
+            onChange={setCurrentPage}
+            showSizeChanger={false}
+          />
         </Flex>
       </Card>
 

@@ -264,7 +264,7 @@
       "allDataLoaded": "Đã tải hết dữ liệu"
     },
     "pagination": {
-      "summary": "Hiển thị {{filtered}} / {{loaded}} bài đã tải"
+      "summary": "Hiển thị {{start}}-{{end}} trên {{total}} bài đăng"
     },
     "messages": {
       "fetchFailed": "Không thể tải danh sách bài đăng",

@@ -40,10 +40,15 @@ export class ClinicService {
         deleted: false,
       });
 
-    if (options?.search)
-      queryBuilder.andWhere('clinic.name ILIKE :name', {
-        name: options?.search,
-      });
+    const normalizedSearch = String(options?.search || '').trim();
+    if (normalizedSearch) {
+      queryBuilder.andWhere(
+        '(clinic.name ILIKE :keyword OR clinic.phone ILIKE :keyword)',
+        {
+          keyword: `%${normalizedSearch}%`,
+        },
+      );
+    }
 
     return paginate<Clinic>(queryBuilder, options);
   }

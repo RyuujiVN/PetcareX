@@ -534,6 +534,11 @@
           "noReviewYet": "Chưa có đánh giá nào",
           "emptyList": "Chưa có đánh giá nào cho phòng khám này.",
           "loadMore": "Xem thêm đánh giá",
+          "showMore": "Xem thêm",
+          "showLess": "Thu gọn",
+          "scrollHint": "Kéo sang trái/phải để xem thêm bình luận",
+          "previousAria": "Xem bình luận trước",
+          "nextAria": "Xem bình luận tiếp theo",
           "anonymousReviewer": "Người dùng ẩn danh",
           "loginHint": "Bạn cần đăng nhập để gửi đánh giá.",
           "loginCTA": "Đăng nhập ngay",
@@ -690,7 +695,7 @@
         "timeRequired": "Vui lòng chọn khung giờ khám!",
         "selectDateFirst": "Vui lòng chọn ngày hẹn trước",
         "timeUnavailable": "Khung giờ này đã được đặt!",
-        "minLeadTime": "Bạn cần đặt lịch trước ít nhất {{hours}} tiếng"
+        "minLeadTime": "Bạn cần đặt lịch trước ít nhất {{hours}} tiếng!"
       },
       "noSlotsByLeadTime": "Không có khung giờ hợp lệ (cần đặt trước {{hours}} tiếng)",
       "notSelectedDoctor": "Chưa chọn bác sĩ",
