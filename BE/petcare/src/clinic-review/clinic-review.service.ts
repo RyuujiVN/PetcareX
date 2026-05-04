@@ -84,6 +84,7 @@ export class ClinicReviewService {
       return clinic;
     });
 
+    // 4. Cập nhật lại trên Elasticsearch
     await this.clinicSearchService.updateClinic(updatedClinic);
   }
 }
