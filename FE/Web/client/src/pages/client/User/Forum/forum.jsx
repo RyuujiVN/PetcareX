@@ -1990,9 +1990,9 @@ function Forum() {
 														onClick={() => handleSearchResultSelect(result.id)}
 													>
 														<div className={styles.searchPopupResultMain}>
+															{result.snippet ? <p className={styles.searchPopupResultSnippet}>{result.snippet}</p> : null}
 															<p className={styles.searchPopupResultMeta}>@{result.author}</p>
 															{/* <p className={styles.searchPopupResultTitle}>{result.title}</p> */}
-															{result.snippet ? <p className={styles.searchPopupResultSnippet}>{result.snippet}</p> : null}
 														</div>
 														<span className={styles.searchPopupResultArrow} aria-hidden="true">
 															›

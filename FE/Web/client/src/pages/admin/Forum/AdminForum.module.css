@@ -410,27 +410,18 @@
 	gap: 3px;
 }
 
-/* .searchPopupResultTitle {
-	margin: 0;
-	color: #f2f7ff;
-	font-size: 20px;
-	font-weight: 700;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
-} */
-
 .searchPopupResultMeta {
 	margin: 0;
-	color: #f2f7ff;
-	font-size: 18px;
-	font-weight: 700;
+	color: #d5e2f2;
+	font-weight: 600;
+	font-size: 14px;
 }
 
 .searchPopupResultSnippet {
 	margin: 0;
-	color: #d5e2f2;
-	font-size: 13px;
+	color: white;
+	font-size: 18px;
+	font-weight: 700;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
