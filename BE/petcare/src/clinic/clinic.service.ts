@@ -78,8 +78,6 @@ export class ClinicService {
       }));
     } catch (error) {
       this.logger.error(error.message, error.stack);
-
-      return error;
     }
   }
 
