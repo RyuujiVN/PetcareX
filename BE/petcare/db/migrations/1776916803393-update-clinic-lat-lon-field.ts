@@ -11,8 +11,8 @@ export class UpdateClinicLatLonField1776916803393 implements MigrationInterface 
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "notification" ALTER COLUMN "is_read" SET DEFAULT false`);
-        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN "lon"`);
-        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN "lat"`);
+        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN IF EXISTS "lon"`);
+        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN IF EXISTS "lat"`);
     }
 
 }

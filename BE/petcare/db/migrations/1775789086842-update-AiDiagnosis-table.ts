@@ -5,9 +5,9 @@ export class UpdateAiDiagnosisTable1775789086842 implements MigrationInterface {
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "ai_diagnosis" DROP CONSTRAINT "FK_79a381cab9e60be17562bb80117"`);
-        await queryRunner.query(`ALTER TABLE "ai_diagnosis" DROP COLUMN "user_id"`);
-        await queryRunner.query(`ALTER TABLE "ai_diagnosis" DROP COLUMN "appointment_date"`);
-        await queryRunner.query(`ALTER TABLE "ai_diagnosis" DROP COLUMN "appointment_time"`);
+        await queryRunner.query(`ALTER TABLE "ai_diagnosis" DROP COLUMN IF EXISTS "user_id"`);
+        await queryRunner.query(`ALTER TABLE "ai_diagnosis" DROP COLUMN IF EXISTS "appointment_date"`);
+        await queryRunner.query(`ALTER TABLE "ai_diagnosis" DROP COLUMN IF EXISTS "appointment_time"`);
         await queryRunner.query(`ALTER TABLE "ai_diagnosis" ADD "appointment_id" uuid NOT NULL`);
         await queryRunner.query(`ALTER TABLE "ai_diagnosis" ADD CONSTRAINT "UQ_ec23bead32176acb8ac8e8e6cbb" UNIQUE ("appointment_id")`);
         await queryRunner.query(`ALTER TABLE "notification" ALTER COLUMN "is_read" SET DEFAULT 'false'`);

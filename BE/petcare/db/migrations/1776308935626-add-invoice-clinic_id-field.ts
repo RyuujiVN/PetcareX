@@ -12,7 +12,7 @@ export class AddInvoiceClinicIdField1776308935626 implements MigrationInterface 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "invoice" DROP CONSTRAINT "FK_ed1e715851899033420928d3755"`);
         await queryRunner.query(`ALTER TABLE "notification" ALTER COLUMN "is_read" SET DEFAULT false`);
-        await queryRunner.query(`ALTER TABLE "invoice" DROP COLUMN "clinic_id"`);
+        await queryRunner.query(`ALTER TABLE "invoice" DROP COLUMN IF EXISTS "clinic_id"`);
     }
 
 }

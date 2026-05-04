@@ -4,7 +4,7 @@ export class DeleteChatBotMessageSessionId1774256809160 implements MigrationInte
     name = 'DeleteChatBotMessageSessionId1774256809160'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "chatbot_room" DROP COLUMN "session_id"`);
+        await queryRunner.query(`ALTER TABLE "chatbot_room" DROP COLUMN IF EXISTS "session_id"`);
     }
 
     public async down(queryRunner: QueryRunner): Promise<void> {

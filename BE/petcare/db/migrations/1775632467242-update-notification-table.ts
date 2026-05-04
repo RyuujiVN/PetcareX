@@ -4,8 +4,8 @@ export class UpdateNotificationTable1775632467242 implements MigrationInterface 
     name = 'UpdateNotificationTable1775632467242'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        await queryRunner.query(`ALTER TABLE "notification" DROP COLUMN "sender_id"`);
-        await queryRunner.query(`ALTER TABLE "notification" DROP COLUMN "sender_type"`);
+        await queryRunner.query(`ALTER TABLE "notification" DROP COLUMN IF EXISTS "sender_id"`);
+        await queryRunner.query(`ALTER TABLE "notification" DROP COLUMN IF EXISTS "sender_type"`);
         await queryRunner.query(`DROP TYPE "public"."notification_sender_type_enum"`);
         await queryRunner.query(`ALTER TABLE "notification" ALTER COLUMN "is_read" SET DEFAULT 'false'`);
     }
