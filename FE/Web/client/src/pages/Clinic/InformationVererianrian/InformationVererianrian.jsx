@@ -20,6 +20,7 @@ import {
 	Divider,
 	Form,
 	Input,
+	InputNumber,
 	Modal,
 	Row,
 	Select,
@@ -154,7 +155,8 @@ export default function InformationVererianrian() {
 					sessionStorage.setItem('selectedVeterinarian', JSON.stringify(merged))
 					return merged
 				})
-			} catch {
+			} catch (error) {
+				void error
 			}
 		}
 
@@ -172,6 +174,8 @@ export default function InformationVererianrian() {
 			fullName: user.fullName || t('veterinarians.common.notUpdated'),
 			specialty: getSpecialtyLabel(specialtyValue),
 			specialtyValue,
+			experience: veterinarian?.experience || '',
+			description: veterinarian?.description || veterinarian?.introduce || '',
 			role: getRoleLabel(roleValue),
 			roleValue,
 			joinDate: formatDate(
@@ -193,6 +197,8 @@ export default function InformationVererianrian() {
 			email: veterinarian?.user?.email || '',
 			phone: veterinarian?.user?.phone || '',
 			address: veterinarian?.user?.address || '',
+			experience: veterinarian?.experience ? Number(veterinarian.experience) : null,
+			description: veterinarian?.description || veterinarian?.introduce || '',
 			joinDate: parseDay(veterinarian?.user?.createdAt),
 			specialty: veterinarian?.specialty || 'GENERAL_EXAMINATION',
 		}
@@ -210,7 +216,7 @@ export default function InformationVererianrian() {
 		if (!initialEditValues) return form.isFieldsTouched(true)
 
 		const currentValues = form.getFieldsValue(true)
-		return ['fullName', 'email', 'phone', 'address', 'specialty'].some((key) => {
+		return ['fullName', 'email', 'phone', 'address', 'specialty', 'experience', 'description'].some((key) => {
 			return (currentValues?.[key] || '') !== (initialEditValues?.[key] || '')
 		})
 	}
@@ -225,6 +231,8 @@ export default function InformationVererianrian() {
 		const normalizedFullName = values.fullName.trim()
 		const normalizedPhone = values.phone.trim()
 		const normalizedAddress = (values.address || '').trim()
+		const normalizedExperience = values.experience ?? null
+		const normalizedDescription = (values.description || '').trim()
 		setEditing(true)
 		try {
 			const avatarUrl = editUploadedAvatarUrl || veterinarian?.user?.avatarUrl || ''
@@ -236,12 +244,18 @@ export default function InformationVererianrian() {
 				address: normalizedAddress,
 				avatarUrl,
 				specialty: values.specialty,
+				experience: normalizedExperience !== null ? String(normalizedExperience) : null,
+				description: normalizedDescription,
+				introduce: normalizedDescription,
 			})
 
 			setVeterinarian((prev) => {
 				const updated = {
 					...prev,
 					specialty: values.specialty,
+					experience: normalizedExperience !== null ? String(normalizedExperience) : '',
+					description: normalizedDescription,
+					introduce: normalizedDescription,
 					user: {
 						...(prev?.user || {}),
 						fullName: normalizedFullName,
@@ -406,6 +420,12 @@ export default function InformationVererianrian() {
 						<Descriptions.Item label={t('veterinarians.fields.address')}>
 							<EnvironmentOutlined /> {veterinarianView.address}
 						</Descriptions.Item>
+						<Descriptions.Item label={t('veterinarians.fields.experience')}>
+							{veterinarianView.experience || t('veterinarians.common.notUpdated')}
+						</Descriptions.Item>
+						<Descriptions.Item label={t('veterinarians.fields.description')}>
+							{veterinarianView.description || t('veterinarians.common.notUpdated')}
+						</Descriptions.Item>
 					</Descriptions>
 				</Card>
 
@@ -478,6 +498,26 @@ export default function InformationVererianrian() {
 							<Col span={12}>
 								<Form.Item name="address" label={t('veterinarians.fields.address')}>
 									<Input prefix={<EnvironmentOutlined />} />
+								</Form.Item>
+							</Col>
+							<Col span={12}>
+								<Form.Item name="experience" label={t('veterinarians.fields.experience')}>
+									<InputNumber
+										min={0}
+										max={50}
+										placeholder={t('veterinarians.fields.experiencePlaceholder')}
+										style={{ width: '100%' }}
+									/>
+								</Form.Item>
+							</Col>
+							<Col span={24}>
+								<Form.Item name="description" label={t('veterinarians.fields.description')}>
+									<Input.TextArea
+										rows={4}
+										placeholder={t('veterinarians.fields.descriptionPlaceholder')}
+										maxLength={500}
+										showCount
+									/>
 								</Form.Item>
 							</Col>
 							<Col span={12}>

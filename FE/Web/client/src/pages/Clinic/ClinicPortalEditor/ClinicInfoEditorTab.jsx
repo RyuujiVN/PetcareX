@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../../hooks/Clinic/AuthContext'
+import { getAdminInstance } from '../../../services/apiClient'
+import { updateClinicApi } from '../../../services/clinicService'
 import { uploadOneFileToCloudinary } from '../../../services/cloudinaryService'
 import { getCurrentAdminClinicId } from '../../../utils/clinicIdentity'
 import {
@@ -25,8 +27,13 @@ const buildFallbackClinicFromProfile = (profile) => {
   return {
     avatarUrl: clinicInfo?.avatarUrl || profile?.avatarUrl || '',
     name: clinicInfo?.name || profile?.clinicName || '',
+    email: clinicInfo?.email || profile?.email || '',
     address: clinicInfo?.address || profile?.address || '',
     phone: clinicInfo?.phone || profile?.phone || '',
+    description: clinicInfo?.description || profile?.description || '',
+    openingTime: clinicInfo?.openingTime || clinicInfo?.opening_time || '',
+    closingTime: clinicInfo?.closingTime || clinicInfo?.closing_time || '',
+    openingDays: clinicInfo?.openingDays || '',
   }
 }
 
@@ -124,15 +131,43 @@ export default function ClinicSelectionEditor() {
     }
 
     try {
-      const values = await form.validateFields()
+      await form.validateFields()
       setSaving(true)
 
-      const normalized = buildClinicInfoContent(values, sourceClinicRef.current)
+      const values = form.getFieldsValue(true)
+      const normalized = buildClinicInfoContent(
+        {
+          ...values,
+          openingTime: String(values?.openingTime || savedSnapshot?.openingTime || '').trim(),
+          closingTime: String(values?.closingTime || savedSnapshot?.closingTime || '').trim(),
+        },
+        sourceClinicRef.current,
+      )
+
+      const clinicPayload = {
+        name: String(normalized.name || '').trim(),
+        address: String(normalized.address || '').trim(),
+        phone: String(normalized.phone || '').trim(),
+        avatarUrl: String(normalized.avatarUrl || '').trim(),
+        openingTime: String(normalized.openingTime || '').trim(),
+        closingTime: String(normalized.closingTime || '').trim(),
+        opening_time: String(normalized.openingTime || '').trim(),
+        closing_time: String(normalized.closingTime || '').trim(),
+      }
+
+      if (String(normalized.email || '').trim()) {
+        clinicPayload.email = String(normalized.email).trim()
+      }
+
+      if (String(normalized.description || '').trim()) {
+        clinicPayload.description = String(normalized.description).trim()
+      }
+
+      await updateClinicApi(getAdminInstance(), targetClinicId, clinicPayload)
       saveClinicInfoContent(targetClinicId, normalized, sourceClinicRef.current)
 
       setSavedSnapshot(normalized)
       message.success(t('clinicEditor.messages.saveSuccess'))
-      window.location.reload()
     } catch (error) {
       if (!error?.errorFields) {
         message.error(error?.message || t('clinicEditor.messages.saveFailed'))
@@ -146,28 +181,32 @@ export default function ClinicSelectionEditor() {
     navigate('/clinic/appointments')
   }
 
-  const handleCancel = () => {
-    if (!isDirty) {
-      discardAndExit()
-      return
-    }
+  // const handleCancel = () => {
+  //   if (!isDirty) {
+  //     discardAndExit()
+  //     return
+  //   }
 
-    Modal.confirm({
-      title: t('clinicEditor.confirm.leaveTitle'),
-      content: t('clinicEditor.confirm.leaveContent'),
-      okText: t('clinicEditor.confirm.continueEditing'),
-      cancelText: t('clinicEditor.confirm.discardChanges'),
-      closable: false,
-      maskClosable: false,
-      onCancel: discardAndExit,
-      onOk: () => {},
-    })
-  }
+  //   Modal.confirm({
+  //     title: t('clinicEditor.confirm.leaveTitle'),
+  //     content: t('clinicEditor.confirm.leaveContent'),
+  //     okText: t('clinicEditor.confirm.continueEditing'),
+  //     cancelText: t('clinicEditor.confirm.discardChanges'),
+  //     closable: false,
+  //     maskClosable: false,
+  //     onCancel: discardAndExit,
+  //     onOk: () => {},
+  //   })
+  // }
 
   return (
     <div className="clinic-selection-editor-page">
       <Card loading={loadingInit}>
         <Form form={form} layout="vertical" autoComplete="off">
+          <Form.Item name="avatarUrl" hidden>
+            <Input type="hidden" />
+          </Form.Item>
+
           <Row gutter={[16, 16]}>
             <Col xs={24} lg={16}>
               <Space direction="vertical" size={12} className="editor-full-width">
@@ -267,7 +306,7 @@ export default function ClinicSelectionEditor() {
       </Card>
 
       <div className="clinic-selection-editor-actions">
-        <Button onClick={handleCancel}>{t('clinicEditor.actions.cancel')}</Button>
+        {/* <Button onClick={handleCancel}>{t('clinicEditor.actions.cancel')}</Button> */}
         <Button type="primary" onClick={handleSave} loading={saving}>
           {t('clinicEditor.actions.saveChanges')}
         </Button>

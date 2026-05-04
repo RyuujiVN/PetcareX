@@ -219,52 +219,88 @@
 .date-time-selector {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 18px;
+  gap: 22px;
   align-items: flex-start;
 }
 
 .calendar {
-  border: 1px solid var(--color-border-soft);
-  border-radius: 10px;
+  border: 1px solid #d9e2f2;
+  border-radius: 16px;
   background: var(--color-surface-card);
   padding: 12px;
+  box-shadow: 0 10px 26px rgba(45, 91, 154, 0.08);
 }
 
-.calendar table {
-  width: 100%;
-  border-collapse: collapse;
-  text-align: center;
-}
-.calendar th,
-.calendar td {
-  padding: 10px 8px;
-  border: 1px solid var(--color-border-soft);
-  width: 14.28%;
-}
 .calendar .month-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
-  color: var(--color-text-primary);
-  font-weight: 600;
-}
-.calendar .month-header button {
-  background: var(--color-surface-soft);
-  border: 1px solid var(--color-border-soft);
-  width: 30px;
-  height: 30px;
   border-radius: 999px;
-  font-size: 16px;
-  cursor: pointer;
-}
-.calendar td {
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
+
+  margin-bottom: 0 auto;
+  color: var(--color-text-primary);
+  font-weight: 700;
+  font-size: 18px;
 }
 
-.calendar td:hover:not(.disabled-day):not(.selected-day) {
-  background: #f2f7ff;
+.calendar .month-header button {
+  background: transparent;
+  border: none;
+  width: 32px;
+  height: 52px;
+  border-radius: 999px;
+  font-size: 26px;
+  color: #1f2f49;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.calendar .month-header button:hover {
+  color: var(--color-brand-primary);
+}
+
+.calendar-grid-head {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.calendar-grid-head span {
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1f2f49;
+}
+
+.calendar-grid-body {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: minmax(46px, auto);
+  gap: 8px;
+}
+
+.calendar-day-empty {
+  min-height: 46px;
+}
+
+.calendar-day-pill {
+  border: 1px solid #e2e7f0;
+  border-radius: 14px;
+  min-height: 46px;
+  background: #ffffff;
+  color: #2d3748;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(18, 40, 70, 0.08);
+  transition: all 0.25s ease;
+}
+
+.calendar-day-pill:hover:not(.disabled-day):not(.selected-day) {
+  transform: translateY(-1px);
+  border-color: #c5d7f3;
+  box-shadow: 0 9px 18px rgba(46, 89, 148, 0.16);
 }
 
 .doctor-card {
@@ -378,21 +414,25 @@
 }
 
 .selected-day {
-  background: var(--color-brand-primary);
+  background: linear-gradient(145deg, #4d7fca 0%, #356fbc 100%);
   color: white;
   font-weight: 600;
+  border-color: #2f67ae;
+  box-shadow: 0 0 0 4px rgba(55, 104, 173, 0.16), 0 10px 18px rgba(45, 95, 162, 0.34);
 }
 
 .disabled-day {
-  color: var(--color-text-disabled);
-  background: var(--color-surface-page);
+  color: #b7bec8;
+  background: #f3f5f9;
+  border-color: #e4e8f0;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
 .time-slots {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .lead-time-note {
@@ -411,54 +451,59 @@
 .time-slot-group {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .time-slot-group-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--color-brand-primary);
-  font-size: 22px;
+  color: #335f97;
+  font-size: 20px;
   font-weight: 700;
 }
 
 .time-slot-icon {
-  font-size: 22px;
+  font-size: 20px;
   line-height: 1;
 }
 
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(110px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(130px, 1fr));
+  gap: 13px;
 }
 .slot {
-  padding: 12px 10px;
-  border: 1px solid var(--color-border-strong);
-  border-radius: 10px;
+  padding: 17px 12px;
+  border: 1px solid #dce5ef;
+  border-radius: 14px;
   text-align: center;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s;
-  font-size: 14px;
+  transition: all 0.22s ease;
+  font-size: 16px;
   font-weight: 600;
-  color: var(--color-text-primary);
-  background: var(--color-surface-card);
+  color: #263248;
+  background: #ffffff;
+  box-shadow: 0 8px 18px rgba(28, 47, 71, 0.1);
 }
 
 .slot:hover:not(.disabled-slot):not(.selected) {
-  background: #f2f7ff;
+  transform: translateY(-1px);
+  border-color: #acc6ea;
+  box-shadow: 0 10px 18px rgba(53, 95, 151, 0.18);
 }
 .slot.selected {
-  background: var(--color-brand-primary);
-  color: white;
-  border-color: var(--color-brand-primary);
+  background: #ffffff;
+  color: #1f4f88;
+  border-color: #2d669f;
+  box-shadow: 0 0 0 2px rgba(53, 108, 171, 0.17);
 }
 
 .slot.disabled-slot {
-  color: var(--color-text-disabled);
-  background: #f4f5f7;
-  border-color: #dfe3eb;
+  color: #b7bec8;
+  background: #f4f6f9;
+  border-color: #e4e8ef;
+  box-shadow: none;
   cursor: not-allowed;
 }
 
@@ -598,17 +643,177 @@
 
 /* ── Doctor option 2-line inside dropdown ── */
 .doctor-option {
-  line-height: 1.3;
+  line-height: 1.5;
   padding: 2px 0;
 }
 
 .doctor-option-name {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--color-text-primary);
 }
 
 .doctor-option-specialty {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--color-text-secondary);
+}
+
+.doctor-detail-panel {
+  background: var(--color-surface, #f8f9fa);
+  border: 1px solid var(--color-border, #e8e8e8);
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 12px;
+  animation: fadeInOverlay 0.2s ease;
+}
+
+.doctor-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border, #e8e8e8);
+}
+
+.doctor-header-info h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.doctor-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.doctor-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.doctor-detail-label {
+  font-weight: 500;
+  color: var(--color-text-secondary, #666);
+  min-width: 90px;
+}
+
+.doctor-description {
+  margin-top: 8px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--color-text, #333);
+}
+
+.doctor-description p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+}
+
+/* ── Clinic option (name + address + distance) inside dropdown ── */
+/* Override AntD's `.ant-select-item-option-content` defaults
+   (white-space: nowrap; overflow: hidden; text-overflow: ellipsis)
+   để name/address có thể xuống dòng mà không bị cắt hoặc đè lên badge. */
+.clinic-select-popup .ant-select-item-option-content {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.clinic-select-popup .ant-select-item {
+  align-items: stretch;
+}
+
+.clinic-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  line-height: 1.45;
+  white-space: normal;
+  width: 100%;
+}
+
+.clinic-option-main {
+  min-width: 0;
+}
+
+.clinic-option-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  word-break: break-word;
+}
+
+.clinic-option-address {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.clinic-option-address > :global(.anticon),
+.clinic-option-address > svg {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+
+.clinic-option-address span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+  line-height: 1.4;
+}
+
+.clinic-option-distance {
+  flex-shrink: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-brand-primary);
+  background: var(--color-brand-primary-soft, rgba(24, 144, 255, 0.08));
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.clinic-location-banner {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 12px;
+  background: rgba(24, 144, 255, 0.06);
+  border: 1px solid rgba(24, 144, 255, 0.18);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.clinic-location-banner-action {
+  border: none;
+  background: transparent;
+  color: var(--color-brand-primary);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 0;
+  margin-left: auto;
+}
+
+.clinic-location-banner-action:hover {
+  text-decoration: underline;
+}
+
+.clinic-location-banner-action:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  text-decoration: none;
 }

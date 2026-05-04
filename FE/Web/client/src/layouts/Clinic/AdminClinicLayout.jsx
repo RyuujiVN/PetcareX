@@ -1,34 +1,36 @@
 import {
-  CalendarOutlined,
-  FileSearchOutlined,
-  HomeOutlined,
-  LineChartOutlined,
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  MedicineBoxOutlined,
-  TeamOutlined,
+    CalendarOutlined,
+    FileSearchOutlined,
+    HomeOutlined,
+    LineChartOutlined,
+    MedicineBoxOutlined,
+    MenuFoldOutlined,
+    MenuUnfoldOutlined,
+    MessageOutlined,
+    RobotOutlined,
+    TeamOutlined,
 } from "@ant-design/icons";
 import {
-  Badge,
-  Button,
-  Empty,
-  Form,
-  List,
-  notification,
-  Popover,
-  Select,
-  Tag,
-  Typography,
-  message,
+    Badge,
+    Button,
+    Empty,
+    Form,
+    List,
+    message,
+    notification,
+    Popover,
+    Select,
+    Tag,
+    Typography,
 } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
+import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
 import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
-import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
 import { getRoleLabel } from "../../constants/veterinaryLabels";
 import { RoleEnum } from "../../enum/role.enum";
@@ -37,7 +39,6 @@ import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
-import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
 import styles from "./AdminClinicLayout.module.css";
 
 const { Text } = Typography;
@@ -78,6 +79,20 @@ const menuItemConfigs = [
     path: "/clinic/exam-slips",
     activePaths: ["/clinic/exam-slips"],
   },
+  {
+    key: "forum",
+    labelKey: "sidebar.menu.forum",
+    icon: MessageOutlined,
+    path: "/clinic/forum",
+    activePaths: ["/clinic/forum"],
+  },
+  {
+    key: "chatbot",
+    labelKey: "sidebar.menu.chatbot",
+    icon: RobotOutlined,
+    path: "/clinic/chatbot",
+    activePaths: ["/clinic/chatbot"],
+  },
 ];
 
 const clinicEditorPathPrefixes = [
@@ -92,6 +107,8 @@ const NOTIFICATION_TYPE_COLORS = {
   review: "purple",
   "ai-diagnosis": "purple",
   system: "gold",
+  "forum-like": "geekblue",
+  "forum-reply": "cyan",
   "forum-comment": "cyan",
 };
 
@@ -119,6 +136,16 @@ const getNotificationTypeLabel = (type, t) => {
   if (type === "forum-comment") {
     return t("sidebar.notifications.types.forumComment", {
       defaultValue: "Bình luận",
+    });
+  }
+  if (type === "forum-like") {
+    return t("sidebar.notifications.types.forumLike", {
+      defaultValue: "Lượt thích",
+    });
+  }
+  if (type === "forum-reply") {
+    return t("sidebar.notifications.types.forumReply", {
+      defaultValue: "Phản hồi",
     });
   }
   if (type === "system") {
@@ -201,7 +228,9 @@ const handoffAdminAuthToNewTab = () => {
         window.localStorage.setItem(key, value);
       }
     });
-  } catch {}
+  } catch (error) {
+    void error;
+  }
 };
 
 export default function AdminClinicLayout() {
@@ -235,6 +264,13 @@ export default function AdminClinicLayout() {
     location.pathname.startsWith("/clinic/editor/") ||
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
+
+  const isFullscreenRoute =
+    location.pathname === "/clinic/forum" ||
+    location.pathname.startsWith("/clinic/forum/") ||
+    location.pathname === "/clinic/chatbot" ||
+    location.pathname.startsWith("/clinic/chatbot/");
+
   const shouldEmbedActionBarInTopBar =
     location.pathname === "/clinic/appointments" ||
     location.pathname.startsWith("/clinic/appointments/") ||
@@ -434,6 +470,18 @@ export default function AdminClinicLayout() {
                 }),
               },
               {
+                value: "forum-like",
+                label: t("sidebar.notifications.filters.forumLike", {
+                  defaultValue: "Lượt thích",
+                }),
+              },
+              {
+                value: "forum-reply",
+                label: t("sidebar.notifications.filters.forumReply", {
+                  defaultValue: "Phản hồi",
+                }),
+              },
+              {
                 value: "system",
                 label: t("sidebar.notifications.filters.system", {
                   defaultValue: "Hệ thống",
@@ -503,7 +551,11 @@ export default function AdminClinicLayout() {
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
-              <CiHospital1 />
+              <img
+                src="/avatarProject.png"
+                alt={clinicDisplayName}
+                className={styles.brandImage}
+              />
             </div>
             <div>
               <h2>{clinicDisplayName}</h2>
@@ -553,9 +605,9 @@ export default function AdminClinicLayout() {
       </aside>
       ) : null}
 
-      <main className={styles.main}>
+      <main className={`${styles.main} ${isFullscreenRoute ? styles.mainFullscreen : ""}`}>
         {notificationContextHolder}
-        {!isClinicEditorRoute && !isSidebarVisible ? (
+        {!isClinicEditorRoute && !isFullscreenRoute && !isSidebarVisible ? (
           <Button
             type="text"
             aria-label={t("sidebar.toggleAriaLabel", { defaultValue: "Ẩn/hiện sidebar" })}
@@ -564,7 +616,37 @@ export default function AdminClinicLayout() {
             onClick={() => setIsSidebarVisible(true)}
           />
         ) : null}
-        {!isClinicEditorRoute ? (
+
+        {isFullscreenRoute ? (
+          <div className={styles.inlineTopBar}>
+            <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
+            <Popover
+              trigger="click"
+              placement="bottomRight"
+              overlayClassName={styles.notificationPopoverOverlay}
+              content={notificationContent}
+              open={notificationPopoverOpen}
+              onOpenChange={setNotificationPopoverOpen}
+            >
+              <Button
+                type="text"
+                aria-label={t("sidebar.notificationBellAriaLabel")}
+                className={styles.notificationBellButton}
+                icon={
+                  <Badge
+                    count={unreadNotificationCount}
+                    size="small"
+                    overflowCount={9}
+                  >
+                    <span className={styles.notificationBellIcon}>
+                      <IoMdNotificationsOutline />
+                    </span>
+                  </Badge>
+                }
+              />
+            </Popover>
+          </div>
+        ) : !isClinicEditorRoute ? (
         <div
           className={`${styles.mainActionBar} ${shouldEmbedActionBarInTopBar ? styles.mainActionBarEmbedded : ""}`}
         >
@@ -600,7 +682,13 @@ export default function AdminClinicLayout() {
         </div>
         ) : null}
 
-        <Outlet />
+        {isFullscreenRoute ? (
+          <div className={styles.contentFullscreen}>
+            <Outlet />
+          </div>
+        ) : (
+          <Outlet />
+        )}
       </main>
     </div>
   );

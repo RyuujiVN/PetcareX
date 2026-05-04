@@ -1,20 +1,23 @@
 import {
-  FileTextOutlined,
-  MedicineBoxOutlined,
-  TeamOutlined,
+    BarChartOutlined,
+    FileTextOutlined,
+    FlagOutlined,
+    MedicineBoxOutlined,
+    MessageOutlined,
+    RobotOutlined,
+    TeamOutlined,
 } from "@ant-design/icons";
 import { Badge } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { useAuth } from "../../hooks/Clinic/AuthContext";
-import { getPrimaryRole } from "../../constants/authRole";
-import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
-import { CiHospital1 } from "react-icons/ci";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { RoleEnum } from "../../enum/role.enum";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
+import { getPrimaryRole } from "../../constants/authRole";
+import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
+import { RoleEnum } from "../../enum/role.enum";
+import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
@@ -43,6 +46,27 @@ const menuItems = [
     path: "/admin/dashboard/posts",
     activePaths: ["/admin/dashboard/posts"],
   },
+  {
+    key: "activity",
+    labelKey: "layout.menu.activity",
+    icon: BarChartOutlined,
+    path: "/admin/dashboard/activity",
+    activePaths: ["/admin/dashboard/activity"],
+  },
+  {
+    key: "forum",
+    labelKey: "layout.menu.forum",
+    icon: MessageOutlined,
+    path: "/admin/forum",
+    activePaths: ["/admin/forum"],
+  },
+  {
+    key: "chatbot",
+    labelKey: "layout.menu.chatbot",
+    icon: RobotOutlined,
+    path: "/admin/chatbot",
+    activePaths: ["/admin/chatbot"],
+  },
 ];
 
 const normalizePath = (path) => {
@@ -69,7 +93,10 @@ const NOTIFICATION_CATEGORY_ICONS = {
   appointment: <MedicineBoxOutlined />,
   "ai-diagnosis": <FileTextOutlined />,
   system: <TeamOutlined />,
+  "forum-like": <MessageOutlined />,
+  "forum-reply": <MessageOutlined />,
   "forum-comment": <FileTextOutlined />,
+  report: <FlagOutlined />,
 };
 
 const formatAdminTimeAgo = (dateValue, t) => {
@@ -170,7 +197,25 @@ export default function AdminLayout() {
       void markAsRead(item.id);
       setNotificationOpen(false);
 
-      const targetHref = resolveNotificationHref(item, "client");
+      const isReportType =
+        String(item?.beType || "").toUpperCase() === "REPORT" ||
+        String(item?.beType || "").toUpperCase() === "POST_REPORTED" ||
+        String(item?.beType || "").toUpperCase() === "COMMENT_REPORTED" ||
+        String(item?.type || "").toLowerCase() === "report";
+
+      if (isReportType) {
+        const postId = String(item?.postId || item?.target?.postId || "").trim();
+        const commentId = String(item?.commentId || item?.target?.commentId || "").trim();
+        const params = new URLSearchParams();
+        if (postId) params.set("postId", postId);
+        if (commentId) params.set("commentId", commentId);
+        params.set("adminAction", "delete");
+        const queryString = params.toString();
+        navigate(queryString ? `/admin/forum?${queryString}` : "/admin/forum");
+        return;
+      }
+
+      const targetHref = resolveNotificationHref(item, "admin");
       if (targetHref) {
         navigate(targetHref);
       }
@@ -185,7 +230,11 @@ export default function AdminLayout() {
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
-              <CiHospital1 />
+              <img
+                src="/avatarProject.png"
+                alt={t("layout.brand.name")}
+                className={styles.brandImage}
+              />
             </div>
             <div>
               <h2>{t("layout.brand.name")}</h2>

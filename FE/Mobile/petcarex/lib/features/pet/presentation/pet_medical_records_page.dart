@@ -5,12 +5,16 @@ import 'package:intl/intl.dart';
 import '../../../core/enums/medicine_unit_enum.dart';
 import '../../../core/enums/pet_breed_enum.dart';
 import '../../../core/theme/app_colors.dart';
+import '../../../core/utils/app_notifier.dart';
 import '../../../core/utils/image_helper.dart';
+import '../../../core/widgets/interactive_star_rating.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../data/clinic_review_repository.dart';
 import '../data/models/pet_medical_record_models.dart';
 import '../data/models/pet_models.dart';
 import '../data/pet_medical_record_repository.dart';
 import '../data/pet_repository.dart';
+import 'widgets/review_bottom_sheet.dart';
 
 class PetMedicalRecordsPage extends StatefulWidget {
   final Pet pet;
@@ -270,61 +274,151 @@ class _PetMedicalRecordsPageState extends State<PetMedicalRecordsPage> {
       ),
       child: Theme(
         data: Theme.of(context).copyWith(dividerColor: AppColors.transparent),
-        child: ExpansionTile(
-          tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-          title: Text(
-            record.name.isEmpty ? '--' : record.name,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.text,
-            ),
-          ),
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
+        child: Column(
+          children: [
+            ExpansionTile(
+              tilePadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+              childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+              title: Text(
+                record.name.isEmpty ? '--' : record.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.text,
+                ),
+              ),
+              subtitle: Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.event_outlined,
+                      size: 16,
+                      color: AppColors.textGrey,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      _formatDate(record.createdAt),
+                      style: const TextStyle(
+                        color: AppColors.textGrey,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              onExpansionChanged: (expanded) {
+                if (expanded) {
+                  _loadDetail(record.id);
+                }
+              },
               children: [
-                const Icon(
-                  Icons.event_outlined,
-                  size: 16,
-                  color: AppColors.textGrey,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  _formatDate(record.createdAt),
-                  style: const TextStyle(
-                    color: AppColors.textGrey,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
+                if (detailState.isLoading)
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.primary),
+                    ),
+                  )
+                else if (detailState.error != null)
+                  _buildDetailError(record.id, detailState.error!, l10n)
+                else if (detailState.detail != null)
+                  _buildRecordDetail(detailState.detail!, l10n),
               ],
             ),
-          ),
-          onExpansionChanged: (expanded) {
-            if (expanded) {
-              _loadDetail(record.id);
-            }
-          },
-          children: [
-            if (detailState.isLoading)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(
-                  child: CircularProgressIndicator(color: AppColors.primary),
-                ),
-              )
-            else if (detailState.error != null)
-              _buildDetailError(record.id, detailState.error!, l10n)
-            else if (detailState.detail != null)
-              _buildRecordDetail(detailState.detail!, l10n),
+            _buildReviewSection(record, l10n),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildReviewSection(PetMedicalRecordSummary record, AppLocalizations l10n) {
+    if (record.isReview) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+        child: Row(
+          children: [
+            const Icon(Icons.check_circle, size: 16, color: AppColors.success),
+            const SizedBox(width: 6),
+            Text(
+              l10n.reviewAlreadyReviewed,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.success,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (record.clinicId == null) return const SizedBox.shrink();
+
+    return InkWell(
+      onTap: () => _openReviewSheet(record, l10n),
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
+        child: Row(
+          children: [
+            const InteractiveStarRating(
+              rating: 0,
+              size: 18,
+              onRatingChanged: null,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              l10n.reviewThisVisit,
+              style: const TextStyle(
+                fontSize: 13,
+                color: AppColors.primary,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openReviewSheet(PetMedicalRecordSummary record, AppLocalizations l10n) async {
+    final result = await ReviewBottomSheet.show(
+      context,
+      initialRating: 5,
+      onSubmit: (rating, comment) async {
+        try {
+          final repo = ClinicReviewRepository();
+          await repo.createClinicReview(
+            clinicId: record.clinicId!,
+            medicalRecordId: record.id,
+            rating: rating.toDouble(),
+            content: comment,
+          );
+          return true;
+        } catch (_) {
+          if (mounted) {
+            AppNotifier.showError(context, l10n.reviewFailed);
+          }
+          return false;
+        }
+      },
+    );
+
+    if (result == true && mounted) {
+      AppNotifier.showSuccess(context, l10n.reviewSuccess);
+      // Update local state to reflect the review
+      setState(() {
+        final idx = _records.indexWhere((r) => r.id == record.id);
+        if (idx != -1) {
+          _records[idx] = _records[idx].copyWith(isReview: true);
+        }
+      });
+    }
   }
 
   Widget _buildDetailError(

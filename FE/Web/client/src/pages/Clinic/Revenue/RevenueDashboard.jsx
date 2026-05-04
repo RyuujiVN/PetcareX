@@ -5,6 +5,7 @@ import useRevenue from '../../../hooks/Clinic/useRevenue'
 import RecentInvoicesTable from './components/RecentInvoicesTable'
 import RevenueChart from './components/RevenueChart'
 import RevenueSummaryCards from './components/RevenueSummaryCards'
+import TodayHighlightCard from './components/TodayHighlightCard'
 import TopVeterinariansTable from './components/TopVeterinariansTable'
 import styles from './revenue.module.css'
 
@@ -18,17 +19,18 @@ export default function RevenueDashboard() {
     invoiceFilter,
     setInvoiceFilter,
     fetchRevenue,
+    fetchChart,
     summary,
-    dailyRevenue,
+    chartData,
     topVeterinariansMonthly,
     recentInvoices,
-    filteredRecords,
     PERIOD_KEYS,
   } = useRevenue()
 
   useEffect(() => {
     fetchRevenue()
-  }, [fetchRevenue])
+    fetchChart(PERIOD_KEYS.MONTH)
+  }, [fetchRevenue, fetchChart, PERIOD_KEYS.MONTH])
 
   const periodOptions = [
     { key: PERIOD_KEYS.TODAY, label: t('revenue.period.today') },
@@ -57,26 +59,32 @@ export default function RevenueDashboard() {
     )
   }
 
+  const isToday = period === PERIOD_KEYS.TODAY
+
   return (
     <div className={styles.pageWrapper}>
-      {/* Header */}
       <div className={styles.pageHeader}>
         <h1 className={styles.pageTitle}>{t('revenue.pageTitle')}</h1>
       </div>
 
-      {/* Summary Cards */}
       <RevenueSummaryCards summary={summary} />
 
-      {/* Charts Row (period filter now inside daily chart header) */}
-      <RevenueChart
-        dailyRevenue={dailyRevenue}
-        enrichedRecords={filteredRecords}
-        periodOptions={periodOptions}
-        period={period}
-        onPeriodChange={setPeriod}
-      />
+      {isToday ? (
+        <TodayHighlightCard
+          summary={summary}
+          periodOptions={periodOptions}
+          period={period}
+          onPeriodChange={setPeriod}
+        />
+      ) : (
+        <RevenueChart
+          dailyRevenue={chartData}
+          periodOptions={periodOptions}
+          period={period}
+          onPeriodChange={setPeriod}
+        />
+      )}
 
-      {/* Bottom Row: Top Vets (25%) + Recent Invoices (75%) */}
       <div className={styles.bottomRow}>
         <TopVeterinariansTable veterinarians={topVeterinariansMonthly} />
         <RecentInvoicesTable

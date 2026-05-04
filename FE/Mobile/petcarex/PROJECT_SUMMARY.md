@@ -101,6 +101,54 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
     - Chỉ `Navigator.pop(true)` khi toàn bộ điều kiện hợp lệ.
 - **Kết quả UX:** Người dùng không còn bị đá ra khỏi dialog khi bấm cập nhật quá sớm; có thể chờ upload xong rồi tiếp tục chỉnh sửa trong cùng ngữ cảnh.
 
+### 9) Community Single-Image Render Fix — "1 ảnh mà nhìn như 2-3 ảnh" (2026-04-22)
+- **Triệu chứng:** Ở comment/post chỉ có **1 ảnh**, UI xuất hiện các dải trắng trên-dưới/hai bên nên mắt người đọc tách thành 2-3 vùng hình riêng biệt, nhất là với ảnh có mảng màu đồng nhất (trần trắng, tường, bầu trời).
+- **Root cause (phân tích + phản biện kỹ):**
+    - Nhánh `count == 1` trong `_buildImageGrid` ở `community_page.dart` dùng `Container(height: fixed) + BoxFit.contain + color: AppColors.background`.
+    - Khi tỉ lệ ảnh gốc **không khớp** với khung cố định (120px cho comment compact, 220px cho post), `contain` sinh **letterbox** bằng nền sáng `AppColors.background`.
+    - Letterbox này + các mảng màu đồng nhất trong ảnh → tạo cảm giác nhiều ô ảnh, KHÔNG phải do HTML có nhiều `<img>` trùng URL.
+    - Trước đó đã thêm dedup URL ở `_extractImageUrlsFromHtml` như defensive fix (giữ lại), nhưng không giải quyết được trường hợp layout này.
+- **Các giải pháp đã cân nhắc:**
+    - A. Đổi sang `BoxFit.cover` + `AspectRatio` cố định 4:3 → đơn giản nhưng portrait bị crop quá đà cho post.
+    - B. Đọc tỉ lệ thực của ảnh rồi **clamp theo dải**, sau đó `BoxFit.cover` (Facebook-style) → đồng nhất, không letterbox, portrait không bị ép landscape.
+    - C. Chỉ đổi màu letterbox → xử lý triệu chứng, vẫn thấy 2 vùng → loại.
+- **Giải pháp đã áp dụng (B):** Thêm widget `_AdaptiveSingleImage` (Stateful) trong `community_page.dart`:
+    - Dùng `CachedNetworkImageProvider.resolve(...)` + `ImageStreamListener` để đọc `width/height` thực của ảnh sau khi tải.
+    - Clamp tỉ lệ `w/h` theo ngữ cảnh:
+        - **Comment (compact = true):** dải `[4/3, 16/9]` — luôn landscape-leaning cho gọn thread, portrait bị center-crop có chủ đích.
+        - **Post (compact = false):** dải `[4/5, 16/9]` — cho phép portrait vừa phải như feed Facebook.
+    - Bọc ảnh trong `AspectRatio` + `BoxFit.cover` → không còn dải letterbox trắng.
+    - Placeholder/error dùng nền `AppColors.background` đồng bộ với phần còn lại của card.
+    - Dọn dẹp `ImageStreamListener` trong `dispose()` để tránh leak.
+- **Nguyên tắc tuân thủ khi triển khai:**
+    - **Không đụng BE** theo đúng rule dự án; toàn bộ fix nằm ở FE mobile.
+    - Giữ logic grid cho `count >= 2` nguyên vẹn, chỉ thay nhánh `count == 1`.
+    - Giữ dedup URL ở `_extractImageUrlsFromHtml` làm defensive layer.
+- **Kết quả:** 1 ảnh trong comment/post hiển thị như một khung hình thống nhất, không còn "viền trắng tách đôi" khiến người dùng tưởng có 2-3 ảnh. Portrait không bị stretch; landscape không bị letterbox.
+
+### 10) Community Comment Multi-Image Facebook-style Grid (2026-04-22)
+- **Vấn đề phát hiện sau fix (9):**
+    - Ở comment có **2+ ảnh**, các nhánh `count == 2/3/4/5+` trong `_buildImageGrid` ép tất cả ảnh vào khung cao ~120px (vì `compact=true`, `totalHeight=160`, `h = totalHeight * 0.75`).
+    - Với 5+ ảnh, chỉ hiển thị 5 cái đầu kèm overlay "+N", các ảnh còn lại bị ẩn khỏi bubble comment → user cảm giác "không hiển thị đầy đủ".
+    - Mỗi ảnh trong grid bị co nhỏ tới mức không đọc/nhìn được nội dung.
+- **Lần lặp 1 (đã loại):** Horizontal carousel ngang. Mọi ảnh đều xem được nhưng break pattern social feed quen thuộc, user mong đợi kiểu FB "thumbnail + số ảnh còn lại".
+- **Lần lặp 2 (đã áp dụng theo request của user):** **Facebook comment-style thumbnail grid + "+N" overlay**.
+    - Container: `Align(centerLeft) + FractionallySizedBox(widthFactor: 0.75) + AspectRatio(1:1)` → block vuông, căn trái, rộng 75% bubble comment.
+    - Layout theo số ảnh hiển thị (tối đa 4):
+        - 2 ảnh: 2 cột đều
+        - 3 ảnh: 1 tile trái + 2 tile nhỏ phải xếp dọc (FB style)
+        - 4 ảnh: grid 2×2
+        - ≥5 ảnh: grid 2×2, tile thứ 4 có overlay **+N** (N = count - 4)
+    - Tái sử dụng helper `_fbImage(..., overlayCount: ...)` đã có sẵn cho post feed → đồng bộ render (cover, bo góc, overlay) giữa post và comment, giảm trùng code.
+    - Tap bất kỳ tile nào mở `ImageViewer` với đúng `initialIndex` — tile "+N" mở viewer từ ảnh thứ 4, user vuốt để xem hết các ảnh bị ẩn.
+- **Giữ nguyên cho post feed (non-compact):** các nhánh grid `count == 2/3/4/5+` gốc không đổi để nhịp đọc feed nhất quán.
+- **Nguyên tắc tuân thủ:** chỉ sửa FE mobile, không đụng BE; giữ nguyên contract HTML content.
+- **Kết quả:**
+    - Comment nhiều ảnh giờ gọn gàng theo đúng pattern FB/social feed.
+    - Thumbnail đủ lớn để nhìn (tile ~(0.75 × bubble_width) / 2 ≈ 100–130px mỗi tile).
+    - Không ảnh nào bị "mất" — user tap "+N" là vào full gallery.
+    - Reuse `_fbImage` giúp post và comment có visual language đồng nhất.
+
 ## 🐾 Pet Avatar Fullscreen Fix (2026-03-27)
 
 ### Bối cảnh lỗi
@@ -329,6 +377,52 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Xóa method `updateAppointmentStatus()` (dead code, gọi sai endpoint RBAC, không ai gọi).
     - **Lỗi BE phát hiện kèm (cần BE team fix):** Migration `1775632467242-update-notification-table` (DROP cột `sender_type` khỏi bảng notification) chưa chạy → INSERT notification khi tạo appointment bị `NOT NULL constraint violation` trên `sender_type` → HTTP 500. FE không liên quan, BE cần chạy migration.
     - **RBAC Matrix cho Mobile CUSTOMER:** Tất cả 48 API call từ mobile đều tương thích RBAC ngoại trừ lỗi cancel đã fix ở trên. Các endpoint chính: Pet (CUSTOMER), Appointment POST/GET (CUSTOMER), Medical GET (CUSTOMER), Clinic/Vet GET (ALL roles), Forum/Chat/Notification (JwtAuth only), Cloudinary (public).
+- **Booking Clinic List Pagination & Rating Sort (2026-04-20):**
+    - **Bối cảnh:** Bước `Phòng khám` trước đây chỉ hiển thị tối đa 10 phòng khám (trang 1) do `BookingRepository.getClinics()` dùng `limit=10` mặc định và `BookingProvider.fetchClinics()` không có cơ chế paginate/load more. BUG-009 đã mô tả vấn đề "mất các phòng khám tiếp theo".
+    - **Kịch bản rating (Kịch bản A):** BE đã lưu sẵn `avgRating` (`decimal(2,1)`) và `totalReviews` (`int`) trong entity `Clinic` (được cập nhật tại `ClinicReviewService.createClinicReview(...)` sau mỗi review mới). FE **không cần fetch review riêng cho từng clinic** — chỉ đọc trực tiếp từ response `GET /api/clinic` và sort ở FE sau khi fetch.
+    - **API contract:** `GET /api/clinic` trả về `{items, meta: {totalItems, totalPages, currentPage, ...}, links}` theo chuẩn `nestjs-typeorm-paginate`. BE hiện **không hỗ trợ sort param** → FE tự sort phía client.
+    - **Fix pagination (Infinite Scroll):**
+        - `BookingRepository.getClinics()` đổi default `limit=20`, trả thêm `totalPages`/`currentPage` để FE biết còn bao nhiêu trang.
+        - `BookingProvider` thêm state pagination: `_clinicsPageSize=20`, `_clinicsCurrentPage`, `_clinicsTotalPages`, `_hasMoreClinics`, `_isLoadingMoreClinics`, cùng getter `isLoadingMoreClinics` / `hasMoreClinics`.
+        - `fetchClinics()` reset list + page=1; bổ sung `loadMoreClinics()` để append trang tiếp theo, tự set `_hasMoreClinics=false` khi chạm trang cuối.
+        - `booking_page.dart` tạo `_clinicScrollController` gắn vào `CustomScrollView` khi `_currentStep==0`; listener gọi `loadMoreClinics()` khi scroll >= 80% `maxScrollExtent` và guard theo `_isLoadingMore` / `_hasMore` để không gọi API thừa.
+    - **Rating & Sort UI:**
+        - Thêm `Clinic.avgRating` (double) + `Clinic.totalReviews` (int) + `Clinic.avatarUrl` vào `booking_models.dart` (parse an toàn cả khi BE trả string/number cho decimal).
+        - Sort theo rule: clinic có đánh giá (`totalReviews > 0`) xếp trước theo `avgRating` giảm dần; clinic chưa có đánh giá xếp cuối. Re-sort sau mỗi lần `loadMoreClinics()` để giữ thứ tự nhất quán trong danh sách tích lũy.
+        - Tạo widget dùng chung `lib/core/widgets/star_rating_widget.dart` dùng `Icons.star_rounded` / `star_half_rounded` / `star_outline_rounded` (không cần package thứ 3), màu `AppColors.warning`, hỗ trợ filled/half/empty theo rule `>=N` / `>=N-0.5`.
+        - `step_clinic_selector.dart` được refactor thành **sliver** (`SliverMainAxisGroup` + `SliverList.builder`) để dùng lazy render trong `CustomScrollView` hiện hữu; kèm `SliverToBoxAdapter` loading indicator ở cuối khi đang load more. Card hiển thị: icon, tên, địa chỉ, sao + điểm số (1 số thập phân) + số lượt đánh giá (i18n plural), hoặc `clinicNoReviews` khi `totalReviews == 0`.
+    - **Trade-off đã phản biện:**
+        - Sort phía FE nghĩa là thứ tự chỉ đúng trong phạm vi đã load. Khi load thêm trang mới, clinic có rating cao hơn có thể "chen" vào giữa list đã hiển thị — chấp nhận được vì BE hiện chưa hỗ trợ sort và limit page 20 đủ lớn để case này hiếm xảy ra trong thực tế.
+        - Không chọn Kịch bản B (fetch `/api/clinic-review` cho từng clinic) vì BE đã cung cấp rating aggregate sẵn — tránh N+1 request và latency không cần thiết.
+    - **i18n mới:** `clinicNoReviews` + `clinicReviewCount` (ICU plural) cho VI/EN.
+    - **Files sửa:**
+        - `lib/features/booking/data/models/booking_models.dart`
+        - `lib/features/booking/data/booking_repository.dart`
+        - `lib/features/booking/presentation/provider/booking_provider.dart`
+        - `lib/features/booking/presentation/booking_page.dart`
+        - `lib/features/booking/presentation/widget/step_clinic_selector.dart`
+        - `lib/core/widgets/star_rating_widget.dart` (mới)
+        - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb`
+- **Booking Success Summary Contract Sync (2026-04-20):**
+    - **Bối cảnh thực tế sau khi rà BE:** `POST /api/appointment` (AppointmentService.createAppointment) trả về `savedAppointment` dạng entity mỏng (id/date/time/service/status + foreign keys), không join sẵn `pet/clinic/veterinarian.user` như payload màn success từng giả định.
+    - **Triệu chứng ở mobile:** Ở màn `Đặt lịch thành công`, các field `Thú cưng/Phòng khám/Bác sĩ` có thể rỗng dù đặt lịch thành công (thường chỉ còn `Dịch vụ/Giờ`).
+    - **Fix FE tối ưu:** `booking_page.dart` đổi sang ưu tiên dữ liệu local đã chọn trong flow booking (`selectedClinic`, `selectedDoctor`, `selectedPetName`, `selectedTime`, `selectedDate`) và chỉ fallback sang response BE nếu có.
+    - **Chi tiết triển khai:**
+        - `BookingProvider` bổ sung `selectedPetName` và cập nhật `selectPet(petId, {petName})` để lưu snapshot tên thú cưng ngay khi user chọn.
+        - `StepSummary` và `StepSuccess` dùng chiến lược fallback nhiều tầng (local-first), đồng thời parse an toàn nhiều shape response (`veterinarian.user.fullName` hoặc `veterinarian.fullName`) để chịu được biến động contract BE.
+    - **Nguyên tắc maintain mới:** Không phụ thuộc relation object trong response của `POST /api/appointment` để render UI tóm tắt/success; coi đó là response xác nhận tạo lịch, còn dữ liệu hiển thị ưu tiên từ state đã chọn ở client.
+- **Booking Success Screen Simplification (2026-04-22):**
+    - **Bối cảnh:** Màn `Đặt lịch thành công` trước đây hiển thị kèm khối **Mã QR check-in** (icon QR placeholder + hướng dẫn xuất trình tại quầy). Do mobile hiện chưa có pipeline sinh/verify QR thật và luồng check-in tại clinic chưa chốt, khối này chỉ là UI trống gây hiểu nhầm cho người dùng.
+    - **Thay đổi UI:** Gỡ toàn bộ block QR (`bookingCheckinQrTitle`, icon `Icons.qr_code_2`, `bookingQrInstruction`) trong `step_success.dart`; màn thành công chỉ còn icon check + tiêu đề + bảng tóm tắt lịch hẹn.
+    - **Thay đổi điều hướng – thứ tự tối ưu (quan trọng):** `BookingPage` được push bằng `MaterialPageRoute` đè lên `IndexedStack` của `MainNavigationWrapper`. Khi đóng màn success, thứ tự bắt buộc là:
+        1. `MainNavigationWrapper.activeState?.setSelectedIndex(1)` – đổi `IndexedStack.index` sang **Lịch hẹn** TRƯỚC khi pop. Vì `BookingPage` vẫn đang đè lên trên, user không nhìn thấy tab đang chuyển bên dưới.
+        2. `Navigator.pop(context)` – animation pop của `MaterialPageRoute` reveal thẳng vào `AppointmentPage` ngay từ frame đầu tiên, không còn hiện Home flash.
+    - **Lý do phải đảo thứ tự so với bản trước:** Nếu pop trước rồi mới `setSelectedIndex` (kể cả bọc trong `addPostFrameCallback`), toàn bộ animation pop (~300ms) vẫn diễn ra trên nền tab cũ (Home) do `IndexedStack` chưa đổi index → user thấy Home nhấp nháy trước khi chuyển sang Lịch hẹn. Đổi index trước thì frame nền đã sẵn là Appointment trước khi pop animation bắt đầu.
+    - **Back-gesture / nút back cứng:** `PopScope.canPop` KHÔNG được set `true` ở trạng thái success. Thay vào đó `canPop = _currentStep == 0 && Navigator.canPop(context)` và `onPopInvokedWithResult` nhận `didPop=false` ở success để gọi cùng hàm `_closeSuccessAndGoToAppointments(...)`. Nếu để `canPop=true`, hệ thống auto-pop ngay sẽ quay về bước 1 (pop trước khi đổi tab) và tái hiện flash Home.
+    - **Dùng `MainNavigationWrapper.activeState` (static) thay vì `of(context)`:** đảm bảo lấy được state wrapper bất kể context của `BookingPage` đang ở đâu trong tree và tránh edge case `findAncestorStateOfType` trả null trong quá trình unmount.
+    - **Files sửa:**
+        - `lib/features/booking/presentation/widget/step_success.dart`
+        - `lib/features/booking/presentation/booking_page.dart`
 - **Quy ước hiển thị trạng thái tiếng Anh:** Trạng thái `BOOKED/Hẹn thành công` phải hiển thị là **Booked** (không dùng **Confirmed**).
 - **Tối ưu hóa `fromValue(...)` cho Appointment:** Chỉ map theo contract chuẩn enum key (`enum.name` và `enum.value` đều là key backend như `BOOKED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`); không duy trì alias legacy để tránh logic mơ hồ.
 - **Chuẩn hóa tiêu đề AppBar trang lịch hẹn:** Không dùng lại `navAppointments` (label uppercase cho bottom nav) để tránh hiển thị toàn chữ in hoa trong AppBar. Đã tách key riêng `appointmentsTitle` để hiển thị dạng title-case tự nhiên (VI: `Lịch hẹn`, EN: `Appointments`).
@@ -583,6 +677,40 @@ Dưới đây là chi tiết các thành phần đã được xóa bỏ và thê
     - Không cần thay đổi contract API BE hiện tại.
     - `flutter analyze` sạch cho phạm vi `community` + `camera_service`.
 
+## ⭐ Clinic Review từ Hồ sơ Y tế (2026-04)
+
+### Bối cảnh
+- Sau khi khám bệnh xong (đã có medical record), khách hàng có thể đánh giá phòng khám trực tiếp từ thẻ lượt khám trong trang "Hồ sơ y tế".
+- API: `POST /api/clinic-review` (CUSTOMER only), payload `{ clinicId, medicalRecordId, rating, content? }`.
+
+### Triển khai FE
+- **Model update:** `PetMedicalRecordSummary` bổ sung `clinicId`, `clinicName` (parse từ `json['clinic']`), `isReview` (từ `json['isReview']`) + `copyWith()`.
+- **API layer:** `clinic_review_repository.dart` — `createClinicReview()` POST, `getClinicReviews()` GET.
+- **Widget mới:**
+    - `InteractiveStarRating` — widget sao tương tác (tap chọn 1–5 sao).
+    - `ReviewBottomSheet` — bottom sheet gồm interactive stars, rating label, optional comment field, submit/cancel buttons, loading state.
+- **Tích hợp vào `pet_medical_records_page.dart`:**
+    - Mỗi thẻ medical record hiển thị review section bên dưới ExpansionTile.
+    - `isReview == false` + `clinicId != null`: hiện sao trống + text "Đánh giá lượt khám này", tap mở ReviewBottomSheet.
+    - `isReview == true`: hiện badge "Đã đánh giá" (icon check + text xanh).
+    - Sau submit thành công: cập nhật local state `isReview = true` ngay để phản hồi tức thì.
+- **i18n keys mới:** `reviewClinicTitle`, `reviewThisVisit`, `reviewAlreadyReviewed`, `reviewCommentHint`, `reviewSubmit`, `reviewSuccess`, `reviewFailed`, `reviewRating1–5`.
+- **Files thay đổi/tạo mới:**
+    - `lib/core/constants/app_constants.dart` (sửa)
+    - `lib/core/network/api_helper.dart` (sửa)
+    - `lib/features/pet/data/models/pet_medical_record_models.dart` (sửa)
+    - `lib/features/pet/data/clinic_review_repository.dart` (mới)
+    - `lib/core/widgets/interactive_star_rating.dart` (mới)
+    - `lib/features/pet/presentation/widgets/review_bottom_sheet.dart` (mới)
+    - `lib/features/pet/presentation/pet_medical_records_page.dart` (sửa)
+    - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb` (sửa)
+
+### BE Issues phát hiện (cần dev BE xử lý)
+1. `CreateClinicReviewDTO.rating` không có `@Min/@Max` validation → FE tự enforce 1–5 client-side nhưng BE nên validate.
+2. BE set `isReview=true` sau khi tạo review nhưng **không kiểm tra** trước khi tạo → cho phép duplicate review.
+3. Không validate `medicalRecordId` thuộc về user đang gọi API → potential data integrity issue.
+4. **Không có module Report/Tố cáo** trong BE → Feature "Tố cáo bài viết/bình luận" **không thể triển khai ở FE** cho tới khi BE xây dựng module tương ứng.
+
 ## 📝 Hướng dẫn chạy dự án
 1. **Vào đúng root mobile trước khi chạy lệnh:** `Set-Location "F:\capstone 2\code\PetcareX\FE\Mobile\petcarex"`.
 2. **Đồng bộ ngôn ngữ:** Chạy `flutter gen-l10n` khi có thay đổi trong file `.arb`.
@@ -644,3 +772,120 @@ Tích hợp hệ thống thông báo realtime vào Mobile App, đồng bộ UX v
 - **Pull-to-refresh:** Kéo xuống để tải lại danh sách.
 - **Infinite scroll:** Tự động load thêm khi cuộn đến cuối.
 - **Cleanup on logout:** Ngắt socket, reset state khi đăng xuất.
+
+## 📍 Geolocation Clinic + Search Forum (2026-04-28) — Port từ Web
+
+### Tính năng 1 — Nearby Clinic theo vị trí user
+**Phạm vi (FE only, không đụng BE):**
+- `pubspec.yaml` — thêm `geolocator: ^13.0.1` (đã có sẵn `permission_handler`).
+- `android/app/src/main/AndroidManifest.xml` — thêm `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`.
+- `ios/Runner/Info.plist` — thêm `NSLocationWhenInUseUsageDescription`.
+- `lib/core/constants/location_constants.dart` (mới) — `LocationConstants.defaultLat/defaultLon/defaultLabel` (Đà Nẵng) + `geolocationTimeout: 10s`. Đồng bộ với Web `src/constants/location.js`.
+- `lib/core/services/location_service.dart` (mới) — `LocationService.getUserLocation()`: kiểm tra service enabled → request permission → `Geolocator.getCurrentPosition(LocationAccuracy.high, timeout 10s)` → fallback `LocationConstants.default*` + `isDefault=true` khi denied/disabled/timeout. Cache module-scope (`_cached`, `_inflight`) để mọi nơi gọi không hỏi lại permission. Có method `refresh()` để force fetch lại.
+- `lib/core/utils/distance_formatter.dart` (mới) — `formatDistance(num? km)`: `<1km → "Xm"`, `>=1km → "X.Xkm"`, null/<0 → ''. Đơn vị km vì BE Elasticsearch `_geo_distance` trả về km.
+- `lib/core/network/api_helper.dart` — thêm `nearbyClinicsEndpoint(page, limit, lat, lon, sortBy, search)` hit `/clinic/user`. Endpoint cũ `clinicsEndpoint` (`/clinic`, ADMIN-only) giữ nguyên cho admin sau này.
+- `lib/features/booking/data/models/booking_models.dart` — `Clinic` thêm field `distance: double?` parse từ `json['distance']` (BE trả km qua `/clinic/user`).
+- `lib/features/booking/data/booking_repository.dart` — đổi `getClinics()` → `getNearbyClinics({page, limit, lat, lon, sortBy='distance', search})` hit `/clinic/user`. BE trả raw array (không có items/meta) → suy luận hết trang qua `items.length < pageSize`.
+- `lib/features/booking/presentation/provider/booking_provider.dart`:
+  - Inject `LocationService`. Field `_isLocationDefault` + getter `isLocationDefault` cho UI hiện SnackBar fallback.
+  - `fetchClinics()` & `loadMoreClinics()`: gọi `_locationService.getUserLocation()` → truyền lat/lon vào `getNearbyClinics`. Bỏ `_sortClinicsByRating` (BE đã sort theo distance, FE sort lại sẽ ghi đè thứ tự đúng). Pagination dedup theo id.
+- `lib/features/booking/presentation/booking_page.dart` — sau `fetchClinics()` xong, nếu `bp.isLocationDefault` → `AppNotifier.showInfo(context, l10n.locationFallbackNotice)`. Không banner — dùng SnackBar mobile-native pattern.
+- `lib/features/booking/presentation/widget/step_clinic_selector.dart` — clinic card hiển thị khoảng cách dưới address: `Icon(Icons.location_on_outlined) + formatDistance(clinic.distance)` màu `AppColors.primary`. Chỉ hiện khi `formatDistance` không rỗng.
+
+**BE đã confirm (đọc, không sửa):**
+- `GET /api/clinic/user` — query bắt buộc `page, limit, lat, lon`; optional `sortBy: 'distance'|'rating'` (default `'distance'`), `search`. Role: ADMIN/ADMIN_CLINIC/VETERINARIAN/CUSTOMER. Trả raw array, mỗi item kèm `distance` (km, ES `_geo_distance` unit km).
+
+### Tính năng 2 — Search Forum
+**Phạm vi (FE only, không đụng BE):**
+- `lib/core/network/api_helper.dart` — `postsEndpoint` thêm param optional `keyword`.
+- `lib/features/community/data/community_repository.dart` — `getPosts(...)` thêm param optional `keyword`.
+- `lib/features/community/presentation/provider/community_provider.dart`:
+  - State `_searchKeyword` + getters `searchKeyword`, `isSearching`. Const `_searchLimit = 50` (BE Elasticsearch RRF `rank_window_size` hardcode 50, > 50 → 500).
+  - Helper `_limitForSearch()` trả `_searchLimit` khi đang search, null (→ default 20) khi không.
+  - `setSearchKeyword(keyword)`: trim, skip nếu không đổi, reset post list, fetch lại với `limit=50` (search) / `limit=20` (no search).
+  - `fetchInitialData()` & `selectTopic()`: thread keyword + limit động xuống `getPosts`.
+  - `loadMore()`: bỏ qua khi đang search (BE RRF không hỗ trợ pagination ổn định, đồng bộ Web FE).
+- `lib/features/community/presentation/widgets/forum_search_bar.dart` (mới) — `ForumSearchBar` widget tái sử dụng:
+  - `TextField` debounce 500ms, icon `Icons.search` bên trái, nút clear `Icons.close` bên phải (chỉ hiện khi có text).
+  - Đồng bộ external `value` ↔ internal controller qua `_lastEmitted` để tránh loop khi parent reset.
+  - Props: `value, onSearch(keyword), hintText, debounce`.
+- `lib/features/community/presentation/community_page.dart`:
+  - `_buildSearchBar()` đổi từ placeholder UI tĩnh → bind vào `ForumSearchBar` + `provider.setSearchKeyword`.
+  - Thêm `_buildSearchStatusChip()` chip "Đang tìm: [keyword]" + nút "Xóa tìm kiếm" — chỉ hiện khi `provider.isSearching`.
+  - Thêm `_buildSearchEmptyState()` — icon `Icons.search_off` + title + hint khi search không có kết quả.
+- `lib/l10n/app_vi.arb` + `lib/l10n/app_en.arb` — thêm i18n: `forumSearchPlaceholder`, `forumSearchActive` (placeholder `keyword`), `forumSearchClear`, `forumSearchEmptyTitle`, `forumSearchEmptyHint`, `locationFallbackNotice`.
+
+**Phương án UI/UX đã chọn:**
+- **Search bar**: Phương án A (luôn visible ở đầu trang community) — `_buildSearchBar` đã có sẵn vị trí header, chỉ cần biến nó thành chức năng thật. Phương án B (icon → expand AppBar) bị loại vì community page không có AppBar và sẽ phá layout hiện có (vi phạm "match existing style").
+- **Geolocation fallback**: SnackBar via `AppNotifier.showInfo` (mobile-native), không banner.
+- **Distance display**: chỉ hiện khi BE trả `distance` — adaptive, không gây rỗng UI khi endpoint khác không có field này.
+
+**BE đã confirm (đọc, không sửa):**
+- `GET /api/post` — optional `keyword` filter qua Elasticsearch RRF (BM25 trên `content` + semantic search).
+- BE rank_window_size hardcode 50 → FE clamp `limit=50` khi search.
+
+**Tự kiểm tra:**
+- `flutter analyze` các file đã sửa → 0 issue mới (1 info warning pre-existing tại `community_provider.dart:412` về curly braces, không liên quan).
+- `flutter pub get` → resolved geolocator 13.0.1 thành công.
+- `flutter gen-l10n` → 5 keys mới được generate cho cả vi & en.
+
+**Ghi chú kiến trúc:**
+- `LocationService` cache module-scope tương đương Web `useUserLocation` — cùng pattern, port 1-1.
+- `formatDistance` đơn vị km — đồng bộ Web (BE trả km).
+- Khi search forum → BE đi nhánh ES RRF, limit phải <= 50 và pagination cursor `lastPostTime` không deterministic → FE bỏ infinite scroll trong chế độ search.
+
+## 🏥 Nearby Clinic Feature (2026-04-29)
+
+### Bối cảnh nghiệp vụ
+- Home đã có CTA `Tìm phòng khám gần nhất` (action tile thứ 3) nhưng trước đó chỉ hiển thị toast `Developing...`. Feature này hoàn thiện luồng: từ Home → list clinic gần nhất → detail clinic → đặt lịch.
+- **Permission strict**: khác booking flow (booking dùng fallback Đà Nẵng + info notice), nearby clinic feature **không cho phép browse với fallback** vì mục đích chính là "gần nhất". Nếu không lấy được vị trí thật → toast lỗi + pop về Home.
+
+### Phản biện kiến trúc đã chọn
+- **Re-use BookingProvider hay tạo provider riêng?** → Tạo `NearbyClinicProvider` riêng. Re-use sẽ phá state booking đang dở (selectedClinic, selectedPet, ...). Trade-off: duplicate ~30 dòng fetch logic, đáng đánh đổi để decouple.
+- **Force re-prompt permission**: dùng `LocationService.getUserLocation()` trước (tận dụng cache nếu user đã grant ở booking). Nếu cache là default (denied/disabled trước đó) → gọi `refresh()` để re-prompt OS dialog. Tránh annoy user khi đã có cached real location.
+- **Không gọi BE khi `isLocationDefault==true`**: feature mất ý nghĩa nếu fallback Đà Nẵng → return sớm + caller pop.
+- **Nút "Đặt lịch" ở detail page**: pre-select clinic vào BookingProvider trước khi push BookingPage → user thấy flow tiếp tục từ step **Pet** thay vì phải chọn lại clinic. Có gọi `bookingProvider.reset()` trước để đảm bảo clean state.
+
+### API contract (BE đã có sẵn — không sửa BE)
+- `GET /api/clinic/user?page=&limit=&lat=&lon=&sortBy=distance` — list clinic gần (đã dùng ở booking).
+- `GET /api/clinic-homepage-setting/{clinicId}` — trả `{ banner: {title, subtitle}, introduction, services[], workingHours, contactPhone }`. Parser tolerant (chấp nhận thiếu field, trả về setting rỗng nếu BE chưa cấu hình).
+- `GET /api/clinic-review?clinicId=&page=&limit=` — trả `{ items, meta }`. FE chỉ load top 10 review ở detail page (không paginate).
+
+### Files mới tạo
+| File | Vai trò |
+|------|---------|
+| `lib/features/clinic/data/models/clinic_homepage_setting.dart` | Model parse `ClinicHomepageSetting` (banner/intro/services/workingHours/contactPhone). |
+| `lib/features/clinic/data/models/clinic_review_models.dart` | Model `ClinicReviewItem` + `ClinicReviewAuthor`. |
+| `lib/features/clinic/data/clinic_repository.dart` | `getHomepageSetting(clinicId)` + `getClinicReviews({clinicId, page, limit})`. |
+| `lib/features/clinic/presentation/provider/nearby_clinic_provider.dart` | State list (pagination dedup theo id) + detail (homepage setting + reviews fetch song song qua `Future.wait`). Strict permission: không fallback. |
+| `lib/features/clinic/presentation/widgets/nearby_clinic_card.dart` | Card list — copy layout từ `step_clinic_selector` nhưng bỏ trạng thái selected, thêm chevron right. |
+| `lib/features/clinic/presentation/nearby_clinic_page.dart` | Trang list. Guard permission strict: hiện dialog `Mở Cài đặt` cho service-disabled / permanently-denied; với denied/unknown → toast lỗi + pop. Sau khi user trở lại từ Settings, retry; nếu vẫn fail thì lại pop. |
+| `lib/features/clinic/presentation/clinic_detail_page.dart` | SliverAppBar gradient + body sections (intro, contact, services chips, reviews top 10) + bottom action bar nút "Đặt lịch ngay". Tap nút → reset BookingProvider + selectClinic + push BookingPage. |
+
+### Files đã sửa
+| File | Thay đổi |
+|------|----------|
+| `lib/core/constants/app_constants.dart` | Thêm `END_POINT_CLINIC_HOMEPAGE_SETTING`. |
+| `lib/core/network/api_helper.dart` | Thêm `clinicHomepageSettingByIdEndpoint(clinicId)`. |
+| `lib/main.dart` | Đăng ký `NearbyClinicProvider` vào `MultiProvider`. |
+| `lib/features/home/presentation/home_page.dart` | Action tile `findClinic` chuyển từ toast `Developing...` sang push `NearbyClinicPage`. |
+| `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb` | 13 keys mới: `nearbyClinicTitle`, `nearbyClinicEmpty`, `nearbyClinicLocationRequiredDenied/ServiceDisabled/PermanentlyDenied`, `clinicDetailIntroduction/IntroEmpty/Contact/WorkingHours/Phone/Email/ContactEmpty/Services/ServicesEmpty/Reviews/BookNow`. |
+
+### UX guard permission (chi tiết)
+- `serviceDisabled` → dialog "Bật dịch vụ vị trí" → user mở Settings → retry. Nếu user bấm `Để sau` → toast lỗi + pop.
+- `permissionPermanentlyDenied` → dialog "Cấp quyền vị trí" → mở App Settings → retry. Nếu `Để sau` → toast lỗi + pop.
+- `permissionDenied` (denied lần này, có thể hỏi lại) / `unknown` (timeout) → toast lỗi + pop trực tiếp.
+- Mọi nhánh đều set `_hasHandledLocationOutcome` để không trigger 2 lần khi `notifyListeners` rebuild.
+
+### UX detail page (đã chọn vs đã loại)
+- **Đã chọn**: SliverAppBar (220px) hiển thị banner gradient/avatar + overlay tối + title/subtitle từ `ClinicHomepageSetting.banner`. Body: summary card (tên, address, distance, rating) + 4 section card (Giới thiệu, Liên hệ, Dịch vụ, Đánh giá). Bottom action bar fixed có nút `Đặt lịch ngay`.
+- **Đã loại**: layout flat scroll (không có banner) — kém visual hierarchy; placement nút đặt lịch ở giữa body — dễ miss, user cần CTA luôn visible.
+- Section card pattern dùng cùng border + shadow với existing widget để đồng bộ visual language.
+- Service chips dùng `Wrap` với primary background + border alpha — match accent color của booking flow.
+- Review item: avatar + tên + ngày + sao + content. Empty state hiển thị `clinicNoReviews` (i18n đã có sẵn, reuse).
+
+### Tự kiểm tra
+- `flutter gen-l10n` → 13 keys mới generate sạch cho cả vi & en (l10n.yaml chạy tự động khi build).
+- `flutter analyze lib/features/clinic lib/features/home/presentation/home_page.dart lib/main.dart` → **No issues found**.
+- Tuân thủ memory rule **không cross-boundary edit BE/FE**: toàn bộ thay đổi nằm ở FE mobile, không đụng BE.
+- Tuân thủ semantic colors: chỉ dùng `AppColors.*`, không hardcode màu mới.

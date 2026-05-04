@@ -7,10 +7,10 @@ import '../../../../core/enums/pet_breed_enum.dart';
 import '../../../../core/enums/service_enum.dart';
 import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/markdown_text.dart';
 import '../../../../core/utils/app_notifier.dart';
+import '../../../../core/utils/markdown_text.dart';
 import '../../../l10n/generated/app_localizations.dart';
-import '../../main_navigation/presentation/main_navigation_wrapper.dart';
+import '../../booking/presentation/booking_page.dart';
 import '../data/appointment_model.dart';
 import '../data/appointment_service.dart';
 import 'appointment_navigation_controller.dart';
@@ -287,7 +287,10 @@ class _AppointmentPageState extends State<AppointmentPage>
   }
 
   void _openBookingPage() {
-    MainNavigationWrapper.of(context)?.setSelectedIndex(1);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const BookingPage()),
+    );
   }
 
   Widget _buildAppointmentCard(

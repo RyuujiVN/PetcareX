@@ -51,4 +51,16 @@
   --admin-stat-user-icon: #52c41a;
   --admin-stat-post-bg: #fef3e6;
   --admin-stat-post-icon: #faad14;
+
+  /* ── Revenue Dashboard ── */
+  --admin-revenue-primary: #4672b4;
+  --admin-revenue-primary-light: #e8f0fa;
+  --admin-revenue-chart-line: #4672b4;
+  --admin-revenue-chart-gradient-start: rgba(70, 114, 180, 0.15);
+  --admin-revenue-chart-gradient-end: rgba(70, 114, 180, 0);
+  --admin-revenue-paid-bg: #e6f7f0;
+  --admin-revenue-paid: #52c41a;
+  --admin-revenue-unpaid-bg: #fff7e6;
+  --admin-revenue-unpaid: #faad14;
+  --admin-revenue-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }

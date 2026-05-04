@@ -439,6 +439,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingClinicSub => 'Select a clinic suitable for your pet';
 
   @override
+  String get clinicNoReviews => 'No reviews yet';
+
+  @override
+  String clinicReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count reviews',
+      one: '1 review',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get bookingServiceSub =>
       'Select a service and enter required symptoms';
 
@@ -518,6 +532,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get searchHint => 'Search posts, pets...';
+
+  @override
+  String get forumSearchPlaceholder => 'Search posts by content...';
+
+  @override
+  String forumSearchActive(String keyword) {
+    return 'Searching: $keyword';
+  }
+
+  @override
+  String get forumSearchClear => 'Clear search';
+
+  @override
+  String get forumSearchEmptyTitle => 'No posts found';
+
+  @override
+  String get forumSearchEmptyHint => 'Try a different keyword.';
+
+  @override
+  String get locationFallbackNotice => 'Using default location (Da Nang)';
+
+  @override
+  String get locationServiceDisabledTitle => 'Enable Location Service';
+
+  @override
+  String get locationServiceDisabledMessage =>
+      'You need to enable Location (GPS) on your device to find nearby clinics.';
+
+  @override
+  String get locationPermissionDeniedTitle => 'Grant Location Permission';
+
+  @override
+  String get locationPermissionDeniedMessage =>
+      'Location access permission was denied. Go to App Settings to grant permission and try again.';
+
+  @override
+  String get locationDialogCancel => 'Later';
+
+  @override
+  String get locationDialogOpenSettings => 'Open Settings';
 
   @override
   String get shareSomething =>
@@ -1147,4 +1201,143 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get language => 'Language';
+
+  @override
+  String get reviewClinicTitle => 'Rate this clinic';
+
+  @override
+  String get reviewThisVisit => 'Rate this visit';
+
+  @override
+  String get reviewAlreadyReviewed => 'Reviewed';
+
+  @override
+  String get reviewCommentHint => 'Write your review (optional)';
+
+  @override
+  String get reviewSubmit => 'Submit review';
+
+  @override
+  String get reviewSuccess => 'Review submitted successfully!';
+
+  @override
+  String get reviewFailed => 'Failed to submit review. Please try again.';
+
+  @override
+  String get reviewRating1 => 'Very bad';
+
+  @override
+  String get reviewRating2 => 'Bad';
+
+  @override
+  String get reviewRating3 => 'Average';
+
+  @override
+  String get reviewRating4 => 'Good';
+
+  @override
+  String get reviewRating5 => 'Excellent';
+
+  @override
+  String get reportPostTitle => 'Report post';
+
+  @override
+  String get reportCommentTitle => 'Report comment';
+
+  @override
+  String get reportReasonHint => 'Select a reason';
+
+  @override
+  String get reportSubmit => 'Submit report';
+
+  @override
+  String get reportSuccess =>
+      'Report submitted. We will review it as soon as possible.';
+
+  @override
+  String get reportFailed => 'Failed to submit report. Please try again.';
+
+  @override
+  String get reportAction => 'Report';
+
+  @override
+  String get reportDescriptionHint => 'Additional description (optional)';
+
+  @override
+  String get reportReasonSpam => 'Spam / Advertising';
+
+  @override
+  String get reportReasonOffensive => 'Offensive language';
+
+  @override
+  String get reportReasonHarassment => 'Harassment / Bullying';
+
+  @override
+  String get reportReasonMisinformation => 'Misinformation';
+
+  @override
+  String get reportReasonViolence => 'Violence / Disturbing content';
+
+  @override
+  String get reportReasonOther => 'Other';
+
+  @override
+  String get reportAlreadyReported => 'You already reported this comment.';
+
+  @override
+  String get reportPostAlreadyReported => 'You already reported this post.';
+
+  @override
+  String get nearbyClinicTitle => 'Nearby Clinics';
+
+  @override
+  String get nearbyClinicEmpty => 'No clinics found near you yet.';
+
+  @override
+  String get nearbyClinicLocationRequiredDenied =>
+      'Location access is required to find nearby clinics. Please grant the permission and try again.';
+
+  @override
+  String get nearbyClinicLocationRequiredServiceDisabled =>
+      'Please enable Location (GPS) on your device to find nearby clinics.';
+
+  @override
+  String get nearbyClinicLocationRequiredPermanentlyDenied =>
+      'Location permission is permanently denied. Open app Settings to re-enable it.';
+
+  @override
+  String get clinicDetailIntroduction => 'Introduction';
+
+  @override
+  String get clinicDetailIntroEmpty =>
+      'This clinic hasn\'t added an introduction yet.';
+
+  @override
+  String get clinicDetailContact => 'Contact';
+
+  @override
+  String get clinicDetailWorkingHours => 'Working hours';
+
+  @override
+  String get clinicDetailPhone => 'Phone';
+
+  @override
+  String get clinicDetailEmail => 'Email';
+
+  @override
+  String get clinicDetailContactEmpty =>
+      'This clinic hasn\'t added contact details yet.';
+
+  @override
+  String get clinicDetailServices => 'Services';
+
+  @override
+  String get clinicDetailServicesEmpty =>
+      'This clinic hasn\'t published its services yet.';
+
+  @override
+  String get clinicDetailReviews => 'Recent reviews';
+
+  @override
+  String get clinicDetailBookNow => 'Book Now';
 }

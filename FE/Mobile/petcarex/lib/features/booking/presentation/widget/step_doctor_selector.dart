@@ -7,12 +7,18 @@ import '../../data/models/booking_models.dart';
 
 class StepDoctorSelector extends StatefulWidget {
   final String? selectedDoctorId;
+  final Veterinarian? selectedDoctor;
+  final VetUser? selectedDoctorAccount;
+  final bool isDoctorAccountLoading;
   final Function(Veterinarian) onSelected;
   final List<Veterinarian> doctors;
 
   const StepDoctorSelector({
     super.key,
     required this.selectedDoctorId,
+    required this.selectedDoctor,
+    required this.selectedDoctorAccount,
+    required this.isDoctorAccountLoading,
     required this.onSelected,
     required this.doctors,
   });
@@ -22,36 +28,20 @@ class StepDoctorSelector extends StatefulWidget {
 }
 
 class _StepDoctorSelectorState extends State<StepDoctorSelector> {
-  String? _selectedSpecialty;
+  String _nonEmptyOrDash(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return '--';
+    }
+    return value;
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final filteredDoctors = _selectedSpecialty == null
-        ? widget.doctors
-        : widget.doctors
-              .where((d) => d.specialty == _selectedSpecialty)
-              .toList();
 
     return Column(
       children: [
-        // Filter chips using Enum
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              _buildFilterChip(label: l10n.all, value: null),
-              ...VeterinarySpecialtyEnum.values.map(
-                (specialty) => _buildFilterChip(
-                  label: specialty.getTranslatedName(context),
-                  value: specialty.value,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (filteredDoctors.isEmpty)
+        if (widget.doctors.isEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Text(
@@ -61,47 +51,106 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
           )
         else
           ...List.generate(
-            filteredDoctors.length,
+            widget.doctors.length,
             (i) => _listTile(
-              filteredDoctors[i],
-              filteredDoctors[i].user.fullName,
-              filteredDoctors[i].specialty,
+              widget.doctors[i],
+              widget.doctors[i].user.fullName,
+              widget.doctors[i].specialty,
               widget.selectedDoctorId,
               widget.onSelected,
               Icons.person_outline,
-              filteredDoctors[i].user.avatarUrl,
+              widget.doctors[i].user.avatarUrl,
             ),
           ),
       ],
     );
   }
 
-  Widget _buildFilterChip({required String label, required String? value}) {
-    bool isSelected = _selectedSpecialty == value;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedSpecialty = value;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.only(right: 12),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey.shade200,
-          ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black87,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
+  Widget _buildSelectedDoctorInfo(Veterinarian doctor, AppLocalizations l10n) {
+    final account = widget.selectedDoctorAccount ?? doctor.user;
+
+    final translatedSpecialty =
+        VeterinarySpecialtyEnum.fromValue(
+          doctor.specialty,
+        )?.getTranslatedName(context) ??
+        doctor.specialty;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
       ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: AppColors.primary,
+                size: 20,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                l10n.doctorInfo,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textDark,
+                ),
+              ),
+              const Spacer(),
+              if (widget.isDoctorAccountLoading)
+                const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.primary,
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _detailRow(l10n.doctor, _nonEmptyOrDash(account.fullName)),
+          const SizedBox(height: 6),
+          _detailRow(l10n.specialty, _nonEmptyOrDash(translatedSpecialty)),
+          const SizedBox(height: 6),
+          _detailRow(l10n.email, _nonEmptyOrDash(account.email)),
+          const SizedBox(height: 6),
+          _detailRow(l10n.phone, _nonEmptyOrDash(account.phone)),
+          const SizedBox(height: 6),
+          _detailRow(l10n.address, _nonEmptyOrDash(account.address)),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 80,
+          child: Text(
+            '$label:',
+            style: const TextStyle(color: AppColors.textGrey, fontSize: 12),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: AppColors.textDark,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -128,70 +177,60 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
             width: 1.5,
           ),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE0F7F4),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: avatarUrl != null && avatarUrl.isNotEmpty
-                  ? ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        avatarUrl,
-                        width: 40,
-                        height: 40,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Icon(icon, color: AppColors.primary, size: 30),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFE0F7F4),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            avatarUrl,
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Icon(icon, color: AppColors.primary, size: 30),
+                          ),
+                        )
+                      : Icon(icon, color: AppColors.primary, size: 30),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                    )
-                  : Icon(icon, color: AppColors.primary, size: 30),
+                      Text(
+                        VeterinarySpecialtyEnum.fromValue(
+                              sub,
+                            )?.getTranslatedName(context) ??
+                            sub,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textGrey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSel) const Icon(Icons.check_circle, color: AppColors.primary),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    VeterinarySpecialtyEnum.fromValue(
-                          sub,
-                        )?.getTranslatedName(context) ??
-                        sub,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textGrey,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSel) const Icon(Icons.check_circle, color: AppColors.primary),
-            if (!isSel)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  AppLocalizations.of(context)!.bookingInfo,
-                  style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
+            if (isSel) ...[
+              const SizedBox(height: 12),
+              _buildSelectedDoctorInfo(doctor, AppLocalizations.of(context)!),
+            ],
           ],
         ),
       ),

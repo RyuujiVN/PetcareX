@@ -95,11 +95,18 @@
   width: 320px;
 }
 
+.search-table-actions{
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    justify-content: flex-end;
+}
+
 .posts-page .posts-table-actions {
+  width: 20%;
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-left: auto;
   justify-content: flex-end;
 }
 
@@ -265,12 +272,12 @@
     min-width: 100%;
   }
 
-  .posts-page .posts-table-actions {
+  /* .posts-page .posts-table-actions {
     width: 100%;
     flex-wrap: wrap;
     align-items: stretch;
     margin-left: 0;
-  }
+  } */
 
   .posts-page .posts-search,
   .posts-page .posts-topic {

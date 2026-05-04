@@ -377,7 +377,7 @@ export default function Users() {
               {t('users.page.subtitle')}
             </Typography.Text>
           </div>
-          <div className="users-table-actions">
+          <div className="search-table-users">
             <Input
               className="users-search"
               placeholder={t('users.search.placeholder')}
@@ -387,6 +387,8 @@ export default function Users() {
               onPressEnter={(event) => handleSearch(event.target.value)}
               prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
             />
+          </div>
+          <div className="users-table-actions">
             <Select
               size = 'large'
               className="users-role-filter-select"

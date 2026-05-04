@@ -71,6 +71,12 @@ const buildNotificationTarget = (rawTarget) => {
 
   return {
     ...target,
+    reportId: normalizeId(
+      target?.reportId || target?.reportID || target?.report_id,
+    ),
+    reportType: normalizeText(
+      target?.reportType || target?.targetType || target?.type,
+    ).toUpperCase(),
     appointmentId: normalizeId(
       target?.appointmentId ||
         target?.appointmentID ||
@@ -135,15 +141,23 @@ const resolveForumInteractionType = (beType, target = {}) => {
   return null;
 };
 
-const buildForumHref = (target = {}, forumInteractionType = null) => {
+const resolveForumPortalPath = (portal) => {
+  if (portal === 'admin') return '/admin/forum';
+  if (portal === 'clinic') return '/clinic/forum';
+  if (portal === 'veterinarian') return '/veterinarian/forum';
+  return '/forum';
+};
+
+const buildForumHref = (target = {}, forumInteractionType = null, portal = 'client') => {
   const postId = normalizeId(target?.postId);
   const commentId = normalizeId(target?.commentId);
+  const forumBasePath = resolveForumPortalPath(portal);
 
-  if (!postId) return '/forum';
-  if (forumInteractionType === 'forum-like') return `/forum?postId=${postId}`;
-  if (commentId) return `/forum?postId=${postId}&commentId=${commentId}`;
+  if (!postId) return forumBasePath;
+  if (forumInteractionType === 'forum-like') return `${forumBasePath}?postId=${postId}`;
+  if (commentId) return `${forumBasePath}?postId=${postId}&commentId=${commentId}`;
 
-  return `/forum?postId=${postId}`;
+  return `${forumBasePath}?postId=${postId}`;
 };
 
 const resolveForumSnippet = (target = {}, fallbackDescription = '') =>
@@ -211,18 +225,21 @@ const buildAppointmentDescription = (beType, target = {}) => {
 
 const normalizePortal = (portal) => {
   const normalized = normalizeText(portal).toLowerCase();
+  if (normalized === 'admin') return 'admin';
   if (normalized === 'clinic') return 'clinic';
   if (normalized === 'veterinarian' || normalized === 'vet') return 'veterinarian';
   return 'client';
 };
 
 const resolveAppointmentPortalPath = (portal) => {
+  if (portal === 'admin') return '/admin/dashboard/activity';
   if (portal === 'clinic') return '/clinic/appointments';
   if (portal === 'veterinarian') return '/veterinarian/appointments';
   return '/appointments';
 };
 
 const resolveExamPortalPath = (portal) => {
+  if (portal === 'admin') return '/admin/dashboard/activity';
   if (portal === 'clinic') return '/clinic/exam-slips';
   if (portal === 'veterinarian') return '/veterinarian/exam-forms';
   return '/appointments';
@@ -249,6 +266,14 @@ export const resolveNotificationHref = (notificationItem, portal = 'client') => 
       return resolveAppointmentPortalPath(effectivePortal);
     }
 
+    if (href === '/forum') {
+      return resolveForumPortalPath(effectivePortal);
+    }
+
+    if (href.startsWith('/forum?')) {
+      return `${resolveForumPortalPath(effectivePortal)}${href.slice('/forum'.length)}`;
+    }
+
     return href;
   }
 
@@ -257,7 +282,7 @@ export const resolveNotificationHref = (notificationItem, portal = 'client') => 
   }
 
   if (forumInteractionType) {
-    return buildForumHref(target, forumInteractionType);
+    return buildForumHref(target, forumInteractionType, effectivePortal);
   }
 
   return null;
@@ -432,6 +457,31 @@ export const mapBeNotification = (raw) => {
           ),
         href: buildForumHref(target, forumInteractionType || 'forum-like'),
       };
+
+    case 'REPORT':
+    case 'POST_REPORTED':
+    case 'COMMENT_REPORTED': {
+      const reporterName = pickFirstText(
+        target?.reporterName,
+        raw?.reporterName,
+        t('header.notifications.forumActorFallback', 'Người dùng'),
+      );
+      const reportTargetType = target?.reportType === 'COMMENT'
+        ? t('header.notifications.events.reportTargetComment', 'bình luận')
+        : t('header.notifications.events.reportTargetPost', 'bài viết');
+
+      return {
+        ...base,
+        type: 'report',
+        reportId: target?.reportId || null,
+        title: t('header.notifications.events.reportTitle', 'Có báo cáo mới về {{targetType}}', {
+          targetType: reportTargetType,
+        }),
+        description: t('header.notifications.events.reportDescription', '{{name}} đã gửi báo cáo cần xử lý.', {
+          name: reporterName,
+        }),
+      };
+    }
 
     default:
       if (forumInteractionType) {

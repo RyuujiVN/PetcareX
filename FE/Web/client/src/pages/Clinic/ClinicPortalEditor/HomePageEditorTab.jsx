@@ -1,13 +1,15 @@
 import { CloseOutlined, UploadOutlined } from '@ant-design/icons';
-import { Button, Card, Col, Input, message, Modal, Row, Space, Upload } from 'antd';
+import { Button, Card, Col, Input, message, Modal, Row, Space, Spin, Upload } from 'antd';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { buildClinicHomeContent } from '../../../config/homePageClinicContent';
 import { useAuth } from '../../../hooks/Clinic/AuthContext';
+import { getAdminInstance } from '../../../services/apiClient';
+import { getClinicHomepageSettingApi, updateClinicHomepageSettingApi } from '../../../services/clinicHomepageSettingService';
 import { uploadMultipleFilesToCloudinary, uploadOneFileToCloudinary } from '../../../services/cloudinaryService';
 import { getCurrentAdminClinicId } from '../../../utils/clinicIdentity';
-import { getClinicHomeContent, saveClinicHomeContent } from '../../../utils/storage/clinicHomeStorage';
+import { cacheClinicHomeContent, getClinicHomeContent, saveClinicHomeContent } from '../../../utils/storage/clinicHomeStorage';
 import HomePageClinic from '../../client/Home/HomePageClinic';
 import './homePageEditorTab.css';
 
@@ -36,6 +38,7 @@ export default function HomePageClinicEditor() {
   const [draftContent, setDraftContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [savedContent, setSavedContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [saving, setSaving] = useState(false);
+  const [loadingInit, setLoadingInit] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
   const [uploadingField, setUploadingField] = useState('');
   const deniedRef = useRef(false);
@@ -51,9 +54,36 @@ export default function HomePageClinicEditor() {
       return;
     }
 
-    const nextContent = getClinicHomeContent(targetClinicId);
-    setDraftContent(nextContent);
-    setSavedContent(nextContent);
+    let cancelled = false;
+    setLoadingInit(true);
+
+    getClinicHomepageSettingApi(getAdminInstance(), targetClinicId)
+      .then((apiData) => {
+        if (cancelled) return;
+        if (apiData) {
+          const parsed = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
+          const nextContent = buildClinicHomeContent(parsed);
+          cacheClinicHomeContent(targetClinicId, nextContent);
+          setDraftContent(nextContent);
+          setSavedContent(nextContent);
+        } else {
+          // Phòng khám mới chưa có setting → dùng default content
+          const nextContent = getClinicHomeContent(targetClinicId);
+          setDraftContent(nextContent);
+          setSavedContent(nextContent);
+        }
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const nextContent = getClinicHomeContent(targetClinicId);
+        setDraftContent(nextContent);
+        setSavedContent(nextContent);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingInit(false);
+      });
+
+    return () => { cancelled = true; };
   }, [navigate, t, targetClinicId]);
 
   useEffect(() => {
@@ -266,7 +296,7 @@ export default function HomePageClinicEditor() {
       content: t('homeEditor.team.removeDoctorContent'),
       okText: t('homeEditor.team.removeDoctorConfirm'),
       okType: 'danger',
-      cancelText: t('homeEditor.actions.cancel'),
+      // cancelText: t('homeEditor.actions.cancel'),
       centered: true,
       onOk: () => removeDoctor(doctorIndex),
     });
@@ -285,10 +315,12 @@ export default function HomePageClinicEditor() {
     try {
       setSaving(true);
       const normalized = cloneContent(draftContent);
+      await updateClinicHomepageSettingApi(getAdminInstance(), normalized);
       saveClinicHomeContent(targetClinicId, normalized);
       setSavedContent(normalized);
       message.success(t('homeEditor.messages.saveSuccess'));
-      window.location.reload();
+    } catch (error) {
+      message.error(error?.message || t('homeEditor.messages.saveFailed', { defaultValue: 'Lưu thất bại. Vui lòng thử lại.' }));
     } finally {
       setSaving(false);
     }
@@ -298,36 +330,38 @@ export default function HomePageClinicEditor() {
     navigate('/clinic/appointments');
   };
 
-  const handleCancel = () => {
-    if (!isDirty) {
-      discardAndExit();
-      return;
-    }
+  // const handleCancel = () => {
+  //   if (!isDirty) {
+  //     discardAndExit();
+  //     return;
+  //   }
 
-    Modal.confirm({
-      title: t('homeEditor.confirm.leaveTitle'),
-      content: t('homeEditor.confirm.leaveContent'),
-      okText: t('homeEditor.confirm.continueEditing'),
-      cancelText: t('homeEditor.confirm.discardChanges'),
-      centered: true,
-      closable: false,
-      maskClosable: false,
-      onCancel: discardAndExit,
-      onOk: () => {},
-    });
-  };
+  //   Modal.confirm({
+  //     title: t('homeEditor.confirm.leaveTitle'),
+  //     content: t('homeEditor.confirm.leaveContent'),
+  //     okText: t('homeEditor.confirm.continueEditing'),
+  //     cancelText: t('homeEditor.confirm.discardChanges'),
+  //     centered: true,
+  //     closable: false,
+  //     maskClosable: false,
+  //     onCancel: discardAndExit,
+  //     onOk: () => {},
+  //   });
+  // };
 
   return (
     <div className="clinic-home-editor-page">
+      <Spin spinning={loadingInit} tip={t('homeEditor.messages.loading', { defaultValue: 'Đang tải...' })}>
       <Space direction="vertical" size={16} className="clinic-home-editor-content">
         <Card title={t('homeEditor.sections.hero')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Banner chính</p>
+            <label className="editor-section-label">{t('homeEditor.labels.heroTitle')}</label>
             <Input
               value={draftContent.hero.title}
               onChange={(event) => updateNestedField('hero', 'title', event.target.value)}
               placeholder={t('homeEditor.placeholders.heroTitle')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.heroDescription')}</label>
             <TextArea
               value={draftContent.hero.description}
               onChange={(event) => updateNestedField('hero', 'description', event.target.value)}
@@ -357,7 +391,7 @@ export default function HomePageClinicEditor() {
                   return false;
                 }}
               >
-                <Button icon={<UploadOutlined />}>
+                <Button icon={<UploadOutlined />} style={{color: "#4672b4"}}>
                   {t('homeEditor.actions.uploadImage')}
                 </Button>
               </Upload>
@@ -371,17 +405,18 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.about')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Giới thiệu phòng khám</p>
             <Input
               value={draftContent.about.label}
               onChange={(event) => updateNestedField('about', 'label', event.target.value)}
               placeholder={t('homeEditor.placeholders.aboutLabel')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.aboutTitle')}</label>
             <Input
               value={draftContent.about.title}
               onChange={(event) => updateNestedField('about', 'title', event.target.value)}
               placeholder={t('homeEditor.placeholders.aboutTitle')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.aboutDescription')}</label>
             <TextArea
               value={draftContent.about.description}
               onChange={(event) => updateNestedField('about', 'description', event.target.value)}
@@ -390,6 +425,7 @@ export default function HomePageClinicEditor() {
             />
             <Row gutter={12}>
               <Col xs={24} md={12}>
+             <label className="editor-section-label">{t('homeEditor.labels.aboutHighlightNumber')}</label>
                 <Input
                   value={draftContent.about.highlightNumber}
                   onChange={(event) => updateNestedField('about', 'highlightNumber', event.target.value)}
@@ -397,6 +433,7 @@ export default function HomePageClinicEditor() {
                 />
               </Col>
               <Col xs={24} md={12}>
+             <label className="editor-section-label">{t('homeEditor.labels.aboutHighlightLabel')}</label>
                 <Input
                   value={draftContent.about.highlightLabel}
                   onChange={(event) => updateNestedField('about', 'highlightLabel', event.target.value)}
@@ -409,12 +446,13 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.gallery')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Thư viện hình ảnh và nội dung nổi bật</p>
+            <label className="editor-section-label">{t('homeEditor.labels.galleryTitle')}</label>
             <Input
               value={draftContent.gallerySection.title}
               onChange={(event) => updateNestedField('gallerySection', 'title', event.target.value)}
               placeholder={t('homeEditor.placeholders.galleryTitle')}
             />
+            <label className="editor-section-label">{t('homeEditor.labels.gallerySubtitle')}</label>
             <TextArea
               value={draftContent.gallerySection.subtitle}
               onChange={(event) => updateNestedField('gallerySection', 'subtitle', event.target.value)}
@@ -466,13 +504,12 @@ export default function HomePageClinicEditor() {
           <Card
             title={t('homeEditor.sections.team')}
             extra={
-              <Button type="dashed" onClick={addDoctor}>
+              <Button type="dashed" onClick={addDoctor} style={{ color: "#4672b4" , hover: { color: '#4672b4', borderColor: '#4672b4' }}}>
                 {t('homeEditor.team.addDoctor')}
               </Button>
             }
           >
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Đội ngũ bác sĩ</p>
             <Input
               value={draftContent.teamSection.title}
               onChange={(event) => updateNestedField('teamSection', 'title', event.target.value)}
@@ -513,7 +550,7 @@ export default function HomePageClinicEditor() {
                       } 
                       }
                     >
-                      <Button icon={<UploadOutlined />} disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)}>
+                      <Button icon={<UploadOutlined />} disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)} style={{color: "#4672b4"}}>
                         <span>{isFieldUploading(`doctor-image-${index}`) ? t('homeEditor.actions.uploading') : t('homeEditor.actions.uploadImage')}</span>
                       </Button>
                     </Upload>
@@ -541,7 +578,6 @@ export default function HomePageClinicEditor() {
 
         <Card title={t('homeEditor.sections.location')}>
           <Space direction="vertical" size={12} className="editor-full-width">
-            <p className="editor-section-label">Thông tin địa chỉ và bản đồ</p>
             <Input
               value={draftContent.locationSection.title}
               onChange={(event) => updateNestedField('locationSection', 'title', event.target.value)}
@@ -553,11 +589,13 @@ export default function HomePageClinicEditor() {
               rows={2}
               placeholder={t('homeEditor.placeholders.locationSubtitle')}
             />
+            <p className="editor-section-label">{t('homeEditor.labels.locationAddress')}</p>
             <Input
               value={draftContent.locationSection.address}
               onChange={(event) => updateNestedField('locationSection', 'address', event.target.value)}
               placeholder={t('homeEditor.placeholders.locationAddress')}
             />
+            <p className="editor-section-label">{t('homeEditor.labels.locationMapEmbed')}</p>
             <Input
               value={draftContent.locationSection.mapEmbedUrl}
               onChange={(event) =>
@@ -568,9 +606,10 @@ export default function HomePageClinicEditor() {
           </Space>
         </Card>
       </Space>
+      </Spin>
 
       <div className="clinic-home-editor-actions">
-        <Button onClick={handleCancel}>{t('homeEditor.actions.cancel')}</Button>
+        {/* <Button onClick={handleCancel}>{t('homeEditor.actions.cancel')}</Button> */}
         <Button onClick={() => setIsPreviewModalOpen(true)}>{t('homeEditor.actions.preview', { defaultValue: 'Xem trước' })}</Button>
         <Button type="primary" onClick={handleSave} loading={saving}>
           {t('homeEditor.actions.saveChanges')}

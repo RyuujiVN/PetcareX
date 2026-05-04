@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from './invoiceService'
 import { getMedicalByClinicApi, getMedicalByIdApi } from './medicalService'
 
@@ -5,7 +6,7 @@ const BATCH_SIZE = 10
 const PAGE_LIMIT = 50
 
 /**
- * Xử lý mảng theo batch, mỗi batch chạy song song.
+ * Xử lý mảng theo batch để giới hạn số request chạy song song.
  */
 const processBatch = async (items, handler) => {
   const results = []
@@ -30,7 +31,7 @@ export const fetchAllClinicMedicalRecords = async (instance) => {
     const items = Array.isArray(response?.items) ? response.items : []
     allRecords.push(...items)
     totalPages = response?.meta?.totalPages || 1
-    page++
+    page += 1
   }
 
   return allRecords
@@ -48,7 +49,7 @@ const fetchInvoiceSafe = async (instance, medicalRecordId) => {
 }
 
 /**
- * Fetch chi tiết medical record (bao gồm veterinarian info).
+ * Fetch chi tiết medical record để bổ sung veterinarian khi cần.
  */
 const fetchMedicalDetailSafe = async (instance, medicalRecordId) => {
   try {
@@ -58,32 +59,45 @@ const fetchMedicalDetailSafe = async (instance, medicalRecordId) => {
   }
 }
 
+const getVetId = (vet) => vet?.id || vet?.user?.id || null
+
+const getVetName = (vet) => vet?.fullName || vet?.user?.fullName || ''
+
+const getVetSpecialty = (vet) => vet?.specialty || vet?.user?.specialty || ''
+
+const getVetAvatar = (vet) => vet?.avatarUrl || vet?.avatar || vet?.user?.avatarUrl || vet?.user?.avatar || ''
+
 /**
- * Tổng hợp toàn bộ dữ liệu doanh thu cho clinic.
- * Trả về object gồm: records (enriched), summaries, chart data, top vets.
+ * Tổng hợp dữ liệu revenue từ medical records + invoices.
+ * Tối ưu: chỉ gọi /medical/:id với record thiếu veterinarian.
  */
 export const aggregateRevenueData = async (instance) => {
-  // 1. Lấy toàn bộ medical records
   const records = await fetchAllClinicMedicalRecords(instance)
 
-  // 2. Fetch invoice + detail song song theo batch
   const invoiceResults = await processBatch(records, (record) =>
     fetchInvoiceSafe(instance, record.id),
   )
-  const detailResults = await processBatch(records, (record) =>
+
+  const recordsNeedDetail = records.filter((record) => !getVetId(record?.veterinarian))
+  const detailResults = await processBatch(recordsNeedDetail, (record) =>
     fetchMedicalDetailSafe(instance, record.id),
   )
 
-  // 3. Ghép dữ liệu
-  const enrichedRecords = records.map((record, index) => {
+  const detailByRecordId = new Map()
+  recordsNeedDetail.forEach((record, index) => {
+    const resolved = detailResults[index]
+    if (resolved?.status === 'fulfilled' && resolved.value) {
+      detailByRecordId.set(record.id, resolved.value)
+    }
+  })
+
+  return records.map((record, index) => {
     const invoice =
       invoiceResults[index]?.status === 'fulfilled'
         ? invoiceResults[index].value
         : null
-    const detail =
-      detailResults[index]?.status === 'fulfilled'
-        ? detailResults[index].value
-        : null
+    const detail = detailByRecordId.get(record.id)
+    const rawVet = detail?.veterinarian || record?.veterinarian || null
 
     return {
       id: record.id,
@@ -92,7 +106,14 @@ export const aggregateRevenueData = async (instance) => {
       followUpDate: record.followUpDate,
       pet: record.pet,
       owner: record.pet?.owner || null,
-      veterinarian: detail?.veterinarian || null,
+      veterinarian: rawVet
+        ? {
+            id: getVetId(rawVet),
+            fullName: getVetName(rawVet),
+            specialty: getVetSpecialty(rawVet),
+            avatarUrl: getVetAvatar(rawVet),
+          }
+        : null,
       invoice: invoice
         ? {
             id: invoice.id,
@@ -104,8 +125,6 @@ export const aggregateRevenueData = async (instance) => {
         : null,
     }
   })
-
-  return enrichedRecords
 }
 
 /**
@@ -126,25 +145,16 @@ export const calculateSummary = (enrichedRecords) => {
   )
   const totalPaidInvoices = paidRecords.length
   const totalUnpaidInvoices = unpaidRecords.length
-  const unpaidAmount = unpaidRecords.reduce(
-    (sum, r) => sum + (r.invoice.totalAmount || 0),
-    0,
-  )
-  const averagePerRecord =
-    totalPaidInvoices > 0 ? Math.round(totalRevenue / totalPaidInvoices) : 0
 
   return {
     totalRevenue,
     totalPaidInvoices,
     totalUnpaidInvoices,
-    unpaidAmount,
-    averagePerRecord,
   }
 }
 
 /**
  * Tính doanh thu theo ngày cho biểu đồ.
- * Trả về array { date, revenue, count } đã sắp xếp theo ngày.
  */
 export const calculateDailyRevenue = (enrichedRecords) => {
   const paidRecords = enrichedRecords.filter(
@@ -153,8 +163,7 @@ export const calculateDailyRevenue = (enrichedRecords) => {
 
   const dailyMap = {}
   paidRecords.forEach((r) => {
-    const dateKey = (r.invoice.createdAt || r.createdAt || '')
-      .substring(0, 10)
+    const dateKey = (r.invoice.createdAt || r.createdAt || '').substring(0, 10)
     if (!dateKey) return
 
     if (!dailyMap[dateKey]) {
@@ -169,8 +178,6 @@ export const calculateDailyRevenue = (enrichedRecords) => {
 
 /**
  * Tính top bác sĩ theo số lượt khám trong tháng hiện tại.
- * Đếm mọi medical record có veterinarian (không phụ thuộc invoice status).
- * Ẩn bác sĩ có 0 lượt, sắp xếp giảm dần, giới hạn tối đa `limit`.
  */
 export const calculateTopVeterinariansByVisits = (enrichedRecords, limit = 5) => {
   const now = new Date()
@@ -194,6 +201,7 @@ export const calculateTopVeterinariansByVisits = (enrichedRecords, limit = 5) =>
         id: vetId,
         fullName: r.veterinarian.fullName || '',
         specialty: r.veterinarian.specialty || '',
+        avatarUrl: r.veterinarian.avatarUrl || '',
         recordCount: 0,
       }
     }
@@ -218,4 +226,122 @@ export const getRecentInvoices = (enrichedRecords, limit = 20) => {
       return dateB.localeCompare(dateA)
     })
     .slice(0, limit)
+}
+
+/**
+ * GET /api/revenue/summary — Tóm tắt hoá đơn hôm nay của phòng khám.
+ * Response: { total: number, totalPaid: number, totalUnpaid: number }
+ */
+export const getRevenueSummary = async (instance) => {
+  const { data } = await instance.get('/revenue/summary')
+  return {
+    totalRevenue: Number(data.total) || 0,
+    totalPaidInvoices: Number(data.totalPaid) || 0,
+    totalUnpaidInvoices: Number(data.totalUnpaid) || 0,
+  }
+}
+
+/**
+ * GET /api/revenue/chart — Doanh thu theo khoảng thời gian.
+ * Response (groupBy=DAY):   [{ total, date }]   — date = day-of-month number
+ * Response (groupBy=MONTH): [{ total, month }]  — month = 1–12
+ */
+export const getRevenueChart = async (instance, dateStart, dateEnd, groupBy) => {
+  const { data } = await instance.get('/revenue/chart', {
+    params: { dateStart, dateEnd, groupBy },
+  })
+  return Array.isArray(data) ? data : []
+}
+
+/**
+ * GET /api/revenue/top-veterinarian — Top 5 bác sĩ hôm nay.
+ * Response: [{ fullName, avatarUrl, id, totalAppointment, specialty }]
+ */
+export const getTopVeterinarians = async (instance) => {
+  const { data } = await instance.get('/revenue/top-veterinarian')
+  return Array.isArray(data) ? data : []
+}
+
+/**
+ * Chuyển đổi response chart API sang dạng [{ date, revenue }] cho Recharts.
+ */
+export const transformChartData = (apiData, groupBy, dateStart, dateEnd) => {
+  if (!apiData?.length) return []
+
+  if (groupBy === 'MONTH') {
+    const year = dayjs(dateStart).year()
+    return apiData
+      .map((item) => ({
+        date: dayjs().year(year).month(Number(item.month) - 1).startOf('month').format('YYYY-MM-01'),
+        revenue: Number(item.total) || 0,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date))
+  }
+
+  // groupBy === 'DAY'
+  const start = dayjs(dateStart)
+  const end = dayjs(dateEnd)
+  const sameMonth = start.month() === end.month() && start.year() === end.year()
+
+  return apiData
+    .map((item) => {
+      const dayNum = Number(item.date)
+      let fullDate
+      if (sameMonth) {
+        fullDate = start.date(dayNum)
+      } else {
+        fullDate = dayNum >= start.date()
+          ? start.date(dayNum)
+          : end.startOf('month').date(dayNum)
+      }
+      return {
+        date: fullDate.format('YYYY-MM-DD'),
+        revenue: Number(item.total) || 0,
+      }
+    })
+    .sort((a, b) => a.date.localeCompare(b.date))
+}
+
+/**
+ * Map period key sang params cho chart API.
+ * Tuần này: thứ Hai → Chủ nhật (dayjs default Sunday-start, nên tự offset).
+ */
+export const getChartParams = (periodKey) => {
+  const now = dayjs()
+  const dayOfWeek = now.day()
+  const monday = now.subtract((dayOfWeek + 6) % 7, 'day').startOf('day')
+  const sunday = monday.add(6, 'day').endOf('day')
+
+  switch (periodKey) {
+    case 'today':
+      return {
+        dateStart: now.startOf('day').toISOString(),
+        dateEnd: now.endOf('day').toISOString(),
+        groupBy: 'DAY',
+      }
+    case 'week':
+      return {
+        dateStart: monday.toISOString(),
+        dateEnd: sunday.toISOString(),
+        groupBy: 'DAY',
+      }
+    case 'month':
+      return {
+        dateStart: now.startOf('month').toISOString(),
+        dateEnd: now.endOf('month').toISOString(),
+        groupBy: 'DAY',
+      }
+    case 'year':
+      return {
+        dateStart: now.startOf('year').toISOString(),
+        dateEnd: now.endOf('year').toISOString(),
+        groupBy: 'MONTH',
+      }
+    default:
+      return {
+        dateStart: now.startOf('month').toISOString(),
+        dateEnd: now.endOf('month').toISOString(),
+        groupBy: 'DAY',
+      }
+  }
 }

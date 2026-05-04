@@ -40,11 +40,148 @@
 }
 
 .composeCard,
-.postCard{
+.postCard,
+.searchCard{
 	border: 1px solid #e4eaf1;
 	border-radius: 16px;
 	background: #ffffff;
 	box-shadow: 0 8px 24px rgba(32, 53, 76, 0.06);
+}
+
+.searchCard {
+	padding: 12px 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.searchBar {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr) auto;
+	align-items: center;
+	gap: 10px;
+	background: #f0f3f7;
+	border-radius: 14px;
+	padding: 8px 14px;
+	min-height: 42px;
+}
+
+.searchBarIcon {
+	color: #6e7f95;
+	font-size: 16px;
+}
+
+.searchBarInput {
+	border: none;
+	background: transparent;
+	font-size: 15px;
+	color: #1f2a37;
+	width: 100%;
+}
+
+.searchBarInput::placeholder {
+	color: #8a99ad;
+}
+
+.searchBarClearBtn {
+	border: none;
+	background: transparent;
+	color: #6e7f95;
+	cursor: pointer;
+	padding: 4px;
+	border-radius: 50%;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.searchBarClearBtn:hover {
+	background: #e2e8ef;
+	color: #3f5670;
+}
+
+.searchStatusRow {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+	font-size: 14px;
+	color: #4e5f76;
+}
+
+.searchActiveChip {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	background: var(--forum-primary-soft);
+	color: var(--forum-primary);
+	padding: 4px 10px;
+	border-radius: 999px;
+	font-weight: 600;
+	max-width: 100%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.searchClearLink {
+	border: none;
+	background: transparent;
+	color: var(--forum-primary);
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 600;
+	padding: 0;
+}
+
+.searchClearLink:hover {
+	text-decoration: underline;
+}
+
+.searchResultCount {
+	color: #6e7f95;
+}
+
+.searchEmptyState {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	padding: 48px 20px;
+	color: #6e7f95;
+	text-align: center;
+}
+
+.searchEmptyIcon {
+	font-size: 36px;
+	color: #b6c1cf;
+}
+
+.searchEmptyTitle {
+	font-size: 16px;
+	font-weight: 600;
+	color: #3f5670;
+	margin: 0;
+}
+
+.searchEmptyHint {
+	font-size: 14px;
+	margin: 0;
+}
+
+.commentImageBtn {
+	border: none;
+	background: transparent;
+	padding: 0;
+	margin: 0;
+	cursor: zoom-in;
+	display: inline-block;
+	max-width: 100%;
+}
+
+.commentImageBtn:hover .commentImage {
+	opacity: 0.92;
 }
 
 .composeCard {
@@ -273,6 +410,7 @@
 	font-weight: 700;
 	color: #3f5268;
 	cursor: pointer;
+	white-space: nowrap;
 }
 
 .postMenuItem:hover {
@@ -668,7 +806,6 @@
 }
 
 .commentMenuButton:hover {
-	background: #e9f1fb;
 	color: #2f5886;
 }
 

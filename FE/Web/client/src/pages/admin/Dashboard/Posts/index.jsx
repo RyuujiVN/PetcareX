@@ -353,8 +353,8 @@ export default function Posts() {
               {t('posts.page.subtitle')}
             </Typography.Text>
           </div>
-          <div className="posts-table-actions">
-            <Input
+           <div className="search-table-actions">
+             <Input
               className="posts-search"
               placeholder={t('posts.search.placeholder')}
               allowClear
@@ -363,6 +363,8 @@ export default function Posts() {
               onPressEnter={(event) => handleSearch(event.target.value)}
               prefix={<SearchOutlined style={{ color: 'var(--admin-color-text-disabled)' }} />}
             />
+          </div>
+          <div className="posts-table-actions">
             <Select
               size='large'
               className="posts-topic"

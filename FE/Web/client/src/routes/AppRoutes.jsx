@@ -7,6 +7,7 @@ import AdminClinicLayout from '../layouts/Clinic/AdminClinicLayout'
 import AdminVererianrianLayout from '../layouts/Vererianrian/AdminVererianrianLayout'
 import Clinics from '../pages/admin/Dashboard/Clinics'
 import Posts from '../pages/admin/Dashboard/Posts'
+import AdminActivity from '../pages/admin/Dashboard/Activity'
 import Users from '../pages/admin/Dashboard/Users'
 import ForgotPassword from '../pages/client/Auth/ForgotPassword'
 import Login from '../pages/client/Auth/Login'
@@ -37,11 +38,20 @@ import AdminClinicProfile from '../pages/Clinic/ProfileAdminClinic/profileAdminC
 import RevenueDashboard from '../pages/Clinic/Revenue/RevenueDashboard'
 import VererianrianManagement from '../pages/Clinic/VererianrianManagement/vererianrianManagement'
 import ViewMedicalRecords from '../pages/Clinic/ViewMedicalRecords/viewMedicalRecords'
+import ClinicForum from '../pages/Clinic/Forum/ClinicForum'
+import ClinicChatBot from '../pages/Clinic/ChatBot/ClinicChatBot'
+import ClinicMessageBox from '../pages/Clinic/ChatBot/MessageBox'
 import ListExaminationForm from '../pages/Vererianrian/ListExaminationForm/listExaminationForm'
 import ListMedicalRecords from '../pages/Vererianrian/ListMedicalRecords/listMedicalRecords'
 import PetAppointmentVererianrian from '../pages/Vererianrian/PetAppointmentVererianrian/petAppointmentVererianrian'
 import RecordExaminationForm from '../pages/Vererianrian/RecordExaminationForm/recordExaminationForm'
 import ViewPetMedicalRecords from '../pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords'
+import VetForum from '../pages/Vererianrian/Forum/VetForum'
+import VetChatBot from '../pages/Vererianrian/ChatBot/VetChatBot'
+import VetMessageBox from '../pages/Vererianrian/ChatBot/MessageBox'
+import AdminForum from '../pages/admin/Forum/AdminForum'
+import AdminChatBot from '../pages/admin/ChatBot/AdminChatBot'
+import AdminMessageBox from '../pages/admin/ChatBot/MessageBox'
 import RoleBasedRoute from './RoleBasedRoute'
 export default function AppRoutes({ location }) {
   return (
@@ -60,6 +70,12 @@ export default function AppRoutes({ location }) {
           <Route path="/admin/dashboard/clinics" element={<Clinics />} />
           <Route path="/admin/dashboard/users" element={<Users />} />
           <Route path="/admin/dashboard/posts" element={<Posts />} />
+          <Route path="/admin/dashboard/activity" element={<AdminActivity />} />
+          <Route path="/admin/forum" element={<AdminForum />} />
+          <Route path="/admin/chatbot" element={<AdminChatBot />}>
+            <Route index element={<AdminMessageBox />} />
+            <Route path=":roomId" element={<AdminMessageBox />} />
+          </Route>
         </Route>
       </Route>
 
@@ -79,6 +95,11 @@ export default function AppRoutes({ location }) {
           <Route path="/clinic/editor/:clinicId" element={<ClinicPortalEditor />} />
           <Route path="/clinic/home-editor/:clinicId" element={<ClinicPortalEditor />} />
           <Route path="/clinic/clinic-editor/:clinicId" element={<ClinicPortalEditor />} />
+          <Route path="/clinic/forum" element={<ClinicForum />} />
+          <Route path="/clinic/chatbot" element={<ClinicChatBot />}>
+            <Route index element={<ClinicMessageBox />} />
+            <Route path=":roomId" element={<ClinicMessageBox />} />
+          </Route>
         </Route>
       </Route>
 
@@ -96,6 +117,11 @@ export default function AppRoutes({ location }) {
           <Route path="/veterinarian/viewRecords" element={<ViewPetMedicalRecords />} />
           <Route path="/veterinarian/exam-forms" element={<ListExaminationForm />} />
           <Route path="/veterinarian/exam-forms/create" element={<RecordExaminationForm />} />
+          <Route path="/veterinarian/forum" element={<VetForum />} />
+          <Route path="/veterinarian/chatbot" element={<VetChatBot />}>
+            <Route index element={<VetMessageBox />} />
+            <Route path=":roomId" element={<VetMessageBox />} />
+          </Route>
         </Route>
       </Route>
 

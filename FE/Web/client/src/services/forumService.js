@@ -1,8 +1,17 @@
+import { getAdminInstance, getClientInstance } from './apiClient'
+
 // Lấy danh sách bài viết
-export const getPostsApi = async (instance, { limit = 20, lastPostTime } = {}) => {
-  const response = await instance.get('/post', {
-    params: { limit, lastPostTime },
-  })
+export const getPostsApi = async (
+  instance,
+  { limit = 20, lastPostTime, keyword, topicId, sortRecent } = {},
+) => {
+  const params = { limit }
+  if (lastPostTime) params.lastPostTime = lastPostTime
+  const trimmedKeyword = typeof keyword === 'string' ? keyword.trim() : ''
+  if (trimmedKeyword) params.keyword = trimmedKeyword
+  if (topicId) params.topicId = topicId
+  if (sortRecent) params.sortRecent = sortRecent
+  const response = await instance.get('/post', { params })
   return response.data
 }
 // Tạo bài viết mới
@@ -119,4 +128,20 @@ export const updateCommentApi = async (instance, commentId, payload) => {
 export const deleteCommentApi = async (instance, commentId) => {
   const response = await instance.delete(`/comment/${commentId}`)
   return response.data
+}
+
+export const adminDeletePostApi = async (postId) => {
+  try {
+    return await getAdminInstance().delete(`/post/${postId}`)
+  } catch {
+    return getClientInstance().delete(`/post/${postId}`)
+  }
+}
+
+export const adminDeleteCommentApi = async (commentId) => {
+  try {
+    return await getAdminInstance().delete(`/comment/${commentId}`)
+  } catch {
+    return getClientInstance().delete(`/comment/${commentId}`)
+  }
 }

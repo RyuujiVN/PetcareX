@@ -141,6 +141,13 @@
   "choosePet": "Chọn thú cưng của bạn",
   "choosePetSub": "Chọn thú cưng cần được thăm khám hôm nay",
   "bookingClinicSub": "Chọn phòng khám phù hợp cho thú cưng",
+  "clinicNoReviews": "Chưa có đánh giá",
+  "clinicReviewCount": "{count, plural, =1{1 đánh giá} other{{count} đánh giá}}",
+  "@clinicReviewCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
+  },
   "bookingServiceSub": "Chọn dịch vụ và nhập triệu chứng bắt buộc",
   "bookingDoctorSub": "Chọn bác sĩ thú y phù hợp",
   "bookingTimeSub": "Chọn ngày và khung giờ khám",
@@ -167,6 +174,23 @@
   "time": "Thời gian",
   "note": "Ghi chú",
   "searchHint": "Tìm kiếm bài viết, thú cưng...",
+  "forumSearchPlaceholder": "Tìm bài viết theo nội dung...",
+  "forumSearchActive": "Đang tìm: {keyword}",
+  "@forumSearchActive": {
+    "placeholders": {
+      "keyword": { "type": "String" }
+    }
+  },
+  "forumSearchClear": "Xóa tìm kiếm",
+  "forumSearchEmptyTitle": "Không tìm thấy bài viết nào",
+  "forumSearchEmptyHint": "Thử tìm với từ khóa khác.",
+  "locationFallbackNotice": "Đang dùng vị trí mặc định (Đà Nẵng)",
+  "locationServiceDisabledTitle": "Bật dịch vụ vị trí",
+  "locationServiceDisabledMessage": "Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.",
+  "locationPermissionDeniedTitle": "Cấp quyền vị trí",
+  "locationPermissionDeniedMessage": "Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.",
+  "locationDialogCancel": "Để sau",
+  "locationDialogOpenSettings": "Mở Cài đặt",
   "shareSomething": "Bạn muốn chia sẻ điều gì về thú cưng hôm nay?",
   "chooseTopic": "Chọn chủ đề",
   "pleaseChooseTopic": "Vui lòng chọn một chủ đề",
@@ -485,6 +509,52 @@
   "chatStatusSent": "Đã gửi",
   "chatStatusError": "Lỗi"
   ,
-  "language": "Ngôn ngữ"
+  "language": "Ngôn ngữ",
+
+  "reviewClinicTitle": "Đánh giá phòng khám",
+  "reviewThisVisit": "Đánh giá lượt khám này",
+  "reviewAlreadyReviewed": "Đã đánh giá",
+  "reviewCommentHint": "Nhập nhận xét của bạn (không bắt buộc)",
+  "reviewSubmit": "Gửi đánh giá",
+  "reviewSuccess": "Đã gửi đánh giá thành công!",
+  "reviewFailed": "Không thể gửi đánh giá. Vui lòng thử lại.",
+  "reviewRating1": "Rất tệ",
+  "reviewRating2": "Tệ",
+  "reviewRating3": "Bình thường",
+  "reviewRating4": "Tốt",
+  "reviewRating5": "Rất tốt",
+
+  "reportPostTitle": "Tố cáo bài viết",
+  "reportCommentTitle": "Tố cáo bình luận",
+  "reportReasonHint": "Chọn lý do tố cáo",
+  "reportSubmit": "Gửi tố cáo",
+  "reportSuccess": "Đã gửi tố cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất.",
+  "reportFailed": "Không thể gửi tố cáo. Vui lòng thử lại.",
+  "reportAction": "Tố cáo",
+  "reportDescriptionHint": "Mô tả thêm (không bắt buộc)",
+  "reportReasonSpam": "Spam / Quảng cáo",
+  "reportReasonOffensive": "Ngôn ngữ thô tục / Xúc phạm",
+  "reportReasonHarassment": "Quấy rối / Bắt nạt",
+  "reportReasonMisinformation": "Thông tin sai sự thật",
+  "reportReasonViolence": "Bạo lực / Phản cảm",
+  "reportReasonOther": "Khác",
+  "reportAlreadyReported": "Bạn đã tố cáo bình luận này.",
+  "reportPostAlreadyReported": "Bạn đã tố cáo bài viết này.",
+  "nearbyClinicTitle": "Phòng khám gần bạn",
+  "nearbyClinicEmpty": "Chưa có phòng khám nào quanh bạn.",
+  "nearbyClinicLocationRequiredDenied": "Cần quyền vị trí để tìm phòng khám gần bạn. Vui lòng cấp quyền và thử lại.",
+  "nearbyClinicLocationRequiredServiceDisabled": "Vui lòng bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.",
+  "nearbyClinicLocationRequiredPermanentlyDenied": "Quyền vị trí đang bị từ chối vĩnh viễn. Mở Cài đặt ứng dụng để bật lại quyền vị trí.",
+  "clinicDetailIntroduction": "Giới thiệu",
+  "clinicDetailIntroEmpty": "Phòng khám chưa cập nhật phần giới thiệu.",
+  "clinicDetailContact": "Liên hệ",
+  "clinicDetailWorkingHours": "Giờ làm việc",
+  "clinicDetailPhone": "Điện thoại",
+  "clinicDetailEmail": "Email",
+  "clinicDetailContactEmpty": "Phòng khám chưa cập nhật thông tin liên hệ.",
+  "clinicDetailServices": "Dịch vụ",
+  "clinicDetailServicesEmpty": "Phòng khám chưa công bố danh sách dịch vụ.",
+  "clinicDetailReviews": "Đánh giá gần đây",
+  "clinicDetailBookNow": "Đặt lịch ngay"
 }
 

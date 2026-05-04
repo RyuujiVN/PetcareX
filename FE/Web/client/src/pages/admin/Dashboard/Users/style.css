@@ -86,10 +86,17 @@
   width: 320px;
 }
 
+.search-table-users{
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
 .users-page .users-table-actions {
+  width: 15%;
   display: flex;
   gap: 12px;
-  margin-left: auto;
   justify-content: flex-end;
 }
 

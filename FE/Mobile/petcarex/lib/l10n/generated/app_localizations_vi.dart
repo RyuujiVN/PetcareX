@@ -438,6 +438,20 @@ class AppLocalizationsVi extends AppLocalizations {
   String get bookingClinicSub => 'Chọn phòng khám phù hợp cho thú cưng';
 
   @override
+  String get clinicNoReviews => 'Chưa có đánh giá';
+
+  @override
+  String clinicReviewCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count đánh giá',
+      one: '1 đánh giá',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get bookingServiceSub => 'Chọn dịch vụ và nhập triệu chứng bắt buộc';
 
   @override
@@ -516,6 +530,46 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get searchHint => 'Tìm kiếm bài viết, thú cưng...';
+
+  @override
+  String get forumSearchPlaceholder => 'Tìm bài viết theo nội dung...';
+
+  @override
+  String forumSearchActive(String keyword) {
+    return 'Đang tìm: $keyword';
+  }
+
+  @override
+  String get forumSearchClear => 'Xóa tìm kiếm';
+
+  @override
+  String get forumSearchEmptyTitle => 'Không tìm thấy bài viết nào';
+
+  @override
+  String get forumSearchEmptyHint => 'Thử tìm với từ khóa khác.';
+
+  @override
+  String get locationFallbackNotice => 'Đang dùng vị trí mặc định (Đà Nẵng)';
+
+  @override
+  String get locationServiceDisabledTitle => 'Bật dịch vụ vị trí';
+
+  @override
+  String get locationServiceDisabledMessage =>
+      'Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.';
+
+  @override
+  String get locationPermissionDeniedTitle => 'Cấp quyền vị trí';
+
+  @override
+  String get locationPermissionDeniedMessage =>
+      'Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.';
+
+  @override
+  String get locationDialogCancel => 'Để sau';
+
+  @override
+  String get locationDialogOpenSettings => 'Mở Cài đặt';
 
   @override
   String get shareSomething => 'Bạn muốn chia sẻ điều gì về thú cưng hôm nay?';
@@ -1112,4 +1166,143 @@ class AppLocalizationsVi extends AppLocalizations {
 
   @override
   String get language => 'Ngôn ngữ';
+
+  @override
+  String get reviewClinicTitle => 'Đánh giá phòng khám';
+
+  @override
+  String get reviewThisVisit => 'Đánh giá lượt khám này';
+
+  @override
+  String get reviewAlreadyReviewed => 'Đã đánh giá';
+
+  @override
+  String get reviewCommentHint => 'Nhập nhận xét của bạn (không bắt buộc)';
+
+  @override
+  String get reviewSubmit => 'Gửi đánh giá';
+
+  @override
+  String get reviewSuccess => 'Đã gửi đánh giá thành công!';
+
+  @override
+  String get reviewFailed => 'Không thể gửi đánh giá. Vui lòng thử lại.';
+
+  @override
+  String get reviewRating1 => 'Rất tệ';
+
+  @override
+  String get reviewRating2 => 'Tệ';
+
+  @override
+  String get reviewRating3 => 'Bình thường';
+
+  @override
+  String get reviewRating4 => 'Tốt';
+
+  @override
+  String get reviewRating5 => 'Rất tốt';
+
+  @override
+  String get reportPostTitle => 'Tố cáo bài viết';
+
+  @override
+  String get reportCommentTitle => 'Tố cáo bình luận';
+
+  @override
+  String get reportReasonHint => 'Chọn lý do tố cáo';
+
+  @override
+  String get reportSubmit => 'Gửi tố cáo';
+
+  @override
+  String get reportSuccess =>
+      'Đã gửi tố cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất.';
+
+  @override
+  String get reportFailed => 'Không thể gửi tố cáo. Vui lòng thử lại.';
+
+  @override
+  String get reportAction => 'Tố cáo';
+
+  @override
+  String get reportDescriptionHint => 'Mô tả thêm (không bắt buộc)';
+
+  @override
+  String get reportReasonSpam => 'Spam / Quảng cáo';
+
+  @override
+  String get reportReasonOffensive => 'Ngôn ngữ thô tục / Xúc phạm';
+
+  @override
+  String get reportReasonHarassment => 'Quấy rối / Bắt nạt';
+
+  @override
+  String get reportReasonMisinformation => 'Thông tin sai sự thật';
+
+  @override
+  String get reportReasonViolence => 'Bạo lực / Phản cảm';
+
+  @override
+  String get reportReasonOther => 'Khác';
+
+  @override
+  String get reportAlreadyReported => 'Bạn đã tố cáo bình luận này.';
+
+  @override
+  String get reportPostAlreadyReported => 'Bạn đã tố cáo bài viết này.';
+
+  @override
+  String get nearbyClinicTitle => 'Phòng khám gần bạn';
+
+  @override
+  String get nearbyClinicEmpty => 'Chưa có phòng khám nào quanh bạn.';
+
+  @override
+  String get nearbyClinicLocationRequiredDenied =>
+      'Cần quyền vị trí để tìm phòng khám gần bạn. Vui lòng cấp quyền và thử lại.';
+
+  @override
+  String get nearbyClinicLocationRequiredServiceDisabled =>
+      'Vui lòng bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.';
+
+  @override
+  String get nearbyClinicLocationRequiredPermanentlyDenied =>
+      'Quyền vị trí đang bị từ chối vĩnh viễn. Mở Cài đặt ứng dụng để bật lại quyền vị trí.';
+
+  @override
+  String get clinicDetailIntroduction => 'Giới thiệu';
+
+  @override
+  String get clinicDetailIntroEmpty =>
+      'Phòng khám chưa cập nhật phần giới thiệu.';
+
+  @override
+  String get clinicDetailContact => 'Liên hệ';
+
+  @override
+  String get clinicDetailWorkingHours => 'Giờ làm việc';
+
+  @override
+  String get clinicDetailPhone => 'Điện thoại';
+
+  @override
+  String get clinicDetailEmail => 'Email';
+
+  @override
+  String get clinicDetailContactEmpty =>
+      'Phòng khám chưa cập nhật thông tin liên hệ.';
+
+  @override
+  String get clinicDetailServices => 'Dịch vụ';
+
+  @override
+  String get clinicDetailServicesEmpty =>
+      'Phòng khám chưa công bố danh sách dịch vụ.';
+
+  @override
+  String get clinicDetailReviews => 'Đánh giá gần đây';
+
+  @override
+  String get clinicDetailBookNow => 'Đặt lịch ngay';
 }

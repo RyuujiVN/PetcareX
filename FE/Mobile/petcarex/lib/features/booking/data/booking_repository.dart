@@ -8,15 +8,22 @@ import 'models/booking_models.dart';
 class BookingRepository {
   final ApiClient _apiClient = ApiClient();
 
-  // Get list of clinics with pagination
-  Future<Map<String, dynamic>> getClinics({
+  // Get nearby clinics sorted by distance from user's location.
+  // BE endpoint /clinic/user trả về raw array (không có items/meta) — mỗi clinic kèm field `distance` (km).
+  Future<List<Clinic>> getNearbyClinics({
     int page = 1,
-    int limit = 10,
+    int limit = 20,
+    required double lat,
+    required double lon,
+    String sortBy = 'distance',
     String? search,
   }) async {
-    final endpoint = ApiHelper.clinicsEndpoint(
+    final endpoint = ApiHelper.nearbyClinicsEndpoint(
       page: page,
       limit: limit,
+      lat: lat,
+      lon: lon,
+      sortBy: sortBy,
       search: search,
     );
 
@@ -24,12 +31,12 @@ class BookingRepository {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return {
-        'items': (data['items'] as List)
-            .map((i) => Clinic.fromJson(i))
-            .toList(),
-        'total': data['meta']['totalItems'],
-      };
+      final List rawItems = data is List
+          ? data
+          : (data is Map && data['items'] is List)
+              ? data['items'] as List
+              : const [];
+      return rawItems.map((i) => Clinic.fromJson(i)).toList();
     } else {
       throw Exception('Failed to load clinics');
     }
@@ -40,11 +47,13 @@ class BookingRepository {
     String clinicId, {
     int page = 1,
     int limit = 10,
+    String? specialty,
   }) async {
     final endpoint = ApiHelper.veterinariansEndpoint(
       page: page,
       limit: limit,
       clinicId: clinicId,
+      specialty: specialty,
     );
     final response = await _apiClient.get(endpoint);
 

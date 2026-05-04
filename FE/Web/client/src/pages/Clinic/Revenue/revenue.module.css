@@ -150,7 +150,7 @@
 /* ── Charts Row ──────────────────────────────── */
 .chartsRow {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -278,6 +278,14 @@
 
 .vetName {
   font-weight: 500;
+}
+
+.vetAvatarImg {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
 /* ── Bottom Row (Top Vets ~32% + Invoices ~68%) ── */
@@ -445,5 +453,88 @@
   .chartCardHeader {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+/* ── Today Highlight Card (chart thay thế khi filter "Hôm nay") ── */
+.todayHighlight {
+  background: linear-gradient(135deg, var(--page-revenue-primary, #4672b4), var(--page-revenue-primary-soft, #6f96cf));
+  color: var(--color-surface-card);
+  border-radius: 16px;
+  padding: 32px 36px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.todayHighlightHeader {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.todayHighlightTitle {
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.todayHighlightAmount {
+  font-size: 44px;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.1;
+}
+
+.todayHighlightSubtitle {
+  font-size: 13px;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.todayHighlightStats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.todayStatBlock {
+  background: rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 14px 18px;
+}
+
+.todayStatLabel {
+  font-size: 12px;
+  opacity: 0.85;
+  margin: 0 0 4px;
+}
+
+.todayStatValue {
+  font-size: 22px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.todayHighlightHint {
+  grid-column: 1 / -1;
+  font-size: 12px;
+  opacity: 0.85;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .todayHighlight {
+    grid-template-columns: 1fr;
+    padding: 24px;
+  }
+  .todayHighlightAmount {
+    font-size: 32px;
   }
 }

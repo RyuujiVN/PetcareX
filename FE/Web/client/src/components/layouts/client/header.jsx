@@ -1,32 +1,31 @@
 import {
-  EyeInvisibleOutlined,
-  EyeOutlined,
-  LockOutlined,
-  LogoutOutlined,
-  ScheduleOutlined,
-  UserOutlined,
+    EyeInvisibleOutlined,
+    EyeOutlined,
+    LockOutlined,
+    LogoutOutlined,
+    ScheduleOutlined,
+    UserOutlined,
 } from "@ant-design/icons";
 import {
-  Avatar,
-  Badge,
-  Button,
-  Empty,
-  Form,
-  List,
-  Popover,
-  Spin,
-  Typography,
-  message,
-  notification,
+    Avatar,
+    Badge,
+    Button,
+    Empty,
+    Form,
+    List,
+    Popover,
+    Spin,
+    Typography,
+    message,
+    notification,
 } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { FaPaw } from "react-icons/fa";
 import { BsRobot } from "react-icons/bs";
 import {
-  FaRegCommentDots,
-  FaReply,
-  FaRegThumbsUp,
+    FaRegCommentDots,
+    FaRegThumbsUp,
+    FaReply,
 } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { Link, NavLink, useNavigate } from "react-router-dom";
@@ -34,15 +33,15 @@ import { useAuth } from "../../../hooks/client/AuthContext";
 import { getClientInstance } from "../../../services/apiClient";
 import { changePasswordApi } from "../../../services/authService";
 import {
-  loadClientNotifications,
-  mapBeNotification,
-  markAllNotificationsAsReadApi,
-  markNotificationAsReadApi,
-  resolveNotificationHref,
+    loadClientNotifications,
+    mapBeNotification,
+    markAllNotificationsAsReadApi,
+    markNotificationAsReadApi,
+    resolveNotificationHref,
 } from "../../../services/notificationService";
+import notifySocket from "../../../socket/notifySocket";
 import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
-import notifySocket from "../../../socket/notifySocket";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -841,8 +840,11 @@ function Header() {
         <div className="header-container">
           <Link to="/" className="logo-section">
             <div className="logo-icon">
-              {" "}
-              <FaPaw size={28} color="var(--page-header-primary)" />
+              <img
+                src="/avatarProject.png"
+                alt={t("header.logo")}
+                className="logo-image"
+              />
             </div>
             <span className="logo-text">{t("header.logo")}</span>
           </Link>

@@ -8,7 +8,6 @@ import '../../../../features/account/presentation/account_page.dart';
 import '../../../../features/appointment/presentation/appointment_navigation_controller.dart';
 import '../../../../features/appointment/presentation/appointment_page.dart';
 import '../../../../features/appointment/presentation/provider/appointment_provider.dart';
-import '../../../../features/booking/presentation/booking_page.dart';
 import '../../../../features/community/presentation/community_page.dart';
 import '../../../../features/home/presentation/home_page.dart';
 import '../../../../features/notification/presentation/provider/notification_provider.dart';
@@ -40,7 +39,7 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
       HomeChatbotHintController();
 
   final Set<int> _initializedPages = {0};
-  final List<Widget?> _pages = List<Widget?>.filled(5, null);
+  final List<Widget?> _pages = List<Widget?>.filled(4, null);
 
   @override
   void initState() {
@@ -72,7 +71,7 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
       _homeChatbotHintController.restartCountdown();
     }
 
-    if (index == 2 && wasInitialized) {
+    if (index == 1 && wasInitialized) {
       unawaited(context.read<AppointmentProvider>().fetchAppointments());
     }
   }
@@ -85,17 +84,16 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
       appointmentId,
       expandAiDiagnosis: expandAiDiagnosis,
     );
-    setSelectedIndex(2);
+    setSelectedIndex(1);
   }
 
   Widget _buildPage(int index) {
     return switch (index) {
       0 => HomePage(chatbotHintController: _homeChatbotHintController),
-      1 => const BookingPage(),
-        2 => AppointmentPage(
+      1 => AppointmentPage(
           navigationController: _appointmentNavigationController),
-      3 => const CommunityPage(),
-      4 => const AccountPage(),
+      2 => const CommunityPage(),
+      3 => const AccountPage(),
       _ => const SizedBox(),
     };
   }
@@ -105,7 +103,7 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
       if (index == 0) {
         _homeChatbotHintController.restartCountdown();
       }
-      if (index == 2) {
+      if (index == 1) {
         unawaited(context.read<AppointmentProvider>().fetchAppointments());
       }
       return;
@@ -140,28 +138,22 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
             children: [
               _buildNavItem(Icons.home_outlined, Icons.home, l10n.navHome, 0),
               _buildNavItem(
-                Icons.edit_calendar_outlined,
-                Icons.edit_calendar,
-                l10n.navBooking,
-                1,
-              ),
-              _buildNavItem(
                 Icons.calendar_month_outlined,
                 Icons.calendar_month,
                 l10n.navAppointments,
-                2,
+                1,
               ),
               _buildNavItem(
                 Icons.forum_outlined,
                 Icons.forum,
                 l10n.navCommunity,
-                3,
+                2,
               ),
               _buildNavItem(
                 Icons.person_outline,
                 Icons.person,
                 l10n.navProfile,
-                4,
+                3,
               ),
             ],
           ),

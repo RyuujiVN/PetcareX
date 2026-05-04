@@ -14,12 +14,20 @@ class CommunityProvider with ChangeNotifier {
   final Map<String, bool> _isRepliesLoading = {};
   final Map<String, bool> _isLikeUpdating = {};
 
+  // Theo dõi các comment/bài viết đã tố cáo trong phiên hiện tại (in-memory, reset khi logout)
+  final Set<String> _reportedCommentIds = {};
+  final Set<String> _reportedPostIds = {};
+
   bool _isLoading = false;
   bool _isMoreLoading = false;
   String? _errorMessage;
   String? _selectedTopicId;
+  String _searchKeyword = '';
   String? _focusedPostId;
   int _focusRequestVersion = 0;
+
+  // BE Elasticsearch RRF có rank_window_size hardcode 50 → khi search limit phải <= 50.
+  static const int _searchLimit = 50;
 
   Comment? _activeReplyTarget;
 
@@ -29,6 +37,8 @@ class CommunityProvider with ChangeNotifier {
   bool get isMoreLoading => _isMoreLoading;
   String? get errorMessage => _errorMessage;
   String? get selectedTopicId => _selectedTopicId;
+  String get searchKeyword => _searchKeyword;
+  bool get isSearching => _searchKeyword.isNotEmpty;
   String? get focusedPostId => _focusedPostId;
   int get focusRequestVersion => _focusRequestVersion;
   Comment? get activeReplyTarget => _activeReplyTarget;
@@ -43,6 +53,24 @@ class CommunityProvider with ChangeNotifier {
   bool isRepliesLoading(String commentId) =>
       _isRepliesLoading[commentId] ?? false;
   bool isLikeUpdating(String postId) => _isLikeUpdating[postId] ?? false;
+  bool isCommentReported(String commentId) =>
+      _reportedCommentIds.contains(commentId);
+  bool isPostReported(String postId) => _reportedPostIds.contains(postId);
+
+  void markCommentReported(String commentId) {
+    _reportedCommentIds.add(commentId);
+    notifyListeners();
+  }
+
+  void markPostReported(String postId) {
+    _reportedPostIds.add(postId);
+    notifyListeners();
+  }
+
+  void clearReportState() {
+    _reportedCommentIds.clear();
+    _reportedPostIds.clear();
+  }
 
   void setReplyTarget(Comment? comment) {
     _activeReplyTarget = comment;
@@ -106,15 +134,24 @@ class CommunityProvider with ChangeNotifier {
     }
   }
 
+  // Khi có keyword search → BE đi nhánh ES RRF, bị giới hạn limit <= 50.
+  // Khi không search → BE đi nhánh query thường, để default 20 cho consistency với loadMore.
+  int? _limitForSearch() => _searchKeyword.isEmpty ? null : _searchLimit;
+
   Future<void> fetchInitialData() async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
+      final limit = _limitForSearch();
       final results = await Future.wait([
         _repository.getTopics(),
-        _repository.getPosts(topicId: _selectedTopicId),
+        _repository.getPosts(
+          topicId: _selectedTopicId,
+          keyword: _searchKeyword.isEmpty ? null : _searchKeyword,
+          limit: limit ?? 20,
+        ),
       ]);
 
       _topics = results[0] as List<Topic>;
@@ -135,8 +172,37 @@ class CommunityProvider with ChangeNotifier {
     notifyListeners();
 
     try {
+      final limit = _limitForSearch();
       final fetchedPosts = await _repository.getPosts(
         topicId: _selectedTopicId,
+        keyword: _searchKeyword.isEmpty ? null : _searchKeyword,
+        limit: limit ?? 20,
+      );
+      _posts = _filterPostsBySelectedTopic(fetchedPosts);
+    } catch (e) {
+      _errorMessage = e.toString();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Đặt keyword (đã debounce ở widget). Reset pagination → fetch lại từ đầu.
+  Future<void> setSearchKeyword(String keyword) async {
+    final normalized = keyword.trim();
+    if (_searchKeyword == normalized) return;
+    _searchKeyword = normalized;
+
+    _isLoading = true;
+    _errorMessage = null;
+    notifyListeners();
+
+    try {
+      final limit = _limitForSearch();
+      final fetchedPosts = await _repository.getPosts(
+        topicId: _selectedTopicId,
+        keyword: _searchKeyword.isEmpty ? null : _searchKeyword,
+        limit: limit ?? 20,
       );
       _posts = _filterPostsBySelectedTopic(fetchedPosts);
     } catch (e) {
@@ -149,6 +215,9 @@ class CommunityProvider with ChangeNotifier {
 
   Future<void> loadMore() async {
     if (_isMoreLoading || _posts.isEmpty) return;
+    // Khi đang search BE giới hạn limit=50 và không hỗ trợ pagination ổn định cho RRF →
+    // bỏ load thêm trong chế độ search (đồng bộ với Web FE).
+    if (_searchKeyword.isNotEmpty) return;
 
     _isMoreLoading = true;
     notifyListeners();

@@ -1,10 +1,13 @@
-import { Modal } from 'antd';
-import { useMemo, useState } from 'react';
+import { Modal, Spin } from 'antd';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AiTwotoneSchedule } from "react-icons/ai";
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { ClinicReviewSection } from '../../../../components/common/ClinicReview';
 import { buildClinicHomeContent } from '../../../../config/homePageClinicContent';
-import { getClinicHomeContent, resolveSelectedClinicId } from '../../../../utils/storage/clinicHomeStorage';
+import { getClientInstance } from '../../../../services/apiClient';
+import { getClinicHomepageSettingApi } from '../../../../services/clinicHomepageSettingService';
+import { cacheClinicHomeContent, getClinicHomeContent, resolveSelectedClinicId } from '../../../../utils/storage/clinicHomeStorage';
 import '../HomePage/styles.css';
 import './HomePageClinic.css';
 
@@ -47,6 +50,8 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
   const location = useLocation();
   const { clinicId: clinicIdFromRoute = '' } = useParams();
   const [isAboutModalOpen, setIsAboutModalOpen] = useState(false);
+  const [apiContent, setApiContent] = useState(null);
+  const [loadingApi, setLoadingApi] = useState(false);
 
   const selectedClinicId = useMemo(() => {
     if (clinicId) return String(clinicId);
@@ -54,12 +59,42 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
     return resolveSelectedClinicId(location.state);
   }, [clinicId, clinicIdFromRoute, location.state]);
 
+  useEffect(() => {
+    if (forcedContent || !selectedClinicId) return;
+
+    let cancelled = false;
+    setLoadingApi(true);
+
+    getClinicHomepageSettingApi(getClientInstance(), selectedClinicId)
+      .then((apiData) => {
+        if (cancelled) return;
+        if (apiData) {
+          const parsed = typeof apiData === 'string' ? JSON.parse(apiData) : apiData;
+          const built = buildClinicHomeContent(parsed);
+          cacheClinicHomeContent(selectedClinicId, built);
+          setApiContent(built);
+        }
+        // apiData === null → phòng khám chưa có setting → giữ apiContent = null → fallback default
+      })
+      .catch(() => {
+        if (!cancelled) setApiContent(null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingApi(false);
+      });
+
+    return () => { cancelled = true; };
+  }, [forcedContent, selectedClinicId]);
+
   const content = useMemo(() => {
     if (forcedContent) {
       return buildClinicHomeContent(forcedContent);
     }
+    if (apiContent) {
+      return apiContent;
+    }
     return getClinicHomeContent(selectedClinicId);
-  }, [forcedContent, i18n.language, selectedClinicId]);
+  }, [apiContent, forcedContent, i18n.language, selectedClinicId]);
 
   const aboutPreview = useMemo(() => getPreviewText(content?.about?.description, INTRO_PREVIEW_WORDS), [content?.about?.description]);
   const galleryImages = useMemo(() => {
@@ -88,17 +123,26 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
     });
   };
 
+  if (loadingApi && !forcedContent) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 400 }}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="home-page clinic-page">
         <section className="hero-section clinic-hero" style={heroBackgroundStyle}>
           <div className="hero-content">
             <h1 className="hero-title">{content.hero.title}</h1>
-            <p className="hero-description">{content.hero.description}</p>
+            <p className="hero-descriptions">{content.hero.description}</p>
 
             {showBookingButton ? (
               <div className="hero-button">
                 <button className="btn btn-secondary-hero" onClick={goToBookingAppointment}>
+                  <AiTwotoneSchedule style={{ marginRight: 8, fontSize: 25, color: '#4672b4' }} />
                   {content.hero.ctaText}
                 </button>
               </div>
@@ -116,7 +160,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
               <p className="about-text">{aboutPreview}</p>
               {content.about.description ? (
                 <button className="btn btn-secondary" onClick={() => setIsAboutModalOpen(true)}>
-                  {t('common.actions.readMore')}
+                {t('common.actions.readMore')}
                 </button>
               ) : null}
             </div>
@@ -156,7 +200,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
           </div>
         </section>
 
-        <ClinicReviewSection clinicId={selectedClinicId} />
+        <ClinicReviewSection clinicId={selectedClinicId} showForm={false} />
 
         <section className="clinic-location-section">
           <div className="section-container clinic-location-header">

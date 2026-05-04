@@ -944,6 +944,18 @@ abstract class AppLocalizations {
   /// **'Chọn phòng khám phù hợp cho thú cưng'**
   String get bookingClinicSub;
 
+  /// No description provided for @clinicNoReviews.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có đánh giá'**
+  String get clinicNoReviews;
+
+  /// No description provided for @clinicReviewCount.
+  ///
+  /// In vi, this message translates to:
+  /// **'{count, plural, =1{1 đánh giá} other{{count} đánh giá}}'**
+  String clinicReviewCount(int count);
+
   /// No description provided for @bookingServiceSub.
   ///
   /// In vi, this message translates to:
@@ -1099,6 +1111,78 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Tìm kiếm bài viết, thú cưng...'**
   String get searchHint;
+
+  /// No description provided for @forumSearchPlaceholder.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tìm bài viết theo nội dung...'**
+  String get forumSearchPlaceholder;
+
+  /// No description provided for @forumSearchActive.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang tìm: {keyword}'**
+  String forumSearchActive(String keyword);
+
+  /// No description provided for @forumSearchClear.
+  ///
+  /// In vi, this message translates to:
+  /// **'Xóa tìm kiếm'**
+  String get forumSearchClear;
+
+  /// No description provided for @forumSearchEmptyTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không tìm thấy bài viết nào'**
+  String get forumSearchEmptyTitle;
+
+  /// No description provided for @forumSearchEmptyHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thử tìm với từ khóa khác.'**
+  String get forumSearchEmptyHint;
+
+  /// No description provided for @locationFallbackNotice.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đang dùng vị trí mặc định (Đà Nẵng)'**
+  String get locationFallbackNotice;
+
+  /// No description provided for @locationServiceDisabledTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bật dịch vụ vị trí'**
+  String get locationServiceDisabledTitle;
+
+  /// No description provided for @locationServiceDisabledMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn cần bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.'**
+  String get locationServiceDisabledMessage;
+
+  /// No description provided for @locationPermissionDeniedTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cấp quyền vị trí'**
+  String get locationPermissionDeniedTitle;
+
+  /// No description provided for @locationPermissionDeniedMessage.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quyền truy cập vị trí đã bị từ chối. Vào Cài đặt ứng dụng để cấp quyền và thử lại.'**
+  String get locationPermissionDeniedMessage;
+
+  /// No description provided for @locationDialogCancel.
+  ///
+  /// In vi, this message translates to:
+  /// **'Để sau'**
+  String get locationDialogCancel;
+
+  /// No description provided for @locationDialogOpenSettings.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mở Cài đặt'**
+  String get locationDialogOpenSettings;
 
   /// No description provided for @shareSomething.
   ///
@@ -2173,6 +2257,270 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Ngôn ngữ'**
   String get language;
+
+  /// No description provided for @reviewClinicTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh giá phòng khám'**
+  String get reviewClinicTitle;
+
+  /// No description provided for @reviewThisVisit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh giá lượt khám này'**
+  String get reviewThisVisit;
+
+  /// No description provided for @reviewAlreadyReviewed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã đánh giá'**
+  String get reviewAlreadyReviewed;
+
+  /// No description provided for @reviewCommentHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Nhập nhận xét của bạn (không bắt buộc)'**
+  String get reviewCommentHint;
+
+  /// No description provided for @reviewSubmit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi đánh giá'**
+  String get reviewSubmit;
+
+  /// No description provided for @reviewSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi đánh giá thành công!'**
+  String get reviewSuccess;
+
+  /// No description provided for @reviewFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể gửi đánh giá. Vui lòng thử lại.'**
+  String get reviewFailed;
+
+  /// No description provided for @reviewRating1.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rất tệ'**
+  String get reviewRating1;
+
+  /// No description provided for @reviewRating2.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tệ'**
+  String get reviewRating2;
+
+  /// No description provided for @reviewRating3.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bình thường'**
+  String get reviewRating3;
+
+  /// No description provided for @reviewRating4.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tốt'**
+  String get reviewRating4;
+
+  /// No description provided for @reviewRating5.
+  ///
+  /// In vi, this message translates to:
+  /// **'Rất tốt'**
+  String get reviewRating5;
+
+  /// No description provided for @reportPostTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tố cáo bài viết'**
+  String get reportPostTitle;
+
+  /// No description provided for @reportCommentTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tố cáo bình luận'**
+  String get reportCommentTitle;
+
+  /// No description provided for @reportReasonHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chọn lý do tố cáo'**
+  String get reportReasonHint;
+
+  /// No description provided for @reportSubmit.
+  ///
+  /// In vi, this message translates to:
+  /// **'Gửi tố cáo'**
+  String get reportSubmit;
+
+  /// No description provided for @reportSuccess.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đã gửi tố cáo. Chúng tôi sẽ xem xét trong thời gian sớm nhất.'**
+  String get reportSuccess;
+
+  /// No description provided for @reportFailed.
+  ///
+  /// In vi, this message translates to:
+  /// **'Không thể gửi tố cáo. Vui lòng thử lại.'**
+  String get reportFailed;
+
+  /// No description provided for @reportAction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Tố cáo'**
+  String get reportAction;
+
+  /// No description provided for @reportDescriptionHint.
+  ///
+  /// In vi, this message translates to:
+  /// **'Mô tả thêm (không bắt buộc)'**
+  String get reportDescriptionHint;
+
+  /// No description provided for @reportReasonSpam.
+  ///
+  /// In vi, this message translates to:
+  /// **'Spam / Quảng cáo'**
+  String get reportReasonSpam;
+
+  /// No description provided for @reportReasonOffensive.
+  ///
+  /// In vi, this message translates to:
+  /// **'Ngôn ngữ thô tục / Xúc phạm'**
+  String get reportReasonOffensive;
+
+  /// No description provided for @reportReasonHarassment.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quấy rối / Bắt nạt'**
+  String get reportReasonHarassment;
+
+  /// No description provided for @reportReasonMisinformation.
+  ///
+  /// In vi, this message translates to:
+  /// **'Thông tin sai sự thật'**
+  String get reportReasonMisinformation;
+
+  /// No description provided for @reportReasonViolence.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạo lực / Phản cảm'**
+  String get reportReasonViolence;
+
+  /// No description provided for @reportReasonOther.
+  ///
+  /// In vi, this message translates to:
+  /// **'Khác'**
+  String get reportReasonOther;
+
+  /// No description provided for @reportAlreadyReported.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã tố cáo bình luận này.'**
+  String get reportAlreadyReported;
+
+  /// No description provided for @reportPostAlreadyReported.
+  ///
+  /// In vi, this message translates to:
+  /// **'Bạn đã tố cáo bài viết này.'**
+  String get reportPostAlreadyReported;
+
+  /// No description provided for @nearbyClinicTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám gần bạn'**
+  String get nearbyClinicTitle;
+
+  /// No description provided for @nearbyClinicEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có phòng khám nào quanh bạn.'**
+  String get nearbyClinicEmpty;
+
+  /// No description provided for @nearbyClinicLocationRequiredDenied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cần quyền vị trí để tìm phòng khám gần bạn. Vui lòng cấp quyền và thử lại.'**
+  String get nearbyClinicLocationRequiredDenied;
+
+  /// No description provided for @nearbyClinicLocationRequiredServiceDisabled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.'**
+  String get nearbyClinicLocationRequiredServiceDisabled;
+
+  /// No description provided for @nearbyClinicLocationRequiredPermanentlyDenied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quyền vị trí đang bị từ chối vĩnh viễn. Mở Cài đặt ứng dụng để bật lại quyền vị trí.'**
+  String get nearbyClinicLocationRequiredPermanentlyDenied;
+
+  /// No description provided for @clinicDetailIntroduction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giới thiệu'**
+  String get clinicDetailIntroduction;
+
+  /// No description provided for @clinicDetailIntroEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám chưa cập nhật phần giới thiệu.'**
+  String get clinicDetailIntroEmpty;
+
+  /// No description provided for @clinicDetailContact.
+  ///
+  /// In vi, this message translates to:
+  /// **'Liên hệ'**
+  String get clinicDetailContact;
+
+  /// No description provided for @clinicDetailWorkingHours.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giờ làm việc'**
+  String get clinicDetailWorkingHours;
+
+  /// No description provided for @clinicDetailPhone.
+  ///
+  /// In vi, this message translates to:
+  /// **'Điện thoại'**
+  String get clinicDetailPhone;
+
+  /// No description provided for @clinicDetailEmail.
+  ///
+  /// In vi, this message translates to:
+  /// **'Email'**
+  String get clinicDetailEmail;
+
+  /// No description provided for @clinicDetailContactEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám chưa cập nhật thông tin liên hệ.'**
+  String get clinicDetailContactEmpty;
+
+  /// No description provided for @clinicDetailServices.
+  ///
+  /// In vi, this message translates to:
+  /// **'Dịch vụ'**
+  String get clinicDetailServices;
+
+  /// No description provided for @clinicDetailServicesEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám chưa công bố danh sách dịch vụ.'**
+  String get clinicDetailServicesEmpty;
+
+  /// No description provided for @clinicDetailReviews.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh giá gần đây'**
+  String get clinicDetailReviews;
+
+  /// No description provided for @clinicDetailBookNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lịch ngay'**
+  String get clinicDetailBookNow;
 }
 
 class _AppLocalizationsDelegate

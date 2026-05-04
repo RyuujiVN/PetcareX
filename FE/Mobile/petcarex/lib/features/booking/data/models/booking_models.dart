@@ -14,8 +14,13 @@ class Clinic {
   final String phone;
   final String address;
   final String description;
+  final String? avatarUrl;
   final bool deleted;
+  final double avgRating;
+  final int totalReviews;
   final DateTime createdAt;
+  // Khoảng cách (km) từ vị trí user, BE trả về qua endpoint /clinic/user. Null nếu không sort theo distance.
+  final double? distance;
 
   Clinic({
     required this.id,
@@ -24,8 +29,12 @@ class Clinic {
     required this.phone,
     required this.address,
     required this.description,
+    this.avatarUrl,
     required this.deleted,
+    required this.avgRating,
+    required this.totalReviews,
     required this.createdAt,
+    this.distance,
   });
 
   factory Clinic.fromJson(Map<String, dynamic> json) {
@@ -36,11 +45,28 @@ class Clinic {
       phone: json['phone'] ?? '',
       address: json['address'] ?? '',
       description: json['description'] ?? '',
+      avatarUrl: json['avatarUrl'],
       deleted: json['deleted'] ?? false,
-      createdAt: json['createdAt'] != null 
-          ? DateTime.parse(json['createdAt']) 
+      avgRating: _parseDouble(json['avgRating']),
+      totalReviews: _parseInt(json['totalReviews']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.parse(json['createdAt'])
           : DateTime.now(),
+      distance: json['distance'] == null ? null : _parseDouble(json['distance']),
     );
+  }
+
+  static double _parseDouble(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString()) ?? 0.0;
+  }
+
+  static int _parseInt(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    return int.tryParse(v.toString()) ?? 0;
   }
 }
 

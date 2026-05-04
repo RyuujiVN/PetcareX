@@ -79,40 +79,6 @@ class StepSuccess extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 32),
-        Text(
-          l10n.bookingCheckinQrTitle,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            color: AppColors.textGrey,
-            letterSpacing: 1.1,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Center(
-          child: Container(
-            width: 150,
-            height: 150,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.qr_code_2, size: 120),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          l10n.bookingQrInstruction,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12, color: AppColors.textGrey),
-        ),
       ],
     );
   }

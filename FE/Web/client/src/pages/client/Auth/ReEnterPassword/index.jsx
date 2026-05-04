@@ -1,11 +1,10 @@
 import { Button, Form, Input, message } from 'antd';
 import { useEffect, useState } from 'react';
-import { FaPaw } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 import { MdLockReset } from 'react-icons/md';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
-import { forgotPasswordApi, resetPasswordApi } from '../../../../services/authService';
 import { getClientInstance } from '../../../../services/apiClient';
+import { forgotPasswordApi, resetPasswordApi } from '../../../../services/authService';
 import './styles.css';
 
 const OTP_EXPIRY_SECONDS = 300; // 5 phút theo backend

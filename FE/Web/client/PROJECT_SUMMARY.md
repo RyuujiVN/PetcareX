@@ -18,9 +18,727 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Markdown rendering: `react-markdown` + `remark-gfm`.
 - Social auth: Firebase Web SDK (`firebase/app`, `firebase/auth`, `firebase/analytics`).
 - Styling: CSS Modules + CSS page-level + token CSS variables.
-- Charts: `recharts` (Area, Pie charts cho Revenue Dashboard).
+- Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-10)
+## Cập nhật mới nhất (2026-04-27)
+
+### Cập nhật (2026-04-27) — Cải thiện Select "Phòng khám gần bạn" trong BookingAppointment: hiện tên + địa chỉ + khoảng cách
+
+**Phạm vi (FE only):**
+- `src/pages/client/User/BookingAppointment/index.jsx`:
+  - Import thêm `formatDistance` (`src/utils/formatDistance.js`) và `DEFAULT_LOCATION` (`src/constants/location.js`).
+  - `useUserLocation` lấy thêm `isDefault: locationIsDefault`, `retry: retryLocation`.
+  - Refactor Select clinicId từ `options=[{label,value}]` (1 dòng tên) sang `<Select.Option>` JSX với 3 thông tin:
+    - **Selected (collapsed)** dùng `optionLabelProp="displayLabel"` → hiển thị compact `"Tên phòng khám · 2.3km"` (không tràn input).
+    - **Option (dropdown row)**: grid 2 cột — left: tên (line 1, đậm) + địa chỉ kèm icon `EnvironmentOutlined` (line 2, nhạt, ellipsis); right: badge khoảng cách (`formatDistance(item.distance)`).
+    - `popupMatchSelectWidth={420}` → dropdown rộng đủ để show address mà không bóp tên/địa chỉ.
+  - Banner fallback `clinic-location-banner` hiện ngay dưới Select khi `locationIsDefault=true` và không có `preselectedClinicId`: icon vị trí + text "Đang tính khoảng cách từ Đà Nẵng (vị trí mặc định)" + nút "Cho phép vị trí của tôi" → gọi `retryLocation`. Nút disabled khi `locationLoading` để tránh double-fire.
+- `src/pages/client/User/BookingAppointment/styles.css`:
+  - Thêm `.clinic-option`, `.clinic-option-main`, `.clinic-option-name`, `.clinic-option-address`, `.clinic-option-distance` (badge pill màu brand-primary).
+  - Thêm `.clinic-location-banner` + `.clinic-location-banner-action` cho banner fallback.
+- `src/locales/client/{vi,en}.json` — thêm `pages.booking.form.locationFallbackNotice` (`{{city}}` placeholder) + `pages.booking.form.locationFallbackAction`. Reuse `DEFAULT_LOCATION.label` ("Đà Nẵng") làm `city` thay vì hardcode.
+
+**Định vị — đã rà soát chính xác:**
+- `useUserLocation` đã có `enableHighAccuracy: true` + timeout 10s + cache module-scope → tận dụng GPS/WiFi triangulation, tránh IP-based fallback (ISP/datacenter lệch hàng chục km).
+- BookingAppointment chờ `!locationLoading` mới `bootstrapData()` (line 306-311) → đảm bảo `lat/lon` truyền vào `getNearbyClinicListApi` luôn là vị trí đã resolve (real or default), không bao giờ là `null`.
+- Banner fallback CHỈ hiện khi `isDefault=true` → user biết được khoảng cách hiển thị đang tính từ Đà Nẵng (default), không bị nhầm tưởng đó là vị trí thật.
+
+**Phương án UI/UX đã chọn — Phương án A (custom render trong AntD Select qua `optionLabelProp`):**
+- Lý do: surgical, đồng bộ pattern doctor select đã dùng (line 750-775 cùng file), giữ nguyên AntD Form integration (validation, keyboard nav, tab order).
+- Đã phản biện và **loại Phương án B** (custom Popover + List): linh hoạt hơn nhưng phá vỡ pattern Form Select hiện có, mất kiểu validation tự động của AntD → vi phạm "match existing style" trong CLAUDE.md.
+
+**Tự kiểm tra:**
+- `npm run build` → thành công (vite build, 22.90s).
+- Backward-compat: 3 caller khác của `getNearbyClinicListApi` (ClinicSelection, các nơi khác) không bị ảnh hưởng — chỉ thay đổi UI hiển thị tại BookingAppointment.
+
+**Ghi chú kiến trúc để tham khảo sau:**
+- Khi cần hiển thị nhiều thông tin trong AntD `<Select>` value mà giữ collapsed view gọn: dùng `optionLabelProp` + JSX option children. Đây là pattern chuẩn của AntD, đã có 2 chỗ dùng trong codebase (doctor select + clinic select mới).
+- Nếu sau này cần search trong Select clinic → bật `showSearch` + custom `filterOption` so với cả `name` và `address`.
+
+### Cập nhật (2026-04-27) — Thêm tính năng Search vào Forum (Client portal)
+
+**Phạm vi (FE only, không đụng BE):**
+- `src/services/forumService.js` — `getPostsApi(instance, { limit, lastPostTime, keyword, topicId, sortRecent })`: thêm 3 param optional `keyword`, `topicId`, `sortRecent`. Param chỉ append vào query khi có giá trị (giữ backward-compat: 3 caller khác `AdminForum`, `VetForum`, `ClinicForum` truyền `{ limit: 1000 }` không bị ảnh hưởng).
+- `src/pages/client/User/Forum/ForumSearchBar.jsx` (mới) — component search input tái sử dụng được:
+  - Icon `FaMagnifyingGlass` bên trái + input + nút clear `FaXmark` bên phải (chỉ hiện khi có text).
+  - Debounce 500ms (configurable qua prop `debounceMs`) — không gọi API mỗi ký tự.
+  - Pattern đồng bộ external `value` ↔ internal state qua `lastEmittedRef` để tránh loop khi parent reset.
+  - Props: `value`, `onSearch(keyword)`, `placeholder`, `debounceMs`, `ariaLabel`. Style nhúng từ `forum.module.css` (token màu `--forum-primary*`, không hardcode hex cho màu chủ đạo).
+- `src/pages/client/User/Forum/forum.jsx`:
+  - Thêm state `searchKeyword` + `searchKeywordRef` để `loadPosts` đọc keyword hiện tại không cần là dependency.
+  - `loadPosts({ keyword })` truyền `keyword` xuống `getPostsApi`. Khi gọi không param thì lấy `searchKeywordRef.current` (giữ keyword hiện tại sau create/update/delete post).
+  - **Limit động theo trạng thái search**: `limit = keyword ? 50 : 1000`. Lý do: BE Elasticsearch RRF hardcode `rank_window_size: 50` (`post-search.service.ts:110`), ES yêu cầu `size <= rank_window_size` → khi search mà truyền `limit > 50` sẽ throw `action_request_validation_exception` (500). Khi không search BE đi nhánh query thường (không RRF) nên `limit: 1000` vẫn OK.
+  - `useEffect([searchKeyword])` + `didMountSearchRef` để bỏ qua lần fire đầu tiên (initial load đã fetch rồi) → mỗi lần keyword thay đổi sẽ refetch.
+  - JSX: thêm `searchCard` ngay trên `composeCard` trong `leftColumn`, chứa `<ForumSearchBar/>` + status row khi đang search (chip "Đang tìm: ...", nút "Xóa tìm kiếm", số lượng kết quả).
+  - Empty state khi search rỗng kết quả: icon kính lúp + tiêu đề + gợi ý "Thử tìm với từ khóa khác".
+- `src/pages/client/User/Forum/forum.module.css` — thêm `.searchCard`, `.searchBar`, `.searchBarIcon`, `.searchBarInput`, `.searchBarClearBtn`, `.searchStatusRow`, `.searchActiveChip`, `.searchClearLink`, `.searchResultCount`, `.searchEmptyState`, `.searchEmptyIcon`, `.searchEmptyTitle`, `.searchEmptyHint`. Dùng token `--forum-primary` / `--forum-primary-soft` cho màu nhấn (đồng bộ với rest of forum).
+- `src/locales/client/{vi,en}.json` — thêm namespace `pages.forum.search`: `placeholder`, `activeLabel`, `clear`, `resultCount`, `emptyTitle`, `emptyHint`.
+
+**BE API đã confirm (đọc file, không sửa):**
+- `GET /api/post` (`BE/petcare/src/forum/post/post.controller.ts:36-83`): query params `limit` (required), optional `lastPostTime`, `topicId`, `keyword`, `sortRecent`.
+- Search engine: Elasticsearch RRF kết hợp BM25 full-text trên field `content` (fuzziness AUTO) + semantic search trên `semantic_content` (`post-search.service.ts:55-128`). Filter `topicId` áp dụng cho cả 2 retriever → có thể kết hợp keyword + topic.
+- Search **chỉ trên content** (BE entity không có cột `title` riêng — title nhúng trong content qua token `[[title:...]]` ở FE, không index riêng).
+
+**Phương án UI/UX đã chọn — Phương án A (search bar tách card riêng phía trên composeCard):**
+- Lý do: tách rõ vai trò "find" (search) vs "create" (composer). Giữ được topic filter Dropdown đã có sẵn trong `composeActions` không bị xáo trộn.
+- Search bar full-width trong card riêng → dễ nhận biết, không tranh chỗ với composer.
+- Status row chỉ hiện khi đang search → không tốn không gian khi user chưa search.
+
+**Tự kiểm tra:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (vite build, 5985 modules transformed, 19.32s).
+- `npx eslint` các file đã sửa → 0 lỗi mới (3 issue pre-existing không liên quan ở line 330/1236/1558).
+
+**⚠️ Vấn đề BE cần dev biết (không tự fix):**
+- `BE/petcare/src/forum/post/post-search.service.ts:51` — sai chính tả `createAt` (thiếu chữ `d`, đúng phải là `createdAt`) trong sort khi `sortRecent=true` → sort không có hiệu lực. FE chưa truyền `sortRecent` nên không phá feature hiện tại.
+- `BE/petcare/src/forum/post/post-search.service.ts:55-128` — khi có `keyword` nhưng `sortRecent=false`, ES không có sort fallback theo `createdAt` → pagination cursor `lastPostTime` không deterministic. FE hiện fetch `limit:1000` không pagination thật nên chưa lộ vấn đề; cần fix nếu sau này bật infinite scroll.
+- `BE/petcare/src/forum/post/post.service.ts:40` — còn `console.log(postIds)` sót trong production code.
+- `BE/petcare/src/forum/post/post-search.service.ts:110` — `rank_window_size: 50` hardcoded → khi FE muốn search trả nhiều hơn 50 kết quả phải BE nâng `rank_window_size` (đồng thời chấp nhận tải nặng hơn cho ES rerank). FE đang clamp `limit=50` khi search để tránh 500.
+
+### Cập nhật (2026-04-23) — Tích hợp vị trí địa lý (lat/lon) vào tìm kiếm phòng khám gần nhất
+
+**Phạm vi (FE only, không đụng BE):**
+- `src/constants/location.js` (mới) — `DEFAULT_LOCATION = { lat: 16.061063335944954, lon: 108.21931990, label: 'Đà Nẵng' }`, `GEOLOCATION_TIMEOUT_MS = 10000`, `GEOLOCATION_MAX_AGE_MS = 5 * 60 * 1000`.
+- `src/utils/formatDistance.js` (mới) — `formatDistance(distanceKm)` format theo quy ước `<1km → "Xm"`, `>=1km → "X.Xkm"`. Lưu ý: BE trả distance **đơn vị km** (ES `_geo_distance` với `unit: 'km'`).
+- `src/hooks/client/useUserLocation.js` (mới) — hook quản lý vị trí user: gọi `navigator.geolocation.getCurrentPosition` với timeout 10s, thất bại/từ chối/không support → fallback về `DEFAULT_LOCATION` + `isDefault: true`. Cache ở module scope để không hỏi permission mỗi lần mount. Trả về `{ lat, lon, isDefault, isLoading, error, retry }`.
+- `src/services/clinicService.js`:
+  - `getClinicListApi(instance, page, limit, search)` **đã đổi path** từ `/clinic/user` → `/clinic` (endpoint admin, trả `{items, meta}` chuẩn `nestjs-typeorm-paginate`). Admin dashboard và `adminActivityService` dùng hàm này.
+  - Thêm `getNearbyClinicListApi(instance, { page, limit, search, lat, lon, sortBy })` hit `/clinic/user`. BE trả raw array (không có `items/meta`), mỗi item kèm field `distance` (km). Hàm normalize về array đã chuẩn hoá `openingTime/closingTime`.
+- `src/pages/client/Home/ClinicSelection/index.jsx` + `styles.css` + `locales/client/{vi,en}.json`:
+  - Dùng `useUserLocation` + `getNearbyClinicListApi` với `sortBy: 'distance'`.
+  - Bỏ sort theo rating ở FE (BE đã sort theo khoảng cách — phải giữ thứ tự BE trả).
+  - Thêm banner fallback `.clinic-location-banner` khi `isDefault`: icon địa chỉ + text + button "Cho phép vị trí của tôi" → gọi `retry`.
+  - Thêm `.clinic-distance` trong card (icon `FaMapMarkerAlt` + `formatDistance(clinic.distance)`) ngay dưới địa chỉ.
+  - i18n key mới: `pages.home.clinicSelection.locationFallbackNotice`, `pages.home.clinicSelection.locationFallbackAction`.
+- `src/pages/client/User/BookingAppointment/index.jsx`: dùng `useUserLocation` + `getNearbyClinicListApi`, `useEffect` bootstrap chờ `!locationLoading` mới fetch để tránh 2 lần gọi (default + real). Logic preselectedClinicId giữ nguyên.
+
+**BE API đã confirm (đọc file, không sửa):**
+- Clinic entity (`BE/petcare/src/clinic/entities/clinic.entity.ts`): field `lat: decimal`, `lon: decimal` (tên chính xác).
+- Endpoint `GET /api/clinic/user` (`clinic.controller.ts`): query params **bắt buộc** `page`, `limit`, `lat`, `lon`; optional `sortBy: 'distance' | 'rating'` (default `'distance'`) và `search`. Role cho phép: ADMIN, ADMIN_CLINIC, VETERINARIAN, CUSTOMER.
+- Service: `ClinicSearchService.searchClinics` (Elasticsearch) sort theo `_geo_distance` (km), trả `hits.hits.map(hit => ({ ...hit._source, distance: hit.sort.at(-1) }))` — **raw array**, không có pagination wrapper.
+- Endpoint `GET /api/clinic` (admin-only, `paginate<Clinic>`) trả `{items, meta, links}` — FE `getClinicListApi` chuyển sang dùng endpoint này cho admin dashboard.
+
+**Phương án fallback UX:**
+- Khi đang hỏi permission (`locationLoading`): `<Spin>` bao quanh lưới clinic, không fire request.
+- Thất bại/từ chối → dùng `DEFAULT_LOCATION`, hiện banner không obtrusive với nút retry. Không spam toast.
+- Có vị trí thật → không banner, load danh sách bình thường.
+- Không tự tính Haversine ở FE (BE đã sort theo ES geo_distance, nếu sau này BE không trả `distance` thì chỉ bỏ dòng hiển thị, không cần tính lại phía client).
+
+**Tự kiểm tra:**
+- `npx eslint` các file đã sửa → sạch (1 warning pre-existing về `fetchDoctorsByClinic` không liên quan).
+- `npm run build` → thành công (5984 modules, 29.66s).
+
+**⚠️ Vấn đề BE cần dev biết (không tự fix):**
+- `GET /api/clinic/user` hiện trả raw array từ Elasticsearch, không còn `{items, meta}`. Nếu muốn phân trang phía user (load more / infinite scroll) thì BE cần wrap lại response (ví dụ: `{ items, meta: { totalItems, currentPage, itemsPerPage, totalPages } }`). FE tạm thời fetch `limit=50` không phân trang ở user portal.
+- `page` ở ES search hiện truyền thẳng vào `from` — nếu `page > 1` thì ý nghĩa khác (ES `from` là offset, không phải page). Không ảnh hưởng FE hiện tại vì chỉ gọi `page=1, limit=50`, nhưng cần lưu ý khi bật pagination.
+
+### Cập nhật (2026-04-21) — Fix nghiêm trọng layout ChatBot Client: thanh nhập bị dồn lên cao ở route `/chatbot`
+
+**Phạm vi:**
+- `src/pages/client/Home/ChatBotAI/index.jsx`
+- `src/pages/client/Home/ChatBotAI/styles.css`
+
+**Triệu chứng người dùng báo:**
+- Khi mở mới route `/chatbot`, ô nhập chat không bám đáy mà nhảy lên vùng trên.
+- Khi bấm vào một lịch sử chat thì nội dung trông ổn hơn, nhưng vị trí thanh nhập vẫn cao hơn mong muốn.
+
+**Phân tích nguyên nhân gốc (đã tự phản biện):**
+- Client/Clinic/Veterinarian/Admin ChatBot đang dùng chung các class global trùng tên (`.chatbot-container`, `.chatbot-main`, ...).
+- Trong `AppRoutes.jsx`, các page ChatBot của nhiều portal được import tĩnh, nên CSS của các portal cùng được nạp và có thể override lẫn nhau theo thứ tự bundle.
+- Trên màn Client, rule đúng cần cho root là chiều cao theo viewport (trừ header cố định). Nhưng khi bị rule portal khác ghi đè thành `height: 100%`, root mất chiều cao hữu hiệu, làm dock input không còn bám đáy.
+
+**Tự phản biện phương án:**
+- Phương án 1: thêm `!important` cho nhiều thuộc tính.
+  - Nhanh nhưng khó bảo trì, dễ tạo hiệu ứng phụ khi sửa UI về sau.
+- Phương án 2: đổi toàn bộ sang CSS Modules cho ChatBot.
+  - Sạch nhất dài hạn nhưng diff lớn, rủi ro regression cao cho hotfix UI.
+- Phương án 3 (đã chọn): giữ cấu trúc hiện tại, **cô lập scope Client bằng class đặc thù + tăng specificity có kiểm soát**.
+  - Diff nhỏ, xử lý đúng gốc xung đột cross-portal, ít rủi ro nhất.
+
+**Fix đã triển khai (tối ưu):**
+- `index.jsx`: thêm class scope cho root: `chatbot-container client-chatbot-page`.
+- `styles.css`:
+  - Đổi selector root thành `.chatbot-container.client-chatbot-page` để thắng override global từ portal khác.
+  - Chuẩn hóa chiều cao root theo header fixed:
+    - `height: calc(100dvh - var(--petcare-header-height, 70px))`
+    - `margin-top: var(--petcare-header-height, 70px)`
+    - bỏ `padding-top` để tránh cộng dồn theo box model.
+  - Tăng độ ổn định cho vùng nội dung:
+    - `.chatbox-layout { height: 100%; }`
+    - `.empty-state { flex: 1; }`
+  => đảm bảo thanh nhập luôn neo ở đáy cả khi chưa chọn lịch sử lẫn khi đang chat.
+
+**Ghi chú kiến trúc để tránh lặp lỗi:**
+- Không nên dùng class global trùng nhau cho nhiều portal nếu không có namespace/scoping rõ ràng.
+- Với route có header fixed, nên ưu tiên công thức `height: calc(100dvh - headerHeight)` + `margin-top: headerHeight` thay vì padding-top trên container chính khi cần kiểm soát layout full-height.
+
+### Cập nhật (2026-04-21) — Fix triệt để sticky header `PHIẾU KHÁM BỆNH & CHỈ ĐỊNH` (dời scroll container lên `formRoot`)
+
+**Phạm vi:** `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`.
+
+**Triệu chứng người dùng báo:**
+- Header `PHIẾU KHÁM BỆNH & CHỈ ĐỊNH` (khối `Mã hồ sơ` + `Ngày khám`) vẫn trôi đi khi cuộn nội dung phía dưới, dù đã đặt `position: sticky; top: 0` và tăng `z-index` ở lần fix trước.
+
+**Phân tích nguyên nhân gốc (tự phản biện):**
+- `position: sticky` chỉ dính với **scroll container gần nhất chứa chính nó**. Cấu trúc DOM trước đây:
+  - `.formRoot` (Form, height:100%, flex column, KHÔNG scroll)
+    - `.formHeader` (sticky top:0) ← nằm ngoài scroll container
+    - `Tabs` (flex:1) → mỗi `TabPane` chứa `.formScrollableContent` (`overflow-y:auto`) ← đây mới là scroll container thật.
+- Vì vậy khi người dùng cuộn `.formScrollableContent`, sticky của `.formHeader` hoàn toàn vô hiệu (không cùng container).
+- Phản biện phương án "duplicate header vào từng tab": xấu, lặp i18n, khó bảo trì, mỗi lần đổi tab header bị re-mount.
+- Phương án tối ưu đã chọn: **chuyển scroll container lên `.formRoot`**, bỏ scroll nội bộ ở `.formScrollableContent` và bỏ `flex:1` ở `.tabsRoot` để nội dung Tabs flow tự nhiên. Khi đó `.formHeader` nằm trong đúng scroll container và sticky hoạt động đúng.
+
+**Thay đổi đã triển khai (CSS):**
+- `.formRoot`: thêm `overflow-y:auto; overflow-x:hidden; scrollbar-width:none; -ms-overflow-style:none;` + `::-webkit-scrollbar { width:0; height:0; }` để biến nó thành scroll container ẩn scrollbar.
+- `.formScrollableContent`: bỏ `overflow-y:auto` và các thuộc tính ẩn scrollbar (không còn cần — giờ chỉ là wrapper nội dung tab).
+- `.tabsRoot`: bỏ `flex:1` (giữ `min-height:0`) để Tabs flow chiều cao theo nội dung, cho phép `formRoot` cuộn toàn bộ.
+- `.formHeader`: tăng `z-index` từ `12` → `20` và thêm `flex-shrink:0` đảm bảo không bị co khi flex column container cuộn.
+
+**Tác dụng phụ đã cân nhắc:**
+- Tab bar của Ant Tabs sẽ cuộn cùng với nội dung (không còn fixed). Người dùng chỉ yêu cầu cố định header phiếu khám nên chấp nhận được. Nếu về sau cần cố định tab bar, có thể thêm `position: sticky; top: <height formHeader>; z-index: 15; background: ...;` cho `.ant-tabs-nav` trong `.tabsRoot`.
+- Không đổi JSX, không đổi BE, không đổi i18n → tuân thủ rule "không sửa cross-boundary".
+
+**Regression:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (vite build, 5982 modules transformed, 28.93s).
+
+### Cập nhật (2026-04-21) — Tối ưu cuộn role bác sĩ (ẩn scrollbar), giữ cố định header phiếu khám, fix lỗi hiển thị key dạng "code"
+
+**Phạm vi:**
+- `src/layouts/Vererianrian/AdminVererianrianLayout.module.css`
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`
+- `src/locales/vererianrian/vi.json`
+- `src/locales/vererianrian/en.json`
+
+**Yêu cầu nghiệp vụ mới từ người dùng:**
+- Khôi phục cơ chế cuộn nhưng **không hiển thị thanh cuộn dài** (vẫn lăn chuột/touchpad bình thường).
+- Khối tiêu đề `PHIẾU KHÁM BỆNH & CHỈ ĐỊNH` phải bám cố định khi lướt nội dung.
+- Trong tab `Hồ sơ y tế` (ở form phiếu khám), không được hiện text kiểu "code".
+
+**Nguyên nhân gốc + tự phản biện:**
+- Sau fix trước, layout đã có scroll container ở `.content` nên cuộn hoạt động, nhưng thanh cuộn mặc định của trình duyệt hiển thị rõ → không đúng UX mong muốn.
+- Header phiếu khám đã dùng `position: sticky`, nhưng cần tăng độ ưu tiên layer để ổn định hơn khi cuộn nội dung dài.
+- Lỗi "hiện code" trong `Hồ sơ y tế` đến từ i18n key thiếu:
+  - Code dùng `t('common.actions.expand')` / `t('common.actions.collapse')`
+  - Locale `common.actions` chưa có 2 key này, nên UI render nguyên key path (trông như code).
+- Phương án tối ưu đã chọn:
+  - Không phá kiến trúc scroll hiện tại.
+  - Ẩn scrollbar bằng CSS cross-browser, vẫn giữ khả năng cuộn.
+  - Bổ sung key i18n thiếu thay vì hardcode text trong JSX.
+
+**Thay đổi đã triển khai:**
+- `AdminVererianrianLayout.module.css`
+  - Giữ `overflow-y: auto` cho `.content`.
+  - Thêm ẩn scrollbar cross-browser (`scrollbar-width: none`, `-ms-overflow-style: none`, `::-webkit-scrollbar { width: 0; height: 0; }`).
+- `recordExaminationForm.module.css`
+  - Thêm ẩn scrollbar cho `.formScrollableContent` (vẫn cuộn được).
+  - Tăng `z-index` của `.formHeader` từ `5` → `12` để sticky header ổn định hơn khi lướt.
+- `locales/vererianrian/{vi,en}.json`
+  - Thêm `common.actions.expand` và `common.actions.collapse` để chấm dứt hiện key i18n dạng "code" trên UI.
+
+**Regression:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (`vite build`, 5982 modules transformed).
+
+### Cập nhật (2026-04-21) — Fix lỗi role bác sĩ không cuộn được trong các form
+
+**Phạm vi:** `src/layouts/Vererianrian/AdminVererianrianLayout.module.css`.
+
+**Triệu chứng người dùng báo:**
+- Khi vào portal bác sĩ (`/veterinarian/*`), các trang form dài (đặc biệt phiếu khám) không thể cuộn, dẫn đến không thao tác được phần nội dung phía dưới.
+
+**Phân tích nguyên nhân gốc (đối chiếu code):**
+- Layout bác sĩ đang khóa viewport bằng:
+  - `.layout { height: 100vh; overflow: hidden; }`
+  - `.main { height: 100vh; overflow: hidden; }`
+- Vùng nội dung chính `.content` lại bị comment mất cơ chế cuộn (`overflow-y: auto; overflow-x: hidden;`).
+- Kết quả: nội dung vượt chiều cao màn hình bị cắt, không có scroll container ở tầng layout.
+- Đối chiếu với `AdminLayout` và `AdminClinicLayout`: cả hai đều bật `overflow-y: auto` cho vùng content/main nên không gặp lỗi tương tự.
+
+**Tự phản biện các phương án trước khi fix:**
+- Phương án 1: vá từng page form (thêm scroll nội bộ cho từng màn).
+  - Nhược: tốn công, dễ thiếu sót, khó bảo trì, có thể phát sinh nhiều scrollbar lồng nhau.
+- Phương án 2: mở cuộn ở `body`/`html` toàn cục.
+  - Nhược: phá kiến trúc layout hiện tại vốn dựa trên viewport shell, dễ ảnh hưởng portal khác.
+- Phương án 3 (chọn): khôi phục đúng trách nhiệm của `content` trong Vet layout (`overflow-y: auto`).
+  - Ưu điểm: diff nhỏ nhất, đúng gốc lỗi, đồng bộ với 2 portal còn lại, rủi ro thấp.
+
+**Fix đã áp dụng (tối ưu):**
+- Trong `AdminVererianrianLayout.module.css`, bật lại:
+  - `overflow-y: auto;`
+  - `overflow-x: hidden;`
+  cho class `.content`.
+- Giữ nguyên `contentChatbot { overflow: hidden; }` để không làm thay đổi hành vi màn chatbot.
+
+**Regression:**
+- `npm run build` (thư mục `FE/Web/client`) → thành công (`vite build`, 5982 modules transformed).
+
+**Bài học kiến trúc (để tránh lặp lại):**
+- Với layout dạng shell `100vh` + `overflow: hidden`, bắt buộc phải có ít nhất một scroll container rõ ràng (`main` hoặc `content`) cho route nội dung dài.
+
+### Cập nhật (2026-04-21) — Điều chỉnh card chọn phòng khám: giữ giao diện cũ, chỉ đổi vị trí hiển thị đánh giá
+
+**Phạm vi:** `src/pages/client/Home/ClinicSelection/index.jsx`, `src/pages/client/Home/ClinicSelection/styles.css`, `src/locales/client/vi.json`, `src/locales/client/en.json`.
+
+**Yêu cầu nghiệp vụ cuối cùng:**
+- Giữ nguyên giao diện cũ (typography, spacing, cấu trúc thông tin, nút `Chọn`).
+- Chỉ thay phần đánh giá: chuyển lên badge nổi ở góc trên ảnh, giống mock tham chiếu.
+
+**Phân tích + phản biện (đã áp dụng):**
+- Đã thử hướng redesign toàn card theo style hiện đại hơn, nhưng không phù hợp yêu cầu thực tế vì làm thay đổi quá nhiều thành phần ngoài phạm vi.
+- Phương án tối ưu cuối cùng: rollback toàn bộ thay đổi ngoài phạm vi và giữ diff nhỏ nhất, chỉ gồm phần rating badge.
+
+**Thay đổi chính đã triển khai (minimal diff):**
+- JSX:
+  - Bỏ khối rating cũ trong thân card.
+  - Thêm badge `clinic-rating-badge` hiển thị điểm ở góc phải trên ảnh.
+  - Giữ nguyên layout cũ của tên, địa chỉ, giờ mở cửa, điện thoại và nút `Chọn`.
+- CSS:
+  - Giữ nguyên stylesheet cũ.
+  - Chỉ thêm `position: relative` cho `.clinic-card` và các class badge rating.
+  - Bổ sung tinh chỉnh vị trí badge cho mobile.
+- i18n:
+  - Thêm key `pages.home.clinicSelection.ratingBadgeFallback`:
+    - vi: `Mới`
+    - en: `New`
+
+**Regression:**
+- `npx eslint src/pages/client/Home/ClinicSelection/index.jsx` → clean.
+
+**Quy ước thao tác file (bổ sung để dùng lại):**
+- Khi ghi file bằng PowerShell (`Set-Content` / `Out-File`) phải chỉ định `-Encoding utf8` để tránh lỗi tiếng Việt.
+
+### Cập nhật (2026-04-20) — Fix UI treo khi tạo phiếu khám ngoài lỗi + bắt buộc chỉ số sinh tồn
+
+**Phạm vi:** `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` + `recordExaminationForm.module.css`.
+
+**Bug 1 — UI treo loading "Đang tạo phiếu khám..." khi BE trả lỗi (ví dụ số điện thoại đã được dùng):**
+- Nguyên nhân gốc: helper `showWalkInStep(content, type='loading')` mở `message.loading` với `key: 'walkin-step'` và `duration: 0` (persistent). Trong `handleWalkInSubmit` catch block, code cũ gọi `message.error(buildErrorMessage(...))` KHÔNG truyền `key: 'walkin-step'` → toast loading cũ không bị thay thế, vẫn hiển thị vĩnh viễn → UI "treo".
+- Fix:
+  - Catch block chuyển sang gọi `showWalkInStep(buildErrorMessage(...), 'error')` để thay thế toast cùng key.
+  - Nới duration cho `type === 'error'` → 4s (mặc định success 2s, loading 0s persistent) trong `showWalkInStep`.
+- Phản biện/tối ưu: cân nhắc dùng `message.destroy('walkin-step')` rồi `message.error(...)` — nhưng cùng-key-replace gọn hơn 1 call, không có flicker, và giữ a11y (role=alert của toast cũ bị cập nhật thay vì tạo mới).
+
+**Bug 2 — Chỉ số sinh tồn chưa hiển thị dấu `*` bắt buộc nhập:**
+- Quan sát: 5 field (`weight`, `temperature`, `heartRate`, `systolic`, `diastolic`) đã có `rules: [{ required: true, ... }]` (validate khi submit đã hoạt động), NHƯNG label được render bằng `<p className={styles.vitalLabel}>` nằm NGOÀI `Form.Item` và `Form.Item` không có prop `label` → AntD không tự chèn asterisk → user không biết bắt buộc.
+- Fix: thêm `<span className={styles.vitalLabelRequired} aria-hidden="true">*</span>` (đỏ `#ff4d4f`) vào mỗi `<p>` vitalLabel. Class mới `.vitalLabelRequired` thêm vào CSS module.
+- Phản biện: tại sao không chuyển sang dùng prop `label` của `Form.Item` (AntD tự làm asterisk)? Vì layout hiện tại `.vitalGrid > .vitalBox > <p> + <Form.Item>` là grid custom, đổi sang `label` prop sẽ phá spacing (AntD label có margin/padding riêng). Giải pháp asterisk thủ công giữ nguyên visual, đồng nhất với các field walk-in khác (`customerName`, `petName`) cũng dùng pattern label-ngoài.
+
+**Regression:** `npx eslint` trên file thay đổi → clean.
+
+### Cập nhật (2026-04-17) — Booking Doctor Panel + Forum Report Service + Clinic Vet Fields + Admin View-as-User
+
+**1) Forum Report Service (FE):**
+- Tạo mới `src/services/forumReportService.js`.
+- Cung cấp các hàm:
+  - `reportPostApi(instance, postId, payload)` → `POST /post/:postId/report`
+  - `reportCommentApi(instance, commentId, payload)` → `POST /comment/:commentId/report`
+  - `getReportsApi(instance, params)` → `GET /report`
+  - `updateReportStatusApi(instance, reportId, payload)` → `PATCH /report/:id`
+  - `createGenericReportApi(instance, payload)` → fallback `POST /report`
+- FE Forum đã dùng try/catch fallback: ưu tiên endpoint report theo post/comment; nếu BE chưa hỗ trợ thì fallback sang `POST /report`; nếu vẫn không có thì hiện toast ghi nhận.
+
+**2) Booking Appointment — Doctor Detail Panel:**
+- File sửa: `src/pages/client/User/BookingAppointment/index.jsx`, `src/pages/client/User/BookingAppointment/styles.css`.
+- Khi chọn bác sĩ, panel bên phải hiển thị:
+  - Avatar + tên
+  - Chuyên khoa
+  - Kinh nghiệm (nếu có)
+  - Giới thiệu (đọc từ `description` hoặc `introduce` hoặc `bio` nếu có)
+- Có fallback an toàn khi dữ liệu null/undefined.
+
+**3) Clinic Portal — bổ sung field kinh nghiệm & giới thiệu cho bác sĩ:**
+- File sửa: `src/pages/Clinic/InformationVererianrian/InformationVererianrian.jsx`.
+- Thêm vào form chỉnh sửa:
+  - `experience` (InputNumber)
+  - `description` (TextArea)
+- Payload update đã gửi thêm: `experience`, `description`, `introduce` (để tương thích contract BE hiện có).
+- Bổ sung hiển thị 2 field này trong phần thông tin cá nhân.
+- i18n đã thêm key cho `clinic/vi.json` và `clinic/en.json`.
+
+**4) Admin View-as-User mode cho Forum:**
+- Tạo utility mới: `src/utils/storage/adminViewModeStorage.js` (dùng `sessionStorage`).
+- Admin notification click (đặc biệt report) trong `src/layouts/admin/AdminLayout.jsx`:
+  - điều hướng sang forum kèm query param mục tiêu (nếu có).
+- Client header (`src/components/layouts/client/header.jsx` + `header.css`):
+  - tích hợp điều hướng thống nhất tới khu vực forum xử lý.
+- Forum (`src/pages/client/User/Forum/forum.jsx`):
+  - khi user là ADMIN và vào forum quản trị, menu post/comment có thêm quyền xóa mở rộng “Xóa (Admin)”,
+  - dùng `adminDeletePostApi` / `adminDeleteCommentApi` (fallback client instance) trong `src/services/forumService.js`.
+
+**5) Notification mapping/href cho admin report flow:**
+- File sửa: `src/services/notificationService.js`.
+- Bổ sung mapping cho các type `REPORT`, `POST_REPORTED`, `COMMENT_REPORTED`.
+- Chuẩn hóa thêm field target `reportId`, `reportType` và hỗ trợ resolve portal `admin`.
+### Cập nhật (2026-04-17) — Tái cấu trúc luồng Phiếu khám: đổi tên + gộp danh sách + fix dữ liệu trống
+
+**Phạm vi:**
+- Đổi tên "Phiếu khám khẩn cấp" → "Phiếu khám ngoài" (UI, i18n, mã code prefix `EMG` → `WK`).
+- Gộp 2 danh sách (lịch hẹn + walk-in) thành **1 danh sách thống nhất** dùng API mới `GET /api/medical/veterinarian?page=&limit=`.
+- Fix lỗi khi mở lại phiếu walk-in hiển thị trống toàn bộ thông tin khách hàng & thú cưng.
+- Bỏ 2 field `gender` và `dateOfBirth` của pet khỏi form walk-in (BE DTO không hỗ trợ, lưu sẽ thất lạc).
+
+**Thay đổi i18n (`src/locales/vererianrian/{vi,en}.json`):**
+- `examForm.list.actions.createWalkIn`: "Phiếu khám ngoài" / "Walk-in Examination".
+- Thêm `examForm.list.table.type` = "LOẠI" / "TYPE".
+- Thêm `examForm.list.badges` = { appointment, walkIn } cho badge phân loại.
+- Bỏ `examForm.list.tabs` (không còn Tabs), gộp `pagination.summary` (bỏ `walkInSummary`).
+- Bỏ `states.emptyWalkIn` (gộp vào `states.empty`).
+- Thêm `examForm.record.messages.ownerContactMissing` để báo BE không trả email/phone walk-in.
+- Đổi nội dung `walkInSaveSuccess/Error` từ "khẩn cấp" → "ngoài".
+
+**Form walk-in (`src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`):**
+- Xóa imports `ManOutlined`, `WomanOutlined`; xóa helper `normalizeGenderValue`, `resolveDateOfBirth`; xóa `genderSelectOptions` useMemo.
+- `buildInitialValues`: với walk-in reopen, hydrate `customerName / email / phone / petName / species / breed` từ `editableMedicalRecord.pet` + `editableMedicalRecord.pet.owner` (trước đây luôn rỗng vì `isWalkIn=true` đi nhánh clear).
+- Bỏ `Form.Item` ẩn `petGender / petDateOfBirth / petAge` và cả 3 `<Col>` nhập tay tương ứng trong block walk-in.
+- Đơn giản hóa `handleWalkInSubmit`: bỏ validate `genderValue` / `petDateOfBirth`, không còn gửi 2 field trên trong payload.
+- Prefix mã phiếu `EMG` → `WK`.
+
+**Danh sách gộp (`src/pages/Vererianrian/ListExaminationForm/listExaminationForm.jsx` — rewrite):**
+- Data source DUY NHẤT: `getVeterinarianMedicalRecordsApi(instance, page, 10)` → `GET /medical/veterinarian`.
+- Pagination server-side dùng `meta.totalPages` + `meta.totalItems`, nút prev/next.
+- Bỏ `Tabs`, bỏ `DatePicker`, bỏ 2 luồng fetch song song (`getMyAppointmentsApi` + `getMedicalByClinicApi`).
+- Thêm cột **LOẠI** hiển thị `<Tag>`: `Lịch hẹn` (blue) vs `Khám ngoài` (orange).
+- Classifier (heuristic FE do BE thiếu field): `isAppointment = appointmentLinkedIds.has(record.id)`, với set = hợp của:
+  1. localStorage `veterinarian:appointmentMedicalMap` (từ flow tạo qua appointment).
+  2. `GET /appointment/my` → gom `item.medical.id` (fail-safe, lỗi chỉ log).
+- Click "Mở phiếu khám": điều hướng theo phân loại — appointment mở `?medicalId=`, walk-in mở `?mode=walkin&medicalId=`.
+- Focus/visibilitychange refresh cả records + appointmentLinkedIds (silent).
+
+**Service (`src/services/medicalService.js`):**
+- Thêm `getVeterinarianMedicalRecordsApi(instance, page, limit)` gọi `GET /medical/veterinarian`.
+- Fix bug pre-existing: `getLatestMedicalByPetIdApi` có dòng `const payload = ...` bị comment-out → uncommented (đang reference biến không tồn tại, 6 lint errors).
+
+**Root cause — dữ liệu trống khi mở walk-in:**
+- `buildInitialValues` có nhánh `isWalkIn ? '' : ...` → mọi lần mở lại phiếu walk-in đều set customer/pet rỗng (không đọc từ `editableMedicalRecord`).
+- Fix: với walk-in mode + có `editableMedicalRecord`, ưu tiên lấy `recordPet = editableMedicalRecord.pet` và `recordOwner = recordPet.owner`.
+
+**Giới hạn BE (báo cáo, không tự sửa):**
+1. ~~`GET /medical/:id` KHÔNG trả `pet.owner.email` và `pet.owner.phone`~~ → **ĐÃ FIX bởi BE**: giờ trả `pet.owner.{id, fullName, email, phone}`, `pet.gender`, `pet.dateOfBirth`, `veterinarian.{id, fullName, specialty}`, `clinic.{id, name}`. FE đã đồng bộ UI hiển thị thông tin owner + bác sĩ trong ViewPetMedicalRecords.
+2. ~~`GET /medical/:id` KHÔNG trả `pet.gender`, `pet.dateOfBirth`, `pet.weight`~~ → **ĐÃ FIX bởi BE**: giờ trả đầy đủ.
+3. `MedicalRecord` entity KHÔNG có `appointmentId` hay `type` để phân biệt walk-in vs appointment → FE phải dùng heuristic localStorage + map từ `/appointment/my`. Đề xuất BE: thêm cột `type: ENUM('APPOINTMENT','WALK_IN')` hoặc FK `appointmentId NULL`.
+4. `GET /user/:id` restricted ADMIN/ADMIN_CLINIC → VET không thể recover email/phone chủ nuôi từ ownerId. **Workaround**: FE lấy owner info từ `GET /medical/:id` response (pet.owner) thay vì gọi `/user/:id`.
+
+**Fix cập nhật SĐT từ danh sách gộp (ListExaminationForm → RecordExaminationForm):**
+- Thêm `directMedicalId`: khi mở phiếu khám từ list với `?medicalId=XXX` (non-walkin, không có appointmentId), form load record trực tiếp bằng `getMedicalByIdApi`.
+- `onFinish` fallback `ownerId` từ `editableMedicalRecord.pet.owner.id` khi `appointment` state là null.
+- `existingOwnerPhone` fallback từ `editableMedicalRecord.pet.owner.phone`.
+
+**Regression:**
+- `npx eslint` trên 3 file thay đổi: clean.
+- `npx vite build`: thành công (5960 modules, ~21s).
+
+---
+
+### Cập nhật (2026-04-17) — Đơn giản hóa luồng Walk-in (khám cấp cứu) & loại bỏ tạo tài khoản FE
+
+**Vấn đề gốc:**
+- Walk-in flow gọi `registerApi` (POST /api/auth/register) với mật khẩu hardcode `Baophan1234` để tạo tài khoản khách hàng mới từ FE.
+- Mật khẩu hardcode là lỗ hổng bảo mật nghiêm trọng.
+- BE đã chuyển sang tự tạo tài khoản bên trong `POST /api/medical` (random password + email thông báo), nên FE không cần tạo nữa.
+
+**Fix FE đã triển khai:**
+- File sửa: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Xóa `import { registerApi }` và hằng số `EMERGENCY_TEMP_PASSWORD`.
+- Xóa `import { createPetApi }` (không còn gọi tạo pet riêng lẻ từ FE).
+- Viết lại hoàn toàn `handleWalkInSubmit`:
+  - Bỏ multi-step flow (checking owner → creating owner → checking pet → creating pet → saving).
+  - Luồng mới: validate → best-effort tìm user/pet hiện tại (nếu RBAC cho phép) → gọi POST /api/medical (có/không petId) → best-effort cập nhật SĐT cho user hiện tại → success.
+  - User lookup (`findExistingUserByEmail`) và pet lookup (`findPetByOwnerAndName`) đều fail-safe: nếu RBAC chặn (vet không có quyền GET /user) thì bỏ qua, để BE tự xử lý.
+- Đổi tên `findUserByEmail` → `findExistingUserByEmail`, cả 2 helper giờ dùng try/catch trả `null` thay vì throw.
+- Dọn i18n: xóa 8 key multi-step cũ (`walkInStepCheckingOwner`, `walkInStepCreatingOwner`, `walkInStepOwnerReady`, `walkInStepUpdatingOwner`, `walkInStepUpdateOwnerError`, `walkInStepCheckingPet`, `walkInStepCreatingPet`, `walkInStepPetReady`), giữ lại `walkInStepSaving` với text mới "Đang tạo phiếu khám..." / "Creating examination form...".
+- Luồng appointment (onFinish): đã đúng — dùng `appointment?.petRaw?.owner?.id` cho cập nhật SĐT, không thay đổi.
+
+**Regression:**
+- `npx vite build` → thành công (5960 modules transformed, built in ~16s).
+
+---
+
+## Lịch sử cập nhật trước (2026-04-17)
+
+### Cập nhật bổ sung (2026-04-17) — Fix nhầm khóa thanh toán giữa 2 lịch hẹn gần nhau (Veterinarian RecordExaminationForm)
+
+**Triệu chứng thực tế:**
+- Cùng 1 thú cưng đặt 2 lịch hẹn gần nhau (cùng bác sĩ/phòng khám), sau khi lịch 1 đã thanh toán thì mở lịch 2 ở màn `RecordExaminationForm` có thể bị báo khóa do đã thanh toán.
+- Form của lịch 2 bị prefill dữ liệu từ phiếu khám cũ (lịch 1), dẫn đến nguy cơ ghi đè sai hồ sơ.
+
+**Nguyên nhân gốc đã xác nhận:**
+- FE đang dùng heuristic `selectMedicalRecordByAppointment` để đoán phiếu khám theo `pet + cùng ngày + gần giờ`, thay vì liên kết định danh tường minh theo appointment.
+- Khi có 2 lịch gần giờ, heuristic có thể match nhầm sang medical record cũ đã `PAID`.
+- API `GET /appointment/my` (role VETERINARIAN) hiện không trả `medical.id`, nên FE thiếu khóa liên kết chắc chắn giữa lịch hẹn và phiếu khám.
+
+**Fix FE đã triển khai (an toàn, không sửa BE):**
+- File sửa: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Gỡ hoàn toàn heuristic match theo thời gian gần đúng.
+- Chỉ hydrate phiếu khám khi có liên kết định danh rõ ràng:
+  - `appointment.medical.id` (nếu BE trả về), hoặc
+  - map cục bộ `appointmentId -> medicalId` trong localStorage key `veterinarian:appointmentMedicalMap`.
+- Mỗi lần vào appointment mới, reset ngay `editableMedicalRecord/orders/medicines` trước khi hydrate để tránh "rò" UI từ phiếu trước.
+- Sau khi tạo/cập nhật phiếu khám thành công, lưu lại map `appointmentId -> medicalId` để lần mở lại sau khớp đúng record.
+- Nếu map cục bộ bị stale (medical id không còn thuộc pet/clinic hiện tại), FE tự xóa map stale và không auto-link.
+
+**Kết quả mong đợi sau fix:**
+- Lịch hẹn 2 không còn bị khóa thanh toán nhầm bởi invoice của lịch 1.
+- Dữ liệu form không còn tự kéo từ phiếu cũ chỉ vì "gần giờ".
+
+**Regression:**
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` → không lỗi.
+- `npx vite build` → thành công (5960 modules transformed, built in ~13s).
+
+**⚠️ BE cần báo lại dev (không thể giải quyết dứt điểm chỉ bằng FE):**
+1. `GET /appointment/my` cần trả liên kết medical định danh (`medical.id` hoặc `medicalRecordId`) cho từng appointment.
+2. Nên bổ sung liên kết dữ liệu cứng giữa appointment và medical record (ví dụ `appointment_id` trong bảng `medical_record`, unique theo nghiệp vụ) để triệt tiêu hoàn toàn việc FE phải đoán.
+3. Có thể cân nhắc endpoint truy vấn theo appointment (ví dụ `GET /medical/by-appointment/:appointmentId`) để mở đúng phiếu khám mà không phụ thuộc cache cục bộ.
+
+### Cập nhật bổ sung (2026-04-17) — Follow-up: mở lại phiếu khám đã tạo khi thiếu liên kết định danh
+
+**Bối cảnh phát sinh sau bản fix trước:**
+- Sau khi bỏ hoàn toàn heuristic theo giờ để tránh lock nhầm, một số lịch hẹn đã tạo phiếu nhưng thiếu `medicalId` trong payload `/appointment/my` và chưa có map local sẽ hiển thị như "chưa từng tạo phiếu" khi mở lại.
+
+**Fix FE follow-up đã triển khai:**
+- File sửa tiếp: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Thêm fallback có điều kiện `inferMedicalRecordForCompletedAppointment(records, appointment)`:
+  - **Chỉ chạy khi appointment status = `COMPLETED`**.
+  - Match chặt theo cùng `appointmentDate` (theo ngày), `clinicId`, `petName`, `service`.
+  - Ưu tiên record có `createdAt` gần `appointmentTime` nhất (cửa sổ strict 12 giờ).
+- Nếu infer thành công, FE tự persist lại map `appointmentId -> medicalId` vào localStorage để lần mở sau dùng link định danh trực tiếp.
+
+**Guard để không quay lại bug cũ:**
+- Fallback infer **không chạy** cho trạng thái `BOOKED/IN_PROGRESS`, nên không còn tự kéo nhầm phiếu đã thanh toán của lịch hẹn khác trong ngày.
+
+**Regression (follow-up):**
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` → không lỗi.
+- `npx vite build` → thành công (5960 modules transformed, built in ~13.6s).
+
+### Cập nhật bổ sung (2026-04-17) — UX fix: bỏ hiện tượng "chớp" trạng thái phiếu khám khi mở lại
+
+**Triệu chứng:**
+- Khi mở lại phiếu đã hoàn thành, UI có thể chớp alert: thoáng hiện trạng thái "đang chỉnh sửa" rồi mới chuyển sang "đã khóa sau thanh toán".
+
+**Nguyên nhân:**
+- Trước đó trạng thái payment lock được hydrate ở effect riêng, đến sau effect hydrate medical record nên có một khoảng ngắn render trạng thái trung gian.
+
+**Fix FE đã triển khai:**
+- File: `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`.
+- Gom resolve `medical record + invoice lock` vào cùng luồng hydrate ban đầu của phiếu khám.
+- Thêm state `isResolvingExamState` để:
+  - tạm khóa form trong lúc resolve trạng thái,
+  - chỉ render các alert trạng thái (notCreated/editable/paymentLocked) sau khi resolve xong.
+- Bỏ effect hydrate payment lock riêng để tránh race condition render.
+
+**Kết quả UX:**
+- Không còn hiệu ứng chớp trạng thái khi mở phiếu khám đã hoàn thành.
+- Người dùng chỉ thấy trạng thái cuối cùng, đúng với dữ liệu thực tế.
+
+**Regression (UX fix):**
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx` → không lỗi.
+- `npx vite build` → thành công (5960 modules transformed, built in ~18s).
+
+### Cập nhật bổ sung (2026-04-17) — 3 nhóm: SĐT trong phiếu khám + Tối ưu Clinic Chart + Đổi trang Admin Revenue → Activity
+
+**Nhóm 1 — Cập nhật SĐT khách hàng khi tạo phiếu khám:**
+- Luồng thường (`recordExaminationForm.jsx`): sau khi submit phiếu khám thành công, nếu SĐT input ≠ SĐT hiện tại của owner → gọi `PUT /api/user/{ownerId}` cập nhật `phone`. Vai trò Veterinarian được phép sửa hồ sơ user.
+- Luồng walk-in: chèn bước "đang cập nhật thông tin chủ" giữa "owner-ready" và "checking-pet" → gọi `PUT /api/user/{ownerId}` cập nhật `phone` + `fullName` (best-effort, lỗi chỉ warn). Thêm 2 i18n key `walkInStepUpdatingOwner` / `walkInStepUpdateOwnerError` cho cả vi/en.
+- ⚠️ **VẤN ĐỀ BE CẦN BÁO LẠI CHO DEV:** `POST /api/auth/register` chỉ trả `{ message }`, không trả user id → walk-in flow phải workaround bằng `GET /api/user?email=` (admin-only). Veterinarian vẫn 403 nếu BE không bổ sung quyền hoặc thay register response.
+
+**Nhóm 2 — Tối ưu biểu đồ doanh thu Clinic:**
+- `revenueService.js#getChartParams`: chuẩn hóa mapping period → `dateStart` / `dateEnd` / `groupBy`. Đổi key `7days` → `week`, tính Mon-Sun thủ công (không có isoWeek plugin). Month/Year dùng `endOf('month')` / `endOf('year')` thay vì `endOf('day')`.
+- `useRevenue.js`: tách `fetchChart` riêng (tự refetch khi đổi period), `fetchRevenue` lấy summary qua `GET /revenue/summary`, top vet + recent invoices vẫn từ aggregate cũ (BE chưa có endpoint thay thế).
+- `RevenueDashboard.jsx`: khi `period === TODAY` và chart có ≤ 1 điểm → render `TodayHighlightCard` (component mới: card lớn show tổng doanh thu hôm nay, số hóa đơn paid/unpaid). Các period còn lại render Area chart như cũ.
+- `RevenueChart.jsx`: format trục X `DD/MM` (kết hợp ngày + tháng), parse `total` (string) → number.
+- i18n vi/en: đổi label `period.week` thành `Tuần này / This week`; thêm block `todayHighlight.*`.
+
+**Nhóm 3 — Thay trang Admin Revenue → Thống kê Hoạt động Phòng khám:**
+- Xóa hoàn toàn: `pages/admin/Dashboard/Revenue/`, `hooks/admin/useAdminRevenue.js`, `services/adminRevenueService.js`.
+- Thay bằng: `pages/admin/Dashboard/Activity/{index.jsx, activity.module.css, components/ActivityKPICards.jsx, components/ClinicActivityRankingTable.jsx}`, `hooks/admin/useAdminActivity.js`, `services/adminActivityService.js`.
+- Routing: `/admin/dashboard/revenue` → `/admin/dashboard/activity` (`AppRoutes.jsx`); menu `AdminLayout.jsx` đổi key `revenue` → `activity`, icon `DollarOutlined` → `BarChartOutlined`.
+- i18n admin vi/en: đổi `layout.menu.revenue` → `layout.menu.activity`; thay block `revenue` → `activity` (KPI: totalClinics/totalVisits/activeClinics/inactiveClinics; period: thisMonth/lastMonth/thisQuarter; ranking columns + status badges).
+- UI: 4 KPI cards (tổng phòng khám, lượt khám tháng này, active/inactive); bảng xếp hạng phòng khám theo lượt khám (kỳ hiện tại / kỳ trước / % tăng trưởng / trạng thái); period tabs + search clinic. **Ẩn hoàn toàn doanh thu** theo yêu cầu SaaS.
+- ⚠️ **VẤN ĐỀ BE CẦN BÁO LẠI CHO DEV:** Không có endpoint admin-scoped để lấy số lượt khám per clinic (`GET /medical/clinic` dùng `req.user.clinicId` từ JWT → admin gọi sẽ trống). Visit count hiện sẽ = 0 cho admin cho đến khi BE bổ sung endpoint `/medical?clinicId=` hoặc `/admin/clinic-activity`.
+- ⚠️ **VẤN ĐỀ BE CẦN BÁO LẠI CHO DEV (vẫn tồn đọng):** 3 API `/revenue/*` (summary/chart/top-veterinarian) chỉ allow `ADMIN_CLINIC` → admin vẫn không gọi được nếu sau này muốn dùng cho dashboard tổng.
+
+**Regression:** `npx eslint` 0 lỗi trên các file đã sửa, `npx vite build` thành công (5960 modules transformed, 19.41s).
+
+### Cập nhật bổ sung (2026-04-16) — Khôi phục Clinic Revenue UI (giữ Recent Invoices, bỏ Pie chart)
+
+**Yêu cầu nghiệp vụ:** Trả dashboard `/clinic/revenue` về UI gần phiên bản trước (có lại bảng hóa đơn gần đây), nhưng **không dùng lại biểu đồ theo loại dịch vụ**.
+
+**Kết quả UI:**
+- Giữ 3 summary cards + chart doanh thu theo ngày (Area chart).
+- Giữ period filter trong header chart (`Hôm nay / 7 ngày / Tháng này / Năm nay`).
+- **Không render Pie chart** theo loại dịch vụ.
+- Khôi phục hàng dưới gồm:
+  - `Top 5 Bác sĩ khám nhiều nhất — Tháng {{month}}`
+  - `Hóa đơn gần đây` + filter trạng thái (`Tất cả / Đã thanh toán / Chưa thanh toán`).
+
+**Chiến lược dữ liệu sau khi self-review (tối ưu hơn bản cũ):**
+- Khôi phục luồng aggregate từ `medical + invoice` để có đủ dữ liệu cho `Recent Invoices` và top bác sĩ theo tháng.
+- Tối ưu N+1: chỉ gọi `GET /medical/:id` khi record từ `GET /medical/clinic` thiếu thông tin bác sĩ.
+- Fetch invoice/detail theo batch (`Promise.allSettled`) để tránh fail toàn bộ màn khi một vài record lỗi.
+- Period filter và invoice status filter xử lý client-side từ cùng một dataset đã aggregate.
+
+**Lý do không dùng hoàn toàn 3 API revenue mới:**
+- API mới chưa có endpoint trả danh sách hóa đơn gần đây.
+- `GET /revenue/top-veterinarian` đang trả dữ liệu theo hôm nay, không khớp yêu cầu bảng top bác sĩ theo tháng của UI cũ.
+
+**Files đã sửa:**
+
+| File | Thay đổi |
+|---|---|
+| `src/services/revenueService.js` | Khôi phục hàm aggregate (`aggregateRevenueData`, `calculateSummary`, `calculateDailyRevenue`, `calculateTopVeterinariansByVisits`, `getRecentInvoices`) và tối ưu gọi detail có điều kiện |
+| `src/hooks/Clinic/useRevenue.js` | Trả lại state/filter của UI cũ: period filter + invoice filter + recent invoices + top vets monthly |
+| `src/pages/Clinic/Revenue/RevenueDashboard.jsx` | Khôi phục render `RecentInvoicesTable` ở bottom row cùng `TopVeterinariansTable` |
+| `src/pages/Clinic/Revenue/components/TopVeterinariansTable.jsx` | Đổi title về monthly và hỗ trợ cả `recordCount`/`totalAppointment` |
+
+### Cập nhật bổ sung (2026-04-16) — Tích hợp API Revenue mới cho Clinic Revenue Dashboard
+
+**Bối cảnh:** BE đã cung cấp 3 API revenue chuyên biệt, thay thế hoàn toàn cách fetch cũ (batch fetch medical records + invoices + details qua nhiều API phức tạp).
+
+**3 API Revenue mới (RBAC: ADMIN_CLINIC only):**
+
+| Endpoint | Params | Response |
+|---|---|---|
+| `GET /api/revenue/summary` | Không (dùng clinicId từ JWT) | `{ total: number, totalPaid: number, totalUnpaid: number }` — dữ liệu HÔM NAY |
+| `GET /api/revenue/chart` | `dateStart`, `dateEnd`, `groupBy` (DAY\|MONTH) | `[{ total, date? (day number), month? (1-12) }]` |
+| `GET /api/revenue/top-veterinarian` | Không | `[{ fullName, avatarUrl, id, totalAppointment, specialty }]` — HÔM NAY |
+
+**Mapping filter thời gian → params:**
+
+| Filter UI | dateStart | dateEnd | groupBy |
+|---|---|---|---|
+| Hôm nay | startOfDay | endOfDay | DAY |
+| 7 ngày | 6 ngày trước | endOfDay | DAY |
+| Tháng này | đầu tháng | endOfDay | DAY |
+| Năm nay | đầu năm | endOfDay | MONTH |
+
+**Thay đổi kiến trúc FE:**
+- Summary cards luôn hiển thị dữ liệu hôm nay (từ `/revenue/summary`)
+- Chart Area thay đổi theo period filter (dùng `/revenue/chart` với params tương ứng)
+- Top bác sĩ luôn hiển thị hôm nay (từ `/revenue/top-veterinarian`)
+- **Đã xóa:** Pie chart (phân bổ theo specialty) — không còn data source vì bỏ enrichedRecords
+- **Đã xóa:** Recent Invoices table — không có API endpoint tương ứng
+- **Đã xóa:** Toàn bộ code fetch phức tạp (batch fetch medical → invoice → detail)
+
+**Code cũ đã xóa:**
+- `aggregateRevenueData()`, `fetchAllClinicMedicalRecords()`, `calculateSummary()`, `calculateDailyRevenue()`, `calculateTopVeterinariansByVisits()`, `getRecentInvoices()` trong `revenueService.js`
+- Client-side period filtering, invoice filtering trong `useRevenue.js`
+
+**Files đã sửa:**
+
+| File | Thay đổi |
+|---|---|
+| `src/services/revenueService.js` | Rewrite hoàn toàn: 3 API functions + `transformChartData()` + `getChartParams()` |
+| `src/hooks/Clinic/useRevenue.js` | Đơn giản hóa: gọi 3 API, period chỉ ảnh hưởng chart |
+| `src/pages/Clinic/Revenue/RevenueDashboard.jsx` | Bỏ RecentInvoices, bỏ enrichedRecords |
+| `src/pages/Clinic/Revenue/components/RevenueChart.jsx` | Xóa Pie chart, bỏ enrichedRecords prop, chart full-width |
+| `src/pages/Clinic/Revenue/components/TopVeterinariansTable.jsx` | Dùng `totalAppointment`, hiển thị avatar thực, title "Hôm nay" |
+| `src/pages/Clinic/Revenue/revenue.module.css` | chartsRow 1 cột, thêm `.vetAvatarImg` |
+| `src/locales/clinic/vi.json` | Thêm `topVets.titleToday` |
+| `src/locales/clinic/en.json` | Thêm `topVets.titleToday` |
+| `src/pages/admin/Dashboard/Revenue/index.jsx` | Xóa banner warning "đợi BE" |
+| `src/locales/admin/vi.json` | Xóa key `noRevenueDataBanner` |
+| `src/locales/admin/en.json` | Xóa key `noRevenueDataBanner` |
+
+**Admin Revenue Dashboard:** Giữ nguyên luồng cũ (fetch clinics → aggregate). 3 API revenue mới chỉ ADMIN_CLINIC → Admin chưa gọi được. Cần BE bổ sung ADMIN role vào RBAC của 3 endpoint hoặc tạo endpoint mới.
+
+**⚠️ Vấn đề BE cần báo dev:**
+1. `GET /revenue/top-veterinarian` — `.orderBy('totalAppointment')` mặc định ASC (tăng dần), cần đổi thành DESC để lấy bác sĩ nhiều lượt nhất.
+2. `GET /revenue/top-veterinarian` — `veterinarian.specialty` có trong SELECT nhưng thiếu trong GROUP BY, có thể gây lỗi ở strict SQL mode.
+3. `GET /revenue/chart` — groupBy=DAY trả về EXTRACT(DAY) chỉ là số ngày (1-31), không phân biệt tháng. Nếu query span 2 tháng → ambiguous. FE đã workaround nhưng nên cân nhắc trả full date string.
+4. 3 API revenue chỉ cho ADMIN_CLINIC → Admin dashboard chưa dùng được. Cần thêm ADMIN vào `@RequiredRole` hoặc tạo endpoint aggregate riêng.
+
+### Cập nhật bổ sung (2026-04-16) — Admin Revenue Dashboard (Doanh thu toàn hệ thống)
+
+**Mục đích:** Cung cấp cho Super Admin (role ADMIN) cái nhìn tổng quan doanh thu toàn hệ thống từ tất cả phòng khám, phục vụ quyết định kinh doanh.
+
+**Phương án kỹ thuật:**
+- FE tổng hợp: Fetch danh sách clinics (`GET /clinic`, admin có quyền) → với mỗi clinic, cố gắng fetch medical records + invoices → tổng hợp phía client.
+- **Giới hạn hiện tại:** BE chưa có API admin-scoped cho invoice/medical. Các endpoint hiện tại (`GET /invoice/:medicalRecordId`, `GET /medical/clinic`) chỉ cho ADMIN_CLINIC + VETERINARIAN. Revenue module hoàn toàn trống. Do đó, dữ liệu doanh thu chi tiết chưa hiển thị được cho đến khi BE bổ sung RBAC hoặc API mới.
+- Khi BE fix → dashboard sẽ tự hoạt động mà không cần sửa FE.
+
+**KPI hiển thị:**
+- Tổng doanh thu toàn hệ thống (format `formatVND()`)
+- Tổng phòng khám hoạt động (từ `GET /clinic` — hoạt động ngay)
+- Tổng lượt khám (chờ BE)
+- Hóa đơn đã thanh toán / tổng (chờ BE)
+
+**Components tạo mới:**
+
+| File | Mô tả |
+|---|---|
+| `src/services/adminRevenueService.js` | Service layer: fetch clinics, aggregate medical/invoice per clinic, tính KPI/chart/ranking |
+| `src/hooks/admin/useAdminRevenue.js` | Hook: state management, period filter (today/week/month/year), clinic search, cache |
+| `src/pages/admin/Dashboard/Revenue/index.jsx` | Trang chính Admin Revenue Dashboard |
+| `src/pages/admin/Dashboard/Revenue/adminRevenue.module.css` | CSS Module, dùng admin color tokens |
+| `src/pages/admin/Dashboard/Revenue/components/AdminRevenueKPICards.jsx` | 4 KPI cards tổng hệ thống |
+| `src/pages/admin/Dashboard/Revenue/components/AdminRevenueChart.jsx` | Area chart doanh thu theo ngày (recharts) |
+| `src/pages/admin/Dashboard/Revenue/components/ClinicRevenueRankingTable.jsx` | Bảng xếp hạng phòng khám theo doanh thu, có search |
+| `src/pages/admin/Dashboard/Revenue/components/AdminRecentInvoicesTable.jsx` | Bảng hóa đơn gần đây toàn hệ thống, có filter PAID/UNPAID |
+
+**Files đã sửa:**
+
+| File | Thay đổi |
+|---|---|
+| `src/routes/AppRoutes.jsx` | Thêm route `/admin/dashboard/revenue` |
+| `src/layouts/admin/AdminLayout.jsx` | Thêm menu item "Doanh thu hệ thống" (icon `DollarOutlined`) |
+| `src/styles/admin/colorsToken.css` | Thêm 8 token `--admin-revenue-*` cho dashboard |
+| `src/locales/admin/vi.json` | Thêm block `revenue.*` (~50 keys) |
+| `src/locales/admin/en.json` | Thêm block `revenue.*` (~50 keys) |
+
+**Tái sử dụng từ codebase:**
+- `formatVND()` từ `src/utils/currencyFormat.js` — không tạo lại.
+- `formatDateDDMMYYYY()` từ `src/utils/dateTimeFormat.js`.
+- `recharts` (Area chart) — cùng thư viện chart với Clinic Revenue.
+- `getAdminInstance()` từ `src/services/apiClient.js`.
+- `INVOICE_STATUS` từ `src/services/invoiceService.js`.
+
+**⚠️ BE cần bổ sung để dashboard hoạt động đầy đủ:**
+1. Thêm `ADMIN` vào `@RequiredRole` của `GET /invoice/:medicalRecordId` (hoặc tạo endpoint mới)
+2. Tạo endpoint mới `GET /medical/admin?clinicId=xxx` cho ADMIN (vì `/medical/clinic` dùng `req.user.clinicId` từ JWT)
+3. Hoặc tốt hơn: tạo aggregate API trong Revenue module (`GET /revenue/system`, `GET /revenue/clinics`)
+
+**Build:** `npx vite build` → built in ~24s, 0 error.
+
+### Cập nhật bổ sung (2026-04-16) — Tinh chỉnh UI/UX Booking, AddPet, Choose-clinic, Forum, ChatBot AI
+
+**1) BookingAppointment — mapping Service -> Specialty, lọc bác sĩ theo dịch vụ, hiển thị chuyên khoa rõ hơn**
+- Bổ sung `SERVICE_TO_SPECIALTY_MAP` trực tiếp trong `src/constants/enumLabels.js`.
+  - Map service sang veterinary specialty theo enum hiện tại của dự án.
+  - Có thêm alias key để tương thích khi backend trả biến thể service khác.
+- `src/pages/client/User/BookingAppointment/index.jsx`:
+  - Khi đổi dịch vụ, set lại specialty filter và reset bác sĩ đã chọn.
+  - Gọi `getVeterinarianByClinicApi(..., specialty)` để chỉ lấy danh sách bác sĩ đúng chuyên khoa tương ứng dịch vụ.
+  - Dropdown bác sĩ tiếp tục hiển thị 2 dòng (tên + chuyên khoa), có thêm trạng thái loading khi fetch.
+  - Khi đã chọn bác sĩ, hiển thị thêm badge chuyên khoa ngay dưới Select để người dùng xác nhận nhanh.
+  - Field `Triệu chứng` bật required mark chuẩn của AntD + giữ validation chặn input chỉ chứa khoảng trắng.
+- `src/pages/client/User/BookingAppointment/styles.css`:
+  - Tinh chỉnh toàn bộ UI khối chọn ngày/giờ theo style card/pill giống mock: day-pill bo góc, hiệu ứng glow khi chọn ngày, slot giờ dạng card với state hover/selected/disabled rõ ràng.
+  - Chỉ thay đổi presentation/UI, không đổi logic tính ngày quá khứ, lead-time 3 giờ, hay availability.
+
+**2) AddPet — dấu * đứng trước label bắt buộc**
+- `src/pages/client/User/AddPet/index.jsx`:
+  - Đổi helper label required từ dạng `Tên *` sang `* Tên`.
+- `src/pages/client/User/AddPet/styles.css`:
+  - Đổi spacing của `.required-mark` sang `margin-right` để dấu sao hiển thị đúng vị trí phía trước.
+
+**3) Choose-clinic — format số điện thoại dạng 0979 387 171**
+- `src/pages/client/Home/ClinicSelection/index.jsx`:
+  - Khai báo helper `formatPhoneVN(phone)` ngay trong file.
+  - Chuẩn hóa về digits, format nhóm `4-3-3` khi đủ 10 số, fallback giữ nguyên đầu vào nếu không đủ điều kiện format.
+  - Áp dụng `formatPhoneVN` khi render số điện thoại trên card phòng khám.
+  - Bổ sung fallback dữ liệu phone từ local clinic content nếu field chính không có.
+
+**4) Forum — đổi ngôn ngữ không còn giật page**
+- `src/pages/client/User/Forum/forum.jsx`:
+  - Tách dependency i18n khỏi effect fetch dữ liệu ban đầu: chỉ fetch topics/posts khi mount lần đầu.
+  - Khi đổi ngôn ngữ: remap lại label/time ngay trên state hiện có (không refetch API) để tránh nháy feed.
+  - Thêm cơ chế lưu và restore `scrollTop` của feed container khi language change, giúp giữ nguyên vị trí đọc.
+
+**5) ChatBot AI — TypingIndicator thay cho text "Đang trả lời..."**
+- `src/pages/client/Home/ChatBotAI/MessageBox.jsx`:
+  - Khai báo `TypingIndicator` ngay trong file MessageBox (không tách file riêng).
+  - UI 3 chấm nhấp nhô (CSS animation thuần, không thêm thư viện).
+  - Thay loading bubble text cũ bằng TypingIndicator + avatar robot trong lúc chờ token đầu tiên.
+  - Giữ nguyên state `isAiLoading` / `isAiWaitingFirstToken` và luồng socket hiện hữu.
+- `src/pages/client/Home/ChatBotAI/styles.css`:
+  - Bổ sung class `.typing-indicator`, `.typing-indicator-dot`, `.typing-avatar` và keyframes `typing-bounce`.
 
 ### Cập nhật bổ sung (2026-04-14) — Fix Icon Chuông, Báo cáo bài viết, Notification Like/Comment UI
 - Notification bell badge (Client/Admin/Clinic/Veterinarian):
@@ -1468,6 +2186,35 @@ createdAt:   Date (auto)
 All API service files live in `services/` with pattern `{domain}Service.js`.
 `notificationService.js` hiện là service API chuẩn cho notification backend (không còn tổng hợp từ appointment/forum ở FE).
 
+### Cập nhật bổ sung (2026-04-16) — Tích hợp API Clinic Homepage Setting
+
+**Feature:** Kết nối trang chỉnh sửa và trang chủ phòng khám với BE API thay vì chỉ dùng localStorage.
+
+**BE Entity:** `clinic_homepage_setting`
+- `clinicId` (UUID, PK) — ID phòng khám
+- `settings` (JSONB) — toàn bộ nội dung trang chủ dạng structured JSON (hero, about, gallery, team, location, services, community...)
+- `createdAt` (timestamp)
+
+**API Endpoints:**
+- `GET /clinic-homepage-setting/:clinicId` — Lấy setting (roles: ADMIN_CLINIC, CUSTOMER, VETERINARIAN)
+- `PUT /clinic-homepage-setting` — Cập nhật setting (role: ADMIN_CLINIC only), clinicId lấy từ JWT token. Body: `{ settings: "<JSON string>" }` (validate `@IsJSON()`).
+
+**Luồng hoạt động:**
+1. Admin vào trang editor (`/clinic/editor/:clinicId`) → FE gọi GET API → populate form → fallback localStorage nếu API lỗi/404.
+2. Admin chỉnh sửa các section → nhấn "Lưu thay đổi" → FE gọi PUT API với `{ settings: JSON.stringify(contentObj) }` → đồng thời cache vào localStorage.
+3. User/Customer truy cập trang chủ phòng khám (`/clinic/:clinicId`) → FE gọi GET API → render nội dung → fallback localStorage/default nếu API lỗi.
+
+**Xử lý nội dung:** Content là structured JSON, render qua React components (không dùng `dangerouslySetInnerHTML`). Không cần DOMPurify hay rich text editor.
+
+**Files liên quan:**
+- `src/services/clinicHomepageSettingService.js` — Service layer cho GET/PUT API
+- `src/pages/Clinic/ClinicPortalEditor/HomePageEditorTab.jsx` — Editor trang chủ (đã tích hợp API)
+- `src/pages/client/Home/HomePageClinic/index.jsx` — Trang chủ public (đã tích hợp API)
+- `src/utils/storage/clinicHomeStorage.js` — LocalStorage cache layer (thêm `cacheClinicHomeContent()`)
+- `src/config/homePageClinicContent.js` — Default content & builder function
+
+**Lưu ý BE:** GET endpoint yêu cầu JWT auth — user chưa đăng nhập không xem được. FE xử lý bằng fallback default content.
+
 ## Backlog ưu tiên đề xuất (Web)
 1. ~~Chuẩn hóa HTTP layer: gom toàn bộ fetch wrapper về Axios instance.~~ ✓ Đã hoàn thành — toàn bộ API tập trung trong `src/services/`, chỉ Cloudinary upload dùng native `fetch()`.
 2. Thêm `ProtectedRoute` cho client/admin/veterinarian để chặn route sớm.
@@ -1479,3 +2226,85 @@ All API service files live in `services/` with pattern `{domain}Service.js`.
 8. Tạo enum `clinic-status.enum.ts` khi backend xác nhận giá trị trạng thái phòng khám.
 9. Hoàn thiện trang super admin còn lại: Overview.
 10. Tạo auth context riêng cho super admin (hiện dùng chung `adminClinic/AuthContext`).
+
+### Cập nhật (2026-04-23) — Tố cáo bài viết/bình luận trên Web (Report Post/Comment)
+
+**Phạm vi:**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/client/User/Forum/forum.module.css`
+
+**Yêu cầu:**
+- Port tính năng tố cáo từ Mobile Flutter lên Web, giao diện tương đương.
+- Tố cáo bài viết người khác: chọn lý do preset (6 lý do) + mô tả thêm tùy chọn.
+- Tố cáo bình luận người khác: cùng UX (trước đây chỉ có textarea free-text).
+- Chặn tố cáo lặp cùng post/comment trong một phiên.
+- Fix text "Báo cáo bài viết" bị xuống hàng trong post menu.
+
+**Phân tích & tự phản biện:**
+- Phương án A (tracking "đã tố cáo") — `useState + Set` vs `useRef + Set`:
+  - `useState`: khi add vào Set sẽ không trigger re-render vì Set là mutation (cần spread mới) → dùng sai.
+  - `useRef` (đã chọn): không cần re-render, chỉ cần check trước khi mở modal → đúng use-case.
+- Phương án B (cấu trúc lý do tố cáo) — align với Mobile vs giữ nguyên:
+  - Web cũ có 4 lý do (spam, inappropriate, misleading, other) → không khớp Mobile (spam, offensive, harassment, misinformation, violence, other).
+  - Quyết định: align với Mobile — 6 lý do, value uppercase (SPAM, OFFENSIVE, ...) để admin đọc report đồng nhất.
+  - Tạo 1 `reportReasonOptions` dùng chung cho cả post và comment (DRY).
+- Phương án C (comment report modal) — giữ textarea vs thêm Select:
+  - Textarea free-text: user không biết gõ gì, không nhất quán với post modal.
+  - Select + optional textarea (đã chọn): nhất quán với post modal, nhất quán với Mobile.
+- Phương án D (CSS text-wrap) — `white-space: nowrap` vs tăng `min-width`:
+  - Tăng `min-width`: có thể bị tràn trên màn nhỏ.
+  - `white-space: nowrap` (đã chọn): đúng nguyên nhân gốc, text menu không bao giờ bị wrap, an toàn hơn.
+
+**Thay đổi đã triển khai:**
+
+*forum.module.css:*
+- `.postMenuItem`: thêm `white-space: nowrap` → fix text bị xuống hàng.
+
+*forum.jsx:*
+- Thêm state: `commentReportReason`, `commentReportDetail` (Select + optional textarea cho comment modal).
+- Thêm ref: `reportedPostIds` (`useRef(new Set())`), `reportedCommentIds` (`useRef(new Set())`).
+- Refactor `postReportReasonOptions` → `reportReasonOptions` dùng chung, 6 lý do align Mobile (value uppercase).
+- `handleStartReportPost`: check `reportedPostIds.current.has(postId)` trước khi mở modal → show `message.warning` nếu đã tố cáo.
+- `handleSubmitPostReport`: sau khi submit thành công → `reportedPostIds.current.add(postId)`.
+- `handleCommentAction` (branch 'report'): check `reportedCommentIds.current.has(commentId)` → show warning nếu đã tố cáo; reset `commentReportReason` và `commentReportDetail` khi mở modal.
+- `handleSubmitCommentReport`: validate `commentReportReason` (Select), build payload `{reason, detail}`, fallback generic endpoint cùng pattern post, mark `reportedCommentIds.current.add(commentId)` sau khi thành công.
+- `closeReportModal`: reset `commentReportReason` + `commentReportDetail`.
+- Comment report modal UI: thêm `<Select>` chọn lý do + `<textarea>` mô tả thêm (tùy chọn), title đặt đúng qua prop `title` của Modal (bỏ `<h3>` inline + `style textAlign: center`), `okButtonProps.disabled` check `commentReportReason`.
+
+**Ghi chú kiến trúc:**
+- Tracking "đã tố cáo" là in-memory (reset khi reload page). BE không validate duplicate → đây là UX safeguard phía FE, giống Mobile.
+- `forumReportService.js` không thay đổi — fallback chain (endpoint theo post/comment → generic POST /report) vẫn hoạt động.
+- Không động BE, không động các forum role khác (AdminForum, ClinicForum, VetForum) — chỉ `client/User/Forum/forum.jsx`.
+
+---
+
+## Fix: Geolocation lấy sai tọa độ + Booking Page 404
+
+**Bối cảnh:**
+- Lỗi 1: User cấp quyền vị trí, nhưng nearby clinic list sort sai vì tọa độ truyền vào API không đúng.
+- Lỗi 2: Mở `/booking` từ một số entry point → console báo `GET /api/clinic/{id}` 404.
+
+**Root cause Lỗi 1 — Geolocation:**
+- `useUserLocation.js` gọi `navigator.geolocation.getCurrentPosition()` với `enableHighAccuracy: false`.
+- Browser khi `enableHighAccuracy: false` ưu tiên IP-based geolocation (vị trí ISP/datacenter) thay vì GPS/WiFi triangulation → tọa độ trả về có thể lệch hàng chục–trăm km so với vị trí thật của user.
+- State `lat/lon` đúng là tọa độ "thật" do browser trả về, nhưng nguồn dữ liệu (IP) sai bản chất.
+
+**Root cause Lỗi 2 — Booking 404:**
+- `BookingAppointment` seed `preselectedClinicId` ưu tiên `location.state.selectedClinicId`, fallback `sessionStorage.getItem('selectedClinicId')`.
+- Một số entry point navigate sang `/booking` mà KHÔNG truyền state (`AppointmentDetail.handleBookingNew`, `MedicalRecords` truyền chỉ `service`) → fallback sang sessionStorage.
+- sessionStorage có thể giữ ID stale (clinic đã xoá / DB seed reset) từ session cũ → form clinicId = stale ID.
+- useEffect cũ trigger `fetchClinicById(clinicId)` ngay khi clinicId đổi, KHÔNG đợi `clinics` list load và KHÔNG validate ID có thuộc list → BE 404 với clinic không tồn tại.
+
+**Thay đổi đã triển khai:**
+
+*FE/Web/client/src/hooks/client/useUserLocation.js:*
+- Đổi `enableHighAccuracy: false` → `true` trong options của `getCurrentPosition` → dùng GPS/WiFi triangulation cho tọa độ chính xác.
+
+*FE/Web/client/src/pages/client/User/BookingAppointment/index.jsx:*
+- useEffect seed `clinicId` từ `preselectedClinicId`: thêm gate `clinics.length === 0` + validate preselected nằm trong list trước khi `setFieldValue` → tránh đẩy ID stale vào form quá sớm.
+- useEffect fetch doctor + clinic detail: thêm gate chờ `clinics` load. Nếu `clinicId` không thuộc nearby list → clear `sessionStorage.selectedClinicId` (nếu match) + fallback `form.clinicId = clinics[0].id` thay vì gọi `GET /clinic/:id` với ID lỗi → 404.
+
+**Lưu ý kiến trúc:**
+- Web Geolocation API: property name là `coords.latitude` / `coords.longitude` (không phải `lat`/`lon`); `enableHighAccuracy: true` trên HTTPS hoặc localhost mới hoạt động — HTTP non-localhost browser block hoàn toàn API.
+- Guard pattern cho `clinicId` trong booking flow: bất kỳ effect nào dùng clinicId để gọi API chi tiết phải gate trên `clinics.length > 0` + kiểm tra ID thuộc list, vì clinicId có thể đến từ sessionStorage stale.
+- Không động BE — không cần (root cause đều ở FE).

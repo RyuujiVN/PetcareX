@@ -2,18 +2,53 @@ class PetMedicalRecordSummary {
   final String id;
   final String name;
   final DateTime? createdAt;
+  final String? clinicId;
+  final String? clinicName;
+  final bool isReview;
 
   const PetMedicalRecordSummary({
     required this.id,
     required this.name,
     required this.createdAt,
+    this.clinicId,
+    this.clinicName,
+    this.isReview = false,
   });
 
   factory PetMedicalRecordSummary.fromJson(Map<String, dynamic> json) {
+    final clinic = json['clinic'];
+    String? clinicId;
+    String? clinicName;
+    if (clinic is Map<String, dynamic>) {
+      clinicId = clinic['id']?.toString();
+      clinicName = clinic['name']?.toString();
+    }
+
     return PetMedicalRecordSummary(
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
+      clinicId: clinicId,
+      clinicName: clinicName,
+      isReview: json['isReview'] == true,
+    );
+  }
+
+  PetMedicalRecordSummary copyWith({
+    String? id,
+    String? name,
+    DateTime? createdAt,
+    String? clinicId,
+    String? clinicName,
+    bool? isReview,
+  }) {
+    return PetMedicalRecordSummary(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      createdAt: createdAt ?? this.createdAt,
+      clinicId: clinicId ?? this.clinicId,
+      clinicName: clinicName ?? this.clinicName,
+      isReview: isReview ?? this.isReview,
     );
   }
 }

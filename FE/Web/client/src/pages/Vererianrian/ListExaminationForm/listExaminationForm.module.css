@@ -194,6 +194,14 @@
 	background: var(--vet-color-surface-card);
 }
 
+.listTabs {
+	padding: 0 16px;
+}
+
+.listTabs :global(.ant-tabs-nav) {
+	margin-bottom: 0;
+}
+
 @media (max-width: 992px) {
 
 	.tablePanelHeader {

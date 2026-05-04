@@ -70,6 +70,10 @@
         "forumLikeTitle": "{{name}} đã thích bài viết của bạn",
         "forumCommentTitle": "{{name}} đã bình luận bài viết của bạn",
         "forumReplyTitle": "{{name}} đã trả lời bình luận của bạn",
+        "reportTitle": "Có báo cáo mới về {{targetType}}",
+        "reportDescription": "{{name}} đã gửi báo cáo cần xử lý.",
+        "reportTargetPost": "bài viết",
+        "reportTargetComment": "bình luận",
         "forumActionLike": "đã thích bài viết của bạn",
         "forumActionComment": "đã bình luận bài viết của bạn",
         "forumActionReply": "đã trả lời bình luận của bạn",
@@ -507,10 +511,13 @@
         "title": "Chọn phòng khám phù hợp",
         "searchPlaceholder": "Tìm kiếm theo tên",
         "chooseButton": "Chọn",
+        "ratingBadgeFallback": "Mới",
         "reviewCount": "đánh giá",
         "noReview": "Chưa có đánh giá",
         "loadListFailed": "Không thể tải danh sách phòng khám",
-        "loadDetailFailed": "Không thể tải chi tiết phòng khám"
+        "loadDetailFailed": "Không thể tải chi tiết phòng khám",
+        "locationFallbackNotice": "Đang hiển thị phòng khám gần {{city}} (vị trí mặc định).",
+        "locationFallbackAction": "Cho phép vị trí của tôi"
       },
       "homePageClinic": {
         "mapIframeTitle": "Google Maps địa chỉ phòng khám",
@@ -519,7 +526,7 @@
         "aboutLabel": "Giới thiệu",
         "featuresTitle": "Mọi thứ mà người bạn nhỏ của bạn cần",
         "reviewSection": {
-          "title": "Đánh giá từ khách hàng",
+          "title": "ĐÁNH GIÁ TỪ KHÁCH HÀNG",
           "subtitle": "Những trải nghiệm thực tế từ khách hàng đã sử dụng dịch vụ tại phòng khám.",
           "totalReviews": "{{count}} lượt đánh giá",
           "noReviewYet": "Chưa có đánh giá nào",
@@ -666,7 +673,9 @@
       "form": {
         "serviceLabel": "Chọn dịch vụ",
         "clinicLabel": "Phòng khám gần bạn",
-        "symptomPlaceholder": "Ghi triệu chứng của thú cưng"
+        "symptomPlaceholder": "Ghi triệu chứng của thú cưng",
+        "locationFallbackNotice": "Đang tính khoảng cách từ {{city}} (vị trí mặc định).",
+        "locationFallbackAction": "Cho phép vị trí của tôi"
       },
       "validation": {
         "petRequired": "Vui lòng chọn thú cưng",
@@ -684,6 +693,12 @@
       "noSlotsByLeadTime": "Không có khung giờ hợp lệ (cần đặt trước {{hours}} tiếng)",
       "notSelectedDoctor": "Chưa chọn bác sĩ",
       "noSpecialty": "Chưa có chuyên môn",
+      "doctorDetail": {
+        "specialty": "Chuyên khoa:",
+        "experience": "Kinh nghiệm:",
+        "description": "Giới thiệu:",
+        "years": "năm"
+      },
       "calendar": {
         "monthLabel": "Tháng {{month}}, {{year}}",
         "days": {
@@ -1040,6 +1055,8 @@
       "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
       "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
       "reportPostFailed": "Không thể gửi báo cáo bài viết. Vui lòng thử lại.",
+      "reportCommentSuccess": "Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.",
+      "reportCommentFailed": "Không thể gửi báo cáo bình luận. Vui lòng thử lại.",
       "reportModalTitle": "TỐ CÁO BÌNH LUẬN",
       "reportCommentBy": "Bạn đang tố cáo bình luận của {{name}}",
       "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.",
@@ -1076,6 +1093,14 @@
         "all": "Tất cả chủ đề",
         "none": "Không có chủ đề"
       },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "Tìm thấy {{count}} bài viết",
+        "emptyTitle": "Không tìm thấy bài viết nào cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
+      },
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
       },
@@ -1109,6 +1134,7 @@
         "commentOptionsAria": "Tùy chọn bình luận",
         "reportComment": "Tố cáo bình luận",
         "reportPost": "Báo cáo bài viết",
+        "deleteAdmin": "Xóa (Admin)",
         "submitReport": "Gửi tố cáo",
         "removeImage": "Gỡ ảnh",
         "image": "Ảnh",
