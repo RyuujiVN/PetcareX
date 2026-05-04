@@ -264,7 +264,7 @@
       "allDataLoaded": "All data loaded"
     },
     "pagination": {
-      "summary": "Showing {{filtered}} / {{loaded}} loaded posts"
+      "summary": "Showing {{start}}-{{end}} of {{total}} posts"
     },
     "messages": {
       "fetchFailed": "Unable to load post list",

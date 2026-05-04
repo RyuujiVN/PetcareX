@@ -178,18 +178,6 @@ export default function BookingAppointment() {
 
   const needsTruncate = (text, limit = TRUNCATE_LIMIT) => Boolean(text && text.length > limit);
 
-  const bookingHeaderStyle = useMemo(() => {
-    const avatarUrl = String(userProfile?.avatarUrl || '').trim();
-    if (!avatarUrl) return undefined;
-
-    return {
-      backgroundImage: ` linear-gradient(180deg, rgba(8, 20, 48, 0.2) 0%, rgba(43, 40, 40, 0.75) 100%),url("${avatarUrl}")`,
-      backgroundPosition: 'top',
-      backgroundSize: 'cover',
-      backgroundRepeat: 'no-repeat',
-    };
-  }, [userProfile?.avatarUrl]);
-
   const unavailableTimes = useMemo(() => {
     if (!selectedDoctor || !selectedDate) {
       return new Set();
@@ -558,7 +546,7 @@ export default function BookingAppointment() {
         new Error(
           t('pages.booking.validation.minLeadTime', {
             hours: BOOKING_MIN_LEAD_HOURS,
-            defaultValue: `Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng`,
+            defaultValue: `Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng!`,
           }),
         ),
       );
@@ -569,6 +557,13 @@ export default function BookingAppointment() {
     }
 
     return Promise.resolve();
+  };
+
+  const showFirstValidationError = (error) => {
+    const firstMessage = error?.errorFields?.[0]?.errors?.[0];
+    if (firstMessage) {
+      message.warning(firstMessage);
+    }
   };
 
   const handleOpenSummary = async () => {
@@ -586,7 +581,8 @@ export default function BookingAppointment() {
         'selectedDate',
         'selectedTime',
       ]);
-    } catch {
+    } catch (error) {
+      showFirstValidationError(error);
       return;
     }
 
@@ -609,7 +605,8 @@ export default function BookingAppointment() {
         'selectedDate',
         'selectedTime',
       ]);
-    } catch {
+    } catch (error) {
+      showFirstValidationError(error);
       return;
     }
 
@@ -650,7 +647,7 @@ export default function BookingAppointment() {
 
   return (
     <div className="booking-page">
-      <header className="dashboard-header" style={bookingHeaderStyle}>
+      <header className="dashboard-header">
         <h1 style={{marginRight: '46%', paddingTop: 30}}>{t('pages.booking.greeting', { name: userProfile?.fullName || t('pages.booking.defaultUserName') })}</h1>
         <p style={{marginRight: '48%', paddingTop: 20}}>{t('pages.booking.subtitle')}</p>
       </header>
@@ -1086,9 +1083,27 @@ export default function BookingAppointment() {
                               key={timeValue}
                               className={`slot ${selectedTime === timeValue ? 'selected' : ''} ${disabled ? 'disabled-slot' : ''}`}
                               onClick={() => {
-                                if (!disabled) {
-                                  form.setFieldValue('selectedTime', timeValue);
+                                if (isBlockedByLeadTime) {
+                                  message.warning(
+                                    t('pages.booking.validation.minLeadTime', {
+                                      hours: BOOKING_MIN_LEAD_HOURS,
+                                      defaultValue: `Bạn cần đặt lịch trước ít nhất ${BOOKING_MIN_LEAD_HOURS} tiếng!`,
+                                    }),
+                                  );
+                                  return;
                                 }
+
+                                if (inPast) {
+                                  message.warning(t('pages.booking.validation.dateInPast'));
+                                  return;
+                                }
+
+                                if (isBooked) {
+                                  message.warning(t('pages.booking.validation.timeUnavailable'));
+                                  return;
+                                }
+
+                                form.setFieldValue('selectedTime', timeValue);
                               }}
                             >
                               {timeValue}

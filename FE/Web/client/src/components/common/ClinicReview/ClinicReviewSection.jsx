@@ -12,7 +12,8 @@ import ClinicReviewForm from './ClinicReviewForm'
 import ClinicReviewList from './ClinicReviewList'
 import styles from './ClinicReviewSection.module.css'
 
-const PAGE_SIZE = 5
+const DEFAULT_PAGE_SIZE = 5
+const CAROUSEL_PAGE_SIZE = 12
 
 const extractItems = (payload) => {
   if (Array.isArray(payload?.items)) return payload.items
@@ -33,6 +34,7 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
   const { userProfile, token } = useAuth()
   const locale = i18n.language === 'en' ? 'en-US' : 'vi-VN'
   const isLoggedIn = Boolean(token)
+  const pageSize = showForm ? DEFAULT_PAGE_SIZE : CAROUSEL_PAGE_SIZE
 
   const [clinicSummary, setClinicSummary] = useState({ avgRating: 0, totalReviews: 0 })
   const [reviews, setReviews] = useState([])
@@ -46,7 +48,7 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
 
   // Load summary (clinic.avgRating + totalReviews) từ BE.
   const loadClinicSummary = useCallback(async () => {
-    if (!clinicId) return
+    if (!clinicId || !showForm) return
     try {
       const clinic = await getClinicByIdApi(getClientInstance(), clinicId)
       if (!clinic) return
@@ -57,7 +59,7 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
     } catch {
       // Giữ state cũ nếu fail — summary chỉ là hiển thị phụ.
     }
-  }, [clinicId])
+  }, [clinicId, showForm])
 
   // Load danh sách review (paginated).
   const loadReviews = useCallback(
@@ -71,7 +73,7 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
           getClientInstance(),
           clinicId,
           targetPage,
-          PAGE_SIZE,
+          pageSize,
         )
         const items = extractItems(payload)
         const meta = payload?.meta || {}
@@ -87,7 +89,7 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
         setLoadingMore(false)
       }
     },
-    [clinicId],
+    [clinicId, pageSize],
   )
 
   // Tìm các medical record của user đã hoàn thành tại clinic này và chưa review.
@@ -178,10 +180,12 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
           </p>
         </div>
 
-        <ClinicRatingSummary
-          avgRating={clinicSummary.avgRating}
-          totalReviews={clinicSummary.totalReviews}
-        />
+        {showForm ? (
+          <ClinicRatingSummary
+            avgRating={clinicSummary.avgRating}
+            totalReviews={clinicSummary.totalReviews}
+          />
+        ) : null}
 
         {showForm ? (
           <ClinicReviewForm
@@ -199,6 +203,7 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
           hasMore={hasMore}
           onLoadMore={handleLoadMore}
           loadingMore={loadingMore}
+          carousel={!showForm}
         />
       </div>
     </section>

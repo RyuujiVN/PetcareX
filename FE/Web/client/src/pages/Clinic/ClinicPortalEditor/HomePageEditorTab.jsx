@@ -36,7 +36,6 @@ export default function HomePageClinicEditor() {
   const navigate = useNavigate();
   const { userProfile } = useAuth();
   const [draftContent, setDraftContent] = useState(() => getClinicHomeContent(clinicIdParam));
-  const [savedContent, setSavedContent] = useState(() => getClinicHomeContent(clinicIdParam));
   const [saving, setSaving] = useState(false);
   const [loadingInit, setLoadingInit] = useState(true);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -65,19 +64,16 @@ export default function HomePageClinicEditor() {
           const nextContent = buildClinicHomeContent(parsed);
           cacheClinicHomeContent(targetClinicId, nextContent);
           setDraftContent(nextContent);
-          setSavedContent(nextContent);
         } else {
           // Phòng khám mới chưa có setting → dùng default content
           const nextContent = getClinicHomeContent(targetClinicId);
           setDraftContent(nextContent);
-          setSavedContent(nextContent);
         }
       })
       .catch(() => {
         if (cancelled) return;
         const nextContent = getClinicHomeContent(targetClinicId);
         setDraftContent(nextContent);
-        setSavedContent(nextContent);
       })
       .finally(() => {
         if (!cancelled) setLoadingInit(false);
@@ -95,11 +91,6 @@ export default function HomePageClinicEditor() {
       navigate('/clinic/appointments', { replace: true });
     }
   }, [currentClinicId, navigate, t, targetClinicId]);
-
-  const isDirty = useMemo(
-    () => JSON.stringify(draftContent) !== JSON.stringify(savedContent),
-    [draftContent, savedContent],
-  );
 
   const updateNestedField = (section, field, value) => {
     setDraftContent((prev) => ({
@@ -317,17 +308,12 @@ export default function HomePageClinicEditor() {
       const normalized = cloneContent(draftContent);
       await updateClinicHomepageSettingApi(getAdminInstance(), normalized);
       saveClinicHomeContent(targetClinicId, normalized);
-      setSavedContent(normalized);
       message.success(t('homeEditor.messages.saveSuccess'));
     } catch (error) {
       message.error(error?.message || t('homeEditor.messages.saveFailed', { defaultValue: 'Lưu thất bại. Vui lòng thử lại.' }));
     } finally {
       setSaving(false);
     }
-  };
-
-  const discardAndExit = () => {
-    navigate('/clinic/appointments');
   };
 
   // const handleCancel = () => {
@@ -374,28 +360,23 @@ export default function HomePageClinicEditor() {
               placeholder={t('homeEditor.placeholders.heroCtaText')}
             />
 
-            <Space.Compact className="editor-image-input-row">
-              <Input
-                value={draftContent.hero.bannerImage || ''}
-                onChange={(event) => updateNestedField('hero', 'bannerImage', event.target.value)}
-                placeholder={t('homeEditor.placeholders.heroBannerImage')}
-              />
-
-              {/* Upload Photo Banner */}
-              <Upload
-                showUploadList={false}
-                beforeUpload={(file) => {
-                  handleImageUpload(file, 'hero-banner', (imageUrl) => {
-                    updateNestedField('hero', 'bannerImage', imageUrl);
-                  });
-                  return false;
-                }}
+            <Upload
+              showUploadList={false}
+              beforeUpload={(file) => {
+                handleImageUpload(file, 'hero-banner', (imageUrl) => {
+                  updateNestedField('hero', 'bannerImage', imageUrl);
+                });
+                return false;
+              }}
+            >
+              <Button
+                icon={<UploadOutlined />}
+                disabled={Boolean(uploadingField) && !isFieldUploading('hero-banner')}
+                style={{ color: '#4672b4' }}
               >
-                <Button icon={<UploadOutlined />} style={{color: "#4672b4"}}>
-                  {t('homeEditor.actions.uploadImage')}
-                </Button>
-              </Upload>
-            </Space.Compact>
+                <span>{isFieldUploading('hero-banner') ? t('homeEditor.actions.uploading') : t('homeEditor.actions.uploadImage')}</span>
+              </Button>
+            </Upload>
 
             {draftContent.hero.bannerImage ? (
               <img src={draftContent.hero.bannerImage} alt={t('homeEditor.alt.heroBanner')} className="editor-image-preview editor-banner-preview" />
@@ -532,29 +513,23 @@ export default function HomePageClinicEditor() {
                     onChange={(event) => updateListField('doctors', index, 'name', event.target.value)}
                     placeholder={t('homeEditor.placeholders.doctorName')}
                   />
-                  <Space.Compact className="editor-image-input-row">
-                    <Input
-                      value={doctor.image}
-                      onChange={(event) => updateListField('doctors', index, 'image', event.target.value)}
-                      placeholder={t('homeEditor.placeholders.doctorImage')}
-                    />
-
-                    {/* Upload Image for Doctor */}
-                    <Upload
-                      showUploadList={false}
-                      beforeUpload={(file) => { 
-                        handleImageUpload(file, `doctor-image-${index}`, (imageUrl) => {  
-                          updateListField('doctors', index, 'image', imageUrl);
-                        });
-                        return false;
-                      } 
-                      }
+                  <Upload
+                    showUploadList={false}
+                    beforeUpload={(file) => {
+                      handleImageUpload(file, `doctor-image-${index}`, (imageUrl) => {
+                        updateListField('doctors', index, 'image', imageUrl);
+                      });
+                      return false;
+                    }}
+                  >
+                    <Button
+                      icon={<UploadOutlined />}
+                      disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)}
+                      style={{ color: '#4672b4' }}
                     >
-                      <Button icon={<UploadOutlined />} disabled={Boolean(uploadingField) && !isFieldUploading(`doctor-image-${index}`)} style={{color: "#4672b4"}}>
-                        <span>{isFieldUploading(`doctor-image-${index}`) ? t('homeEditor.actions.uploading') : t('homeEditor.actions.uploadImage')}</span>
-                      </Button>
-                    </Upload>
-                  </Space.Compact>
+                      <span>{isFieldUploading(`doctor-image-${index}`) ? t('homeEditor.actions.uploading') : t('homeEditor.actions.uploadImage')}</span>
+                    </Button>
+                  </Upload>
 
                   {doctor.image ? (
                     <div className="editor-image-preview-wrapper">

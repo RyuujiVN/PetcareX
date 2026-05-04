@@ -1258,7 +1258,7 @@ export default function RecordExaminationForm() {
 			return
 		}
 
-		if (!/^\d{10}$/.test(normalizedPhone)) {
+		if (!/^0\d{9}$/.test(normalizedPhone)) {
 			message.error(t('examForm.record.messages.phoneFormatError'))
 			return
 		}
@@ -1437,7 +1437,7 @@ export default function RecordExaminationForm() {
 				throw new Error(t('examForm.record.messages.vitalRequiredError'))
 			}
 
-			if (!/^\d{10}$/.test(resolvedPhone)) {
+			if (!/^0\d{9}$/.test(resolvedPhone)) {
 				form.setFields([
 					{
 						name: 'phone',
@@ -1691,7 +1691,7 @@ export default function RecordExaminationForm() {
 														validateTrigger={['onBlur', 'onSubmit']}
 														rules={[
 															{ required: true, message: t('examForm.record.validation.phoneRequired') },
-															{ pattern: /^\d{10}$/, message: t('examForm.record.validation.phoneFormat') },
+															{ pattern: /^0\d{9}$/, message: t('examForm.record.validation.phoneFormat') },
 														]}
 													>
 														<Input
@@ -1873,10 +1873,17 @@ export default function RecordExaminationForm() {
 									name="phone"
 									rules={isWalkIn ? [
 										{ required: true, message: t('examForm.record.validation.phoneRequired') },
-										{ pattern: /^\d{10}$/, message: t('examForm.record.validation.phoneFormat') },
+										{ pattern: /^0\d{9}$/, message: t('examForm.record.validation.phoneFormat') },
 									] : []}
 								>
-									<Input placeholder={t('examForm.record.placeholders.phone')} />
+										<Input
+											maxLength={10}
+											placeholder={t('examForm.record.placeholders.phone')}
+											onChange={(event) => {
+												const next = String(event?.target?.value || '').replace(/\D/g, '').slice(0, 10)
+												form.setFieldValue('phone', next)
+											}}
+										/>
 								</Form.Item>
 							</Col>
 

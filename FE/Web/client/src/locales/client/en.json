@@ -533,6 +533,11 @@
           "noReviewYet": "No reviews yet",
           "emptyList": "No reviews for this clinic yet.",
           "loadMore": "Load more reviews",
+          "showMore": "Read more",
+          "showLess": "Show less",
+          "scrollHint": "Swipe left/right to view more reviews",
+          "previousAria": "View previous review",
+          "nextAria": "View next review",
           "anonymousReviewer": "Anonymous user",
           "loginHint": "Please log in to submit a review.",
           "loginCTA": "Log in now",
@@ -689,7 +694,7 @@
         "timeRequired": "Please choose an appointment time",
         "selectDateFirst": "Please choose a date first",
         "timeUnavailable": "This time slot is unavailable, please choose another",
-        "minLeadTime": "You must book at least {{hours}} hours in advance"
+        "minLeadTime": "You must book at least {{hours}} hours in advance!"
       },
       "noSlotsByLeadTime": "No valid time slots (must book at least {{hours}} hours in advance)",
       "notSelectedDoctor": "No doctor selected",

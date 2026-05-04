@@ -20,7 +20,58 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-28)
+## Cập nhật mới nhất (2026-05-04)
+
+### Cập nhật (2026-05-04) — Booking validation + Admin search/pagination + Vet phone rule + Clinic Editor upload UI + HomePageClinic review carousel
+
+**Phạm vi thay đổi:**
+- `src/pages/client/User/BookingAppointment/index.jsx`, `src/pages/client/User/BookingAppointment/styles.css`, `src/locales/client/{vi,en}.json`:
+  - Bỏ hoàn toàn cơ chế đổi ảnh header theo `userProfile.avatarUrl`; chuyển về background cố định (`/bannerBooking.png`) để UI ổn định theo mẫu.
+  - Khi nhấn `Xác nhận` mà thiếu giờ khám: hiển thị lỗi rõ ràng qua toast từ validator (`Vui lòng chọn khung giờ khám!`) thay vì fail im lặng trên field ẩn.
+  - Khi click khung giờ bị chặn do lead-time (< 3 giờ): hiển thị ngay thông báo `Bạn cần đặt lịch trước ít nhất 3 tiếng!`.
+  - Bổ sung xử lý hiển thị lỗi đầu tiên từ `form.validateFields` để người dùng luôn nhận được feedback.
+
+- `BE/petcare/src/clinic/clinic.service.ts` (BE fix theo đúng bug nghiệp vụ Admin):
+  - Sửa search clinic từ match cứng theo tên sang match gần đúng (`ILIKE %keyword%`) cho cả `clinic.name` **hoặc** `clinic.phone`.
+  - Giải quyết đúng triệt để lỗi `no data` khi admin search theo tên phòng khám/SĐT.
+
+- `src/pages/admin/Dashboard/Posts/index.jsx`, `src/locales/admin/{vi,en}.json`:
+  - Đổi cơ chế `Load more` thành pagination chuẩn AntD.
+  - Giới hạn mỗi trang `10` bài và hỗ trợ chuyển trang bằng nút next/prev hoặc chọn số trang (page 2, page 3...).
+  - Khi đổi keyword/chủ đề: reset về page 1 để tránh trang rỗng.
+
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`, `src/locales/vererianrian/{vi,en}.json`:
+  - Chuẩn hóa validate SĐT cho luồng phiếu khám ngoài: regex `^0\d{9}$`.
+  - Thêm sanitize input phone (chỉ số, tối đa 10 ký tự) ở form walk-in.
+  - Thống nhất message: `SĐT phải gồm 10 chữ số, bắt đầu bằng 0`.
+
+- `src/pages/Clinic/ClinicPortalEditor/HomePageEditorTab.jsx`:
+  - Xóa phần hiển thị link URL ảnh ở khu vực upload ảnh banner và ảnh bác sĩ.
+  - Giữ nút `Tải ảnh lên` + preview ảnh như yêu cầu.
+
+- `src/components/common/ClinicReview/{ClinicReviewSection.jsx,ClinicReviewList.jsx,ClinicReviewItem.jsx,ClinicReviewSection.module.css}`, `src/locales/client/{vi,en}.json`:
+  - Đổi phần review trên HomePageClinic sang chế độ carousel ngang.
+  - Desktop hiển thị 4 review/card mỗi viewport; muốn xem thêm thì kéo qua phải, xem lại kéo trái.
+  - Bổ sung kéo ngang bằng chuột (drag), nút điều hướng trái/phải và tự tải thêm khi kéo gần cuối danh sách.
+  - Nếu nội dung review dài: rút gọn có `...` + nút `Xem thêm/Thu gọn` theo từng card.
+
+**Phản biện & phương án tối ưu đã chọn:**
+- Admin clinic search:
+  - Không vá FE kiểu filter local vì dữ liệu đang phân trang server-side, dễ lệch total/meta.
+  - Chọn fix ngay tại BE query để thống nhất cho mọi consumer và đúng bản chất lỗi.
+
+- Admin posts pagination:
+  - Không thêm endpoint page mới ở BE trong lần này để tránh phá contract forum hiện tại.
+  - Chọn fetch batch lớn + phân trang UI 10 dòng/trang để đạt yêu cầu UX ngay, giữ thay đổi nhỏ, ít rủi ro.
+
+- HomePageClinic review:
+  - Không làm lại toàn bộ section để tránh ảnh hưởng flow gửi review/điều kiện đủ điều kiện đánh giá.
+  - Chỉ thay đổi tầng hiển thị list sang carousel + truncate, giữ nguyên pipeline dữ liệu hiện hữu.
+
+**Tự kiểm tra:**
+- `npx eslint` các file FE đã sửa: sạch lỗi.
+- `npm run build` (FE/Web/client): thành công.
+- `npm run build` (BE/petcare): thành công.
 
 ### Cập nhật (2026-04-28) — Tinh chỉnh UI/UX đa portal: Doctor Panel, Vet Fields, ChatBot Header, Sidebar Toggle, Forum Search
 
