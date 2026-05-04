@@ -95,6 +95,7 @@
         "currentRequired": "Vui lòng nhập mật khẩu cũ",
         "newRequired": "Vui lòng nhập mật khẩu mới",
         "newMinLength": "Mật khẩu mới phải có ít nhất {{count}} ký tự",
+        "newComplexity": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
         "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
         "confirmMismatch": "Xác nhận mật khẩu không trùng với mật khẩu mới"
       },
@@ -824,7 +825,8 @@
       "placeholders": {
         "petName": "VD: Buddy",
         "species": "Chọn loài",
-        "breed": "Chọn giống"
+        "breed": "Chọn giống",
+        "birthday": "Chọn ngày sinh"
       },
       "gender": {
         "male": "Đực",
@@ -896,8 +898,13 @@
         "petNotFound": "Không tìm thấy thú cưng để cập nhật",
         "invalidBreed": "Vui lòng chọn giống hợp lệ",
         "petNameRequired": "Nhập tên thú cưng",
+        "speciesRequired": "Vui lòng chọn loài",
         "breedRequired": "Chọn giống",
-        "birthDateRequired": "Chọn ngày sinh"
+        "genderRequired": "Vui lòng chọn giới tính",
+        "birthDateRequired": "Chọn ngày sinh",
+        "birthDateFuture": "Không thể chọn ngày tương lai",
+        "weightRequired": "Vui lòng nhập cân nặng",
+        "weightMin": "Cân nặng phải lớn hơn 0"
       },
       "confirmCancel": {
         "title": "Hủy thay đổi",
@@ -1186,6 +1193,8 @@
         "editOwnCommentOnly": "Bạn chỉ có thể chỉnh sửa bình luận của chính mình",
         "deleteOwnCommentOnly": "Bạn không có quyền xóa bình luận này",
         "reportReasonRequired": "Vui lòng nhập nội dung tố cáo",
+        "postAlreadyReported": "Bạn đã tố cáo bài viết này.",
+        "commentAlreadyReported": "Bạn đã tố cáo bình luận này.",
         "commentImageUploading": "Ảnh bình luận đang được tải lên, vui lòng đợi",
         "commentRequired": "Vui lòng nhập bình luận hoặc chọn ảnh",
         "replyImageUploading": "Ảnh phản hồi đang được tải lên, vui lòng đợi",

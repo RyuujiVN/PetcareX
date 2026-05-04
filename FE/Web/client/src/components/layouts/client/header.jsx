@@ -44,6 +44,7 @@ import LanguageSwitcher from "../../common/LanguageSwitcher/LanguageSwitcher";
 import "./header.css";
 
 const MIN_PASSWORD_LENGTH = 8;
+const PASSWORD_COMPLEXITY_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/;
 
 const INITIAL_PASSWORD_FORM = {
   currentPassword: "",
@@ -725,6 +726,11 @@ function Header() {
         "header.passwordModal.validation.newMinLength",
         { count: MIN_PASSWORD_LENGTH },
       );
+    } else if (!PASSWORD_COMPLEXITY_REGEX.test(values.newPassword)) {
+      nextErrors.newPassword = t("header.passwordModal.validation.newComplexity", {
+        defaultValue:
+          "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
+      });
     }
 
     if (!values.confirmPassword) {

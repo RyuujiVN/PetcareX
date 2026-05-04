@@ -468,6 +468,7 @@
         "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
         "newRequired": "Vui lòng nhập mật khẩu mới",
         "newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
+        "newComplexity": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
         "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
         "confirmMismatch": "Mật khẩu xác nhận không khớp"
       },

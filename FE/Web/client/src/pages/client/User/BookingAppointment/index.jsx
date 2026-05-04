@@ -535,7 +535,13 @@ export default function BookingAppointment() {
 
   const validateSelectedTime = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error(t('pages.booking.validation.timeRequired')));
+      return Promise.reject(
+        new Error(
+          t('pages.booking.validation.timeRequired', {
+            defaultValue: 'Vui lòng chọn khung giờ khám!',
+          }),
+        ),
+      );
     }
 
     if (!selectedDate) {

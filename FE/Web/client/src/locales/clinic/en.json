@@ -708,6 +708,7 @@
         "currentRequired": "Please enter current password",
         "newRequired": "Please enter new password",
         "newMinLength": "New password must be at least {{count}} characters",
+        "newComplexity": "Password must be at least 8 characters and include uppercase, lowercase, and a number",
         "confirmRequired": "Please confirm new password",
         "confirmMismatch": "Confirm password does not match"
       },

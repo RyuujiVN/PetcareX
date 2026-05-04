@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
-import { ManOutlined, WomanOutlined } from "@ant-design/icons";
-import { message, Modal, Radio, Select } from 'antd';
+import { CalendarOutlined, ManOutlined, WomanOutlined } from "@ant-design/icons";
+import { DatePicker, message, Modal, Radio, Select } from 'antd';
 import { FiCamera } from "react-icons/fi";
+import dayjs from 'dayjs';
 import { getClientInstance } from '../../../../services/apiClient';
 import {
   createPetApi,
@@ -388,13 +389,16 @@ export default function AddPet() {
 
             <div className="form-groups">
             <label className="form-labels">{requiredLabel(t('pages.addPet.fields.birthday'))}</label>
-            <input
-              type="date"
+            <DatePicker
               className="form-input date-input"
-              value={birthday}
-              max={new Date().toISOString().split('T')[0]} 
-              onChange={(e) => {
-                setBirthday(e.target.value);
+              value={birthday ? dayjs(birthday) : null}
+              format="YYYY-MM-DD"
+              placeholder={t('pages.addPet.placeholders.birthday')}
+              suffixIcon={<CalendarOutlined />}
+              inputReadOnly={false}
+              disabledDate={(current) => current && current > dayjs().endOf('day')}
+              onChange={(_, dateString) => {
+                setBirthday(dateString || '');
                 setHasUnsavedChanges(true);
               }}
             />

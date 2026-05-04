@@ -50,7 +50,7 @@ export default function AddNewVererianrian() {
 	const navigate = useNavigate()
 	const [form] = Form.useForm()
 	const [messageApi, contextHolder] = message.useMessage()
-	const { saving, addVeterinarian, editVeterinarian, removeVeterinarian } = useVeterinarians()
+	const { saving, addVeterinarian, removeVeterinarian } = useVeterinarians()
 	const [isSubmitting, setIsSubmitting] = useState(false)
 	const [avatarFile, setAvatarFile] = useState(null)
 	const [avatarPreview, setAvatarPreview] = useState('')
@@ -85,6 +85,8 @@ export default function AddNewVererianrian() {
 				email,
 				password,
 				specialty: values.specialty,
+				experience: experience || undefined,
+				introduce: description || undefined,
 			})
 
 			if (!created?.userId) {
@@ -99,13 +101,6 @@ export default function AddNewVererianrian() {
 				}
 				await updateUserProfileApi(getAdminInstance(), created.userId, updateData)
 
-				if (experience || description) {
-					await editVeterinarian(created.userId, {
-						experience: experience || undefined,
-						description: description || undefined,
-						introduce: description || undefined,
-					})
-				}
 			} catch (updateError) {
 				// Rollback: xóa bác sĩ vừa tạo để tránh dữ liệu rỗng
 				try {
