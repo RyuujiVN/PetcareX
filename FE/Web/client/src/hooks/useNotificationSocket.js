@@ -187,6 +187,10 @@ export default function useNotificationSocket({
         emitPostLikedRealtime(mapped);
       }
 
+      if (mapped?.type === 'appointment' && typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('notif:appointment', { detail: mapped }));
+      }
+
       setLatestIncomingNotification(mapped);
 
       setNotifications((prev) => {

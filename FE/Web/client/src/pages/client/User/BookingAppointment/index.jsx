@@ -8,7 +8,7 @@ import {
   SunOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Card, Col, Form, Input, message, Row, Select, Spin, Tag } from 'antd';
+import { Avatar, Card, Col, Form, Input, Modal, message, Row, Select, Spin, Tag } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BsArrowLeftShort, BsArrowRightShort } from "react-icons/bs";
@@ -23,6 +23,8 @@ import {
   getMyAppointmentsApi,
   SERVICE_OPTIONS,
 } from '../../../../services/appointmentService';
+import { IoChevronBack } from "react-icons/io5";
+import { IoChevronForward } from "react-icons/io5";
 import { getClinicByIdApi, getNearbyClinicListApi } from '../../../../services/clinicService';
 import { useUserLocation } from '../../../../hooks/client/useUserLocation';
 import { DEFAULT_LOCATION } from '../../../../constants/location';
@@ -48,6 +50,7 @@ const TIME_SLOT_GROUPS = [
 
 const WORKING_SLOTS = TIME_SLOT_GROUPS.flatMap((group) => group.times);
 const BOOKING_MIN_LEAD_HOURS = 3;
+const TRUNCATE_LIMIT = 60;
 
 const formatDate = (date) => {
   const y = date.getFullYear();
@@ -71,6 +74,7 @@ export default function BookingAppointment() {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [showSummary, setShowSummary] = useState(false);
+  const [doctorDetailModalOpen, setDoctorDetailModalOpen] = useState(false);
   const location = useLocation();
   const { userProfile } = useAuth();
   const {
@@ -121,6 +125,7 @@ export default function BookingAppointment() {
   const [calendarMonth, setCalendarMonth] = useState(today.getMonth());
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [clinicPreselected, setClinicPreselected] = useState(Boolean(preselectedClinicId));
 
   const [pets, setPets] = useState([]);
   const [clinics, setClinics] = useState([]);
@@ -153,16 +158,25 @@ export default function BookingAppointment() {
   const selectedDoctorExperience = selectedDoctor?.experience ?? selectedDoctor?.yearsOfExperience;
   const selectedDoctorDescription =
     selectedDoctor?.description || selectedDoctor?.introduce || selectedDoctor?.bio || '';
-  const hasDoctorExperience =
-    selectedDoctorExperience !== null &&
-    selectedDoctorExperience !== undefined &&
-    String(selectedDoctorExperience).trim() !== '';
-  const hasDoctorDescription = String(selectedDoctorDescription || '').trim() !== '';
+  const selectedDoctorExperienceText =
+    selectedDoctorExperience !== null && selectedDoctorExperience !== undefined
+      ? String(selectedDoctorExperience).trim()
+      : '';
+  const selectedDoctorDescriptionText = String(selectedDoctorDescription || '').trim();
+  const hasDoctorExperience = selectedDoctorExperienceText !== '';
+  const hasDoctorDescription = selectedDoctorDescriptionText !== '';
   const selectedDoctorSpecialtyLabel = selectedDoctor?.specialty
     ? t(`enums.veterinarySpecialty.${selectedDoctor.specialty}`, {
         defaultValue: getSpecialtyLabel(selectedDoctor.specialty),
       })
     : t('pages.booking.noSpecialty');
+
+  const truncateText = (text, limit = TRUNCATE_LIMIT) => {
+    if (!text) return '';
+    return text.length > limit ? `${text.slice(0, limit)}...` : text;
+  };
+
+  const needsTruncate = (text, limit = TRUNCATE_LIMIT) => Boolean(text && text.length > limit);
 
   const bookingHeaderStyle = useMemo(() => {
     const avatarUrl = String(userProfile?.avatarUrl || '').trim();
@@ -489,6 +503,13 @@ export default function BookingAppointment() {
     navigate('/add-pet');
   }
 
+  const handleClearClinicPreselection = () => {
+    setClinicPreselected(false);
+    form.setFieldValue('clinicId', '');
+    sessionStorage.removeItem('selectedClinicId');
+  };;
+
+
   const validateSymptoms = (_, value) => {
     if (!value || !String(value).trim()) {
       return Promise.reject(new Error(t('pages.booking.validation.symptomsRequired')));
@@ -514,7 +535,13 @@ export default function BookingAppointment() {
 
   const validateSelectedTime = (_, value) => {
     if (!value) {
-      return Promise.reject(new Error(t('pages.booking.validation.timeRequired')));
+      return Promise.reject(
+        new Error(
+          t('pages.booking.validation.timeRequired', {
+            defaultValue: 'Vui lòng chọn khung giờ khám!',
+          }),
+        ),
+      );
     }
 
     if (!selectedDate) {
@@ -730,44 +757,72 @@ export default function BookingAppointment() {
                     name="clinicId"
                     rules={[{ required: true, message: t('pages.booking.validation.clinicRequired') }]}
                   >
-                    <Select
-                      size="large"
-                      disabled={Boolean(preselectedClinicId)}
-                      optionLabelProp="displayLabel"
-                      popupMatchSelectWidth={520}
-                      popupClassName="clinic-select-popup"
-                    >
-                      {clinics.map((item) => {
-                        const distanceText = formatDistance(item.distance);
-                        const collapsedLabel = distanceText
-                          ? `${item.name} · ${distanceText}`
-                          : item.name;
-                        return (
-                          <Select.Option
-                            key={item.id}
-                            value={item.id}
-                            displayLabel={collapsedLabel}
-                          >
-                            <div className="clinic-option">
-                              <div className="clinic-option-main">
-                                <div className="clinic-option-name">{item.name}</div>
-                                {item.address ? (
-                                  <div className="clinic-option-address">
-                                    <EnvironmentOutlined aria-hidden />
-                                    <span>{item.address}</span>
-                                  </div>
-                                ) : null}
-                              </div>
-                              {distanceText ? (
-                                <span className="clinic-option-distance">{distanceText}</span>
+                    {clinicPreselected ? (
+                      <div className="clinic-preselected-display">
+                        <div className="clinic-preselected-content">
+                          <div className="clinic-option">
+                            <div className="clinic-option-main">
+                              <div className="clinic-option-name">{selectedClinic?.name}</div>
+                              {selectedClinic?.address ? (
+                                <div className="clinic-option-address">
+                                  <EnvironmentOutlined aria-hidden />
+                                  <span>{selectedClinic.address}</span>
+                                </div>
                               ) : null}
                             </div>
-                          </Select.Option>
-                        );
-                      })}
-                    </Select>
+                            {selectedClinic?.distance ? (
+                              <span className="clinic-option-distance">{formatDistance(selectedClinic.distance)}</span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          className="clinic-change-button"
+                          onClick={handleClearClinicPreselection}
+                        >
+                          {t('pages.booking.form.changeClinic', { defaultValue: 'Đổi phòng khám' })}
+                        </button>
+                      </div>
+                    ) : (
+                      <Select
+                        size="large"
+                        optionLabelProp="displayLabel"
+                        popupMatchSelectWidth={false}
+                        popupClassName="clinic-select-popup"
+                        style={{ minWidth: 420 }}
+                      >
+                        {clinics.map((item) => {
+                          const distanceText = formatDistance(item.distance);
+                          const collapsedLabel = distanceText
+                            ? `${item.name} · ${distanceText}`
+                            : item.name;
+                          return (
+                            <Select.Option
+                              key={item.id}
+                              value={item.id}
+                              displayLabel={collapsedLabel}
+                            >
+                              <div className="clinic-option">
+                                <div className="clinic-option-main">
+                                  <div className="clinic-option-name">{item.name}</div>
+                                  {item.address ? (
+                                    <div className="clinic-option-address">
+                                      <EnvironmentOutlined aria-hidden />
+                                      <span>{item.address}</span>
+                                    </div>
+                                  ) : null}
+                                </div>
+                                {distanceText ? (
+                                  <span className="clinic-option-distance">{distanceText}</span>
+                                ) : null}
+                              </div>
+                            </Select.Option>
+                          );
+                        })}
+                      </Select>
+                    )}
                   </Form.Item>
-                  {locationIsDefault && !preselectedClinicId ? (
+                  {locationIsDefault && !clinicPreselected ? (
                     <div className="clinic-location-banner" role="status">
                       <EnvironmentOutlined aria-hidden />
                       <span>
@@ -844,34 +899,79 @@ export default function BookingAppointment() {
                           />
                           <div className="doctor-header-info">
                             <h3>{selectedDoctorName}</h3>
-                            <Tag color="blue">{selectedDoctorSpecialtyLabel}</Tag>
-                          </div>
-                        </div>
-
-                        <div className="doctor-details">
-                          <div className="doctor-detail-row">
+                            {/* <Tag color="blue">{selectedDoctorSpecialtyLabel}</Tag> */}
+                            <div className="doctor-detail-row">
                             <MedicineBoxOutlined />
                             <span className="doctor-detail-label">{t('pages.booking.doctorDetail.specialty')}</span>
                             <span>{selectedDoctorSpecialtyLabel}</span>
                           </div>
-
-                          {hasDoctorExperience ? (
-                            <div className="doctor-detail-row">
-                              <ClockCircleOutlined />
-                              <span className="doctor-detail-label">{t('pages.booking.doctorDetail.experience')}</span>
-                              <span>
-                                {selectedDoctorExperience} {t('pages.booking.doctorDetail.years')}
-                              </span>
-                            </div>
-                          ) : null}
-
-                          {hasDoctorDescription ? (
-                            <div className="doctor-description">
-                              <div className="doctor-detail-label">{t('pages.booking.doctorDetail.description')}</div>
-                              <p>{selectedDoctorDescription}</p>
-                            </div>
-                          ) : null}
+                          </div>
                         </div>
+
+                        <div className="doctor-details">
+  {hasDoctorExperience || hasDoctorDescription ? (
+    <div className="doctor-info-grid">
+      
+      {/* Kinh nghiệm */}
+      {hasDoctorExperience ? (
+        <div className="doctor-info-item">
+          <div className="doctor-detail-row">
+            <ClockCircleOutlined />
+            <span className="doctor-detail-label">
+              {t('pages.booking.doctor.experience')}
+            </span>
+          </div>
+
+          <p>
+            <span className="doctor-preview-text">
+              {needsTruncate(selectedDoctorExperienceText)
+                ? truncateText(selectedDoctorExperienceText)
+                : selectedDoctorExperienceText}
+            </span>
+
+            {needsTruncate(selectedDoctorExperienceText) && (
+              <button
+                type="button"
+                className="doctor-read-more"
+                onClick={() => setDoctorDetailModalOpen(true)}
+              >
+                {t('pages.booking.doctor.readMore')}
+              </button>
+            )}
+          </p>
+        </div>
+      ) : null}
+
+      {/* Giới thiệu */}
+      {hasDoctorDescription ? (
+        <div className="doctor-info-item">
+          <div className="doctor-detail-row">
+            <span className="doctor-detail-label">
+              {t('pages.booking.doctor.description')}
+            </span>
+          </div>
+
+          <p>
+            <span className="doctor-preview-text">
+              {truncateText(selectedDoctorDescriptionText)}
+            </span>
+
+            {needsTruncate(selectedDoctorDescriptionText) && (
+              <button
+                type="button"
+                className="doctor-read-more"
+                onClick={() => setDoctorDetailModalOpen(true)}
+              >
+                {t('pages.booking.doctor.readMore')}
+              </button>
+            )}
+          </p>
+        </div>
+      ) : null}
+
+    </div>
+  ) : null}
+</div>
                       </div>
                     ) : (
                       <Card
@@ -922,9 +1022,9 @@ export default function BookingAppointment() {
               <div className="date-time-selector">
                 <div className="calendar">
                   <div className="month-header" style={{color: 'white', backgroundColor: 'var(--color-brand-primary)'}}>
-                    <button type="button" onClick={prevMonth} style={{color: 'white', fontSize: 30}}><BsArrowLeftShort /></button>
+                    <button type="button" onClick={prevMonth} style={{color: 'white', fontSize: 25, paddingLeft: 20}}><IoChevronBack /></button>
                     <span>{t('pages.booking.calendar.monthLabel', { month: calendarMonth + 1, year: calendarYear })}</span>
-                    <button type="button" onClick={nextMonth} style={{color: 'white', fontSize: 30}}><BsArrowRightShort /></button>
+                    <button type="button" onClick={nextMonth} style={{color: 'white', fontSize: 25, paddingRight: 40}}><IoChevronForward /></button>
                   </div>
                   <div className="calendar-grid-head" style={{color: 'var(--color-text-primary)'}}>
                     <span>{t('pages.booking.calendar.days.sun')}</span>
@@ -1031,6 +1131,36 @@ export default function BookingAppointment() {
           </div>
         </div>
       </Spin>
+      <Modal
+        open={doctorDetailModalOpen}
+        onCancel={() => setDoctorDetailModalOpen(false)}
+        footer={null}
+        title={t('pages.booking.doctor.modalTitle', {
+          name: selectedDoctorName,
+          defaultValue: selectedDoctorName,
+        })}
+        width={480}
+      >
+        {selectedDoctor ? (
+          <div>
+            <Tag color="blue" style={{ marginBottom: 12 }}>
+              {selectedDoctorSpecialtyLabel}
+            </Tag>
+            {hasDoctorExperience ? (
+              <div style={{ marginBottom: 12 }}>
+                <strong>{t('pages.booking.doctor.experience')}</strong>
+                <p style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{selectedDoctorExperienceText}</p>
+              </div>
+            ) : null}
+            {hasDoctorDescription ? (
+              <div>
+                <strong>{t('pages.booking.doctor.description')}</strong>
+                <p style={{ marginTop: 4, whiteSpace: 'pre-wrap' }}>{selectedDoctorDescriptionText}</p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+      </Modal>
       {showSummary && (
   <div className="summary-overlay">
     <div className="summary-modal">

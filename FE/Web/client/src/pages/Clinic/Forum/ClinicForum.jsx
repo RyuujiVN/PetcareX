@@ -6,10 +6,12 @@ import {
     FaEllipsis,
     FaFilter,
     FaImage,
+	FaMagnifyingGlass,
     FaRegComment,
     FaRegThumbsUp,
     FaThumbsUp,
 } from 'react-icons/fa6'
+import { AiOutlineClose } from "react-icons/ai";
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ScrollToTopButton from '../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import {
@@ -52,6 +54,14 @@ const NO_TOPIC_VALUE = 'no-topic'
 const NO_TOPIC_FILTER_VALUE = 'none'
 const FEATURED_POST_LIMIT = 3
 const MAX_POST_IMAGES = 10
+const POPUP_RESULT_LIMIT = 6
+
+const truncatePreviewText = (value, maxLength = 72) => {
+	const normalized = String(value || '').replace(/\s+/g, ' ').trim()
+	if (!normalized) return ''
+	if (normalized.length <= maxLength) return normalized
+	return `${normalized.slice(0, maxLength - 1)}...`
+}
 
 const TOPIC_TRANSLATION_KEYS = {
 	'cham soc thu cung hang ngay': 'pages.forum.topics.dailyCare',
@@ -332,6 +342,9 @@ function Forum() {
 	const [reportReason, setReportReason] = useState('')
 	const [submittingReport, setSubmittingReport] = useState(false)
 	const [selectedTopicFilter, setSelectedTopicFilter] = useState('all')
+	const [searchKeyword, setSearchKeyword] = useState('')
+	const [searchOpen, setSearchOpen] = useState(false)
+
 	const [previewImageSrc, setPreviewImageSrc] = useState('')
 	const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false)
 	const [highlightedPostId, setHighlightedPostId] = useState('')
@@ -533,10 +546,24 @@ function Forum() {
 		return fileUrl
 	}
 
-	const loadPosts = async () => {
+	const searchKeywordRef = useRef('')
+	useEffect(() => {
+		searchKeywordRef.current = searchKeyword
+	}, [searchKeyword])
+
+	useEffect(() => {
+
+	}, [])
+
+	const loadPosts = async ({ keyword } = {}) => {
 		setLoadingPosts(true)
 		try {
-			const data = await getPostsApi(getClientInstance(), { limit: 1000 })
+			const effectiveKeyword = keyword !== undefined ? keyword : searchKeywordRef.current
+			const limit = effectiveKeyword ? 50 : 1000
+			const data = await getPostsApi(getClientInstance(), {
+				limit,
+				keyword: effectiveKeyword,
+			})
 			setApiPosts(Array.isArray(data) ? data.map((item) => mapPostToUi(item, t, i18n.language)) : [])
 		} catch (error) {
 			message.error(error.message || t('pages.forum.loadPostsFailed'))
@@ -562,6 +589,16 @@ function Forum() {
 
 		loadInitialData()
 	}, [])
+
+	const didMountSearchRef = useRef(false)
+	useEffect(() => {
+		if (!didMountSearchRef.current) {
+			didMountSearchRef.current = true
+			return
+		}
+		loadPosts({ keyword: searchKeyword })
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [searchKeyword])
 
 	useEffect(() => {
 		setApiPosts((prev) =>
@@ -1840,6 +1877,10 @@ function Forum() {
 			return String(post.rawTopicId) === selectedTopicFilter
 		})
 
+		if (searchKeyword) {
+			return filtered.map((post) => ({ ...post, isFeatured: false }))
+		}
+
 		const prioritizedFeatured = [...filtered]
 			.filter((post) => featuredPostIds.has(post.id))
 			.sort((a, b) => {
@@ -1865,7 +1906,46 @@ function Forum() {
 			...post,
 			isFeatured: index < FEATURED_POST_LIMIT && featuredPostIds.has(post.id),
 		}))
-	}, [sourcePosts, selectedTopicFilter, featuredPostIds])
+	}, [sourcePosts, selectedTopicFilter, featuredPostIds, searchKeyword])
+
+	const popupSearchResults = useMemo(() => {
+		if (!searchKeyword.trim()) return []
+
+		return visiblePosts.slice(0, POPUP_RESULT_LIMIT).map((post) => ({
+			id: post.id,
+			author: post.author,
+			title: truncatePreviewText(post.title || post.content || 'Bai viet khong tieu de'),
+			snippet: truncatePreviewText(post.content || post.title || ''),
+		}))
+	}, [searchKeyword, visiblePosts])
+
+	const handleSearchResultSelect = useCallback(
+		(postId) => {
+			setSearchOpen(false)
+			window.setTimeout(() => {
+				const postElement = document.getElementById(`forum-post-${postId}`)
+				if (!postElement) return
+				scrollElementIntoFeed(postElement)
+				flashPostHighlight(postId)
+			}, 40)
+		},
+		[flashPostHighlight, scrollElementIntoFeed],
+	)
+
+	useEffect(() => {
+		if (!searchOpen) return undefined
+
+		const handleEsc = (event) => {
+			if (event.key === 'Escape') {
+				setSearchOpen(false)
+			}
+		}
+
+		window.addEventListener('keydown', handleEsc)
+		return () => window.removeEventListener('keydown', handleEsc)
+	}, [searchOpen])
+
+
 
 	return (
 		<div className={styles.pageRoot}>
@@ -1885,6 +1965,15 @@ function Forum() {
 								}}
 							/>
 							<div className={styles.composeActions}>
+								<button
+									type="button"
+									className={styles.searchIconBtn}
+									title={t('pages.forum.search.placeholder')}
+									onClick={() => setSearchOpen(!searchOpen)}
+									aria-expanded={searchOpen}
+								>
+									<FaMagnifyingGlass />
+								</button>
 								<Dropdown
 									trigger={['click']}
 									placement="bottomRight"
@@ -1905,10 +1994,73 @@ function Forum() {
 								</Dropdown>
 							</div>
 						</div>
+
+						{searchOpen ? (
+							<div className={styles.searchPopupOverlay} onClick={() => setSearchOpen(false)}>
+								<div className={styles.searchPopupCard} onClick={(event) => event.stopPropagation()}>
+									<div className={styles.searchPopupHeader}>
+										<FaMagnifyingGlass className={styles.searchPopupHeaderIcon} aria-hidden="true" />
+										<input
+											type="text"
+											value={searchKeyword}
+											onChange={(e) => setSearchKeyword(e.target.value)}
+											placeholder={t('pages.forum.search.placeholder')}
+											className={styles.searchPopupInput}
+											autoFocus
+										/>
+										<button
+											type="button"
+											className={styles.searchPopupEscBtn}
+											onClick={() => setSearchOpen(false)}
+										>
+											<AiOutlineClose />
+										</button>
+									</div>
+									<div className={styles.searchPopupBody}>
+										{!searchKeyword.trim() ? (
+											<p className={styles.searchPopupEmpty}>No recent searches</p>
+										) : popupSearchResults.length ? (
+											<div className={styles.searchPopupResultList}>
+												{popupSearchResults.map((result) => (
+													<button
+														key={result.id}
+														type="button"
+														className={styles.searchPopupResultItem}
+														onClick={() => handleSearchResultSelect(result.id)}
+													>
+														<div className={styles.searchPopupResultMain}>
+															{/* <p className={styles.searchPopupResultTitle}>{result.title}</p> */}
+															<p className={styles.searchPopupResultMeta}>@{result.author}</p>
+															{result.snippet ? <p className={styles.searchPopupResultSnippet}>{result.snippet}</p> : null}
+														</div>
+														<span className={styles.searchPopupResultArrow} aria-hidden="true">
+															›
+														</span>
+													</button>
+												))}
+											</div>
+										) : (
+											<p className={styles.searchPopupEmpty}>
+												{t('pages.forum.search.emptyTitle', { keyword: searchKeyword })}
+											</p>
+										)}
+									</div>
+								</div>
+							</div>
+						) : null}
 					</div>
 
 					<div className={styles.feedList}>
 						{loadingPosts ? <p className={styles.loadingText}>{t('pages.forum.loadingPosts')}</p> : null}
+						{!loadingPosts && searchKeyword && visiblePosts.length === 0 ? (
+							<div className={styles.searchEmptyState}>
+								<FaMagnifyingGlass className={styles.searchEmptyIcon} aria-hidden="true" />
+								<p className={styles.searchEmptyTitle}>
+									{t('pages.forum.search.emptyTitle', { keyword: searchKeyword })}
+								</p>
+								<p className={styles.searchEmptyHint}>{t('pages.forum.search.emptyHint')}</p>
+							</div>
+						) : null}
 						{visiblePosts.map((post) => (
 							<article
 								key={post.id}

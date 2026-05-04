@@ -1,4 +1,4 @@
-import { CreateMedicalRecordDTO } from './dtos/create-medical-record.dto';
+import { InjectQueue } from '@nestjs/bullmq';
 import {
   ConflictException,
   ForbiddenException,
@@ -6,28 +6,28 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { MedicalRecord } from './entities/medical-record.entity';
-import { DataSource, Not, Repository } from 'typeorm';
-import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
-import { MedicalRecordPagination } from './types/medial.type';
-import { paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { User } from 'src/user/entities/user.entity';
-import { RoleEnum } from 'src/common/enums/role.enum';
-import { Pet } from 'src/pet/entities/pet.entity';
-import { MedicalRecordOrder } from './entities/medical-record-order.entity';
-import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order';
-import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
-import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
-import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
-import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
-import { UserService } from 'src/user/user.service';
 import bcrypt from 'bcryptjs';
-import { MailService } from 'src/mail/mail.service';
-import { Invoice } from 'src/invoice/entities/invoice.entity';
-import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
-import { InjectQueue } from '@nestjs/bullmq';
-import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
 import { Queue } from 'bullmq';
+import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { InvoiceStatusEnum } from 'src/common/enums/invoice-status.enum';
+import { JobNameEnum, QueueNameEnum } from 'src/common/enums/queue.enum';
+import { RoleEnum } from 'src/common/enums/role.enum';
+import { Invoice } from 'src/invoice/entities/invoice.entity';
+import { MailService } from 'src/mail/mail.service';
+import { Pet } from 'src/pet/entities/pet.entity';
+import { User } from 'src/user/entities/user.entity';
+import { UserService } from 'src/user/user.service';
+import { DataSource, Not, Repository } from 'typeorm';
+import { CreateMedicalRecordMedicineDTO } from './dtos/create-medical-record-medicine';
+import { CreateMedicalRecordOrderDTO } from './dtos/create-medical-record-order';
+import { CreateMedicalRecordDTO } from './dtos/create-medical-record.dto';
+import { UpdateMedicalRecordMedicineDTO } from './dtos/update-medical-record-medicine';
+import { UpdateMedicalRecordOrderDTO } from './dtos/update-medical-record-order';
+import { UpdateMedicalRecordDTO } from './dtos/update-medical-record.dto';
+import { MedicalRecordMedicine } from './entities/medical-record-medicine.entity';
+import { MedicalRecordOrder } from './entities/medical-record-order.entity';
+import { MedicalRecord } from './entities/medical-record.entity';
+import { MedicalRecordPagination } from './types/medial.type';
 
 @Injectable()
 export class MedicalService {
@@ -500,6 +500,13 @@ export class MedicalService {
           throw new ConflictException(
             'Số điện thoại đã được sử dụng bởi người khác',
           );
+        
+
+        // Cập nhật lại phone cho người dùng
+        await userRepo.update(
+          { id: existedEmail.id },
+          { phone: createDTO.phone },
+        );
 
         // Cập nhật lại phone cho người dùng
         await userRepo.update(

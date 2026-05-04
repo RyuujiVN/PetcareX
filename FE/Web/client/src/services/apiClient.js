@@ -25,6 +25,15 @@ const applyResponseInterceptor = (instance, clearFn) => {
         error.message = normalizedMessage || responseData.error
       }
 
+      if (
+        responseData?.stack &&
+        responseData.stack.includes(
+          'duplicate key value violates unique constraint',
+        )
+      ) {
+        error.message = 'Email hoặc số điện thoại đã tồn tại'
+      }
+
       if (error.response?.status === 401) {
         if (window.location.pathname !== '/login') {
           clearFn()

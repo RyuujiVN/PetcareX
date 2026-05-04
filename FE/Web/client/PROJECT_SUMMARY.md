@@ -20,7 +20,31 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-04-27)
+## Cập nhật mới nhất (2026-04-28)
+
+### Cập nhật (2026-04-28) — Tinh chỉnh UI/UX đa portal: Doctor Panel, Vet Fields, ChatBot Header, Sidebar Toggle, Forum Search
+
+**Phạm vi (FE only):**
+- `src/pages/client/User/BookingAppointment/index.jsx` + `styles.css`:
+  - Doctor detail panel truncate 100 ký tự cho `experience`/`description`, thêm nút **Xem thêm** mở AntD Modal.
+  - `experience` hiển thị dạng text (không ép hậu tố "năm").
+  - Thêm style `.doctor-read-more`.
+- `src/pages/Clinic/InformationVererianrian/InformationVererianrian.jsx` + `src/pages/Clinic/AddNewVererianrian/addNewVererianrian.jsx`:
+  - Field `experience` dùng `Input` (string), `description` dùng `TextArea` ở cả form thêm mới và chỉnh sửa.
+  - Payload update gửi `experience`, `description`, `introduce` (alias).
+- `src/layouts/Clinic/AdminClinicLayout.jsx`, `src/layouts/Vererianrian/AdminVererianrianLayout.jsx`, `src/layouts/admin/AdminLayout.jsx`:
+  - Khi route ChatBot: ẩn header nội bộ `.chatbot-header`, title AI hiển thị ở layout header/action bar.
+  - Admin layout thêm nút toggle sidebar (fixed) để luôn mở lại khi collapsed; Clinic toggle hiển thị cả ở fullscreen route.
+- `src/pages/Clinic/Forum/ClinicForum.jsx`, `src/pages/Vererianrian/Forum/VetForum.jsx`, `src/pages/admin/Forum/AdminForum.jsx`:
+  - Reuse `ForumSearchBar` và áp dụng limit = `keyword ? 50 : 1000` khi search.
+  - Thêm UI search card + empty state cho kết quả rỗng.
+- i18n: bổ sung key `pages.booking.doctor.*` và `pages.forum.search.*` cho `client`, `clinic`, `vererianrian`, `admin`.
+
+**Tự kiểm tra:**
+- `npx eslint` (các file chỉnh sửa) → còn warnings pre-existing:
+  - `InformationVererianrian.jsx`: `react-hooks/exhaustive-deps` (useMemo).
+  - `ClinicForum.jsx` / `VetForum.jsx` / `AdminForum.jsx`: `react-hooks/exhaustive-deps` (useEffect/useCallback).
+- `npm run build` → thành công (vite build, 5985 modules, 15.79s).
 
 ### Cập nhật (2026-04-27) — Cải thiện Select "Phòng khám gần bạn" trong BookingAppointment: hiện tên + địa chỉ + khoảng cách
 
@@ -2308,3 +2332,25 @@ All API service files live in `services/` with pattern `{domain}Service.js`.
 - Web Geolocation API: property name là `coords.latitude` / `coords.longitude` (không phải `lat`/`lon`); `enableHighAccuracy: true` trên HTTPS hoặc localhost mới hoạt động — HTTP non-localhost browser block hoàn toàn API.
 - Guard pattern cho `clinicId` trong booking flow: bất kỳ effect nào dùng clinicId để gọi API chi tiết phải gate trên `clinics.length > 0` + kiểm tra ID thuộc list, vì clinicId có thể đến từ sessionStorage stale.
 - Không động BE — không cần (root cause đều ở FE).
+
+## Đơn giản hóa luồng tạo Phiếu khám — chỉ POST /api/medical (2026-04-28)
+
+**Bối cảnh:** BE đã hợp nhất logic xử lý 3 case (có TK + có SĐT / có TK + chưa có SĐT / chưa có TK) vào duy nhất `POST /api/medical`. FE bỏ bước phụ trợ `PUT /api/user/{id}` để cập nhật SĐT khách hàng trong luồng tạo phiếu khám.
+
+**DTO POST /api/medical (BE/petcare/src/medical/dtos/create-medical-record.dto.ts):**
+- Required: `species, breed, petName, name, customerName, email, phone, temperature, heartRate, systolic, diastolic, weight, diagnosis, symptoms`.
+- Optional: `petId` (FE truyền khi user đã có account → BE cần petId để liên kết phiếu với pet sẵn có).
+- `phone`: required, validate theo `regex.phoneRegex`.
+
+**Thay đổi FE (FE/Web/client/src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx):**
+- Xoá import `updateUserProfileApi` (giữ `getUserListApi` để resolve petId của user đã tồn tại).
+- Walk-in flow: xoá block `if (existingOwnerId && normalizedPhone) { await updateUserProfileApi(...) }` sau khi tạo orders/medicines. Đơn giản hóa khai báo `existingOwnerId` thành biến block-scope cục bộ.
+- Appointment flow: xoá block `ownerId` + `existingOwnerPhone` lookup + call `updateUserProfileApi` đặt giữa cập nhật appointment status và `message.success`.
+- Payload `createMedicalRecordApi` không thay đổi — vốn đã gửi `phone` (từ `normalizedPhone` / `resolvedPhone`).
+- Validation phone (`/^\d{10}$/`), UI input phone, read-only logic, loading state walk-in (`showWalkInStep`) giữ nguyên.
+
+**⚠️ Vấn đề BE cần dev xử lý (không tự sửa do ràng buộc):**
+- File: `BE/petcare/src/medical/medical.service.ts` (dòng 493-512, hàm `createMedicalRecord`).
+- Vấn đề: nhánh else (user đã tồn tại) hiện chỉ kiểm tra phone collision với user khác, **không** thực hiện `userRepo.update(existedEmail.id, { phone: createDTO.phone })`. Vì vậy case "Có TK + chưa có SĐT" (hoặc admin nhập SĐT mới khác SĐT cũ) sẽ không thực sự cập nhật user.phone trong DB, dù BE chấp nhận tạo phiếu khám thành công.
+- Ảnh hưởng FE: phiếu khám tạo OK, nhưng `user.phone` không đồng bộ với `phone` admin nhập trong form. Trước đây FE bù bằng PUT /api/user; sau task này thì không còn nữa.
+- Đề xuất: thêm `await userRepo.update(existedEmail.id, { phone: createDTO.phone })` ngay sau check collision trong nhánh else.

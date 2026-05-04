@@ -11,7 +11,7 @@
       "posts": "Post Management",
       "activity": "Clinic Activity",
       "forum": "Forum",
-      "chatbot": "ChatBot"
+      "chatbot": "Chat Bot AI"
     },
     "profile": {
       "defaultName": "Admin Name",
@@ -100,6 +100,8 @@
         "clinicEmail": "Clinic email",
         "clinicPhone": "Phone number",
         "clinicAddress": "Address",
+        "clinicLat": "Latitude",
+        "clinicLon": "Longitude",
         "clinicDescription": "Description",
         "adminFullName": "Admin full name",
         "adminEmail": "Login email",
@@ -110,10 +112,12 @@
         "clinicEmail": "clinic@email.com",
         "clinicPhone": "0901234567",
         "clinicAddress": "Ex: 123 Nguyen Van Linh, Da Nang",
+        "clinicLat": "Enter latitude (e.g. 10.762622)",
+        "clinicLon": "Enter longitude (e.g. 106.660172)",
         "clinicDescription": "Short clinic description (optional)",
         "adminFullName": "Ex: Nguyen Van A",
         "adminEmail": "admin@email.com",
-        "adminPassword": "At least 6 characters"
+        "adminPassword": "Strong password (upper/lower/number/symbol)"
       },
       "validation": {
         "clinicNameRequired": "Please enter clinic name",
@@ -122,10 +126,17 @@
         "phoneRequired": "Please enter phone number",
         "phoneInvalid": "Phone number must be 10 digits and start with 0",
         "addressRequired": "Please enter address",
+        "latRequired": "Please enter latitude",
+        "latInvalid": "Invalid latitude",
+        "latRange": "Latitude must be between -90 and 90",
+        "lonRequired": "Please enter longitude",
+        "lonInvalid": "Invalid longitude",
+        "lonRange": "Longitude must be between -180 and 180",
         "adminNameRequired": "Please enter full name",
         "adminEmailRequired": "Please enter email",
         "passwordRequired": "Please enter password",
-        "passwordMin": "Password must be at least 6 characters"
+        "passwordMin": "Password must be at least 6 characters",
+        "passwordPolicy": "Password must be at least 8 characters and include uppercase, lowercase, number, and special character"
       }
     },
     "detailModal": {
@@ -329,6 +340,7 @@
         "currentRequired": "Please enter current password",
         "newRequired": "Please enter new password",
         "newMinLength": "New password must be at least {{count}} characters",
+        "newComplexity": "Password must be at least 8 characters and include uppercase, lowercase, and a number",
         "confirmRequired": "Please confirm new password",
         "confirmMismatch": "Confirm password does not match"
       },
@@ -511,6 +523,14 @@
       },
       "topicSelect": {
         "noTopic": "No topic"
+      },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "{{count}} results",
+        "emptyTitle": "No results found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
       },
       "topics": {
         "dailyCare": "Daily pet care",

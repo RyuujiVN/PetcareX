@@ -12,7 +12,7 @@
       "records": "Medical Records",
       "examForms": "Examination Forms",
       "forum": "Forum",
-      "chatbot": "ChatBot"
+      "chatbot": "Chat Bot AI"
     },
     "notifications": {
       "panelTitle": "Veterinarian Notifications",
@@ -468,6 +468,7 @@
         "currentRequired": "Please enter current password",
         "newRequired": "Please enter new password",
         "newMinLength": "New password must be at least {{count}} characters",
+        "newComplexity": "Password must be at least 8 characters and include uppercase, lowercase, and a number",
         "confirmRequired": "Please confirm new password",
         "confirmMismatch": "Confirm password does not match"
       },
@@ -616,6 +617,14 @@
       },
       "topicSelect": {
         "noTopic": "No topic"
+      },
+      "search": {
+        "placeholder": "Search posts...",
+        "activeLabel": "Searching: {{keyword}}",
+        "clear": "Clear search",
+        "resultCount": "{{count}} results",
+        "emptyTitle": "No results found for \"{{keyword}}\"",
+        "emptyHint": "Try a different keyword"
       },
       "topics": {
         "dailyCare": "Daily pet care",

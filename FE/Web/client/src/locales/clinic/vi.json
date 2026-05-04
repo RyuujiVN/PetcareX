@@ -12,8 +12,8 @@
       "revenue": "Doanh thu",
       "doctors": "Bác sĩ",
       "forms": "Xem phiếu khám",
-      "forum": "Forum",
-      "chatbot": "ChatBot",
+      "forum": "Diễn đàn",
+      "chatbot": "Trợ Lý AI",
       "editor": "Chỉnh sửa giao diện phòng khám",
       "portalEditor": "Chỉnh sửa trang phòng khám",
       "homeEditor": "Chỉnh Sửa Trang Chủ",
@@ -155,10 +155,10 @@
       "password": "Mật khẩu",
       "phone": "Số điện thoại",
       "address": "Địa chỉ",
-      "experience": "Kinh nghiệm (năm)",
+      "experience": "Kinh nghiệm",
       "description": "Giới thiệu",
-      "experiencePlaceholder": "Số năm kinh nghiệm",
-      "descriptionPlaceholder": "Mô tả ngắn về bác sĩ...",
+      "experiencePlaceholder": "Ví dụ: 5 năm kinh nghiệm ngoại khoa",
+      "descriptionPlaceholder": "Mô tả về bác sĩ...",
       "role": "Vai trò",
       "joinDate": "Ngày tham gia"
     },
@@ -175,7 +175,9 @@
       "phoneNoSpaces": "Số điện thoại không được chứa khoảng trắng",
       "phoneDigitsOnly": "Số điện thoại chỉ được chứa chữ số",
       "phoneLength": "Số điện thoại phải đúng 10 chữ số",
+      "phoneExists": "Số điện thoại đã tồn tại",
       "addressRequired": "Vui lòng nhập địa chỉ",
+      "emailExists": "Email đã tồn tại",
       "fullNameRequired": "Vui lòng nhập họ tên",
       "fullNameNoEdgeSpaces": "Họ tên không được có khoảng trắng ở đầu hoặc cuối",
       "fullNameNoDoubleSpaces": "Họ tên không được chứa 2 khoảng trắng liên tiếp",
@@ -706,6 +708,7 @@
         "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
         "newRequired": "Vui lòng nhập mật khẩu mới",
         "newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
+        "newComplexity": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
         "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
         "confirmMismatch": "Mật khẩu xác nhận không khớp"
       },
@@ -913,6 +916,14 @@
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
       },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "{{count}} kết quả",
+        "emptyTitle": "Không tìm thấy kết quả cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
+      },
       "topics": {
         "dailyCare": "Chăm sóc thú cưng hằng ngày",
         "vaccinationAndPrevention": "Tiêm phòng và phòng bệnh",
@@ -995,7 +1006,7 @@
         "optionsAria": "Tùy chọn cuộc trò chuyện",
         "rename": "Đổi tên"
       },
-      "assistantTitle": "Trợ lý AI",
+      "assistantTitle": "Trợ lý AI PetCareX",
       "confirmDelete": {
         "cancelText": "Hủy",
         "content": "Bạn có chắc chắn muốn xóa cuộc trò chuyện này không?",

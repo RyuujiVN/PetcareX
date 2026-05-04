@@ -760,20 +760,21 @@ export default function AppointmentManagement() {
 						) : null,
 					]}
 					width={920}
+					styles={{ body: { padding: '12px 18px' } }}
 					centered
 				>
 					{selectedAppointment ? (
 						<div className={styles.modalBody}>
 							<div className={styles.petHeader}>
 								<Avatar
-									size={84}
+									size={72}
 									src={selectedAppointment.petAvatar || undefined}
 									icon={!selectedAppointment.petAvatar ? <MedicineBoxOutlined /> : undefined}
 								>
 									{!selectedAppointment.petAvatar ? selectedAppointment.avatarText : null}
 								</Avatar>
 								<div>
-									<Title level={3} className={styles.petTitle}>{selectedAppointment.petName}</Title>
+									<Title level={4} className={styles.petTitle}>{selectedAppointment.petName}</Title>
 								</div>
 							</div>
 

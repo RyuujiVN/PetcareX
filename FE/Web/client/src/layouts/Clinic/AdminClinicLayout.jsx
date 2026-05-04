@@ -40,6 +40,7 @@ import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import styles from "./AdminClinicLayout.module.css";
+import { MessageCircle } from "lucide-react";
 
 const { Text } = Typography;
 
@@ -264,6 +265,13 @@ export default function AdminClinicLayout() {
     location.pathname.startsWith("/clinic/editor/") ||
     location.pathname.startsWith("/clinic/home-editor/") ||
     location.pathname.startsWith("/clinic/clinic-editor/");
+
+  const isChatbotRoute =
+    location.pathname === "/clinic/chatbot" ||
+    location.pathname.startsWith("/clinic/chatbot/");
+  const isForumRoute =
+    location.pathname === "/clinic/forum" ||
+    location.pathname.startsWith("/clinic/forum/");
 
   const isFullscreenRoute =
     location.pathname === "/clinic/forum" ||
@@ -536,7 +544,7 @@ export default function AdminClinicLayout() {
 
   return (
     <div
-      className={`${styles.layout} ${!isSidebarVisible || isClinicEditorRoute ? styles.layoutSingleColumn : ""}`}
+      className={`${styles.layout} ${!isSidebarVisible || isClinicEditorRoute ? styles.layoutSingleColumn : ""} ${isChatbotRoute ? styles.chatbotRouteActive : ""}`}
     >
       {!isClinicEditorRoute && isSidebarVisible ? (
       <aside className={styles.sidebar}>
@@ -607,7 +615,7 @@ export default function AdminClinicLayout() {
 
       <main className={`${styles.main} ${isFullscreenRoute ? styles.mainFullscreen : ""}`}>
         {notificationContextHolder}
-        {!isClinicEditorRoute && !isFullscreenRoute && !isSidebarVisible ? (
+        {!isClinicEditorRoute && !isSidebarVisible ? (
           <Button
             type="text"
             aria-label={t("sidebar.toggleAriaLabel", { defaultValue: "Ẩn/hiện sidebar" })}
@@ -618,33 +626,49 @@ export default function AdminClinicLayout() {
         ) : null}
 
         {isFullscreenRoute ? (
-          <div className={styles.inlineTopBar}>
-            <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
-            <Popover
-              trigger="click"
-              placement="bottomRight"
-              overlayClassName={styles.notificationPopoverOverlay}
-              content={notificationContent}
-              open={notificationPopoverOpen}
-              onOpenChange={setNotificationPopoverOpen}
-            >
-              <Button
-                type="text"
-                aria-label={t("sidebar.notificationBellAriaLabel")}
-                className={styles.notificationBellButton}
-                icon={
-                  <Badge
-                    count={unreadNotificationCount}
-                    size="small"
-                    overflowCount={9}
-                  >
-                    <span className={styles.notificationBellIcon}>
-                      <IoMdNotificationsOutline />
-                    </span>
-                  </Badge>
-                }
-              />
-            </Popover>
+          <div className={`${styles.inlineTopBar} ${isChatbotRoute ? styles.inlineTopBarChatbot : ""}`}>
+            <div className={styles.inlineTopBarLeft}>
+              {isForumRoute ? (
+                <div
+                  id="forum-search-slot-clinic"
+                  className={styles.forumHeaderSearchSlot}
+                />
+              ) : null}
+              {isChatbotRoute ? (
+                <div className={styles.chatbotHeaderTitle}>
+                  <MessageCircle style={{color: '#4672b4'}} />
+                  <span>{t('pages.chatbot.assistantTitle')}</span>
+                </div>
+              ) : null}
+            </div>
+            <div className={styles.inlineTopBarActions}>
+              <LanguageSwitcher scope={LANGUAGE_SCOPE.clinic} />
+              <Popover
+                trigger="click"
+                placement="bottomRight"
+                overlayClassName={styles.notificationPopoverOverlay}
+                content={notificationContent}
+                open={notificationPopoverOpen}
+                onOpenChange={setNotificationPopoverOpen}
+              >
+                <Button
+                  type="text"
+                  aria-label={t("sidebar.notificationBellAriaLabel")}
+                  className={styles.notificationBellButton}
+                  icon={
+                    <Badge
+                      count={unreadNotificationCount}
+                      size="small"
+                      overflowCount={9}
+                    >
+                      <span className={styles.notificationBellIcon}>
+                        <IoMdNotificationsOutline />
+                      </span>
+                    </Badge>
+                  }
+                />
+              </Popover>
+            </div>
           </div>
         ) : !isClinicEditorRoute ? (
         <div

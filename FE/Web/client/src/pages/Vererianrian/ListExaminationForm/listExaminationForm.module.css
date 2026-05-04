@@ -148,11 +148,14 @@
 	background: var(--vet-btn-primary-bg) !important;
 	color: #fff !important;
 	box-shadow: none;
+	transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .createBtn:hover {
 	background: var(--vet-btn-primary-hover-bg) !important;
 	color: #fff !important;
+	box-shadow: none;
+	transform: none;
 }
 
 .deleteBtn {

@@ -12,7 +12,7 @@
       "appointments": "Appointments",
       "myPets": "My Pets",
       "forum": "Forum",
-      "chatbot": "AI Chat Bot"
+      "chatbot": "Chat Bot AI"
     },
     "auth": {
       "register": "Register",
@@ -95,6 +95,7 @@
         "currentRequired": "Please enter your current password",
         "newRequired": "Please enter a new password",
         "newMinLength": "New password must be at least {{count}} characters",
+        "newComplexity": "Password must be at least 8 characters and include uppercase, lowercase, and a number",
         "confirmRequired": "Please confirm your new password",
         "confirmMismatch": "Password confirmation does not match"
       },
@@ -699,6 +700,12 @@
         "description": "Introduction:",
         "years": "years"
       },
+      "doctor": {
+        "experience": "Experience:",
+        "description": "Introduction:",
+        "readMore": "Read more",
+        "modalTitle": "Doctor details: {{name}}"
+      },
       "calendar": {
         "monthLabel": "Month {{month}}, {{year}}",
         "days": {
@@ -817,7 +824,8 @@
       "placeholders": {
         "petName": "E.g. Buddy",
         "species": "Select species",
-        "breed": "Select breed"
+        "breed": "Select breed",
+        "birthday": "Select birth date"
       },
       "gender": {
         "male": "Male",
@@ -831,7 +839,12 @@
         "avatarUploading": "Image is uploading, please wait a moment",
         "requiredFields": "Please fill all required fields",
         "invalidBreed": "Please select a valid breed for the chosen species",
-        "avatarRequired": "Please upload a pet avatar"
+        "avatarRequired": "Please upload a pet avatar",
+        "nameRequired": "Please enter pet name",
+        "speciesRequired": "Please select species",
+        "genderRequired": "Please select gender",
+        "birthdayRequired": "Please select birth date",
+        "weightInvalid": "Weight must be greater than 0"
       },
       "confirmLeave": {
         "title": "Do you want to save changes?",
@@ -884,8 +897,13 @@
         "petNotFound": "Cannot find pet to update",
         "invalidBreed": "Please select a valid breed",
         "petNameRequired": "Please enter pet name",
+        "speciesRequired": "Please select species",
         "breedRequired": "Please select breed",
-        "birthDateRequired": "Please select birth date"
+        "genderRequired": "Please select gender",
+        "birthDateRequired": "Please select birth date",
+        "birthDateFuture": "Future dates are not allowed",
+        "weightRequired": "Please enter weight",
+        "weightMin": "Weight must be greater than 0"
       },
       "confirmCancel": {
         "title": "Discard changes",
@@ -1174,6 +1192,8 @@
         "editOwnCommentOnly": "You can only edit your own comment",
         "deleteOwnCommentOnly": "You do not have permission to delete this comment",
         "reportReasonRequired": "Please enter report details",
+        "postAlreadyReported": "You have already reported this post.",
+        "commentAlreadyReported": "You have already reported this comment.",
         "commentImageUploading": "Comment image is uploading, please wait",
         "commentRequired": "Please enter a comment or choose an image",
         "replyImageUploading": "Reply image is uploading, please wait",

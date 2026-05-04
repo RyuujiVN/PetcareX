@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import './styles.css';
 
-import { ManOutlined, WomanOutlined } from "@ant-design/icons";
-import { message, Modal, Radio, Select } from 'antd';
+import { CalendarOutlined, ManOutlined, WomanOutlined } from "@ant-design/icons";
+import { DatePicker, message, Modal, Radio, Select } from 'antd';
 import { FiCamera } from "react-icons/fi";
+import dayjs from 'dayjs';
+import { getClientInstance } from '../../../../services/apiClient';
 import {
   createPetApi,
   getBreedLabel,
@@ -14,7 +16,6 @@ import {
   getSpeciesLabel,
   uploadPetAvatarApi,
 } from '../../../../services/petService';
-import { getClientInstance } from '../../../../services/apiClient';
 
 export default function AddPet() {
   const navigate = useNavigate();
@@ -153,7 +154,32 @@ export default function AddPet() {
       return;
     }
 
-    if (!name || !species || !breed || !gender || !birthday || !weight) {
+    if (!name.trim()) {
+      message.warning(t('pages.addPet.validation.nameRequired'));
+      return;
+    }
+
+    if (!species) {
+      message.warning(t('pages.addPet.validation.speciesRequired'));
+      return;
+    }
+
+    if (!gender) {
+      message.warning(t('pages.addPet.validation.genderRequired'));
+      return;
+    }
+
+    if (!birthday) {
+      message.warning(t('pages.addPet.validation.birthdayRequired'));
+      return;
+    }
+
+    if (!weight || Number(weight) <= 0) {
+      message.warning(t('pages.addPet.validation.weightInvalid'));
+      return;
+    }
+
+    if (!breed) {
       message.warning(t('pages.addPet.validation.requiredFields'));
       return;
     }
@@ -363,13 +389,16 @@ export default function AddPet() {
 
             <div className="form-groups">
             <label className="form-labels">{requiredLabel(t('pages.addPet.fields.birthday'))}</label>
-            <input
-              type="date"
+            <DatePicker
               className="form-input date-input"
-              value={birthday}
-              max={new Date().toISOString().split('T')[0]} 
-              onChange={(e) => {
-                setBirthday(e.target.value);
+              value={birthday ? dayjs(birthday) : null}
+              format="YYYY-MM-DD"
+              placeholder={t('pages.addPet.placeholders.birthday')}
+              suffixIcon={<CalendarOutlined />}
+              inputReadOnly={false}
+              disabledDate={(current) => current && current > dayjs().endOf('day')}
+              onChange={(_, dateString) => {
+                setBirthday(dateString || '');
                 setHasUnsavedChanges(true);
               }}
             />

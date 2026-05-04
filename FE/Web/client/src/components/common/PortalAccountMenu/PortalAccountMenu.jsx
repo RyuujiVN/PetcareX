@@ -29,6 +29,7 @@ import { updateUserProfileApi, uploadUserImageApi } from '../../../services/user
 import styles from './PortalAccountMenu.module.css'
 
 const MIN_PASSWORD_LENGTH = 8
+const PASSWORD_COMPLEXITY_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/
 
 const buildProfileFormData = (profile) => ({
   fullName: String(profile?.fullName || '').trim(),
@@ -536,6 +537,13 @@ export default function PortalAccountMenu({
                 message: t('accountMenu.passwordModal.validation.newMinLength', {
                   count: MIN_PASSWORD_LENGTH,
                   defaultValue: `Password must be at least ${MIN_PASSWORD_LENGTH} characters`,
+                }),
+              },
+              {
+                pattern: PASSWORD_COMPLEXITY_REGEX,
+                message: t('accountMenu.passwordModal.validation.newComplexity', {
+                  defaultValue:
+                    'Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số',
                 }),
               },
             ]}

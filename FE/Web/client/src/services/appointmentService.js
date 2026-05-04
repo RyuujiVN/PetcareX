@@ -156,6 +156,12 @@ export const updateAppointmentStatusApi = (
     .patch(`/appointment/${appointmentId}`, payload)
     .then((response) => response.data)
 }
+
+export const updateAppointmentStatusByClientApi = (instance, appointmentId) => {
+  return instance
+    .patch(`/appointment/client/${appointmentId}`)
+    .then((response) => response.data)
+}
 // API xóa cuộc hẹn
 export const deleteAppointmentApi = (instance, appointmentId) => {
   return instance

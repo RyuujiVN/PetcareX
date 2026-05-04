@@ -11,8 +11,8 @@
       "appointments": "Lịch hẹn",
       "records": "Hồ sơ bệnh án",
       "examForms": "Phiếu khám",
-      "forum": "Forum",
-      "chatbot": "ChatBot"
+      "forum": "Diễn đàn",
+      "chatbot": "Trợ Lý AI"
     },
     "notifications": {
       "panelTitle": "Thông báo bác sĩ",
@@ -468,6 +468,7 @@
         "currentRequired": "Vui lòng nhập mật khẩu hiện tại",
         "newRequired": "Vui lòng nhập mật khẩu mới",
         "newMinLength": "Mật khẩu mới tối thiểu {{count}} ký tự",
+        "newComplexity": "Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường và số",
         "confirmRequired": "Vui lòng xác nhận mật khẩu mới",
         "confirmMismatch": "Mật khẩu xác nhận không khớp"
       },
@@ -617,6 +618,14 @@
       "topicSelect": {
         "noTopic": "Không chọn chủ đề"
       },
+      "search": {
+        "placeholder": "Tìm kiếm bài viết...",
+        "activeLabel": "Đang tìm: {{keyword}}",
+        "clear": "Xóa tìm kiếm",
+        "resultCount": "{{count}} kết quả",
+        "emptyTitle": "Không tìm thấy kết quả cho \"{{keyword}}\"",
+        "emptyHint": "Thử tìm với từ khóa khác"
+      },
       "topics": {
         "dailyCare": "Chăm sóc thú cưng hằng ngày",
         "vaccinationAndPrevention": "Tiêm phòng và phòng bệnh",
@@ -699,7 +708,7 @@
         "optionsAria": "Tùy chọn cuộc trò chuyện",
         "rename": "Đổi tên"
       },
-      "assistantTitle": "Trợ lý AI",
+      "assistantTitle": "Trợ lý AI PetCareX",
       "confirmDelete": {
         "cancelText": "Hủy",
         "content": "Bạn có chắc chắn muốn xóa cuộc trò chuyện này không?",

@@ -19,6 +19,7 @@ import {
   Flex,
   Form,
   Input,
+  InputNumber,
   Modal,
   Pagination,
   Row,
@@ -53,6 +54,8 @@ const formatDate = (date) => {
   const year = d.getFullYear()
   return `${day}/${month}/${year}`
 }
+
+const ADMIN_PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/
 
 export default function Clinics() {
   const { t } = useTranslation('admin')
@@ -143,6 +146,8 @@ export default function Clinics() {
           email: values.clinicEmail,
           phone: values.clinicPhone,
           address: values.clinicAddress,
+          lat: Number(values.clinicLat),
+          lon: Number(values.clinicLon),
           description: values.clinicDescription || '',
           avatarUrl: '',
         },
@@ -156,6 +161,15 @@ export default function Clinics() {
       setAddModalOpen(false)
       fetchClinics(1, pagination.pageSize, search.trim())
     } catch (error) {
+      const apiMessage = error?.response?.data?.message
+      if (Array.isArray(apiMessage) && apiMessage.length > 0) {
+        message.error(apiMessage.join('\n'))
+        return
+      }
+      if (typeof apiMessage === 'string' && apiMessage.trim()) {
+        message.error(apiMessage)
+        return
+      }
       if (error.message) {
         message.error(error.message)
       }
@@ -408,6 +422,90 @@ export default function Clinics() {
                   <Input placeholder={t('clinics.addModal.placeholders.clinicAddress')} />
                 </Form.Item>
 
+                <Form.Item
+                  name="clinicLat"
+                  label={requiredLabel(t('clinics.addModal.labels.clinicLat', { defaultValue: 'Vĩ độ' }))}
+                  rules={[
+                    {
+                      required: true,
+                      message: t('clinics.addModal.validation.latRequired', {
+                        defaultValue: 'Vui lòng nhập vĩ độ',
+                      }),
+                    },
+                    {
+                      type: 'number',
+                      message: t('clinics.addModal.validation.latInvalid', {
+                        defaultValue: 'Vĩ độ không hợp lệ',
+                      }),
+                    },
+                    {
+                      validator: (_, value) => {
+                        if (value === undefined || value === null) return Promise.resolve()
+                        if (value < -90 || value > 90) {
+                          return Promise.reject(
+                            new Error(
+                              t('clinics.addModal.validation.latRange', {
+                                defaultValue: 'Vĩ độ phải nằm trong khoảng -90 đến 90',
+                              }),
+                            ),
+                          )
+                        }
+                        return Promise.resolve()
+                      },
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    step={0.000001}
+                    placeholder={t('clinics.addModal.placeholders.clinicLat', {
+                      defaultValue: 'Nhập vĩ độ (ví dụ 10.762622)',
+                    })}
+                  />
+                </Form.Item>
+
+                <Form.Item
+                  name="clinicLon"
+                  label={requiredLabel(t('clinics.addModal.labels.clinicLon', { defaultValue: 'Kinh độ' }))}
+                  rules={[
+                    {
+                      required: true,
+                      message: t('clinics.addModal.validation.lonRequired', {
+                        defaultValue: 'Vui lòng nhập kinh độ',
+                      }),
+                    },
+                    {
+                      type: 'number',
+                      message: t('clinics.addModal.validation.lonInvalid', {
+                        defaultValue: 'Kinh độ không hợp lệ',
+                      }),
+                    },
+                    {
+                      validator: (_, value) => {
+                        if (value === undefined || value === null) return Promise.resolve()
+                        if (value < -180 || value > 180) {
+                          return Promise.reject(
+                            new Error(
+                              t('clinics.addModal.validation.lonRange', {
+                                defaultValue: 'Kinh độ phải nằm trong khoảng -180 đến 180',
+                              }),
+                            ),
+                          )
+                        }
+                        return Promise.resolve()
+                      },
+                    },
+                  ]}
+                >
+                  <InputNumber
+                    style={{ width: '100%' }}
+                    step={0.000001}
+                    placeholder={t('clinics.addModal.placeholders.clinicLon', {
+                      defaultValue: 'Nhập kinh độ (ví dụ 106.660172)',
+                    })}
+                  />
+                </Form.Item>
+
                 <Form.Item name="clinicDescription" label={t('clinics.addModal.labels.clinicDescription')} className="clinic-description-item">
                   <Input.TextArea
                     rows={1}
@@ -456,7 +554,22 @@ export default function Clinics() {
                   label={requiredLabel(t('clinics.addModal.labels.adminPassword'))}
                   rules={[
                     { required: true, message: t('clinics.addModal.validation.passwordRequired') },
-                    { min: 6, message: t('clinics.addModal.validation.passwordMin') },
+                    {
+                      validator: (_, value) => {
+                        if (!value) return Promise.resolve()
+                        if (!ADMIN_PASSWORD_REGEX.test(value)) {
+                          return Promise.reject(
+                            new Error(
+                              t('clinics.addModal.validation.passwordPolicy', {
+                                defaultValue:
+                                  'Mật khẩu phải >= 8 ký tự, gồm chữ hoa, chữ thường, số và kí tự đặc biệt',
+                              }),
+                            ),
+                          )
+                        }
+                        return Promise.resolve()
+                      },
+                    },
                   ]}
                 >
                   <Input.Password

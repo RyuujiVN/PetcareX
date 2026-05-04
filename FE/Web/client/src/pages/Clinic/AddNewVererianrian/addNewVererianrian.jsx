@@ -41,6 +41,8 @@ const defaultFormValues = {
 	specialty: 'GENERAL_EXAMINATION',
 	phone: '',
 	address: '',
+	experience: '',
+	description: '',
 }
 
 export default function AddNewVererianrian() {
@@ -74,6 +76,8 @@ export default function AddNewVererianrian() {
 			const password = String(values.password || '')
 			const phone = String(values.phone || '').trim()
 			const address = String(values.address || '').trim()
+			const experience = String(values.experience || '').trim()
+			const description = String(values.description || '').trim()
 
 			// Bước 1: Tạo tài khoản bác sĩ (POST /veterinarian chỉ nhận 5 field)
 			const created = await addVeterinarian({
@@ -81,6 +85,8 @@ export default function AddNewVererianrian() {
 				email,
 				password,
 				specialty: values.specialty,
+				experience: experience || undefined,
+				introduce: description || undefined,
 			})
 
 			if (!created?.userId) {
@@ -94,6 +100,7 @@ export default function AddNewVererianrian() {
 					updateData.avatarUrl = uploadedAvatarUrl
 				}
 				await updateUserProfileApi(getAdminInstance(), created.userId, updateData)
+
 			} catch (updateError) {
 				// Rollback: xóa bác sĩ vừa tạo để tránh dữ liệu rỗng
 				try {
@@ -303,6 +310,32 @@ export default function AddNewVererianrian() {
 									rules={[{ required: true, message: t('veterinarians.validation.addressRequired') }]}
 								>
 									<Input prefix={<EnvironmentOutlined />} placeholder={t('veterinarians.add.placeholders.address')} />
+								</Form.Item>
+							</Col>
+
+							<Col xs={24} md={12}>
+								<Form.Item
+									name="experience"
+									label={t('veterinarians.fields.experience')}
+								>
+									<Input
+										placeholder={t('veterinarians.fields.experiencePlaceholder')}
+										maxLength={200}
+									/>
+								</Form.Item>
+							</Col>
+
+							<Col xs={24} md={24}>
+								<Form.Item
+									name="description"
+									label={t('veterinarians.fields.description')}
+								>
+									<Input.TextArea
+										rows={1}
+										placeholder={t('veterinarians.fields.descriptionPlaceholder')}
+										maxLength={1000}
+										showCount
+									/>
 								</Form.Item>
 							</Col>
 						</Row>

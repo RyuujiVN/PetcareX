@@ -3,11 +3,13 @@ import {
     FileTextOutlined,
     FlagOutlined,
     MedicineBoxOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
     MessageOutlined,
     RobotOutlined,
     TeamOutlined,
 } from "@ant-design/icons";
-import { Badge } from "antd";
+import { Badge, Button } from "antd";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IoMdNotificationsOutline } from "react-icons/io";
@@ -21,6 +23,7 @@ import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
+import { MessageCircle } from "lucide-react";
 import "../../styles/admin/colorsToken.css";
 import styles from "./AdminLayout.module.css";
 
@@ -132,8 +135,15 @@ export default function AdminLayout() {
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationTab, setNotificationTab] = useState("all");
   const notificationPanelRef = useRef(null);
+  const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const effectiveRole =
     activeRole || (userProfile ? getPrimaryRole(userProfile) : null);
+  const isChatbotRoute =
+    location.pathname === "/admin/chatbot" ||
+    location.pathname.startsWith("/admin/chatbot/");
+  const isForumRoute =
+    location.pathname === "/admin/forum" ||
+    location.pathname.startsWith("/admin/forum/");
 
   const {
     notifications: notificationItems,
@@ -224,9 +234,26 @@ export default function AdminLayout() {
   );
 
   return (
-    <div className={styles.layout}>
+    <div className={`${styles.layout} ${!isSidebarVisible ? styles.layoutCollapsed : ""} ${isChatbotRoute ? styles.chatbotRouteActive : ""}`}>
+      {!isSidebarVisible ? (
+        <Button
+          type="text"
+          aria-label={t("layout.aria.toggleSidebar", { defaultValue: "Show or hide sidebar" })}
+          className={styles.sidebarToggleButton}
+          icon={<MenuUnfoldOutlined />}
+          onClick={() => setIsSidebarVisible(true)}
+        />
+      ) : null}
       {/* ── Sidebar ── */}
+      {isSidebarVisible ? (
       <aside className={styles.sidebar}>
+        <Button
+          type="text"
+          aria-label={t("layout.aria.toggleSidebar", { defaultValue: "Show or hide sidebar" })}
+          className={styles.sidebarInlineToggleButton}
+          icon={<MenuFoldOutlined />}
+          onClick={() => setIsSidebarVisible(false)}
+        />
         <div>
           <div className={styles.brandBox}>
             <div className={styles.brandIcon}>
@@ -272,11 +299,31 @@ export default function AdminLayout() {
           />
         </div>
       </aside>
+      ) : null}
 
       {/* ── Main ── */}
       <div className={styles.main}>
         <header className={styles.header}>
-          <h1 className={styles.headerTitle}>{t("layout.header.title")}</h1>
+          <div className={styles.headerLeft}>
+            {!isForumRoute ? (
+              <h1 className={styles.headerTitle}>
+                {isChatbotRoute ? (
+                  <span className={styles.chatbotHeaderTitle}>
+                    <MessageCircle size={18} />
+                    <span>{t("pages.chatbot.assistantTitle")}</span>
+                  </span>
+                ) : (
+                  t("layout.header.title")
+                )}
+              </h1>
+            ) : null}
+            {isForumRoute ? (
+              <div
+                id="forum-search-slot-admin"
+                className={styles.forumHeaderSearchSlot}
+              />
+            ) : null}
+          </div>
           <div className={styles.headerActions}>
             <LanguageSwitcher scope={LANGUAGE_SCOPE.client} />
 

@@ -9,7 +9,7 @@ import {
     APPOINTMENT_STATUS,
   getAppointmentAiDiagnosisApi,
     getMyAppointmentsApi,
-    updateAppointmentStatusApi,
+    updateAppointmentStatusByClientApi,
 } from '../../../../services/appointmentService';
 import { getBreedLabel } from '../../../../services/petService';
 import { getAppointmentStatusLabel, getServiceLabel } from '../../../../utils/enumLabel';
@@ -167,7 +167,7 @@ const AppointmentDetail = () => {
       centered: true,
       async onOk() {
         try {
-          await updateAppointmentStatusApi(getClientInstance(), appointmentId, APPOINTMENT_STATUS.CANCELLED);
+          await updateAppointmentStatusByClientApi(getClientInstance(), appointmentId);
           antd.message.success(t('pages.appointmentDetail.cancelSuccess'));
           await fetchAppointments({ silent: true });
         } catch (error) {

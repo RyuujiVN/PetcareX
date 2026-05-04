@@ -312,6 +312,46 @@ export default function PetProfile() {
     });
   };
 
+  const validateBirthDate = (_, value) => {
+    if (!value) return Promise.resolve();
+
+    if (dayjs(value).isAfter(dayjs(), 'day')) {
+      return Promise.reject(
+        new Error(
+          t('pages.petProfile.validation.birthDateFuture', {
+            defaultValue: 'Không thể chọn ngày tương lai',
+          }),
+        ),
+      );
+    }
+
+    return Promise.resolve();
+  };
+
+  const validateWeight = (_, value) => {
+    if (value === undefined || value === null || value === '') {
+      return Promise.resolve();
+    }
+
+    if (Number(value) <= 0) {
+      return Promise.reject(
+        new Error(
+          t('pages.petProfile.validation.weightMin', {
+            defaultValue: 'Cân nặng phải lớn hơn 0',
+          }),
+        ),
+      );
+    }
+
+    return Promise.resolve();
+  };
+
+  const requiredLabel = (text) => (
+    <>
+      <span className="required-mark">*</span> {text}
+    </>
+  );
+
   if (loading && !petData) {
     return (
       <div className="profile-loading">
@@ -397,7 +437,7 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label={t('pages.petProfile.fields.petName')}
+                label={requiredLabel(t('pages.petProfile.fields.petName'))}
                 name="petName"
                 className="form-col"
                 rules={[{ required: true, message: t('pages.petProfile.validation.petNameRequired') }]}
@@ -406,10 +446,15 @@ export default function PetProfile() {
               </Form.Item>
 
               <Form.Item
-                label={t('pages.petProfile.fields.species')}
+                label={requiredLabel(t('pages.petProfile.fields.species'))}
                 name="species"
                 className="form-col"
-                rules={[{ required: true }]}
+                rules={[{
+                  required: true,
+                  message: t('pages.petProfile.validation.speciesRequired', {
+                    defaultValue: 'Vui lòng chọn loài',
+                  }),
+                }]}
               >
                 <Select
                   size="large"
@@ -426,7 +471,7 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label={t('pages.petProfile.fields.breed')}
+                label={requiredLabel(t('pages.petProfile.fields.breed'))}
                 name="breed"
                 className="form-col"
                 rules={[{ required: true, message: t('pages.petProfile.validation.breedRequired') }]}
@@ -449,10 +494,15 @@ export default function PetProfile() {
               </Form.Item>
 
               <Form.Item
-                label={t('pages.petProfile.fields.gender')}
+                label={requiredLabel(t('pages.petProfile.fields.gender'))}
                 name="gender"
                 className="form-col"
-                rules={[{ required: true }]}
+                rules={[{
+                  required: true,
+                  message: t('pages.petProfile.validation.genderRequired', {
+                    defaultValue: 'Vui lòng chọn giới tính',
+                  }),
+                }]}
               >
                 <Radio.Group className="pet-gender-group">
                   <Radio.Button value="Đực" className="pet-gender-btn">
@@ -475,9 +525,12 @@ export default function PetProfile() {
             <div className="form-row">
 
               <Form.Item
-                label={t('pages.petProfile.fields.age')}
+                label={requiredLabel(t('pages.petProfile.fields.age'))}
                 name="birthDate"
-                rules={[{ required: true, message: t('pages.petProfile.validation.birthDateRequired') }]}
+                rules={[
+                  { required: true, message: t('pages.petProfile.validation.birthDateRequired') },
+                  { validator: validateBirthDate },
+                ]}
               >
 
                 <DatePicker
@@ -507,14 +560,21 @@ export default function PetProfile() {
               </Form.Item>
 
               <Form.Item
-                label={t('pages.petProfile.fields.weight')}
+                label={requiredLabel(t('pages.petProfile.fields.weight'))}
                 name="weight"
                 className="form-col"
-                rules={[{ required: true }]}
+                rules={[
+                  {
+                    required: true,
+                    message: t('pages.petProfile.validation.weightRequired', {
+                      defaultValue: 'Vui lòng nhập cân nặng',
+                    }),
+                  },
+                  { validator: validateWeight },
+                ]}
               >
                 <InputNumber
                   size="large"
-                  min={1}
                   max={100}
                   style={{ width: "100%" }}
                 />
