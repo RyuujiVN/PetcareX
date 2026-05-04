@@ -1,132 +1,118 @@
 {
-  "generated_at": "2026-03-17T09:26:13.164396",
-  "total_input_files": 10,
-  "total_input_records": 14460,
+  "generated_at": "2026-03-24T15:27:52.836600",
+  "total_input_files": 6,
+  "total_input_records": 8018,
   "file_details": {
     "ai_generated.jsonl": {
       "records": 5641,
       "errors": 35
     },
     "auto_save.jsonl": {
-      "records": 900,
+      "records": 415,
       "errors": 0
     },
-    "pet_data_20260312_095714.jsonl": {
-      "records": 54,
+    "pet_data_20260324_145925.jsonl": {
+      "records": 169,
       "errors": 0
     },
-    "pet_data_20260312_121837.jsonl": {
-      "records": 1037,
+    "pet_data_20260324_151421.jsonl": {
+      "records": 1363,
       "errors": 0
     },
-    "pet_data_20260312_153454.jsonl": {
-      "records": 1589,
+    "pet_data_20260324_151924.jsonl": {
+      "records": 15,
       "errors": 0
     },
-    "pet_data_20260313_105409.jsonl": {
-      "records": 1849,
-      "errors": 0
-    },
-    "pet_data_20260313_143736.jsonl": {
-      "records": 985,
-      "errors": 0
-    },
-    "pet_data_20260313_154836.jsonl": {
-      "records": 516,
-      "errors": 0
-    },
-    "pet_data_20260313_171715.jsonl": {
-      "records": 989,
-      "errors": 0
-    },
-    "pet_data_20260316_130303.jsonl": {
-      "records": 900,
+    "pet_data_20260324_152351.jsonl": {
+      "records": 415,
       "errors": 0
     }
   },
   "filtering": {
-    "empty_content": 0,
+    "empty_content": 4,
     "too_short_title": 0,
-    "content_under_50": 103,
+    "content_under_50": 105,
     "title_is_url": 0,
     "mostly_urls": 0
   },
   "deduplication": {
-    "exact_content_dups": 4206,
-    "semantic_dups": 1014,
+    "exact_content_dups": 1449,
+    "semantic_dups": 750,
     "url_dups": 0,
-    "title_dups": 174
+    "title_dups": 99
   },
   "final_dataset": {
-    "total_records": 8963,
+    "total_records": 5611,
     "content_length": {
       "min": 50,
-      "max": 386290,
-      "avg": 3041.7,
-      "median": 1699
+      "max": 11657,
+      "avg": 625.1,
+      "median": 573
     },
     "quality_score": {
-      "min": 0.2,
-      "max": 0.85,
-      "avg": 0.645
+      "min": 0.19,
+      "max": 0.81,
+      "avg": 0.525
     },
     "by_language": {
-      "en": 5134,
-      "vi": 3829
+      "vi": 3349,
+      "en": 2262
     },
     "by_pet_type": {
-      "cat": 5469,
-      "dog": 5070,
-      "fish": 1191,
-      "general": 523,
-      "bird": 483,
-      "rabbit": 371,
-      "reptile": 333,
-      "hamster": 169,
-      "turtle": 137
+      "dog": 2213,
+      "cat": 1917,
+      "general": 1503,
+      "fish": 694,
+      "bird": 289,
+      "reptile": 272,
+      "rabbit": 243,
+      "turtle": 190,
+      "hamster": 190,
+      "other": 41
     },
     "by_category": {
-      "care": 5564,
-      "health": 5365,
-      "nutrition": 5357,
-      "emergency": 3217,
-      "training": 2436,
-      "behavior": 345,
-      "breeding": 71,
-      "other": 25,
+      "care": 2077,
+      "nutrition": 1493,
+      "health": 1044,
+      "training": 808,
+      "other": 753,
+      "emergency": 354,
+      "behavior": 354,
+      "breeding": 73,
       "products": 11
     },
     "by_source_type": {
-      "ai_generated": 3824,
-      "vet_clinic": 1934,
-      "organization": 1382,
-      "news": 990,
-      "blog": 480,
-      "official": 353
+      "ai_generated": 3829,
+      "reddit": 1782
     },
     "by_source_name_top20": {
-      "AI Generated": 3824,
-      "GreatPetCare - Dog Health": 984,
-      "VetTimes - Small Animal Vets": 984,
-      "VetInfo - Dogs": 950,
-      "BSAVA News": 910,
-      "RCVS Knowledge - Veterinary Resources": 472,
-      "PetHouse Blog": 396,
-      "VeterinaryPartner - Behavior": 255,
-      "ASPCA": 98,
-      "ThuCanh - Chó": 44,
-      "Hanoi PetCare": 24,
-      "ThuCanh - Chim": 9,
-      "MelodyPet Tin tức": 6,
-      "VetTimes - Livestock Vets": 6,
-      "ThuCanh - Cá": 1
+      "AI Generated": 3829,
+      "r/goldfish": 50,
+      "r/dogs": 50,
+      "r/puppy101": 50,
+      "r/DogAdvice": 50,
+      "r/Tarantulas": 50,
+      "r/cats": 50,
+      "r/turtle": 50,
+      "r/AskVet": 50,
+      "r/Petadvice": 50,
+      "r/reactivedogs": 50,
+      "r/leopardgeckos": 50,
+      "r/Spiders": 50,
+      "r/ballpython": 50,
+      "r/AdoptDontShop": 50,
+      "r/Catcare": 50,
+      "r/Dogcare": 50,
+      "r/snakes": 49,
+      "r/bettafish": 49,
+      "r/Pets": 49
     }
   },
   "exports": {
-    "all": 8963,
-    "high": 7898,
-    "medium": 8789,
-    "alpaca": 7898,
-    "sharegpt": 7898
+    "all": 5611,
+    "high": 3496,
+    "medium": 5079,
+    "alpaca": 3496,
+    "sharegpt": 3496
   }
 }

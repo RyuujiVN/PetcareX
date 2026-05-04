@@ -1,7 +1,9 @@
 import { io } from "socket.io-client";
 import { getToken } from "../utils/storage/tokenStorage";
 
-const SOCKET_URL = "http://localhost:3000/notification";
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").trim();
+const SOCKET_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, "");
+const SOCKET_URL = `${SOCKET_BASE_URL || ""}/notification`;
 
 const notifySocket = io(SOCKET_URL, {
   autoConnect: false,
