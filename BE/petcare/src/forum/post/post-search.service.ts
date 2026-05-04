@@ -61,54 +61,62 @@ export class PostSearchService implements OnModuleInit {
       postDocuments = await this.elasticSearchService.search({
         index: FORUM_POST_INDEX,
         size: options.limit,
+        min_score: 0.5,
         _source: false,
         retriever: {
-          rrf: {
+          linear: {
             retrievers: [
               // Retriever 1: BM25 full-text search
               {
-                standard: {
-                  query: {
-                    bool: {
-                      must: [
-                        {
-                          match: {
-                            content: {
-                              query: hasKeyword,
-                              fuzziness: 'AUTO',
-                              minimum_should_match: '2<70%',
+                retriever: {
+                  standard: {
+                    query: {
+                      bool: {
+                        must: [
+                          {
+                            match: {
+                              content: {
+                                query: hasKeyword,
+                                fuzziness: 'AUTO',
+                                minimum_should_match: '2<70%',
+                              },
                             },
                           },
-                        },
-                      ],
-                      filter,
+                        ],
+                        filter,
+                      },
                     },
+                    sort,
                   },
-                  sort,
                 },
+                normalizer: 'l2_norm',
+                weight: 0.3,
               },
 
-              // Retriever 1: Semantic search
+              // Retriever 2: Semantic search
               {
-                standard: {
-                  query: {
-                    bool: {
-                      must: [
-                        {
-                          match: {
-                            semantic_content: hasKeyword,
+                retriever: {
+                  standard: {
+                    query: {
+                      bool: {
+                        must: [
+                          {
+                            match: {
+                              semantic_content: hasKeyword,
+                            },
                           },
-                        },
-                      ],
-                      filter,
+                        ],
+                        filter,
+                      },
                     },
+                    sort,
                   },
-                  sort,
                 },
+                normalizer: 'none',
+                weight: 0.7,
               },
             ],
             rank_window_size: 50, // Mỗi retriever trả về 50 record
-            rank_constant: 20,
           },
         },
       });

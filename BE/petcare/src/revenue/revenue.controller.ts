@@ -15,8 +15,8 @@ export class RevenueController {
   @Get('summary')
   @RequiredRole(RoleEnum.ADMIN_CLINIC)
   @ApiOperation({ summary: 'Tóm tắt hoá đơn hôm nay của phòng khám' })
-  getSummaryToday(@Req() req) {
-    return this.revenueService.getSummaryToday(req?.user?.clinicId);
+  getSummaryTodayAdminClinic(@Req() req) {
+    return this.revenueService.getSummaryTodayAdminClinic(req?.user?.clinicId);
   }
 
   @Get('chart')
@@ -61,5 +61,27 @@ export class RevenueController {
   @ApiOperation({ summary: 'Top 5 bác sĩ của tháng' })
   getTopVeterinarian(@Req() req) {
     return this.revenueService.topVeterinarian(req?.user?.clinicId);
+  }
+
+  @Get('summary-for-admin')
+  @RequiredRole(RoleEnum.ADMIN)
+  @ApiOperation({ summary: 'Tóm tắt số lượng phòng khám' })
+  getSummaryTodayAdmin() {
+    return this.revenueService.getSummaryTodayAdmin();
+  }
+
+  @Get('top-booked-clinic')
+  @RequiredRole(RoleEnum.ADMIN)
+  @ApiOperation({ summary: 'Top phòng khám đặt nhiều nhất' })
+  @ApiQuery({
+    name: 'orderByType',
+    required: true,
+    type: String,
+    description: 'Sắp xếp theo tăng dần hay giảm dần. VD: "DESC"',
+  })
+  getTopBookedClinics(@Query('orderByType') orderByType: 'ASC' | 'DESC') {
+    return this.revenueService.getTopBookedClinics({
+      orderByType,
+    });
   }
 }
