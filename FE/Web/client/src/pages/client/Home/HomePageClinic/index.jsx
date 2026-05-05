@@ -173,7 +173,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
 
         <section className="clinic-gallery-section">
           <div className="section-container">
-            <h2 className="section-title" style={{textAlign: 'center', fontSize: 25, fontWeight: 'bold', marginBottom: 25, color: '#4672b4'}}>{content.gallerySection.title}</h2>
+            <h2 className="section-title" style={{textAlign: 'center', fontSize: 25, fontWeight: 'bold', marginBottom: 10, color: '#4672b4'}}>{content.gallerySection.title}</h2>
             <p className="section-subtitle">{content.gallerySection.subtitle}</p>
 
             <div className="clinic-gallery-grid">

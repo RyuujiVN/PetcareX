@@ -605,6 +605,7 @@
       },
       "chatbot": {
         "title": "Chat Bot AI",
+        "loadFailed": "Không thể tải danh sách cuộc trò chuyện",
         "newRoomFailed": "Không thể tạo cuộc trò chuyện mới",
         "renameFailed": "Đổi tên phòng chat thất bại",
         "deleteFailed": "Xoá phòng chat thất bại",
@@ -637,6 +638,7 @@
           "loadingOldMessages": "Đang tải tin nhắn cũ...",
           "userImageAlt": "Ảnh người dùng đã gửi",
           "answering": "Đang trả lời...",
+          "genericError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
           "attachImage": "Thêm ảnh",
           "previewAlt": "Xem trước",
           "removeImage": "Xóa ảnh",

@@ -604,6 +604,7 @@
       },
       "chatbot": {
         "title": "AI Chat Bot",
+        "loadFailed": "Unable to load conversation list",
         "newRoomFailed": "Unable to create a new conversation",
         "renameFailed": "Failed to rename chat room",
         "deleteFailed": "Failed to delete chat room",
@@ -636,6 +637,7 @@
           "loadingOldMessages": "Loading older messages...",
           "userImageAlt": "User uploaded image",
           "answering": "Responding...",
+          "genericError": "Something went wrong. Please try again.",
           "attachImage": "Attach image",
           "previewAlt": "Preview",
           "removeImage": "Remove image",

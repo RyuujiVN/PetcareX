@@ -209,7 +209,7 @@
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(240px, 50fr));
+  grid-template-columns: repeat(auto-fit,minmax(270px, 50fr));
   gap: 32px;
 }
 
@@ -227,7 +227,7 @@
 }
 .doctor-cards {
   text-align: center;
-  border-radius: 5px;
+  border-radius: 10px;
   border: 1px solid var(--color-border-strong);
 }
 
