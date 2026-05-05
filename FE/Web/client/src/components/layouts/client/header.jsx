@@ -28,7 +28,7 @@ import {
     FaReply,
 } from "react-icons/fa6";
 import { IoMdNotificationsOutline } from "react-icons/io";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../../hooks/client/AuthContext";
 import { getClientInstance } from "../../../services/apiClient";
 import { changePasswordApi } from "../../../services/authService";
@@ -250,8 +250,23 @@ function Header() {
   const notificationRequestInFlightRef = useRef(false);
   const shownToastIdsRef = useRef(new Set());
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, logout, token, userProfile } = useAuth();
   const currentUserId = String(userProfile?.id || "");
+  const isPetsSectionActive = useMemo(() => {
+    const petsSectionPaths = [
+      "/listPetMedicalRecords",
+      "/medical-records",
+      "/petProfile",
+      "/add-pet",
+    ];
+
+    return petsSectionPaths.some(
+      (path) =>
+        location.pathname === path ||
+        location.pathname.startsWith(`${path}/`),
+    );
+  }, [location.pathname]);
 
   const notificationReadIdSet = useMemo(
     () =>
@@ -874,8 +889,8 @@ function Header() {
             </NavLink>
             <NavLink
               to="/listPetMedicalRecords"
-              className={({ isActive }) =>
-                isActive ? "nav-item active" : "nav-item"
+              className={() =>
+                isPetsSectionActive ? "nav-item active" : "nav-item"
               }
             >
               {t("header.nav.myPets")}
