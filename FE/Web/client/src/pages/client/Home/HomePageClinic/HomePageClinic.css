@@ -171,11 +171,6 @@
   transform: scale(1.03);
 }
 
-.clinic-gallery-item:nth-child(2),
-.clinic-gallery-item:nth-child(6) {
-  grid-column: span 2;
-}
-
 .clinic-location-section {
   padding: 48px 0 56px;
   background: white;
@@ -303,20 +298,9 @@
 }
 
 
-@media (max-width: 1024px) {
-  .clinic-gallery-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 768px) {
   .clinic-gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .clinic-gallery-item:nth-child(2),
-  .clinic-gallery-item:nth-child(6) {
-    grid-column: auto;
   }
 
   .clinic-gallery-item img {
