@@ -44,6 +44,23 @@ const getPreviewText = (text, wordLimit = INTRO_PREVIEW_WORDS) => {
   return `${words.slice(0, wordLimit).join(' ')}...`;
 };
 
+const splitDoctorLabel = (label) => {
+  const normalized = String(label || '').trim();
+  if (!normalized) {
+    return { name: '', role: '' };
+  }
+
+  const parts = normalized.split(/\s+-\s+/);
+  if (parts.length < 2) {
+    return { name: normalized, role: '' };
+  }
+
+  return {
+    name: parts[0],
+    role: parts.slice(1).join(' - '),
+  };
+};
+
 export default function HomePageClinic({ clinicId = '', forcedContent = null, showBookingButton = true }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
@@ -190,12 +207,25 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
           <div className="section-container">
             <h2 className="section-title" style={{textAlign: 'center', fontSize: 25, fontWeight: 'bold', marginBottom: 25, color: '#4672b4'}}>{content.teamSection.title}</h2>
             <div className="team-grid">
-              {content.doctors.map((doctor, index) => (
-                <div key={doctor.id || index} className="doctor-cards">
-                  <img src={doctor.image} alt={doctor.name} />
-                  <div className="doctor-name">{doctor.name}</div>
-                </div>
-              ))}
+              {content.doctors.map((doctor, index) => {
+                const { name, role } = splitDoctorLabel(doctor.name);
+
+                return (
+                  <div key={doctor.id || index} className="doctor-card">
+                    <div className="doctor-photo-frame">
+                      <img
+                        src={doctor.image}
+                        alt={doctor.name}
+                        className="doctor-photo"
+                      />
+                    </div>
+                    <div className="doctor-info">
+                      <div className="doctor-name">{name || doctor.name}</div>
+                      {role ? <div className="doctor-role">{role}</div> : null}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </section>

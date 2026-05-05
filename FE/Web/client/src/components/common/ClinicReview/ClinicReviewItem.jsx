@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import StarRating from './StarRating'
-import { maskReviewerName } from '../../../services/clinicReviewService'
 import styles from './ClinicReviewSection.module.css'
 
 const COMPACT_CONTENT_LIMIT = 180
@@ -32,7 +31,7 @@ export default function ClinicReviewItem({ review, compact = false }) {
 
   const user = review?.user || {}
   const displayNameRaw = user.fullName || t('pages.home.homePageClinic.reviewSection.anonymousReviewer')
-  const displayName = maskReviewerName(displayNameRaw) || displayNameRaw
+  const displayName = displayNameRaw
   const avatarUrl = user.avatarUrl || ''
   const initials = String(displayNameRaw || 'U').trim().charAt(0).toUpperCase()
   const content = String(review?.content || '').trim()
