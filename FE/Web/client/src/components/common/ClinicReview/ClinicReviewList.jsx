@@ -17,32 +17,32 @@ export default function ClinicReviewList({
 }) {
   const { t } = useTranslation()
   const firstReviewIdRef = useRef(null)
-  const [pageIndex, setPageIndex] = useState(0)
+  const [startIndex, setStartIndex] = useState(0)
   const [pendingAdvance, setPendingAdvance] = useState(false)
+  const [slideDirection, setSlideDirection] = useState('next')
 
-  const pageCount = useMemo(() => {
-    if (!carousel) return 1
-    return Math.max(1, Math.ceil(reviews.length / CAROUSEL_ITEMS_PER_PAGE))
+  const maxStartIndex = useMemo(() => {
+    if (!carousel) return 0
+    return Math.max(0, reviews.length - CAROUSEL_ITEMS_PER_PAGE)
   }, [carousel, reviews.length])
 
   const visibleReviews = useMemo(() => {
     if (!carousel) return reviews
-    const start = pageIndex * CAROUSEL_ITEMS_PER_PAGE
-    return reviews.slice(start, start + CAROUSEL_ITEMS_PER_PAGE)
-  }, [carousel, pageIndex, reviews])
+    return reviews.slice(startIndex, startIndex + CAROUSEL_ITEMS_PER_PAGE)
+  }, [carousel, reviews, startIndex])
 
   useEffect(() => {
     if (!carousel) return
-    if (pageIndex > pageCount - 1) {
-      setPageIndex(Math.max(0, pageCount - 1))
+    if (startIndex > maxStartIndex) {
+      setStartIndex(maxStartIndex)
     }
-  }, [carousel, pageCount, pageIndex])
+  }, [carousel, maxStartIndex, startIndex])
 
   useEffect(() => {
     if (!carousel) return
     const firstId = reviews[0]?.id || null
     if (firstId && firstReviewIdRef.current !== firstId) {
-      setPageIndex(0)
+      setStartIndex(0)
     }
     firstReviewIdRef.current = firstId
   }, [carousel, reviews])
@@ -50,21 +50,28 @@ export default function ClinicReviewList({
   useEffect(() => {
     if (!carousel || !pendingAdvance || loadingMore) return
     setPendingAdvance(false)
-    setPageIndex((current) => (current < pageCount - 1 ? current + 1 : current))
-  }, [carousel, loadingMore, pageCount, pendingAdvance])
+    setSlideDirection('next')
+    setStartIndex((current) => {
+      const nextMax = Math.max(0, reviews.length - CAROUSEL_ITEMS_PER_PAGE)
+      return current < nextMax ? current + 1 : current
+    })
+  }, [carousel, loadingMore, pendingAdvance, reviews.length])
 
   const handlePrev = () => {
-    if (pageIndex === 0) return
-    setPageIndex((current) => Math.max(0, current - 1))
+    if (startIndex === 0) return
+    setSlideDirection('prev')
+    setStartIndex((current) => Math.max(0, current - 1))
   }
 
   const handleNext = () => {
-    if (pageIndex < pageCount - 1) {
-      setPageIndex((current) => current + 1)
+    if (startIndex < maxStartIndex) {
+      setSlideDirection('next')
+      setStartIndex((current) => Math.min(maxStartIndex, current + 1))
       return
     }
 
     if (hasMore && !loadingMore) {
+      setSlideDirection('next')
       setPendingAdvance(true)
       onLoadMore?.()
     }
@@ -87,8 +94,11 @@ export default function ClinicReviewList({
   }
 
   if (carousel) {
-    const isPrevDisabled = pageIndex === 0
-    const isNextDisabled = loadingMore || (!hasMore && pageIndex >= pageCount - 1)
+    const isPrevDisabled = startIndex === 0
+    const isNextDisabled = loadingMore || (!hasMore && startIndex >= maxStartIndex)
+    const carouselGridClassName = `${styles.carouselGrid} ${
+      slideDirection === 'next' ? styles.carouselGridSlideNext : styles.carouselGridSlidePrev
+    }`
 
     return (
       <div className={styles.carouselWrapper}>
@@ -105,7 +115,7 @@ export default function ClinicReviewList({
             <LeftOutlined />
           </button>
 
-          <div className={styles.carouselGrid}>
+          <div className={carouselGridClassName} key={`${startIndex}-${slideDirection}`}>
             {visibleReviews.map((review) => (
               <div key={review.id} className={styles.carouselItem}>
                 <ClinicReviewItem review={review} compact />

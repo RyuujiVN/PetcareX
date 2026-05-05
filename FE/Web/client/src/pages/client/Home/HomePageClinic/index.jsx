@@ -220,7 +220,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
                       />
                     </div>
                     <div className="doctor-info">
-                      <div className="doctor-name">{name || doctor.name}</div>
+                      <div className="doctor-names">{name || doctor.name}</div>
                       {role ? <div className="doctor-role">{role}</div> : null}
                     </div>
                   </div>
@@ -234,7 +234,7 @@ export default function HomePageClinic({ clinicId = '', forcedContent = null, sh
 
         <section className="clinic-location-section">
           <div className="section-container clinic-location-header">
-            <h2 className="section-title" style={{textAlign: 'center', fontSize: 25, fontWeight: 'bold', marginBottom: 25, color: '#4672b4'}}>{content.locationSection.title}</h2>
+            <h2 className="section-title" style={{textAlign: 'center', fontSize: 30, fontWeight: 'bold', marginBottom: 25, color: '#4672b4'}}>{content.locationSection.title}</h2>
             <p className="section-subtitle">{content.locationSection.subtitle}</p>
             <p className="clinic-address-text">{content.locationSection.address}</p>
           </div>

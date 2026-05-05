@@ -216,10 +216,10 @@
 .doctor-card {
   text-align: center;
   border-radius: 22px;
-  border: 2px solid #4672b4;
+  /* border: 2px solid #4672b4; */
   background: #fdfeff;
   padding: 14px 14px 28px;
-  box-shadow: 0 10px 22px rgba(66, 83, 236, 0.18);
+  box-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
 }
 
 /* .doctor-photo-frame {
@@ -244,16 +244,16 @@
   padding: 14px 8px 0;
 }
 
-.doctor-name {
-  font-size: 18px;
+.doctor-names {
+  font-size: 20px;
   font-weight: 700;
-  color: #4f6b72;
+  color: #676767;
   text-align: center;
 }
 
 .doctor-role {
-  font-size: 14px;
-  color: #5b6b6f;
+  font-size: 16px;
+  color: #b1b8ba;
   margin-top: 6px;
 }
 
