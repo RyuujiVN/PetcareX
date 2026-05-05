@@ -22,6 +22,40 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-05-05)
 
+### Cập nhật (2026-05-05) — Fix lỗi mở lại phiếu khám chưa thanh toán bị báo "Không tìm thấy thú cưng từ lịch hẹn"
+
+**Bối cảnh lỗi người dùng:**
+- Ở portal bác sĩ, sau khi đã tạo phiếu khám (chưa thanh toán) và mở lại từ danh sách phiếu khám để chỉnh sửa, khi bấm lưu có thể bị chặn với thông báo:
+  - `Không tìm thấy thú cưng từ lịch hẹn, vui lòng chọn lại lịch hẹn trước khi lưu`.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Luồng mở lại từ danh sách phiếu khám có thể đi bằng `medicalId` mà không có đầy đủ context `appointment`.
+- Trong `RecordExaminationForm`, nhánh lưu non-walk-in trước đó lấy `petId` và owner info quá phụ thuộc vào `appointment?.petRaw`, nên khi `appointment` null sẽ ném lỗi dù dữ liệu `pet/owner` đã có trong `editableMedicalRecord`.
+- Đây là mismatch logic ở FE (submit resolver), không phải bug nghiệp vụ từ BE.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A (chỉ vá mỗi `petId` ở submit): diff nhỏ nhưng còn rủi ro thiếu dữ liệu owner/pet fields trong payload.
+- Phương án B (được chọn): vá resolver đầy đủ trong cùng file form:
+  - `petId`: ưu tiên appointment, fallback về `editableMedicalRecord` / `latestMedicalRecord`.
+  - owner/pet identity fields: fallback theo chuỗi an toàn từ form values -> appointment -> medical record.
+  - đồng thời prefill initial hidden fields cho non-walk-in bằng dữ liệu từ medical record khi appointment context thiếu.
+- Lý do chọn B: vẫn FE-only, rủi ro thấp, xử lý triệt để hơn A nhưng không cần đụng BE.
+
+**Phạm vi thay đổi (FE only):**
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:
+  - Cập nhật `buildInitialValues` để non-walk-in có fallback từ `editableMedicalRecord.pet` + `owner`.
+  - Cập nhật `onFinish` (nhánh non-walk-in) để resolve `petId`, owner info, species/breed/petName theo fallback chain.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa file nào trong `BE/petcare/*`.
+- Không đổi endpoint, method, payload contract, DTO, migration hay schema DB.
+- Không thêm API call mới bắt buộc ở runtime.
+
+**Tự kiểm tra:**
+- `get_errors` trên file đã sửa: không có lỗi.
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`: không phát sinh lỗi lint.
+- `npm run build` (FE/Web/client): thành công.
+
 ### Cập nhật (2026-05-05) — Đồng bộ màn Admin Activity với API `GET /api/revenue/top-booked-clinic`
 
 **Bối cảnh nghiệp vụ:**

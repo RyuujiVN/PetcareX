@@ -443,8 +443,10 @@ const buildInitialValues = (
 	const isWalkIn = Boolean(options.isWalkIn)
 	const pet = appointment?.petRaw || appointment?.pet || {}
 	const owner = pet?.owner || {}
+	const fallbackPet = editableMedicalRecord?.pet || latestMedical?.pet || {}
+	const fallbackOwner = fallbackPet?.owner || {}
 	const latestWeight = toNumberOrUndefined(editableMedicalRecord?.weight ?? latestMedical?.weight)
-	const petWeight = toNumberOrUndefined(pet?.weight)
+	const petWeight = toNumberOrUndefined(pet?.weight ?? fallbackPet?.weight)
 	const serviceLabel = appointment?.service
 		? getServiceLabel(appointment.service, appointment.service)
 		: appointment?.formName || ''
@@ -486,18 +488,18 @@ const buildInitialValues = (
 		followUpDate: editableMedicalRecord?.followUpDate ? dayjs(editableMedicalRecord.followUpDate) : null,
 		customerName: isWalkIn
 			? recordOwner?.fullName || ''
-			: appointment?.ownerName || owner?.fullName || '',
+			: appointment?.ownerName || owner?.fullName || fallbackOwner?.fullName || '',
 		email: isWalkIn
 			? recordOwner?.email || ''
-			: owner?.email || appointment?.ownerEmail || '',
+			: owner?.email || appointment?.ownerEmail || fallbackOwner?.email || '',
 		phone: isWalkIn
 			? normalizePhone(recordOwner?.phone || '')
-			: normalizePhone(owner?.phone || appointment?.ownerPhone || ''),
+			: normalizePhone(owner?.phone || appointment?.ownerPhone || fallbackOwner?.phone || ''),
 		petName: isWalkIn
 			? recordPet?.name || editableMedicalRecord?.petName || ''
-			: appointment?.petName || pet?.name || '',
-		species: isWalkIn ? recordPet?.species || undefined : pet?.species || undefined,
-		breed: isWalkIn ? recordPet?.breed || undefined : pet?.breed || undefined,
+			: appointment?.petName || pet?.name || fallbackPet?.name || editableMedicalRecord?.petName || '',
+		species: isWalkIn ? recordPet?.species || undefined : pet?.species || fallbackPet?.species || undefined,
+		breed: isWalkIn ? recordPet?.breed || undefined : pet?.breed || fallbackPet?.breed || undefined,
 		weight: latestWeight ?? petWeight,
 		temperature: toNumberOrUndefined(editableMedicalRecord?.temperature),
 		heartRate: toNumberOrUndefined(editableMedicalRecord?.heartRate),
@@ -1408,7 +1410,11 @@ export default function RecordExaminationForm() {
 		try {
 			setSaving(true)
 
-			const petId = appointment?.petRaw?.id
+			const appointmentPet = appointment?.petRaw || appointment?.pet || {}
+			const fallbackPet = editableMedicalRecord?.pet || latestMedicalRecord?.pet || {}
+			const fallbackOwner = fallbackPet?.owner || {}
+
+			const petId = appointmentPet?.id || appointment?.petId || fallbackPet?.id
 			if (!petId) {
 				throw new Error(t('examForm.record.messages.petMissingError'))
 			}
@@ -1419,12 +1425,12 @@ export default function RecordExaminationForm() {
 			const diastolic = toNumberOrUndefined(values.diastolic)
 			const weight = toNumberOrUndefined(values.weight)
 			const resolvedCustomerName =
-				values.customerName || appointment?.ownerName || appointment?.petRaw?.owner?.fullName || ''
+				values.customerName || appointment?.ownerName || appointmentPet?.owner?.fullName || fallbackOwner?.fullName || ''
 			const resolvedEmail = normalizeEmail(
-				values.email || appointment?.ownerEmail || appointment?.petRaw?.owner?.email || '',
+				values.email || appointment?.ownerEmail || appointmentPet?.owner?.email || fallbackOwner?.email || '',
 			)
 			const resolvedPhone = normalizePhone(
-				values.phone || appointment?.ownerPhone || appointment?.petRaw?.owner?.phone || '',
+				values.phone || appointment?.ownerPhone || appointmentPet?.owner?.phone || fallbackOwner?.phone || '',
 			)
 
 			if (
@@ -1450,9 +1456,14 @@ export default function RecordExaminationForm() {
 
 			const createPayload = {
 				petId,
-				species: values.species || appointment?.petRaw?.species,
-				breed: values.breed || appointment?.petRaw?.breed,
-				petName: values.petName,
+				species: values.species || appointmentPet?.species || fallbackPet?.species,
+				breed: values.breed || appointmentPet?.breed || fallbackPet?.breed,
+				petName:
+					values.petName ||
+					appointment?.petName ||
+					appointmentPet?.name ||
+					fallbackPet?.name ||
+					editableMedicalRecord?.petName,
 				name: values.formName,
 				customerName: resolvedCustomerName,
 				email: resolvedEmail,
