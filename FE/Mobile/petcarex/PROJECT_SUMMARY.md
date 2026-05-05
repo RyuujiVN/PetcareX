@@ -10,6 +10,35 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
+## 🆕 Cập nhật mới nhất (2026-05-05)
+
+### Community Comment hiển thị dữ liệu thô (raw HTML/token) — Root cause & Fix
+- **Bối cảnh lỗi:** Một số comment/reply trên mobile hiển thị thô dạng `<p>...</p>`, `<img ...>` hoặc token `[[img:...]]` thay vì text + ảnh đúng UI.
+- **Nguyên nhân gốc đã xác nhận (đúng tại FE mobile):**
+    - Parser ở `community_page.dart` trước đó chỉ xử lý tốt HTML literal.
+    - Chưa tương thích đầy đủ dữ liệu mixed-format từ các nguồn khác nhau trong hệ sinh thái:
+        - HTML literal (`<p>`, `<br>`, `<img>`),
+        - HTML escaped (`&lt;p&gt;...&lt;/p&gt;`),
+        - Token format từ web (`[[img:...]]`, `[[title:...]]`, `[[no-topic:1]]`).
+    - Thứ tự xử lý cũ decode entity sau bước strip tag làm một số nội dung vẫn còn tag thô ở output.
+- **Tự phản biện phương án:**
+    - **Phương án A:** Render HTML trực tiếp bằng widget HTML.
+        - Ưu: nhanh thấy nội dung “đẹp” ngay.
+        - Nhược: tăng rủi ro bảo mật/render inconsistency, khó đồng bộ với layout text+image hiện có.
+    - **Phương án B (được chọn):** Giữ nguyên UI render hiện tại, nâng parser để normalize multi-format trước khi tách text/ảnh.
+        - Ưu: diff nhỏ, an toàn, không đổi contract BE, tương thích chéo mobile-web tốt hơn.
+- **Phạm vi thay đổi (surgical, FE mobile only):**
+    - `lib/features/community/presentation/community_page.dart`
+        - Thêm `_decodeHtmlEntities(...)`.
+        - Thêm `_normalizeStructuredContent(...)`.
+        - Nâng `_extractImageUrlsFromHtml(...)` để lấy ảnh từ cả HTML và token `[[img:...]]` + dedupe URL.
+        - Nâng `_extractPlainTextFromHtml(...)` để xử lý HTML escaped + strip token/title/no-topic + normalize xuống dòng.
+- **Kết quả:**
+    - Comment/reply/post không còn hiện dữ liệu thô khi gặp mixed-format content.
+    - Flow edit/comment/reply tiếp tục dùng chung parser nên tương thích ngược với dữ liệu cũ.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/community/presentation/community_page.dart` → **No issues found**.
+
 ## ⚡ Community Performance & UX Optimization (2026-03-25)
 
 ### 1) Tối ưu tốc độ đăng bài có nhiều ảnh (Pre-upload)
