@@ -22,6 +22,48 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-05-05)
 
+### Cập nhật (2026-05-05) — Fix hiển thị bình luận thô (raw HTML) trên Forum Web
+
+**Bối cảnh lỗi người dùng:**
+- Ở phần bình luận Forum, một số comment cũ hiển thị thô chuỗi HTML như `<p>...</p>` và `<img src="..." />` thay vì hiển thị text + ảnh đúng UI.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- FE đang parse nội dung bằng `extractMediaFromContent`, nhưng hàm này trước đó chỉ hỗ trợ token nội bộ `[[img:...]]`/`[[title:...]]`.
+- Dữ liệu legacy từ BE có comment/post lưu theo HTML (`<p>`, `<br>`, `<img>`) không được parser bóc tách.
+- UI render chuỗi bằng React text node (`<p>{content}</p>`) nên HTML bị escape và hiện ra dạng chữ thô.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: render HTML trực tiếp bằng `dangerouslySetInnerHTML` + sanitize.
+  - Nhược: tăng rủi ro XSS nếu sanitize lệch cấu hình; diff lớn hơn và khó kiểm soát consistency giữa 4 portal.
+- Phương án B (được chọn): giữ cơ chế render text/image hiện tại, chỉ nâng parser để hỗ trợ cả token nội bộ và HTML legacy.
+  - Ưu điểm: an toàn hơn (không render HTML trực tiếp), diff nhỏ, không đổi contract BE, không phá UI hiện có.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã sửa:**
+- Bổ sung parser HTML nội bộ để:
+  - phát hiện nội dung có tag HTML,
+  - tách `src` từ thẻ `<img>` thành danh sách ảnh,
+  - chuẩn hóa text (xử lý `<p>`, `<div>`, `<br>`, xuống dòng),
+  - fallback regex khi DOMParser không khả dụng.
+- Nâng `extractMediaFromContent` để merge ảnh từ 2 nguồn:
+  - token `[[img:...]]` (format mới),
+  - thẻ `<img>` HTML (format legacy),
+  - sau đó dedupe URL và giữ `firstImage` như flow cũ.
+- Giữ nguyên render layer hiện tại (text + image riêng), nên không ảnh hưởng style/layout comment bubble.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint/forum contract.
+- Không thay đổi payload format khi tạo/sửa comment mới.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+- `npx eslint` các file Forum đã sửa: không có lỗi mới từ parser; còn warning hooks và 1 lỗi `no-unused-vars` pre-existing ở `src/pages/client/User/Forum/forum.jsx` không thuộc phạm vi fix này.
+
 ### Cập nhật (2026-05-05) — Fix lỗi mở lại phiếu khám chưa thanh toán bị báo "Không tìm thấy thú cưng từ lịch hẹn"
 
 **Bối cảnh lỗi người dùng:**
