@@ -139,6 +139,8 @@
   border-radius: 14px;
   padding: 10px;
   min-height: 420px;
+  display: flex;
+  flex-direction: column;
 }
 
 .columnHeader {
@@ -184,10 +186,17 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  flex: 1;
+  min-height: min(585px, 65vh);
+  max-height: min(585px, 65vh);
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-gutter: stable;
 }
 
 .emptyWrap {
   min-height: 220px;
+  flex: 1;
   display: grid;
   place-items: center;
 }

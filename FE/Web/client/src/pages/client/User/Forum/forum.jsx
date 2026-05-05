@@ -125,22 +125,110 @@ const getTopicDisplayName = (topic = {}, { language, t } = {}) => {
 
 const getPostEngagementScore = (post = {}) => Number(post.likes || 0) + Number(post.comments || 0)
 
-const extractMediaFromContent = (rawContent = '') => {
-	const hasNoTopicToken = rawContent.includes(NO_TOPIC_TOKEN)
-	const normalizedContent = hasNoTopicToken ? rawContent.split(NO_TOPIC_TOKEN).join('').trim() : rawContent.trim()
-	const matches = [...rawContent.matchAll(IMAGE_TOKEN_REGEX)]
-	const images = matches
+const HTML_TAG_DETECTION_REGEX = /<\/?[a-z][^>]*>/i
+const HTML_IMAGE_SRC_REGEX = /<img[^>]*\bsrc\s*=\s*["']?([^"'>\s]+)["']?[^>]*>/gi
+
+const normalizeExtractedText = (value = '') =>
+	String(value || '')
+		.replace(/\u00a0/g, ' ')
+		.replace(/[ \t]+\n/g, '\n')
+		.replace(/\n{3,}/g, '\n\n')
+		.trim()
+
+const extractMediaFromHtml = (rawContent = '') => {
+	const html = String(rawContent || '').trim()
+	if (!html || !HTML_TAG_DETECTION_REGEX.test(html)) {
+		return {
+			text: normalizeExtractedText(html),
+			images: [],
+		}
+	}
+
+	if (typeof DOMParser !== 'undefined') {
+		try {
+			const parser = new DOMParser()
+			const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html')
+			const root = doc.body.firstElementChild || doc.body
+			const images = []
+			const chunks = []
+
+			const walk = (node) => {
+				if (!node) return
+				if (node.nodeType === 3) {
+					chunks.push(node.textContent || '')
+					return
+				}
+				if (node.nodeType !== 1) return
+
+				const element = node
+				const tagName = String(element.tagName || '').toLowerCase()
+
+				if (tagName === 'img') {
+					const imageUrl = element.getAttribute('src')?.trim()
+					if (imageUrl) {
+						images.push(imageUrl)
+					}
+					return
+				}
+
+				if (tagName === 'br') {
+					chunks.push('\n')
+					return
+				}
+
+				Array.from(element.childNodes || []).forEach(walk)
+
+				if (['p', 'div', 'li', 'ul', 'ol', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+					chunks.push('\n')
+				}
+			}
+
+			Array.from(root.childNodes || []).forEach(walk)
+
+			return {
+				text: normalizeExtractedText(chunks.join('')),
+				images,
+			}
+		} catch {
+			// Fallback to regex parser when DOM parsing is unavailable.
+		}
+	}
+
+	const images = [...html.matchAll(HTML_IMAGE_SRC_REGEX)]
 		.map((match) => match?.[1]?.trim())
 		.filter((url) => Boolean(url))
-	const firstImage = images[0] || null
+
+	const text = html
+		.replace(/<img[^>]*>/gi, ' ')
+		.replace(/<br\s*\/?>/gi, '\n')
+		.replace(/<\/(p|div|li|ul|ol|blockquote|h[1-6])>/gi, '\n')
+		.replace(/<[^>]+>/g, ' ')
+
+	return {
+		text: normalizeExtractedText(text),
+		images,
+	}
+}
+
+const extractMediaFromContent = (rawContent = '') => {
+	const normalizedRawContent = String(rawContent || '')
+	const hasNoTopicToken = normalizedRawContent.includes(NO_TOPIC_TOKEN)
+	const normalizedContent = hasNoTopicToken ? normalizedRawContent.split(NO_TOPIC_TOKEN).join('').trim() : normalizedRawContent.trim()
+	const tokenImages = [...normalizedRawContent.matchAll(IMAGE_TOKEN_REGEX)]
+		.map((match) => match?.[1]?.trim())
+		.filter((url) => Boolean(url))
 	const withoutImageToken = normalizedContent.replace(IMAGE_TOKEN_REGEX, '').trim()
 	const titleMatch = withoutImageToken.match(TITLE_TOKEN_REGEX)
 	const title = titleMatch?.[1]?.trim() || ''
-	const cleanContent = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim()
+	const contentWithoutToken = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim()
+	const htmlMedia = extractMediaFromHtml(contentWithoutToken)
+	const images = [...tokenImages, ...htmlMedia.images]
+		.filter((url, index, arr) => Boolean(url) && arr.indexOf(url) === index)
+	const firstImage = images[0] || null
 
 	return {
 		title,
-		text: cleanContent,
+		text: htmlMedia.text,
 		image: firstImage,
 		images,
 		isNoTopic: hasNoTopicToken,

@@ -136,8 +136,8 @@
 }
 
 .team-section {
-  padding: 40px 20px;
-  background: white;
+  padding: 48px 20px 56px;
+  background: #fbf9f5;
   border: 1px solid var(--color-border-strong);
 }
 
@@ -169,11 +169,6 @@
 
 .clinic-gallery-item:hover img {
   transform: scale(1.03);
-}
-
-.clinic-gallery-item:nth-child(2),
-.clinic-gallery-item:nth-child(6) {
-  grid-column: span 2;
 }
 
 .clinic-location-section {
@@ -209,26 +204,72 @@
 
 .team-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(240px, 50fr));
-  gap: 32px;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 10fr));
+  gap: 26px;
+  align-items: stretch;
 }
 
-.doctor-cards img {
+.doctor-card {
+  text-align: center;
+  border-radius: 22px;
+  background: #fdfeff;
+  padding: 14px 14px 28px;
+  box-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.doctor-photo-frame {
+  border-radius: 18px;
+  background: #fdfeff;
+  box-shadow: 0 8px 24px rgba(149, 157, 165, 0.2);
+  padding: 10px;
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doctor-photo {
   width: 100%;
-  height: 200px;
+  height: 100%;
   object-fit: cover;
-  margin: 0 auto 12px;
+  border-radius: 12px;
 }
-.doctor-name {
+
+.doctor-info {
+  padding: 14px 8px 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 88px;
+}
+
+.doctor-names {
+  font-size: 20px;
+  font-weight: 700;
+  color: #676767;
+  text-align: center;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 52px;
+}
+
+.doctor-role {
   font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  text-align: center;
-}
-.doctor-cards {
-  text-align: center;
-  border-radius: 5px;
-  border: 1px solid var(--color-border-strong);
+  color: #b1b8ba;
+  margin-top: 6px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 44px;
 }
 
 .services-center-image img {
@@ -257,20 +298,9 @@
 }
 
 
-@media (max-width: 1024px) {
-  .clinic-gallery-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 768px) {
   .clinic-gallery-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .clinic-gallery-item:nth-child(2),
-  .clinic-gallery-item:nth-child(6) {
-    grid-column: auto;
   }
 
   .clinic-gallery-item img {

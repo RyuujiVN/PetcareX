@@ -364,6 +364,7 @@
   },
   "activity": {
     "pageTitle": "Thống kê hoạt động phòng khám",
+    "pageTitleWithMonth": "Thống kê hoạt động phòng khám tháng {{month}}",
     "pageSubtitle": "Theo dõi số lượt khám của từng phòng khám phục vụ tính phí gói SaaS",
     "loading": "Đang tải dữ liệu hoạt động...",
     "period": {
@@ -382,7 +383,7 @@
       "searchPlaceholder": "Tìm phòng khám...",
       "colName": "Phòng khám",
       "colAddress": "Địa chỉ",
-      "colCurrent": "Lượt khám kỳ này",
+      "colCurrent": "Lượt khám",
       "colPrevious": "Kỳ trước",
       "colGrowth": "Tăng/giảm",
       "colStatus": "Trạng thái",

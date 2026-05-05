@@ -8,14 +8,16 @@ import {
   SunOutlined,
   UserOutlined,
 } from '@ant-design/icons';
-import { Avatar, Card, Col, Form, Input, Modal, message, Row, Select, Spin, Tag } from 'antd';
+import { Avatar, Card, Col, Form, Input, message, Modal, Row, Select, Spin, Tag } from 'antd';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { BsArrowLeftShort, BsArrowRightShort } from "react-icons/bs";
+import { IoChevronBack, IoChevronForward } from "react-icons/io5";
 import { useLocation, useNavigate } from 'react-router-dom';
 import { SERVICE_TO_SPECIALTY_MAP } from '../../../../constants/enumLabels';
+import { DEFAULT_LOCATION } from '../../../../constants/location';
 import { getSpecialtyLabel } from '../../../../constants/veterinaryLabels';
 import { useAuth } from '../../../../hooks/client/AuthContext';
+import { useUserLocation } from '../../../../hooks/client/useUserLocation';
 import { getClientInstance } from '../../../../services/apiClient';
 import {
   APPOINTMENT_STATUS,
@@ -23,14 +25,10 @@ import {
   getMyAppointmentsApi,
   SERVICE_OPTIONS,
 } from '../../../../services/appointmentService';
-import { IoChevronBack } from "react-icons/io5";
-import { IoChevronForward } from "react-icons/io5";
 import { getClinicByIdApi, getNearbyClinicListApi } from '../../../../services/clinicService';
-import { useUserLocation } from '../../../../hooks/client/useUserLocation';
-import { DEFAULT_LOCATION } from '../../../../constants/location';
-import { formatDistance } from '../../../../utils/formatDistance';
 import { getBreedLabel, getMyPetsApi } from '../../../../services/petService';
 import { getVeterinarianByClinicApi } from '../../../../services/veterinarianService';
+import { formatDistance } from '../../../../utils/formatDistance';
 import './styles.css';
 
 const TIME_SLOT_GROUPS = [
@@ -44,7 +42,7 @@ const TIME_SLOT_GROUPS = [
     key: 'afternoon',
     labelKey: 'pages.booking.timeSlots.afternoon',
     icon: MoonOutlined,
-    times: ['14:00', '14:30', '15:00', '15:30', '20:30', '19:30'],
+    times: ['14:00', '14:30', '15:00', '15:30', '16:00', '16:30'],
   },
 ];
 

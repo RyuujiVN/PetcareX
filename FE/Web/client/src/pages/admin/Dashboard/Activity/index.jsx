@@ -11,25 +11,18 @@ export default function AdminActivity() {
   const {
     loading,
     error,
-    period,
-    setPeriod,
     clinicSearch,
     setClinicSearch,
     fetchActivity,
     summary,
     clinicRanking,
-    PERIOD_KEYS,
   } = useAdminActivity()
+
+  const currentMonth = new Date().getMonth() + 1
 
   useEffect(() => {
     fetchActivity()
   }, [fetchActivity])
-
-  const periodOptions = [
-    { key: PERIOD_KEYS.THIS_MONTH, label: t('activity.period.thisMonth') },
-    { key: PERIOD_KEYS.LAST_MONTH, label: t('activity.period.lastMonth') },
-    { key: PERIOD_KEYS.THIS_QUARTER, label: t('activity.period.thisQuarter') },
-  ]
 
   if (loading) {
     return (
@@ -44,7 +37,9 @@ export default function AdminActivity() {
   return (
     <div className={styles.pageWrapper}>
       <div className={styles.pageHeader}>
-        <h1 className={styles.pageTitle}>{t('activity.pageTitle')}</h1>
+        <h1 className={styles.pageTitle}>
+          {t('activity.pageTitleWithMonth', { month: currentMonth })}
+        </h1>
         <p className={styles.pageSubtitle}>{t('activity.pageSubtitle')}</p>
       </div>
 
@@ -60,9 +55,6 @@ export default function AdminActivity() {
         clinicRanking={clinicRanking}
         clinicSearch={clinicSearch}
         onSearchChange={setClinicSearch}
-        periodOptions={periodOptions}
-        period={period}
-        onPeriodChange={setPeriod}
       />
     </div>
   )

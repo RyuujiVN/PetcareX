@@ -1,10 +1,12 @@
 import { memo } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useTranslation } from "react-i18next";
 
 import "github-markdown-css/github-markdown-light.css";
 
 const ChatMessage = memo(({ message }) => {
+  const { t } = useTranslation(["client"]);
   if (!message) return null;
 
   if (message?.sendBy === "USER") {
@@ -23,7 +25,7 @@ const ChatMessage = memo(({ message }) => {
               >
                 <img
                   src={message.image}
-                  alt="Anh nguoi dung da gui"
+                  alt={t("pages.home.chatbot.messageBox.userImageAlt")}
                   loading="lazy"
                   className="message-image"
                 />
