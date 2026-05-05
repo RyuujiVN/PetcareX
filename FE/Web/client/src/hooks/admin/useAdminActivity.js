@@ -1,18 +1,17 @@
 import { useCallback, useMemo, useState } from 'react'
 import { getAdminInstance } from '../../services/apiClient'
-import {
-  ACTIVITY_PERIOD_KEYS,
-  calculateActivitySummary,
-  calculateClinicActivityRanking,
-  fetchSystemActivity,
-} from '../../services/adminActivityService'
+import { fetchSystemActivity } from '../../services/adminActivityService'
 
 export default function useAdminActivity() {
-  const [clinics, setClinics] = useState([])
-  const [clinicVisitMap, setClinicVisitMap] = useState({})
+  const [summary, setSummary] = useState({
+    totalClinics: 0,
+    totalVisits: 0,
+    activeClinics: 0,
+    inactiveClinics: 0,
+  })
+  const [clinicRankingSource, setClinicRankingSource] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [period, setPeriod] = useState(ACTIVITY_PERIOD_KEYS.THIS_MONTH)
   const [clinicSearch, setClinicSearch] = useState('')
 
   const fetchActivity = useCallback(async () => {
@@ -20,8 +19,8 @@ export default function useAdminActivity() {
       setLoading(true)
       setError('')
       const data = await fetchSystemActivity(getAdminInstance())
-      setClinics(data.clinics)
-      setClinicVisitMap(data.clinicVisitMap)
+      setSummary(data.summary)
+      setClinicRankingSource(data.clinicRanking)
     } catch (err) {
       setError(err.message || 'Không thể tải dữ liệu hoạt động phòng khám')
     } finally {
@@ -29,13 +28,8 @@ export default function useAdminActivity() {
     }
   }, [])
 
-  const summary = useMemo(
-    () => calculateActivitySummary(clinicVisitMap, clinics, period),
-    [clinicVisitMap, clinics, period],
-  )
-
   const clinicRanking = useMemo(() => {
-    const ranking = calculateClinicActivityRanking(clinicVisitMap, clinics, period)
+    const ranking = clinicRankingSource
     if (!clinicSearch.trim()) return ranking
     const keyword = clinicSearch.trim().toLowerCase()
     return ranking.filter(
@@ -43,18 +37,15 @@ export default function useAdminActivity() {
         c.name?.toLowerCase().includes(keyword) ||
         c.address?.toLowerCase().includes(keyword),
     )
-  }, [clinicVisitMap, clinics, period, clinicSearch])
+  }, [clinicRankingSource, clinicSearch])
 
   return {
     loading,
     error,
-    period,
-    setPeriod,
     clinicSearch,
     setClinicSearch,
     fetchActivity,
     summary,
     clinicRanking,
-    PERIOD_KEYS: ACTIVITY_PERIOD_KEYS,
   }
 }

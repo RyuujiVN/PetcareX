@@ -364,6 +364,7 @@
   },
   "activity": {
     "pageTitle": "Clinic Activity Statistics",
+    "pageTitleWithMonth": "Clinic Activity Statistics - Month {{month}}",
     "pageSubtitle": "Monitor activity levels and performance of clinics in the system",
     "loading": "Loading activity data...",
     "period": {
@@ -382,7 +383,7 @@
       "searchPlaceholder": "Search clinics...",
       "colName": "CLINIC",
       "colAddress": "ADDRESS",
-      "colCurrent": "VISITS (CURRENT)",
+      "colCurrent": "VISITS",
       "colPrevious": "VISITS (PREVIOUS)",
       "colGrowth": "GROWTH",
       "colStatus": "STATUS",

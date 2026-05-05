@@ -20,7 +20,45 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-05-04)
+## Cập nhật mới nhất (2026-05-05)
+
+### Cập nhật (2026-05-05) — Đồng bộ màn Admin Activity với API `GET /api/revenue/top-booked-clinic`
+
+**Bối cảnh nghiệp vụ:**
+- Team BE chốt API admin cho bảng hoạt động phòng khám là `GET /api/revenue/top-booked-clinic?orderByType=DESC`.
+- Màn `Hoạt động phòng khám` trước đó đang tự tổng hợp từ `/clinic` + `/medical/clinic` theo từng kỳ thời gian (`tháng này/tháng trước/quý này`) nên phát sinh sai lệch với contract BE admin.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/services/adminActivityService.js`:
+  - Bỏ luồng gọi `/medical/clinic` theo từng phòng khám.
+  - Chuyển sang gọi trực tiếp `/revenue/top-booked-clinic`.
+  - Chuẩn hóa dữ liệu raw từ BE về dạng `id`, `name`, `address`, `visits`, `active`.
+  - KPI summary tính trực tiếp từ dataset API (tổng phòng khám, tổng lượt khám); trạng thái phòng khám được quy về hoạt động theo yêu cầu nghiệp vụ hiện tại.
+- `src/hooks/admin/useAdminActivity.js`:
+  - Bỏ state/logic `period`.
+  - Giữ lại search theo tên/địa chỉ trên danh sách ranking.
+- `src/pages/admin/Dashboard/Activity/index.jsx`:
+  - Tiêu đề đổi thành `Thống kê hoạt động phòng khám tháng {tháng hiện tại}`.
+  - Bỏ cụm tab lọc kỳ `Tháng này / Tháng trước / Quý này`.
+- `src/pages/admin/Dashboard/Activity/components/ClinicActivityRankingTable.jsx`:
+  - Bỏ cột `Kỳ trước` và `Tăng/giảm`.
+  - Đổi nhãn `Lượt khám kỳ này` thành `Lượt khám`.
+  - Trạng thái hiển thị theo hướng tất cả đang hoạt động theo yêu cầu admin.
+- `src/locales/admin/{vi,en}.json`:
+  - Bổ sung key tiêu đề theo tháng `activity.pageTitleWithMonth`.
+  - Cập nhật nhãn cột lượt khám.
+
+**Tự phản biện & quyết định tối ưu đã chọn:**
+- Phương án 1 (giữ logic cũ + vá quyền BE): đổi role endpoint `/medical/clinic` để admin đọc được theo `clinicId` query.
+  - Nhược điểm: vẫn lệch contract API admin đã chốt, FE phải gọi N request theo số clinic, chi phí network cao.
+- Phương án 2 (được chọn): dùng trực tiếp API admin `top-booked-clinic`.
+  - Ưu điểm: đúng contract BE hiện tại, ít request hơn, code đơn giản hơn, diff nhỏ đúng nguyên tắc surgical change.
+
+**Tự kiểm tra:**
+- Rà lại import/props của hook và component Activity sau khi bỏ `period`.
+- Bảo toàn scope thay đổi trong module Activity + i18n admin, không lan sang portal khác.
+
+## Cập nhật trước đó (2026-05-04)
 
 ### Cập nhật (2026-05-04) — Booking validation + Admin search/pagination + Vet phone rule + Clinic Editor upload UI + HomePageClinic review carousel
 
