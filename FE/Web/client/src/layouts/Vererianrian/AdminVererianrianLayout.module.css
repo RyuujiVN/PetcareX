@@ -147,6 +147,7 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background:  var(--admin-color-surface-card);
 }
 
 .sidebarToggleButton {
@@ -177,7 +178,7 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--vet-color-surface-page);
+  background:  var(--admin-color-surface-card);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -395,6 +396,7 @@
 .content {
   flex: 1;
   min-height: 0;
+  background: white;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: none;

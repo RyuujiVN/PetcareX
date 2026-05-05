@@ -2,13 +2,13 @@
 .pageWrapper {
   padding: 24px;
   min-height: 100vh;
-  background: var(--color-surface-page);
+  background: #f5f7fb;
 }
 
 .pageHeader {
   margin-bottom: 20px;
   padding-top: 8px;
-  padding-right: 120px; /* chừa chỗ cho mainActionBar (LanguageSwitcher + Bell) */
+  padding-right: 120px; 
 }
 
 .pageTitle {
