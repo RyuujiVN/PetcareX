@@ -423,6 +423,8 @@ function Forum() {
 	const [uploadingEditCommentImage, setUploadingEditCommentImage] = useState(false)
 	const [submittingEditComment, setSubmittingEditComment] = useState(false)
 	const [reportingPost, setReportingPost] = useState(null)
+	const [commentReportReason, setCommentReportReason] = useState('')
+	const [commentReportDetail, setCommentReportDetail] = useState('')
 	const [postReportReason, setPostReportReason] = useState('')
 	const [postReportDetail, setPostReportDetail] = useState('')
 	const [submittingPostReport, setSubmittingPostReport] = useState(false)
@@ -513,15 +515,20 @@ function Forum() {
 	const selectedPostIdFromQuery = String(searchParams.get('postId') || searchParams.get('post') || '').trim()
 	const selectedCommentIdFromQuery = String(searchParams.get('commentId') || '').trim()
 	const isAnyOverlayOpen = Boolean(editingPost || editingComment || reportingComment || reportingPost)
-	const postReportReasonOptions = useMemo(
+	const reportReasonOptions = useMemo(
 		() => [
-			{ value: 'spam', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam' }) },
-			{ value: 'inappropriate', label: t('pages.forum.reportReason.inappropriate', { defaultValue: 'Nội dung không phù hợp' }) },
-			{ value: 'misleading', label: t('pages.forum.reportReason.misleading', { defaultValue: 'Thông tin sai lệch' }) },
-			{ value: 'other', label: t('pages.forum.reportReason.other', { defaultValue: 'Khác' }) },
+			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Tin rác / Quảng cáo' }) },
+			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Ngôn ngữ thô tục / Xúc phạm' }) },
+			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Quấy rối / Bắt nạt' }) },
+			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Thông tin sai sự thật' }) },
+			{ value: 'VIOLENCE', label: t('pages.forum.reportReason.violence', { defaultValue: 'Bạo lực / Phản cảm' }) },
+			{ value: 'OTHER', label: t('pages.forum.reportReason.other', { defaultValue: 'Khác' }) },
 		],
 		[t],
 	)
+
+	const postReportReasonOptions = reportReasonOptions
+	const commentReportReasonOptions = reportReasonOptions
 
 	const scrollElementIntoFeed = useCallback((element) => {
 		if (!element) return
@@ -1837,54 +1844,30 @@ function Forum() {
 	const handleSubmitCommentReport = useCallback(async () => {
 		if (!reportingComment?.id) return
 
-		if (!String(reportReason || '').trim()) {
-			message.warning(t('pages.forum.validation.reportReasonRequired', { defaultValue: 'Vui lòng nhập nội dung tố cáo' }))
+		if (!String(commentReportReason || '').trim()) {
+			message.warning(t('pages.forum.validation.reportReasonRequired', { defaultValue: 'Vui lòng chọn lý do tố cáo' }))
 			return
 		}
 
 		setSubmittingReport(true)
 		try {
-			const normalizedReason = String(reportReason || '').trim()
+			const selectedReason = String(commentReportReason || '').trim()
+			const detail = String(commentReportDetail || '').trim()
+			// Đồng bộ format với Mobile: OTHER ghép free-text, các lý do khác gửi nguyên value
+			const reason = selectedReason === 'OTHER' && detail ? `OTHER: ${detail}` : selectedReason
 
-			try {
-				await reportCommentApi(getClientInstance(), reportingComment.id, {
-					reason: normalizedReason,
-				})
-				message.success(
-					t('pages.forum.reportCommentSuccess', {
-						defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
-					}),
-				)
-			} catch (error) {
-				const status = Number(error?.response?.status || 0)
-				if (status === 404 || status === 405) {
-					try {
-						await createGenericReportApi(getClientInstance(), {
-							targetId: reportingComment.id,
-							targetType: 'COMMENT',
-							reason: normalizedReason,
-						})
-						message.success(
-							t('pages.forum.reportCommentSuccess', {
-								defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
-							}),
-						)
-					} catch (fallbackError) {
-						const fallbackStatus = Number(fallbackError?.response?.status || 0)
-						if (fallbackStatus === 404 || fallbackStatus === 405) {
-							message.warning(
-								t('pages.forum.reportBackendUnavailable', {
-									defaultValue: 'Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.',
-								}),
-							)
-						} else {
-							throw fallbackError
-						}
-					}
-				} else {
-					throw error
-				}
-			}
+			await createGenericReportApi(getClientInstance(), {
+				targetId: reportingComment.id,
+				targetType: 'COMMENT',
+				reason,
+			})
+			message.success(
+				t('pages.forum.reportCommentSuccess', {
+					defaultValue: 'Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.',
+				}),
+			)
+			// Đánh dấu đã tố cáo trong phiên để tránh tố cáo lặp
+			reportedCommentIds.current.add(String(reportingComment.id))
 			closeReportModal()
 		} catch (error) {
 			message.error(
@@ -1896,7 +1879,7 @@ function Forum() {
 		} finally {
 			setSubmittingReport(false)
 		}
-	}, [closeReportModal, reportReason, reportingComment?.id, t])
+	}, [closeReportModal, commentReportDetail, commentReportReason, reportingComment?.id, t])
 
 	const handleCommentAction = useCallback(
 		(action, comment, postId) => {
@@ -2764,10 +2747,12 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(postReportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportPostModalTitle', { defaultValue: 'Báo cáo bài viết' })}
 					centered
 				>
 					<div className={styles.reportModalBody}>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportPostModalTitle', { defaultValue: 'BÁO CÁO BÀI VIẾT' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportPostBy', {
 								defaultValue: 'Bạn đang báo cáo bài viết của {{name}}',
@@ -2818,7 +2803,9 @@ function Forum() {
 					centered
 				>
 					<div className={styles.reportModalBody}>
-						<h3>{t('pages.forum.reportModalTitle', { defaultValue: 'TỐ CÁO BÌNH LUẬN' })}</h3>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportModalTitle', { defaultValue: 'BÁO CÁO BÌNH LUẬN' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportCommentBy', {
 								defaultValue: 'Bạn đang tố cáo bình luận của {{name}}',
@@ -2828,10 +2815,19 @@ function Forum() {
 						{reportingComment.content ? (
 							<p className={styles.reportPreviewText}>{reportingComment.content}</p>
 						) : null}
+						<Select
+							value={commentReportReason || undefined}
+							onChange={(val) => { setCommentReportReason(val); setCommentReportDetail('') }}
+							placeholder={t('pages.forum.placeholders.reportPostReason', {
+								defaultValue: 'Chọn lý do tố cáo',
+							})}
+							options={commentReportReasonOptions}
+							style={{ width: '100%' }}
+						/>
 						<textarea
 							className={styles.reportTextarea}
-							value={reportReason}
-							onChange={(event) => setReportReason(event.target.value)}
+							value={commentReportDetail}
+							onChange={(event) => setCommentReportDetail(event.target.value)}
 							placeholder={t('pages.forum.placeholders.reportReason', { defaultValue: 'Mô tả thêm (không bắt buộc)',})}
 						/>
 					</div>
