@@ -20,7 +20,104 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-05-05)
+## Cập nhật mới nhất (2026-05-06)
+
+### Cập nhật (2026-05-06) — Bắt buộc nén ảnh toàn cục trên FE + xử lý lỗi upload 413
+
+**Bối cảnh lỗi người dùng:**
+- Cùng một ảnh khoảng 1.1MB: upload thành công trên local nhưng khi deploy thì API upload multi-file trả `413 Payload Too Large`.
+- Yêu cầu mới: mọi ảnh upload từ FE đều phải resize/nén, đồng thời xử lý hợp lý khi gặp 413.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- FE trước đó gửi multipart trực tiếp lên `/cloudinary/upload/multi-file`; nếu tầng hạ tầng production giới hạn request thấp hơn local thì có thể bị chặn trước khi BE xử lý.
+- Một số luồng upload (đặc biệt avatar profile) còn đi đường `FormData` riêng, chưa thống nhất vào một pipeline nén dùng chung.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: chỉ bắt lỗi 413 và báo người dùng tự đổi ảnh nhỏ hơn.
+  - Nhược: UX kém, người dùng phải thao tác thủ công nhiều lần.
+- Phương án B (được chọn): nén bắt buộc ở FE cho tất cả luồng upload + fallback thông minh khi gặp 413.
+  - Ưu điểm: giữ nguyên contract BE, giảm rủi ro lỗi deploy/local mismatch, thay đổi tập trung ở service dùng chung nên ít lan man.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/services/cloudinaryService.js`
+- `src/services/userService.js`
+- `src/pages/client/User/ProfileUser/index.jsx`
+- `.env.example`
+
+**Chi tiết kỹ thuật đã triển khai:**
+- `cloudinaryService.js`:
+  - Thêm pipeline nén ảnh client-side bắt buộc (canvas) trước khi upload cho cả one-file và multi-file.
+  - Chuẩn hóa output ảnh nén sang `.webp` để giảm dung lượng và tương thích whitelist BE (`.webp` được chấp nhận).
+  - Cố định cấu hình nén trực tiếp trong code (không dùng env) theo ngưỡng thực tế:
+    - `IMAGE_MAX_DIMENSION = 1600`
+    - `IMAGE_QUALITY = 0.8`
+    - `IMAGE_MIN_QUALITY = 0.5`
+    - `IMAGE_MAX_OUTPUT_BYTES = 0.75MB`
+    - `AGGRESSIVE_IMAGE_MAX_OUTPUT_BYTES = 0.55MB`
+  - Tối ưu theo BE limit (`5MB/file`) nhưng đặt target thấp hơn nhiều để tránh lỗi `413` từ tầng hạ tầng deploy.
+  - Chuẩn hóa lỗi upload thành `Error` có `status/code` để nhận diện 413 rõ ràng.
+  - Luồng multi-file: nếu dính 413 thì tự fallback sang upload tuần tự từng ảnh qua one-file sau khi nén.
+  - Luồng one-file và file-resize: nếu dính 413 thì retry với cấu hình nén aggressive trước khi fail.
+- `userService.js`:
+  - `uploadAvatarApi` không còn upload raw FormData trực tiếp; chuyển sang dùng `uploadOneFileToCloudinary` để đi qua pipeline nén bắt buộc.
+- `ProfileUser/index.jsx`:
+  - Upload avatar chuyển sang truyền trực tiếp `file`.
+  - Hiển thị `error.message` từ service để người dùng thấy thông báo 413 rõ nghĩa thay vì message chung.
+- `.env.example`:
+  - Không thêm biến nén ảnh, vì cấu hình đã được cố định trực tiếp trong service để tránh lệch môi trường.
+
+**Thông báo khi gặp 413 (đã chuẩn hóa):**
+- `Da thu nen anh nhung van vuot gioi han upload cua he thong (413). Vui long chon anh nho hon.`
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa file nào trong `BE/petcare/*`.
+- Không đổi endpoint, method, DTO hay contract API upload hiện tại.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+
+
+### Cập nhật (2026-05-05) — Fix hiển thị bình luận thô (raw HTML) trên Forum Web
+
+**Bối cảnh lỗi người dùng:**
+- Ở phần bình luận Forum, một số comment cũ hiển thị thô chuỗi HTML như `<p>...</p>` và `<img src="..." />` thay vì hiển thị text + ảnh đúng UI.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- FE đang parse nội dung bằng `extractMediaFromContent`, nhưng hàm này trước đó chỉ hỗ trợ token nội bộ `[[img:...]]`/`[[title:...]]`.
+- Dữ liệu legacy từ BE có comment/post lưu theo HTML (`<p>`, `<br>`, `<img>`) không được parser bóc tách.
+- UI render chuỗi bằng React text node (`<p>{content}</p>`) nên HTML bị escape và hiện ra dạng chữ thô.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: render HTML trực tiếp bằng `dangerouslySetInnerHTML` + sanitize.
+  - Nhược: tăng rủi ro XSS nếu sanitize lệch cấu hình; diff lớn hơn và khó kiểm soát consistency giữa 4 portal.
+- Phương án B (được chọn): giữ cơ chế render text/image hiện tại, chỉ nâng parser để hỗ trợ cả token nội bộ và HTML legacy.
+  - Ưu điểm: an toàn hơn (không render HTML trực tiếp), diff nhỏ, không đổi contract BE, không phá UI hiện có.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã sửa:**
+- Bổ sung parser HTML nội bộ để:
+  - phát hiện nội dung có tag HTML,
+  - tách `src` từ thẻ `<img>` thành danh sách ảnh,
+  - chuẩn hóa text (xử lý `<p>`, `<div>`, `<br>`, xuống dòng),
+  - fallback regex khi DOMParser không khả dụng.
+- Nâng `extractMediaFromContent` để merge ảnh từ 2 nguồn:
+  - token `[[img:...]]` (format mới),
+  - thẻ `<img>` HTML (format legacy),
+  - sau đó dedupe URL và giữ `firstImage` như flow cũ.
+- Giữ nguyên render layer hiện tại (text + image riêng), nên không ảnh hưởng style/layout comment bubble.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint/forum contract.
+- Không thay đổi payload format khi tạo/sửa comment mới.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+- `npx eslint` các file Forum đã sửa: không có lỗi mới từ parser; còn warning hooks và 1 lỗi `no-unused-vars` pre-existing ở `src/pages/client/User/Forum/forum.jsx` không thuộc phạm vi fix này.
 
 ### Cập nhật (2026-05-05) — Fix lỗi mở lại phiếu khám chưa thanh toán bị báo "Không tìm thấy thú cưng từ lịch hẹn"
 
