@@ -336,6 +336,10 @@
 	margin-bottom: 0 !important;
 }
 
+.dynamicFieldItem {
+	margin-bottom: 22px !important;
+}
+
 .dynamicTable {
 	border: 1px solid var(--vet-color-border-soft);
 	border-radius: 12px;
@@ -365,6 +369,7 @@
 
 .dynamicRow {
 	border-top: 1px solid var(--vet-color-border-soft);
+	align-items: flex-start;
 }
 
 .dynamicHeadMedicine,
@@ -385,12 +390,19 @@
 
 .dynamicRowMedicine {
 	border-top: 1px solid var(--vet-color-border-soft);
+	align-items: flex-start;
 }
 
 .actionCell {
 	display: flex;
 	align-items: center;
 	justify-content: center;
+}
+
+.dynamicRow .actionCell,
+.dynamicRowMedicine .actionCell {
+	align-self: flex-start;
+	padding-top: 4px;
 }
 
 .deleteActionButton {

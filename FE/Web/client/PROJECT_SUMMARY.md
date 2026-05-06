@@ -76,6 +76,26 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 **Tự kiểm tra:**
 - `npm run build` (FE/Web/client): thành công.
 
+### Cập nhật (2026-05-06) — Phiếu khám: cho phép để trống kết luận + giảm giật UI ở cột liều dùng
+
+**Yêu cầu nghiệp vụ mới:**
+- Ở form tạo/chỉnh sửa phiếu khám, trường `KẾT LUẬN CHUYÊN MÔN` không bắt buộc nhập.
+- Khi field `LIỀU DÙNG` báo lỗi validation, UI không được gây cảm giác giật/nhảy lên trên.
+- Ở bảng `Phiếu chỉ định xét nghiệm/X-Quang` và `Đơn thuốc chỉ định`, không bắt buộc phải chọn ngay `Loại chỉ định` hoặc `Tên thuốc`.
+
+**Phạm vi thay đổi (FE only):**
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`
+
+**Chi tiết kỹ thuật đã cập nhật:**
+- Bỏ rule `required` khỏi field `conclusionSummary` để bác sĩ có thể lưu phiếu khám mà không cần nhập kết luận chuyên môn.
+- Bỏ rule `required` khỏi field `medicalOrderId` (chỉ định) và `medicineId` (thuốc), cho phép lưu form khi chưa chọn hai trường này.
+- Tinh chỉnh hành vi auto-scroll khi submit lỗi từ `block: 'center'` sang `block: 'nearest'` để tránh hiện tượng nhảy màn hình không cần thiết khi lỗi nằm ngay trong vùng nhìn thấy.
+- Với field `quantity` (cột `LIỀU DÙNG`), bỏ validation `required` để không còn bắt buộc nhập; đồng thời giữ class đồng bộ `dynamicFieldItem` cho toàn bộ ô input trong 2 bảng (chỉ định + thuốc) và căn `dynamicRow`/`dynamicRowMedicine` theo top để ổn định layout khi có lỗi ở các cột khác.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+
 
 ### Cập nhật (2026-05-05) — Fix hiển thị bình luận thô (raw HTML) trên Forum Web
 
