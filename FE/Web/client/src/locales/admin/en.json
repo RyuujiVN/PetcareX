@@ -552,12 +552,6 @@
         "chooseTopic": "Choose a topic",
         "editPost": "What do you want to edit in this post?"
       },
-      "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Inappropriate content",
-        "misleading": "Misleading information",
-        "other": "Other"
-      },
       "actions": {
         "selectTopicTitle": "Choose topic",
         "commentOptionsAria": "Comment options",

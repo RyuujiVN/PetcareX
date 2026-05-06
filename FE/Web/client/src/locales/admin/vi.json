@@ -479,16 +479,16 @@
       "updateCommentFailed": "Không thể cập nhật bình luận",
       "deleteCommentSuccess": "Đã xóa bình luận",
       "deleteCommentFailed": "Không thể xóa bình luận",
-      "reportPostModalTitle": "Báo cáo bài viết",
+      "reportPostModalTitle": "BÁO CÁO BÀI VIẾT",
       "reportPostBy": "Bạn đang báo cáo bài viết của {{name}}",
       "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
       "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
       "reportPostFailed": "Không thể gửi báo cáo bài viết. Vui lòng thử lại.",
       "reportCommentSuccess": "Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.",
       "reportCommentFailed": "Không thể gửi báo cáo bình luận. Vui lòng thử lại.",
-      "reportModalTitle": "TỐ CÁO BÌNH LUẬN",
-      "reportCommentBy": "Bạn đang tố cáo bình luận của {{name}}",
-      "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.",
+      "reportModalTitle": "BÁO CÁO BÌNH LUẬN",
+      "reportCommentBy": "Bạn đang báo cáo bình luận của {{name}}",
+      "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint báo cáo bình luận. Vui lòng liên hệ quản trị viên.",
       "likeSuccess": "Đã thích bài viết của {{author}}",
       "likeFailed": "Không thể cập nhật lượt thích",
       "justNow": "Vừa xong",
@@ -551,12 +551,6 @@
         "choosePostTopic": "Chọn chủ đề bài viết",
         "chooseTopic": "Chọn chủ đề",
         "editPost": "Bạn muốn chỉnh sửa điều gì trong bài viết?"
-      },
-      "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Nội dung không phù hợp",
-        "misleading": "Thông tin sai lệch",
-        "other": "Khác"
       },
       "actions": {
         "selectTopicTitle": "Chọn chủ đề",
