@@ -22,6 +22,29 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-05-06)
 
+### Cập nhật (2026-05-06) — Popup chỉnh sửa bài post Forum đồng bộ multi-image cho 4 role
+
+**Yêu cầu nghiệp vụ mới:**
+- Ở Forum của cả 4 role `admin`, `client`, `clinic`, `veterinarian`, popup chỉnh sửa bài post phải dùng cùng kiểu upload ảnh như lúc đăng.
+- Nút chọn ảnh trong popup chỉnh sửa đổi về nhãn `Chọn ảnh`, không dùng `Chọn ảnh khác`.
+- Khi chỉnh sửa bài post vẫn phải cho phép chọn nhiều ảnh, không giới hạn 1 ảnh.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Popup chỉnh sửa bài post được đồng bộ sang cùng pattern với popup đăng: input `multiple`, preview nhiều ảnh, và nút gỡ ảnh từng item.
+- UI của popup chỉnh sửa cũng bám sát popup đăng hơn: dùng cùng container fixed-height, tiêu đề canh giữa, và label chủ đề đồng nhất để 4 portal nhìn giống nhau.
+- Khi mở bài viết để chỉnh sửa, FE prefill lại danh sách ảnh hiện có từ `post.images` (fallback `post.image` nếu cần) để không làm mất ảnh cũ.
+- Khi lưu bài viết, FE chỉ upload các file mới được chọn; ảnh cũ được giữ nguyên và ghép chung vào `imageUrls` khi build content.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file Forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
 ### Cập nhật (2026-05-06) — Bắt buộc nén ảnh toàn cục trên FE + xử lý lỗi upload 413
 
 **Bối cảnh lỗi người dùng:**

@@ -2,6 +2,7 @@ import { FlagOutlined } from '@ant-design/icons'
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { AiOutlineClose } from "react-icons/ai"
 import {
     FaEllipsis,
     FaFilter,
@@ -11,7 +12,6 @@ import {
     FaRegThumbsUp,
     FaThumbsUp,
 } from 'react-icons/fa6'
-import { AiOutlineClose } from "react-icons/ai";
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import {
@@ -40,7 +40,6 @@ import {
     updatePostApi,
 } from '../../../../services/forumService'
 import { uploadUserImageApi, uploadUserImagesApi } from '../../../../services/userService'
-import ForumSearchBar from './ForumSearchBar'
 import styles from './forum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
@@ -924,65 +923,62 @@ function Forum() {
 			return
 		}
 
+		const initialEditImageUrls = Array.isArray(post.images) && post.images.length > 0 ? post.images : post.image ? [post.image] : []
+
 		setEditingPost({
 			id: post.id,
 			title: post.title || '',
 			text: post.content || '',
 			topicId: post.rawTopicId ? String(post.rawTopicId) : NO_TOPIC_VALUE,
 			fallbackTopicId: post.actualTopicId ? String(post.actualTopicId) : fallbackTopicId,
-			imageFile: null,
-			imagePreview: post.image || '',
-			imageUrl: post.image || '',
-			existingImageUrl: post.image || '',
+			imageItems: initialEditImageUrls.map((imageUrl) => ({
+				source: 'existing',
+				url: imageUrl,
+				preview: imageUrl,
+			})),
 		})
 	}
 
 	const handlePickEditImage = async (event) => {
-		const file = event.target.files?.[0]
-		if (!file) return
+		const selectedFiles = Array.from(event.target.files || []).filter(Boolean)
+		if (selectedFiles.length === 0) return
 
-		setUploadingEditImage(true)
+		const currentImageCount = editingPost?.imageItems?.length || 0
+		const remainingSlots = MAX_POST_IMAGES - currentImageCount
+		if (remainingSlots <= 0) {
+			message.warning(t('pages.forum.maxImages', { count: MAX_POST_IMAGES }))
+			event.target.value = ''
+			return
+		}
+
+		const acceptedFiles = selectedFiles.slice(0, remainingSlots)
+		if (acceptedFiles.length < selectedFiles.length) {
+			message.warning(t('pages.forum.maxImagesPerPost', { count: MAX_POST_IMAGES }))
+		}
 
 		try {
-			const preview = await toDataUrl(file)
+			const previews = await Promise.all(acceptedFiles.map((file) => toDataUrl(file)))
 			setEditingPost((prev) =>
 				prev
 					? {
 							...prev,
-							imageFile: file,
-							imagePreview: preview,
+							imageItems: [
+								...(prev.imageItems || []),
+								...acceptedFiles.map((file, index) => ({
+									source: 'new',
+									file,
+									preview: previews[index],
+								})),
+							],
 					  }
 					: prev,
 			)
-
-			const uploadedUrl = await uploadImage(file)
-			setEditingPost((prev) =>
-				prev
-					? {
-							...prev,
-							imageUrl: uploadedUrl,
-					  }
-					: prev,
-			)
-			message.success(t('pages.forum.uploadPostImageSuccess'))
 		} catch (error) {
-			setEditingPost((prev) =>
-				prev
-					? {
-							...prev,
-							imageFile: null,
-							imagePreview: prev.existingImageUrl || '',
-							imageUrl: prev.existingImageUrl || '',
-					  }
-					: prev,
-			)
 			message.error(
 				error.message === 'image-read-error'
 					? t('pages.forum.readImageFailed')
 					: error.message || t('pages.forum.readImageFailed'),
 			)
-		} finally {
-			setUploadingEditImage(false)
 		}
 
 		event.target.value = ''
@@ -996,14 +992,30 @@ function Forum() {
 			return
 		}
 
-		if (!editingPost.title.trim() && !editingPost.text.trim() && !editingPost.imagePreview) {
+		const currentImageItems = editingPost.imageItems || []
+		if (!editingPost.title.trim() && !editingPost.text.trim() && currentImageItems.length === 0) {
 			message.warning(t('pages.forum.validation.emptyPost'))
 			return
 		}
 
 		try {
 			setSubmittingEditPost(true)
-			const imageUrl = editingPost.imageUrl || null
+			setUploadingEditImage(false)
+			const existingImageUrls = currentImageItems
+				.filter((item) => item.source === 'existing')
+				.map((item) => item.url)
+				.filter(Boolean)
+			const newFiles = currentImageItems
+				.filter((item) => item.source === 'new' && item.file)
+				.map((item) => item.file)
+			let imageUrls = existingImageUrls
+
+			if (newFiles.length > 0) {
+				setUploadingEditImage(true)
+				const uploadedUrls = await uploadUserImagesApi(newFiles)
+				imageUrls = [...existingImageUrls, ...uploadedUrls.filter(Boolean)]
+			}
+
 			const isNoTopicSelected = editingPost.topicId === NO_TOPIC_VALUE
 			const resolvedTopicId = isNoTopicSelected ? (editingPost.fallbackTopicId || fallbackTopicId) : editingPost.topicId
 
@@ -1017,7 +1029,7 @@ function Forum() {
 				content: attachPostToContent({
 					title: editingPost.title,
 					text: editingPost.text,
-					imageUrls: imageUrl ? [imageUrl] : [],
+					imageUrls,
 					isNoTopic: isNoTopicSelected,
 					t,
 				}),
@@ -2563,9 +2575,9 @@ function Forum() {
 
 			{editingPost ? (
 				<div className={`${styles.composerModalOverlay} ${styles.open}`} onClick={closeEditModal}>
-					<div className={`${styles.composerModal} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
-						<h3>{t('pages.forum.editPostTitle')}</h3>
-						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.topic')}</p>
+					<div className={`${styles.composerModal} ${styles.composerModalFixed} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
+						<h3 style={{textAlign: 'center'}}>{t('pages.forum.editPostTitle')}</h3>
+						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.postTopic')}</p>
 						<Select
 							value={editingPost.topicId || NO_TOPIC_VALUE}
 							onChange={(value) =>
@@ -2585,28 +2597,34 @@ function Forum() {
 							placeholder={t('pages.forum.placeholders.editPost')}
 						/>
 
-						{editingPost.imagePreview ? (
+						{editingPost.imageItems?.length ? (
 							<div className={styles.previewImageWrap}>
-								<img src={editingPost.imagePreview} alt={t('pages.forum.editPostPreviewAlt')} className={styles.previewImage} />
-								<button
-									type="button"
-									onClick={() =>
-										setEditingPost((prev) =>
-											prev
-												? {
-														...prev,
-														imageFile: null,
-														imagePreview: '',
-																	imageUrl: '',
-														existingImageUrl: '',
-												  }
-												: prev,
-										)
-									}
-									className={styles.removeImageBtn}
-								>
-									{t('pages.forum.actions.removeImage')}
-								</button>
+								{editingPost.imageItems.map((imageItem, index) => (
+									<div key={`${imageItem.preview}-${index}`} className={styles.previewImageItem}>
+										<img
+											src={imageItem.preview}
+											alt={t('pages.forum.editPostPreviewAlt')}
+											className={styles.previewImage}
+										/>
+										<button
+											type="button"
+											onClick={() =>
+												setEditingPost((prev) =>
+													prev
+														? {
+															...prev,
+															imageItems: (prev.imageItems || []).filter((_, itemIndex) => itemIndex !== index),
+														}
+														: prev,
+												)
+										}
+										className={styles.removeImageBtn}
+										disabled={uploadingEditImage || submittingEditPost}
+									>
+										{t('pages.forum.actions.removeImage')}
+									</button>
+								</div>
+								))}
 							</div>
 						) : null}
 
@@ -2615,6 +2633,7 @@ function Forum() {
 								ref={postImageInputRef}
 								type="file"
 								accept="image/*"
+								multiple
 								onChange={handlePickEditImage}
 								hidden
 							/>
@@ -2623,7 +2642,7 @@ function Forum() {
 								onClick={() => postImageInputRef.current?.click()}
 								disabled={uploadingEditImage || submittingEditPost}
 							>
-								<FaImage /> {t('pages.forum.actions.chooseAnotherImage')}
+								<FaImage /> {t('pages.forum.actions.chooseImage')}
 							</button>
 							<button type="button" onClick={handleSaveEditedPost} disabled={submittingEditPost || loadingTopics || uploadingEditImage}>
 								{submittingEditPost ? t('pages.forum.actions.saving') : uploadingEditImage ? t('pages.forum.actions.uploadingImage') : t('pages.forum.actions.saveEdit')}
