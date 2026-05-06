@@ -2832,7 +2832,7 @@ function Forum() {
 							className={styles.reportTextarea}
 							value={reportReason}
 							onChange={(event) => setReportReason(event.target.value)}
-							placeholder={t('pages.forum.placeholders.reportReason', { defaultValue: 'Nhập nội dung tố cáo...' })}
+							placeholder={t('pages.forum.placeholders.reportReason', { defaultValue: 'Mô tả thêm (không bắt buộc)',})}
 						/>
 					</div>
 				</Modal>

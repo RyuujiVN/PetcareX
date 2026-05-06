@@ -638,7 +638,7 @@
         "shareToday": "Bạn muốn chia sẻ điều gì về thú cưng hôm nay?",
         "comment": "Viết bình luận...",
         "reply": "Viết reply...",
-        "reportReason": "Nhập nội dung tố cáo...",
+        "reportReason": "Mô tả thêm (không bắt buộc)",
         "reportPostReason": "Chọn lý do báo cáo",
         "reportPostDetail": "Mô tả thêm (không bắt buộc)",
         "choosePostTopic": "Chọn chủ đề bài viết",
@@ -646,9 +646,11 @@
         "editPost": "Bạn muốn chỉnh sửa điều gì trong bài viết?"
       },
       "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Nội dung không phù hợp",
-        "misleading": "Thông tin sai lệch",
+        "spam": "Tin rác / Quảng cáo",
+        "offensive": "Ngôn ngữ thô tục / Xúc phạm",
+        "harassment": "Quấy rối / Bắt nạt",
+        "misinformation": "Thông tin sai sự thật",
+        "violence": "Bạo lực / Phản cảm",
         "other": "Khác"
       },
       "actions": {

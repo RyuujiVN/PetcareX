@@ -1076,7 +1076,7 @@
       "updateCommentFailed": "Không thể cập nhật bình luận",
       "deleteCommentSuccess": "Đã xóa bình luận",
       "deleteCommentFailed": "Không thể xóa bình luận",
-      "reportPostModalTitle": "Báo cáo bài viết",
+      "reportPostModalTitle": "BÁO CÁO BÀI VIẾT",
       "reportPostBy": "Bạn đang báo cáo bài viết của {{name}}",
       "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
       "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
@@ -1150,9 +1150,11 @@
         "editPost": "Bạn muốn chỉnh sửa điều gì trong bài viết?"
       },
       "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Nội dung không phù hợp",
-        "misleading": "Thông tin sai lệch",
+        "spam": "Tin rác / Quảng cáo",
+        "offensive": "Ngôn ngữ thô tục / Xúc phạm",
+        "harassment": "Quấy rối / Bắt nạt",
+        "misinformation": "Thông tin sai sự thật",
+        "violence": "Bạo lực / Phản cảm",
         "other": "Khác"
       },
       "actions": {

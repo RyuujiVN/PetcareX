@@ -516,12 +516,12 @@ function Forum() {
 	// Danh sách lý do tố cáo — khớp với mobile (6 lý do cố định)
 	const reportReasonOptions = useMemo(
 		() => [
-			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam / Quảng cáo' }) },
-			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Ngôn ngữ thô tục / Xúc phạm' }) },
-			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Quấy rối / Bắt nạt' }) },
-			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Thông tin sai sự thật' }) },
-			{ value: 'VIOLENCE', label: t('pages.forum.reportReason.violence', { defaultValue: 'Bạo lực / Phản cảm' }) },
-			{ value: 'OTHER', label: t('pages.forum.reportReason.other', { defaultValue: 'Khác' }) },
+			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam / Advertising' }) },
+			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Offensive / Insulting' }) },
+			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Harassment / Bullying' }) },
+			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Misinformation' }) },
+			{ value: 'VIOLENCE', label: t('pages.forum.reportReason.violence', { defaultValue: 'Violence / Disturbing' }) },
+			{ value: 'OTHER', label: t('pages.forum.reportReason.other', { defaultValue: 'Other' }) },
 		],
 		[t],
 	)
@@ -2743,10 +2743,13 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(postReportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportPostModalTitle', { defaultValue: 'Báo cáo bài viết' })}
 					centered
 				>
+
 					<div className={styles.reportModalBody}>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportPostModalTitle', { defaultValue: 'BÁO CÁO BÀI VIẾT' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportPostBy', {
 								defaultValue: 'Bạn đang báo cáo bài viết của {{name}}',
@@ -2771,7 +2774,6 @@ function Forum() {
 							style={{ width: '100%' }}
 						/>
 
-						{postReportReason === 'OTHER' ? (
 							<textarea
 								className={styles.reportTextarea}
 								value={postReportDetail}
@@ -2780,7 +2782,6 @@ function Forum() {
 									defaultValue: 'Mô tả thêm (không bắt buộc)',
 								})}
 							/>
-						) : null}
 					</div>
 				</Modal>
 			) : null}
@@ -2796,10 +2797,12 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(commentReportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportModalTitle', { defaultValue: 'Tố cáo bình luận' })}
 					centered
 				>
 					<div className={styles.reportModalBody}>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportModalTitle', { defaultValue: 'BÁO CÁO BÌNH LUẬN' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportCommentBy', {
 								defaultValue: 'Bạn đang tố cáo bình luận của {{name}}',
@@ -2819,7 +2822,6 @@ function Forum() {
 							style={{ width: '100%' }}
 						/>
 
-						{commentReportReason === 'OTHER' ? (
 							<textarea
 								className={styles.reportTextarea}
 								value={commentReportDetail}
@@ -2828,7 +2830,6 @@ function Forum() {
 									defaultValue: 'Mô tả thêm (không bắt buộc)',
 								})}
 							/>
-						) : null}
 					</div>
 				</Modal>
 			) : null}
