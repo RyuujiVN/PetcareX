@@ -169,6 +169,7 @@
       "all": "All",
       "customer": "Customer",
       "veterinarian": "Veterinarian",
+      "clinicAdmin": "Clinic admin",
       "noRole": "No role"
     },
     "table": {

@@ -169,6 +169,7 @@
       "all": "Tất cả",
       "customer": "Khách hàng",
       "veterinarian": "Bác sĩ",
+      "clinicAdmin": "Quản trị phòng khám",
       "noRole": "Không có vai trò"
     },
     "table": {

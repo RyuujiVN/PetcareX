@@ -62,6 +62,7 @@ const USER_ROLE_FILTERS = {
   ALL: 'ALL',
   CUSTOMER: 'CUSTOMER',
   VETERINARIAN: 'VETERINARIAN',
+  ADMIN_CLINIC: 'ADMIN_CLINIC',
   NO_ROLE: 'NO_ROLE',
 }
 
@@ -169,6 +170,9 @@ export default function Users() {
       return allUsers.filter((item) => isVeterinarianRole(item?.role))
     }
 
+    if (roleFilter === USER_ROLE_FILTERS.ADMIN_CLINIC) {
+      return allUsers.filter((item) => normalizeRole(item?.role) === 'ADMIN_CLINIC')
+    }
     if (roleFilter === USER_ROLE_FILTERS.NO_ROLE) {
       return allUsers.filter((item) => isNoRole(item?.role))
     }
@@ -186,6 +190,7 @@ export default function Users() {
     { value: USER_ROLE_FILTERS.ALL, label: t('users.filters.all') },
     { value: USER_ROLE_FILTERS.CUSTOMER, label: t('users.filters.customer') },
     { value: USER_ROLE_FILTERS.VETERINARIAN, label: t('users.filters.veterinarian') },
+    { value: USER_ROLE_FILTERS.ADMIN_CLINIC, label: t('users.filters.clinicAdmin') },
   ]
 
   const handlePageChange = (page, pageSize) => {
