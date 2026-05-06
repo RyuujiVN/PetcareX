@@ -944,9 +944,11 @@
         "editPost": "What do you want to edit in this post?"
       },
       "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Inappropriate content",
-        "misleading": "Misleading information",
+        "spam": "Spam / Advertising",
+        "offensive": "Offensive / Insulting",
+        "harassment": "Harassment / Bullying",
+        "misinformation": "Misinformation",
+        "violence": "Violence / Disturbing",
         "other": "Other"
       },
       "actions": {

@@ -616,6 +616,7 @@
 	font-weight: 700;
 	color: #3f5268;
 	cursor: pointer;
+	white-space: nowrap;
 }
 
 .postMenuItem:hover {
@@ -1062,6 +1063,7 @@
 
 .reportMetaText {
 	margin: 0;
+	text-align: center;
 	font-size: 13px;
 	font-weight: 700;
 	color: #334a66;
@@ -1078,7 +1080,7 @@
 	line-height: 1.45;
 	white-space: pre-wrap;
 	word-break: break-word;
-	max-height: 100px;
+	max-height: 50vh;
 	overflow-y: auto;
 }
 
