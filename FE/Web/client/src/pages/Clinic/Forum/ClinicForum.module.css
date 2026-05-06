@@ -684,6 +684,7 @@
 	font-size: 18px;
 	font-weight: 600;
 	line-height: 1.55;
+	white-space: pre-wrap;
 	word-break: break-word;
 	overflow-wrap: anywhere; 
 }
@@ -697,7 +698,7 @@
 .postImageFrame {
 	width: 100%;
 	max-width: 100%;
-	height: clamp(260px, 36vw, 500px);
+	/* height: clamp(260px, 36vw, 500px); */
 	max-height: 500px;
 	display: block;
 	padding: 0;
@@ -707,6 +708,7 @@
 	overflow: hidden;
 	cursor: pointer;
 	min-width: 0;
+	aspect-ratio: 4 / 3; /* hoặc 1/1 nếu thích vuông */
 }
 
 .postImage {
@@ -715,7 +717,8 @@
 	height: 100%;
 	max-width: 100%;
 	max-height: 100%;
-	object-fit: contain;
+	/* object-fit: contain; */
+	object-fit: cover;
 	flex-shrink: 1;
 	position: relative;
 }
@@ -1130,6 +1133,21 @@
 	transition: transform 0.22s ease, opacity 0.22s ease;
 	will-change: transform, opacity;
 }
+
+.composerModalFixed {
+	width: 720px;
+	max-width: 92vw;
+	height: 720px;
+	max-height: 90vh;
+	overflow: auto;
+}
+.composerModalFixed .composerModalInput {
+	flex: 1 1 auto;
+	min-height: 220px;
+	resize: none;
+	overflow: auto;
+}
+
 .composerModal.open {
 	transform: translateY(0) scale(1);
 	opacity: 1;

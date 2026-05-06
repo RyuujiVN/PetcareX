@@ -738,6 +738,7 @@
 	font-size: 18px;
 	font-weight: 600;
 	line-height: 1.55;
+	white-space: pre-wrap;
 	word-break: break-word;
 	overflow-wrap: anywhere; 
 }
@@ -1183,6 +1184,19 @@
 	opacity: 0;
 	transition: transform 0.22s ease, opacity 0.22s ease;
 	will-change: transform, opacity;
+}
+.composerModalFixed {
+	width: 720px;
+	max-width: 92vw;
+	height: 720px;
+	max-height: 90vh;
+	overflow: auto;
+}
+.composerModalFixed .composerModalInput {
+	flex: 1 1 auto;
+	min-height: 220px;
+	resize: none;
+	overflow: auto;
 }
 .composerModal.open {
 	transform: translateY(0) scale(1);

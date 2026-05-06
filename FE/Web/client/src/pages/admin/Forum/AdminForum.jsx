@@ -489,7 +489,23 @@ function Forum() {
 		}
 	}, [])
 
+	const resetComposerState = () => {
+		setComposerText('')
+		setComposerTitle('')
+		setComposerTopicId(NO_TOPIC_VALUE)
+		setComposerImageFiles([])
+		setComposerImagePreviews([])
+		if (postImageInputRef.current) {
+			postImageInputRef.current.value = ''
+		}
+	}
+
 	const closeComposerModal = () => {
+		setIsComposerModalOpen(false)
+	}
+
+	const handleCancelComposer = () => {
+		resetComposerState()
 		setIsComposerModalOpen(false)
 	}
 
@@ -2404,7 +2420,7 @@ function Forum() {
 				onClick={closeComposerModal}
 			>
 				<div
-					className={`${styles.composerModal} ${isComposerModalOpen ? styles.open : ''}`}
+					className={`${styles.composerModal} ${styles.composerModalFixed} ${isComposerModalOpen ? styles.open : ''}`}
 					onClick={(e) => e.stopPropagation()}
 				>
 					<h3 style={{textAlign: 'center'}}>{t('pages.forum.createPostTitle')}</h3>
@@ -2466,7 +2482,7 @@ function Forum() {
 						</button>
 						<button
 							type="button"
-							onClick={closeComposerModal}
+							onClick={handleCancelComposer}
 						>
 							{t('common.actions.cancel')}
 						</button>
