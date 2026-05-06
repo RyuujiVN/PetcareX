@@ -621,8 +621,8 @@
       "messageBox": {
         "aiResponding": "AI đang phản hồi",
         "attachImage": "Đính kèm ảnh",
-        "disclaimer": "AI có thể tạo ra thông tin chưa chính xác. Vui lòng kiểm tra lại nội dung quan trọng.",
-        "emptyState": "Bắt đầu cuộc trò chuyện mới với AI",
+        "disclaimer": "Thông tin từ AI chỉ mang tính tham khảo. Hãy hỏi bác sĩ thú y để được tư vấn chính xác.",
+        "emptyState": "Hôm nay bạn cần gì?",
         "genericError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
         "inputPlaceholder": "Nhập câu hỏi của bạn...",
         "loadingOldMessages": "Đang tải tin nhắn cũ...",

@@ -711,7 +711,7 @@
         "optionsAria": "Conversation options",
         "rename": "Rename"
       },
-      "assistantTitle": "AI Assistant",
+      "assistantTitle": "PetCareX AI Assistant",
       "confirmDelete": {
         "cancelText": "Cancel",
         "content": "Are you sure you want to delete this conversation?",
@@ -722,8 +722,8 @@
       "messageBox": {
         "aiResponding": "AI is responding",
         "attachImage": "Attach image",
-        "disclaimer": "AI may generate inaccurate information. Please verify important details.",
-        "emptyState": "Start a new conversation with AI",
+        "disclaimer": "AI information is for reference only. Please consult a veterinarian for accurate advice.",
+        "emptyState": "What do you need today?",
         "genericError": "Something went wrong. Please try again.",
         "inputPlaceholder": "Type your question...",
         "loadingOldMessages": "Loading older messages...",
