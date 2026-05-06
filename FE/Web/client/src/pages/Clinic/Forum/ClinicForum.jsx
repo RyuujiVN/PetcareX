@@ -736,10 +736,8 @@ function Forum() {
 			const next = {}
 
 			Object.entries(prev).forEach(([postId, value]) => {
-				const threads = Array.isArray(value?.threads) ? value.threads : []
-				next[postId] = {
-					...value,
-					threads: threads.map((thread) => ({
+				const threads = Array.isArray(value) ? value : []
+				next[postId] = threads.map((thread) => ({
 						...thread,
 						main: thread?.main
 							? {
@@ -753,8 +751,7 @@ function Forum() {
 									time: formatTimeAgo(reply.createdAt, t),
 							  }))
 							: [],
-					})),
-				}
+					}))
 			})
 
 			return next

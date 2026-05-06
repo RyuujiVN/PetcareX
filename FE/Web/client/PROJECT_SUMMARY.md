@@ -22,6 +22,49 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-05-06)
 
+### Cập nhật (2026-05-06) — Fix trắng màn hình khi đổi ngôn ngữ ở comment Forum (đủ 4 role)
+
+**Bối cảnh lỗi người dùng:**
+- Khi đang mở phần comment trong Forum, nếu đổi ngôn ngữ (vi/en) thì UI bị trắng màn hình.
+- Các chức năng khác vẫn hoạt động bình thường; lỗi tập trung ở luồng comment.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- State `commentsByPost` trong Forum đang được lưu theo shape `Record<postId, Thread[]>`.
+- Ở effect chạy khi đổi ngôn ngữ (`i18n.language`), code cũ lại đọc dữ liệu theo shape object (`value?.threads`) và ghi ngược lại thành object `{ ...value, threads: [...] }`.
+- Trong khi đó, render comment vẫn dùng `(commentsByPost[post.id] || []).map(...)` (kỳ vọng mảng).
+- Sau lần đổi ngôn ngữ đầu tiên, `commentsByPost[post.id]` không còn là mảng nên phát sinh runtime error kiểu `map is not a function`, dẫn tới trắng màn hình.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: refetch lại toàn bộ comments mỗi lần đổi ngôn ngữ.
+  - Nhược: tốn request, dễ gây flicker và mất trạng thái mở comment hiện tại.
+- Phương án B: đổi toàn bộ codebase comment sang shape object `{ threads }`.
+  - Nhược: diff lớn, chạm nhiều logic create/edit/delete/reply, rủi ro regression cao.
+- Phương án C (được chọn): giữ nguyên contract state hiện hữu (mảng), chỉ sửa effect re-map time để luôn trả về `Thread[]`.
+  - Ưu điểm: surgical change, đúng gốc lỗi, ít rủi ro và đồng bộ cho cả 4 role.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã sửa:**
+- Trong effect đổi ngôn ngữ, đổi từ:
+  - `const threads = Array.isArray(value?.threads) ? value.threads : []`
+  - `next[postId] = { ...value, threads: threads.map(...) }`
+- Sang:
+  - `const threads = Array.isArray(value) ? value : []`
+  - `next[postId] = threads.map(...)`
+- Kết quả: giữ nguyên shape `commentsByPost[postId]` là mảng, render `.map(...)` không còn crash khi switch language.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint, payload, DTO hoặc contract API Forum.
+- Không thay đổi module ngoài 4 file Forum FE.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file Forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
 ### Cập nhật (2026-05-06) — Popup chỉnh sửa bài post Forum đồng bộ multi-image cho 4 role
 
 **Yêu cầu nghiệp vụ mới:**
