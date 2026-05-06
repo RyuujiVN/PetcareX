@@ -79,7 +79,7 @@ export class ClinicSearchService implements OnModuleInit {
     } else {
       clinicDocuments = await this.elasticSearchService.search({
         index: CLINIC_INDEX,
-        from: options.page,
+        from: (options.page - 1) * options.limit,
         size: options.limit,
         query: {
           bool: {
