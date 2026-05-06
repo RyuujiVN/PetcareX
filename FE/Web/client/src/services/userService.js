@@ -1,8 +1,7 @@
 import {
-  extractCloudinaryUrl,
-  postMultipartFormData,
-  uploadMultipleFilesToCloudinary,
-  uploadOneFileToCloudinary,
+    extractCloudinaryUrl,
+    uploadMultipleFilesToCloudinary,
+    uploadOneFileToCloudinary,
 } from './cloudinaryService'
 
 const USER_PHONE_UNIQUE_CONSTRAINT = 'UQ_8e1f623798118e629b46a9e6299'
@@ -40,6 +39,21 @@ const normalizeUserUpdatePayload = (data = {}) => {
   }
 
   return payload
+}
+
+const resolveUploadFileInput = (fileInput) => {
+  if (typeof File !== 'undefined' && fileInput instanceof File) {
+    return fileInput
+  }
+
+  if (fileInput && typeof fileInput.get === 'function') {
+    const formFile = fileInput.get('file')
+    if (typeof File !== 'undefined' && formFile instanceof File) {
+      return formFile
+    }
+  }
+
+  throw new Error('Vui long chon file truoc khi tai len')
 }
 
 // Phân tích lỗi từ backend để đổi thành thông báo dễ hiểu cho người dùng.
@@ -120,8 +134,10 @@ export const deleteUserApi = (instance, userId) => {
   return instance.delete(`/user/${userId}`)
 }
 // Tải lên ảnh đại diện cho người dùng
-export const uploadAvatarApi = (formData) => {
-  return postMultipartFormData('/cloudinary/upload/one-file', formData).then(
+export const uploadAvatarApi = (fileInput) => {
+  const file = resolveUploadFileInput(fileInput)
+
+  return uploadOneFileToCloudinary(file).then(
     (payload) => ({
       data: {
         ...payload,

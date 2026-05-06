@@ -1,15 +1,15 @@
 import { CameraOutlined, HomeOutlined, MailOutlined, PhoneOutlined, UserOutlined } from '@ant-design/icons';
 import { Button, Card, Form, Input, message, Space, Spin } from 'antd';
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import {
-  getUserProfileApi,
-  updateUserProfileApi,
-  uploadAvatarApi,
-} from '../../../../services/userService';
-import { getClientInstance } from '../../../../services/apiClient';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../../hooks/client/AuthContext';
+import { getClientInstance } from '../../../../services/apiClient';
+import {
+    getUserProfileApi,
+    updateUserProfileApi,
+    uploadAvatarApi,
+} from '../../../../services/userService';
 import './styles.css';
 
 const normalizeEmail = (value) => String(value || '').trim().toLowerCase();
@@ -60,13 +60,11 @@ export default function ProfileUser() {
     reader.readAsDataURL(file);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const res = await uploadAvatarApi(formData);
+      const res = await uploadAvatarApi(file);
       setAvatarUrl(res.data.file);
       message.success(t('pages.profile.uploadSuccess'));
     } catch (error) {
-      message.error(t('pages.profile.uploadFailed'));
+      message.error(error?.message || t('pages.profile.uploadFailed'));
       setAvatarUrl(profileData?.avatarUrl || null);
     } finally {
       setUploadingAvatar(false);
