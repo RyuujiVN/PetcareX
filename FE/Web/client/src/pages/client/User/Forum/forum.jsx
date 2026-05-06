@@ -516,12 +516,12 @@ function Forum() {
 	// Danh sách lý do tố cáo — khớp với mobile (6 lý do cố định)
 	const reportReasonOptions = useMemo(
 		() => [
-			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam / Advertising' }) },
-			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Offensive / Insulting' }) },
-			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Harassment / Bullying' }) },
-			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Misinformation' }) },
-			{ value: 'VIOLENCE', label: t('pages.forum.reportReason.violence', { defaultValue: 'Violence / Disturbing' }) },
-			{ value: 'OTHER', label: t('pages.forum.reportReason.other', { defaultValue: 'Other' }) },
+			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Tin rác / Quảng cáo' }) },
+			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Ngôn ngữ thô tục / Xúc phạm' }) },
+			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Quấy rối / Bắt nạt' }) },
+			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Thông tin sai sự thật' }) },
+			{ value: 'VIOLENCE', label: t('pages.forum.reportReason.violence', { defaultValue: 'Bạo lực / Phản cảm' }) },
+			{ value: 'OTHER', label: t('pages.forum.reportReason.other', { defaultValue: 'Khác' }) },
 		],
 		[t],
 	)
