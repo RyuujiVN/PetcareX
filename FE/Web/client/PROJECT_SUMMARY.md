@@ -20,7 +20,58 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-05-06)
+## Cập nhật mới nhất (2026-05-07)
+
+### Cập nhật (2026-05-07) — Đồng bộ UI thông báo Admin/Clinic/Veterinarian theo mẫu Client (image 1)
+
+**Yêu cầu nghiệp vụ:**
+- UI popup thông báo của `admin`, `clinic`, `veterinarian` phải giống UI + cách hiển thị của `client` (header action, tab `Tất cả/Chưa đọc`, item list, chấm unread, footer thời gian cập nhật).
+- Chỉ sửa đúng phạm vi notification UI, không ảnh hưởng module khác.
+
+**Phân tích khác biệt ban đầu (đã xác nhận):**
+- `AdminLayout` đang dùng panel dark custom, cấu trúc hiển thị khác hoàn toàn Client.
+- `AdminClinicLayout` và `AdminVererianrianLayout` đang dùng panel riêng với 2 Select filter (`viewMode` + `eventType`) và item dạng `Tag + title/desc`, không giống Client.
+- Cả 3 role đều đã có logic notification tốt (socket + mark read + điều hướng), nên vấn đề chính là tầng UI render.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: copy/paste UI Client vào từng layout.
+  - Nhược: lặp code 3 nơi, dễ lệch UI sau này, khó bảo trì.
+- Phương án B (được chọn): tách panel notification dùng chung và cắm vào 3 layout.
+  - Ưu điểm: đồng bộ tuyệt đối với mẫu Client, thay đổi đúng phạm vi UI notification, giữ nguyên toàn bộ logic read/socket/navigation từng role.
+
+**Phạm vi thay đổi (FE Web only):**
+- Tạo mới:
+  - `src/components/common/UnifiedNotificationPanel/UnifiedNotificationPanel.jsx`
+  - `src/components/common/UnifiedNotificationPanel/UnifiedNotificationPanel.module.css`
+- Cập nhật layout:
+  - `src/layouts/admin/AdminLayout.jsx`
+  - `src/layouts/admin/AdminLayout.module.css`
+  - `src/layouts/Clinic/AdminClinicLayout.jsx`
+  - `src/layouts/Vererianrian/AdminVererianrianLayout.jsx`
+- Cập nhật i18n:
+  - `src/locales/admin/vi.json`, `src/locales/admin/en.json`
+  - `src/locales/clinic/vi.json`, `src/locales/clinic/en.json`
+  - `src/locales/vererianrian/vi.json`, `src/locales/vererianrian/en.json`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Chuẩn hóa panel theo Client cho cả 3 role:
+  - Header: `Thông báo` + nút `Làm mới` + nút `Đánh dấu đã đọc`.
+  - Filter row: 2 nút `Tất cả` / `Chưa đọc` (bỏ filter theo loại event để khớp Client).
+  - Danh sách item: icon/avatar kiểu Client, title/description/time, chấm unread bên phải.
+  - Footer: `Cập nhật lúc: HH:mm`.
+- Vẫn giữ nguyên behavior cũ của từng role:
+  - `useNotificationSocket` (hydrate + realtime) không đổi contract.
+  - `markAsRead`, `markAllAsRead`, `resolveNotificationHref` và điều hướng theo role được giữ nguyên.
+  - Toast realtime hiện có của Clinic/Vet vẫn hoạt động.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa API endpoint, payload, DTO, schema hoặc quyền role ở backend.
+
+**Tự kiểm tra:**
+- `get_errors` trên toàn bộ file đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+## Cập nhật trước đó (2026-05-06)
 
 ### Cập nhật (2026-05-06) — Fix trắng màn hình khi đổi ngôn ngữ ở comment Forum (đủ 4 role)
 

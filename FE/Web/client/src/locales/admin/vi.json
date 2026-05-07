@@ -27,7 +27,15 @@
     "notification": {
       "openAriaLabel": "Mở thông báo",
       "title": "Thông báo",
+      "refresh": "Làm mới",
       "markAllRead": "Đánh dấu tất cả đã đọc",
+      "syncedAt": "Cập nhật lúc",
+      "forumActorFallback": "Người dùng",
+      "events": {
+        "forumActionLike": "đã thích bài viết của bạn",
+        "forumActionReply": "đã phản hồi bình luận của bạn",
+        "forumActionComment": "đã bình luận bài viết của bạn"
+      },
       "tabs": {
         "all": "Tất cả",
         "unread": "Chưa đọc"

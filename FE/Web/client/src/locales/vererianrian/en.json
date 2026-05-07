@@ -17,7 +17,15 @@
     "notifications": {
       "panelTitle": "Veterinarian Notifications",
       "summary": "{{unread}} unread / {{total}} notifications",
+      "refresh": "Refresh",
       "markAllRead": "Mark all as read",
+      "syncedAt": "Synced at",
+      "forumActorFallback": "User",
+      "events": {
+        "forumActionLike": "liked your post",
+        "forumActionReply": "replied to your comment",
+        "forumActionComment": "commented on your post"
+      },
       "empty": "No matching notifications",
       "filters": {
         "all": "All",

@@ -27,7 +27,15 @@
     "notification": {
       "openAriaLabel": "Open notifications",
       "title": "Notifications",
+      "refresh": "Refresh",
       "markAllRead": "Mark all as read",
+      "syncedAt": "Synced at",
+      "forumActorFallback": "User",
+      "events": {
+        "forumActionLike": "liked your post",
+        "forumActionReply": "replied to your comment",
+        "forumActionComment": "commented on your post"
+      },
       "tabs": {
         "all": "All",
         "unread": "Unread"
