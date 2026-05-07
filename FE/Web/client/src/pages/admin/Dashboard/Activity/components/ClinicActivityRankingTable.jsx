@@ -2,20 +2,10 @@ import { Empty, Input, Table } from 'antd'
 import { useTranslation } from 'react-i18next'
 import styles from '../activity.module.css'
 
-const formatGrowth = (pct) => {
-  if (pct === null || pct === undefined) return '—'
-  const rounded = Math.round(pct * 10) / 10
-  const sign = rounded > 0 ? '+' : ''
-  return `${sign}${rounded}%`
-}
-
 export default function ClinicActivityRankingTable({
   clinicRanking,
   clinicSearch,
   onSearchChange,
-  periodOptions,
-  period,
-  onPeriodChange,
 }) {
   const { t } = useTranslation('admin')
 
@@ -40,28 +30,10 @@ export default function ClinicActivityRankingTable({
     },
     {
       title: t('activity.ranking.colCurrent'),
-      dataIndex: 'currentVisits',
-      key: 'currentVisits',
+      dataIndex: 'visits',
+      key: 'visits',
       align: 'right',
       render: (v) => Number(v || 0).toLocaleString('vi-VN'),
-    },
-    {
-      title: t('activity.ranking.colPrevious'),
-      dataIndex: 'previousVisits',
-      key: 'previousVisits',
-      align: 'right',
-      render: (v) => Number(v || 0).toLocaleString('vi-VN'),
-    },
-    {
-      title: t('activity.ranking.colGrowth'),
-      dataIndex: 'growthPct',
-      key: 'growthPct',
-      align: 'right',
-      render: (v) => {
-        if (v === null || v === undefined) return <span className={styles.growthNeutral}>—</span>
-        const cls = v > 0 ? styles.growthUp : v < 0 ? styles.growthDown : styles.growthNeutral
-        return <span className={cls}>{formatGrowth(v)}</span>
-      },
     },
     {
       title: t('activity.ranking.colStatus'),
@@ -88,19 +60,6 @@ export default function ClinicActivityRankingTable({
               value={clinicSearch}
               onChange={(e) => onSearchChange(e.target.value)}
             />
-            {periodOptions ? (
-              <div className={styles.periodTabs}>
-                {periodOptions.map((opt) => (
-                  <button
-                    key={opt.key}
-                    className={`${styles.periodTab} ${period === opt.key ? styles.periodTabActive : ''}`}
-                    onClick={() => onPeriodChange(opt.key)}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
           </div>
       </div>
       <Table

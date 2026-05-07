@@ -2,6 +2,7 @@ import { FlagOutlined } from '@ant-design/icons'
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { AiOutlineClose } from "react-icons/ai"
 import {
     FaEllipsis,
     FaFilter,
@@ -11,7 +12,6 @@ import {
     FaRegThumbsUp,
     FaThumbsUp,
 } from 'react-icons/fa6'
-import { AiOutlineClose } from "react-icons/ai";
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import {
@@ -40,7 +40,6 @@ import {
     updatePostApi,
 } from '../../../../services/forumService'
 import { uploadUserImageApi, uploadUserImagesApi } from '../../../../services/userService'
-import ForumSearchBar from './ForumSearchBar'
 import styles from './forum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
@@ -125,22 +124,110 @@ const getTopicDisplayName = (topic = {}, { language, t } = {}) => {
 
 const getPostEngagementScore = (post = {}) => Number(post.likes || 0) + Number(post.comments || 0)
 
-const extractMediaFromContent = (rawContent = '') => {
-	const hasNoTopicToken = rawContent.includes(NO_TOPIC_TOKEN)
-	const normalizedContent = hasNoTopicToken ? rawContent.split(NO_TOPIC_TOKEN).join('').trim() : rawContent.trim()
-	const matches = [...rawContent.matchAll(IMAGE_TOKEN_REGEX)]
-	const images = matches
+const HTML_TAG_DETECTION_REGEX = /<\/?[a-z][^>]*>/i
+const HTML_IMAGE_SRC_REGEX = /<img[^>]*\bsrc\s*=\s*["']?([^"'>\s]+)["']?[^>]*>/gi
+
+const normalizeExtractedText = (value = '') =>
+	String(value || '')
+		.replace(/\u00a0/g, ' ')
+		.replace(/[ \t]+\n/g, '\n')
+		.replace(/\n{3,}/g, '\n\n')
+		.trim()
+
+const extractMediaFromHtml = (rawContent = '') => {
+	const html = String(rawContent || '').trim()
+	if (!html || !HTML_TAG_DETECTION_REGEX.test(html)) {
+		return {
+			text: normalizeExtractedText(html),
+			images: [],
+		}
+	}
+
+	if (typeof DOMParser !== 'undefined') {
+		try {
+			const parser = new DOMParser()
+			const doc = parser.parseFromString(`<div>${html}</div>`, 'text/html')
+			const root = doc.body.firstElementChild || doc.body
+			const images = []
+			const chunks = []
+
+			const walk = (node) => {
+				if (!node) return
+				if (node.nodeType === 3) {
+					chunks.push(node.textContent || '')
+					return
+				}
+				if (node.nodeType !== 1) return
+
+				const element = node
+				const tagName = String(element.tagName || '').toLowerCase()
+
+				if (tagName === 'img') {
+					const imageUrl = element.getAttribute('src')?.trim()
+					if (imageUrl) {
+						images.push(imageUrl)
+					}
+					return
+				}
+
+				if (tagName === 'br') {
+					chunks.push('\n')
+					return
+				}
+
+				Array.from(element.childNodes || []).forEach(walk)
+
+				if (['p', 'div', 'li', 'ul', 'ol', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+					chunks.push('\n')
+				}
+			}
+
+			Array.from(root.childNodes || []).forEach(walk)
+
+			return {
+				text: normalizeExtractedText(chunks.join('')),
+				images,
+			}
+		} catch {
+			// Fallback to regex parser when DOM parsing is unavailable.
+		}
+	}
+
+	const images = [...html.matchAll(HTML_IMAGE_SRC_REGEX)]
 		.map((match) => match?.[1]?.trim())
 		.filter((url) => Boolean(url))
-	const firstImage = images[0] || null
+
+	const text = html
+		.replace(/<img[^>]*>/gi, ' ')
+		.replace(/<br\s*\/?>/gi, '\n')
+		.replace(/<\/(p|div|li|ul|ol|blockquote|h[1-6])>/gi, '\n')
+		.replace(/<[^>]+>/g, ' ')
+
+	return {
+		text: normalizeExtractedText(text),
+		images,
+	}
+}
+
+const extractMediaFromContent = (rawContent = '') => {
+	const normalizedRawContent = String(rawContent || '')
+	const hasNoTopicToken = normalizedRawContent.includes(NO_TOPIC_TOKEN)
+	const normalizedContent = hasNoTopicToken ? normalizedRawContent.split(NO_TOPIC_TOKEN).join('').trim() : normalizedRawContent.trim()
+	const tokenImages = [...normalizedRawContent.matchAll(IMAGE_TOKEN_REGEX)]
+		.map((match) => match?.[1]?.trim())
+		.filter((url) => Boolean(url))
 	const withoutImageToken = normalizedContent.replace(IMAGE_TOKEN_REGEX, '').trim()
 	const titleMatch = withoutImageToken.match(TITLE_TOKEN_REGEX)
 	const title = titleMatch?.[1]?.trim() || ''
-	const cleanContent = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim()
+	const contentWithoutToken = withoutImageToken.replace(TITLE_TOKEN_REGEX, '').trim()
+	const htmlMedia = extractMediaFromHtml(contentWithoutToken)
+	const images = [...tokenImages, ...htmlMedia.images]
+		.filter((url, index, arr) => Boolean(url) && arr.indexOf(url) === index)
+	const firstImage = images[0] || null
 
 	return {
 		title,
-		text: cleanContent,
+		text: htmlMedia.text,
 		image: firstImage,
 		images,
 		isNoTopic: hasNoTopicToken,
@@ -429,7 +516,7 @@ function Forum() {
 	// Danh sách lý do tố cáo — khớp với mobile (6 lý do cố định)
 	const reportReasonOptions = useMemo(
 		() => [
-			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam / Quảng cáo' }) },
+			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Tin rác / Quảng cáo' }) },
 			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Ngôn ngữ thô tục / Xúc phạm' }) },
 			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Quấy rối / Bắt nạt' }) },
 			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Thông tin sai sự thật' }) },
@@ -495,7 +582,23 @@ function Forum() {
 		}
 	}, [])
 
+	const resetComposerState = () => {
+		setComposerText('')
+		setComposerTitle('')
+		setComposerTopicId(NO_TOPIC_VALUE)
+		setComposerImageFiles([])
+		setComposerImagePreviews([])
+		if (postImageInputRef.current) {
+			postImageInputRef.current.value = ''
+		}
+	}
+
 	const closeComposerModal = () => {
+		setIsComposerModalOpen(false)
+	}
+
+	const handleCancelComposer = () => {
+		resetComposerState()
 		setIsComposerModalOpen(false)
 	}
 
@@ -630,10 +733,8 @@ function Forum() {
 			const next = {}
 
 			Object.entries(prev).forEach(([postId, value]) => {
-				const threads = Array.isArray(value?.threads) ? value.threads : []
-				next[postId] = {
-					...value,
-					threads: threads.map((thread) => ({
+				const threads = Array.isArray(value) ? value : []
+				next[postId] = threads.map((thread) => ({
 						...thread,
 						main: thread?.main
 							? {
@@ -647,8 +748,7 @@ function Forum() {
 									time: formatTimeAgo(reply.createdAt, t),
 							  }))
 							: [],
-					})),
-				}
+					}))
 			})
 
 			return next
@@ -820,65 +920,62 @@ function Forum() {
 			return
 		}
 
+		const initialEditImageUrls = Array.isArray(post.images) && post.images.length > 0 ? post.images : post.image ? [post.image] : []
+
 		setEditingPost({
 			id: post.id,
 			title: post.title || '',
 			text: post.content || '',
 			topicId: post.rawTopicId ? String(post.rawTopicId) : NO_TOPIC_VALUE,
 			fallbackTopicId: post.actualTopicId ? String(post.actualTopicId) : fallbackTopicId,
-			imageFile: null,
-			imagePreview: post.image || '',
-			imageUrl: post.image || '',
-			existingImageUrl: post.image || '',
+			imageItems: initialEditImageUrls.map((imageUrl) => ({
+				source: 'existing',
+				url: imageUrl,
+				preview: imageUrl,
+			})),
 		})
 	}
 
 	const handlePickEditImage = async (event) => {
-		const file = event.target.files?.[0]
-		if (!file) return
+		const selectedFiles = Array.from(event.target.files || []).filter(Boolean)
+		if (selectedFiles.length === 0) return
 
-		setUploadingEditImage(true)
+		const currentImageCount = editingPost?.imageItems?.length || 0
+		const remainingSlots = MAX_POST_IMAGES - currentImageCount
+		if (remainingSlots <= 0) {
+			message.warning(t('pages.forum.maxImages', { count: MAX_POST_IMAGES }))
+			event.target.value = ''
+			return
+		}
+
+		const acceptedFiles = selectedFiles.slice(0, remainingSlots)
+		if (acceptedFiles.length < selectedFiles.length) {
+			message.warning(t('pages.forum.maxImagesPerPost', { count: MAX_POST_IMAGES }))
+		}
 
 		try {
-			const preview = await toDataUrl(file)
+			const previews = await Promise.all(acceptedFiles.map((file) => toDataUrl(file)))
 			setEditingPost((prev) =>
 				prev
 					? {
 							...prev,
-							imageFile: file,
-							imagePreview: preview,
+							imageItems: [
+								...(prev.imageItems || []),
+								...acceptedFiles.map((file, index) => ({
+									source: 'new',
+									file,
+									preview: previews[index],
+								})),
+							],
 					  }
 					: prev,
 			)
-
-			const uploadedUrl = await uploadImage(file)
-			setEditingPost((prev) =>
-				prev
-					? {
-							...prev,
-							imageUrl: uploadedUrl,
-					  }
-					: prev,
-			)
-			message.success(t('pages.forum.uploadPostImageSuccess'))
 		} catch (error) {
-			setEditingPost((prev) =>
-				prev
-					? {
-							...prev,
-							imageFile: null,
-							imagePreview: prev.existingImageUrl || '',
-							imageUrl: prev.existingImageUrl || '',
-					  }
-					: prev,
-			)
 			message.error(
 				error.message === 'image-read-error'
 					? t('pages.forum.readImageFailed')
 					: error.message || t('pages.forum.readImageFailed'),
 			)
-		} finally {
-			setUploadingEditImage(false)
 		}
 
 		event.target.value = ''
@@ -892,14 +989,30 @@ function Forum() {
 			return
 		}
 
-		if (!editingPost.title.trim() && !editingPost.text.trim() && !editingPost.imagePreview) {
+		const currentImageItems = editingPost.imageItems || []
+		if (!editingPost.title.trim() && !editingPost.text.trim() && currentImageItems.length === 0) {
 			message.warning(t('pages.forum.validation.emptyPost'))
 			return
 		}
 
 		try {
 			setSubmittingEditPost(true)
-			const imageUrl = editingPost.imageUrl || null
+			setUploadingEditImage(false)
+			const existingImageUrls = currentImageItems
+				.filter((item) => item.source === 'existing')
+				.map((item) => item.url)
+				.filter(Boolean)
+			const newFiles = currentImageItems
+				.filter((item) => item.source === 'new' && item.file)
+				.map((item) => item.file)
+			let imageUrls = existingImageUrls
+
+			if (newFiles.length > 0) {
+				setUploadingEditImage(true)
+				const uploadedUrls = await uploadUserImagesApi(newFiles)
+				imageUrls = [...existingImageUrls, ...uploadedUrls.filter(Boolean)]
+			}
+
 			const isNoTopicSelected = editingPost.topicId === NO_TOPIC_VALUE
 			const resolvedTopicId = isNoTopicSelected ? (editingPost.fallbackTopicId || fallbackTopicId) : editingPost.topicId
 
@@ -913,7 +1026,7 @@ function Forum() {
 				content: attachPostToContent({
 					title: editingPost.title,
 					text: editingPost.text,
-					imageUrls: imageUrl ? [imageUrl] : [],
+					imageUrls,
 					isNoTopic: isNoTopicSelected,
 					t,
 				}),
@@ -2387,7 +2500,7 @@ function Forum() {
 				onClick={closeComposerModal}
 			>
 				<div
-					className={`${styles.composerModal} ${isComposerModalOpen ? styles.open : ''}`}
+					className={`${styles.composerModal} ${styles.composerModalFixed} ${isComposerModalOpen ? styles.open : ''}`}
 					onClick={(e) => e.stopPropagation()}
 				>
 					<h3 style={{textAlign: 'center'}}>{t('pages.forum.createPostTitle')}</h3>
@@ -2449,7 +2562,7 @@ function Forum() {
 						</button>
 						<button
 							type="button"
-							onClick={closeComposerModal}
+							onClick={handleCancelComposer}
 						>
 							{t('common.actions.cancel')}
 						</button>
@@ -2459,9 +2572,9 @@ function Forum() {
 
 			{editingPost ? (
 				<div className={`${styles.composerModalOverlay} ${styles.open}`} onClick={closeEditModal}>
-					<div className={`${styles.composerModal} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
-						<h3>{t('pages.forum.editPostTitle')}</h3>
-						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.topic')}</p>
+					<div className={`${styles.composerModal} ${styles.composerModalFixed} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
+						<h3 style={{textAlign: 'center'}}>{t('pages.forum.editPostTitle')}</h3>
+						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.postTopic')}</p>
 						<Select
 							value={editingPost.topicId || NO_TOPIC_VALUE}
 							onChange={(value) =>
@@ -2481,28 +2594,34 @@ function Forum() {
 							placeholder={t('pages.forum.placeholders.editPost')}
 						/>
 
-						{editingPost.imagePreview ? (
+						{editingPost.imageItems?.length ? (
 							<div className={styles.previewImageWrap}>
-								<img src={editingPost.imagePreview} alt={t('pages.forum.editPostPreviewAlt')} className={styles.previewImage} />
-								<button
-									type="button"
-									onClick={() =>
-										setEditingPost((prev) =>
-											prev
-												? {
-														...prev,
-														imageFile: null,
-														imagePreview: '',
-																	imageUrl: '',
-														existingImageUrl: '',
-												  }
-												: prev,
-										)
-									}
-									className={styles.removeImageBtn}
-								>
-									{t('pages.forum.actions.removeImage')}
-								</button>
+								{editingPost.imageItems.map((imageItem, index) => (
+									<div key={`${imageItem.preview}-${index}`} className={styles.previewImageItem}>
+										<img
+											src={imageItem.preview}
+											alt={t('pages.forum.editPostPreviewAlt')}
+											className={styles.previewImage}
+										/>
+										<button
+											type="button"
+											onClick={() =>
+												setEditingPost((prev) =>
+													prev
+														? {
+															...prev,
+															imageItems: (prev.imageItems || []).filter((_, itemIndex) => itemIndex !== index),
+														}
+														: prev,
+												)
+										}
+										className={styles.removeImageBtn}
+										disabled={uploadingEditImage || submittingEditPost}
+									>
+										{t('pages.forum.actions.removeImage')}
+									</button>
+								</div>
+								))}
 							</div>
 						) : null}
 
@@ -2511,6 +2630,7 @@ function Forum() {
 								ref={postImageInputRef}
 								type="file"
 								accept="image/*"
+								multiple
 								onChange={handlePickEditImage}
 								hidden
 							/>
@@ -2519,7 +2639,7 @@ function Forum() {
 								onClick={() => postImageInputRef.current?.click()}
 								disabled={uploadingEditImage || submittingEditPost}
 							>
-								<FaImage /> {t('pages.forum.actions.chooseAnotherImage')}
+								<FaImage /> {t('pages.forum.actions.chooseImage')}
 							</button>
 							<button type="button" onClick={handleSaveEditedPost} disabled={submittingEditPost || loadingTopics || uploadingEditImage}>
 								{submittingEditPost ? t('pages.forum.actions.saving') : uploadingEditImage ? t('pages.forum.actions.uploadingImage') : t('pages.forum.actions.saveEdit')}
@@ -2620,10 +2740,13 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(postReportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportPostModalTitle', { defaultValue: 'Báo cáo bài viết' })}
 					centered
 				>
+
 					<div className={styles.reportModalBody}>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportPostModalTitle', { defaultValue: 'BÁO CÁO BÀI VIẾT' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportPostBy', {
 								defaultValue: 'Bạn đang báo cáo bài viết của {{name}}',
@@ -2648,7 +2771,6 @@ function Forum() {
 							style={{ width: '100%' }}
 						/>
 
-						{postReportReason === 'OTHER' ? (
 							<textarea
 								className={styles.reportTextarea}
 								value={postReportDetail}
@@ -2657,7 +2779,6 @@ function Forum() {
 									defaultValue: 'Mô tả thêm (không bắt buộc)',
 								})}
 							/>
-						) : null}
 					</div>
 				</Modal>
 			) : null}
@@ -2673,10 +2794,12 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(commentReportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportModalTitle', { defaultValue: 'Tố cáo bình luận' })}
 					centered
 				>
 					<div className={styles.reportModalBody}>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportModalTitle', { defaultValue: 'BÁO CÁO BÌNH LUẬN' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportCommentBy', {
 								defaultValue: 'Bạn đang tố cáo bình luận của {{name}}',
@@ -2696,7 +2819,6 @@ function Forum() {
 							style={{ width: '100%' }}
 						/>
 
-						{commentReportReason === 'OTHER' ? (
 							<textarea
 								className={styles.reportTextarea}
 								value={commentReportDetail}
@@ -2705,7 +2827,6 @@ function Forum() {
 									defaultValue: 'Mô tả thêm (không bắt buộc)',
 								})}
 							/>
-						) : null}
 					</div>
 				</Modal>
 			) : null}

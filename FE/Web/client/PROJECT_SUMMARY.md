@@ -20,7 +20,313 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-05-04)
+## Cập nhật mới nhất (2026-05-07)
+
+### Cập nhật (2026-05-07) — Đồng bộ UI thông báo Admin/Clinic/Veterinarian theo mẫu Client (image 1)
+
+**Yêu cầu nghiệp vụ:**
+- UI popup thông báo của `admin`, `clinic`, `veterinarian` phải giống UI + cách hiển thị của `client` (header action, tab `Tất cả/Chưa đọc`, item list, chấm unread, footer thời gian cập nhật).
+- Chỉ sửa đúng phạm vi notification UI, không ảnh hưởng module khác.
+
+**Phân tích khác biệt ban đầu (đã xác nhận):**
+- `AdminLayout` đang dùng panel dark custom, cấu trúc hiển thị khác hoàn toàn Client.
+- `AdminClinicLayout` và `AdminVererianrianLayout` đang dùng panel riêng với 2 Select filter (`viewMode` + `eventType`) và item dạng `Tag + title/desc`, không giống Client.
+- Cả 3 role đều đã có logic notification tốt (socket + mark read + điều hướng), nên vấn đề chính là tầng UI render.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: copy/paste UI Client vào từng layout.
+  - Nhược: lặp code 3 nơi, dễ lệch UI sau này, khó bảo trì.
+- Phương án B (được chọn): tách panel notification dùng chung và cắm vào 3 layout.
+  - Ưu điểm: đồng bộ tuyệt đối với mẫu Client, thay đổi đúng phạm vi UI notification, giữ nguyên toàn bộ logic read/socket/navigation từng role.
+
+**Phạm vi thay đổi (FE Web only):**
+- Tạo mới:
+  - `src/components/common/UnifiedNotificationPanel/UnifiedNotificationPanel.jsx`
+  - `src/components/common/UnifiedNotificationPanel/UnifiedNotificationPanel.module.css`
+- Cập nhật layout:
+  - `src/layouts/admin/AdminLayout.jsx`
+  - `src/layouts/admin/AdminLayout.module.css`
+  - `src/layouts/Clinic/AdminClinicLayout.jsx`
+  - `src/layouts/Vererianrian/AdminVererianrianLayout.jsx`
+- Cập nhật i18n:
+  - `src/locales/admin/vi.json`, `src/locales/admin/en.json`
+  - `src/locales/clinic/vi.json`, `src/locales/clinic/en.json`
+  - `src/locales/vererianrian/vi.json`, `src/locales/vererianrian/en.json`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Chuẩn hóa panel theo Client cho cả 3 role:
+  - Header: `Thông báo` + nút `Làm mới` + nút `Đánh dấu đã đọc`.
+  - Filter row: 2 nút `Tất cả` / `Chưa đọc` (bỏ filter theo loại event để khớp Client).
+  - Danh sách item: icon/avatar kiểu Client, title/description/time, chấm unread bên phải.
+  - Footer: `Cập nhật lúc: HH:mm`.
+- Vẫn giữ nguyên behavior cũ của từng role:
+  - `useNotificationSocket` (hydrate + realtime) không đổi contract.
+  - `markAsRead`, `markAllAsRead`, `resolveNotificationHref` và điều hướng theo role được giữ nguyên.
+  - Toast realtime hiện có của Clinic/Vet vẫn hoạt động.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa API endpoint, payload, DTO, schema hoặc quyền role ở backend.
+
+**Tự kiểm tra:**
+- `get_errors` trên toàn bộ file đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+## Cập nhật trước đó (2026-05-06)
+
+### Cập nhật (2026-05-06) — Fix trắng màn hình khi đổi ngôn ngữ ở comment Forum (đủ 4 role)
+
+**Bối cảnh lỗi người dùng:**
+- Khi đang mở phần comment trong Forum, nếu đổi ngôn ngữ (vi/en) thì UI bị trắng màn hình.
+- Các chức năng khác vẫn hoạt động bình thường; lỗi tập trung ở luồng comment.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- State `commentsByPost` trong Forum đang được lưu theo shape `Record<postId, Thread[]>`.
+- Ở effect chạy khi đổi ngôn ngữ (`i18n.language`), code cũ lại đọc dữ liệu theo shape object (`value?.threads`) và ghi ngược lại thành object `{ ...value, threads: [...] }`.
+- Trong khi đó, render comment vẫn dùng `(commentsByPost[post.id] || []).map(...)` (kỳ vọng mảng).
+- Sau lần đổi ngôn ngữ đầu tiên, `commentsByPost[post.id]` không còn là mảng nên phát sinh runtime error kiểu `map is not a function`, dẫn tới trắng màn hình.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: refetch lại toàn bộ comments mỗi lần đổi ngôn ngữ.
+  - Nhược: tốn request, dễ gây flicker và mất trạng thái mở comment hiện tại.
+- Phương án B: đổi toàn bộ codebase comment sang shape object `{ threads }`.
+  - Nhược: diff lớn, chạm nhiều logic create/edit/delete/reply, rủi ro regression cao.
+- Phương án C (được chọn): giữ nguyên contract state hiện hữu (mảng), chỉ sửa effect re-map time để luôn trả về `Thread[]`.
+  - Ưu điểm: surgical change, đúng gốc lỗi, ít rủi ro và đồng bộ cho cả 4 role.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã sửa:**
+- Trong effect đổi ngôn ngữ, đổi từ:
+  - `const threads = Array.isArray(value?.threads) ? value.threads : []`
+  - `next[postId] = { ...value, threads: threads.map(...) }`
+- Sang:
+  - `const threads = Array.isArray(value) ? value : []`
+  - `next[postId] = threads.map(...)`
+- Kết quả: giữ nguyên shape `commentsByPost[postId]` là mảng, render `.map(...)` không còn crash khi switch language.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint, payload, DTO hoặc contract API Forum.
+- Không thay đổi module ngoài 4 file Forum FE.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file Forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-06) — Popup chỉnh sửa bài post Forum đồng bộ multi-image cho 4 role
+
+**Yêu cầu nghiệp vụ mới:**
+- Ở Forum của cả 4 role `admin`, `client`, `clinic`, `veterinarian`, popup chỉnh sửa bài post phải dùng cùng kiểu upload ảnh như lúc đăng.
+- Nút chọn ảnh trong popup chỉnh sửa đổi về nhãn `Chọn ảnh`, không dùng `Chọn ảnh khác`.
+- Khi chỉnh sửa bài post vẫn phải cho phép chọn nhiều ảnh, không giới hạn 1 ảnh.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Popup chỉnh sửa bài post được đồng bộ sang cùng pattern với popup đăng: input `multiple`, preview nhiều ảnh, và nút gỡ ảnh từng item.
+- UI của popup chỉnh sửa cũng bám sát popup đăng hơn: dùng cùng container fixed-height, tiêu đề canh giữa, và label chủ đề đồng nhất để 4 portal nhìn giống nhau.
+- Khi mở bài viết để chỉnh sửa, FE prefill lại danh sách ảnh hiện có từ `post.images` (fallback `post.image` nếu cần) để không làm mất ảnh cũ.
+- Khi lưu bài viết, FE chỉ upload các file mới được chọn; ảnh cũ được giữ nguyên và ghép chung vào `imageUrls` khi build content.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file Forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-06) — Bắt buộc nén ảnh toàn cục trên FE + xử lý lỗi upload 413
+
+**Bối cảnh lỗi người dùng:**
+- Cùng một ảnh khoảng 1.1MB: upload thành công trên local nhưng khi deploy thì API upload multi-file trả `413 Payload Too Large`.
+- Yêu cầu mới: mọi ảnh upload từ FE đều phải resize/nén, đồng thời xử lý hợp lý khi gặp 413.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- FE trước đó gửi multipart trực tiếp lên `/cloudinary/upload/multi-file`; nếu tầng hạ tầng production giới hạn request thấp hơn local thì có thể bị chặn trước khi BE xử lý.
+- Một số luồng upload (đặc biệt avatar profile) còn đi đường `FormData` riêng, chưa thống nhất vào một pipeline nén dùng chung.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: chỉ bắt lỗi 413 và báo người dùng tự đổi ảnh nhỏ hơn.
+  - Nhược: UX kém, người dùng phải thao tác thủ công nhiều lần.
+- Phương án B (được chọn): nén bắt buộc ở FE cho tất cả luồng upload + fallback thông minh khi gặp 413.
+  - Ưu điểm: giữ nguyên contract BE, giảm rủi ro lỗi deploy/local mismatch, thay đổi tập trung ở service dùng chung nên ít lan man.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/services/cloudinaryService.js`
+- `src/services/userService.js`
+- `src/pages/client/User/ProfileUser/index.jsx`
+- `.env.example`
+
+**Chi tiết kỹ thuật đã triển khai:**
+- `cloudinaryService.js`:
+  - Thêm pipeline nén ảnh client-side bắt buộc (canvas) trước khi upload cho cả one-file và multi-file.
+  - Chuẩn hóa output ảnh nén sang `.webp` để giảm dung lượng và tương thích whitelist BE (`.webp` được chấp nhận).
+  - Cố định cấu hình nén trực tiếp trong code (không dùng env) theo ngưỡng thực tế:
+    - `IMAGE_MAX_DIMENSION = 1600`
+    - `IMAGE_QUALITY = 0.8`
+    - `IMAGE_MIN_QUALITY = 0.5`
+    - `IMAGE_MAX_OUTPUT_BYTES = 0.75MB`
+    - `AGGRESSIVE_IMAGE_MAX_OUTPUT_BYTES = 0.55MB`
+  - Tối ưu theo BE limit (`5MB/file`) nhưng đặt target thấp hơn nhiều để tránh lỗi `413` từ tầng hạ tầng deploy.
+  - Chuẩn hóa lỗi upload thành `Error` có `status/code` để nhận diện 413 rõ ràng.
+  - Luồng multi-file: nếu dính 413 thì tự fallback sang upload tuần tự từng ảnh qua one-file sau khi nén.
+  - Luồng one-file và file-resize: nếu dính 413 thì retry với cấu hình nén aggressive trước khi fail.
+- `userService.js`:
+  - `uploadAvatarApi` không còn upload raw FormData trực tiếp; chuyển sang dùng `uploadOneFileToCloudinary` để đi qua pipeline nén bắt buộc.
+- `ProfileUser/index.jsx`:
+  - Upload avatar chuyển sang truyền trực tiếp `file`.
+  - Hiển thị `error.message` từ service để người dùng thấy thông báo 413 rõ nghĩa thay vì message chung.
+- `.env.example`:
+  - Không thêm biến nén ảnh, vì cấu hình đã được cố định trực tiếp trong service để tránh lệch môi trường.
+
+**Thông báo khi gặp 413 (đã chuẩn hóa):**
+- `Da thu nen anh nhung van vuot gioi han upload cua he thong (413). Vui long chon anh nho hon.`
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa file nào trong `BE/petcare/*`.
+- Không đổi endpoint, method, DTO hay contract API upload hiện tại.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-06) — Phiếu khám: cho phép để trống kết luận + giảm giật UI ở cột liều dùng
+
+**Yêu cầu nghiệp vụ mới:**
+- Ở form tạo/chỉnh sửa phiếu khám, trường `KẾT LUẬN CHUYÊN MÔN` không bắt buộc nhập.
+- Khi field `LIỀU DÙNG` báo lỗi validation, UI không được gây cảm giác giật/nhảy lên trên.
+- Ở bảng `Phiếu chỉ định xét nghiệm/X-Quang` và `Đơn thuốc chỉ định`, không bắt buộc phải chọn ngay `Loại chỉ định` hoặc `Tên thuốc`.
+
+**Phạm vi thay đổi (FE only):**
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`
+
+**Chi tiết kỹ thuật đã cập nhật:**
+- Bỏ rule `required` khỏi field `conclusionSummary` để bác sĩ có thể lưu phiếu khám mà không cần nhập kết luận chuyên môn.
+- Bỏ rule `required` khỏi field `medicalOrderId` (chỉ định) và `medicineId` (thuốc), cho phép lưu form khi chưa chọn hai trường này.
+- Tinh chỉnh hành vi auto-scroll khi submit lỗi từ `block: 'center'` sang `block: 'nearest'` để tránh hiện tượng nhảy màn hình không cần thiết khi lỗi nằm ngay trong vùng nhìn thấy.
+- Với field `quantity` (cột `LIỀU DÙNG`), bỏ validation `required` để không còn bắt buộc nhập; đồng thời giữ class đồng bộ `dynamicFieldItem` cho toàn bộ ô input trong 2 bảng (chỉ định + thuốc) và căn `dynamicRow`/`dynamicRowMedicine` theo top để ổn định layout khi có lỗi ở các cột khác.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+
+
+### Cập nhật (2026-05-05) — Fix hiển thị bình luận thô (raw HTML) trên Forum Web
+
+**Bối cảnh lỗi người dùng:**
+- Ở phần bình luận Forum, một số comment cũ hiển thị thô chuỗi HTML như `<p>...</p>` và `<img src="..." />` thay vì hiển thị text + ảnh đúng UI.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- FE đang parse nội dung bằng `extractMediaFromContent`, nhưng hàm này trước đó chỉ hỗ trợ token nội bộ `[[img:...]]`/`[[title:...]]`.
+- Dữ liệu legacy từ BE có comment/post lưu theo HTML (`<p>`, `<br>`, `<img>`) không được parser bóc tách.
+- UI render chuỗi bằng React text node (`<p>{content}</p>`) nên HTML bị escape và hiện ra dạng chữ thô.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: render HTML trực tiếp bằng `dangerouslySetInnerHTML` + sanitize.
+  - Nhược: tăng rủi ro XSS nếu sanitize lệch cấu hình; diff lớn hơn và khó kiểm soát consistency giữa 4 portal.
+- Phương án B (được chọn): giữ cơ chế render text/image hiện tại, chỉ nâng parser để hỗ trợ cả token nội bộ và HTML legacy.
+  - Ưu điểm: an toàn hơn (không render HTML trực tiếp), diff nhỏ, không đổi contract BE, không phá UI hiện có.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã sửa:**
+- Bổ sung parser HTML nội bộ để:
+  - phát hiện nội dung có tag HTML,
+  - tách `src` từ thẻ `<img>` thành danh sách ảnh,
+  - chuẩn hóa text (xử lý `<p>`, `<div>`, `<br>`, xuống dòng),
+  - fallback regex khi DOMParser không khả dụng.
+- Nâng `extractMediaFromContent` để merge ảnh từ 2 nguồn:
+  - token `[[img:...]]` (format mới),
+  - thẻ `<img>` HTML (format legacy),
+  - sau đó dedupe URL và giữ `firstImage` như flow cũ.
+- Giữ nguyên render layer hiện tại (text + image riêng), nên không ảnh hưởng style/layout comment bubble.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint/forum contract.
+- Không thay đổi payload format khi tạo/sửa comment mới.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+- `npx eslint` các file Forum đã sửa: không có lỗi mới từ parser; còn warning hooks và 1 lỗi `no-unused-vars` pre-existing ở `src/pages/client/User/Forum/forum.jsx` không thuộc phạm vi fix này.
+
+### Cập nhật (2026-05-05) — Fix lỗi mở lại phiếu khám chưa thanh toán bị báo "Không tìm thấy thú cưng từ lịch hẹn"
+
+**Bối cảnh lỗi người dùng:**
+- Ở portal bác sĩ, sau khi đã tạo phiếu khám (chưa thanh toán) và mở lại từ danh sách phiếu khám để chỉnh sửa, khi bấm lưu có thể bị chặn với thông báo:
+  - `Không tìm thấy thú cưng từ lịch hẹn, vui lòng chọn lại lịch hẹn trước khi lưu`.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Luồng mở lại từ danh sách phiếu khám có thể đi bằng `medicalId` mà không có đầy đủ context `appointment`.
+- Trong `RecordExaminationForm`, nhánh lưu non-walk-in trước đó lấy `petId` và owner info quá phụ thuộc vào `appointment?.petRaw`, nên khi `appointment` null sẽ ném lỗi dù dữ liệu `pet/owner` đã có trong `editableMedicalRecord`.
+- Đây là mismatch logic ở FE (submit resolver), không phải bug nghiệp vụ từ BE.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A (chỉ vá mỗi `petId` ở submit): diff nhỏ nhưng còn rủi ro thiếu dữ liệu owner/pet fields trong payload.
+- Phương án B (được chọn): vá resolver đầy đủ trong cùng file form:
+  - `petId`: ưu tiên appointment, fallback về `editableMedicalRecord` / `latestMedicalRecord`.
+  - owner/pet identity fields: fallback theo chuỗi an toàn từ form values -> appointment -> medical record.
+  - đồng thời prefill initial hidden fields cho non-walk-in bằng dữ liệu từ medical record khi appointment context thiếu.
+- Lý do chọn B: vẫn FE-only, rủi ro thấp, xử lý triệt để hơn A nhưng không cần đụng BE.
+
+**Phạm vi thay đổi (FE only):**
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`:
+  - Cập nhật `buildInitialValues` để non-walk-in có fallback từ `editableMedicalRecord.pet` + `owner`.
+  - Cập nhật `onFinish` (nhánh non-walk-in) để resolve `petId`, owner info, species/breed/petName theo fallback chain.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa file nào trong `BE/petcare/*`.
+- Không đổi endpoint, method, payload contract, DTO, migration hay schema DB.
+- Không thêm API call mới bắt buộc ở runtime.
+
+**Tự kiểm tra:**
+- `get_errors` trên file đã sửa: không có lỗi.
+- `npx eslint src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`: không phát sinh lỗi lint.
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-05) — Đồng bộ màn Admin Activity với API `GET /api/revenue/top-booked-clinic`
+
+**Bối cảnh nghiệp vụ:**
+- Team BE chốt API admin cho bảng hoạt động phòng khám là `GET /api/revenue/top-booked-clinic?orderByType=DESC`.
+- Màn `Hoạt động phòng khám` trước đó đang tự tổng hợp từ `/clinic` + `/medical/clinic` theo từng kỳ thời gian (`tháng này/tháng trước/quý này`) nên phát sinh sai lệch với contract BE admin.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/services/adminActivityService.js`:
+  - Bỏ luồng gọi `/medical/clinic` theo từng phòng khám.
+  - Chuyển sang gọi trực tiếp `/revenue/top-booked-clinic`.
+  - Chuẩn hóa dữ liệu raw từ BE về dạng `id`, `name`, `address`, `visits`, `active`.
+  - KPI summary tính trực tiếp từ dataset API (tổng phòng khám, tổng lượt khám); trạng thái phòng khám được quy về hoạt động theo yêu cầu nghiệp vụ hiện tại.
+- `src/hooks/admin/useAdminActivity.js`:
+  - Bỏ state/logic `period`.
+  - Giữ lại search theo tên/địa chỉ trên danh sách ranking.
+- `src/pages/admin/Dashboard/Activity/index.jsx`:
+  - Tiêu đề đổi thành `Thống kê hoạt động phòng khám tháng {tháng hiện tại}`.
+  - Bỏ cụm tab lọc kỳ `Tháng này / Tháng trước / Quý này`.
+- `src/pages/admin/Dashboard/Activity/components/ClinicActivityRankingTable.jsx`:
+  - Bỏ cột `Kỳ trước` và `Tăng/giảm`.
+  - Đổi nhãn `Lượt khám kỳ này` thành `Lượt khám`.
+  - Trạng thái hiển thị theo hướng tất cả đang hoạt động theo yêu cầu admin.
+- `src/locales/admin/{vi,en}.json`:
+  - Bổ sung key tiêu đề theo tháng `activity.pageTitleWithMonth`.
+  - Cập nhật nhãn cột lượt khám.
+
+**Tự phản biện & quyết định tối ưu đã chọn:**
+- Phương án 1 (giữ logic cũ + vá quyền BE): đổi role endpoint `/medical/clinic` để admin đọc được theo `clinicId` query.
+  - Nhược điểm: vẫn lệch contract API admin đã chốt, FE phải gọi N request theo số clinic, chi phí network cao.
+- Phương án 2 (được chọn): dùng trực tiếp API admin `top-booked-clinic`.
+  - Ưu điểm: đúng contract BE hiện tại, ít request hơn, code đơn giản hơn, diff nhỏ đúng nguyên tắc surgical change.
+
+**Tự kiểm tra:**
+- Rà lại import/props của hook và component Activity sau khi bỏ `period`.
+- Bảo toàn scope thay đổi trong module Activity + i18n admin, không lan sang portal khác.
+
+## Cập nhật trước đó (2026-05-04)
 
 ### Cập nhật (2026-05-04) — Booking validation + Admin search/pagination + Vet phone rule + Clinic Editor upload UI + HomePageClinic review carousel
 

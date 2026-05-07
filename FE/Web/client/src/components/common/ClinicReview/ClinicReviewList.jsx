@@ -1,9 +1,11 @@
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import { Button, Spin } from 'antd'
-import { useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import ClinicReviewItem from './ClinicReviewItem'
 import styles from './ClinicReviewSection.module.css'
+
+const CAROUSEL_ITEMS_PER_PAGE = 4
 
 export default function ClinicReviewList({
   reviews = [],
@@ -14,69 +16,65 @@ export default function ClinicReviewList({
   carousel = false,
 }) {
   const { t } = useTranslation()
-  const viewportRef = useRef(null)
-  const dragStateRef = useRef({ isDown: false, startX: 0, scrollLeft: 0 })
+  const firstReviewIdRef = useRef(null)
+  const [startIndex, setStartIndex] = useState(0)
+  const [pendingAdvance, setPendingAdvance] = useState(false)
+  const [slideDirection, setSlideDirection] = useState('next')
 
-  const scrollViewport = (direction) => {
-    const viewport = viewportRef.current
-    if (!viewport) return
-    const distance = Math.max(viewport.clientWidth * 0.85, 280)
-    viewport.scrollBy({
-      left: direction === 'next' ? distance : -distance,
-      behavior: 'smooth',
+  const maxStartIndex = useMemo(() => {
+    if (!carousel) return 0
+    return Math.max(0, reviews.length - CAROUSEL_ITEMS_PER_PAGE)
+  }, [carousel, reviews.length])
+
+  const visibleReviews = useMemo(() => {
+    if (!carousel) return reviews
+    return reviews.slice(startIndex, startIndex + CAROUSEL_ITEMS_PER_PAGE)
+  }, [carousel, reviews, startIndex])
+
+  useEffect(() => {
+    if (!carousel) return
+    if (startIndex > maxStartIndex) {
+      setStartIndex(maxStartIndex)
+    }
+  }, [carousel, maxStartIndex, startIndex])
+
+  useEffect(() => {
+    if (!carousel) return
+    const firstId = reviews[0]?.id || null
+    if (firstId && firstReviewIdRef.current !== firstId) {
+      setStartIndex(0)
+    }
+    firstReviewIdRef.current = firstId
+  }, [carousel, reviews])
+
+  useEffect(() => {
+    if (!carousel || !pendingAdvance || loadingMore) return
+    setPendingAdvance(false)
+    setSlideDirection('next')
+    setStartIndex((current) => {
+      const nextMax = Math.max(0, reviews.length - CAROUSEL_ITEMS_PER_PAGE)
+      return current < nextMax ? current + 1 : current
     })
+  }, [carousel, loadingMore, pendingAdvance, reviews.length])
+
+  const handlePrev = () => {
+    if (startIndex === 0) return
+    setSlideDirection('prev')
+    setStartIndex((current) => Math.max(0, current - 1))
   }
 
-  const handleViewportScroll = () => {
-    if (!carousel || !hasMore || loadingMore) {
+  const handleNext = () => {
+    if (startIndex < maxStartIndex) {
+      setSlideDirection('next')
+      setStartIndex((current) => Math.min(maxStartIndex, current + 1))
       return
     }
 
-    const viewport = viewportRef.current
-    if (!viewport) return
-
-    const nearEnd = viewport.scrollLeft + viewport.clientWidth >= viewport.scrollWidth - 48
-    if (nearEnd) {
+    if (hasMore && !loadingMore) {
+      setSlideDirection('next')
+      setPendingAdvance(true)
       onLoadMore?.()
     }
-  }
-
-  const stopDragging = () => {
-    if (!carousel) return
-
-    const viewport = viewportRef.current
-    if (viewport) {
-      viewport.classList.remove(styles.carouselDragging)
-    }
-
-    dragStateRef.current.isDown = false
-  }
-
-  const handleMouseDown = (event) => {
-    if (!carousel) return
-
-    const viewport = viewportRef.current
-    if (!viewport) return
-
-    dragStateRef.current = {
-      isDown: true,
-      startX: event.pageX,
-      scrollLeft: viewport.scrollLeft,
-    }
-
-    viewport.classList.add(styles.carouselDragging)
-  }
-
-  const handleMouseMove = (event) => {
-    if (!carousel) return
-
-    const viewport = viewportRef.current
-    const dragState = dragStateRef.current
-    if (!viewport || !dragState.isDown) return
-
-    event.preventDefault()
-    const deltaX = event.pageX - dragState.startX
-    viewport.scrollLeft = dragState.scrollLeft - deltaX
   }
 
   if (loading && reviews.length === 0) {
@@ -96,13 +94,20 @@ export default function ClinicReviewList({
   }
 
   if (carousel) {
+    const isPrevDisabled = startIndex === 0
+    const isNextDisabled = loadingMore || (!hasMore && startIndex >= maxStartIndex)
+    const carouselGridClassName = `${styles.carouselGrid} ${
+      slideDirection === 'next' ? styles.carouselGridSlideNext : styles.carouselGridSlidePrev
+    }`
+
     return (
       <div className={styles.carouselWrapper}>
-        <div className={styles.carouselControls}>
+        <div className={styles.carouselStage}>
           <button
             type="button"
-            className={styles.carouselControlButton}
-            onClick={() => scrollViewport('prev')}
+            className={`${styles.carouselNavButton} ${styles.carouselNavLeft}`}
+            onClick={handlePrev}
+            disabled={isPrevDisabled}
             aria-label={t('pages.home.homePageClinic.reviewSection.previousAria', {
               defaultValue: 'Xem bình luận trước',
             })}
@@ -110,40 +115,25 @@ export default function ClinicReviewList({
             <LeftOutlined />
           </button>
 
-          <span className={styles.carouselHint}>
-            {t('pages.home.homePageClinic.reviewSection.scrollHint', {
-              defaultValue: 'Kéo sang trái/phải để xem thêm bình luận',
-            })}
-          </span>
+          <div className={carouselGridClassName} key={`${startIndex}-${slideDirection}`}>
+            {visibleReviews.map((review) => (
+              <div key={review.id} className={styles.carouselItem}>
+                <ClinicReviewItem review={review} compact />
+              </div>
+            ))}
+          </div>
 
           <button
             type="button"
-            className={styles.carouselControlButton}
-            onClick={() => scrollViewport('next')}
+            className={`${styles.carouselNavButton} ${styles.carouselNavRight}`}
+            onClick={handleNext}
+            disabled={isNextDisabled}
             aria-label={t('pages.home.homePageClinic.reviewSection.nextAria', {
               defaultValue: 'Xem bình luận tiếp theo',
             })}
           >
             <RightOutlined />
           </button>
-        </div>
-
-        <div
-          ref={viewportRef}
-          className={styles.carouselViewport}
-          onScroll={handleViewportScroll}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={stopDragging}
-          onMouseLeave={stopDragging}
-        >
-          <div className={styles.carouselTrack}>
-            {reviews.map((review) => (
-              <div key={review.id} className={styles.carouselItem}>
-                <ClinicReviewItem review={review} compact />
-              </div>
-            ))}
-          </div>
         </div>
 
         {loadingMore ? (

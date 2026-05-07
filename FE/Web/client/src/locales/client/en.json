@@ -604,6 +604,7 @@
       },
       "chatbot": {
         "title": "AI Chat Bot",
+        "loadFailed": "Unable to load conversation list",
         "newRoomFailed": "Unable to create a new conversation",
         "renameFailed": "Failed to rename chat room",
         "deleteFailed": "Failed to delete chat room",
@@ -636,6 +637,7 @@
           "loadingOldMessages": "Loading older messages...",
           "userImageAlt": "User uploaded image",
           "answering": "Responding...",
+          "genericError": "Something went wrong. Please try again.",
           "attachImage": "Attach image",
           "previewAlt": "Preview",
           "removeImage": "Remove image",
@@ -1073,14 +1075,14 @@
       "updateCommentFailed": "Unable to update comment",
       "deleteCommentSuccess": "Comment deleted",
       "deleteCommentFailed": "Unable to delete comment",
-      "reportPostModalTitle": "Report post",
+      "reportPostModalTitle": "REPORT POST",
       "reportPostBy": "You are reporting {{name}}'s post",
       "reportPostSuccess": "Thank you for your report. We will review this post.",
       "reportPostRecorded": "Your report has been recorded",
       "reportPostFailed": "Unable to submit report. Please try again.",
       "reportCommentSuccess": "Thank you for reporting this comment. We will review it soon.",
       "reportCommentFailed": "Unable to submit comment report. Please try again.",
-      "reportModalTitle": "Report comment",
+      "reportModalTitle": "REPORT COMMENT",
       "reportCommentBy": "You are reporting {{name}}'s comment",
       "reportBackendUnavailable": "Backend does not support report-comment endpoint yet. Please contact an administrator.",
       "likeSuccess": "Liked {{author}}'s post",
@@ -1147,9 +1149,11 @@
         "editPost": "What do you want to edit in this post?"
       },
       "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Inappropriate content",
-        "misleading": "Misleading information",
+       "spam": "Spam / Advertising",
+        "offensive": "Offensive / Insulting",
+        "harassment": "Harassment / Bullying",
+        "misinformation": "Misinformation",
+        "violence": "Violence / Disturbing",
         "other": "Other"
       },
       "actions": {

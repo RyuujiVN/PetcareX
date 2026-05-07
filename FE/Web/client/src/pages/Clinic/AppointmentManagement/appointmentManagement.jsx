@@ -624,6 +624,7 @@ export default function AppointmentManagement() {
 			title: t('appointments.cancelModal.title'),
 			content: t('appointments.cancelModal.content'),
 			okText: t('appointments.cancelModal.okText'),
+			cancelText: t('appointments.cancelModal.cancelText'),
 			okButtonProps: { danger: true },
 			centered: true,
 			async onOk() {

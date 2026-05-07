@@ -22,7 +22,7 @@
   position: relative;
   background: url('/bannerBooking.png') center/cover no-repeat;
   color: white;
-  padding: 5rem 1rem 3rem;
+  padding: 23rem 1rem 3rem;
   max-width: 1400px;
   width: 100%;
   border-bottom-left-radius: 2rem;
@@ -369,7 +369,7 @@
   color: var(--color-text-muted);
 }
 .summary-line {
-  padding-top: 6px;
+  padding-top: 13px;
   display: flex;
   align-items: flex-start;
   margin-bottom: 16px;
@@ -378,7 +378,7 @@
   font-size: 26px;
   margin-right: 12px;
   line-height: 1;
-  margin-top: 8px;
+  margin-top: 14px;
   width: 28px;
   display: flex;
   align-items: center;
@@ -395,10 +395,10 @@
   font-weight: 600;
   letter-spacing: 0.5px;
   font-size: 14px;
-   padding: 12px;
+  padding: 1px;
 }
 .summary-line .value {
-  margin-left: 13px;
+  margin-left: 1px;
   font-size: 16px;
   color: var(--color-text-primary);
   font-weight: 500;
@@ -591,6 +591,7 @@
 
 .summary-modal h3 {
   color: white;
+  font-size: 18px;
   text-align: center;
   border: 1px solid var(--page-booking-primary);
   padding: 10px;

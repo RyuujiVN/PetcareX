@@ -27,7 +27,15 @@
     "notification": {
       "openAriaLabel": "Open notifications",
       "title": "Notifications",
+      "refresh": "Refresh",
       "markAllRead": "Mark all as read",
+      "syncedAt": "Synced at",
+      "forumActorFallback": "User",
+      "events": {
+        "forumActionLike": "liked your post",
+        "forumActionReply": "replied to your comment",
+        "forumActionComment": "commented on your post"
+      },
       "tabs": {
         "all": "All",
         "unread": "Unread"
@@ -169,6 +177,7 @@
       "all": "All",
       "customer": "Customer",
       "veterinarian": "Veterinarian",
+      "clinicAdmin": "Clinic admin",
       "noRole": "No role"
     },
     "table": {
@@ -364,6 +373,7 @@
   },
   "activity": {
     "pageTitle": "Clinic Activity Statistics",
+    "pageTitleWithMonth": "Clinic Activity Statistics - Month {{month}}",
     "pageSubtitle": "Monitor activity levels and performance of clinics in the system",
     "loading": "Loading activity data...",
     "period": {
@@ -382,7 +392,7 @@
       "searchPlaceholder": "Search clinics...",
       "colName": "CLINIC",
       "colAddress": "ADDRESS",
-      "colCurrent": "VISITS (CURRENT)",
+      "colCurrent": "VISITS",
       "colPrevious": "VISITS (PREVIOUS)",
       "colGrowth": "GROWTH",
       "colStatus": "STATUS",
@@ -551,12 +561,6 @@
         "chooseTopic": "Choose a topic",
         "editPost": "What do you want to edit in this post?"
       },
-      "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Inappropriate content",
-        "misleading": "Misleading information",
-        "other": "Other"
-      },
       "actions": {
         "selectTopicTitle": "Choose topic",
         "commentOptionsAria": "Comment options",
@@ -614,7 +618,7 @@
         "optionsAria": "Conversation options",
         "rename": "Rename"
       },
-      "assistantTitle": "AI Assistant",
+      "assistantTitle": " PetCareX AI Assistant",
       "confirmDelete": {
         "cancelText": "Cancel",
         "content": "Are you sure you want to delete this conversation?",
@@ -625,8 +629,8 @@
       "messageBox": {
         "aiResponding": "AI is responding",
         "attachImage": "Attach image",
-        "disclaimer": "AI may generate inaccurate information. Please verify important details.",
-        "emptyState": "Start a new conversation with AI",
+        "disclaimer": "AI information is for reference only. Please consult a veterinarian for accurate advice.",
+        "emptyState": "What do you need today?",
         "genericError": "Something went wrong. Please try again.",
         "inputPlaceholder": "Type your question...",
         "loadingOldMessages": "Loading older messages...",

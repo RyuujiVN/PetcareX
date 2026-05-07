@@ -27,7 +27,15 @@
     "notification": {
       "openAriaLabel": "Mở thông báo",
       "title": "Thông báo",
+      "refresh": "Làm mới",
       "markAllRead": "Đánh dấu tất cả đã đọc",
+      "syncedAt": "Cập nhật lúc",
+      "forumActorFallback": "Người dùng",
+      "events": {
+        "forumActionLike": "đã thích bài viết của bạn",
+        "forumActionReply": "đã phản hồi bình luận của bạn",
+        "forumActionComment": "đã bình luận bài viết của bạn"
+      },
       "tabs": {
         "all": "Tất cả",
         "unread": "Chưa đọc"
@@ -169,6 +177,7 @@
       "all": "Tất cả",
       "customer": "Khách hàng",
       "veterinarian": "Bác sĩ",
+      "clinicAdmin": "Quản trị phòng khám",
       "noRole": "Không có vai trò"
     },
     "table": {
@@ -364,6 +373,7 @@
   },
   "activity": {
     "pageTitle": "Thống kê hoạt động phòng khám",
+    "pageTitleWithMonth": "Thống kê hoạt động phòng khám tháng {{month}}",
     "pageSubtitle": "Theo dõi số lượt khám của từng phòng khám phục vụ tính phí gói SaaS",
     "loading": "Đang tải dữ liệu hoạt động...",
     "period": {
@@ -382,7 +392,7 @@
       "searchPlaceholder": "Tìm phòng khám...",
       "colName": "Phòng khám",
       "colAddress": "Địa chỉ",
-      "colCurrent": "Lượt khám kỳ này",
+      "colCurrent": "Lượt khám",
       "colPrevious": "Kỳ trước",
       "colGrowth": "Tăng/giảm",
       "colStatus": "Trạng thái",
@@ -478,16 +488,16 @@
       "updateCommentFailed": "Không thể cập nhật bình luận",
       "deleteCommentSuccess": "Đã xóa bình luận",
       "deleteCommentFailed": "Không thể xóa bình luận",
-      "reportPostModalTitle": "Báo cáo bài viết",
+      "reportPostModalTitle": "BÁO CÁO BÀI VIẾT",
       "reportPostBy": "Bạn đang báo cáo bài viết của {{name}}",
       "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
       "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
       "reportPostFailed": "Không thể gửi báo cáo bài viết. Vui lòng thử lại.",
       "reportCommentSuccess": "Cảm ơn bạn đã báo cáo bình luận. Chúng tôi sẽ xem xét sớm.",
       "reportCommentFailed": "Không thể gửi báo cáo bình luận. Vui lòng thử lại.",
-      "reportModalTitle": "TỐ CÁO BÌNH LUẬN",
-      "reportCommentBy": "Bạn đang tố cáo bình luận của {{name}}",
-      "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint tố cáo bình luận. Vui lòng liên hệ quản trị viên.",
+      "reportModalTitle": "BÁO CÁO BÌNH LUẬN",
+      "reportCommentBy": "Bạn đang báo cáo bình luận của {{name}}",
+      "reportBackendUnavailable": "Backend hiện chưa hỗ trợ endpoint báo cáo bình luận. Vui lòng liên hệ quản trị viên.",
       "likeSuccess": "Đã thích bài viết của {{author}}",
       "likeFailed": "Không thể cập nhật lượt thích",
       "justNow": "Vừa xong",
@@ -550,12 +560,6 @@
         "choosePostTopic": "Chọn chủ đề bài viết",
         "chooseTopic": "Chọn chủ đề",
         "editPost": "Bạn muốn chỉnh sửa điều gì trong bài viết?"
-      },
-      "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Nội dung không phù hợp",
-        "misleading": "Thông tin sai lệch",
-        "other": "Khác"
       },
       "actions": {
         "selectTopicTitle": "Chọn chủ đề",
@@ -625,8 +629,8 @@
       "messageBox": {
         "aiResponding": "AI đang phản hồi",
         "attachImage": "Đính kèm ảnh",
-        "disclaimer": "AI có thể tạo ra thông tin chưa chính xác. Vui lòng kiểm tra lại nội dung quan trọng.",
-        "emptyState": "Bắt đầu cuộc trò chuyện mới với AI",
+        "disclaimer": "Thông tin từ AI chỉ mang tính tham khảo. Hãy hỏi bác sĩ thú y để được tư vấn chính xác.",
+        "emptyState": "Hôm nay bạn cần gì?",
         "genericError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
         "inputPlaceholder": "Nhập câu hỏi của bạn...",
         "loadingOldMessages": "Đang tải tin nhắn cũ...",

@@ -168,10 +168,12 @@ export default function ClinicReviewSection({ clinicId, showForm = true }) {
 
   if (!clinicId) return null
 
+  const sectionClassName = `${styles.section} ${!showForm ? styles.sectionTestimonial : ''}`
+
   return (
-    <section className={styles.section} id="clinic-review-section">
+    <section className={sectionClassName} id="clinic-review-section">
       <div className={styles.container}>
-        <div>
+        <div className={styles.sectionHeading}>
           <h2 className={styles.sectionTitle}>
             {t('pages.home.homePageClinic.reviewSection.title')}
           </h2>

@@ -15,6 +15,7 @@ import ChatMessage from "./ChatMessage";
 import chatSocket from "../../../../socket/chatSocket";
 import { uploadOneFileResize } from "../../../../services/cloudinaryService";
 import { BsRobot } from "react-icons/bs";
+import { useTranslation } from "react-i18next";
 
 const resolveChatbotBasePath = (pathname = "") => {
   if (pathname === "/admin/chatbot" || pathname.startsWith("/admin/chatbot/")) return "/admin/chatbot";
@@ -39,6 +40,7 @@ const TypingIndicator = () => {
 };
 
 const MessageBox = () => {
+  const { t } = useTranslation(["client"]);
   const messages = useSelector((state) => state.message.messages);
   const hasMoreMessage = useSelector((state) => state.message.hasMoreMessage);
   const [isLoadingMore, setIsLoadingMore] = useState(true);
@@ -83,7 +85,7 @@ const MessageBox = () => {
 
     const invalidFile = files.find((file) => !file.type.startsWith("image/"));
     if (invalidFile) {
-      message.warning("Chi duoc chon file anh");
+      message.warning(t("pages.home.chatbot.messageBox.validation.imageOnly"));
       event.target.value = "";
       return;
     }
@@ -115,7 +117,7 @@ const MessageBox = () => {
     } catch (error) {
       revokePreviewUrl(fileObj);
       setPendingImages(null);
-      message.error(error?.message || "Upload anh that bai");
+      message.error(error?.message || t("pages.home.chatbot.messageBox.uploadFailed"));
     } finally {
       setIsUploadingImages(false);
       event.target.value = "";
@@ -256,7 +258,7 @@ const MessageBox = () => {
     // Lắng nghe lỗi từ backend
     const onServerResponseError = (errorData) => {
       const errMsg =
-        errorData?.message || "Đã có lỗi xảy ra. Vui lòng thử lại.";
+          errorData?.message || t("pages.home.chatbot.messageBox.genericError");
       message.error(errMsg);
       setIsAiLoading(false);
       setIsAiWaitingFirstToken(false);
@@ -327,7 +329,7 @@ const MessageBox = () => {
       <div className="messages-container" ref={messagesContainerRef}>
         {!roomId ? (
           <div className="empty-state">
-            <h2>Hôm nay bạn cần gì?</h2>
+            <h2>{t("pages.home.chatbot.messageBox.emptyState")}</h2>
           </div>
         ) : (
           <>
@@ -342,7 +344,7 @@ const MessageBox = () => {
                 }}
               >
                 <Spin size="middle" />
-                <span>Đang tải tin nhắn cũ...</span>
+                <span>{t("pages.home.chatbot.messageBox.loadingOldMessages")}</span>
               </div>
             )}
             {messages.map((message) => (
@@ -375,7 +377,7 @@ const MessageBox = () => {
               >
                 <img
                   src={pendingImages?.previewUrl}
-                  alt="Preview"
+                  alt={t("pages.home.chatbot.messageBox.previewAlt")}
                   className="inline-image-preview"
                 />
                 {isUploadingImages && (
@@ -387,7 +389,7 @@ const MessageBox = () => {
                   type="button"
                   className="inline-image-remove"
                   onClick={() => handleRemovePendingImage(pendingImages?.id)}
-                  aria-label="Xoa anh"
+                  aria-label={t("pages.home.chatbot.messageBox.removeImage")}
                   disabled={isAiLoading || isUploadingImages}
                 >
                   <X size={12} />
@@ -406,8 +408,8 @@ const MessageBox = () => {
             type="button"
             className="attach-btn"
             onClick={handleOpenFilePicker}
-            title="Them anh"
-            aria-label="Them anh"
+            title={t("pages.home.chatbot.messageBox.attachImage")}
+            aria-label={t("pages.home.chatbot.messageBox.attachImage")}
             disabled={isAiLoading || isUploadingImages}
           >
             <Plus size={20} />
@@ -425,7 +427,7 @@ const MessageBox = () => {
           <Form.Item name="content" style={{ flex: 1, marginBottom: 0 }}>
             <Input
               ref={inputRef}
-              placeholder="Nhập câu hỏi..."
+              placeholder={t("pages.home.chatbot.messageBox.inputPlaceholder")}
               className="message-input"
               disabled={isAiLoading}
               readOnly={isAiLoading}
@@ -443,7 +445,7 @@ const MessageBox = () => {
                 type="button"
                 className="send-btn"
                 style={{ padding: 0 }}
-                title="AI đang trả lời"
+                title={t("pages.home.chatbot.messageBox.aiResponding")}
                 onClick={handleStopStream}
               >
                 <Pause size={20} />
@@ -454,7 +456,11 @@ const MessageBox = () => {
                 className="send-btn"
                 style={{ padding: 0 }}
                 disabled={isUploadingImages}
-                title={isUploadingImages ? "Dang tai anh..." : "Gui"}
+                title={
+                  isUploadingImages
+                    ? t("pages.home.chatbot.messageBox.uploadingImage")
+                    : t("pages.home.chatbot.messageBox.send")
+                }
               >
                 <Send size={20} />
               </button>
@@ -464,8 +470,8 @@ const MessageBox = () => {
 
         <p className="footer-info">
           {isUploadingImages
-            ? "Dang tai anh len..."
-            : "Thông tin từ AI chỉ mang tính tham khảo. Hãy hỏi bác sĩ thú y để được tư vấn chính xác."}
+            ? t("pages.home.chatbot.messageBox.uploadingImageLong")
+            : t("pages.home.chatbot.messageBox.disclaimer")}
         </p>
       </div>
     </div>

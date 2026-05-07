@@ -1,20 +1,21 @@
 import {
     CalendarOutlined,
-    FileTextOutlined,
     FormOutlined,
     MenuFoldOutlined,
     MenuUnfoldOutlined,
     MessageOutlined,
     RobotOutlined,
-    SearchOutlined,
+    SearchOutlined
 } from '@ant-design/icons'
-import { Badge, Button, Empty, Form, Input, List, Popover, Select, Tag, Typography, notification } from 'antd'
+import { Badge, Button, Input, Popover, notification } from 'antd'
+import { MessageCircle } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { IoMdNotificationsOutline } from 'react-icons/io'
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import LanguageSwitcher from '../../components/common/LanguageSwitcher/LanguageSwitcher'
 import PortalAccountMenu from '../../components/common/PortalAccountMenu/PortalAccountMenu'
+import UnifiedNotificationPanel from '../../components/common/UnifiedNotificationPanel/UnifiedNotificationPanel'
 import { getNormalizedRoles, getPrimaryRole } from '../../constants/authRole'
 import { LANGUAGE_SCOPE } from '../../constants/languageStorage'
 import { getRoleLabel } from '../../constants/veterinaryLabels'
@@ -22,12 +23,9 @@ import { RoleEnum } from '../../enum/role.enum'
 import { useAuth } from '../../hooks/Clinic/AuthContext'
 import useNotificationSocket from '../../hooks/useNotificationSocket'
 import { getAdminInstance } from '../../services/apiClient'
-import { MessageCircle } from "lucide-react";
 import { resolveNotificationHref } from '../../services/notificationService'
 import '../../styles/vererianrian/colorsToken.css'
 import styles from './AdminVererianrianLayout.module.css'
-
-const { Text } = Typography
 
 const buildMenuItems = (t) => [
   {
@@ -59,25 +57,6 @@ const buildMenuItems = (t) => [
     activePaths: ['/veterinarian/chatbot'],
   },
 ]
-
-const NOTIFICATION_TYPE_COLORS = {
-  appointment: 'blue',
-  'ai-diagnosis': 'purple',
-  system: 'gold',
-	'forum-like': 'geekblue',
-	'forum-reply': 'cyan',
-  'forum-comment': 'cyan',
-}
-
-const getNotificationTypeLabel = (type, t) => {
-  if (type === 'appointment') return t('layout.notifications.types.appointment')
-  if (type === 'ai-diagnosis') return t('layout.notifications.types.aiDiagnosis')
-  if (type === 'system') return t('layout.notifications.types.system')
-  if (type === 'forum-like') return t('layout.notifications.types.forumLike')
-  if (type === 'forum-reply') return t('layout.notifications.types.forumReply')
-  if (type === 'forum-comment') return t('layout.notifications.types.forumComment')
-  return t('layout.notifications.types.other')
-}
 
 const formatNotificationTimeAgo = (dateValue, t) => {
   const createdAt = new Date(dateValue).getTime()
@@ -130,10 +109,8 @@ export default function AdminVererianrianLayout() {
   const [notificationApi, notificationContextHolder] = notification.useNotification()
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false)
   const [isSidebarVisible, setIsSidebarVisible] = useState(true)
-  const [notificationFilters, setNotificationFilters] = useState({
-    viewMode: 'all',
-    eventType: 'all',
-  })
+  const [notificationFilter, setNotificationFilter] = useState('all')
+  const [notificationLastSyncedAt, setNotificationLastSyncedAt] = useState('')
   const shownToastIdsRef = useRef(new Set())
   const [, setTimeTick] = useState(0)
 
@@ -169,6 +146,8 @@ export default function AdminVererianrianLayout() {
     unreadCount: unreadNotificationCount,
     markAsRead: markNotificationAsRead,
     markAllAsRead: markAllNotificationsAsRead,
+    loading: notificationLoading,
+    refreshNotifications,
     latestIncomingNotification,
   } = useNotificationSocket({
     storageKey: `ws_notif_vet:${userProfile?.id || 'default'}`,
@@ -206,19 +185,40 @@ export default function AdminVererianrianLayout() {
     })
   }, [handleNotificationItemClick, latestIncomingNotification, notificationApi, t])
 
-  const filteredNotificationItems = useMemo(() => {
-    return notificationItems.filter((item) => {
-      if (notificationFilters.viewMode === 'unread' && notificationReadIdSet.has(item.id)) {
-        return false
+  useEffect(() => {
+    if (!token) {
+      setNotificationLastSyncedAt('')
+      return
+    }
+
+    setNotificationLastSyncedAt(new Date().toISOString())
+  }, [notificationItems, token])
+
+  const handleRefreshNotifications = useCallback(async () => {
+    await refreshNotifications()
+    setNotificationLastSyncedAt(new Date().toISOString())
+  }, [refreshNotifications])
+
+  const buildForumActionText = useCallback(
+    (notificationItem, actionType) => {
+      if (actionType === 'like') {
+        return t('layout.notifications.events.forumActionLike', {
+          defaultValue: 'liked your post',
+        })
       }
 
-      if (notificationFilters.eventType !== 'all' && item.type !== notificationFilters.eventType) {
-        return false
+      if (actionType === 'reply') {
+        return t('layout.notifications.events.forumActionReply', {
+          defaultValue: 'replied to your comment',
+        })
       }
 
-      return true
-    })
-  }, [notificationFilters, notificationItems, notificationReadIdSet])
+      return t('layout.notifications.events.forumActionComment', {
+        defaultValue: 'commented on your post',
+      })
+    },
+    [t],
+  )
 
   const shouldHideSearch = hideSearchRoutes.includes(location.pathname)
 
@@ -242,103 +242,34 @@ export default function AdminVererianrianLayout() {
   }, [token, effectiveRole, hasVeterinarianRole, navigate])
 
   const notificationContent = (
-    <div className={styles.notificationPanel}>
-      <div className={styles.notificationPanelHeader}>
-        <div>
-          <h3>{t('layout.notifications.panelTitle')}</h3>
-          <p>
-            {t('layout.notifications.summary', {
-              unread: unreadNotificationCount,
-              total: notificationItems.length,
-            })}
-          </p>
-        </div>
-        <Button
-          type="link"
-          size="small"
-          onClick={markAllNotificationsAsRead}
-          disabled={unreadNotificationCount === 0}
-          className={styles.markAllReadBtn}
-        >
-          {t('layout.notifications.markAllRead')}
-        </Button>
-      </div>
-
-      <Form
-        layout="inline"
-        className={styles.notificationFilterForm}
-        initialValues={notificationFilters}
-        onValuesChange={(_, values) => {
-          setNotificationFilters({
-            viewMode: values.viewMode || 'all',
-            eventType: values.eventType || 'all',
-          })
-        }}
-      >
-        <Form.Item name="viewMode" className={styles.notificationFilterItem}>
-          <Select
-            size="middle"
-            options={[
-              { value: 'all', label: t('layout.notifications.filters.all') },
-              { value: 'unread', label: t('layout.notifications.filters.unread') },
-            ]}
-          />
-        </Form.Item>
-
-        <Form.Item name="eventType" className={styles.notificationFilterItem}>
-          <Select
-            size="middle"
-            options={[
-              { value: 'all', label: t('layout.notifications.filters.allTypes') },
-              { value: 'appointment', label: t('layout.notifications.filters.appointment') },
-              { value: 'ai-diagnosis', label: t('layout.notifications.filters.aiDiagnosis') },
-				{ value: 'forum-like', label: t('layout.notifications.filters.forumLike') },
-				{ value: 'forum-comment', label: t('layout.notifications.filters.forumComment') },
-				{ value: 'forum-reply', label: t('layout.notifications.filters.forumReply') },
-              { value: 'system', label: t('layout.notifications.filters.system') },
-            ]}
-          />
-        </Form.Item>
-      </Form>
-
-      <List
-        className={styles.notificationList}
-        dataSource={filteredNotificationItems}
-        locale={{
-          emptyText: (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={t('layout.notifications.empty')}
-            />
-          ),
-        }}
-        renderItem={(item) => {
-          const isRead = notificationReadIdSet.has(item.id)
-
-          return (
-            <List.Item
-              key={item.id}
-              className={`${styles.notificationItem} ${isRead ? '' : styles.notificationItemUnread}`}
-              onClick={() => handleNotificationItemClick(item)}
-            >
-              <div className={styles.notificationItemTop}>
-                <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || 'default'}>
-                  {getNotificationTypeLabel(item.type, t)}
-                </Tag>
-                <Text className={styles.notificationTimeText}>
-                  {formatNotificationTimeAgo(item.createdAt, t)}
-                </Text>
-              </div>
-
-              <Text strong className={styles.notificationTitleText}>
-                {item.title}
-              </Text>
-              <Text className={styles.notificationDescText}>{item.description}</Text>
-            </List.Item>
-          )
-        }}
-      />
-    </div>
+    <UnifiedNotificationPanel
+      title={t('layout.notifications.panelTitle')}
+      refreshLabel={t('layout.notifications.refresh', {
+        defaultValue: 'Làm mới',
+      })}
+      markReadLabel={t('layout.notifications.markAllRead')}
+      allLabel={t('layout.notifications.filters.all')}
+      unreadLabel={t('layout.notifications.filters.unread')}
+      emptyLabel={t('layout.notifications.empty')}
+      syncedAtLabel={t('layout.notifications.syncedAt', {
+        defaultValue: 'Cập nhật lúc',
+      })}
+      forumActorFallbackLabel={t('layout.notifications.forumActorFallback', {
+        defaultValue: 'Người dùng',
+      })}
+      notifications={notificationItems}
+      readIdSet={notificationReadIdSet}
+      unreadCount={unreadNotificationCount}
+      loading={notificationLoading}
+      filterMode={notificationFilter}
+      onFilterModeChange={setNotificationFilter}
+      onRefresh={handleRefreshNotifications}
+      onMarkAllRead={markAllNotificationsAsRead}
+      onItemClick={handleNotificationItemClick}
+      formatTimeAgo={(value) => formatNotificationTimeAgo(value, t)}
+      buildForumActionText={buildForumActionText}
+      lastSyncedAt={notificationLastSyncedAt}
+    />
   )
 
   return (
