@@ -103,7 +103,8 @@
     "cancelModal": {
       "title": "Xóa lịch đặt",
       "content": "Xác nhận hủy lịch đặt này?",
-      "okText": "Xóa lịch"
+      "okText": "Xóa lịch",
+      "cancelText": "Hủy"
     },
     "searchPlaceholder": "Tìm thú cưng, chủ nuôi, dịch vụ...",
     "pageTitle": "Quản lý lịch khám",

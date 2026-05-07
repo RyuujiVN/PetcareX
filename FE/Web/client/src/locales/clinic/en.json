@@ -103,7 +103,8 @@
     "cancelModal": {
       "title": "Delete booking",
       "content": "Confirm canceling this booking?",
-      "okText": "Delete booking"
+      "okText": "Delete booking",
+      "cancelText": "Cancel"
     },
     "searchPlaceholder": "Search pet, owner, service...",
     "pageTitle": "Appointment Management",
