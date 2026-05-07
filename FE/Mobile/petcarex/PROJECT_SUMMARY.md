@@ -10,7 +10,35 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
-## 🆕 Cập nhật mới nhất (2026-05-05)
+## 🆕 Cập nhật mới nhất (2026-05-07)
+
+### Booking Doctor Detail Info — Bổ sung Chuyên ngành + Kinh nghiệm (2026-05-07)
+- **Bối cảnh:** Ở bước `Doctor` trong flow booking, khi tap chọn 1 bác sĩ thì card chi tiết đã có tên/email/phone/address nhưng thiếu trường **Kinh nghiệm**; đồng thời khi thiếu dữ liệu chuyên ngành UI dễ rơi vào hiển thị trống/khó hiểu.
+- **Đối chiếu contract BE (đã xác nhận):** Endpoint `GET /api/veterinarian` (lọc theo clinicId/specialty) trả entity `Veterinarian` có sẵn `specialty` và `experience`.
+- **Phản biện phương án:**
+    - **Phương án A:** Gọi thêm API chi tiết bác sĩ sau khi chọn.
+        - Nhược: tăng request, tăng độ trễ UI, phát sinh loading state/race-condition không cần thiết vì dữ liệu đã có trong list response.
+    - **Phương án B (được chọn):** Mở rộng parse model từ response hiện tại + render thêm field kinh nghiệm ngay trên card đã có.
+        - Ưu: thay đổi nhỏ (surgical), không đổi contract BE, không tăng call mạng, UX phản hồi tức thì khi user tap bác sĩ.
+- **Triển khai FE mobile:**
+    - `lib/features/booking/data/models/booking_models.dart`
+        - Bổ sung field `experience` cho `Veterinarian` và parse từ `json['experience']`.
+    - `lib/features/booking/presentation/widget/step_doctor_selector.dart`
+        - Card thông tin bác sĩ khi selected hiển thị thêm:
+            - `Chuyên ngành: ...`
+            - `Kinh nghiệm: ...`
+        - Fallback dữ liệu thiếu cho 2 trường trên: **`Chưa cập nhật`**.
+        - Subtitle của item bác sĩ trong list cũng fallback `Chưa cập nhật` khi specialty rỗng để tránh tile trắng thông tin.
+    - i18n:
+        - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb` thêm key:
+            - `doctorExperience`
+            - `notUpdated`
+        - Regenerate `lib/l10n/generated/*` bằng `flutter gen-l10n`.
+- **Kết quả:**
+    - Khi chọn bác sĩ, người dùng thấy đầy đủ chuyên ngành + kinh nghiệm nếu có.
+    - Nếu thiếu dữ liệu BE, UI hiển thị rõ ràng dạng `Chuyên ngành: Chưa cập nhật`, `Kinh nghiệm: Chưa cập nhật` thay vì trống/khó hiểu.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/booking/presentation/widget/step_doctor_selector.dart lib/features/booking/data/models/booking_models.dart` → **No issues found**.
 
 ### Community Comment hiển thị dữ liệu thô (raw HTML/token) — Root cause & Fix
 - **Bối cảnh lỗi:** Một số comment/reply trên mobile hiển thị thô dạng `<p>...</p>`, `<img ...>` hoặc token `[[img:...]]` thay vì text + ảnh đúng UI.
