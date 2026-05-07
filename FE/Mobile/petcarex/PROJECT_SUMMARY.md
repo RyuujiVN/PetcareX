@@ -12,6 +12,40 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 
 ## 🆕 Cập nhật mới nhất (2026-05-07)
 
+### Clinic Detail từ luồng "Phòng khám gần bạn" — Đồng bộ schema HomePageClinic (2026-05-07)
+- **Bối cảnh:** Người dùng cần xem đầy đủ thông tin phòng khám (hero/about/gallery/team/location/map) khi chọn 1 phòng khám trong ngữ cảnh **phòng khám gần bạn**, thay vì chỉ xem card tóm tắt.
+- **Root cause đã xác nhận:**
+    - `ClinicDetailPage` trước đó mới render được subset schema cũ (`banner/introduction/services/contact`).
+    - Dữ liệu thực tế từ `GET /api/clinic-homepage-setting/:clinicId` đang được quản trị theo schema HomePageClinic (hero/about/gallery/team/location) tương tự web.
+    - Ở flow Booking step `Clinic`, người dùng chưa có điểm vào rõ ràng để "xem trước phòng khám" trước khi chốt chọn.
+- **Phản biện phương án:**
+    - **Phương án A:** Hardcode nội dung PetCar cố định trực tiếp vào mobile UI.
+        - Nhược: lệch dữ liệu theo từng clinic, không theo được nội dung do admin cập nhật ở portal editor, khó maintain.
+    - **Phương án B (được chọn):** Đồng bộ parser mobile theo schema HomePageClinic + fallback an toàn + giữ tương thích schema cũ.
+        - Ưu: đúng contract dữ liệu thực tế, không đổi BE, vẫn chạy ổn cho clinic chưa cấu hình đầy đủ.
+- **Triển khai FE mobile (surgical):**
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`
+        - Mở rộng model sang các khối: `hero`, `about`, `gallerySection`, `galleryImages`, `teamSection`, `doctors`, `locationSection`.
+        - Giữ parser tương thích ngược các field cũ (`banner/introduction/services/workingHours/contactPhone`).
+        - Bổ sung default content/fallback đúng bộ dữ liệu PetCar để tránh trang trắng khi payload thiếu.
+    - `lib/features/clinic/data/clinic_repository.dart`
+        - Parser chịu được response `Map`, `String(JSON)` và body rỗng.
+        - `404` trả về default setting (không coi là crash flow xem phòng khám).
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+        - Render lại màn chi tiết theo các section: banner đầu trang + CTA, giới thiệu bệnh viện, thư viện ảnh, đội ngũ phòng khám, đánh giá, địa chỉ + map link.
+        - Với bản đồ: parse được cả dạng URL thuần hoặc iframe HTML (`src=...`), mở ngoài app bằng `url_launcher`.
+    - `lib/features/booking/presentation/widget/step_clinic_selector.dart`
+        - Thêm action `Xem chi tiết` trên card clinic ngay trong step chọn phòng khám.
+    - `lib/features/booking/presentation/booking_page.dart`
+        - Wire điều hướng sang `ClinicDetailPage` từ action `Xem chi tiết`.
+    - `pubspec.yaml`
+        - Thêm dependency `url_launcher` để mở Google Maps.
+- **Kết quả UX:**
+    - Người dùng có thể xem đầy đủ thông tin phòng khám theo đúng nội dung portal trước khi quyết định đặt lịch.
+    - Flow booking vẫn giữ nguyên logic chọn clinic hiện tại, chỉ bổ sung entry point xem chi tiết.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/clinic/presentation/clinic_detail_page.dart lib/features/clinic/data/models/clinic_homepage_setting.dart lib/features/clinic/data/clinic_repository.dart lib/features/booking/presentation/widget/step_clinic_selector.dart lib/features/booking/presentation/booking_page.dart`
+
 ### Booking Doctor Detail Info — Bổ sung Chuyên ngành + Kinh nghiệm (2026-05-07)
 - **Bối cảnh:** Ở bước `Doctor` trong flow booking, khi tap chọn 1 bác sĩ thì card chi tiết đã có tên/email/phone/address nhưng thiếu trường **Kinh nghiệm**; đồng thời khi thiếu dữ liệu chuyên ngành UI dễ rơi vào hiển thị trống/khó hiểu.
 - **Đối chiếu contract BE (đã xác nhận):** Endpoint `GET /api/veterinarian` (lọc theo clinicId/specialty) trả entity `Veterinarian` có sẵn `specialty` và `experience`.
