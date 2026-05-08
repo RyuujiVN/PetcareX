@@ -10,7 +10,7 @@ class AppConfig {
     }
     return const String.fromEnvironment(
       'BASE_URL',
-      defaultValue: 'http://13.212.144.178:3000',
+      defaultValue: 'http://localhost:3000',
     );
   }
 
