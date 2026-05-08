@@ -1,12 +1,12 @@
 import {
-    BarChartOutlined,
-    FileTextOutlined,
-    MedicineBoxOutlined,
-    MenuFoldOutlined,
-    MenuUnfoldOutlined,
-    MessageOutlined,
-    RobotOutlined,
-    TeamOutlined,
+  BarChartOutlined,
+  FileTextOutlined,
+  MedicineBoxOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  MessageOutlined,
+  RobotOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { Badge, Button } from "antd";
 import { MessageCircle } from "lucide-react";
@@ -23,9 +23,34 @@ import { RoleEnum } from "../../enum/role.enum";
 import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
+import { getReportsApi } from "../../services/forumReportService";
 import { resolveNotificationHref } from "../../services/notificationService";
 import "../../styles/admin/colorsToken.css";
 import styles from "./AdminLayout.module.css";
+
+const REPORT_LOOKUP_PAGE_LIMIT = 100;
+const REPORT_LOOKUP_MAX_PAGES = 10;
+
+const normalizeTextValue = (value) => String(value || "").trim();
+const normalizeReportType = (value) => normalizeTextValue(value).toUpperCase();
+
+const extractReportItems = (response) => {
+  const payload = response?.data;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.data?.items)) return payload.data.items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload)) return payload;
+  return [];
+};
+
+const extractReportTotalPages = (response) => {
+  const payload = response?.data;
+  const meta = payload?.meta || payload?.data?.meta;
+  const totalPages = Number(
+    meta?.totalPages || meta?.total_pages || meta?.pageCount || 0,
+  );
+  return Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1;
+};
 
 const menuItems = [
   {
@@ -226,6 +251,34 @@ export default function AdminLayout() {
     [t],
   );
 
+  const resolveReportById = useCallback(async (reportId) => {
+    const normalizedReportId = normalizeTextValue(reportId);
+    if (!normalizedReportId) return null;
+
+    let page = 1;
+    let totalPages = 1;
+
+    while (page <= totalPages && page <= REPORT_LOOKUP_MAX_PAGES) {
+      const response = await getReportsApi(getAdminInstance(), {
+        page,
+        limit: REPORT_LOOKUP_PAGE_LIMIT,
+      });
+      const reports = extractReportItems(response);
+      const matched = reports.find(
+        (report) => normalizeTextValue(report?.id) === normalizedReportId,
+      );
+
+      if (matched) {
+        return matched;
+      }
+
+      totalPages = extractReportTotalPages(response);
+      page += 1;
+    }
+
+    return null;
+  }, []);
+
   const handleNotificationItemClick = useCallback(
     (item) => {
       if (!item?.id) return;
@@ -240,14 +293,54 @@ export default function AdminLayout() {
         String(item?.type || "").toLowerCase() === "report";
 
       if (isReportType) {
-        const postId = String(item?.postId || item?.target?.postId || "").trim();
-        const commentId = String(item?.commentId || item?.target?.commentId || "").trim();
-        const params = new URLSearchParams();
-        if (postId) params.set("postId", postId);
-        if (commentId) params.set("commentId", commentId);
-        params.set("adminAction", "delete");
-        const queryString = params.toString();
-        navigate(queryString ? `/admin/forum?${queryString}` : "/admin/forum");
+        void (async () => {
+          let postId = normalizeTextValue(item?.postId || item?.target?.postId);
+          let commentId = normalizeTextValue(
+            item?.commentId || item?.target?.commentId,
+          );
+          const reportId = normalizeTextValue(
+            item?.reportId || item?.target?.reportId,
+          );
+          const reportType = normalizeReportType(item?.target?.reportType);
+          const targetId = normalizeTextValue(item?.target?.targetId);
+
+          if (!postId && reportType === "POST" && targetId) {
+            postId = targetId;
+          }
+
+          if (!commentId && reportType === "COMMENT" && targetId) {
+            commentId = targetId;
+          }
+
+          if (!postId && reportId) {
+            try {
+              const report = await resolveReportById(reportId);
+              const resolvedTargetType = normalizeReportType(report?.targetType);
+              const resolvedTargetId = normalizeTextValue(report?.targetId);
+
+              if (resolvedTargetType === "POST" && resolvedTargetId) {
+                postId = resolvedTargetId;
+              }
+
+              if (
+                resolvedTargetType === "COMMENT" &&
+                resolvedTargetId &&
+                !commentId
+              ) {
+                commentId = resolvedTargetId;
+              }
+            } catch {
+              // Silent fallback to forum root if report lookup fails.
+            }
+          }
+
+          const params = new URLSearchParams();
+          if (postId) params.set("postId", postId);
+          if (commentId) params.set("commentId", commentId);
+          params.set("adminAction", "delete");
+          const queryString = params.toString();
+          navigate(queryString ? `/admin/forum?${queryString}` : "/admin/forum");
+        })();
         return;
       }
 
@@ -256,7 +349,7 @@ export default function AdminLayout() {
         navigate(targetHref);
       }
     },
-    [markAsRead, navigate],
+    [markAsRead, navigate, resolveReportById],
   );
 
   return (

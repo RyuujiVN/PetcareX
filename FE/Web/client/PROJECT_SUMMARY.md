@@ -22,6 +22,49 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-05-08)
 
+### Cập nhật (2026-05-08) — Click notification tố cáo trỏ thẳng vào bài viết bị tố cáo
+
+**Yêu cầu nghiệp vụ:**
+- Khi admin nhấn vào notification người dùng gửi tố cáo, hệ thống phải điều hướng trực tiếp tới bài viết liên quan trong Forum (ưu tiên trỏ đúng post đích), không chỉ mở trang forum chung.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Notification type `REPORT` từ BE hiện chỉ chứa `reportId` + `reportType` trong `target`, chưa có `postId`/`commentId`.
+- Luồng click ở `AdminLayout` đã điều hướng sang `/admin/forum` nhưng thiếu `postId`, nên không kích hoạt được cơ chế scroll/highlight theo query param ở `AdminForum`.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: sửa BE để luôn push `postId` vào notification target.
+  - Ưu điểm: sạch về kiến trúc dài hạn.
+  - Nhược: phụ thuộc vòng deploy BE, không xử lý ngay các notification đã tồn tại.
+- Phương án B (được chọn): FE fallback resolve `reportId -> targetId` tại thời điểm click, sau đó build URL forum có `postId`.
+  - Ưu điểm: xử lý ngay trên Web hiện tại, không đổi contract API, không chạm luồng nghiệp vụ khác.
+  - Nhược: phát sinh thêm request lookup report khi notification thiếu `postId`.
+- Phương án C: điều hướng sang trang quản lý report thay vì forum.
+  - Nhược: không đáp ứng đúng yêu cầu “trỏ trực tiếp vào bài viết”.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/layouts/admin/AdminLayout.jsx`
+- `src/services/notificationService.js`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- `notificationService.buildNotificationTarget`:
+  - Chuẩn hóa thêm `targetId` cho notification target.
+  - Fallback map id đích cho report:
+    - `reportType=POST` => dùng `targetId` làm `postId` nếu thiếu.
+    - `reportType=COMMENT` => dùng `targetId` làm `commentId` nếu thiếu.
+- `AdminLayout.handleNotificationItemClick` (nhánh report):
+  - Giữ flow `markAsRead` như cũ.
+  - Nếu notification chưa có `postId`, gọi `GET /report` theo paging để tìm report theo `reportId`.
+  - Resolve `targetType/targetId` từ report để dựng deep-link forum.
+  - Điều hướng tới `/admin/forum?postId=<id>&adminAction=delete` (kèm `commentId` nếu có) để `AdminForum` tự scroll + highlight đúng post mục tiêu.
+  - Nếu không resolve được target thì fallback về `/admin/forum` (an toàn, không crash).
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa file backend, không đổi endpoint/payload/DTO/schema.
+
+**Tự kiểm tra:**
+- `get_errors` trên 2 file đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
 ### Cập nhật (2026-05-08) — Tối ưu search Forum 4 role: chỉ điều hướng khi chọn kết quả
 
 **Yêu cầu nghiệp vụ:**
