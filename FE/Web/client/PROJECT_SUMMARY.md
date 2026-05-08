@@ -22,6 +22,49 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 
 ## Cập nhật mới nhất (2026-05-08)
 
+### Cập nhật (2026-05-08) — Tối ưu search Forum 4 role: chỉ điều hướng khi chọn kết quả
+
+**Yêu cầu nghiệp vụ:**
+- Search ở Forum của cả 4 role (`client`, `clinic`, `veterinarian`, `admin`) không được làm thay đổi danh sách bài viết bên dưới trong lúc gõ.
+- Chỉ khi người dùng chọn một kết quả trong popup search thì mới trỏ (scroll + highlight) tới bài viết tương ứng.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Logic cũ gọi `loadPosts({ keyword })` mỗi lần `searchKeyword` thay đổi.
+- Vì `getPostsApi` nhận `keyword`, `apiPosts` bị thay bằng tập kết quả search (limit 50), kéo theo toàn bộ `visiblePosts` bên dưới cũng đổi theo.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: tiếp tục search server-side realtime rồi cố giữ lại list cũ bằng state song song.
+  - Nhược: phức tạp, tăng rủi ro lệch state và tốn request khi người dùng gõ liên tục.
+- Phương án B: tách API autocomplete riêng + endpoint lấy post theo id.
+  - Nhược: cần thêm contract BE, không phù hợp mục tiêu fix nhanh/surgical phía FE hiện tại.
+- Phương án C (được chọn): giữ feed ổn định (fetch 1 lần), search popup lọc local và chỉ điều hướng khi click item.
+  - Ưu điểm: diff nhỏ, đúng yêu cầu UX, không đổi API/contract BE, ít rủi ro regression.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Bỏ cơ chế refetch theo `searchKeyword` ở cả 4 màn forum.
+- `loadPosts` quay về fetch feed mặc định (`limit: 1000`) để giữ danh sách ổn định.
+- Popup search chuyển sang lọc local từ `sourcePosts` theo `title + content + author`.
+- So khớp keyword theo dạng normalize không dấu (`NFD`) để tăng khả năng match tiếng Việt.
+- Khi chọn một kết quả:
+  - đóng popup,
+  - reset keyword search,
+  - reset filter topic về `all` để đảm bảo item mục tiêu luôn hiện,
+  - scroll tới `#forum-post-{id}` và highlight bài viết.
+- Bỏ empty-state ở phần feed vốn chỉ dành cho cơ chế "search làm đổi list" cũ.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không đổi endpoint, payload hay contract API forum.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
 ### Cập nhật (2026-05-08) — Fix hiển thị dữ liệu dài ở phiếu khám + modal chi tiết lịch khám
 
 **Yêu cầu nghiệp vụ:**

@@ -24,8 +24,7 @@ import { useAuth } from '../../../hooks/client/AuthContext'
 import { getClientInstance } from '../../../services/apiClient'
 import {
     createGenericReportApi,
-    reportCommentApi,
-    reportPostApi,
+    reportPostApi
 } from '../../../services/forumReportService'
 import {
     adminDeleteCommentApi,
@@ -62,6 +61,13 @@ const truncatePreviewText = (value, maxLength = 72) => {
 	if (normalized.length <= maxLength) return normalized
 	return `${normalized.slice(0, maxLength - 1)}...`
 }
+
+const normalizeSearchText = (value = '') =>
+	String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.trim()
 
 const TOPIC_TRANSLATION_KEYS = {
 	'cham soc thu cung hang ngay': 'pages.forum.topics.dailyCare',
@@ -657,24 +663,14 @@ function Forum() {
 		return fileUrl
 	}
 
-	const searchKeywordRef = useRef('')
-	useEffect(() => {
-		searchKeywordRef.current = searchKeyword
-	}, [searchKeyword])
-
 	useEffect(() => {
 
 	}, [])
 
-	const loadPosts = async ({ keyword } = {}) => {
+	const loadPosts = async () => {
 		setLoadingPosts(true)
 		try {
-			const effectiveKeyword = keyword !== undefined ? keyword : searchKeywordRef.current
-			const limit = effectiveKeyword ? 50 : 1000
-			const data = await getPostsApi(getClientInstance(), {
-				limit,
-				keyword: effectiveKeyword,
-			})
+			const data = await getPostsApi(getClientInstance(), { limit: 1000 })
 			setApiPosts(Array.isArray(data) ? data.map((item) => mapPostToUi(item, t, i18n.language)) : [])
 		} catch (error) {
 			message.error(error.message || t('pages.forum.loadPostsFailed'))
@@ -700,16 +696,6 @@ function Forum() {
 
 		loadInitialData()
 	}, [])
-
-	const didMountSearchRef = useRef(false)
-	useEffect(() => {
-		if (!didMountSearchRef.current) {
-			didMountSearchRef.current = true
-			return
-		}
-		loadPosts({ keyword: searchKeyword })
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [searchKeyword])
 
 	useEffect(() => {
 		setApiPosts((prev) =>
@@ -2037,10 +2023,6 @@ function Forum() {
 			return String(post.rawTopicId) === selectedTopicFilter
 		})
 
-		if (searchKeyword) {
-			return filtered.map((post) => ({ ...post, isFeatured: false }))
-		}
-
 		const prioritizedFeatured = [...filtered]
 			.filter((post) => featuredPostIds.has(post.id))
 			.sort((a, b) => {
@@ -2066,28 +2048,38 @@ function Forum() {
 			...post,
 			isFeatured: index < FEATURED_POST_LIMIT && featuredPostIds.has(post.id),
 		}))
-	}, [sourcePosts, selectedTopicFilter, featuredPostIds, searchKeyword])
+	}, [sourcePosts, selectedTopicFilter, featuredPostIds])
+
+	const normalizedSearchKeyword = useMemo(() => normalizeSearchText(searchKeyword), [searchKeyword])
 
 	const popupSearchResults = useMemo(() => {
-		if (!searchKeyword.trim()) return []
+		if (!normalizedSearchKeyword) return []
 
-		return visiblePosts.slice(0, POPUP_RESULT_LIMIT).map((post) => ({
+		return sourcePosts
+			.filter((post) => {
+				const searchableText = normalizeSearchText([post.title, post.content, post.author].filter(Boolean).join(' '))
+				return searchableText.includes(normalizedSearchKeyword)
+			})
+			.slice(0, POPUP_RESULT_LIMIT)
+			.map((post) => ({
 			id: post.id,
 			author: post.author,
 			title: truncatePreviewText(post.title || post.content || 'Bai viet khong tieu de'),
 			snippet: truncatePreviewText(post.content || post.title || ''),
-		}))
-	}, [searchKeyword, visiblePosts])
+			}))
+	}, [normalizedSearchKeyword, sourcePosts])
 
 	const handleSearchResultSelect = useCallback(
 		(postId) => {
+			setSearchKeyword('')
+			setSelectedTopicFilter('all')
 			setSearchOpen(false)
 			window.setTimeout(() => {
 				const postElement = document.getElementById(`forum-post-${postId}`)
 				if (!postElement) return
 				scrollElementIntoFeed(postElement)
 				flashPostHighlight(postId)
-			}, 40)
+			}, 120)
 		},
 		[flashPostHighlight, scrollElementIntoFeed],
 	)
@@ -2211,15 +2203,6 @@ function Forum() {
 
 					<div className={styles.feedList}>
 						{loadingPosts ? <p className={styles.loadingText}>{t('pages.forum.loadingPosts')}</p> : null}
-						{!loadingPosts && searchKeyword && visiblePosts.length === 0 ? (
-							<div className={styles.searchEmptyState}>
-								<FaMagnifyingGlass className={styles.searchEmptyIcon} aria-hidden="true" />
-								<p className={styles.searchEmptyTitle}>
-									{t('pages.forum.search.emptyTitle', { keyword: searchKeyword })}
-								</p>
-								<p className={styles.searchEmptyHint}>{t('pages.forum.search.emptyHint')}</p>
-							</div>
-						) : null}
 						{visiblePosts.map((post) => (
 							<article
 								key={post.id}
