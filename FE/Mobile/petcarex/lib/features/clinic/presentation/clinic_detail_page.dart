@@ -54,7 +54,13 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
 
   Future<void> _openMap(ClinicLocationSection location) async {
     final launchUrlText = _resolveMapLaunchUrl(location);
-    if (launchUrlText.isEmpty) {
+    final mapQuery = _resolveMapQuery(location);
+    final launchCandidates = _buildMapLaunchCandidates(
+      mapQuery: mapQuery,
+      fallbackUrlText: launchUrlText,
+    );
+
+    if (launchCandidates.isEmpty) {
       AppNotifier.showInfo(
         context,
         _localizedText(
@@ -66,21 +72,21 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
       return;
     }
 
-    final uri = Uri.tryParse(launchUrlText);
-    if (uri == null) {
-      AppNotifier.showError(
-        context,
-        _localizedText(
-          context,
-          vi: 'Liên kết bản đồ không hợp lệ.',
-          en: 'Map link is invalid.',
-        ),
-      );
-      return;
+    for (final uri in launchCandidates) {
+      try {
+        final opened = await launchUrl(
+          uri,
+          mode: LaunchMode.externalApplication,
+        );
+        if (opened) {
+          return;
+        }
+      } catch (_) {
+        // Keep trying next candidate.
+      }
     }
 
-    final opened = await launchUrl(uri, mode: LaunchMode.externalApplication);
-    if (!opened && mounted) {
+    if (mounted) {
       AppNotifier.showError(
         context,
         _localizedText(
@@ -437,6 +443,14 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
 
   Widget _buildAboutSection(ClinicHomepageSetting setting) {
     final about = setting.about;
+    final locationAddress = _firstNonBlank([
+      setting.locationSection.address,
+      widget.clinic.address,
+    ]);
+    final aboutDescription = _resolveAboutDescription(
+      about.description,
+      locationAddress,
+    );
 
     return _buildSectionCard(
       icon: Icons.info_outline,
@@ -468,10 +482,10 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
               ),
             ),
           ],
-          if (about.description.isNotEmpty) ...[
+          if (aboutDescription.isNotEmpty) ...[
             const SizedBox(height: 10),
             Text(
-              about.description,
+              aboutDescription,
               style: const TextStyle(
                 fontSize: 13,
                 height: 1.5,
@@ -738,7 +752,11 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
 
   Widget _buildLocationSection(ClinicHomepageSetting setting) {
     final location = setting.locationSection;
-    final launchUrlText = _resolveMapLaunchUrl(location);
+    final hasMapEmbed = _normalizeMapEmbedValue(location.mapEmbedUrl).isNotEmpty;
+    final displayAddress = _firstNonBlank([
+      location.address,
+      widget.clinic.address,
+    ]);
 
     return _buildSectionCard(
       icon: Icons.location_on_outlined,
@@ -758,7 +776,7 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
                 height: 1.4,
               ),
             ),
-          if (location.address.isNotEmpty) ...[
+          if (displayAddress.isNotEmpty) ...[
             const SizedBox(height: 10),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -770,7 +788,7 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    location.address,
+                    displayAddress,
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.textDark,
@@ -781,67 +799,27 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
               ],
             ),
           ],
-          const SizedBox(height: 12),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.primary.withValues(alpha: 0.06),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.18),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.map_outlined,
-                  color: AppColors.primary,
-                  size: 18,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    launchUrlText.isNotEmpty
-                        ? launchUrlText
-                        : _localizedText(
-                            context,
-                            vi: 'Chưa có liên kết bản đồ.',
-                            en: 'Map link is not available.',
-                          ),
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.textGrey,
-                    ),
+          if (hasMapEmbed) ...[
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () => _openMap(location),
+                icon: const Icon(Icons.open_in_new, size: 16),
+                label: Text(
+                  _localizedText(
+                    context,
+                    vi: 'Mở Google Maps',
+                    en: 'Open Google Maps',
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: launchUrlText.isEmpty
-                  ? null
-                  : () => _openMap(location),
-              icon: const Icon(Icons.open_in_new, size: 16),
-              label: Text(
-                _localizedText(
-                  context,
-                  vi: 'Mở Google Maps',
-                  en: 'Open Google Maps',
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: AppColors.onPrimary,
                 ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: AppColors.onPrimary,
-              ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -1231,6 +1209,133 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
     }
 
     return normalizedRaw;
+  }
+
+  String _resolveMapQuery(ClinicLocationSection location) {
+    final explicitQuery = _extractMapQueryFromUrl(location.mapLink);
+    if (explicitQuery.isNotEmpty) {
+      return explicitQuery;
+    }
+
+    final normalizedEmbed = _normalizeMapEmbedValue(location.mapEmbedUrl);
+    final embedQuery = _extractMapQueryFromUrl(normalizedEmbed);
+    if (embedQuery.isNotEmpty) {
+      return embedQuery;
+    }
+
+    return location.address.trim();
+  }
+
+  String _extractMapQueryFromUrl(String rawUrl) {
+    final normalizedRaw = rawUrl.trim();
+    if (normalizedRaw.isEmpty) {
+      return '';
+    }
+
+    final uri = Uri.tryParse(normalizedRaw);
+    if (uri == null) {
+      return '';
+    }
+
+    final query =
+        (uri.queryParameters['q'] ?? uri.queryParameters['query'] ?? '')
+            .replaceAll('+', ' ')
+            .trim();
+    if (query.isNotEmpty) {
+      return query;
+    }
+
+    final placeIndex = uri.pathSegments.indexOf('place');
+    if (placeIndex != -1 && placeIndex + 1 < uri.pathSegments.length) {
+      return Uri.decodeComponent(uri.pathSegments[placeIndex + 1])
+          .replaceAll('+', ' ')
+          .trim();
+    }
+
+    return '';
+  }
+
+  List<Uri> _buildMapLaunchCandidates({
+    required String mapQuery,
+    required String fallbackUrlText,
+  }) {
+    final candidates = <Uri>[];
+
+    final normalizedQuery = mapQuery.trim();
+    if (normalizedQuery.isNotEmpty) {
+      final encodedQuery = Uri.encodeQueryComponent(normalizedQuery);
+      candidates.add(Uri.parse('comgooglemaps://?q=$encodedQuery'));
+      candidates.add(Uri.parse('geo:0,0?q=$encodedQuery'));
+    }
+
+    final normalizedFallback = fallbackUrlText.trim();
+    final fallbackUri = Uri.tryParse(normalizedFallback);
+    if (fallbackUri != null && _isNativeMapScheme(fallbackUri)) {
+      candidates.add(fallbackUri);
+    }
+
+    final deduped = <Uri>[];
+    final seen = <String>{};
+    for (final uri in candidates) {
+      final key = uri.toString();
+      if (key.isEmpty || seen.contains(key)) {
+        continue;
+      }
+      seen.add(key);
+      deduped.add(uri);
+    }
+
+    return deduped;
+  }
+
+  bool _isNativeMapScheme(Uri uri) {
+    final scheme = uri.scheme.toLowerCase();
+    return scheme == 'comgooglemaps' ||
+        scheme == 'geo' ||
+        scheme == 'google.navigation';
+  }
+
+  String _resolveAboutDescription(String rawDescription, String locationAddress) {
+    final normalizedDescription = rawDescription.trim();
+    final normalizedLocationAddress = locationAddress.trim();
+
+    if (normalizedLocationAddress.isEmpty) {
+      return normalizedDescription;
+    }
+
+    if (normalizedDescription.isEmpty) {
+      return normalizedLocationAddress;
+    }
+
+    if (_isLikelyAddressText(normalizedDescription)) {
+      return normalizedLocationAddress;
+    }
+
+    return normalizedDescription;
+  }
+
+  bool _isLikelyAddressText(String raw) {
+    final normalized = raw.toLowerCase();
+    if (!normalized.contains(',')) {
+      return false;
+    }
+
+    final addressHints = [
+      'phường',
+      'quận',
+      'huyện',
+      'thành phố',
+      'tp.',
+      'tp ',
+      'ward',
+      'district',
+      'city',
+    ];
+
+    final hasAddressHint = addressHints.any(normalized.contains);
+    final hasStreetNumber = RegExp(r'\d').hasMatch(normalized);
+
+    return hasAddressHint && hasStreetNumber;
   }
 
   String _firstNonBlank(List<String> values) {

@@ -12,6 +12,80 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 
 ## 🆕 Cập nhật mới nhất (2026-05-08)
 
+### Nearby Clinic Detail Map UX — Bỏ link chữ, chỉ hiển thị nút khi có embed (2026-05-08)
+- **Yêu cầu UX:** Ở màn chi tiết phòng khám (luồng **Phòng khám gần nhất**), bỏ phần hiển thị link Google Maps dạng text; chỉ giữ nút `Mở Google Maps`. Với clinic chưa có dữ liệu `mapEmbedUrl`, không hiển thị nút.
+- **Root cause đã xác nhận:**
+    - `ClinicDetailPage` đang render 1 khối text hiển thị thẳng URL map (`launchUrlText`), gây rối UI.
+    - Dữ liệu fallback trong `ClinicHomepageSetting.defaults()` đang luôn gán sẵn `mapEmbedUrl/mapLink`, nên kể cả clinic chưa cấu hình map thật thì UI vẫn có dữ liệu và vẫn hiện nút.
+- **Phân tích phương án:**
+    - **Phương án A:** Chỉ ẩn text URL nhưng giữ nút disabled khi thiếu map.
+        - Nhược: vẫn chiếm không gian và tạo kỳ vọng thao tác nhưng không dùng được.
+    - **Phương án B:** Giữ fallback map mặc định để luôn có nút.
+        - Nhược: sai nghiệp vụ thực tế của từng clinic; user có thể mở nhầm map không đúng clinic.
+    - **Phương án C (được chọn):**
+        - Xóa hẳn block hiển thị URL map trên UI.
+        - Render nút `Mở Google Maps` theo điều kiện có `mapEmbedUrl` thật (`_normalizeMapEmbedValue(location.mapEmbedUrl).isNotEmpty`).
+        - Bỏ fallback map mặc định trong `ClinicHomepageSetting.defaults()` để dữ liệu thiếu map không bị "giả có" map.
+- **Tự phản biện giải pháp đã chọn:**
+    - Nếu clinic chỉ set `mapLink` mà không set `mapEmbedUrl`, nút sẽ vẫn bị ẩn theo đúng rule nghiệp vụ mới.
+    - Trade-off chấp nhận: ưu tiên tính đúng dữ liệu thực tế từng clinic hơn việc luôn có CTA bản đồ.
+- **Phạm vi triển khai FE mobile (surgical):**
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+        - Bỏ khối container hiển thị URL Google Maps.
+        - Chỉ render nút `Mở Google Maps` khi có `mapEmbedUrl`.
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`
+        - Xóa default `mapEmbedUrl/mapLink` hardcoded.
+        - Đổi subtitle mặc định location sang nội dung trung tính (`Thông tin địa chỉ phòng khám.`).
+- **Kết quả UX:**
+    - Màn thông tin phòng khám gọn hơn, không còn lộ URL dài.
+    - Chỉ những clinic đã cấu hình embed map mới hiển thị nút mở Google Maps.
+
+### Nearby Clinic Open Map Native App First — Ưu tiên mở app Google Maps (2026-05-08)
+- **Vấn đề:** Khi bấm `Mở Google Maps`, một số thiết bị chỉ mở Chrome với link nhúng, trải nghiệm kém và có trường hợp web embed không hiển thị đúng.
+- **Giải pháp (surgical):**
+    - Trong `ClinicDetailPage`, khi mở map sẽ thử theo thứ tự:
+        - `comgooglemaps://?q=...`
+        - `geo:0,0?q=...`
+        - fallback URL hiện có nhưng chỉ khi là native scheme (`comgooglemaps`, `geo`, `google.navigation`).
+    - Đồng thời trích xuất `query` từ `mapLink/mapEmbedUrl` (hỗ trợ `q`, `query`, hoặc path `/place/...`) trước khi build deep-link.
+- **Kết quả:**
+    - Ưu tiên mở trực tiếp app bản đồ (đặc biệt Google Maps) thay vì nhảy thẳng vào Chrome.
+    - Không fallback web; nếu thiết bị không mở được deep-link app map thì hiển thị lỗi thay vì redirect Chrome.
+
+### Nearby Clinic Map Placeholder Cleanup — Loại bỏ link map mặc định Procare (2026-05-08)
+- **Phản ánh thực tế sau deploy:** Một số clinic chưa tự cấu hình map nhưng vẫn hiện nút Google Maps do dữ liệu cũ còn chứa giá trị placeholder mặc định (Procare) trong `mapEmbedUrl`/`mapLink`.
+- **Nguyên nhân:** Parser trước đó coi mọi URL map trả về từ API là dữ liệu hợp lệ, chưa phân biệt placeholder mặc định với dữ liệu clinic thật.
+- **Giải pháp tối ưu (surgical):**
+    - Chuẩn hóa và sanitize `mapEmbedUrl/mapLink` ngay tại model parser.
+    - Nếu URL Google Maps có query trỏ tới placeholder `Bệnh viện thú y Procare` thì coi là dữ liệu rỗng.
+    - UI đã có rule chỉ hiện nút khi `mapEmbedUrl` còn dữ liệu sau sanitize, nên clinic chưa set map sẽ tự ẩn nút.
+- **Phạm vi thay đổi:**
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`: thêm `_sanitizeMapValue(...)` và `_isLegacyDefaultMapValue(...)`.
+- **Trade-off:**
+    - Nếu có clinic thật sự muốn dùng đúng địa điểm Procare thì map sẽ bị coi là placeholder và bị ẩn; có thể bỏ rule này sau khi dữ liệu backend được dọn sạch đồng bộ.
+
+### Nearby Clinic Address Consistency Fix — Không còn nhảy sang địa chỉ mẫu (2026-05-08)
+- **Vấn đề phát sinh:** Ở card phòng khám gần nhất hiển thị địa chỉ đúng theo clinic đã chọn, nhưng vào trang detail/location section lại hiện địa chỉ khác.
+- **Root cause:** `ClinicHomepageSetting.defaults()` còn hardcode địa chỉ mẫu (`240 Phan Đăng Lưu...`), nên khi clinic chưa có `locationSection.address` trong settings thì parser fallback về địa chỉ mẫu này.
+- **Giải pháp (surgical):**
+    - Xóa địa chỉ hardcoded khỏi default model (`address: ''`).
+    - Ở `ClinicDetailPage`, khi render location section sẽ fallback theo thứ tự: `settings.locationSection.address` -> `widget.clinic.address`.
+- **Kết quả:**
+    - Nếu settings có địa chỉ riêng thì vẫn hiển thị đúng dữ liệu đã cấu hình.
+    - Nếu settings chưa có địa chỉ thì detail luôn đồng bộ với địa chỉ của clinic người dùng vừa chọn, không còn đổi sang địa chỉ mẫu.
+
+### Nearby Clinic About Address Sync — Đồng bộ địa chỉ ở phần Giới thiệu (2026-05-08)
+- **Vấn đề phát sinh:** Ở section `GIỚI THIỆU BỆNH VIỆN`, một số clinic hiển thị nội dung kiểu địa chỉ nhưng lệch với section `ĐỊA CHỈ PHÒNG KHÁM` (địa chỉ đúng).
+- **Root cause:** Dữ liệu `about.description` có thể đang chứa text dạng địa chỉ cũ/tĩnh. UI trước đó render thẳng giá trị này nên gây lệch nguồn hiển thị địa chỉ.
+- **Giải pháp (surgical):**
+    - Tại `ClinicDetailPage`, thêm normalize cho `about.description`:
+        - Nếu `about.description` rỗng -> dùng địa chỉ chuẩn của màn (ưu tiên `settings.locationSection.address`, fallback `widget.clinic.address`).
+        - Nếu `about.description` có pattern giống địa chỉ (có dấu phẩy + keyword địa chỉ + số nhà) -> cũng dùng địa chỉ chuẩn của màn.
+        - Nếu là mô tả giới thiệu thật (không phải địa chỉ) -> giữ nguyên.
+- **Kết quả:**
+    - Dòng thông tin địa chỉ trong phần giới thiệu luôn đồng bộ với phần địa chỉ đang đúng theo clinic hiện tại (ví dụ: `206 ...`).
+    - Không làm mất nội dung giới thiệu thật với clinic đã cấu hình description chuẩn.
+
 ### Forum Search UX Simplification + Auto Reset Khi Quay Lại Tab (2026-05-08)
 - **Yêu cầu UX:**
     - Khi user đang search, không hiển thị thêm dòng trạng thái kiểu `Đang tìm: ...` vì đã có keyword ngay trong ô search.

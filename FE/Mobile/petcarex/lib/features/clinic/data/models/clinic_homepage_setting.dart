@@ -29,11 +29,6 @@ class ClinicHomepageSetting {
     required this.contactPhone,
   });
 
-  static const String _defaultMapEmbedUrl =
-      'https://www.google.com/maps?q=B%E1%BB%87nh%20vi%E1%BB%87n%20th%C3%BA%20y%20Procare&output=embed';
-  static const String _defaultMapLink =
-      'https://www.google.com/maps/search/?api=1&query=B%E1%BB%87nh%20vi%E1%BB%87n%20th%C3%BA%20y%20Procare';
-
   static const List<ClinicGalleryImage> _defaultGalleryImages = [
     ClinicGalleryImage(id: 1, image: '', alt: 'Hoạt động phòng khám'),
     ClinicGalleryImage(id: 2, image: '', alt: 'Đội ngũ tại phòng khám'),
@@ -96,10 +91,10 @@ class ClinicHomepageSetting {
       doctors: _defaultDoctors,
       locationSection: ClinicLocationSection(
         title: 'ĐỊA CHỈ PHÒNG KHÁM',
-        subtitle: 'Tìm đường đến phòng khám nhanh chóng qua Google Maps.',
-        address: '240 Phan Đăng Lưu, Phường 1, Quận Phú Nhuận, TP. Hồ Chí Minh',
-        mapEmbedUrl: _defaultMapEmbedUrl,
-        mapLink: _defaultMapLink,
+        subtitle: 'Thông tin địa chỉ phòng khám.',
+        address: '',
+        mapEmbedUrl: '',
+        mapLink: '',
       ),
       introduction:
           'Được thành lập vào năm 2021 với cái tên phòng khám thú y PetCar luôn tự hào là một trong những bệnh viện thú y hàng đầu Việt Nam. Nhiều năm qua, PetCar đã được khách hàng tin tưởng và luôn đồng hành. Cùng với những dịch vụ đa dạng, PetCar luôn mang đến những trải nghiệm tốt và đáng nhớ nhất cho quý khách.',
@@ -207,16 +202,20 @@ class ClinicHomepageSetting {
           _readString(locationSectionMap, 'address'),
           defaults.locationSection.address,
         ]),
-        mapEmbedUrl: _normalizeMapEmbedValue(
+        mapEmbedUrl: _sanitizeMapValue(
+          _normalizeMapEmbedValue(
+            _firstNonBlank([
+              _readString(locationSectionMap, 'mapEmbedUrl'),
+              defaults.locationSection.mapEmbedUrl,
+            ]),
+          ),
+        ),
+        mapLink: _sanitizeMapValue(
           _firstNonBlank([
-            _readString(locationSectionMap, 'mapEmbedUrl'),
-            defaults.locationSection.mapEmbedUrl,
+            _readString(locationSectionMap, 'mapLink'),
+            defaults.locationSection.mapLink,
           ]),
         ),
-        mapLink: _firstNonBlank([
-          _readString(locationSectionMap, 'mapLink'),
-          defaults.locationSection.mapLink,
-        ]),
       ),
       introduction: _firstNonBlank([introduction, defaults.introduction]),
       services: services,
@@ -350,6 +349,39 @@ class ClinicHomepageSetting {
     }
 
     return normalizedRaw;
+  }
+
+  static String _sanitizeMapValue(String raw) {
+    final normalized = raw.trim();
+    if (normalized.isEmpty) {
+      return '';
+    }
+
+    if (_isLegacyDefaultMapValue(normalized)) {
+      return '';
+    }
+
+    return normalized;
+  }
+
+  static bool _isLegacyDefaultMapValue(String raw) {
+    final uri = Uri.tryParse(raw.trim());
+    if (uri == null) {
+      return false;
+    }
+
+    final host = uri.host.toLowerCase();
+    if (!host.contains('google.com')) {
+      return false;
+    }
+
+    final placeQuery = (uri.queryParameters['q'] ?? uri.queryParameters['query'] ?? '')
+        .toLowerCase()
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+
+    return placeQuery == 'bệnh viện thú y procare' ||
+        placeQuery == 'benh vien thu y procare';
   }
 
   static String _readString(Map<String, dynamic> map, String key) {
