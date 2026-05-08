@@ -1859,7 +1859,6 @@ class _CommunityPageState extends State<CommunityPage> {
         child: Column(
           children: [
             _buildSearchBar(l10n),
-            if (provider.isSearching) _buildSearchStatusChip(provider, l10n),
             _buildCategoryTabs(provider, l10n, languageCode),
             Expanded(
               child: RefreshIndicator(
@@ -1933,51 +1932,6 @@ class _CommunityPageState extends State<CommunityPage> {
           const NotificationBellButton(
             iconColor: AppColors.textDark,
             iconSize: 28,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchStatusChip(CommunityProvider provider, AppLocalizations l10n) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.appBarBackground,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                l10n.forumSearchActive(provider.searchKeyword),
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => context.read<CommunityProvider>().setSearchKeyword(''),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                l10n.forumSearchClear,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
           ),
         ],
       ),

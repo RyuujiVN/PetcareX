@@ -12,6 +12,37 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 
 ## 🆕 Cập nhật mới nhất (2026-05-08)
 
+### Forum Search UX Simplification + Auto Reset Khi Quay Lại Tab (2026-05-08)
+- **Yêu cầu UX:**
+    - Khi user đang search, không hiển thị thêm dòng trạng thái kiểu `Đang tìm: ...` vì đã có keyword ngay trong ô search.
+    - Nếu user rời tab Forum (qua Home/chức năng khác) rồi quay lại Forum, search phải tự xóa để trả màn về trạng thái mặc định ban đầu.
+- **Root cause đã xác nhận:**
+    - `CommunityPage` đang render thêm 1 hàng trạng thái search riêng (`_buildSearchStatusChip`) bên dưới search bar, gây trùng thông tin và chiếm không gian UI.
+    - `MainNavigationWrapper` dùng `IndexedStack`, nên state của `CommunityPage/CommunityProvider` được giữ lại khi đổi tab; keyword search vì thế không tự reset.
+- **Phân tích phương án:**
+    - **Phương án A:** Giữ chip `Đang tìm` + chỉ đổi wording ngắn hơn.
+        - Nhược: vẫn trùng thông tin với ô search, không giải quyết vấn đề chính.
+    - **Phương án B:** Clear search ngay khi user rời tab Forum.
+        - Nhược: hành vi quá sớm; user vừa chuyển tab đã mất trạng thái, khó kiểm soát nếu chỉ muốn tạm xem màn khác.
+    - **Phương án C (được chọn):**
+        - Bỏ hẳn chip trạng thái search (giảm nhiễu UI).
+        - Chỉ auto-clear khi user **quay lại** tab Forum từ tab khác (`previousIndex != 2`), đảm bảo đúng yêu cầu nghiệp vụ.
+- **Tự phản biện giải pháp đã chọn:**
+    - Mỗi lần quay lại Forum sẽ khởi tạo lại feed mặc định nếu trước đó có keyword (vì `setSearchKeyword('')` sẽ fetch lại data).
+    - Trade-off này được chấp nhận vì ưu tiên UX rõ ràng: vào lại Forum là một phiên duyệt mới, tránh user bị "kẹt" trong trạng thái lọc cũ.
+- **Phạm vi triển khai FE mobile (surgical):**
+    - `lib/features/community/presentation/community_page.dart`
+        - Bỏ render `if (provider.isSearching) _buildSearchStatusChip(...)`.
+        - Xóa method `_buildSearchStatusChip(...)` (không còn dùng).
+    - `lib/features/main_navigation/presentation/main_navigation_wrapper.dart`
+        - Thêm import `CommunityProvider`.
+        - Trong `setSelectedIndex(...)`, lưu `previousIndex` và khi chuyển về tab Forum (`index == 2`) từ tab khác, gọi `setSearchKeyword('')` để reset search.
+- **Kết quả UX:**
+    - Giao diện forum gọn hơn khi search, không còn dòng trạng thái lặp thông tin.
+    - Sau khi đi tab khác và quay lại Forum, bộ lọc search tự được xóa và feed trở về trạng thái mặc định.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/community/presentation/community_page.dart lib/features/main_navigation/presentation/main_navigation_wrapper.dart` → **No issues found**.
+
 ### Global Keyboard Dismiss on Outside Tap (2026-05-08)
 - **Yêu cầu UX:** Khi người dùng đang nhập liệu (bàn phím đang mở), thao tác chạm vào vùng trống ngoài ô nhập phải ưu tiên **đóng bàn phím trước**.
 - **Phân tích phương án:**
