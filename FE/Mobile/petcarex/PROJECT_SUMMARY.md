@@ -12,6 +12,15 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 
 ## 🆕 Cập nhật mới nhất (2026-05-08)
 
+### HomePage Cleanup — Xóa block Diễn đàn PetCareX khỏi Home (2026-05-08)
+- **Yêu cầu UX:** Ẩn/xóa phần preview `Diễn đàn PetCareX` ở cuối trang Home.
+- **Phạm vi triển khai (surgical):**
+    - `lib/features/home/presentation/home_page.dart`
+        - Xóa section header `petCareForum/explore` trong `_buildScrollableBody(...)`.
+        - Xóa widget `_buildForumPost()` (card sample forum post).
+        - Giữ nguyên các module khác của Home và giữ import `CachedNetworkImage` vì vẫn dùng cho avatar/profile/pet thumbnails.
+- **Kết quả:** Home page không còn hiển thị block Diễn đàn ở cuối màn; flow vào tab Community bằng bottom navigation vẫn giữ nguyên.
+
 ### Nearby Clinic Detail Map UX — Bỏ link chữ, chỉ hiển thị nút khi có embed (2026-05-08)
 - **Yêu cầu UX:** Ở màn chi tiết phòng khám (luồng **Phòng khám gần nhất**), bỏ phần hiển thị link Google Maps dạng text; chỉ giữ nút `Mở Google Maps`. Với clinic chưa có dữ liệu `mapEmbedUrl`, không hiển thị nút.
 - **Root cause đã xác nhận:**
