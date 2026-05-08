@@ -15,7 +15,7 @@
       "chatbot": "Trợ Lý AI"
     },
     "notifications": {
-      "panelTitle": "Thông báo bác sĩ",
+      "panelTitle": "Thông báo",
       "summary": "{{unread}} chưa đọc / {{total}} thông báo",
       "refresh": "Làm mới",
       "markAllRead": "Đánh dấu đã đọc",

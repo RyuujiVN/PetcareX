@@ -23,7 +23,7 @@
       "missingClinicId": "Cannot determine the clinicId of the current clinic"
     },
     "notifications": {
-      "panelTitle": "Clinic Notifications",
+      "panelTitle": "Notifications",
       "summary": "{{unread}} unread / {{total}} notifications",
       "refresh": "Refresh",
       "markRead": "Mark all as read",

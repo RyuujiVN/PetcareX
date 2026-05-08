@@ -15,7 +15,7 @@
       "chatbot": "Chat Bot AI"
     },
     "notifications": {
-      "panelTitle": "Veterinarian Notifications",
+      "panelTitle": "Notifications",
       "summary": "{{unread}} unread / {{total}} notifications",
       "refresh": "Refresh",
       "markAllRead": "Mark all as read",

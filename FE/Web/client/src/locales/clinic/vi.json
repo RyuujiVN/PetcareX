@@ -23,7 +23,7 @@
       "missingClinicId": "Không xác định được clinicId của phòng khám hiện tại"
     },
     "notifications": {
-      "panelTitle": "Thông báo phòng khám",
+      "panelTitle": "Thông báo",
       "summary": "{{unread}} chưa đọc / {{total}} thông báo",
       "refresh": "Làm mới",
       "markRead": "Đánh dấu đã đọc",
