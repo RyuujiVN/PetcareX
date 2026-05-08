@@ -1,25 +1,25 @@
 import {
-    CalendarOutlined,
-    ExperimentOutlined,
-    FileDoneOutlined,
-    HeartOutlined,
-    MedicineBoxOutlined,
-    PrinterOutlined,
-    UserOutlined,
-    WarningOutlined
+	CalendarOutlined,
+	ExperimentOutlined,
+	FileDoneOutlined,
+	HeartOutlined,
+	MedicineBoxOutlined,
+	PrinterOutlined,
+	UserOutlined,
+	WarningOutlined
 } from '@ant-design/icons'
 import {
-    Button,
-    Card,
-    Col,
-    Divider,
-    Input,
-    Modal,
-    Row,
-    Spin,
-    Table,
-    Tag,
-    message
+	Button,
+	Card,
+	Col,
+	Divider,
+	Input,
+	Modal,
+	Row,
+	Spin,
+	Table,
+	Tag,
+	message
 } from 'antd'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -27,18 +27,17 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
 	APPOINTMENT_PAYMENT_STATUS_MAP_STORAGE_KEY,
-    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-    APPOINTMENT_STATUS,
-    getAppointmentByIdApi,
+	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+	APPOINTMENT_STATUS,
+	getAppointmentByIdApi,
 } from '../../../services/appointmentService'
 import { getClinicByIdApi } from '../../../services/clinicService'
 import { INVOICE_STATUS, upsertPaidInvoiceByMedicalApi } from '../../../services/invoiceService'
 import {
-    getMedicalByIdApi,
-    getMedicalByPetIClinicdApi,
-    getMedicalByPetIdApi,
-    getMedicalOrdersByMedicalIdApi,
-    getMedicinesByMedicalIdApi,
+	getMedicalByIdApi,
+	getMedicalByPetIClinicdApi,
+	getMedicalOrdersByMedicalIdApi,
+	getMedicinesByMedicalIdApi
 } from '../../../services/medicalService'
 import { getPetByIdApi } from '../../../services/petService'
 import { getUserByIdApi, getUserProfileApi } from '../../../services/userService'
@@ -64,10 +63,7 @@ const buildExamCode = (medicalId) => {
 const parseConclusionSummary = (conclusionText, fallback = FALLBACK_TEXT) => {
 	const raw = String(conclusionText || '').trim()
 	if (!raw) return fallback
-
-	const summaryMatch = raw.match(/(K(?:e|ế)t\s*lu(?:a|ậ)n|Conclusion)\s*:\s*([^\n]+)/i)
-	if (summaryMatch?.[2]?.trim()) return summaryMatch[2].trim()
-	return summaryMatch?.[1]?.trim() || raw
+	return raw
 }
 
 const normalizeCollection = (payload) => {

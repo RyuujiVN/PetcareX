@@ -55,6 +55,7 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 **Chi tiết kỹ thuật đã áp dụng:**
 - `PetMedicalRecords`:
   - `ReadonlyTextAreaField` đổi sang `autoSize` (`minRows`) để nội dung dài tự bung theo chiều cao.
+  - Trường `KẾT LUẬN` hiển thị nguyên văn đầy đủ, không còn cắt theo dòng tóm tắt đầu tiên.
   - Bổ sung CSS cho textarea readonly: `white-space: pre-wrap`, `overflow-wrap: anywhere`, `word-break: break-word`, tắt resize thủ công.
   - Bổ sung wrap cho cell bảng chỉ định/đơn thuốc để text dài không tràn.
 - `AppointmentManagement` modal chi tiết:
