@@ -10,7 +10,30 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
-## 🆕 Cập nhật mới nhất (2026-05-07)
+## 🆕 Cập nhật mới nhất (2026-05-08)
+
+### Global Keyboard Dismiss on Outside Tap (2026-05-08)
+- **Yêu cầu UX:** Khi người dùng đang nhập liệu (bàn phím đang mở), thao tác chạm vào vùng trống ngoài ô nhập phải ưu tiên **đóng bàn phím trước**.
+- **Phân tích phương án:**
+    - **Phương án A:** Gắn `onTapOutside` cho từng `TextField`.
+        - Nhược: tốn công bảo trì, dễ sót màn hình/modal mới, khó đảm bảo hành vi đồng nhất toàn app.
+    - **Phương án B:** Bọc `GestureDetector` riêng cho từng page có form.
+        - Nhược: vẫn phân mảnh theo màn, phát sinh duplicate code.
+    - **Phương án C (được chọn):** Bọc toàn cục tại `MaterialApp.builder` để xử lý dismiss focus một điểm duy nhất.
+        - Ưu: thay đổi nhỏ (surgical), áp dụng đồng bộ cho mọi route hiện tại và tương lai, ít rủi ro regression.
+- **Tự phản biện giải pháp đã chọn:**
+    - Nếu bắt sự kiện pointer quá sớm (`Listener onPointerDown`) có thể làm hành vi tap trở nên "gắt" và ảnh hưởng gesture hiện có.
+    - Dùng `GestureDetector(onTap)` ở tầng app giúp giữ hành vi tự nhiên: chỉ xử lý khi có tap hợp lệ, vẫn tương thích với luồng điều hướng/nút bấm hiện tại.
+- **Phạm vi triển khai FE mobile (tối thiểu):**
+    - `lib/main.dart`
+        - Thêm `builder` cho `MaterialApp`.
+        - Bọc `child` bằng `GestureDetector(behavior: HitTestBehavior.translucent)`.
+        - Trên `onTap`, gọi `FocusManager.instance.primaryFocus?.unfocus();` để đóng bàn phím khi tap vùng ngoài.
+- **Kết quả UX:**
+    - Người dùng có thể chạm vùng trống để ẩn bàn phím nhanh, theo hành vi phổ biến của ứng dụng mobile hiện đại.
+    - Không cần sửa từng màn nhập liệu riêng lẻ.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/main.dart` → **No issues found**.
 
 ### Clinic Detail từ luồng "Phòng khám gần bạn" — Đồng bộ schema HomePageClinic (2026-05-07)
 - **Bối cảnh:** Người dùng cần xem đầy đủ thông tin phòng khám (hero/about/gallery/team/location/map) khi chọn 1 phòng khám trong ngữ cảnh **phòng khám gần bạn**, thay vì chỉ xem card tóm tắt.

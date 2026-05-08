@@ -64,6 +64,15 @@ class MyApp extends StatelessWidget {
       title: 'PetCareX',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      builder: (context, child) {
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       locale: languageProvider.locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,
