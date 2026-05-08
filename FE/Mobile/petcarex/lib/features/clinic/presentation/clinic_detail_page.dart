@@ -593,45 +593,13 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
                     borderRadius: BorderRadius.circular(12),
                     onTap: imagePath.isEmpty
                         ? null
-                        : () => _showImagePreview(
-                            imagePath: imagePath,
-                            title: image.alt,
-                          ),
+                        : () => _showImagePreview(imagePath: imagePath),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          _buildImage(
-                            imagePath: imagePath,
-                            fit: BoxFit.cover,
-                            fallback: _imagePlaceholder(label: image.alt),
-                          ),
-                          Container(
-                            alignment: Alignment.bottomLeft,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  AppColors.black.withValues(alpha: 0),
-                                  AppColors.black.withValues(alpha: 0.45),
-                                ],
-                              ),
-                            ),
-                            padding: const EdgeInsets.all(8),
-                            child: Text(
-                              image.alt,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.onPrimary,
-                              ),
-                            ),
-                          ),
-                        ],
+                      child: _buildImage(
+                        imagePath: imagePath,
+                        fit: BoxFit.cover,
+                        fallback: _imagePlaceholder(),
                       ),
                     ),
                   ),
@@ -1042,34 +1010,15 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
     return fallback;
   }
 
-  Widget _imagePlaceholder({required String label}) {
+  Widget _imagePlaceholder() {
     return Container(
       color: AppColors.background,
       alignment: Alignment.center,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.photo, size: 28, color: AppColors.iconGrey),
-          const SizedBox(height: 4),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 10, color: AppColors.textGrey),
-            ),
-          ),
-        ],
-      ),
+      child: const Icon(Icons.photo, size: 28, color: AppColors.iconGrey),
     );
   }
 
-  Future<void> _showImagePreview({
-    required String imagePath,
-    required String title,
-  }) async {
+  Future<void> _showImagePreview({required String imagePath}) async {
     await showDialog<void>(
       context: context,
       builder: (ctx) {
@@ -1094,20 +1043,6 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
                         size: 42,
                       ),
                     ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 10,
-                left: 12,
-                right: 48,
-                child: Text(
-                  title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.onPrimary,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
@@ -1149,6 +1084,10 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
       return '';
     }
 
+    if (normalized.startsWith('data:')) {
+      return normalized;
+    }
+
     if (normalized.startsWith('http://') ||
         normalized.startsWith('https://') ||
         normalized.startsWith('assets/')) {
@@ -1161,6 +1100,10 @@ class _ClinicDetailPageState extends State<ClinicDetailPage> {
 
     if (normalized.startsWith('/')) {
       return '${AppConfig.baseUrl}$normalized';
+    }
+
+    if (!normalized.contains('://')) {
+      return '${AppConfig.baseUrl}/${normalized.replaceFirst(RegExp(r'^/+'), '')}';
     }
 
     return normalized;

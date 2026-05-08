@@ -241,17 +241,24 @@ class ClinicHomepageSetting {
   }
 
   static List<ClinicGalleryImage> _parseGalleryImages(dynamic raw) {
+    if (raw is String) {
+      final parsed = _tryParseList(raw);
+      if (parsed != null) {
+        return _parseGalleryImages(parsed);
+      }
+      return _defaultGalleryImages;
+    }
+
+    if (raw is Map) {
+      return _parseGalleryImages(raw.values.toList());
+    }
+
     if (raw is! List || raw.isEmpty) {
       return _defaultGalleryImages;
     }
 
     final items = <ClinicGalleryImage>[];
     for (int i = 0; i < raw.length; i++) {
-      final itemMap = _asStringMap(raw[i]);
-      if (itemMap.isEmpty) {
-        continue;
-      }
-
       final fallback = i < _defaultGalleryImages.length
           ? _defaultGalleryImages[i]
           : ClinicGalleryImage(
@@ -260,16 +267,64 @@ class ClinicHomepageSetting {
               alt: 'Ảnh thư viện ${i + 1}',
             );
 
+      final rawItem = raw[i];
+      if (rawItem is String) {
+        final image = rawItem.trim();
+        if (image.isEmpty) {
+          continue;
+        }
+
+        items.add(
+          ClinicGalleryImage(id: fallback.id, image: image, alt: fallback.alt),
+        );
+        continue;
+      }
+
+      final itemMap = _asStringMap(rawItem);
+      if (itemMap.isEmpty) {
+        continue;
+      }
+
+      final image = _readImageValue(itemMap);
+
       items.add(
         ClinicGalleryImage(
           id: _readInt(itemMap, 'id') ?? fallback.id,
-          image: _readString(itemMap, 'image'),
+          image: image,
           alt: _firstNonBlank([_readString(itemMap, 'alt'), fallback.alt]),
         ),
       );
     }
 
     return items.isEmpty ? _defaultGalleryImages : items;
+  }
+
+  static String _readImageValue(Map<String, dynamic> map) {
+    final directValue = _firstNonBlank([
+      _readString(map, 'image'),
+      _readString(map, 'url'),
+      _readString(map, 'file'),
+      _readString(map, 'secure_url'),
+      _readString(map, 'src'),
+      _readString(map, 'path'),
+    ]);
+    if (directValue.isNotEmpty) {
+      return directValue;
+    }
+
+    final dataMap = _asStringMap(map['data']);
+    if (dataMap.isEmpty) {
+      return '';
+    }
+
+    return _firstNonBlank([
+      _readString(dataMap, 'image'),
+      _readString(dataMap, 'url'),
+      _readString(dataMap, 'file'),
+      _readString(dataMap, 'secure_url'),
+      _readString(dataMap, 'src'),
+      _readString(dataMap, 'path'),
+    ]);
   }
 
   static List<ClinicDoctorProfile> _parseDoctors(dynamic raw) {
@@ -323,6 +378,24 @@ class ClinicHomepageSetting {
       }
       if (parsed is Map) {
         return parsed.map((key, val) => MapEntry(key.toString(), val));
+      }
+    } catch (_) {
+      return null;
+    }
+
+    return null;
+  }
+
+  static List<dynamic>? _tryParseList(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.isEmpty) {
+      return null;
+    }
+
+    try {
+      final parsed = jsonDecode(trimmed);
+      if (parsed is List) {
+        return parsed;
       }
     } catch (_) {
       return null;

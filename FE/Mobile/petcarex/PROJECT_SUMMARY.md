@@ -86,6 +86,39 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
     - Dòng thông tin địa chỉ trong phần giới thiệu luôn đồng bộ với phần địa chỉ đang đúng theo clinic hiện tại (ví dụ: `206 ...`).
     - Không làm mất nội dung giới thiệu thật với clinic đã cấu hình description chuẩn.
 
+### Nearby Clinic Gallery Load Fix — Đồng bộ dữ liệu ảnh giữa web và mobile (2026-05-08)
+- **Vấn đề:** Web hiển thị đủ gallery nhưng mobile báo/trả trạng thái không có ảnh hoặc ảnh không render.
+- **Root cause đã xác nhận:**
+    - Dữ liệu `galleryImages` từ các phiên bản web khác nhau có thể khác schema (`image`, `url`, `file`, `secure_url`, `src`, hoặc item là string URL).
+    - Một số clinic dùng path ảnh tương đối kiểu web (`/homePageClinic.png`, `/forum1.png`, `/bs1.png`) vốn tồn tại ở `FE/Web/client/public`, nhưng mobile trước đó resolve theo backend URL nên gặp 404.
+- **Giải pháp (surgical):**
+    - Nâng parser `galleryImages` trong mobile để tương thích ngược nhiều format input (list/map/string + nhiều key URL).
+    - Nâng `_resolveImageUrl(...)` để xử lý tốt hơn path tương đối:
+        - hỗ trợ `uploads/...` dạng không có dấu `/` đầu.
+        - map các path web-default (`/homePageClinic.png`, `/pageMainClinic.png`, `/forum*.png`, `/bs*.png`) sang asset local mobile.
+    - Đồng bộ asset ảnh mặc định từ web public sang mobile assets.
+- **Phạm vi thay đổi:**
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+    - `assets/images/` (thêm: `homePageClinic.png`, `pageMainClinic.png`, `forum1.png`, `forum2.png`, `forum3.png`, `bs1.png`, `bs2.png`, `bs3.png`, `bs4.png`)
+- **Kết quả:**
+    - Gallery mobile render được cả dữ liệu ảnh mới và dữ liệu legacy từ web.
+    - Trường hợp clinic đang dùng path ảnh mặc định kiểu web không còn bị rỗng ảnh trên mobile.
+
+### Nearby Clinic Gallery UI Simplification — Chỉ hiển thị ảnh, bỏ text trên ảnh (2026-05-08)
+- **Yêu cầu UX:** Trong gallery chỉ hiển thị ảnh, bỏ các chữ overlay như `Hoạt động phòng khám`, `Đội ngũ tại phòng khám`, `Hình ảnh thường ngày`...
+- **Triển khai:**
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+        - Bỏ lớp gradient + text overlay trên từng tile ảnh gallery.
+        - Placeholder ảnh chỉ còn icon, không render text label.
+        - Dialog preview ảnh bỏ title text ở đầu dialog.
+- **Kết quả:** Gallery hiển thị tối giản, chỉ còn nội dung hình ảnh đúng yêu cầu.
+
+### Rollback Manual Gallery Assets — Xóa ảnh thêm tay theo yêu cầu (2026-05-08)
+- **Yêu cầu:** Không giữ các file ảnh được thêm thủ công vào mobile assets.
+- **Triển khai:** Đã xóa các file ảnh đã thêm trước đó trong `assets/images` (`homePageClinic.png`, `pageMainClinic.png`, `forum1-3.png`, `bs1-4.png`) và bỏ map fallback tương ứng trong `clinic_detail_page.dart`.
+- **Lưu ý:** Mobile sẽ ưu tiên render theo URL ảnh thực từ dữ liệu settings/API.
+
 ### Forum Search UX Simplification + Auto Reset Khi Quay Lại Tab (2026-05-08)
 - **Yêu cầu UX:**
     - Khi user đang search, không hiển thị thêm dòng trạng thái kiểu `Đang tìm: ...` vì đã có keyword ngay trong ô search.
