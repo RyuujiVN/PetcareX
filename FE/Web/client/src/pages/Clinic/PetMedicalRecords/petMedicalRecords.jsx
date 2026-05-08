@@ -267,10 +267,12 @@ function ReadonlyField({ label, value }) {
 }
 
 function ReadonlyTextAreaField({ label, value, rows = 3 }) {
+	const displayValue = formatFieldValue(value, FALLBACK_TEXT)
+
 	return (
 		<div className={styles.readonlyField}>
 			<p className={styles.fieldLabel}>{label}:</p>
-			<TextArea value={value || FALLBACK_TEXT} rows={rows} readOnly />
+			<TextArea value={displayValue} autoSize={{ minRows: rows }} readOnly />
 		</div>
 	)
 }

@@ -355,20 +355,35 @@
   background: #f9f9f9;
   padding: 7px 10px;
   color: #1d2430;
-  display: flex;
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
   align-items: flex-start;
-  gap: 6px;
-  flex-wrap: wrap;
+  column-gap: 8px;
+  row-gap: 4px;
   font-size: 14px;
 }
 
 .infoRow span {
   color: #3e4e63;
+  font-weight: 600;
 }
 
 .infoRow strong {
   font-weight: 700;
   color: #121821;
+  min-width: 0;
+  text-align: left;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.infoRow :global(.ant-tag) {
+  margin: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .fullWidthRow {
@@ -430,5 +445,9 @@
   .fullWidthRow {
     grid-column: auto;
     font-size: 14px;
+  }
+
+  .infoRow {
+    grid-template-columns: 1fr;
   }
 }

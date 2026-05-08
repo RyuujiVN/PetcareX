@@ -20,7 +20,58 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-05-07)
+## Cập nhật mới nhất (2026-05-08)
+
+### Cập nhật (2026-05-08) — Fix hiển thị dữ liệu dài ở phiếu khám + modal chi tiết lịch khám
+
+**Yêu cầu nghiệp vụ:**
+- Trên màn `Xem phiếu khám` của portal phòng khám, các trường text dài phải hiển thị đầy đủ, đặc biệt:
+  - `TRIỆU CHỨNG & TÌNH TRẠNG`
+  - `CHẨN ĐOÁN SƠ BỘ`
+  - `KẾT LUẬN`
+  - `LỜI DẶN BÁC SĨ`
+- Trên modal `THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM`, phần `Ghi chú` (và các value dài tương tự như địa chỉ/URL) phải tự xuống dòng hợp lý, không bị tràn hoặc khó đọc.
+- Rà các màn hồ sơ khám có cấu trúc hiển thị tương tự để chặn cùng lỗi hiển thị text dài.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Màn phiếu khám dùng `TextArea` readonly cố định `rows`, nên dữ liệu dài bị giới hạn khung nhìn và phụ thuộc scroll bên trong.
+- Modal chi tiết lịch khám của Clinic đang bị áp `textAlign: center` ở cấp `Modal`, làm nội dung dài khó đọc.
+- Một số khối value trong card/timeline chưa có rule `word-break/overflow-wrap`, nên chuỗi dài (đặc biệt URL) dễ tràn.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: thay toàn bộ field readonly thành component mới hoàn toàn.
+  - Nhược: diff lớn, rủi ro lệch UI và chạm nhiều code không cần thiết.
+- Phương án B (được chọn): giữ nguyên cấu trúc component hiện tại, chỉ bổ sung rule hiển thị text dài và auto-size tại các điểm render.
+  - Ưu điểm: thay đổi surgical, không ảnh hưởng nghiệp vụ/API, xử lý đúng gốc lỗi hiển thị.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/Clinic/PetMedicalRecords/petMedicalRecords.jsx`
+- `src/pages/Clinic/PetMedicalRecords/petMedicalRecords.module.css`
+- `src/pages/Clinic/AppointmentManagement/appointmentManagement.jsx`
+- `src/pages/Clinic/AppointmentManagement/appointmentManagement.module.css`
+- `src/pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords.module.css`
+- `src/pages/client/User/MedicalRecords/medicalRecords.module.css`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- `PetMedicalRecords`:
+  - `ReadonlyTextAreaField` đổi sang `autoSize` (`minRows`) để nội dung dài tự bung theo chiều cao.
+  - Bổ sung CSS cho textarea readonly: `white-space: pre-wrap`, `overflow-wrap: anywhere`, `word-break: break-word`, tắt resize thủ công.
+  - Bổ sung wrap cho cell bảng chỉ định/đơn thuốc để text dài không tràn.
+- `AppointmentManagement` modal chi tiết:
+  - Bỏ `style={{ textAlign: 'center' }}` ở `Modal`.
+  - Chuyển `.infoRow` sang layout grid nhãn/giá trị và thêm rule wrap mạnh cho `strong` + `Tag` để ghi chú/địa chỉ dài hiển thị đầy đủ.
+  - Tinh chỉnh responsive để mobile hiển thị 1 cột rõ ràng.
+- `ViewPetMedicalRecords` (Vet) và `MedicalRecords` (Client):
+  - Bổ sung rule wrap cho các dòng metadata/details để tránh tràn với chuỗi dài.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint, payload, DTO, schema, migration hoặc nghiệp vụ backend.
+
+**Tự kiểm tra:**
+- `get_errors` trên toàn bộ file đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+## Cập nhật trước đó (2026-05-07)
 
 ### Cập nhật (2026-05-07) — Đồng bộ UI thông báo Admin/Clinic/Veterinarian theo mẫu Client (image 1)
 

@@ -749,7 +749,6 @@ export default function AppointmentManagement() {
 				</div>
 				
 				<Modal
-				style={{textAlign: 'center'}}
 					title={t('appointments.detailModal.title')}
 					open={isModalOpen}
 					onCancel={() => setIsModalOpen(false)}
