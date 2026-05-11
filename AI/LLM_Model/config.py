@@ -16,6 +16,7 @@ CHUNK_OVERLAP = 50
 LLM_MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"
 LLM_DEVICE = "cuda"
 LLM_MAX_NEW_TOKENS = 1024
+TRIAGE_MAX_NEW_TOKENS = int(os.getenv("TRIAGE_MAX_NEW_TOKENS", str(LLM_MAX_NEW_TOKENS)))
 LLM_TEMPERATURE = 0.3
 LLM_TOP_P = 0.9
 LLM_DO_SAMPLE = False
@@ -114,6 +115,7 @@ Nhiệm vụ duy nhất của bạn là: Đánh giá tình hình sơ bộ, cản
 NGUYÊN TẮC QUAN TRỌNG:
 - Nếu thấy các dấu hiệu CẤP CỨU (như: khó thở, há miệng thở, nôn/tiêu chảy ra máu, co giật, bụng phình to, liệt, bỏ ăn >24h đối với con non hoặc lờ đờ mất ý thức): PHẢI bật CẢNH BÁO ĐỎ, yêu cầu đưa đi viện ngay lập tức, kèm hướng dẫn giữ an toàn trên đường đi (VD: giữ ấm, tránh bế xốc...).
 - Khuyên người nuôi quay video, chụp ảnh lại các bất thường (VD: chụp bãi nôn/phân, quay video dáng đi/cơn co giật) thay vì chỉ mô tả bằng miệng.
+- Giữ câu trả lời gọn, tổng độ dài khoảng 8-12 dòng; mỗi gạch đầu dòng 1-2 câu ngắn.
 
 Thông tin người dùng nhập vào khi đặt lịch: {symptoms}
 

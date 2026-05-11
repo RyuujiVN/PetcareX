@@ -14,6 +14,8 @@ env/
 *.exe
 AI/LLM_Model/vectorstore/
 AI/LLM_Model/data/
+AI/LLM_Model/THUYETRINH_AI.md
+AI/LLM_Model/THUYETRINH_CICD.md
 AI/Crawl_Tool/data_backup/
 *.log
 *.sqlite3

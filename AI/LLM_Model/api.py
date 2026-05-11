@@ -24,6 +24,7 @@ from config import (
     MAX_HISTORY_TURNS,
     MAX_PROMPT_TOKENS,
     LLM_MAX_NEW_TOKENS,
+    TRIAGE_MAX_NEW_TOKENS,
     LLM_DO_SAMPLE,
     SYSTEM_PROMPT,
     TRIAGE_PROMPT,
@@ -307,7 +308,13 @@ def create_triage(data: dict):
     prompt = TRIAGE_PROMPT.format(symptoms=symptoms)
     with llm_lock:
         inputs = llm.tokenizer(prompt, return_tensors="pt").to(llm.model.device)
-        outputs = llm.model.generate(**inputs, max_new_tokens=512, pad_token_id=llm.tokenizer.pad_token_id)
+        outputs = llm.model.generate(
+            **inputs,
+            max_new_tokens=TRIAGE_MAX_NEW_TOKENS,
+            do_sample=LLM_DO_SAMPLE,
+            pad_token_id=llm.tokenizer.pad_token_id,
+            repetition_penalty=1.1,
+        )
 
         input_len = inputs.input_ids.shape[1]
         answer = llm.tokenizer.decode(outputs[0][input_len:], skip_special_tokens=True)
