@@ -1,33 +1,33 @@
 ﻿import {
-	DeleteOutlined,
-	DownOutlined,
-	ExperimentOutlined,
-	HeartOutlined,
-	InfoCircleOutlined,
-	MedicineBoxOutlined,
-	PlusCircleOutlined,
-	SaveOutlined,
-	UpOutlined,
-	UserOutlined,
-	WarningOutlined,
+    DeleteOutlined,
+    DownOutlined,
+    ExperimentOutlined,
+    HeartOutlined,
+    InfoCircleOutlined,
+    MedicineBoxOutlined,
+    PlusCircleOutlined,
+    SaveOutlined,
+    UpOutlined,
+    UserOutlined,
+    WarningOutlined,
 } from '@ant-design/icons'
 import {
-	Alert,
-	Button,
-	Card,
-	Checkbox,
-	Col,
-	DatePicker,
-	Divider,
-	Form,
-	Input,
-	InputNumber,
-	message,
-	Modal,
-	Row,
-	Select,
-	Spin,
-	Tabs,
+    Alert,
+    Button,
+    Card,
+    Checkbox,
+    Col,
+    DatePicker,
+    Divider,
+    Form,
+    Input,
+    InputNumber,
+    message,
+    Modal,
+    Row,
+    Select,
+    Spin,
+    Tabs,
 } from 'antd'
 import dayjs from 'dayjs'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -38,33 +38,33 @@ import { ServiceEnum } from '../../../enum/service.enum'
 import i18n from '../../../i18n'
 import { getAdminInstance } from '../../../services/apiClient'
 import {
-	APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
-	APPOINTMENT_STATUS,
-	getMyAppointmentsApi,
-	updateAppointmentStatusApi,
+    APPOINTMENT_PAYMENT_SYNC_EVENT_KEY,
+    APPOINTMENT_STATUS,
+    getMyAppointmentsApi,
+    updateAppointmentStatusApi,
 } from '../../../services/appointmentService'
 import { getInvoiceByMedicalRecordIdApi, INVOICE_STATUS } from '../../../services/invoiceService'
 import {
-	createMedicalMedicineApi,
-	createMedicalOrderApi,
-	createMedicalRecordApi,
-	deleteMedicalOrderApi,
-	deleteMedicineApi,
-	getMedicalByIdApi,
-	getMedicalByPetIClinicdApi,
-	getMedicalOrderCatalogApi,
-	getMedicalOrdersByMedicalIdApi,
-	getMedicineCatalogApi,
-	getMedicinesByMedicalIdApi,
-	updateMedicalRecordApi
+    createMedicalMedicineApi,
+    createMedicalOrderApi,
+    createMedicalRecordApi,
+    deleteMedicalOrderApi,
+    deleteMedicineApi,
+    getMedicalByIdApi,
+    getMedicalByPetIClinicdApi,
+    getMedicalOrderCatalogApi,
+    getMedicalOrdersByMedicalIdApi,
+    getMedicineCatalogApi,
+    getMedicinesByMedicalIdApi,
+    updateMedicalRecordApi
 } from '../../../services/medicalService'
 import {
-	getBreedLabel,
-	getBreedsBySpeciesApi,
-	getPetByIdApi,
-	getPetsByOwnerApi,
-	getPetSpeciesApi,
-	getSpeciesLabel,
+    getBreedLabel,
+    getBreedsBySpeciesApi,
+    getPetByIdApi,
+    getPetsByOwnerApi,
+    getPetSpeciesApi,
+    getSpeciesLabel,
 } from '../../../services/petService'
 import { getUserListApi } from '../../../services/userService'
 import { formatDateDDMMYYYY } from '../../../utils/dateTimeFormat'
@@ -1601,7 +1601,7 @@ export default function RecordExaminationForm() {
 				disabled={isReadOnlyForm}
 				onValuesChange={handleValuesChange}
 				onFinish={onFinish}
-				scrollToFirstError={{ behavior: 'smooth', block: 'center' }}
+				scrollToFirstError={{ behavior: 'smooth', block: 'nearest' }}
 				className={styles.formRoot}
 			>
 				<header className={styles.formHeader}>
@@ -2045,7 +2045,6 @@ export default function RecordExaminationForm() {
 							<Form.Item
 								label={t('examForm.record.fields.conclusionSummary')}
 								name="conclusionSummary"
-								rules={[{ required: true, message: t('examForm.record.validation.conclusionRequired') }]}
 							>
 								<Input.TextArea
 									rows={3}
@@ -2090,8 +2089,7 @@ export default function RecordExaminationForm() {
 										<span>{index + 1}</span>
 										<Form.Item
 											name={[field.name, 'medicalOrderId']}
-											rules={[{ required: true, message: t('examForm.record.validation.orderRequired') }]}
-											className={styles.noMargin}
+											className={styles.dynamicFieldItem}
 										>
 											<Select
 												size="large"
@@ -2104,7 +2102,7 @@ export default function RecordExaminationForm() {
 												}))}
 											/>
 										</Form.Item>
-										<Form.Item name={[field.name, 'note']} className={styles.noMargin}>
+										<Form.Item name={[field.name, 'note']} className={styles.dynamicFieldItem}>
 											<Input placeholder={t('examForm.record.placeholders.orderNote')} />
 										</Form.Item>
 										<div className={styles.actionCell}>
@@ -2158,8 +2156,7 @@ export default function RecordExaminationForm() {
 										<span>{index + 1}</span>
 										<Form.Item
 											name={[field.name, 'medicineId']}
-											rules={[{ required: true, message: t('examForm.record.validation.medicineRequired') }]}
-											className={styles.noMargin}
+											className={styles.dynamicFieldItem}
 										>
 											<Select
 												size="large"
@@ -2174,12 +2171,11 @@ export default function RecordExaminationForm() {
 										</Form.Item>
 										<Form.Item
 											name={[field.name, 'quantity']}
-											rules={[{ required: true, message: t('examForm.record.validation.medicineQuantityRequired') }]}
-											className={styles.noMargin}
+											className={styles.dynamicFieldItem}
 										>
 											<InputNumber min={1} className={styles.fullWidth} placeholder={t('examForm.record.placeholders.medicineQuantity')} />
 										</Form.Item>
-										<Form.Item name={[field.name, 'frequency']} className={styles.noMargin}>
+										<Form.Item name={[field.name, 'frequency']} className={styles.dynamicFieldItem}>
 											<Input placeholder={t('examForm.record.placeholders.medicineFrequency')} />
 										</Form.Item>
 										<div className={styles.actionCell}>

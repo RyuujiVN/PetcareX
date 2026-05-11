@@ -624,6 +624,7 @@ export default function AppointmentManagement() {
 			title: t('appointments.cancelModal.title'),
 			content: t('appointments.cancelModal.content'),
 			okText: t('appointments.cancelModal.okText'),
+			cancelText: t('appointments.cancelModal.cancelText'),
 			okButtonProps: { danger: true },
 			centered: true,
 			async onOk() {
@@ -748,7 +749,6 @@ export default function AppointmentManagement() {
 				</div>
 				
 				<Modal
-				style={{textAlign: 'center'}}
 					title={t('appointments.detailModal.title')}
 					open={isModalOpen}
 					onCancel={() => setIsModalOpen(false)}

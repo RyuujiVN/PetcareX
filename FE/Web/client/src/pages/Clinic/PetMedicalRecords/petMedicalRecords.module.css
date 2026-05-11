@@ -81,6 +81,13 @@
 	padding: 18px 20px 16px;
 }
 
+.sectionCard :global(.ant-table-cell) {
+	white-space: normal;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	vertical-align: top;
+}
+
 .sectionCard :global(.ant-card-head-title span) {
 	display: inline-flex;
 	align-items: center;
@@ -117,6 +124,20 @@
 	border-radius: 10px;
 	border-color: #dce5ef;
 	color: #1f334f;
+}
+
+.readonlyField :global(.ant-input-textarea),
+.readonlyField :global(.ant-input-textarea textarea) {
+	width: 100%;
+}
+
+.readonlyField :global(.ant-input-textarea textarea) {
+	resize: none;
+	overflow: hidden;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	word-break: break-word;
+	line-height: 1.45;
 }
 
 .readonlyField :global(.ant-input) {

@@ -1,5 +1,5 @@
-import { formatDateDDMMYYYY, formatTimeHHMM } from '../utils/dateTimeFormat';
 import i18n from '../i18n';
+import { formatDateDDMMYYYY, formatTimeHHMM } from '../utils/dateTimeFormat';
 import { getClientInstance } from './apiClient';
 
 const DEFAULT_LIMIT = 120;
@@ -47,12 +47,19 @@ const formatNotificationTime = (value) =>
 
 const buildNotificationTarget = (rawTarget) => {
   const target = toObject(rawTarget);
+  const normalizedTargetId = normalizeId(
+    target?.targetId || target?.targetID || target?.target_id,
+  );
+  const normalizedReportType = normalizeText(
+    target?.reportType || target?.targetType || target?.type,
+  ).toUpperCase();
   const normalizedPostId = normalizeId(
     target?.postId ||
       target?.postID ||
       target?.post_id ||
       target?.post?.id ||
-      target?.post?.postId,
+      target?.post?.postId ||
+      (normalizedReportType === 'POST' ? normalizedTargetId : null),
   );
   const normalizedCommentId = normalizeId(
     target?.commentId ||
@@ -66,7 +73,8 @@ const buildNotificationTarget = (rawTarget) => {
       target?.parentCommentId ||
       target?.parentCommentID ||
       target?.parent_comment_id ||
-      target?.parentId,
+      target?.parentId ||
+      (normalizedReportType === 'COMMENT' ? normalizedTargetId : null),
   );
 
   return {
@@ -74,9 +82,8 @@ const buildNotificationTarget = (rawTarget) => {
     reportId: normalizeId(
       target?.reportId || target?.reportID || target?.report_id,
     ),
-    reportType: normalizeText(
-      target?.reportType || target?.targetType || target?.type,
-    ).toUpperCase(),
+    reportType: normalizedReportType,
+    targetId: normalizedTargetId,
     appointmentId: normalizeId(
       target?.appointmentId ||
         target?.appointmentID ||

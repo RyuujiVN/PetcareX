@@ -13,22 +13,18 @@ import {
 import {
     Badge,
     Button,
-    Empty,
-    Form,
-    List,
     message,
     notification,
     Popover,
-    Select,
-    Tag,
-    Typography,
 } from "antd";
+import { MessageCircle } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
+import UnifiedNotificationPanel from "../../components/common/UnifiedNotificationPanel/UnifiedNotificationPanel";
 import { getNormalizedRoles, getPrimaryRole } from "../../constants/authRole";
 import { ADMIN_AUTH_STORAGE } from "../../constants/authStorage";
 import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
@@ -40,9 +36,6 @@ import { getAdminInstance } from "../../services/apiClient";
 import { resolveNotificationHref } from "../../services/notificationService";
 import { getCurrentAdminClinicId } from "../../utils/clinicIdentity";
 import styles from "./AdminClinicLayout.module.css";
-import { MessageCircle } from "lucide-react";
-
-const { Text } = Typography;
 
 const menuItemConfigs = [
   {
@@ -102,63 +95,6 @@ const clinicEditorPathPrefixes = [
   "/clinic/clinic-editor",
 ];
 
-const NOTIFICATION_TYPE_COLORS = {
-  appointment: "blue",
-  payment: "green",
-  review: "purple",
-  "ai-diagnosis": "purple",
-  system: "gold",
-  "forum-like": "geekblue",
-  "forum-reply": "cyan",
-  "forum-comment": "cyan",
-};
-
-const getNotificationTypeLabel = (type, t) => {
-  if (type === "appointment") {
-    return t("sidebar.notifications.types.appointment", {
-      defaultValue: "Lịch hẹn",
-    });
-  }
-  if (type === "payment") {
-    return t("sidebar.notifications.types.payment", {
-      defaultValue: "Thanh toán",
-    });
-  }
-  if (type === "review") {
-    return t("sidebar.notifications.types.review", {
-      defaultValue: "Đánh giá",
-    });
-  }
-  if (type === "ai-diagnosis") {
-    return t("sidebar.notifications.types.aiDiagnosis", {
-      defaultValue: "Chẩn đoán AI",
-    });
-  }
-  if (type === "forum-comment") {
-    return t("sidebar.notifications.types.forumComment", {
-      defaultValue: "Bình luận",
-    });
-  }
-  if (type === "forum-like") {
-    return t("sidebar.notifications.types.forumLike", {
-      defaultValue: "Lượt thích",
-    });
-  }
-  if (type === "forum-reply") {
-    return t("sidebar.notifications.types.forumReply", {
-      defaultValue: "Phản hồi",
-    });
-  }
-  if (type === "system") {
-    return t("sidebar.notifications.types.system", {
-      defaultValue: "Hệ thống",
-    });
-  }
-
-  return t("sidebar.notifications.types.other", {
-    defaultValue: "Khác",
-  });
-};
 
 const formatNotificationTimeAgo = (dateValue, t) => {
   const createdAt = new Date(dateValue).getTime();
@@ -242,10 +178,8 @@ export default function AdminClinicLayout() {
   const [notificationApi, notificationContextHolder] = notification.useNotification();
   const [notificationPopoverOpen, setNotificationPopoverOpen] = useState(false);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
-  const [notificationFilters, setNotificationFilters] = useState({
-    viewMode: "all",
-    eventType: "all",
-  });
+  const [notificationFilter, setNotificationFilter] = useState("all");
+  const [notificationLastSyncedAt, setNotificationLastSyncedAt] = useState("");
   const shownToastIdsRef = useRef(new Set());
   const [, setTimeTick] = useState(0);
 
@@ -298,6 +232,8 @@ export default function AdminClinicLayout() {
     unreadCount: unreadNotificationCount,
     markAsRead: markNotificationAsRead,
     markAllAsRead: markAllNotificationsAsRead,
+    loading: notificationLoading,
+    refreshNotifications,
     latestIncomingNotification,
   } = useNotificationSocket({
     storageKey: `ws_notif_clinic:${notificationScopeKey}`,
@@ -310,26 +246,6 @@ export default function AdminClinicLayout() {
     () => menuItemConfigs.map((item) => ({ ...item, label: t(item.labelKey) })),
     [t],
   );
-
-  const filteredNotificationItems = useMemo(() => {
-    return notificationItems.filter((item) => {
-      if (
-        notificationFilters.viewMode === "unread" &&
-        notificationReadIdSet.has(item.id)
-      ) {
-        return false;
-      }
-
-      if (
-        notificationFilters.eventType !== "all" &&
-        item.type !== notificationFilters.eventType
-      ) {
-        return false;
-      }
-
-      return true;
-    });
-  }, [notificationFilters, notificationItems, notificationReadIdSet]);
 
   useEffect(() => {
     if (!token) {
@@ -390,156 +306,70 @@ export default function AdminClinicLayout() {
     });
   }, [handleNotificationItemClick, latestIncomingNotification, notificationApi, t]);
 
+  useEffect(() => {
+    if (!token) {
+      setNotificationLastSyncedAt("");
+      return;
+    }
+
+    setNotificationLastSyncedAt(new Date().toISOString());
+  }, [notificationItems, token]);
+
+  const handleRefreshNotifications = useCallback(async () => {
+    await refreshNotifications();
+    setNotificationLastSyncedAt(new Date().toISOString());
+  }, [refreshNotifications]);
+
+  const buildForumActionText = useCallback(
+    (notificationItem, actionType) => {
+      if (actionType === "like") {
+        return t("sidebar.notifications.events.forumActionLike", {
+          defaultValue: "liked your post",
+        });
+      }
+
+      if (actionType === "reply") {
+        return t("sidebar.notifications.events.forumActionReply", {
+          defaultValue: "replied to your comment",
+        });
+      }
+
+      return t("sidebar.notifications.events.forumActionComment", {
+        defaultValue: "commented on your post",
+      });
+    },
+    [t],
+  );
+
   const notificationContent = (
-    <div className={styles.notificationPanel}>
-      <div className={styles.notificationPanelHeader}>
-        <div>
-          <h3>{t("sidebar.notifications.panelTitle")}</h3>
-          <p>
-            {t("sidebar.notifications.summary", {
-              unread: unreadNotificationCount,
-              total: notificationItems.length,
-            })}
-          </p>
-        </div>
-        <Button
-          type="link"
-          size="small"
-          onClick={markAllNotificationsAsRead}
-          disabled={unreadNotificationCount === 0}
-          className={styles.markAllReadBtn}
-        >
-          {t("sidebar.notifications.markRead")}
-        </Button>
-      </div>
-
-      <Form
-        layout="inline"
-        className={styles.notificationFilterForm}
-        initialValues={notificationFilters}
-        onValuesChange={(_, values) => {
-          setNotificationFilters({
-            viewMode: values.viewMode || "all",
-            eventType: values.eventType || "all",
-          });
-        }}
-      >
-        <Form.Item name="viewMode" className={styles.notificationFilterItem}>
-          <Select
-            size="middle"
-            options={[
-              { value: "all", label: t("sidebar.notifications.filters.all") },
-              {
-                value: "unread",
-                label: t("sidebar.notifications.filters.unread"),
-              },
-            ]}
-          />
-        </Form.Item>
-
-        <Form.Item name="eventType" className={styles.notificationFilterItem}>
-          <Select
-            size="middle"
-            options={[
-              {
-                value: "all",
-                label: t("sidebar.notifications.filters.allTypes", {
-                  defaultValue: "Mọi loại",
-                }),
-              },
-              {
-                value: "appointment",
-                label: t("sidebar.notifications.filters.appointment", {
-                  defaultValue: "Lịch hẹn",
-                }),
-              },
-              {
-                value: "payment",
-                label: t("sidebar.notifications.filters.payment", {
-                  defaultValue: "Thanh toán",
-                }),
-              },
-              {
-                value: "review",
-                label: t("sidebar.notifications.filters.review", {
-                  defaultValue: "Đánh giá",
-                }),
-              },
-              {
-                value: "ai-diagnosis",
-                label: t("sidebar.notifications.filters.aiDiagnosis", {
-                  defaultValue: "Chẩn đoán AI",
-                }),
-              },
-              {
-                value: "forum-comment",
-                label: t("sidebar.notifications.filters.forumComment", {
-                  defaultValue: "Bình luận",
-                }),
-              },
-              {
-                value: "forum-like",
-                label: t("sidebar.notifications.filters.forumLike", {
-                  defaultValue: "Lượt thích",
-                }),
-              },
-              {
-                value: "forum-reply",
-                label: t("sidebar.notifications.filters.forumReply", {
-                  defaultValue: "Phản hồi",
-                }),
-              },
-              {
-                value: "system",
-                label: t("sidebar.notifications.filters.system", {
-                  defaultValue: "Hệ thống",
-                }),
-              },
-            ]}
-          />
-        </Form.Item>
-      </Form>
-
-      <List
-        className={styles.notificationList}
-        dataSource={filteredNotificationItems}
-        locale={{
-          emptyText: (
-            <Empty
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-              description={t("sidebar.notifications.empty")}
-            />
-          ),
-        }}
-        renderItem={(item) => {
-          const isRead = notificationReadIdSet.has(item.id);
-
-          return (
-            <List.Item
-              key={item.id}
-              className={`${styles.notificationItem} ${isRead ? "" : styles.notificationItemUnread}`}
-              onClick={() => handleNotificationItemClick(item)}
-            >
-              <div className={styles.notificationItemTop}>
-                <Tag color={NOTIFICATION_TYPE_COLORS[item.type] || "default"}>
-                  {getNotificationTypeLabel(item.type, t)}
-                </Tag>
-                <Text className={styles.notificationTimeText}>
-                  {formatNotificationTimeAgo(item.createdAt, t)}
-                </Text>
-              </div>
-
-              <Text strong className={styles.notificationTitleText}>
-                {item.title}
-              </Text>
-              <Text className={styles.notificationDescText}>
-                {item.description}
-              </Text>
-            </List.Item>
-          );
-        }}
-      />
-    </div>
+    <UnifiedNotificationPanel
+      title={t("sidebar.notifications.panelTitle")}
+      refreshLabel={t("sidebar.notifications.refresh", {
+        defaultValue: "Làm mới",
+      })}
+      markReadLabel={t("sidebar.notifications.markRead")}
+      allLabel={t("sidebar.notifications.filters.all")}
+      unreadLabel={t("sidebar.notifications.filters.unread")}
+      emptyLabel={t("sidebar.notifications.empty")}
+      syncedAtLabel={t("sidebar.notifications.syncedAt", {
+        defaultValue: "Cập nhật lúc",
+      })}
+      forumActorFallbackLabel={t("sidebar.notifications.forumActorFallback", {
+        defaultValue: "Người dùng",
+      })}
+      notifications={notificationItems}
+      readIdSet={notificationReadIdSet}
+      unreadCount={unreadNotificationCount}
+      loading={notificationLoading}
+      filterMode={notificationFilter}
+      onFilterModeChange={setNotificationFilter}
+      onRefresh={handleRefreshNotifications}
+      onMarkAllRead={markAllNotificationsAsRead}
+      onItemClick={handleNotificationItemClick}
+      formatTimeAgo={(value) => formatNotificationTimeAgo(value, t)}
+      buildForumActionText={buildForumActionText}
+      lastSyncedAt={notificationLastSyncedAt}
+    />
   );
 
   return (

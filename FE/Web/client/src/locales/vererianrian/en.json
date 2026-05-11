@@ -15,9 +15,17 @@
       "chatbot": "Chat Bot AI"
     },
     "notifications": {
-      "panelTitle": "Veterinarian Notifications",
+      "panelTitle": "Notifications",
       "summary": "{{unread}} unread / {{total}} notifications",
+      "refresh": "Refresh",
       "markAllRead": "Mark all as read",
+      "syncedAt": "Synced at",
+      "forumActorFallback": "User",
+      "events": {
+        "forumActionLike": "liked your post",
+        "forumActionReply": "replied to your comment",
+        "forumActionComment": "commented on your post"
+      },
       "empty": "No matching notifications",
       "filters": {
         "all": "All",
@@ -572,14 +580,14 @@
       "updateCommentFailed": "Unable to update comment",
       "deleteCommentSuccess": "Comment deleted",
       "deleteCommentFailed": "Unable to delete comment",
-      "reportPostModalTitle": "Report post",
+      "reportPostModalTitle": "REPORT POST",
       "reportPostBy": "You are reporting {{name}}'s post",
       "reportPostSuccess": "Thank you for your report. We will review this post.",
       "reportPostRecorded": "Your report has been recorded",
       "reportPostFailed": "Unable to submit report. Please try again.",
       "reportCommentSuccess": "Thank you for reporting this comment. We will review it soon.",
       "reportCommentFailed": "Unable to submit comment report. Please try again.",
-      "reportModalTitle": "Report comment",
+      "reportModalTitle": "REPORT COMMENT",
       "reportCommentBy": "You are reporting {{name}}'s comment",
       "reportBackendUnavailable": "Backend does not support report-comment endpoint yet. Please contact an administrator.",
       "likeSuccess": "Liked {{author}}'s post",
@@ -646,11 +654,14 @@
         "editPost": "What do you want to edit in this post?"
       },
       "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Inappropriate content",
-        "misleading": "Misleading information",
+       "spam": "Spam / Advertising",
+        "offensive": "Offensive / Insulting",
+        "harassment": "Harassment / Bullying",
+        "misinformation": "Misinformation",
+        "violence": "Violence / Disturbing",
         "other": "Other"
       },
+      
       "actions": {
         "selectTopicTitle": "Choose topic",
         "commentOptionsAria": "Comment options",
@@ -708,7 +719,7 @@
         "optionsAria": "Conversation options",
         "rename": "Rename"
       },
-      "assistantTitle": "AI Assistant",
+      "assistantTitle": "PetCareX AI Assistant",
       "confirmDelete": {
         "cancelText": "Cancel",
         "content": "Are you sure you want to delete this conversation?",
@@ -719,8 +730,8 @@
       "messageBox": {
         "aiResponding": "AI is responding",
         "attachImage": "Attach image",
-        "disclaimer": "AI may generate inaccurate information. Please verify important details.",
-        "emptyState": "Start a new conversation with AI",
+        "disclaimer": "AI information is for reference only. Please consult a veterinarian for accurate advice.",
+        "emptyState": "What do you need today?",
         "genericError": "Something went wrong. Please try again.",
         "inputPlaceholder": "Type your question...",
         "loadingOldMessages": "Loading older messages...",

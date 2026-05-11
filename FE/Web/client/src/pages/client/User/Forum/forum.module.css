@@ -359,12 +359,12 @@
 	align-items: center;
 	gap: 12px;
 	padding: 16px 18px;
-	border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-	background: #1a273c;
+	border-bottom: 1px solid rgba(0, 0, 0, 0.24);
+	background: var(--color-border-soft);
 }
 
 .searchPopupHeaderIcon {
-	color: #9bb2ce;
+	color: var(  --color-text-primary);
 	font-size: 16px;
 }
 
@@ -372,7 +372,7 @@
 	border: none;
 	outline: none;
 	background: transparent;
-	color: #f7fbff;
+	color: var(  --color-text-primary);
 	font-size: 17px;
 	font-weight: 600;
 	line-height: 1.2;
@@ -380,14 +380,14 @@
 }
 
 .searchPopupInput::placeholder {
-	color: #91a8c7;
+	color: rgba(0, 0, 0, 0.24);
 	font-weight: 500;
 }
 
 .searchPopupEscBtn {
-	border: 1px solid rgba(176, 196, 220, 0.35);
-	background: rgba(145, 168, 199, 0.15);
-	color: #e5eefb;
+	border: 1px solid rgba(0, 0, 0, 0.24);
+	background: var(--color-surface-soft);
+	color: var(  --color-text-primary);
 	padding: 4px 10px;
 	border-radius: 8px;
 	font-size: 14px;
@@ -396,14 +396,14 @@
 }
 
 .searchPopupEscBtn:hover {
-	background: rgba(145, 168, 199, 0.24);
+	background: rgba(0, 0, 0, 0.24);
 }
 
 .searchPopupBody {
 	overflow: auto;
 	padding: 16px;
 	min-height: 220px;
-	background: #1e2d44;
+	background: var(--color-border-soft);
 }
 
 .searchPopupResultList {
@@ -413,9 +413,9 @@
 }
 
 .searchPopupResultItem {
-	border: 1px solid rgba(170, 191, 216, 0.18);
+	border: 1px solid rgba(0, 0, 0, 0.24);
 	border-radius: 12px;
-	background: rgba(255, 255, 255, 0.03);
+	background: var(--color-border-soft);
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -428,8 +428,8 @@
 }
 
 .searchPopupResultItem:hover {
-	background: #1684c6;
-	border-color: #19a0ee;
+	background: #d8d9da;
+	border-color: #747474;
 	transform: translateY(-1px);
 }
 
@@ -442,14 +442,14 @@
 
 .searchPopupResultMeta {
 	margin: 0;
-	color: #d5e2f2;
+	color: var( --color-brand-strong);
 	font-weight: 600;
 	font-size: 14px;
 }
 
 .searchPopupResultSnippet {
 	margin: 0;
-	color: white;
+	color: rgba(0, 0, 0, 0.658);
 	font-size: 18px;
 	font-weight: 700;
 	white-space: nowrap;
@@ -458,7 +458,7 @@
 }
 
 .searchPopupResultArrow {
-	color: #eaf4ff;
+	color:  var(--color-text-primary);
 	font-size: 25px;
 	font-weight: 700;
 	line-height: 1;
@@ -472,7 +472,7 @@
 	align-items: center;
 	justify-content: center;
 	text-align: center;
-	color: #9fb2c9;
+	color: rgba(0, 0, 0, 0.658);
 	font-size: 20px;
 	font-weight: 600;
 }
@@ -738,6 +738,7 @@
 	font-size: 18px;
 	font-weight: 600;
 	line-height: 1.55;
+	white-space: pre-wrap;
 	word-break: break-word;
 	overflow-wrap: anywhere; 
 }
@@ -1113,6 +1114,7 @@
 
 .reportMetaText {
 	margin: 0;
+	text-align: center;
 	font-size: 13px;
 	font-weight: 700;
 	color: #334a66;
@@ -1129,7 +1131,7 @@
 	line-height: 1.45;
 	white-space: pre-wrap;
 	word-break: break-word;
-	max-height: 100px;
+	max-height: 50vh;
 	overflow-y: auto;
 }
 
@@ -1183,6 +1185,19 @@
 	opacity: 0;
 	transition: transform 0.22s ease, opacity 0.22s ease;
 	will-change: transform, opacity;
+}
+.composerModalFixed {
+	width: 720px;
+	max-width: 92vw;
+	height: 720px;
+	max-height: 90vh;
+	overflow: auto;
+}
+.composerModalFixed .composerModalInput {
+	flex: 1 1 auto;
+	min-height: 220px;
+	resize: none;
+	overflow: auto;
 }
 .composerModal.open {
 	transform: translateY(0) scale(1);

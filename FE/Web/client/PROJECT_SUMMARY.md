@@ -20,7 +20,262 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-05-06)
+## Cập nhật mới nhất (2026-05-08)
+
+### Cập nhật (2026-05-08) — Click notification tố cáo trỏ thẳng vào bài viết bị tố cáo
+
+**Yêu cầu nghiệp vụ:**
+- Khi admin nhấn vào notification người dùng gửi tố cáo, hệ thống phải điều hướng trực tiếp tới bài viết liên quan trong Forum (ưu tiên trỏ đúng post đích), không chỉ mở trang forum chung.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Notification type `REPORT` từ BE hiện chỉ chứa `reportId` + `reportType` trong `target`, chưa có `postId`/`commentId`.
+- Luồng click ở `AdminLayout` đã điều hướng sang `/admin/forum` nhưng thiếu `postId`, nên không kích hoạt được cơ chế scroll/highlight theo query param ở `AdminForum`.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: sửa BE để luôn push `postId` vào notification target.
+  - Ưu điểm: sạch về kiến trúc dài hạn.
+  - Nhược: phụ thuộc vòng deploy BE, không xử lý ngay các notification đã tồn tại.
+- Phương án B (được chọn): FE fallback resolve `reportId -> targetId` tại thời điểm click, sau đó build URL forum có `postId`.
+  - Ưu điểm: xử lý ngay trên Web hiện tại, không đổi contract API, không chạm luồng nghiệp vụ khác.
+  - Nhược: phát sinh thêm request lookup report khi notification thiếu `postId`.
+- Phương án C: điều hướng sang trang quản lý report thay vì forum.
+  - Nhược: không đáp ứng đúng yêu cầu “trỏ trực tiếp vào bài viết”.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/layouts/admin/AdminLayout.jsx`
+- `src/services/notificationService.js`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- `notificationService.buildNotificationTarget`:
+  - Chuẩn hóa thêm `targetId` cho notification target.
+  - Fallback map id đích cho report:
+    - `reportType=POST` => dùng `targetId` làm `postId` nếu thiếu.
+    - `reportType=COMMENT` => dùng `targetId` làm `commentId` nếu thiếu.
+- `AdminLayout.handleNotificationItemClick` (nhánh report):
+  - Giữ flow `markAsRead` như cũ.
+  - Nếu notification chưa có `postId`, gọi `GET /report` theo paging để tìm report theo `reportId`.
+  - Resolve `targetType/targetId` từ report để dựng deep-link forum.
+  - Điều hướng tới `/admin/forum?postId=<id>&adminAction=delete` (kèm `commentId` nếu có) để `AdminForum` tự scroll + highlight đúng post mục tiêu.
+  - Nếu không resolve được target thì fallback về `/admin/forum` (an toàn, không crash).
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa file backend, không đổi endpoint/payload/DTO/schema.
+
+**Tự kiểm tra:**
+- `get_errors` trên 2 file đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-08) — Tối ưu search Forum 4 role: chỉ điều hướng khi chọn kết quả
+
+**Yêu cầu nghiệp vụ:**
+- Search ở Forum của cả 4 role (`client`, `clinic`, `veterinarian`, `admin`) không được làm thay đổi danh sách bài viết bên dưới trong lúc gõ.
+- Chỉ khi người dùng chọn một kết quả trong popup search thì mới trỏ (scroll + highlight) tới bài viết tương ứng.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Logic cũ gọi `loadPosts({ keyword })` mỗi lần `searchKeyword` thay đổi.
+- Vì `getPostsApi` nhận `keyword`, `apiPosts` bị thay bằng tập kết quả search (limit 50), kéo theo toàn bộ `visiblePosts` bên dưới cũng đổi theo.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: tiếp tục search server-side realtime rồi cố giữ lại list cũ bằng state song song.
+  - Nhược: phức tạp, tăng rủi ro lệch state và tốn request khi người dùng gõ liên tục.
+- Phương án B: tách API autocomplete riêng + endpoint lấy post theo id.
+  - Nhược: cần thêm contract BE, không phù hợp mục tiêu fix nhanh/surgical phía FE hiện tại.
+- Phương án C (được chọn): giữ feed ổn định (fetch 1 lần), search popup lọc local và chỉ điều hướng khi click item.
+  - Ưu điểm: diff nhỏ, đúng yêu cầu UX, không đổi API/contract BE, ít rủi ro regression.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Bỏ cơ chế refetch theo `searchKeyword` ở cả 4 màn forum.
+- `loadPosts` quay về fetch feed mặc định (`limit: 1000`) để giữ danh sách ổn định.
+- Popup search chuyển sang lọc local từ `sourcePosts` theo `title + content + author`.
+- So khớp keyword theo dạng normalize không dấu (`NFD`) để tăng khả năng match tiếng Việt.
+- Khi chọn một kết quả:
+  - đóng popup,
+  - reset keyword search,
+  - reset filter topic về `all` để đảm bảo item mục tiêu luôn hiện,
+  - scroll tới `#forum-post-{id}` và highlight bài viết.
+- Bỏ empty-state ở phần feed vốn chỉ dành cho cơ chế "search làm đổi list" cũ.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không đổi endpoint, payload hay contract API forum.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-08) — Fix hiển thị dữ liệu dài ở phiếu khám + modal chi tiết lịch khám
+
+**Yêu cầu nghiệp vụ:**
+- Trên màn `Xem phiếu khám` của portal phòng khám, các trường text dài phải hiển thị đầy đủ, đặc biệt:
+  - `TRIỆU CHỨNG & TÌNH TRẠNG`
+  - `CHẨN ĐOÁN SƠ BỘ`
+  - `KẾT LUẬN`
+  - `LỜI DẶN BÁC SĨ`
+- Trên modal `THÔNG TIN CHI TIẾT THÚ CƯNG & LỊCH KHÁM`, phần `Ghi chú` (và các value dài tương tự như địa chỉ/URL) phải tự xuống dòng hợp lý, không bị tràn hoặc khó đọc.
+- Rà các màn hồ sơ khám có cấu trúc hiển thị tương tự để chặn cùng lỗi hiển thị text dài.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Màn phiếu khám dùng `TextArea` readonly cố định `rows`, nên dữ liệu dài bị giới hạn khung nhìn và phụ thuộc scroll bên trong.
+- Modal chi tiết lịch khám của Clinic đang bị áp `textAlign: center` ở cấp `Modal`, làm nội dung dài khó đọc.
+- Một số khối value trong card/timeline chưa có rule `word-break/overflow-wrap`, nên chuỗi dài (đặc biệt URL) dễ tràn.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: thay toàn bộ field readonly thành component mới hoàn toàn.
+  - Nhược: diff lớn, rủi ro lệch UI và chạm nhiều code không cần thiết.
+- Phương án B (được chọn): giữ nguyên cấu trúc component hiện tại, chỉ bổ sung rule hiển thị text dài và auto-size tại các điểm render.
+  - Ưu điểm: thay đổi surgical, không ảnh hưởng nghiệp vụ/API, xử lý đúng gốc lỗi hiển thị.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/Clinic/PetMedicalRecords/petMedicalRecords.jsx`
+- `src/pages/Clinic/PetMedicalRecords/petMedicalRecords.module.css`
+- `src/pages/Clinic/AppointmentManagement/appointmentManagement.jsx`
+- `src/pages/Clinic/AppointmentManagement/appointmentManagement.module.css`
+- `src/pages/Vererianrian/ViewPetMedicalRecords/viewPetMedicalRecords.module.css`
+- `src/pages/client/User/MedicalRecords/medicalRecords.module.css`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- `PetMedicalRecords`:
+  - `ReadonlyTextAreaField` đổi sang `autoSize` (`minRows`) để nội dung dài tự bung theo chiều cao.
+  - Trường `KẾT LUẬN` hiển thị nguyên văn đầy đủ, không còn cắt theo dòng tóm tắt đầu tiên.
+  - Bổ sung CSS cho textarea readonly: `white-space: pre-wrap`, `overflow-wrap: anywhere`, `word-break: break-word`, tắt resize thủ công.
+  - Bổ sung wrap cho cell bảng chỉ định/đơn thuốc để text dài không tràn.
+- `AppointmentManagement` modal chi tiết:
+  - Bỏ `style={{ textAlign: 'center' }}` ở `Modal`.
+  - Chuyển `.infoRow` sang layout grid nhãn/giá trị và thêm rule wrap mạnh cho `strong` + `Tag` để ghi chú/địa chỉ dài hiển thị đầy đủ.
+  - Tinh chỉnh responsive để mobile hiển thị 1 cột rõ ràng.
+- `ViewPetMedicalRecords` (Vet) và `MedicalRecords` (Client):
+  - Bổ sung rule wrap cho các dòng metadata/details để tránh tràn với chuỗi dài.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint, payload, DTO, schema, migration hoặc nghiệp vụ backend.
+
+**Tự kiểm tra:**
+- `get_errors` trên toàn bộ file đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+## Cập nhật trước đó (2026-05-07)
+
+### Cập nhật (2026-05-07) — Đồng bộ UI thông báo Admin/Clinic/Veterinarian theo mẫu Client (image 1)
+
+**Yêu cầu nghiệp vụ:**
+- UI popup thông báo của `admin`, `clinic`, `veterinarian` phải giống UI + cách hiển thị của `client` (header action, tab `Tất cả/Chưa đọc`, item list, chấm unread, footer thời gian cập nhật).
+- Chỉ sửa đúng phạm vi notification UI, không ảnh hưởng module khác.
+
+**Phân tích khác biệt ban đầu (đã xác nhận):**
+- `AdminLayout` đang dùng panel dark custom, cấu trúc hiển thị khác hoàn toàn Client.
+- `AdminClinicLayout` và `AdminVererianrianLayout` đang dùng panel riêng với 2 Select filter (`viewMode` + `eventType`) và item dạng `Tag + title/desc`, không giống Client.
+- Cả 3 role đều đã có logic notification tốt (socket + mark read + điều hướng), nên vấn đề chính là tầng UI render.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: copy/paste UI Client vào từng layout.
+  - Nhược: lặp code 3 nơi, dễ lệch UI sau này, khó bảo trì.
+- Phương án B (được chọn): tách panel notification dùng chung và cắm vào 3 layout.
+  - Ưu điểm: đồng bộ tuyệt đối với mẫu Client, thay đổi đúng phạm vi UI notification, giữ nguyên toàn bộ logic read/socket/navigation từng role.
+
+**Phạm vi thay đổi (FE Web only):**
+- Tạo mới:
+  - `src/components/common/UnifiedNotificationPanel/UnifiedNotificationPanel.jsx`
+  - `src/components/common/UnifiedNotificationPanel/UnifiedNotificationPanel.module.css`
+- Cập nhật layout:
+  - `src/layouts/admin/AdminLayout.jsx`
+  - `src/layouts/admin/AdminLayout.module.css`
+  - `src/layouts/Clinic/AdminClinicLayout.jsx`
+  - `src/layouts/Vererianrian/AdminVererianrianLayout.jsx`
+- Cập nhật i18n:
+  - `src/locales/admin/vi.json`, `src/locales/admin/en.json`
+  - `src/locales/clinic/vi.json`, `src/locales/clinic/en.json`
+  - `src/locales/vererianrian/vi.json`, `src/locales/vererianrian/en.json`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Chuẩn hóa panel theo Client cho cả 3 role:
+  - Header: `Thông báo` + nút `Làm mới` + nút `Đánh dấu đã đọc`.
+  - Filter row: 2 nút `Tất cả` / `Chưa đọc` (bỏ filter theo loại event để khớp Client).
+  - Danh sách item: icon/avatar kiểu Client, title/description/time, chấm unread bên phải.
+  - Footer: `Cập nhật lúc: HH:mm`.
+- Vẫn giữ nguyên behavior cũ của từng role:
+  - `useNotificationSocket` (hydrate + realtime) không đổi contract.
+  - `markAsRead`, `markAllAsRead`, `resolveNotificationHref` và điều hướng theo role được giữ nguyên.
+  - Toast realtime hiện có của Clinic/Vet vẫn hoạt động.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa API endpoint, payload, DTO, schema hoặc quyền role ở backend.
+
+**Tự kiểm tra:**
+- `get_errors` trên toàn bộ file đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+## Cập nhật trước đó (2026-05-06)
+
+### Cập nhật (2026-05-06) — Fix trắng màn hình khi đổi ngôn ngữ ở comment Forum (đủ 4 role)
+
+**Bối cảnh lỗi người dùng:**
+- Khi đang mở phần comment trong Forum, nếu đổi ngôn ngữ (vi/en) thì UI bị trắng màn hình.
+- Các chức năng khác vẫn hoạt động bình thường; lỗi tập trung ở luồng comment.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- State `commentsByPost` trong Forum đang được lưu theo shape `Record<postId, Thread[]>`.
+- Ở effect chạy khi đổi ngôn ngữ (`i18n.language`), code cũ lại đọc dữ liệu theo shape object (`value?.threads`) và ghi ngược lại thành object `{ ...value, threads: [...] }`.
+- Trong khi đó, render comment vẫn dùng `(commentsByPost[post.id] || []).map(...)` (kỳ vọng mảng).
+- Sau lần đổi ngôn ngữ đầu tiên, `commentsByPost[post.id]` không còn là mảng nên phát sinh runtime error kiểu `map is not a function`, dẫn tới trắng màn hình.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: refetch lại toàn bộ comments mỗi lần đổi ngôn ngữ.
+  - Nhược: tốn request, dễ gây flicker và mất trạng thái mở comment hiện tại.
+- Phương án B: đổi toàn bộ codebase comment sang shape object `{ threads }`.
+  - Nhược: diff lớn, chạm nhiều logic create/edit/delete/reply, rủi ro regression cao.
+- Phương án C (được chọn): giữ nguyên contract state hiện hữu (mảng), chỉ sửa effect re-map time để luôn trả về `Thread[]`.
+  - Ưu điểm: surgical change, đúng gốc lỗi, ít rủi ro và đồng bộ cho cả 4 role.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã sửa:**
+- Trong effect đổi ngôn ngữ, đổi từ:
+  - `const threads = Array.isArray(value?.threads) ? value.threads : []`
+  - `next[postId] = { ...value, threads: threads.map(...) }`
+- Sang:
+  - `const threads = Array.isArray(value) ? value : []`
+  - `next[postId] = threads.map(...)`
+- Kết quả: giữ nguyên shape `commentsByPost[postId]` là mảng, render `.map(...)` không còn crash khi switch language.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint, payload, DTO hoặc contract API Forum.
+- Không thay đổi module ngoài 4 file Forum FE.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file Forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-06) — Popup chỉnh sửa bài post Forum đồng bộ multi-image cho 4 role
+
+**Yêu cầu nghiệp vụ mới:**
+- Ở Forum của cả 4 role `admin`, `client`, `clinic`, `veterinarian`, popup chỉnh sửa bài post phải dùng cùng kiểu upload ảnh như lúc đăng.
+- Nút chọn ảnh trong popup chỉnh sửa đổi về nhãn `Chọn ảnh`, không dùng `Chọn ảnh khác`.
+- Khi chỉnh sửa bài post vẫn phải cho phép chọn nhiều ảnh, không giới hạn 1 ảnh.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/User/Forum/forum.jsx`
+- `src/pages/Clinic/Forum/ClinicForum.jsx`
+- `src/pages/Vererianrian/Forum/VetForum.jsx`
+- `src/pages/admin/Forum/AdminForum.jsx`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Popup chỉnh sửa bài post được đồng bộ sang cùng pattern với popup đăng: input `multiple`, preview nhiều ảnh, và nút gỡ ảnh từng item.
+- UI của popup chỉnh sửa cũng bám sát popup đăng hơn: dùng cùng container fixed-height, tiêu đề canh giữa, và label chủ đề đồng nhất để 4 portal nhìn giống nhau.
+- Khi mở bài viết để chỉnh sửa, FE prefill lại danh sách ảnh hiện có từ `post.images` (fallback `post.image` nếu cần) để không làm mất ảnh cũ.
+- Khi lưu bài viết, FE chỉ upload các file mới được chọn; ảnh cũ được giữ nguyên và ghép chung vào `imageUrls` khi build content.
+
+**Tự kiểm tra:**
+- `get_errors` trên 4 file Forum đã sửa: không có lỗi.
+- `npm run build` (FE/Web/client): thành công.
 
 ### Cập nhật (2026-05-06) — Bắt buộc nén ảnh toàn cục trên FE + xử lý lỗi upload 413
 
@@ -72,6 +327,26 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 **Xác nhận không ảnh hưởng BE:**
 - Không sửa file nào trong `BE/petcare/*`.
 - Không đổi endpoint, method, DTO hay contract API upload hiện tại.
+
+**Tự kiểm tra:**
+- `npm run build` (FE/Web/client): thành công.
+
+### Cập nhật (2026-05-06) — Phiếu khám: cho phép để trống kết luận + giảm giật UI ở cột liều dùng
+
+**Yêu cầu nghiệp vụ mới:**
+- Ở form tạo/chỉnh sửa phiếu khám, trường `KẾT LUẬN CHUYÊN MÔN` không bắt buộc nhập.
+- Khi field `LIỀU DÙNG` báo lỗi validation, UI không được gây cảm giác giật/nhảy lên trên.
+- Ở bảng `Phiếu chỉ định xét nghiệm/X-Quang` và `Đơn thuốc chỉ định`, không bắt buộc phải chọn ngay `Loại chỉ định` hoặc `Tên thuốc`.
+
+**Phạm vi thay đổi (FE only):**
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.jsx`
+- `src/pages/Vererianrian/RecordExaminationForm/recordExaminationForm.module.css`
+
+**Chi tiết kỹ thuật đã cập nhật:**
+- Bỏ rule `required` khỏi field `conclusionSummary` để bác sĩ có thể lưu phiếu khám mà không cần nhập kết luận chuyên môn.
+- Bỏ rule `required` khỏi field `medicalOrderId` (chỉ định) và `medicineId` (thuốc), cho phép lưu form khi chưa chọn hai trường này.
+- Tinh chỉnh hành vi auto-scroll khi submit lỗi từ `block: 'center'` sang `block: 'nearest'` để tránh hiện tượng nhảy màn hình không cần thiết khi lỗi nằm ngay trong vùng nhìn thấy.
+- Với field `quantity` (cột `LIỀU DÙNG`), bỏ validation `required` để không còn bắt buộc nhập; đồng thời giữ class đồng bộ `dynamicFieldItem` cho toàn bộ ô input trong 2 bảng (chỉ định + thuốc) và căn `dynamicRow`/`dynamicRowMedicine` theo top để ổn định layout khi có lỗi ở các cột khác.
 
 **Tự kiểm tra:**
 - `npm run build` (FE/Web/client): thành công.

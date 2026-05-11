@@ -2,6 +2,7 @@ import { FlagOutlined } from '@ant-design/icons'
 import { Dropdown, message, Modal, Select } from 'antd'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { AiOutlineClose } from "react-icons/ai"
 import {
     FaEllipsis,
     FaFilter,
@@ -11,7 +12,6 @@ import {
     FaRegThumbsUp,
     FaThumbsUp,
 } from 'react-icons/fa6'
-import { AiOutlineClose } from "react-icons/ai";
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import ScrollToTopButton from '../../../../components/common/ScrollToTopButton/ScrollToTopButton'
 import {
@@ -40,7 +40,6 @@ import {
     updatePostApi,
 } from '../../../../services/forumService'
 import { uploadUserImageApi, uploadUserImagesApi } from '../../../../services/userService'
-import ForumSearchBar from './ForumSearchBar'
 import styles from './forum.module.css'
 
 const DEFAULT_COMPOSER_AVATAR = '/avatarMain.png'
@@ -59,6 +58,13 @@ const truncatePreviewText = (value, maxLength = 72) => {
 	if (normalized.length <= maxLength) return normalized
 	return `${normalized.slice(0, maxLength - 1)}...`
 }
+
+const normalizeSearchText = (value = '') =>
+	String(value || '')
+		.normalize('NFD')
+		.replace(/[\u0300-\u036f]/g, '')
+		.toLowerCase()
+		.trim()
 
 const TOPIC_TRANSLATION_KEYS = {
 	'cham soc thu cung hang ngay': 'pages.forum.topics.dailyCare',
@@ -517,7 +523,7 @@ function Forum() {
 	// Danh sách lý do tố cáo — khớp với mobile (6 lý do cố định)
 	const reportReasonOptions = useMemo(
 		() => [
-			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Spam / Quảng cáo' }) },
+			{ value: 'SPAM', label: t('pages.forum.reportReason.spam', { defaultValue: 'Tin rác / Quảng cáo' }) },
 			{ value: 'OFFENSIVE', label: t('pages.forum.reportReason.offensive', { defaultValue: 'Ngôn ngữ thô tục / Xúc phạm' }) },
 			{ value: 'HARASSMENT', label: t('pages.forum.reportReason.harassment', { defaultValue: 'Quấy rối / Bắt nạt' }) },
 			{ value: 'MISINFORMATION', label: t('pages.forum.reportReason.misinformation', { defaultValue: 'Thông tin sai sự thật' }) },
@@ -583,7 +589,23 @@ function Forum() {
 		}
 	}, [])
 
+	const resetComposerState = () => {
+		setComposerText('')
+		setComposerTitle('')
+		setComposerTopicId(NO_TOPIC_VALUE)
+		setComposerImageFiles([])
+		setComposerImagePreviews([])
+		if (postImageInputRef.current) {
+			postImageInputRef.current.value = ''
+		}
+	}
+
 	const closeComposerModal = () => {
+		setIsComposerModalOpen(false)
+	}
+
+	const handleCancelComposer = () => {
+		resetComposerState()
 		setIsComposerModalOpen(false)
 	}
 
@@ -640,22 +662,10 @@ function Forum() {
 		return fileUrl
 	}
 
-	const searchKeywordRef = useRef('')
-	useEffect(() => {
-		searchKeywordRef.current = searchKeyword
-	}, [searchKeyword])
-
-	const loadPosts = async ({ keyword } = {}) => {
+	const loadPosts = async () => {
 		setLoadingPosts(true)
 		try {
-			const effectiveKeyword = keyword !== undefined ? keyword : searchKeywordRef.current
-			// BE giới hạn: khi search keyword, ES RRF rank_window_size=50 → size phải <= 50.
-			// Khi không search, giữ limit cao để fetch toàn bộ feed như cũ.
-			const limit = effectiveKeyword ? 50 : 1000
-			const data = await getPostsApi(getClientInstance(), {
-				limit,
-				keyword: effectiveKeyword,
-			})
+			const data = await getPostsApi(getClientInstance(), { limit: 1000 })
 			setApiPosts(Array.isArray(data) ? data.map((item) => mapPostToUi(item, t, i18n.language)) : [])
 		} catch (error) {
 			message.error(error.message || t('pages.forum.loadPostsFailed'))
@@ -683,16 +693,6 @@ function Forum() {
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [])
 
-	const didMountSearchRef = useRef(false)
-	useEffect(() => {
-		if (!didMountSearchRef.current) {
-			didMountSearchRef.current = true
-			return
-		}
-		loadPosts({ keyword: searchKeyword })
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [searchKeyword])
-
 	useEffect(() => {
 		setApiPosts((prev) =>
 			prev.map((post) => {
@@ -718,10 +718,8 @@ function Forum() {
 			const next = {}
 
 			Object.entries(prev).forEach(([postId, value]) => {
-				const threads = Array.isArray(value?.threads) ? value.threads : []
-				next[postId] = {
-					...value,
-					threads: threads.map((thread) => ({
+				const threads = Array.isArray(value) ? value : []
+				next[postId] = threads.map((thread) => ({
 						...thread,
 						main: thread?.main
 							? {
@@ -735,8 +733,7 @@ function Forum() {
 									time: formatTimeAgo(reply.createdAt, t),
 							  }))
 							: [],
-					})),
-				}
+					}))
 			})
 
 			return next
@@ -908,65 +905,62 @@ function Forum() {
 			return
 		}
 
+		const initialEditImageUrls = Array.isArray(post.images) && post.images.length > 0 ? post.images : post.image ? [post.image] : []
+
 		setEditingPost({
 			id: post.id,
 			title: post.title || '',
 			text: post.content || '',
 			topicId: post.rawTopicId ? String(post.rawTopicId) : NO_TOPIC_VALUE,
 			fallbackTopicId: post.actualTopicId ? String(post.actualTopicId) : fallbackTopicId,
-			imageFile: null,
-			imagePreview: post.image || '',
-			imageUrl: post.image || '',
-			existingImageUrl: post.image || '',
+			imageItems: initialEditImageUrls.map((imageUrl) => ({
+				source: 'existing',
+				url: imageUrl,
+				preview: imageUrl,
+			})),
 		})
 	}
 
 	const handlePickEditImage = async (event) => {
-		const file = event.target.files?.[0]
-		if (!file) return
+		const selectedFiles = Array.from(event.target.files || []).filter(Boolean)
+		if (selectedFiles.length === 0) return
 
-		setUploadingEditImage(true)
+		const currentImageCount = editingPost?.imageItems?.length || 0
+		const remainingSlots = MAX_POST_IMAGES - currentImageCount
+		if (remainingSlots <= 0) {
+			message.warning(t('pages.forum.maxImages', { count: MAX_POST_IMAGES }))
+			event.target.value = ''
+			return
+		}
+
+		const acceptedFiles = selectedFiles.slice(0, remainingSlots)
+		if (acceptedFiles.length < selectedFiles.length) {
+			message.warning(t('pages.forum.maxImagesPerPost', { count: MAX_POST_IMAGES }))
+		}
 
 		try {
-			const preview = await toDataUrl(file)
+			const previews = await Promise.all(acceptedFiles.map((file) => toDataUrl(file)))
 			setEditingPost((prev) =>
 				prev
 					? {
 							...prev,
-							imageFile: file,
-							imagePreview: preview,
+							imageItems: [
+								...(prev.imageItems || []),
+								...acceptedFiles.map((file, index) => ({
+									source: 'new',
+									file,
+									preview: previews[index],
+								})),
+							],
 					  }
 					: prev,
 			)
-
-			const uploadedUrl = await uploadImage(file)
-			setEditingPost((prev) =>
-				prev
-					? {
-							...prev,
-							imageUrl: uploadedUrl,
-					  }
-					: prev,
-			)
-			message.success(t('pages.forum.uploadPostImageSuccess'))
 		} catch (error) {
-			setEditingPost((prev) =>
-				prev
-					? {
-							...prev,
-							imageFile: null,
-							imagePreview: prev.existingImageUrl || '',
-							imageUrl: prev.existingImageUrl || '',
-					  }
-					: prev,
-			)
 			message.error(
 				error.message === 'image-read-error'
 					? t('pages.forum.readImageFailed')
 					: error.message || t('pages.forum.readImageFailed'),
 			)
-		} finally {
-			setUploadingEditImage(false)
 		}
 
 		event.target.value = ''
@@ -980,14 +974,30 @@ function Forum() {
 			return
 		}
 
-		if (!editingPost.title.trim() && !editingPost.text.trim() && !editingPost.imagePreview) {
+		const currentImageItems = editingPost.imageItems || []
+		if (!editingPost.title.trim() && !editingPost.text.trim() && currentImageItems.length === 0) {
 			message.warning(t('pages.forum.validation.emptyPost'))
 			return
 		}
 
 		try {
 			setSubmittingEditPost(true)
-			const imageUrl = editingPost.imageUrl || null
+			setUploadingEditImage(false)
+			const existingImageUrls = currentImageItems
+				.filter((item) => item.source === 'existing')
+				.map((item) => item.url)
+				.filter(Boolean)
+			const newFiles = currentImageItems
+				.filter((item) => item.source === 'new' && item.file)
+				.map((item) => item.file)
+			let imageUrls = existingImageUrls
+
+			if (newFiles.length > 0) {
+				setUploadingEditImage(true)
+				const uploadedUrls = await uploadUserImagesApi(newFiles)
+				imageUrls = [...existingImageUrls, ...uploadedUrls.filter(Boolean)]
+			}
+
 			const isNoTopicSelected = editingPost.topicId === NO_TOPIC_VALUE
 			const resolvedTopicId = isNoTopicSelected ? (editingPost.fallbackTopicId || fallbackTopicId) : editingPost.topicId
 
@@ -1001,7 +1011,7 @@ function Forum() {
 				content: attachPostToContent({
 					title: editingPost.title,
 					text: editingPost.text,
-					imageUrls: imageUrl ? [imageUrl] : [],
+					imageUrls,
 					isNoTopic: isNoTopicSelected,
 					t,
 				}),
@@ -1926,12 +1936,6 @@ function Forum() {
 			return String(post.rawTopicId) === selectedTopicFilter
 		})
 
-		// Khi đang search: giữ nguyên thứ tự relevance từ BE (Elasticsearch RRF rerank).
-		// Không sort lại theo createdAt, không prioritize featured — sẽ phá ranking.
-		if (searchKeyword) {
-			return filtered.map((post) => ({ ...post, isFeatured: false }))
-		}
-
 		const prioritizedFeatured = [...filtered]
 			.filter((post) => featuredPostIds.has(post.id))
 			.sort((a, b) => {
@@ -1957,28 +1961,38 @@ function Forum() {
 			...post,
 			isFeatured: index < FEATURED_POST_LIMIT && featuredPostIds.has(post.id),
 		}))
-	}, [sourcePosts, selectedTopicFilter, featuredPostIds, searchKeyword])
+	}, [sourcePosts, selectedTopicFilter, featuredPostIds])
+
+	const normalizedSearchKeyword = useMemo(() => normalizeSearchText(searchKeyword), [searchKeyword])
 
 	const popupSearchResults = useMemo(() => {
-		if (!searchKeyword.trim()) return []
+		if (!normalizedSearchKeyword) return []
 
-		return visiblePosts.slice(0, POPUP_RESULT_LIMIT).map((post) => ({
+		return sourcePosts
+			.filter((post) => {
+				const searchableText = normalizeSearchText([post.title, post.content, post.author].filter(Boolean).join(' '))
+				return searchableText.includes(normalizedSearchKeyword)
+			})
+			.slice(0, POPUP_RESULT_LIMIT)
+			.map((post) => ({
 			id: post.id,
 			author: post.author,
 			title: truncatePreviewText(post.title || post.content || 'Bai viet khong tieu de'),
 			snippet: truncatePreviewText(post.content || post.title || ''),
-		}))
-	}, [searchKeyword, visiblePosts])
+			}))
+	}, [normalizedSearchKeyword, sourcePosts])
 
 	const handleSearchResultSelect = useCallback(
 		(postId) => {
+			setSearchKeyword('')
+			setSelectedTopicFilter('all')
 			setSearchOpen(false)
 			window.setTimeout(() => {
 				const postElement = document.getElementById(`forum-post-${postId}`)
 				if (!postElement) return
 				scrollElementIntoFeed(postElement)
 				flashPostHighlight(postId)
-			}, 40)
+			}, 120)
 		},
 		[flashPostHighlight, scrollElementIntoFeed],
 	)
@@ -2101,15 +2115,6 @@ function Forum() {
 
 					<div className={styles.feedList}>
 						{loadingPosts ? <p className={styles.loadingText}>{t('pages.forum.loadingPosts')}</p> : null}
-						{!loadingPosts && searchKeyword && visiblePosts.length === 0 ? (
-							<div className={styles.searchEmptyState}>
-								<FaMagnifyingGlass className={styles.searchEmptyIcon} aria-hidden="true" />
-								<p className={styles.searchEmptyTitle}>
-									{t('pages.forum.search.emptyTitle', { keyword: searchKeyword })}
-								</p>
-								<p className={styles.searchEmptyHint}>{t('pages.forum.search.emptyHint')}</p>
-							</div>
-						) : null}
 						{visiblePosts.map((post) => (
 							<article
 								key={post.id}
@@ -2475,7 +2480,7 @@ function Forum() {
 				onClick={closeComposerModal}
 			>
 				<div
-					className={`${styles.composerModal} ${isComposerModalOpen ? styles.open : ''}`}
+					className={`${styles.composerModal} ${styles.composerModalFixed} ${isComposerModalOpen ? styles.open : ''}`}
 					onClick={(e) => e.stopPropagation()}
 				>
 					<h3 style={{textAlign: 'center'}}>{t('pages.forum.createPostTitle')}</h3>
@@ -2537,7 +2542,7 @@ function Forum() {
 						</button>
 						<button
 							type="button"
-							onClick={closeComposerModal}
+							onClick={handleCancelComposer}
 						>
 							{t('common.actions.cancel')}
 						</button>
@@ -2547,9 +2552,9 @@ function Forum() {
 
 			{editingPost ? (
 				<div className={`${styles.composerModalOverlay} ${styles.open}`} onClick={closeEditModal}>
-					<div className={`${styles.composerModal} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
-						<h3>{t('pages.forum.editPostTitle')}</h3>
-						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.topic')}</p>
+					<div className={`${styles.composerModal} ${styles.composerModalFixed} ${styles.open}`} onClick={(event) => event.stopPropagation()}>
+						<h3 style={{textAlign: 'center'}}>{t('pages.forum.editPostTitle')}</h3>
+						<p style={{marginLeft: 3, fontWeight: 'bold'}}>{t('pages.forum.postTopic')}</p>
 						<Select
 							value={editingPost.topicId || NO_TOPIC_VALUE}
 							onChange={(value) =>
@@ -2569,28 +2574,34 @@ function Forum() {
 							placeholder={t('pages.forum.placeholders.editPost')}
 						/>
 
-						{editingPost.imagePreview ? (
+						{editingPost.imageItems?.length ? (
 							<div className={styles.previewImageWrap}>
-								<img src={editingPost.imagePreview} alt={t('pages.forum.editPostPreviewAlt')} className={styles.previewImage} />
-								<button
-									type="button"
-									onClick={() =>
-										setEditingPost((prev) =>
-											prev
-												? {
-														...prev,
-														imageFile: null,
-														imagePreview: '',
-																	imageUrl: '',
-														existingImageUrl: '',
-												  }
-												: prev,
-										)
-									}
-									className={styles.removeImageBtn}
-								>
-									{t('pages.forum.actions.removeImage')}
-								</button>
+								{editingPost.imageItems.map((imageItem, index) => (
+									<div key={`${imageItem.preview}-${index}`} className={styles.previewImageItem}>
+										<img
+											src={imageItem.preview}
+											alt={t('pages.forum.editPostPreviewAlt')}
+											className={styles.previewImage}
+										/>
+										<button
+											type="button"
+											onClick={() =>
+												setEditingPost((prev) =>
+													prev
+														? {
+															...prev,
+															imageItems: (prev.imageItems || []).filter((_, itemIndex) => itemIndex !== index),
+														}
+														: prev,
+												)
+										}
+										className={styles.removeImageBtn}
+										disabled={uploadingEditImage || submittingEditPost}
+									>
+										{t('pages.forum.actions.removeImage')}
+									</button>
+								</div>
+								))}
 							</div>
 						) : null}
 
@@ -2599,6 +2610,7 @@ function Forum() {
 								ref={postImageInputRef}
 								type="file"
 								accept="image/*"
+								multiple
 								onChange={handlePickEditImage}
 								hidden
 							/>
@@ -2607,7 +2619,7 @@ function Forum() {
 								onClick={() => postImageInputRef.current?.click()}
 								disabled={uploadingEditImage || submittingEditPost}
 							>
-								<FaImage /> {t('pages.forum.actions.chooseAnotherImage')}
+								<FaImage /> {t('pages.forum.actions.chooseImage')}
 							</button>
 							<button type="button" onClick={handleSaveEditedPost} disabled={submittingEditPost || loadingTopics || uploadingEditImage}>
 								{submittingEditPost ? t('pages.forum.actions.saving') : uploadingEditImage ? t('pages.forum.actions.uploadingImage') : t('pages.forum.actions.saveEdit')}
@@ -2708,10 +2720,13 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(postReportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportPostModalTitle', { defaultValue: 'Báo cáo bài viết' })}
 					centered
 				>
+
 					<div className={styles.reportModalBody}>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportPostModalTitle', { defaultValue: 'BÁO CÁO BÀI VIẾT' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportPostBy', {
 								defaultValue: 'Bạn đang báo cáo bài viết của {{name}}',
@@ -2736,7 +2751,6 @@ function Forum() {
 							style={{ width: '100%' }}
 						/>
 
-						{postReportReason === 'OTHER' ? (
 							<textarea
 								className={styles.reportTextarea}
 								value={postReportDetail}
@@ -2745,7 +2759,6 @@ function Forum() {
 									defaultValue: 'Mô tả thêm (không bắt buộc)',
 								})}
 							/>
-						) : null}
 					</div>
 				</Modal>
 			) : null}
@@ -2761,10 +2774,12 @@ function Forum() {
 					okButtonProps={{
 						disabled: !String(commentReportReason || '').trim(),
 					}}
-					title={t('pages.forum.reportModalTitle', { defaultValue: 'Tố cáo bình luận' })}
 					centered
 				>
 					<div className={styles.reportModalBody}>
+						<h3 className={styles.reportModalTitle} style={{textAlign: 'center', fontWeight: 'bold'}}>
+							{t('pages.forum.reportModalTitle', { defaultValue: 'BÁO CÁO BÌNH LUẬN' })}
+						</h3>
 						<p className={styles.reportMetaText}>
 							{t('pages.forum.reportCommentBy', {
 								defaultValue: 'Bạn đang tố cáo bình luận của {{name}}',
@@ -2784,7 +2799,6 @@ function Forum() {
 							style={{ width: '100%' }}
 						/>
 
-						{commentReportReason === 'OTHER' ? (
 							<textarea
 								className={styles.reportTextarea}
 								value={commentReportDetail}
@@ -2793,7 +2807,6 @@ function Forum() {
 									defaultValue: 'Mô tả thêm (không bắt buộc)',
 								})}
 							/>
-						) : null}
 					</div>
 				</Modal>
 			) : null}

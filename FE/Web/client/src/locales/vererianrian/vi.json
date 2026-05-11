@@ -15,9 +15,17 @@
       "chatbot": "Trợ Lý AI"
     },
     "notifications": {
-      "panelTitle": "Thông báo bác sĩ",
+      "panelTitle": "Thông báo",
       "summary": "{{unread}} chưa đọc / {{total}} thông báo",
+      "refresh": "Làm mới",
       "markAllRead": "Đánh dấu đã đọc",
+      "syncedAt": "Cập nhật lúc",
+      "forumActorFallback": "Người dùng",
+      "events": {
+        "forumActionLike": "đã thích bài viết của bạn",
+        "forumActionReply": "đã phản hồi bình luận của bạn",
+        "forumActionComment": "đã bình luận bài viết của bạn"
+      },
       "empty": "Không có thông báo phù hợp",
       "filters": {
         "all": "Tất cả",
@@ -572,7 +580,7 @@
       "updateCommentFailed": "Không thể cập nhật bình luận",
       "deleteCommentSuccess": "Đã xóa bình luận",
       "deleteCommentFailed": "Không thể xóa bình luận",
-      "reportPostModalTitle": "Báo cáo bài viết",
+      "reportPostModalTitle": "BÁO CÁO BÀI VIẾT",
       "reportPostBy": "Bạn đang báo cáo bài viết của {{name}}",
       "reportPostSuccess": "Cảm ơn bạn đã báo cáo. Chúng tôi sẽ xem xét bài viết này.",
       "reportPostRecorded": "Đã ghi nhận báo cáo của bạn",
@@ -638,7 +646,7 @@
         "shareToday": "Bạn muốn chia sẻ điều gì về thú cưng hôm nay?",
         "comment": "Viết bình luận...",
         "reply": "Viết reply...",
-        "reportReason": "Nhập nội dung tố cáo...",
+        "reportReason": "Mô tả thêm (không bắt buộc)",
         "reportPostReason": "Chọn lý do báo cáo",
         "reportPostDetail": "Mô tả thêm (không bắt buộc)",
         "choosePostTopic": "Chọn chủ đề bài viết",
@@ -646,9 +654,11 @@
         "editPost": "Bạn muốn chỉnh sửa điều gì trong bài viết?"
       },
       "reportReason": {
-        "spam": "Spam",
-        "inappropriate": "Nội dung không phù hợp",
-        "misleading": "Thông tin sai lệch",
+        "spam": "Tin rác / Quảng cáo",
+        "offensive": "Ngôn ngữ thô tục / Xúc phạm",
+        "harassment": "Quấy rối / Bắt nạt",
+        "misinformation": "Thông tin sai sự thật",
+        "violence": "Bạo lực / Phản cảm",
         "other": "Khác"
       },
       "actions": {
@@ -719,8 +729,8 @@
       "messageBox": {
         "aiResponding": "AI đang phản hồi",
         "attachImage": "Đính kèm ảnh",
-        "disclaimer": "AI có thể tạo ra thông tin chưa chính xác. Vui lòng kiểm tra lại nội dung quan trọng.",
-        "emptyState": "Bắt đầu cuộc trò chuyện mới với AI",
+        "disclaimer": "Thông tin từ AI chỉ mang tính tham khảo. Hãy hỏi bác sĩ thú y để được tư vấn chính xác.",
+        "emptyState": "Hôm nay bạn cần gì?",
         "genericError": "Đã có lỗi xảy ra. Vui lòng thử lại.",
         "inputPlaceholder": "Nhập câu hỏi của bạn...",
         "loadingOldMessages": "Đang tải tin nhắn cũ...",

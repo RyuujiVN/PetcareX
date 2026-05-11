@@ -290,6 +290,9 @@
 	color: #f17a3f;
 	font-size: 14px;
 	font-weight: 700;
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
 
 .recordMetaGrid p strong {
@@ -353,6 +356,9 @@
 	font-weight: 600;
 	color: #51637a;
 	line-height: 1.45;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	word-break: break-word;
 }
 
 .detailVitalsGrid {

@@ -1,31 +1,56 @@
 import {
-    BarChartOutlined,
-    FileTextOutlined,
-    FlagOutlined,
-    MedicineBoxOutlined,
+  BarChartOutlined,
+  FileTextOutlined,
+  MedicineBoxOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-    MessageOutlined,
-    RobotOutlined,
-    TeamOutlined,
+  MessageOutlined,
+  RobotOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { Badge, Button } from "antd";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MessageCircle } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { IoMdNotificationsOutline } from "react-icons/io";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import LanguageSwitcher from "../../components/common/LanguageSwitcher/LanguageSwitcher";
 import PortalAccountMenu from "../../components/common/PortalAccountMenu/PortalAccountMenu";
+import UnifiedNotificationPanel from "../../components/common/UnifiedNotificationPanel/UnifiedNotificationPanel";
 import { getPrimaryRole } from "../../constants/authRole";
 import { LANGUAGE_SCOPE } from "../../constants/languageStorage";
 import { RoleEnum } from "../../enum/role.enum";
 import { useAuth } from "../../hooks/Clinic/AuthContext";
 import useNotificationSocket from "../../hooks/useNotificationSocket";
 import { getAdminInstance } from "../../services/apiClient";
+import { getReportsApi } from "../../services/forumReportService";
 import { resolveNotificationHref } from "../../services/notificationService";
-import { MessageCircle } from "lucide-react";
 import "../../styles/admin/colorsToken.css";
 import styles from "./AdminLayout.module.css";
+
+const REPORT_LOOKUP_PAGE_LIMIT = 100;
+const REPORT_LOOKUP_MAX_PAGES = 10;
+
+const normalizeTextValue = (value) => String(value || "").trim();
+const normalizeReportType = (value) => normalizeTextValue(value).toUpperCase();
+
+const extractReportItems = (response) => {
+  const payload = response?.data;
+  if (Array.isArray(payload?.items)) return payload.items;
+  if (Array.isArray(payload?.data?.items)) return payload.data.items;
+  if (Array.isArray(payload?.data)) return payload.data;
+  if (Array.isArray(payload)) return payload;
+  return [];
+};
+
+const extractReportTotalPages = (response) => {
+  const payload = response?.data;
+  const meta = payload?.meta || payload?.data?.meta;
+  const totalPages = Number(
+    meta?.totalPages || meta?.total_pages || meta?.pageCount || 0,
+  );
+  return Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1;
+};
 
 const menuItems = [
   {
@@ -92,16 +117,6 @@ const isMenuActive = (pathname, item) => {
   return activePaths.some((pathPrefix) => isPathMatch(pathname, pathPrefix));
 };
 
-const NOTIFICATION_CATEGORY_ICONS = {
-  appointment: <MedicineBoxOutlined />,
-  "ai-diagnosis": <FileTextOutlined />,
-  system: <TeamOutlined />,
-  "forum-like": <MessageOutlined />,
-  "forum-reply": <MessageOutlined />,
-  "forum-comment": <FileTextOutlined />,
-  report: <FlagOutlined />,
-};
-
 const formatAdminTimeAgo = (dateValue, t) => {
   const createdAt = new Date(dateValue).getTime();
   if (Number.isNaN(createdAt)) return t("layout.notification.timeAgo.justNow");
@@ -134,6 +149,8 @@ export default function AdminLayout() {
   const { token, userProfile, logout, login, refreshUserProfile, activeRole } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationTab, setNotificationTab] = useState("all");
+  const [notificationLastSyncedAt, setNotificationLastSyncedAt] = useState("");
+  const [, setTimeTick] = useState(0);
   const notificationPanelRef = useRef(null);
   const [isSidebarVisible, setIsSidebarVisible] = useState(true);
   const effectiveRole =
@@ -151,6 +168,8 @@ export default function AdminLayout() {
     unreadCount,
     markAsRead,
     markAllAsRead,
+    loading: notificationLoading,
+    refreshNotifications,
   } = useNotificationSocket({
     storageKey: `ws_notif_admin:${userProfile?.id || "default"}`,
     token,
@@ -158,14 +177,11 @@ export default function AdminLayout() {
     instance: getAdminInstance(),
   });
 
-  const displayNotifications = useMemo(() => {
-    if (notificationTab === "unread") {
-      return notificationItems.filter(
-        (item) => !notificationReadIdSet.has(item.id),
-      );
-    }
-    return notificationItems;
-  }, [notificationTab, notificationItems, notificationReadIdSet]);
+  // Force re-render every 30s so time-ago labels stay fresh.
+  useEffect(() => {
+    const id = window.setInterval(() => setTimeTick((n) => n + 1), 30_000);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (!token) {
@@ -200,6 +216,69 @@ export default function AdminLayout() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!token) {
+      setNotificationLastSyncedAt("");
+      return;
+    }
+
+    setNotificationLastSyncedAt(new Date().toISOString());
+  }, [notificationItems, token]);
+
+  const handleRefreshNotifications = useCallback(async () => {
+    await refreshNotifications();
+    setNotificationLastSyncedAt(new Date().toISOString());
+  }, [refreshNotifications]);
+
+  const buildForumActionText = useCallback(
+    (notificationItem, actionType) => {
+      if (actionType === "like") {
+        return t("layout.notification.events.forumActionLike", {
+          defaultValue: "liked your post",
+        });
+      }
+
+      if (actionType === "reply") {
+        return t("layout.notification.events.forumActionReply", {
+          defaultValue: "replied to your comment",
+        });
+      }
+
+      return t("layout.notification.events.forumActionComment", {
+        defaultValue: "commented on your post",
+      });
+    },
+    [t],
+  );
+
+  const resolveReportById = useCallback(async (reportId) => {
+    const normalizedReportId = normalizeTextValue(reportId);
+    if (!normalizedReportId) return null;
+
+    let page = 1;
+    let totalPages = 1;
+
+    while (page <= totalPages && page <= REPORT_LOOKUP_MAX_PAGES) {
+      const response = await getReportsApi(getAdminInstance(), {
+        page,
+        limit: REPORT_LOOKUP_PAGE_LIMIT,
+      });
+      const reports = extractReportItems(response);
+      const matched = reports.find(
+        (report) => normalizeTextValue(report?.id) === normalizedReportId,
+      );
+
+      if (matched) {
+        return matched;
+      }
+
+      totalPages = extractReportTotalPages(response);
+      page += 1;
+    }
+
+    return null;
+  }, []);
+
   const handleNotificationItemClick = useCallback(
     (item) => {
       if (!item?.id) return;
@@ -214,14 +293,54 @@ export default function AdminLayout() {
         String(item?.type || "").toLowerCase() === "report";
 
       if (isReportType) {
-        const postId = String(item?.postId || item?.target?.postId || "").trim();
-        const commentId = String(item?.commentId || item?.target?.commentId || "").trim();
-        const params = new URLSearchParams();
-        if (postId) params.set("postId", postId);
-        if (commentId) params.set("commentId", commentId);
-        params.set("adminAction", "delete");
-        const queryString = params.toString();
-        navigate(queryString ? `/admin/forum?${queryString}` : "/admin/forum");
+        void (async () => {
+          let postId = normalizeTextValue(item?.postId || item?.target?.postId);
+          let commentId = normalizeTextValue(
+            item?.commentId || item?.target?.commentId,
+          );
+          const reportId = normalizeTextValue(
+            item?.reportId || item?.target?.reportId,
+          );
+          const reportType = normalizeReportType(item?.target?.reportType);
+          const targetId = normalizeTextValue(item?.target?.targetId);
+
+          if (!postId && reportType === "POST" && targetId) {
+            postId = targetId;
+          }
+
+          if (!commentId && reportType === "COMMENT" && targetId) {
+            commentId = targetId;
+          }
+
+          if (!postId && reportId) {
+            try {
+              const report = await resolveReportById(reportId);
+              const resolvedTargetType = normalizeReportType(report?.targetType);
+              const resolvedTargetId = normalizeTextValue(report?.targetId);
+
+              if (resolvedTargetType === "POST" && resolvedTargetId) {
+                postId = resolvedTargetId;
+              }
+
+              if (
+                resolvedTargetType === "COMMENT" &&
+                resolvedTargetId &&
+                !commentId
+              ) {
+                commentId = resolvedTargetId;
+              }
+            } catch {
+              // Silent fallback to forum root if report lookup fails.
+            }
+          }
+
+          const params = new URLSearchParams();
+          if (postId) params.set("postId", postId);
+          if (commentId) params.set("commentId", commentId);
+          params.set("adminAction", "delete");
+          const queryString = params.toString();
+          navigate(queryString ? `/admin/forum?${queryString}` : "/admin/forum");
+        })();
         return;
       }
 
@@ -230,7 +349,7 @@ export default function AdminLayout() {
         navigate(targetHref);
       }
     },
-    [markAsRead, navigate],
+    [markAsRead, navigate, resolveReportById],
   );
 
   return (
@@ -349,84 +468,37 @@ export default function AdminLayout() {
 
               {notificationOpen ? (
                 <div className={styles.notificationPanel}>
-                  <div className={styles.notificationHeader}>
-                    <h3>{t("layout.notification.title")}</h3>
-                    <button
-                      type="button"
-                      onClick={markAllAsRead}
-                      disabled={unreadCount === 0}
-                    >
-                      {t("layout.notification.markAllRead")}
-                    </button>
-                  </div>
-
-                  <div className={styles.notificationTabs}>
-                    <button
-                      type="button"
-                      className={
-                        notificationTab === "all"
-                          ? styles.notificationTabActive
-                          : ""
-                      }
-                      onClick={() => setNotificationTab("all")}
-                    >
-                      {t("layout.notification.tabs.all")}
-                    </button>
-                    <button
-                      type="button"
-                      className={
-                        notificationTab === "unread"
-                          ? styles.notificationTabActive
-                          : ""
-                      }
-                      onClick={() => setNotificationTab("unread")}
-                    >
-                      {t("layout.notification.tabs.unread")}
-                    </button>
-                  </div>
-
-                  <div className={styles.notificationList}>
-                    {displayNotifications.length ? (
-                      displayNotifications.map((item) => {
-                        const isUnread = !notificationReadIdSet.has(item.id);
-
-                        return (
-                          <div
-                            key={item.id}
-                            className={styles.notificationItem}
-                            onClick={() => handleNotificationItemClick(item)}
-                            style={{ cursor: "pointer" }}
-                          >
-                            <div className={styles.notificationDotWrap}>
-                              <span className={styles.notificationAvatar}>
-                                {NOTIFICATION_CATEGORY_ICONS[item.type] || (
-                                  <TeamOutlined />
-                                )}
-                              </span>
-                              {isUnread ? (
-                                <span className={styles.notificationDot} />
-                              ) : null}
-                            </div>
-                            <div>
-                              <p className={styles.notificationTitle}>
-                                {item.title}
-                              </p>
-                              <p className={styles.notificationContent}>
-                                {item.description}
-                              </p>
-                              <span className={styles.notificationTime}>
-                                {formatAdminTimeAgo(item.createdAt, t)}
-                              </span>
-                            </div>
-                          </div>
-                        );
-                      })
-                    ) : (
-                      <p className={styles.notificationEmpty}>
-                        {t("layout.notification.empty")}
-                      </p>
+                  <UnifiedNotificationPanel
+                    title={t("layout.notification.title")}
+                    refreshLabel={t("layout.notification.refresh", {
+                      defaultValue: "Làm mới",
+                    })}
+                    markReadLabel={t("layout.notification.markAllRead")}
+                    allLabel={t("layout.notification.tabs.all")}
+                    unreadLabel={t("layout.notification.tabs.unread")}
+                    emptyLabel={t("layout.notification.empty")}
+                    syncedAtLabel={t("layout.notification.syncedAt", {
+                      defaultValue: "Cập nhật lúc",
+                    })}
+                    forumActorFallbackLabel={t(
+                      "layout.notification.forumActorFallback",
+                      {
+                        defaultValue: "Người dùng",
+                      },
                     )}
-                  </div>
+                    notifications={notificationItems}
+                    readIdSet={notificationReadIdSet}
+                    unreadCount={unreadCount}
+                    loading={notificationLoading}
+                    filterMode={notificationTab}
+                    onFilterModeChange={setNotificationTab}
+                    onRefresh={handleRefreshNotifications}
+                    onMarkAllRead={markAllAsRead}
+                    onItemClick={handleNotificationItemClick}
+                    formatTimeAgo={(value) => formatAdminTimeAgo(value, t)}
+                    buildForumActionText={buildForumActionText}
+                    lastSyncedAt={notificationLastSyncedAt}
+                  />
                 </div>
               ) : null}
             </div>
