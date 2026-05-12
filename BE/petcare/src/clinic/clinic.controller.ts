@@ -28,8 +28,8 @@ import { RequiredRole } from 'src/common/decorators/roles.decorator';
 import { RoleEnum } from 'src/common/enums/role.enum';
 
 @Controller('clinic')
-// @ApiBearerAuth('JWT-auth')
-// @UseGuards(JwtAuthGuard, RoleGuard)
+@ApiBearerAuth('JWT-auth')
+@UseGuards(JwtAuthGuard, RoleGuard)
 export class ClinicController {
   constructor(private readonly clinicService: ClinicService) {}
 
@@ -57,12 +57,12 @@ export class ClinicController {
   }
 
   @Get('user')
-  // @RequiredRole(
-  //   RoleEnum.ADMIN,
-  //   RoleEnum.ADMIN_CLINIC,
-  //   RoleEnum.VETERINARIAN,
-  //   RoleEnum.CUSTOMER,
-  // )
+  @RequiredRole(
+    RoleEnum.ADMIN,
+    RoleEnum.ADMIN_CLINIC,
+    RoleEnum.VETERINARIAN,
+    RoleEnum.CUSTOMER,
+  )
   @ApiOperation({ summary: 'Phân trang phòng khám gần nhất của bên user' })
   @ApiQuery({ name: 'page', required: true, type: Number, default: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, default: 10 })
