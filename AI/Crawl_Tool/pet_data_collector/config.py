@@ -1,41 +1,35 @@
 REDDIT_SUBREDDITS = {
-    "dogs": {"pet_type": "dog", "lang": "en", "priority": 1},
-    "DogAdvice": {"pet_type": "dog", "lang": "en", "priority": 1},
-    "AskVet": {"pet_type": "general", "lang": "en", "priority": 1},
-    "puppy101": {"pet_type": "dog", "lang": "en", "priority": 1},
-    "dogtraining": {"pet_type": "dog", "lang": "en", "priority": 1},
-    "reactivedogs": {"pet_type": "dog", "lang": "en", "priority": 1},
+    
+    # ===== EXOTIC & NICHE PETS =====
+    "Tarantulas": {"pet_type": "reptile", "lang": "en", "priority": 1},
+    "Spiders": {"pet_type": "reptile", "lang": "en", "priority": 1},
+    "Axolotls": {"pet_type": "small", "lang": "en", "priority": 1},
+    "IllegallyBigAxolotls": {"pet_type": "small", "lang": "en", "priority": 1},
+    "ExoticPets": {"pet_type": "general", "lang": "en", "priority": 1},
+    "Herpetology": {"pet_type": "reptile", "lang": "en", "priority": 1},
+    "LizardBros": {"pet_type": "reptile", "lang": "en", "priority": 1},
 
-    "cats": {"pet_type": "cat", "lang": "en", "priority": 1},
-    "CatAdvice": {"pet_type": "cat", "lang": "en", "priority": 1},
-    "catcare": {"pet_type": "cat", "lang": "en", "priority": 1},
-    "CatTraining": {"pet_type": "cat", "lang": "en", "priority": 1},
-    "kittens": {"pet_type": "cat", "lang": "en", "priority": 1},
+    # ===== FUNNY / CUTE PETS =====
+    "WhatsWrongWithYourDog": {"pet_type": "dog", "lang": "en", "priority": 1},
+    "WhatsWrongWithYourCat": {"pet_type": "cat", "lang": "en", "priority": 1},
+    "CatsStandingUp": {"pet_type": "cat", "lang": "en", "priority": 1},
+    "IllegallyBigBeans": {"pet_type": "cat", "lang": "en", "priority": 1},
+    "CatsAreAssholes": {"pet_type": "cat", "lang": "en", "priority": 1},
+    "IllegallySmolRats": {"pet_type": "small", "lang": "en", "priority": 1},
+    "FatAnimalsStandingUp": {"pet_type": "general", "lang": "en", "priority": 1},
+    "IllegallyBigAnimals": {"pet_type": "general", "lang": "en", "priority": 1},
+    "Zoomies": {"pet_type": "general", "lang": "en", "priority": 1},
+    "Blep": {"pet_type": "general", "lang": "en", "priority": 1},
 
-    "Pets": {"pet_type": "general", "lang": "en", "priority": 1},
-    "PetAdvice": {"pet_type": "general", "lang": "en", "priority": 1},
-    "veterinary": {"pet_type": "general", "lang": "en", "priority": 1},
+    # ===== AQUARIUMS ADVANCED =====
+    "Aquascaping": {"pet_type": "fish", "lang": "en", "priority": 1},
+    "Jellyfish": {"pet_type": "fish", "lang": "en", "priority": 1},
 
-    "hamsters": {"pet_type": "hamster", "lang": "en", "priority": 1},
-    "hamstercare": {"pet_type": "hamster", "lang": "en", "priority": 1},
-    "Rabbits": {"pet_type": "rabbit", "lang": "en", "priority": 1},
+    # ===== BEHAVIOR & SCIENCE =====
+    "AnimalBehavior": {"pet_type": "general", "lang": "en", "priority": 1},
+    "PetBehavior": {"pet_type": "general", "lang": "en", "priority": 1},
 
-    "parrots": {"pet_type": "bird", "lang": "en", "priority": 1},
-    "budgies": {"pet_type": "bird", "lang": "en", "priority": 1},
-    "cockatiel": {"pet_type": "bird", "lang": "en", "priority": 1},
 
-    "Aquariums": {"pet_type": "fish", "lang": "en", "priority": 1},
-    "bettafish": {"pet_type": "fish", "lang": "en", "priority": 1},
-    "goldfish": {"pet_type": "fish", "lang": "en", "priority": 1},
-    "PlantedTank": {"pet_type": "fish", "lang": "en", "priority": 1},
-
-    "reptiles": {"pet_type": "reptile", "lang": "en", "priority": 1},
-    "leopardgeckos": {"pet_type": "reptile", "lang": "en", "priority": 1},
-    "BeardedDragons": {"pet_type": "reptile", "lang": "en", "priority": 1},
-    "ballpython": {"pet_type": "reptile", "lang": "en", "priority": 1},
-    "snakes": {"pet_type": "reptile", "lang": "en", "priority": 1},
-    "turtle": {"pet_type": "turtle", "lang": "en", "priority": 1},
-    "tortoises": {"pet_type": "turtle", "lang": "en", "priority": 2},
 }
 
 VIETNAMESE_WEBSITES = [

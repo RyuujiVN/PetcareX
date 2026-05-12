@@ -508,6 +508,12 @@ export class MedicalService {
           { phone: createDTO.phone },
         );
 
+        // Cập nhật lại phone cho người dùng
+        await userRepo.update(
+          { id: existedEmail.id },
+          { phone: createDTO.phone },
+        );
+
         // 4. Nếu có rồi thì lấy pet
         savedPet = await petRepo.findOne({
           where: {

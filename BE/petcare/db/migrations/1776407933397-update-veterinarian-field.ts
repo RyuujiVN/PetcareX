@@ -11,8 +11,8 @@ export class UpdateVeterinarianField1776407933397 implements MigrationInterface 
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "notification" ALTER COLUMN "is_read" SET DEFAULT false`);
-        await queryRunner.query(`ALTER TABLE "veterinarian" DROP COLUMN "introduce"`);
-        await queryRunner.query(`ALTER TABLE "veterinarian" DROP COLUMN "experience"`);
+        await queryRunner.query(`ALTER TABLE "veterinarian" DROP COLUMN IF EXISTS "introduce"`);
+        await queryRunner.query(`ALTER TABLE "veterinarian" DROP COLUMN IF EXISTS "experience"`);
     }
 
 }

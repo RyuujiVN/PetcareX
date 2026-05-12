@@ -1,0 +1,62 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: petcarex-db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-petcare}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-123456}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-petcare}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: petcarex-redis
+    restart: always
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  be:
+    image: ${BE_IMAGE:?Set BE_IMAGE in .env}
+    container_name: petcarex-be
+    restart: always
+    pull_policy: always
+    env_file:
+      - .env
+      - .env.app
+    environment:
+      PORT: ${PORT:-3000}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${PORT:-3000}:3000"
+
+  fe:
+    image: ${FE_IMAGE:?Set FE_IMAGE in .env}
+    container_name: petcarex-fe
+    restart: always
+    pull_policy: always
+    depends_on:
+      - be
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:
+  redis_data:

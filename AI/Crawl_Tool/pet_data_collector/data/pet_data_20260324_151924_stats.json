@@ -1,0 +1,28 @@
+{
+  "total_items": 15,
+  "total_sources": 2,
+  "by_source_type": {
+    "reddit": 15
+  },
+  "by_pet_type": {
+    "general": 15,
+    "cat": 3,
+    "dog": 2,
+    "fish": 1
+  },
+  "by_category": {
+    "other": 3,
+    "health": 6,
+    "nutrition": 2,
+    "emergency": 5,
+    "care": 4
+  },
+  "by_language": {
+    "en": 15
+  },
+  "quality_distribution": {
+    "high": 0,
+    "medium": 0,
+    "low": 15
+  }
+}

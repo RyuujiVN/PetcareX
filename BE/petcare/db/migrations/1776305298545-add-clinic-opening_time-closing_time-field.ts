@@ -11,8 +11,8 @@ export class AddClinicOpeningTimeClosingTimeField1776305298545 implements Migrat
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "notification" ALTER COLUMN "is_read" SET DEFAULT false`);
-        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN "closing_time"`);
-        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN "opening_time"`);
+        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN IF EXISTS "closing_time"`);
+        await queryRunner.query(`ALTER TABLE "clinic" DROP COLUMN IF EXISTS "opening_time"`);
     }
 
 }

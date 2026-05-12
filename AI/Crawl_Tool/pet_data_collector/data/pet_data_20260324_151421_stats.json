@@ -1,0 +1,36 @@
+{
+  "total_items": 1363,
+  "total_sources": 33,
+  "by_source_type": {
+    "reddit": 1363
+  },
+  "by_pet_type": {
+    "general": 985,
+    "dog": 407,
+    "cat": 321,
+    "fish": 140,
+    "bird": 120,
+    "reptile": 142,
+    "hamster": 32,
+    "rabbit": 50,
+    "turtle": 67,
+    "other": 41
+  },
+  "by_category": {
+    "health": 286,
+    "emergency": 291,
+    "nutrition": 459,
+    "care": 251,
+    "breed_info": 80,
+    "training": 135,
+    "other": 570
+  },
+  "by_language": {
+    "en": 1363
+  },
+  "quality_distribution": {
+    "high": 11,
+    "medium": 806,
+    "low": 546
+  }
+}
