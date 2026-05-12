@@ -1,16 +1,12 @@
-import { useNavigate } from "react-router-dom";
+import { LaptopOutlined, RobotOutlined, ScheduleOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useTranslation } from "react-i18next";
-import "./styles.css";
-import { ScheduleOutlined, LaptopOutlined, RobotOutlined, UsergroupAddOutlined } from '@ant-design/icons';
-import { TbCircleCheck } from "react-icons/tb";
-import { IoCloseCircle } from "react-icons/io5";
-import { MdPets } from "react-icons/md";
-import { FcDepartment, FcManager } from "react-icons/fc";
-import { MdSecurity } from "react-icons/md";
-import { TbLockAccess } from "react-icons/tb";
-import { FcStatistics } from "react-icons/fc";
-import { FcLock } from "react-icons/fc";
 import { AiOutlineRise } from "react-icons/ai";
+import { FcDepartment, FcLock, FcManager, FcStatistics } from "react-icons/fc";
+import { IoCloseCircle } from "react-icons/io5";
+import { MdPets, MdSecurity } from "react-icons/md";
+import { TbCircleCheck, TbLockAccess } from "react-icons/tb";
+import { useNavigate } from "react-router-dom";
+import "./styles.css";
 
 
 
@@ -19,6 +15,12 @@ import { AiOutlineRise } from "react-icons/ai";
 export default function HomePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const appDownloadUrl = (import.meta.env.VITE_MOBILE_APP_DOWNLOAD_URL || "").trim();
+  const normalizedAppDownloadUrl = appDownloadUrl
+    ? (/^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(appDownloadUrl)
+      ? appDownloadUrl
+      : `https://${appDownloadUrl}`)
+    : "";
 
   const stats = [
       { number: '30+', label: t('pages.home.homePage.stats.items.clinics') },
@@ -121,7 +123,14 @@ export default function HomePage() {
     }
   ];
 
-  const handleLogin = () => navigate("/login");
+  const handleDownloadApp = () => {
+    if (normalizedAppDownloadUrl) {
+      window.location.assign(normalizedAppDownloadUrl);
+      return;
+    }
+
+    navigate("/");
+  };
   const handleRegister = () => navigate("/choose-clinic");
 
   return (
@@ -143,7 +152,7 @@ export default function HomePage() {
             </p>
 
             <div className="hero-buttons">
-              <button className="btn btn-primary" onClick={handleLogin}>
+              <button className="btn btn-primary" onClick={handleDownloadApp}>
                 <MdPets size={20}/> 
                 {t('pages.home.homePage.downloadApp')}
               </button>
