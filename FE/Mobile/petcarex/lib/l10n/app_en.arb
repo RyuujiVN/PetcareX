@@ -167,6 +167,8 @@
   "appointmentDetail": "Appointment Details",
   "doctorInfo": "Doctor & Clinic Info",
   "doctor": "Doctor",
+  "doctorExperience": "Experience",
+  "notUpdated": "Not updated",
   "specialty": "Specialty",
   "clinic": "Clinic",
   "serviceInfo": "Service Details",

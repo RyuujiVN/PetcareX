@@ -9,6 +9,7 @@ import '../../data/models/booking_models.dart';
 class StepClinicSelector extends StatelessWidget {
   final String? selectedClinicId;
   final ValueChanged<Clinic> onSelected;
+  final ValueChanged<Clinic>? onViewDetail;
   final List<Clinic> clinics;
   final bool isLoadingMore;
   final bool hasMore;
@@ -17,6 +18,7 @@ class StepClinicSelector extends StatelessWidget {
     super.key,
     required this.selectedClinicId,
     required this.onSelected,
+    this.onViewDetail,
     required this.clinics,
     this.isLoadingMore = false,
     this.hasMore = false,
@@ -34,6 +36,9 @@ class StepClinicSelector extends StatelessWidget {
               clinic: clinic,
               isSelected: clinic.id == selectedClinicId,
               onTap: () => onSelected(clinic),
+              onViewDetail: onViewDetail == null
+                  ? null
+                  : () => onViewDetail!(clinic),
             );
           },
         ),
@@ -64,11 +69,13 @@ class _ClinicCard extends StatelessWidget {
   final Clinic clinic;
   final bool isSelected;
   final VoidCallback onTap;
+  final VoidCallback? onViewDetail;
 
   const _ClinicCard({
     required this.clinic,
     required this.isSelected,
     required this.onTap,
+    this.onViewDetail,
   });
 
   @override
@@ -180,6 +187,37 @@ class _ClinicCard extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                       ),
                     ),
+                  if (onViewDetail != null) ...[
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: OutlinedButton.icon(
+                        onPressed: onViewDetail,
+                        icon: const Icon(Icons.visibility_outlined, size: 16),
+                        label: Text(
+                          l10n.viewDetail,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.primary,
+                          side: BorderSide(
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 8,
+                          ),
+                          visualDensity: const VisualDensity(
+                            horizontal: -2,
+                            vertical: -2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),

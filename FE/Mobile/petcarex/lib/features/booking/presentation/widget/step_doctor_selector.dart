@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../core/theme/app_colors.dart';
-import '../../../../core/enums/veterinary_specialty_enum.dart';
 import '../../../../l10n/generated/app_localizations.dart';
 import '../../data/models/booking_models.dart';
 
@@ -35,6 +34,13 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
     return value;
   }
 
+  String _nonEmptyOrFallback(String? value, String fallback) {
+    if (value == null || value.trim().isEmpty) {
+      return fallback;
+    }
+    return value.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -55,7 +61,6 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
             (i) => _listTile(
               widget.doctors[i],
               widget.doctors[i].user.fullName,
-              widget.doctors[i].specialty,
               widget.selectedDoctorId,
               widget.onSelected,
               Icons.person_outline,
@@ -69,11 +74,10 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
   Widget _buildSelectedDoctorInfo(Veterinarian doctor, AppLocalizations l10n) {
     final account = widget.selectedDoctorAccount ?? doctor.user;
 
-    final translatedSpecialty =
-        VeterinarySpecialtyEnum.fromValue(
-          doctor.specialty,
-        )?.getTranslatedName(context) ??
-        doctor.specialty;
+    final doctorExperience = _nonEmptyOrFallback(
+      doctor.experience,
+      l10n.notUpdated,
+    );
 
     return Container(
       width: double.infinity,
@@ -116,7 +120,7 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
           const SizedBox(height: 12),
           _detailRow(l10n.doctor, _nonEmptyOrDash(account.fullName)),
           const SizedBox(height: 6),
-          _detailRow(l10n.specialty, _nonEmptyOrDash(translatedSpecialty)),
+          _detailRow(l10n.doctorExperience, doctorExperience),
           const SizedBox(height: 6),
           _detailRow(l10n.email, _nonEmptyOrDash(account.email)),
           const SizedBox(height: 6),
@@ -157,13 +161,18 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
   Widget _listTile(
     Veterinarian doctor,
     String title,
-    String sub,
     String? selectedVarId,
     Function(Veterinarian) onSelect,
     IconData icon,
     String? avatarUrl,
   ) {
+    final l10n = AppLocalizations.of(context)!;
     bool isSel = selectedVarId == doctor.userId;
+    final experienceText = _nonEmptyOrFallback(
+      doctor.experience,
+      l10n.notUpdated,
+    );
+
     return GestureDetector(
       onTap: () => onSelect(doctor),
       child: Container(
@@ -212,10 +221,7 @@ class _StepDoctorSelectorState extends State<StepDoctorSelector> {
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        VeterinarySpecialtyEnum.fromValue(
-                              sub,
-                            )?.getTranslatedName(context) ??
-                            sub,
+                        '${l10n.doctorExperience}: $experienceText',
                         style: const TextStyle(
                           fontSize: 12,
                           color: AppColors.textGrey,

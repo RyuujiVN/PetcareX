@@ -511,6 +511,12 @@ class AppLocalizationsVi extends AppLocalizations {
   String get doctor => 'Bác sĩ';
 
   @override
+  String get doctorExperience => 'Kinh nghiệm';
+
+  @override
+  String get notUpdated => 'Chưa cập nhật';
+
+  @override
   String get specialty => 'Chuyên môn';
 
   @override

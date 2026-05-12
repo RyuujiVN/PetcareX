@@ -12,14 +12,44 @@ class ClinicRepository {
     final endpoint = ApiHelper.clinicHomepageSettingByIdEndpoint(clinicId);
     final response = await _apiClient.get(endpoint);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data is Map<String, dynamic>) {
-        return ClinicHomepageSetting.fromJson(data);
-      }
-      // BE đôi khi trả empty body cho clinic chưa cấu hình → trả về setting rỗng.
-      return ClinicHomepageSetting.fromJson(<String, dynamic>{});
+    if (response.statusCode == 404) {
+      return ClinicHomepageSetting.defaults();
     }
+
+    if (response.statusCode == 200) {
+      final rawBody = response.body.trim();
+      if (rawBody.isEmpty) {
+        return ClinicHomepageSetting.defaults();
+      }
+
+      try {
+        final data = jsonDecode(rawBody);
+        if (data is Map) {
+          return ClinicHomepageSetting.fromJson(
+            data.map((key, value) => MapEntry(key.toString(), value)),
+          );
+        }
+
+        if (data is String) {
+          final normalized = data.trim();
+          if (normalized.isEmpty) {
+            return ClinicHomepageSetting.defaults();
+          }
+
+          final parsed = jsonDecode(normalized);
+          if (parsed is Map) {
+            return ClinicHomepageSetting.fromJson(
+              parsed.map((key, value) => MapEntry(key.toString(), value)),
+            );
+          }
+        }
+
+        return ClinicHomepageSetting.defaults();
+      } catch (_) {
+        return ClinicHomepageSetting.defaults();
+      }
+    }
+
     throw Exception('Failed to load clinic homepage setting');
   }
 

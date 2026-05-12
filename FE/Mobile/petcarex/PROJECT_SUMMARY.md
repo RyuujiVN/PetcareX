@@ -10,6 +10,267 @@ PetCareX là ứng dụng di động quản lý chăm sóc thú cưng được p
 - **Networking:** Custom `ApiClient` (http) với cơ chế tự động đính kèm JWT Token.
 - **Lưu trữ:** `shared_preferences` (Cài đặt) & `flutter_secure_storage` (Thông tin đăng nhập).
 
+## 🆕 Cập nhật mới nhất (2026-05-08)
+
+### HomePage Cleanup — Xóa block Diễn đàn PetCareX khỏi Home (2026-05-08)
+- **Yêu cầu UX:** Ẩn/xóa phần preview `Diễn đàn PetCareX` ở cuối trang Home.
+- **Phạm vi triển khai (surgical):**
+    - `lib/features/home/presentation/home_page.dart`
+        - Xóa section header `petCareForum/explore` trong `_buildScrollableBody(...)`.
+        - Xóa widget `_buildForumPost()` (card sample forum post).
+        - Giữ nguyên các module khác của Home và giữ import `CachedNetworkImage` vì vẫn dùng cho avatar/profile/pet thumbnails.
+- **Kết quả:** Home page không còn hiển thị block Diễn đàn ở cuối màn; flow vào tab Community bằng bottom navigation vẫn giữ nguyên.
+
+### Nearby Clinic Detail Map UX — Bỏ link chữ, chỉ hiển thị nút khi có embed (2026-05-08)
+- **Yêu cầu UX:** Ở màn chi tiết phòng khám (luồng **Phòng khám gần nhất**), bỏ phần hiển thị link Google Maps dạng text; chỉ giữ nút `Mở Google Maps`. Với clinic chưa có dữ liệu `mapEmbedUrl`, không hiển thị nút.
+- **Root cause đã xác nhận:**
+    - `ClinicDetailPage` đang render 1 khối text hiển thị thẳng URL map (`launchUrlText`), gây rối UI.
+    - Dữ liệu fallback trong `ClinicHomepageSetting.defaults()` đang luôn gán sẵn `mapEmbedUrl/mapLink`, nên kể cả clinic chưa cấu hình map thật thì UI vẫn có dữ liệu và vẫn hiện nút.
+- **Phân tích phương án:**
+    - **Phương án A:** Chỉ ẩn text URL nhưng giữ nút disabled khi thiếu map.
+        - Nhược: vẫn chiếm không gian và tạo kỳ vọng thao tác nhưng không dùng được.
+    - **Phương án B:** Giữ fallback map mặc định để luôn có nút.
+        - Nhược: sai nghiệp vụ thực tế của từng clinic; user có thể mở nhầm map không đúng clinic.
+    - **Phương án C (được chọn):**
+        - Xóa hẳn block hiển thị URL map trên UI.
+        - Render nút `Mở Google Maps` theo điều kiện có `mapEmbedUrl` thật (`_normalizeMapEmbedValue(location.mapEmbedUrl).isNotEmpty`).
+        - Bỏ fallback map mặc định trong `ClinicHomepageSetting.defaults()` để dữ liệu thiếu map không bị "giả có" map.
+- **Tự phản biện giải pháp đã chọn:**
+    - Nếu clinic chỉ set `mapLink` mà không set `mapEmbedUrl`, nút sẽ vẫn bị ẩn theo đúng rule nghiệp vụ mới.
+    - Trade-off chấp nhận: ưu tiên tính đúng dữ liệu thực tế từng clinic hơn việc luôn có CTA bản đồ.
+- **Phạm vi triển khai FE mobile (surgical):**
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+        - Bỏ khối container hiển thị URL Google Maps.
+        - Chỉ render nút `Mở Google Maps` khi có `mapEmbedUrl`.
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`
+        - Xóa default `mapEmbedUrl/mapLink` hardcoded.
+        - Đổi subtitle mặc định location sang nội dung trung tính (`Thông tin địa chỉ phòng khám.`).
+- **Kết quả UX:**
+    - Màn thông tin phòng khám gọn hơn, không còn lộ URL dài.
+    - Chỉ những clinic đã cấu hình embed map mới hiển thị nút mở Google Maps.
+
+### Nearby Clinic Open Map Native App First — Ưu tiên mở app Google Maps (2026-05-08)
+- **Vấn đề:** Khi bấm `Mở Google Maps`, một số thiết bị chỉ mở Chrome với link nhúng, trải nghiệm kém và có trường hợp web embed không hiển thị đúng.
+- **Giải pháp (surgical):**
+    - Trong `ClinicDetailPage`, khi mở map sẽ thử theo thứ tự:
+        - `comgooglemaps://?q=...`
+        - `geo:0,0?q=...`
+        - fallback URL hiện có nhưng chỉ khi là native scheme (`comgooglemaps`, `geo`, `google.navigation`).
+    - Đồng thời trích xuất `query` từ `mapLink/mapEmbedUrl` (hỗ trợ `q`, `query`, hoặc path `/place/...`) trước khi build deep-link.
+- **Kết quả:**
+    - Ưu tiên mở trực tiếp app bản đồ (đặc biệt Google Maps) thay vì nhảy thẳng vào Chrome.
+    - Không fallback web; nếu thiết bị không mở được deep-link app map thì hiển thị lỗi thay vì redirect Chrome.
+
+### Nearby Clinic Map Placeholder Cleanup — Loại bỏ link map mặc định Procare (2026-05-08)
+- **Phản ánh thực tế sau deploy:** Một số clinic chưa tự cấu hình map nhưng vẫn hiện nút Google Maps do dữ liệu cũ còn chứa giá trị placeholder mặc định (Procare) trong `mapEmbedUrl`/`mapLink`.
+- **Nguyên nhân:** Parser trước đó coi mọi URL map trả về từ API là dữ liệu hợp lệ, chưa phân biệt placeholder mặc định với dữ liệu clinic thật.
+- **Giải pháp tối ưu (surgical):**
+    - Chuẩn hóa và sanitize `mapEmbedUrl/mapLink` ngay tại model parser.
+    - Nếu URL Google Maps có query trỏ tới placeholder `Bệnh viện thú y Procare` thì coi là dữ liệu rỗng.
+    - UI đã có rule chỉ hiện nút khi `mapEmbedUrl` còn dữ liệu sau sanitize, nên clinic chưa set map sẽ tự ẩn nút.
+- **Phạm vi thay đổi:**
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`: thêm `_sanitizeMapValue(...)` và `_isLegacyDefaultMapValue(...)`.
+- **Trade-off:**
+    - Nếu có clinic thật sự muốn dùng đúng địa điểm Procare thì map sẽ bị coi là placeholder và bị ẩn; có thể bỏ rule này sau khi dữ liệu backend được dọn sạch đồng bộ.
+
+### Nearby Clinic Address Consistency Fix — Không còn nhảy sang địa chỉ mẫu (2026-05-08)
+- **Vấn đề phát sinh:** Ở card phòng khám gần nhất hiển thị địa chỉ đúng theo clinic đã chọn, nhưng vào trang detail/location section lại hiện địa chỉ khác.
+- **Root cause:** `ClinicHomepageSetting.defaults()` còn hardcode địa chỉ mẫu (`240 Phan Đăng Lưu...`), nên khi clinic chưa có `locationSection.address` trong settings thì parser fallback về địa chỉ mẫu này.
+- **Giải pháp (surgical):**
+    - Xóa địa chỉ hardcoded khỏi default model (`address: ''`).
+    - Ở `ClinicDetailPage`, khi render location section sẽ fallback theo thứ tự: `settings.locationSection.address` -> `widget.clinic.address`.
+- **Kết quả:**
+    - Nếu settings có địa chỉ riêng thì vẫn hiển thị đúng dữ liệu đã cấu hình.
+    - Nếu settings chưa có địa chỉ thì detail luôn đồng bộ với địa chỉ của clinic người dùng vừa chọn, không còn đổi sang địa chỉ mẫu.
+
+### Nearby Clinic About Address Sync — Đồng bộ địa chỉ ở phần Giới thiệu (2026-05-08)
+- **Vấn đề phát sinh:** Ở section `GIỚI THIỆU BỆNH VIỆN`, một số clinic hiển thị nội dung kiểu địa chỉ nhưng lệch với section `ĐỊA CHỈ PHÒNG KHÁM` (địa chỉ đúng).
+- **Root cause:** Dữ liệu `about.description` có thể đang chứa text dạng địa chỉ cũ/tĩnh. UI trước đó render thẳng giá trị này nên gây lệch nguồn hiển thị địa chỉ.
+- **Giải pháp (surgical):**
+    - Tại `ClinicDetailPage`, thêm normalize cho `about.description`:
+        - Nếu `about.description` rỗng -> dùng địa chỉ chuẩn của màn (ưu tiên `settings.locationSection.address`, fallback `widget.clinic.address`).
+        - Nếu `about.description` có pattern giống địa chỉ (có dấu phẩy + keyword địa chỉ + số nhà) -> cũng dùng địa chỉ chuẩn của màn.
+        - Nếu là mô tả giới thiệu thật (không phải địa chỉ) -> giữ nguyên.
+- **Kết quả:**
+    - Dòng thông tin địa chỉ trong phần giới thiệu luôn đồng bộ với phần địa chỉ đang đúng theo clinic hiện tại (ví dụ: `206 ...`).
+    - Không làm mất nội dung giới thiệu thật với clinic đã cấu hình description chuẩn.
+
+### Nearby Clinic Gallery Load Fix — Đồng bộ dữ liệu ảnh giữa web và mobile (2026-05-08)
+- **Vấn đề:** Web hiển thị đủ gallery nhưng mobile báo/trả trạng thái không có ảnh hoặc ảnh không render.
+- **Root cause đã xác nhận:**
+    - Dữ liệu `galleryImages` từ các phiên bản web khác nhau có thể khác schema (`image`, `url`, `file`, `secure_url`, `src`, hoặc item là string URL).
+    - Một số clinic dùng path ảnh tương đối kiểu web (`/homePageClinic.png`, `/forum1.png`, `/bs1.png`) vốn tồn tại ở `FE/Web/client/public`, nhưng mobile trước đó resolve theo backend URL nên gặp 404.
+- **Giải pháp (surgical):**
+    - Nâng parser `galleryImages` trong mobile để tương thích ngược nhiều format input (list/map/string + nhiều key URL).
+    - Nâng `_resolveImageUrl(...)` để xử lý tốt hơn path tương đối:
+        - hỗ trợ `uploads/...` dạng không có dấu `/` đầu.
+        - map các path web-default (`/homePageClinic.png`, `/pageMainClinic.png`, `/forum*.png`, `/bs*.png`) sang asset local mobile.
+    - Đồng bộ asset ảnh mặc định từ web public sang mobile assets.
+- **Phạm vi thay đổi:**
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+    - `assets/images/` (thêm: `homePageClinic.png`, `pageMainClinic.png`, `forum1.png`, `forum2.png`, `forum3.png`, `bs1.png`, `bs2.png`, `bs3.png`, `bs4.png`)
+- **Kết quả:**
+    - Gallery mobile render được cả dữ liệu ảnh mới và dữ liệu legacy từ web.
+    - Trường hợp clinic đang dùng path ảnh mặc định kiểu web không còn bị rỗng ảnh trên mobile.
+
+### Nearby Clinic Gallery UI Simplification — Chỉ hiển thị ảnh, bỏ text trên ảnh (2026-05-08)
+- **Yêu cầu UX:** Trong gallery chỉ hiển thị ảnh, bỏ các chữ overlay như `Hoạt động phòng khám`, `Đội ngũ tại phòng khám`, `Hình ảnh thường ngày`...
+- **Triển khai:**
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+        - Bỏ lớp gradient + text overlay trên từng tile ảnh gallery.
+        - Placeholder ảnh chỉ còn icon, không render text label.
+        - Dialog preview ảnh bỏ title text ở đầu dialog.
+- **Kết quả:** Gallery hiển thị tối giản, chỉ còn nội dung hình ảnh đúng yêu cầu.
+
+### Rollback Manual Gallery Assets — Xóa ảnh thêm tay theo yêu cầu (2026-05-08)
+- **Yêu cầu:** Không giữ các file ảnh được thêm thủ công vào mobile assets.
+- **Triển khai:** Đã xóa các file ảnh đã thêm trước đó trong `assets/images` (`homePageClinic.png`, `pageMainClinic.png`, `forum1-3.png`, `bs1-4.png`) và bỏ map fallback tương ứng trong `clinic_detail_page.dart`.
+- **Lưu ý:** Mobile sẽ ưu tiên render theo URL ảnh thực từ dữ liệu settings/API.
+
+### Forum Search UX Simplification + Auto Reset Khi Quay Lại Tab (2026-05-08)
+- **Yêu cầu UX:**
+    - Khi user đang search, không hiển thị thêm dòng trạng thái kiểu `Đang tìm: ...` vì đã có keyword ngay trong ô search.
+    - Nếu user rời tab Forum (qua Home/chức năng khác) rồi quay lại Forum, search phải tự xóa để trả màn về trạng thái mặc định ban đầu.
+- **Root cause đã xác nhận:**
+    - `CommunityPage` đang render thêm 1 hàng trạng thái search riêng (`_buildSearchStatusChip`) bên dưới search bar, gây trùng thông tin và chiếm không gian UI.
+    - `MainNavigationWrapper` dùng `IndexedStack`, nên state của `CommunityPage/CommunityProvider` được giữ lại khi đổi tab; keyword search vì thế không tự reset.
+- **Phân tích phương án:**
+    - **Phương án A:** Giữ chip `Đang tìm` + chỉ đổi wording ngắn hơn.
+        - Nhược: vẫn trùng thông tin với ô search, không giải quyết vấn đề chính.
+    - **Phương án B:** Clear search ngay khi user rời tab Forum.
+        - Nhược: hành vi quá sớm; user vừa chuyển tab đã mất trạng thái, khó kiểm soát nếu chỉ muốn tạm xem màn khác.
+    - **Phương án C (được chọn):**
+        - Bỏ hẳn chip trạng thái search (giảm nhiễu UI).
+        - Chỉ auto-clear khi user **quay lại** tab Forum từ tab khác (`previousIndex != 2`), đảm bảo đúng yêu cầu nghiệp vụ.
+- **Tự phản biện giải pháp đã chọn:**
+    - Mỗi lần quay lại Forum sẽ khởi tạo lại feed mặc định nếu trước đó có keyword (vì `setSearchKeyword('')` sẽ fetch lại data).
+    - Trade-off này được chấp nhận vì ưu tiên UX rõ ràng: vào lại Forum là một phiên duyệt mới, tránh user bị "kẹt" trong trạng thái lọc cũ.
+- **Phạm vi triển khai FE mobile (surgical):**
+    - `lib/features/community/presentation/community_page.dart`
+        - Bỏ render `if (provider.isSearching) _buildSearchStatusChip(...)`.
+        - Xóa method `_buildSearchStatusChip(...)` (không còn dùng).
+    - `lib/features/main_navigation/presentation/main_navigation_wrapper.dart`
+        - Thêm import `CommunityProvider`.
+        - Trong `setSelectedIndex(...)`, lưu `previousIndex` và khi chuyển về tab Forum (`index == 2`) từ tab khác, gọi `setSearchKeyword('')` để reset search.
+- **Kết quả UX:**
+    - Giao diện forum gọn hơn khi search, không còn dòng trạng thái lặp thông tin.
+    - Sau khi đi tab khác và quay lại Forum, bộ lọc search tự được xóa và feed trở về trạng thái mặc định.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/community/presentation/community_page.dart lib/features/main_navigation/presentation/main_navigation_wrapper.dart` → **No issues found**.
+
+### Global Keyboard Dismiss on Outside Tap (2026-05-08)
+- **Yêu cầu UX:** Khi người dùng đang nhập liệu (bàn phím đang mở), thao tác chạm vào vùng trống ngoài ô nhập phải ưu tiên **đóng bàn phím trước**.
+- **Phân tích phương án:**
+    - **Phương án A:** Gắn `onTapOutside` cho từng `TextField`.
+        - Nhược: tốn công bảo trì, dễ sót màn hình/modal mới, khó đảm bảo hành vi đồng nhất toàn app.
+    - **Phương án B:** Bọc `GestureDetector` riêng cho từng page có form.
+        - Nhược: vẫn phân mảnh theo màn, phát sinh duplicate code.
+    - **Phương án C (được chọn):** Bọc toàn cục tại `MaterialApp.builder` để xử lý dismiss focus một điểm duy nhất.
+        - Ưu: thay đổi nhỏ (surgical), áp dụng đồng bộ cho mọi route hiện tại và tương lai, ít rủi ro regression.
+- **Tự phản biện giải pháp đã chọn:**
+    - Nếu bắt sự kiện pointer quá sớm (`Listener onPointerDown`) có thể làm hành vi tap trở nên "gắt" và ảnh hưởng gesture hiện có.
+    - Dùng `GestureDetector(onTap)` ở tầng app giúp giữ hành vi tự nhiên: chỉ xử lý khi có tap hợp lệ, vẫn tương thích với luồng điều hướng/nút bấm hiện tại.
+- **Phạm vi triển khai FE mobile (tối thiểu):**
+    - `lib/main.dart`
+        - Thêm `builder` cho `MaterialApp`.
+        - Bọc `child` bằng `GestureDetector(behavior: HitTestBehavior.translucent)`.
+        - Trên `onTap`, gọi `FocusManager.instance.primaryFocus?.unfocus();` để đóng bàn phím khi tap vùng ngoài.
+- **Kết quả UX:**
+    - Người dùng có thể chạm vùng trống để ẩn bàn phím nhanh, theo hành vi phổ biến của ứng dụng mobile hiện đại.
+    - Không cần sửa từng màn nhập liệu riêng lẻ.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/main.dart` → **No issues found**.
+
+### Clinic Detail từ luồng "Phòng khám gần bạn" — Đồng bộ schema HomePageClinic (2026-05-07)
+- **Bối cảnh:** Người dùng cần xem đầy đủ thông tin phòng khám (hero/about/gallery/team/location/map) khi chọn 1 phòng khám trong ngữ cảnh **phòng khám gần bạn**, thay vì chỉ xem card tóm tắt.
+- **Root cause đã xác nhận:**
+    - `ClinicDetailPage` trước đó mới render được subset schema cũ (`banner/introduction/services/contact`).
+    - Dữ liệu thực tế từ `GET /api/clinic-homepage-setting/:clinicId` đang được quản trị theo schema HomePageClinic (hero/about/gallery/team/location) tương tự web.
+    - Ở flow Booking step `Clinic`, người dùng chưa có điểm vào rõ ràng để "xem trước phòng khám" trước khi chốt chọn.
+- **Phản biện phương án:**
+    - **Phương án A:** Hardcode nội dung PetCar cố định trực tiếp vào mobile UI.
+        - Nhược: lệch dữ liệu theo từng clinic, không theo được nội dung do admin cập nhật ở portal editor, khó maintain.
+    - **Phương án B (được chọn):** Đồng bộ parser mobile theo schema HomePageClinic + fallback an toàn + giữ tương thích schema cũ.
+        - Ưu: đúng contract dữ liệu thực tế, không đổi BE, vẫn chạy ổn cho clinic chưa cấu hình đầy đủ.
+- **Triển khai FE mobile (surgical):**
+    - `lib/features/clinic/data/models/clinic_homepage_setting.dart`
+        - Mở rộng model sang các khối: `hero`, `about`, `gallerySection`, `galleryImages`, `teamSection`, `doctors`, `locationSection`.
+        - Giữ parser tương thích ngược các field cũ (`banner/introduction/services/workingHours/contactPhone`).
+        - Bổ sung default content/fallback đúng bộ dữ liệu PetCar để tránh trang trắng khi payload thiếu.
+    - `lib/features/clinic/data/clinic_repository.dart`
+        - Parser chịu được response `Map`, `String(JSON)` và body rỗng.
+        - `404` trả về default setting (không coi là crash flow xem phòng khám).
+    - `lib/features/clinic/presentation/clinic_detail_page.dart`
+        - Render lại màn chi tiết theo các section: banner đầu trang + CTA, giới thiệu bệnh viện, thư viện ảnh, đội ngũ phòng khám, đánh giá, địa chỉ + map link.
+        - Với bản đồ: parse được cả dạng URL thuần hoặc iframe HTML (`src=...`), mở ngoài app bằng `url_launcher`.
+    - `lib/features/booking/presentation/widget/step_clinic_selector.dart`
+        - Thêm action `Xem chi tiết` trên card clinic ngay trong step chọn phòng khám.
+    - `lib/features/booking/presentation/booking_page.dart`
+        - Wire điều hướng sang `ClinicDetailPage` từ action `Xem chi tiết`.
+    - `pubspec.yaml`
+        - Thêm dependency `url_launcher` để mở Google Maps.
+- **Kết quả UX:**
+    - Người dùng có thể xem đầy đủ thông tin phòng khám theo đúng nội dung portal trước khi quyết định đặt lịch.
+    - Flow booking vẫn giữ nguyên logic chọn clinic hiện tại, chỉ bổ sung entry point xem chi tiết.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/clinic/presentation/clinic_detail_page.dart lib/features/clinic/data/models/clinic_homepage_setting.dart lib/features/clinic/data/clinic_repository.dart lib/features/booking/presentation/widget/step_clinic_selector.dart lib/features/booking/presentation/booking_page.dart`
+
+### Booking Doctor Detail Info — Bổ sung Chuyên ngành + Kinh nghiệm (2026-05-07)
+- **Bối cảnh:** Ở bước `Doctor` trong flow booking, khi tap chọn 1 bác sĩ thì card chi tiết đã có tên/email/phone/address nhưng thiếu trường **Kinh nghiệm**; đồng thời khi thiếu dữ liệu chuyên ngành UI dễ rơi vào hiển thị trống/khó hiểu.
+- **Đối chiếu contract BE (đã xác nhận):** Endpoint `GET /api/veterinarian` (lọc theo clinicId/specialty) trả entity `Veterinarian` có sẵn `specialty` và `experience`.
+- **Phản biện phương án:**
+    - **Phương án A:** Gọi thêm API chi tiết bác sĩ sau khi chọn.
+        - Nhược: tăng request, tăng độ trễ UI, phát sinh loading state/race-condition không cần thiết vì dữ liệu đã có trong list response.
+    - **Phương án B (được chọn):** Mở rộng parse model từ response hiện tại + render thêm field kinh nghiệm ngay trên card đã có.
+        - Ưu: thay đổi nhỏ (surgical), không đổi contract BE, không tăng call mạng, UX phản hồi tức thì khi user tap bác sĩ.
+- **Triển khai FE mobile:**
+    - `lib/features/booking/data/models/booking_models.dart`
+        - Bổ sung field `experience` cho `Veterinarian` và parse từ `json['experience']`.
+    - `lib/features/booking/presentation/widget/step_doctor_selector.dart`
+        - Card thông tin bác sĩ khi selected hiển thị thêm:
+            - `Chuyên ngành: ...`
+            - `Kinh nghiệm: ...`
+        - Fallback dữ liệu thiếu cho 2 trường trên: **`Chưa cập nhật`**.
+        - Subtitle của item bác sĩ trong list cũng fallback `Chưa cập nhật` khi specialty rỗng để tránh tile trắng thông tin.
+    - i18n:
+        - `lib/l10n/app_vi.arb`, `lib/l10n/app_en.arb` thêm key:
+            - `doctorExperience`
+            - `notUpdated`
+        - Regenerate `lib/l10n/generated/*` bằng `flutter gen-l10n`.
+- **Kết quả:**
+    - Khi chọn bác sĩ, người dùng thấy đầy đủ chuyên ngành + kinh nghiệm nếu có.
+    - Nếu thiếu dữ liệu BE, UI hiển thị rõ ràng dạng `Chuyên ngành: Chưa cập nhật`, `Kinh nghiệm: Chưa cập nhật` thay vì trống/khó hiểu.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/booking/presentation/widget/step_doctor_selector.dart lib/features/booking/data/models/booking_models.dart` → **No issues found**.
+
+### Community Comment hiển thị dữ liệu thô (raw HTML/token) — Root cause & Fix
+- **Bối cảnh lỗi:** Một số comment/reply trên mobile hiển thị thô dạng `<p>...</p>`, `<img ...>` hoặc token `[[img:...]]` thay vì text + ảnh đúng UI.
+- **Nguyên nhân gốc đã xác nhận (đúng tại FE mobile):**
+    - Parser ở `community_page.dart` trước đó chỉ xử lý tốt HTML literal.
+    - Chưa tương thích đầy đủ dữ liệu mixed-format từ các nguồn khác nhau trong hệ sinh thái:
+        - HTML literal (`<p>`, `<br>`, `<img>`),
+        - HTML escaped (`&lt;p&gt;...&lt;/p&gt;`),
+        - Token format từ web (`[[img:...]]`, `[[title:...]]`, `[[no-topic:1]]`).
+    - Thứ tự xử lý cũ decode entity sau bước strip tag làm một số nội dung vẫn còn tag thô ở output.
+- **Tự phản biện phương án:**
+    - **Phương án A:** Render HTML trực tiếp bằng widget HTML.
+        - Ưu: nhanh thấy nội dung “đẹp” ngay.
+        - Nhược: tăng rủi ro bảo mật/render inconsistency, khó đồng bộ với layout text+image hiện có.
+    - **Phương án B (được chọn):** Giữ nguyên UI render hiện tại, nâng parser để normalize multi-format trước khi tách text/ảnh.
+        - Ưu: diff nhỏ, an toàn, không đổi contract BE, tương thích chéo mobile-web tốt hơn.
+- **Phạm vi thay đổi (surgical, FE mobile only):**
+    - `lib/features/community/presentation/community_page.dart`
+        - Thêm `_decodeHtmlEntities(...)`.
+        - Thêm `_normalizeStructuredContent(...)`.
+        - Nâng `_extractImageUrlsFromHtml(...)` để lấy ảnh từ cả HTML và token `[[img:...]]` + dedupe URL.
+        - Nâng `_extractPlainTextFromHtml(...)` để xử lý HTML escaped + strip token/title/no-topic + normalize xuống dòng.
+- **Kết quả:**
+    - Comment/reply/post không còn hiện dữ liệu thô khi gặp mixed-format content.
+    - Flow edit/comment/reply tiếp tục dùng chung parser nên tương thích ngược với dữ liệu cũ.
+- **Tự kiểm tra:**
+    - `flutter analyze lib/features/community/presentation/community_page.dart` → **No issues found**.
+
 ## ⚡ Community Performance & UX Optimization (2026-03-25)
 
 ### 1) Tối ưu tốc độ đăng bài có nhiều ảnh (Pre-upload)

@@ -1070,6 +1070,18 @@ abstract class AppLocalizations {
   /// **'Bác sĩ'**
   String get doctor;
 
+  /// No description provided for @doctorExperience.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kinh nghiệm'**
+  String get doctorExperience;
+
+  /// No description provided for @notUpdated.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa cập nhật'**
+  String get notUpdated;
+
   /// No description provided for @specialty.
   ///
   /// In vi, this message translates to:

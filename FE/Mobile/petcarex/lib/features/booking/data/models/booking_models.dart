@@ -75,6 +75,7 @@ class Veterinarian {
   final String clinicId;
   final VetUser user;
   final String specialty;
+  final String? experience;
 
   // Added for UI tracking if needed
   bool isSelected;
@@ -84,6 +85,7 @@ class Veterinarian {
     required this.clinicId,
     required this.user,
     required this.specialty,
+    this.experience,
     this.isSelected = false,
   });
 
@@ -92,7 +94,8 @@ class Veterinarian {
       userId: json['userId'] ?? '',
       clinicId: json['clinicId'] ?? '',
       user: VetUser.fromJson(json['user'] ?? {}),
-      specialty: json['specialty'] ?? '',
+      specialty: json['specialty']?.toString() ?? '',
+      experience: json['experience']?.toString(),
     );
   }
 }

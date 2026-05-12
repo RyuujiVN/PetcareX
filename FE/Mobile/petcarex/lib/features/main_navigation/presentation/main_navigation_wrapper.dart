@@ -9,6 +9,7 @@ import '../../../../features/appointment/presentation/appointment_navigation_con
 import '../../../../features/appointment/presentation/appointment_page.dart';
 import '../../../../features/appointment/presentation/provider/appointment_provider.dart';
 import '../../../../features/community/presentation/community_page.dart';
+import '../../../../features/community/presentation/provider/community_provider.dart';
 import '../../../../features/home/presentation/home_page.dart';
 import '../../../../features/notification/presentation/provider/notification_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
@@ -60,6 +61,7 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
   }
 
   void setSelectedIndex(int index) {
+    final previousIndex = _selectedIndex;
     final wasInitialized = _initializedPages.contains(index);
 
     setState(() {
@@ -73,6 +75,10 @@ class MainNavigationWrapperState extends State<MainNavigationWrapper> {
 
     if (index == 1 && wasInitialized) {
       unawaited(context.read<AppointmentProvider>().fetchAppointments());
+    }
+
+    if (index == 2 && wasInitialized && previousIndex != 2) {
+      unawaited(context.read<CommunityProvider>().setSearchKeyword(''));
     }
   }
 

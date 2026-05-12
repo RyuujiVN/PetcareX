@@ -513,6 +513,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doctor => 'Doctor';
 
   @override
+  String get doctorExperience => 'Experience';
+
+  @override
+  String get notUpdated => 'Not updated';
+
+  @override
   String get specialty => 'Specialty';
 
   @override
