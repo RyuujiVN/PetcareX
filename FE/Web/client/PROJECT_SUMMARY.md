@@ -20,7 +20,47 @@ Dự án được xây dựng theo kiến trúc route-based, tách theo từng p
 - Styling: CSS Modules + CSS page-level + token CSS variables.
 - Charts: `recharts` (Area chart cho Revenue Dashboard).
 
-## Cập nhật mới nhất (2026-05-08)
+## Cập nhật mới nhất (2026-05-12)
+
+### Cập nhật (2026-05-12) — Nút "Tải ứng dụng ngay" redirect theo env + fallback Home
+
+**Yêu cầu nghiệp vụ:**
+- Nút `Tải ứng dụng ngay` trên Home (UI mobile/web) phải redirect sang link tải app lấy từ biến env.
+- Nếu biến env trống hoặc không tồn tại, phải điều hướng về trang Home (`/`) thay vì giữ behavior cũ.
+
+**Nguyên nhân gốc (đã xác nhận):**
+- Nút `Tải ứng dụng ngay` đang dùng chung handler `handleLogin` để đi tới `/login`, chưa có cơ chế đọc link tải app từ cấu hình môi trường.
+- Dự án chưa khai báo biến env riêng cho download link, nên không thể đổi link theo môi trường deploy.
+
+**Tự phản biện & phương án tối ưu đã chọn:**
+- Phương án A: hardcode link tải app trong component.
+  - Ưu điểm: nhanh.
+  - Nhược: không đổi theo môi trường, mỗi lần đổi link phải sửa code/redeploy.
+- Phương án B: tạo endpoint BE trả link tải app.
+  - Ưu điểm: tập trung cấu hình phía server.
+  - Nhược: vượt scope yêu cầu FE-only, tăng độ phức tạp không cần thiết.
+- Phương án C (được chọn): đọc từ `VITE_MOBILE_APP_DOWNLOAD_URL` ngay trong component và fallback về `/` nếu rỗng.
+  - Ưu điểm: đúng yêu cầu, diff nhỏ, không đổi contract API/BE, dễ cấu hình qua env.
+
+**Phạm vi thay đổi (FE Web only):**
+- `src/pages/client/Home/HomePage/index.jsx`
+- `.env`
+- `.env.example`
+
+**Chi tiết kỹ thuật đã áp dụng:**
+- Thêm biến env mới: `VITE_MOBILE_APP_DOWNLOAD_URL`.
+- Đổi handler nút Download:
+  - Có link env => `window.location.assign(downloadUrl)` để redirect tải app.
+  - Không có link env => `navigate('/')`.
+- Giữ nguyên toàn bộ UI/label của nút, chỉ đổi behavior click.
+
+**Xác nhận không ảnh hưởng BE:**
+- Không sửa endpoint, payload, DTO, schema hoặc migration backend.
+
+**Tự kiểm tra:**
+- `get_errors` trên file HomePage và env: không có lỗi.
+
+## Cập nhật trước đó (2026-05-08)
 
 ### Cập nhật (2026-05-08) — Click notification tố cáo trỏ thẳng vào bài viết bị tố cáo
 
