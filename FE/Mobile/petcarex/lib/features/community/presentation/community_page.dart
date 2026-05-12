@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +13,9 @@ import '../../../../core/utils/image_helper.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../auth/presentation/providers/auth_provider.dart';
 import '../../notification/presentation/widgets/notification_bell_button.dart';
-import '../data/models/community_models.dart';
 import '../../report/data/models/report_models.dart';
 import '../../report/presentation/widgets/report_reason_sheet.dart';
+import '../data/models/community_models.dart';
 import 'create_post_page.dart';
 import 'provider/community_provider.dart';
 import 'widgets/forum_search_bar.dart';
@@ -35,37 +35,85 @@ class _CommunityPageState extends State<CommunityPage> {
   String? _highlightedPostId;
   Timer? _highlightResetTimer;
 
-  List<String> _extractImageUrlsFromHtml(String html) {
-    final matches = RegExp(
-      "<img[^>]*src=['\\\"]([^'\\\"]+)['\\\"][^>]*>",
-      caseSensitive: false,
-    ).allMatches(html);
-
-    final seen = <String>{};
-    final result = <String>[];
-    for (final m in matches) {
-      final url = m.group(1)?.trim() ?? '';
-      if (url.isEmpty) continue;
-      if (seen.add(url)) result.add(url);
-    }
-    return result;
-  }
-
-  String _extractPlainTextFromHtml(String html) {
-    var plain = html
-        .replaceAll(RegExp(r'<img[^>]*>', caseSensitive: false), '')
-        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'</p>', caseSensitive: false), '\n')
-        .replaceAll(RegExp(r'<p[^>]*>', caseSensitive: false), '')
-        .replaceAll(RegExp(r'<[^>]+>'), '');
-
-    plain = plain
+  String _decodeHtmlEntities(String input) {
+    return input
         .replaceAll('&nbsp;', ' ')
         .replaceAll('&amp;', '&')
         .replaceAll('&lt;', '<')
         .replaceAll('&gt;', '>')
         .replaceAll('&quot;', '"')
         .replaceAll('&#39;', "'");
+  }
+
+  String _normalizeStructuredContent(String rawContent) {
+    final raw = rawContent.trim();
+    if (raw.isEmpty) return '';
+
+    final decoded = _decodeHtmlEntities(raw);
+    final hasStructuredMarkers = RegExp(
+      r'(\[\[(img|title|no-topic):)|(</?[a-z][^>]*>)',
+      caseSensitive: false,
+    ).hasMatch(decoded);
+
+    return hasStructuredMarkers ? decoded : raw;
+  }
+
+  List<String> _extractImageUrlsFromHtml(String rawContent) {
+    final content = _normalizeStructuredContent(rawContent);
+    final tokenMatches = RegExp(
+      r'\[\[img:(.*?)\]\]',
+      caseSensitive: false,
+    ).allMatches(content);
+    final htmlMatches = RegExp(
+      "<img[^>]*src=['\\\"]([^'\\\"]+)['\\\"][^>]*>",
+      caseSensitive: false,
+    ).allMatches(content);
+
+    final seen = <String>{};
+    final result = <String>[];
+
+    for (final m in tokenMatches) {
+      final url = m.group(1)?.trim() ?? '';
+      if (url.isEmpty) continue;
+      if (seen.add(url)) result.add(url);
+    }
+
+    for (final m in htmlMatches) {
+      final url = m.group(1)?.trim() ?? '';
+      if (url.isEmpty) continue;
+      if (seen.add(url)) result.add(url);
+    }
+
+    return result;
+  }
+
+  String _extractPlainTextFromHtml(String rawContent) {
+    var plain = _normalizeStructuredContent(rawContent)
+        .replaceAll(RegExp(r'\[\[no-topic:1\]\]', caseSensitive: false), '')
+        .replaceAllMapped(
+          RegExp(r'\[\[title:(.*?)\]\]', caseSensitive: false),
+          (match) {
+            final title = match.group(1)?.trim() ?? '';
+            if (title.isEmpty) return '';
+            return '$title\n';
+          },
+        )
+        .replaceAll(RegExp(r'\[\[img:.*?\]\]', caseSensitive: false), '')
+        .replaceAll(RegExp(r'<img[^>]*>', caseSensitive: false), '')
+        .replaceAll(RegExp(r'<br\s*/?>', caseSensitive: false), '\n')
+        .replaceAll(
+          RegExp(r'</(p|div|li|ul|ol|blockquote|h[1-6])>', caseSensitive: false),
+          '\n',
+        )
+        .replaceAll(
+          RegExp(r'<(p|div|li|ul|ol|blockquote|h[1-6])[^>]*>', caseSensitive: false),
+          '',
+        )
+        .replaceAll(RegExp(r'<[^>]+>'), '');
+
+    plain = _decodeHtmlEntities(plain)
+        .replaceAll(RegExp(r'[ \t]+\n'), '\n')
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n');
 
     return plain.trim();
   }
@@ -1811,7 +1859,6 @@ class _CommunityPageState extends State<CommunityPage> {
         child: Column(
           children: [
             _buildSearchBar(l10n),
-            if (provider.isSearching) _buildSearchStatusChip(provider, l10n),
             _buildCategoryTabs(provider, l10n, languageCode),
             Expanded(
               child: RefreshIndicator(
@@ -1885,51 +1932,6 @@ class _CommunityPageState extends State<CommunityPage> {
           const NotificationBellButton(
             iconColor: AppColors.textDark,
             iconSize: 28,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSearchStatusChip(CommunityProvider provider, AppLocalizations l10n) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: AppColors.appBarBackground,
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                l10n.forumSearchActive(provider.searchKeyword),
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          GestureDetector(
-            onTap: () => context.read<CommunityProvider>().setSearchKeyword(''),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                l10n.forumSearchClear,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
           ),
         ],
       ),

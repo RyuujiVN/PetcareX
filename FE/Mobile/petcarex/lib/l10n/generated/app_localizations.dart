@@ -1070,6 +1070,18 @@ abstract class AppLocalizations {
   /// **'Bác sĩ'**
   String get doctor;
 
+  /// No description provided for @doctorExperience.
+  ///
+  /// In vi, this message translates to:
+  /// **'Kinh nghiệm'**
+  String get doctorExperience;
+
+  /// No description provided for @notUpdated.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa cập nhật'**
+  String get notUpdated;
+
   /// No description provided for @specialty.
   ///
   /// In vi, this message translates to:
@@ -2425,6 +2437,102 @@ abstract class AppLocalizations {
   /// In vi, this message translates to:
   /// **'Bạn đã tố cáo bài viết này.'**
   String get reportPostAlreadyReported;
+
+  /// No description provided for @nearbyClinicTitle.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám gần bạn'**
+  String get nearbyClinicTitle;
+
+  /// No description provided for @nearbyClinicEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Chưa có phòng khám nào quanh bạn.'**
+  String get nearbyClinicEmpty;
+
+  /// No description provided for @nearbyClinicLocationRequiredDenied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Cần quyền vị trí để tìm phòng khám gần bạn. Vui lòng cấp quyền và thử lại.'**
+  String get nearbyClinicLocationRequiredDenied;
+
+  /// No description provided for @nearbyClinicLocationRequiredServiceDisabled.
+  ///
+  /// In vi, this message translates to:
+  /// **'Vui lòng bật Vị trí (GPS) trên thiết bị để tìm phòng khám gần bạn.'**
+  String get nearbyClinicLocationRequiredServiceDisabled;
+
+  /// No description provided for @nearbyClinicLocationRequiredPermanentlyDenied.
+  ///
+  /// In vi, this message translates to:
+  /// **'Quyền vị trí đang bị từ chối vĩnh viễn. Mở Cài đặt ứng dụng để bật lại quyền vị trí.'**
+  String get nearbyClinicLocationRequiredPermanentlyDenied;
+
+  /// No description provided for @clinicDetailIntroduction.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giới thiệu'**
+  String get clinicDetailIntroduction;
+
+  /// No description provided for @clinicDetailIntroEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám chưa cập nhật phần giới thiệu.'**
+  String get clinicDetailIntroEmpty;
+
+  /// No description provided for @clinicDetailContact.
+  ///
+  /// In vi, this message translates to:
+  /// **'Liên hệ'**
+  String get clinicDetailContact;
+
+  /// No description provided for @clinicDetailWorkingHours.
+  ///
+  /// In vi, this message translates to:
+  /// **'Giờ làm việc'**
+  String get clinicDetailWorkingHours;
+
+  /// No description provided for @clinicDetailPhone.
+  ///
+  /// In vi, this message translates to:
+  /// **'Điện thoại'**
+  String get clinicDetailPhone;
+
+  /// No description provided for @clinicDetailEmail.
+  ///
+  /// In vi, this message translates to:
+  /// **'Email'**
+  String get clinicDetailEmail;
+
+  /// No description provided for @clinicDetailContactEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám chưa cập nhật thông tin liên hệ.'**
+  String get clinicDetailContactEmpty;
+
+  /// No description provided for @clinicDetailServices.
+  ///
+  /// In vi, this message translates to:
+  /// **'Dịch vụ'**
+  String get clinicDetailServices;
+
+  /// No description provided for @clinicDetailServicesEmpty.
+  ///
+  /// In vi, this message translates to:
+  /// **'Phòng khám chưa công bố danh sách dịch vụ.'**
+  String get clinicDetailServicesEmpty;
+
+  /// No description provided for @clinicDetailReviews.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đánh giá gần đây'**
+  String get clinicDetailReviews;
+
+  /// No description provided for @clinicDetailBookNow.
+  ///
+  /// In vi, this message translates to:
+  /// **'Đặt lịch ngay'**
+  String get clinicDetailBookNow;
 }
 
 class _AppLocalizationsDelegate

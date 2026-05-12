@@ -513,6 +513,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get doctor => 'Doctor';
 
   @override
+  String get doctorExperience => 'Experience';
+
+  @override
+  String get notUpdated => 'Not updated';
+
+  @override
   String get specialty => 'Specialty';
 
   @override
@@ -1286,4 +1292,58 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reportPostAlreadyReported => 'You already reported this post.';
+
+  @override
+  String get nearbyClinicTitle => 'Nearby Clinics';
+
+  @override
+  String get nearbyClinicEmpty => 'No clinics found near you yet.';
+
+  @override
+  String get nearbyClinicLocationRequiredDenied =>
+      'Location access is required to find nearby clinics. Please grant the permission and try again.';
+
+  @override
+  String get nearbyClinicLocationRequiredServiceDisabled =>
+      'Please enable Location (GPS) on your device to find nearby clinics.';
+
+  @override
+  String get nearbyClinicLocationRequiredPermanentlyDenied =>
+      'Location permission is permanently denied. Open app Settings to re-enable it.';
+
+  @override
+  String get clinicDetailIntroduction => 'Introduction';
+
+  @override
+  String get clinicDetailIntroEmpty =>
+      'This clinic hasn\'t added an introduction yet.';
+
+  @override
+  String get clinicDetailContact => 'Contact';
+
+  @override
+  String get clinicDetailWorkingHours => 'Working hours';
+
+  @override
+  String get clinicDetailPhone => 'Phone';
+
+  @override
+  String get clinicDetailEmail => 'Email';
+
+  @override
+  String get clinicDetailContactEmpty =>
+      'This clinic hasn\'t added contact details yet.';
+
+  @override
+  String get clinicDetailServices => 'Services';
+
+  @override
+  String get clinicDetailServicesEmpty =>
+      'This clinic hasn\'t published its services yet.';
+
+  @override
+  String get clinicDetailReviews => 'Recent reviews';
+
+  @override
+  String get clinicDetailBookNow => 'Book Now';
 }

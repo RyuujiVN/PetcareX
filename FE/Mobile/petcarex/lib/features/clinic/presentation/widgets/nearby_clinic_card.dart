@@ -1,87 +1,29 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/theme/app_colors.dart';
-import '../../../../../core/utils/distance_formatter.dart';
-import '../../../../../core/widgets/star_rating_widget.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/distance_formatter.dart';
+import '../../../../core/widgets/star_rating_widget.dart';
 import '../../../../l10n/generated/app_localizations.dart';
-import '../../data/models/booking_models.dart';
+import '../../../booking/data/models/booking_models.dart';
 
-class StepClinicSelector extends StatelessWidget {
-  final String? selectedClinicId;
-  final ValueChanged<Clinic> onSelected;
-  final ValueChanged<Clinic>? onViewDetail;
-  final List<Clinic> clinics;
-  final bool isLoadingMore;
-  final bool hasMore;
-
-  const StepClinicSelector({
-    super.key,
-    required this.selectedClinicId,
-    required this.onSelected,
-    this.onViewDetail,
-    required this.clinics,
-    this.isLoadingMore = false,
-    this.hasMore = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return SliverMainAxisGroup(
-      slivers: [
-        SliverList.builder(
-          itemCount: clinics.length,
-          itemBuilder: (context, i) {
-            final clinic = clinics[i];
-            return _ClinicCard(
-              clinic: clinic,
-              isSelected: clinic.id == selectedClinicId,
-              onTap: () => onSelected(clinic),
-              onViewDetail: onViewDetail == null
-                  ? null
-                  : () => onViewDetail!(clinic),
-            );
-          },
-        ),
-        if (isLoadingMore)
-          const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                    color: AppColors.primary,
-                    strokeWidth: 2,
-                  ),
-                ),
-              ),
-            ),
-          )
-        else if (!hasMore && clinics.isNotEmpty)
-          const SliverToBoxAdapter(child: SizedBox(height: 8)),
-      ],
-    );
-  }
-}
-
-class _ClinicCard extends StatelessWidget {
+// Card hiển thị clinic trong list "Tìm phòng khám gần nhất". Layout đồng bộ với
+// step_clinic_selector ở booking flow nhưng bỏ trạng thái selected (luồng này tap
+// để mở detail, không phải chọn).
+class NearbyClinicCard extends StatelessWidget {
   final Clinic clinic;
-  final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback? onViewDetail;
 
-  const _ClinicCard({
+  const NearbyClinicCard({
+    super.key,
     required this.clinic,
-    required this.isSelected,
     required this.onTap,
-    this.onViewDetail,
   });
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final hasReviews = clinic.totalReviews > 0;
+    final distanceText = formatDistance(clinic.distance);
 
     return GestureDetector(
       onTap: onTap,
@@ -91,10 +33,14 @@ class _ClinicCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.cardBackground,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : AppColors.divider,
-            width: 1.5,
-          ),
+          border: Border.all(color: AppColors.divider, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.textAlpha(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,7 +76,7 @@ class _ClinicCard extends StatelessWidget {
                       color: AppColors.textGrey,
                     ),
                   ),
-                  if (formatDistance(clinic.distance).isNotEmpty) ...[
+                  if (distanceText.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Row(
                       children: [
@@ -141,7 +87,7 @@ class _ClinicCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          formatDistance(clinic.distance),
+                          distanceText,
                           style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
@@ -187,49 +133,17 @@ class _ClinicCard extends StatelessWidget {
                         fontStyle: FontStyle.italic,
                       ),
                     ),
-                  if (onViewDetail != null) ...[
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: OutlinedButton.icon(
-                        onPressed: onViewDetail,
-                        icon: const Icon(Icons.visibility_outlined, size: 16),
-                        label: Text(
-                          l10n.viewDetail,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.primary,
-                          side: BorderSide(
-                            color: AppColors.primary.withValues(alpha: 0.4),
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 8,
-                          ),
-                          visualDensity: const VisualDensity(
-                            horizontal: -2,
-                            vertical: -2,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
-            if (isSelected)
-              const Padding(
-                padding: EdgeInsets.only(left: 8, top: 4),
-                child: Icon(
-                  Icons.check_circle,
-                  color: AppColors.primary,
-                  size: 24,
-                ),
+            const Padding(
+              padding: EdgeInsets.only(left: 8, top: 4),
+              child: Icon(
+                Icons.chevron_right,
+                color: AppColors.iconGrey,
+                size: 22,
               ),
+            ),
           ],
         ),
       ),

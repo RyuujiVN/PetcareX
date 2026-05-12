@@ -13,6 +13,7 @@ import 'features/auth/presentation/login_page.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
 import 'features/booking/presentation/provider/booking_provider.dart';
 import 'features/chat/presentation/provider/chat_provider.dart';
+import 'features/clinic/presentation/provider/nearby_clinic_provider.dart';
 import 'features/community/presentation/provider/community_provider.dart';
 import 'features/notification/presentation/provider/notification_provider.dart';
 import 'features/pet/presentation/provider/pet_provider.dart';
@@ -45,6 +46,7 @@ void main () async {
         ChangeNotifierProvider(create: (_) => CommunityProvider()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => NearbyClinicProvider()),
       ],
       child: const MyApp(),
     ),
@@ -62,6 +64,15 @@ class MyApp extends StatelessWidget {
       title: 'PetCareX',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
+      builder: (context, child) {
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
       locale: languageProvider.locale,
       localizationsDelegates: const [
         AppLocalizations.delegate,

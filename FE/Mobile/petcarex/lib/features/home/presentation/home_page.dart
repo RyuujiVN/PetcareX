@@ -18,6 +18,7 @@ import '../../appointment/data/appointment_model.dart';
 import '../../appointment/presentation/provider/appointment_provider.dart';
 import '../../booking/presentation/booking_page.dart';
 import '../../chat/presentation/chat_page.dart';
+import '../../clinic/presentation/nearby_clinic_page.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import '../../notification/presentation/widgets/notification_bell_button.dart';
 import '../../pet/data/models/pet_models.dart';
@@ -278,16 +279,6 @@ class _HomePageState extends State<HomePage> {
         ),
         const SizedBox(height: 16),
         _buildAppointmentSection(l10n),
-        const SizedBox(height: 32),
-        _buildSectionHeader(
-          l10n.petCareForum,
-          l10n.explore,
-          onTap: () {
-            MainNavigationWrapper.of(context)?.setSelectedIndex(2);
-          },
-        ),
-        const SizedBox(height: 16),
-        _buildForumPost(),
         const SizedBox(height: 100),
       ],
     );
@@ -615,10 +606,9 @@ class _HomePageState extends State<HomePage> {
           AppColors.successAlpha(0.12),
           AppColors.success,
           onTap: () {
-            AppNotifier.showInfo(
+            Navigator.push(
               context,
-              'Developing...',
-              duration: const Duration(seconds: 2),
+              MaterialPageRoute(builder: (_) => const NearbyClinicPage()),
             );
           },
         ),
@@ -1161,75 +1151,6 @@ class _HomePageState extends State<HomePage> {
     AppNotifier.showError(context, l10n.failed);
   }
 
-  Widget _buildForumPost() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.secondary,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.textAlpha(0.03),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CachedNetworkImage(
-                imageUrl: 'https://i.pravatar.cc/150?u=woman1',
-                imageBuilder: (context, imageProvider) =>
-                    CircleAvatar(radius: 18, backgroundImage: imageProvider),
-                placeholder: (context, url) => const CircleAvatar(
-                  radius: 18,
-                  child: SizedBox(
-                    width: 14,
-                    height: 14,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                ),
-                errorWidget: (context, url, error) => const CircleAvatar(
-                  radius: 18,
-                  child: Icon(Icons.person, size: 18),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Lan Huong",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
-                    ),
-                    Text(
-                      "2h ago • Cat Experience",
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: AppColors.textAlpha(0.55),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            "Any tips for kidney stones in cats?",
-            style: TextStyle(fontSize: 13, height: 1.5),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _HomeHeaderDelegate extends SliverPersistentHeaderDelegate {

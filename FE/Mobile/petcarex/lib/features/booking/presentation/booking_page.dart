@@ -8,6 +8,7 @@ import '../../../../core/utils/app_notifier.dart';
 import '../../../../features/pet/data/models/pet_models.dart';
 import '../../../../features/pet/presentation/provider/pet_provider.dart';
 import '../../../l10n/generated/app_localizations.dart';
+import '../../clinic/presentation/clinic_detail_page.dart';
 import '../../main_navigation/presentation/main_navigation_wrapper.dart';
 import 'provider/booking_provider.dart';
 import 'widget/step_clinic_selector.dart';
@@ -521,6 +522,13 @@ class _BookingPageState extends State<BookingPage> {
           sliver: StepClinicSelector(
             selectedClinicId: bookingProvider.selectedClinic?.id,
             onSelected: (clinic) => bookingProvider.selectClinic(clinic),
+            onViewDetail: (clinic) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => ClinicDetailPage(clinic: clinic),
+                ),
+              );
+            },
             clinics: bookingProvider.clinics,
             isLoadingMore: bookingProvider.isLoadingMoreClinics,
             hasMore: bookingProvider.hasMoreClinics,
